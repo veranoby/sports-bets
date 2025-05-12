@@ -1,6 +1,8 @@
 # Sports Bets
 
-Plataforma de transmisión en vivo y apuestas peer-to-peer para eventos deportivos, especializada inicialmente en peleas de gallos.
+Plataforma de transmisión en vivo y apuestas peer-to-peer para eventos deportivos. La estructura se basa en:
+
+Locacion -> evento (1,2,3,4,etc) -> apuestas disponibles por evento
 
 ## Estructura del Proyecto
 
