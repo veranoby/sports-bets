@@ -1,0 +1,358 @@
+"use client";
+
+import type React from "react";
+import { useState } from "react";
+import {
+  Search,
+  Bell,
+  ChevronRight,
+  Trophy,
+  Calendar,
+  FlameIcon as Fire,
+} from "lucide-react";
+
+// Importación de componentes
+import Navigation from "../../components/user/Navigation";
+import WalletSummary from "../../components/user/WalletSummary";
+import EventCard from "../../components/user/EventCard";
+import BetCard from "../../components/user/BetCard";
+
+// Datos de ejemplo para el dashboard
+const mockData = {
+  wallet: {
+    balance: 1250.75,
+    frozenAmount: 350.0,
+  },
+  liveEvents: [
+    {
+      id: "event-1",
+      venueName: "Gallera El Palenque",
+      isLive: true,
+      dateTime: new Date().toISOString(),
+      activeBettors: 128,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+    {
+      id: "event-2",
+      venueName: "Arena San Juan",
+      isLive: true,
+      dateTime: new Date().toISOString(),
+      activeBettors: 95,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+  ],
+  upcomingEvents: [
+    {
+      id: "event-3",
+      venueName: "Coliseo Nacional",
+      isLive: false,
+      dateTime: new Date(Date.now() + 86400000).toISOString(), // Mañana
+      activeBettors: 42,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+    {
+      id: "event-4",
+      venueName: "Gallera La Victoria",
+      isLive: false,
+      dateTime: new Date(Date.now() + 172800000).toISOString(), // Pasado mañana
+      activeBettors: 31,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+  ],
+  activeBets: [
+    {
+      id: "bet-1",
+      amount: 100,
+      potentialWin: 190,
+      side: "red" as const,
+      venueName: "Gallera El Palenque",
+      fightNumber: 3,
+      status: "active" as const,
+    },
+    {
+      id: "bet-2",
+      amount: 50,
+      potentialWin: 95,
+      side: "blue" as const,
+      venueName: "Arena San Juan",
+      fightNumber: 5,
+      status: "settled" as const,
+      result: "win" as const,
+    },
+    {
+      id: "bet-3",
+      amount: 75,
+      potentialWin: 142.5,
+      side: "red" as const,
+      venueName: "Coliseo Nacional",
+      fightNumber: 2,
+      status: "settled" as const,
+      result: "loss" as const,
+    },
+  ],
+  featuredVenues: [
+    {
+      id: "venue-1",
+      name: "Gallera El Palenque",
+      location: "Ciudad de México",
+      imageUrl: "/placeholder.svg?height=100&width=200",
+    },
+    {
+      id: "venue-2",
+      name: "Arena San Juan",
+      location: "San Juan, PR",
+      imageUrl: "/placeholder.svg?height=100&width=200",
+    },
+    {
+      id: "venue-3",
+      name: "Coliseo Nacional",
+      location: "Bogotá, Colombia",
+      imageUrl: "/placeholder.svg?height=100&width=200",
+    },
+  ],
+  pastEvents: [
+    {
+      id: "event-5",
+      venueName: "Gallera Imperial",
+      isLive: false,
+      dateTime: new Date(Date.now() - 172800000).toISOString(), // Hace 2 días
+      activeBettors: 0,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+    {
+      id: "event-6",
+      venueName: "Arena Central",
+      isLive: false,
+      dateTime: new Date(Date.now() - 86400000).toISOString(), // Ayer
+      activeBettors: 0,
+      imageUrl: "/placeholder.svg?height=200&width=400",
+    },
+  ],
+};
+
+const Dashboard: React.FC = () => {
+  const [activePage, setActivePage] = useState<
+    "home" | "events" | "bets" | "profile"
+  >("home");
+
+  // Handlers para acciones
+  const handleNavigate = (page: "home" | "events" | "bets" | "profile") => {
+    setActivePage(page);
+  };
+
+  const handleViewWallet = () => {
+    console.log("Ver billetera completa");
+  };
+
+  const handleEnterEvent = (id: string) => {
+    console.log(`Entrar al evento: ${id}`);
+  };
+
+  const handleViewBetDetails = (id: string) => {
+    console.log(`Ver detalles de apuesta: ${id}`);
+  };
+
+  const handleViewAllEvents = () => {
+    setActivePage("events");
+  };
+
+  const handleViewAllBets = () => {
+    setActivePage("bets");
+  };
+
+  const handleViewPastEvents = () => {
+    console.log("Ver eventos pasados");
+    // Aquí se podría navegar a una página de eventos pasados
+  };
+
+  return (
+    <div className="bg-gray-50 min-h-screen pb-20">
+      {/* Header */}
+      <header className="bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold text-gray-900">
+                Sports<span className="text-red-500">Bets</span>
+              </h1>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Buscar"
+              >
+                <Search className="w-5 h-5 text-gray-600" />
+              </button>
+              <button
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors relative"
+                aria-label="Notificaciones"
+              >
+                <Bell className="w-5 h-5 text-gray-600" />
+                <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+              </button>
+            </div>
+          </div>
+
+          {/* Wallet Summary */}
+          <div className="mt-4">
+            <WalletSummary
+              balance={mockData.wallet.balance}
+              frozenAmount={mockData.wallet.frozenAmount}
+              onViewWallet={handleViewWallet}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {/* Live Events Section */}
+        <section className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2">
+              <Fire className="w-4 h-4 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Eventos en Vivo</h2>
+            <button
+              onClick={handleViewAllEvents}
+              className="ml-auto text-sm text-red-500 font-medium flex items-center"
+            >
+              Ver todos <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mockData.liveEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                id={event.id}
+                venueName={event.venueName}
+                isLive={event.isLive}
+                dateTime={event.dateTime}
+                activeBettors={event.activeBettors}
+                imageUrl={event.imageUrl}
+                onEnter={handleEnterEvent}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Upcoming Events Section */}
+        <section className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mr-2">
+              <Calendar className="w-4 h-4 text-blue-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">
+              Próximos Eventos
+            </h2>
+            <div className="ml-auto flex items-center space-x-4">
+              <button
+                onClick={handleViewPastEvents}
+                className="text-sm text-gray-500 font-medium flex items-center hover:text-gray-700"
+              >
+                Eventos pasados <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleViewAllEvents}
+                className="text-sm text-red-500 font-medium flex items-center"
+              >
+                Ver todos <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mockData.upcomingEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                id={event.id}
+                venueName={event.venueName}
+                isLive={event.isLive}
+                dateTime={event.dateTime}
+                activeBettors={event.activeBettors}
+                imageUrl={event.imageUrl}
+                onEnter={handleEnterEvent}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Active Bets Section */}
+        <section className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-2">
+              <Trophy className="w-4 h-4 text-green-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Tus Apuestas</h2>
+            <button
+              onClick={handleViewAllBets}
+              className="ml-auto text-sm text-red-500 font-medium flex items-center"
+            >
+              Ver todas <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mockData.activeBets.map((bet) => (
+              <BetCard
+                key={bet.id}
+                id={bet.id}
+                amount={bet.amount}
+                potentialWin={bet.potentialWin}
+                side={bet.side}
+                venueName={bet.venueName}
+                fightNumber={bet.fightNumber}
+                status={bet.status}
+                result={bet.result}
+                onViewDetails={handleViewBetDetails}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Venues Section */}
+        <section className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full mr-2">
+              <Trophy className="w-4 h-4 text-purple-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">
+              Galleras Destacadas
+            </h2>
+            <button className="ml-auto text-sm text-red-500 font-medium flex items-center">
+              Ver todas <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {mockData.featuredVenues.map((venue) => (
+              <div
+                key={venue.id}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={venue.imageUrl || "/placeholder.svg"}
+                    alt={venue.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-3">
+                  <h3 className="font-semibold text-gray-900">{venue.name}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{venue.location}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* Navigation */}
+      <Navigation activePage={activePage} onNavigate={handleNavigate} />
+    </div>
+  );
+};
+
+export default Dashboard;

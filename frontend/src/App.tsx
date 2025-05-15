@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import OperatorDashboard from "./pages/operator/Dashboard";
+import UserDashboard from "./pages/user/Dashboard";
+
+type DashboardType = "operator" | "user";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [dashboardType, setDashboardType] = useState<DashboardType>("user");
+
+  const toggleDashboard = (type: DashboardType) => {
+    setDashboardType(type);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app-container">
+      {/* Development mode selector */}
+      {import.meta.env.DEV && (
+        <div className="dashboard-selector p-4 bg-gray-100 border-b">
+          <div className="max-w-7xl mx-auto flex items-center justify-center space-x-4">
+            <button
+              onClick={() => toggleDashboard("user")}
+              className={`px-4 py-2 rounded ${
+                dashboardType === "user"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              User Dashboard
+            </button>
+            <button
+              onClick={() => toggleDashboard("operator")}
+              className={`px-4 py-2 rounded ${
+                dashboardType === "operator"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              Operator Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Dashboard content */}
+      <div className="dashboard-content">
+        {dashboardType === "operator" ? (
+          <OperatorDashboard />
+        ) : (
+          <UserDashboard />
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
