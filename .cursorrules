@@ -1,9 +1,11 @@
 # Proyecto Apuestas de Galleros - Reglas específicas
 
 ## Tecnologías y Frameworks
+
 - Dominio experto en: React, React Native, Node.js, Express, PostgreSQL, MongoDB, WebSockets, Streaming Media (Nginx-RTMP), BunnyCDN, OBS Studio, Kushki Payment Gateway
 
 ## Prioridades técnicas
+
 - Optimización para transmisiones en vivo de larga duración (8+ horas)
 - Gestión eficiente de apuestas en tiempo real
 - Sistema de emparejamiento avanzado para hasta 2,000 apuestas/evento
@@ -12,6 +14,7 @@
 - Tolerancia a fallos y recuperación automática ante problemas técnicos
 
 ## Media Streaming Expertise
+
 - Configuración óptima de Nginx-RTMP para streams de larga duración
 - Implementación de HLS/DASH para streaming adaptativo
 - Optimización de bitrate y calidad de video (720p máximo)
@@ -21,6 +24,7 @@
 - Configuración de OBS Studio para transmisiones estables
 
 ## Financial Systems Architecture
+
 - Diseño de billetera virtual con saldos congelables para apuestas
 - Integración segura con Kushki para depósitos
 - Procesos de verificación para retiros manuales
@@ -30,6 +34,7 @@
 - Detección de patrones sospechosos en apuestas
 
 ## Real-Time Systems Engineering
+
 - Implementación eficiente de WebSockets con Socket.io
 - Arquitectura de salas y canales para notificaciones específicas
 - Estrategias de reconexión automática para clientes
@@ -39,6 +44,7 @@
 - Sincronización entre múltiples instancias de servidor
 
 ## Frontend (React/React Native)
+
 - Componentes reutilizables entre web y móvil
 - Interfaces optimizadas para actualizaciones frecuentes en tiempo real
 - Diseño responsive con prioridad móvil para sistema de apuestas
@@ -48,17 +54,19 @@
 - Uso eficiente de estado global vs. local (Context API/Redux)
 
 ## Backend (Node.js/Express)
+
 - APIs RESTful con autenticación robusta (JWT)
 - Implementación de WebSockets para actualizaciones en tiempo real
 - Arquitectura modular para manejo de diferentes componentes:
-  * Sistema de streaming y gestión de medios
-  * Sistema de apuestas y emparejamiento
-  * Gestión de usuarios y billetera virtual
-  * Integración con Kushki para pagos
+  - Sistema de streaming y gestión de medios
+  - Sistema de apuestas y emparejamiento
+  - Gestión de usuarios y billetera virtual
+  - Integración con Kushki para pagos
 - Manejo avanzado de errores y logging centralizado
 - Endpoints optimizados para baja latencia
 
 ## Base de datos
+
 - PostgreSQL (Neon.tech) para transacciones financieras y datos estructurados
 - Posible adición de MongoDB para eventos y métricas en fases posteriores
 - Índices optimizados para consultas de alto rendimiento
@@ -67,6 +75,7 @@
 - Transacciones atómicas para operaciones financieras
 
 ## Seguridad
+
 - Implementación de mejores prácticas para gestión de fondos
 - Protección contra fraudes y manipulación de resultados
 - Validación y sanitización estricta de todas las entradas
@@ -75,6 +84,7 @@
 - Registro detallado de actividades financieras y administrativas
 
 ## Infraestructura y operaciones
+
 - Fly.io para backend API (escalable automáticamente)
 - Neon.tech para PostgreSQL (plan gratuito escalable)
 - DigitalOcean para servidor de streaming
@@ -84,7 +94,28 @@
 - Monitoreo en tiempo real de salud del sistema
 
 ## Interfaces principales
+
 - Dashboard de usuario (apostador)
 - Panel de operador en gallera
 - Panel administrativo completo
 - Interfaz de billetera virtual y transacciones
+- Fixed button styling issue: Added both Tailwind classes and inline styles to ensure the button background is correctly displayed regardless of the global styles. Using both !border-0 to override borders and direct RGB styles for color control.
+- mproved TypeScript typing: Made imageUrl prop optional and added proper typing for the image error handler.
+- Added image fallback: Implemented both a default fallback for missing imageUrl and an onError handler for images that fail to load.
+
+## Enhanced visual elements:
+
+- Added flex-shrink-0 to icons to prevent them from shrinking on smaller screens
+- Added a subtle background color to the image container while it loads
+- Improved accessibility with descriptive aria-label attributes
+- Added loading="lazy" for performance
+
+## Mobile optimization:
+
+- Improved text handling with proper overflow control
+- Used flexible layout patterns that adapt well to different screen sizes
+- Made the button click target larger and more accessible
+- Code quality improvements:
+- Added JSDoc comment at the top of the component
+- Added descriptive comments for key functions
+- Structured the component for better maintainability

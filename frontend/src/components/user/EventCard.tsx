@@ -1,15 +1,19 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { Clock, Users, ArrowRight } from "lucide-react";
 
+/**
+ * EventCard component for displaying event information
+ * Shows different styling for live vs upcoming events
+ */
 interface EventCardProps {
   id: string;
   venueName: string;
   isLive: boolean;
   dateTime: string;
   activeBettors: number;
-  imageUrl: string;
+  imageUrl?: string; // Made optional with fallback
   onEnter: (id: string) => void;
 }
 
@@ -22,7 +26,7 @@ const EventCard: React.FC<EventCardProps> = ({
   imageUrl,
   onEnter,
 }) => {
-  // Formatear fecha para mostrar
+  // Format date for display
   const formattedDate = new Date(dateTime).toLocaleDateString("es-ES", {
     weekday: "short",
     day: "numeric",
@@ -34,14 +38,23 @@ const EventCard: React.FC<EventCardProps> = ({
     minute: "2-digit",
   });
 
+  // Handle image loading errors
+  const handleImageError = (
+    e: React.SyntheticEvent<HTMLImageElement, Event>
+  ) => {
+    e.currentTarget.src = "/placeholder.svg";
+  };
+
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md">
       <div className="relative">
-        <div className="aspect-[16/9] overflow-hidden">
+        <div className="aspect-[16/9] overflow-hidden bg-gray-50">
           <img
             src={imageUrl || "/placeholder.svg"}
-            alt={venueName}
+            alt={`Evento en ${venueName}`}
             className="w-full h-full object-cover"
+            onError={handleImageError}
+            loading="lazy"
           />
         </div>
 
@@ -64,14 +77,14 @@ const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         <div className="flex items-center text-gray-500 text-sm mb-3">
-          <Clock className="w-4 h-4 mr-1.5" />
+          <Clock className="w-4 h-4 mr-1.5 flex-shrink-0" />
           <span>
             {isLive ? "En curso" : `${formattedDate} - ${formattedTime}`}
           </span>
         </div>
 
         <div className="flex items-center text-gray-500 text-sm mb-4">
-          <Users className="w-4 h-4 mr-1.5" />
+          <Users className="w-4 h-4 mr-1.5 flex-shrink-0" />
           <span>{activeBettors} apostadores activos</span>
         </div>
 
@@ -79,9 +92,17 @@ const EventCard: React.FC<EventCardProps> = ({
           onClick={() => onEnter(id)}
           className={`w-full flex items-center justify-center font-medium py-2.5 px-4 rounded-lg transition-colors ${
             isLive
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+              ? "bg-red-500 hover:bg-red-600 text-white !border-0"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-700 !border-0"
           }`}
+          aria-label={
+            isLive ? "Entrar al evento en vivo" : "Ver detalles del evento"
+          }
+          type="button"
+          style={{
+            backgroundColor: isLive ? "rgb(239 68 68)" : "rgb(243 244 246)",
+            color: isLive ? "white" : "rgb(55 65 81)",
+          }}
         >
           {isLive ? "Entrar ahora" : "Ver detalles"}
           <ArrowRight className="w-4 h-4 ml-1.5" />
