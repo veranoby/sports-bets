@@ -1,7 +1,11 @@
+/**
+ * Dashboard Component
+ * Página principal para usuarios que muestra eventos en vivo, próximos, apuestas activas
+ * y establecimientos destacados
+ */
 "use client";
 
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Search,
   Bell,
@@ -13,9 +17,15 @@ import {
 
 // Importación de componentes
 import Navigation from "../../components/user/Navigation";
+import type { NavigationPage } from "../../components/user/Navigation";
 import WalletSummary from "../../components/user/WalletSummary";
 import EventCard from "../../components/user/EventCard";
 import BetCard from "../../components/user/BetCard";
+import type {
+  BetSide,
+  BetStatus,
+  BetResult,
+} from "../../components/user/BetCard";
 
 // Datos de ejemplo para el dashboard
 const mockData = {
@@ -64,30 +74,30 @@ const mockData = {
       id: "bet-1",
       amount: 100,
       potentialWin: 190,
-      side: "red" as const,
+      side: "red" as BetSide,
       venueName: "Gallera El Palenque",
       fightNumber: 3,
-      status: "active" as const,
+      status: "active" as BetStatus,
     },
     {
       id: "bet-2",
       amount: 50,
       potentialWin: 95,
-      side: "blue" as const,
+      side: "blue" as BetSide,
       venueName: "Arena San Juan",
       fightNumber: 5,
-      status: "settled" as const,
-      result: "win" as const,
+      status: "settled" as BetStatus,
+      result: "win" as BetResult,
     },
     {
       id: "bet-3",
       amount: 75,
       potentialWin: 142.5,
-      side: "red" as const,
+      side: "red" as BetSide,
       venueName: "Coliseo Nacional",
       fightNumber: 2,
-      status: "settled" as const,
-      result: "loss" as const,
+      status: "settled" as BetStatus,
+      result: "loss" as BetResult,
     },
   ],
   featuredVenues: [
@@ -131,25 +141,26 @@ const mockData = {
 };
 
 const Dashboard: React.FC = () => {
-  const [activePage, setActivePage] = useState<
-    "home" | "events" | "bets" | "profile"
-  >("home");
+  const [activePage, setActivePage] = useState<NavigationPage>("home");
 
   // Handlers para acciones
-  const handleNavigate = (page: "home" | "events" | "bets" | "profile") => {
+  const handleNavigate = (page: NavigationPage) => {
     setActivePage(page);
   };
 
   const handleViewWallet = () => {
     console.log("Ver billetera completa");
+    // Implementación futura: navegación a vista detallada de billetera
   };
 
   const handleEnterEvent = (id: string) => {
     console.log(`Entrar al evento: ${id}`);
+    // Implementación futura: navegación a vista detallada del evento
   };
 
   const handleViewBetDetails = (id: string) => {
     console.log(`Ver detalles de apuesta: ${id}`);
+    // Implementación futura: navegación a vista detallada de la apuesta
   };
 
   const handleViewAllEvents = () => {
@@ -162,7 +173,7 @@ const Dashboard: React.FC = () => {
 
   const handleViewPastEvents = () => {
     console.log("Ver eventos pasados");
-    // Aquí se podría navegar a una página de eventos pasados
+    // Implementación futura: navegación a vista de eventos pasados
   };
 
   return (
@@ -179,17 +190,22 @@ const Dashboard: React.FC = () => {
 
             <div className="flex items-center space-x-3">
               <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors !border-0"
                 aria-label="Buscar"
+                style={{ backgroundColor: "transparent" }}
               >
                 <Search className="w-5 h-5 text-gray-600" />
               </button>
               <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors relative"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors relative !border-0"
                 aria-label="Notificaciones"
+                style={{ backgroundColor: "transparent" }}
               >
                 <Bell className="w-5 h-5 text-gray-600" />
-                <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+                <span
+                  className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"
+                  aria-hidden="true"
+                ></span>
               </button>
             </div>
           </div>
@@ -207,42 +223,47 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        {/* Live Events Section */}
-        <section className="mb-8">
-          <div className="flex items-center mb-4">
-            <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2">
-              <Fire className="w-4 h-4 text-red-500" />
+        {/* Live Events Section - Mostrado cuando hay eventos en vivo */}
+        {mockData.liveEvents.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center mb-4">
+              <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2 flex-shrink-0">
+                <Fire className="w-4 h-4 text-red-500" aria-hidden="true" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Eventos en Vivo
+              </h2>
+              <button
+                onClick={handleViewAllEvents}
+                className="ml-auto text-sm text-red-500 font-medium flex items-center !border-0"
+                style={{ backgroundColor: "transparent" }}
+              >
+                Ver todos <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              </button>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Eventos en Vivo</h2>
-            <button
-              onClick={handleViewAllEvents}
-              className="ml-auto text-sm text-red-500 font-medium flex items-center"
-            >
-              Ver todos <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockData.liveEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                venueName={event.venueName}
-                isLive={event.isLive}
-                dateTime={event.dateTime}
-                activeBettors={event.activeBettors}
-                imageUrl={event.imageUrl}
-                onEnter={handleEnterEvent}
-              />
-            ))}
-          </div>
-        </section>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {mockData.liveEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  venueName={event.venueName}
+                  isLive={event.isLive}
+                  dateTime={event.dateTime}
+                  activeBettors={event.activeBettors}
+                  imageUrl={event.imageUrl}
+                  onEnter={handleEnterEvent}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Upcoming Events Section */}
         <section className="mb-8">
           <div className="flex items-center mb-4">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mr-2">
-              <Calendar className="w-4 h-4 text-blue-500" />
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mr-2 flex-shrink-0">
+              <Calendar className="w-4 h-4 text-blue-500" aria-hidden="true" />
             </div>
             <h2 className="text-xl font-bold text-gray-900">
               Próximos Eventos
@@ -250,20 +271,23 @@ const Dashboard: React.FC = () => {
             <div className="ml-auto flex items-center space-x-4">
               <button
                 onClick={handleViewPastEvents}
-                className="text-sm text-gray-500 font-medium flex items-center hover:text-gray-700"
+                className="text-sm text-gray-500 font-medium flex items-center hover:text-gray-700 !border-0"
+                style={{ backgroundColor: "transparent" }}
               >
-                Eventos pasados <ChevronRight className="w-4 h-4" />
+                Eventos pasados{" "}
+                <ChevronRight className="w-4 h-4 flex-shrink-0" />
               </button>
               <button
                 onClick={handleViewAllEvents}
-                className="text-sm text-red-500 font-medium flex items-center"
+                className="text-sm text-red-500 font-medium flex items-center !border-0"
+                style={{ backgroundColor: "transparent" }}
               >
-                Ver todos <ChevronRight className="w-4 h-4" />
+                Ver todos <ChevronRight className="w-4 h-4 flex-shrink-0" />
               </button>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {mockData.upcomingEvents.map((event) => (
               <EventCard
                 key={event.id}
@@ -279,50 +303,56 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* Active Bets Section */}
-        <section className="mb-8">
-          <div className="flex items-center mb-4">
-            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-2">
-              <Trophy className="w-4 h-4 text-green-500" />
+        {/* Active Bets Section - Mostrado cuando hay apuestas activas */}
+        {mockData.activeBets.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center mb-4">
+              <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-2 flex-shrink-0">
+                <Trophy className="w-4 h-4 text-green-500" aria-hidden="true" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Tus Apuestas</h2>
+              <button
+                onClick={handleViewAllBets}
+                className="ml-auto text-sm text-red-500 font-medium flex items-center !border-0"
+                style={{ backgroundColor: "transparent" }}
+              >
+                Ver todas <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              </button>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Tus Apuestas</h2>
-            <button
-              onClick={handleViewAllBets}
-              className="ml-auto text-sm text-red-500 font-medium flex items-center"
-            >
-              Ver todas <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockData.activeBets.map((bet) => (
-              <BetCard
-                key={bet.id}
-                id={bet.id}
-                amount={bet.amount}
-                potentialWin={bet.potentialWin}
-                side={bet.side}
-                venueName={bet.venueName}
-                fightNumber={bet.fightNumber}
-                status={bet.status}
-                result={bet.result}
-                onViewDetails={handleViewBetDetails}
-              />
-            ))}
-          </div>
-        </section>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {mockData.activeBets.map((bet) => (
+                <BetCard
+                  key={bet.id}
+                  id={bet.id}
+                  amount={bet.amount}
+                  potentialWin={bet.potentialWin}
+                  side={bet.side}
+                  venueName={bet.venueName}
+                  fightNumber={bet.fightNumber}
+                  status={bet.status}
+                  result={bet.result}
+                  onViewDetails={handleViewBetDetails}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Featured Venues Section */}
         <section className="mb-8">
           <div className="flex items-center mb-4">
-            <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full mr-2">
-              <Trophy className="w-4 h-4 text-purple-500" />
+            <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full mr-2 flex-shrink-0">
+              <Trophy className="w-4 h-4 text-purple-500" aria-hidden="true" />
             </div>
             <h2 className="text-xl font-bold text-gray-900">
               Galleras Destacadas
             </h2>
-            <button className="ml-auto text-sm text-red-500 font-medium flex items-center">
-              Ver todas <ChevronRight className="w-4 h-4" />
+            <button
+              className="ml-auto text-sm text-red-500 font-medium flex items-center !border-0"
+              style={{ backgroundColor: "transparent" }}
+            >
+              Ver todas <ChevronRight className="w-4 h-4 flex-shrink-0" />
             </button>
           </div>
 
@@ -332,16 +362,25 @@ const Dashboard: React.FC = () => {
                 key={venue.id}
                 className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md"
               >
-                <div className="aspect-[4/3] overflow-hidden">
+                <div className="aspect-[4/3] overflow-hidden bg-gray-50">
                   <img
                     src={venue.imageUrl || "/placeholder.svg"}
                     alt={venue.name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder.svg";
+                    }}
                   />
                 </div>
                 <div className="p-3">
-                  <h3 className="font-semibold text-gray-900">{venue.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{venue.location}</p>
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {venue.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {venue.location}
+                  </p>
                 </div>
               </div>
             ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { Play, DollarSign, XCircle } from "lucide-react";
 
 interface ActionButtonsProps {
@@ -33,10 +33,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             ${
               canStartTransmission
                 ? "bg-red-500 hover:bg-red-600"
-                : fightStatus === "live" || fightStatus === "betting"
-                ? "bg-green-500 cursor-default"
                 : "bg-gray-300 cursor-not-allowed"
-            } transition-colors`}
+            }
+            transition-colors`}
         >
           <Play className="w-5 h-5 mr-2" />
           {fightStatus === "live" || fightStatus === "betting"
@@ -51,10 +50,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             ${
               canOpenBetting
                 ? "bg-blue-500 hover:bg-blue-600"
-                : fightStatus === "betting"
-                ? "bg-green-500 cursor-default"
                 : "bg-gray-300 cursor-not-allowed"
-            } transition-colors`}
+            }
+            transition-colors`}
         >
           <DollarSign className="w-5 h-5 mr-2" />
           {fightStatus === "betting" ? "APUESTAS ABIERTAS" : "ABRIR APUESTAS"}
@@ -68,7 +66,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               canCloseBetting
                 ? "bg-amber-500 hover:bg-amber-600"
                 : "bg-gray-300 cursor-not-allowed"
-            } transition-colors`}
+            }
+            transition-colors`}
         >
           <XCircle className="w-5 h-5 mr-2" />
           CERRAR APUESTAS
