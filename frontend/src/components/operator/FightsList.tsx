@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Edit, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { Edit2 } from "lucide-react";
 
 interface Fight {
   id: string;
@@ -137,11 +138,15 @@ const FightsList: React.FC<FightsListProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEditFight && onEditFight(fight.id);
+                          if (onEditFight) onEditFight(fight.id);
                         }}
-                        className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                          type === "upcoming"
+                            ? "bg-gray-100 text-gray-700"
+                            : "bg-green-500 text-white"
+                        }`}
                       >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                        <Edit2 className="w-5 h-5 text-gray-600" />
                       </button>
                     )}
                   </div>
