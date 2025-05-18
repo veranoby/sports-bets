@@ -9,6 +9,8 @@ import {
   MapPin,
   Clock,
   CheckCircle,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 
 // Definición de tipos
@@ -28,15 +30,18 @@ interface EventSelectorProps {
   onActivateEvent: (eventId: string) => void;
 }
 
+type StatusFilter = "all" | "scheduled" | "in-progress" | "completed";
+
 const EventSelector: React.FC<EventSelectorProps> = ({
   events,
   onActivateEvent,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "scheduled" | "in-progress" | "completed"
-  >("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [loadingEventId, setLoadingEventId] = useState<string | null>(null);
+  const [confirmEventId, setConfirmEventId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   // Filtrar eventos según los criterios
   const filteredEvents = events.filter((event) => {
@@ -89,6 +94,54 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     }
   };
 
+  // Validar datos mínimos del evento
+  const validateEvent = (event: Event) => {
+    if (!event.name || !event.venue || !event.dateTime) {
+      return "El evento no tiene todos los datos requeridos.";
+    }
+    if (event.totalFights < 1) {
+      return "El evento debe tener al menos una pelea programada.";
+    }
+    return null;
+  };
+
+  // Handler para confirmar activación
+  const handleConfirmActivate = (eventId: string) => {
+    setConfirmEventId(eventId);
+    setErrorMsg("");
+  };
+
+  // Handler para activar evento tras confirmación
+  const handleActivate = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return;
+    const validation = validateEvent(event);
+    if (validation) {
+      setErrorMsg(validation);
+      return;
+    }
+    setLoadingEventId(eventId);
+    setErrorMsg("");
+    setTimeout(() => {
+      setLoadingEventId(null);
+      setConfirmEventId(null);
+      onActivateEvent(eventId);
+    }, 1200); // Simula loading
+  };
+
+  // Handler para cancelar confirmación
+  const handleCancelConfirm = () => {
+    setConfirmEventId(null);
+    setErrorMsg("");
+  };
+
+  // Handler para resetear filtros
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateFilter("");
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
@@ -124,20 +177,18 @@ const EventSelector: React.FC<EventSelectorProps> = ({
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Filter className="h-5 w-5 text-gray-400" />
               </div>
-              <button
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  statusFilter === "all"
-                    ? "bg-gray-100 text-gray-700"
-                    : statusFilter === "scheduled"
-                    ? "bg-red-500 text-white"
-                    : statusFilter === "in-progress"
-                    ? "bg-yellow-500 text-white"
-                    : "bg-green-500 text-white"
-                }`}
-                onClick={() => setStatusFilter("all")}
+              <select
+                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none"
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as StatusFilter)
+                }
               >
-                Todos los estados
-              </button>
+                <option value="all">Todos los estados</option>
+                <option value="scheduled">Programados</option>
+                <option value="in-progress">En progreso</option>
+                <option value="completed">Completados</option>
+              </select>
             </div>
 
             {/* Filtro por fecha */}
@@ -152,6 +203,15 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                 onChange={(e) => setDateFilter(e.target.value)}
               />
             </div>
+          </div>
+          <div className="flex justify-end mt-3">
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-sm text-gray-500 hover:text-red-500 underline"
+            >
+              Limpiar filtros
+            </button>
           </div>
         </div>
 
@@ -172,6 +232,8 @@ const EventSelector: React.FC<EventSelectorProps> = ({
           ) : (
             filteredEvents.map((event) => {
               const statusConfig = getStatusLabel(event.status);
+              const isCompleted = event.status === "completed";
+              const isLoading = loadingEventId === event.id;
               return (
                 <div
                   key={event.id}
@@ -211,17 +273,25 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                     </div>
 
                     <button
-                      onClick={() => onActivateEvent(event.id)}
-                      disabled={event.status === "completed"}
-                      className={`w-full py-2 px-4 rounded-lg font-medium text-white 
+                      onClick={() =>
+                        !isCompleted && handleConfirmActivate(event.id)
+                      }
+                      disabled={isCompleted || isLoading}
+                      className={`w-full py-2 px-4 rounded-lg font-medium text-white flex items-center justify-center
                         ${
-                          event.status === "completed"
+                          isCompleted
                             ? "bg-gray-300 cursor-not-allowed"
+                            : isLoading
+                            ? "bg-blue-400 cursor-wait"
                             : event.status === "in-progress"
                             ? "bg-red-500 hover:bg-red-600"
                             : "bg-blue-500 hover:bg-blue-600"
                         }`}
+                      aria-disabled={isCompleted || isLoading}
                     >
+                      {isLoading ? (
+                        <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                      ) : null}
                       {event.status === "completed"
                         ? "EVENTO COMPLETADO"
                         : event.status === "in-progress"
@@ -234,6 +304,45 @@ const EventSelector: React.FC<EventSelectorProps> = ({
             })
           )}
         </div>
+
+        {/* Modal de confirmación */}
+        {confirmEventId && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-amber-500 mr-2" />
+                <h2 className="text-lg font-bold text-gray-900">
+                  Confirmar Activación
+                </h2>
+              </div>
+              <p className="text-gray-700 mb-4">
+                ¿Estás seguro de que deseas activar este evento? Una vez
+                activado, no podrás cambiar de evento sin perder el progreso
+                actual.
+              </p>
+              {errorMsg && (
+                <div className="bg-red-50 text-red-700 rounded-lg px-3 py-2 mb-3 text-sm flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  {errorMsg}
+                </div>
+              )}
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={handleCancelConfirm}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleActivate(confirmEventId)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Activar Evento
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

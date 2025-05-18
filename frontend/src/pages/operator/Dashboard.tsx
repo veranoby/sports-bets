@@ -19,6 +19,7 @@ import ResultRecorder from "../../components/operator/ResultRecorder";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector.tsx";
 import NewFightModal from "../../components/operator/NewFightModal.tsx";
+import TechnicalIssuesPanel from "../../components/operator/TechnicalIssuesPanel";
 
 // Tipos
 interface Fight {
@@ -41,13 +42,6 @@ interface Event {
   totalFights: number;
   completedFights: number;
   currentFightNumber: number;
-}
-
-interface FightDetails {
-  redBreeder: string;
-  blueBreeder: string;
-  weight: string;
-  notes: string;
 }
 
 // Datos de ejemplo para eventos
@@ -176,12 +170,26 @@ const mockFights: Record<string, Fight[]> = {
   ],
 };
 
+type ConfirmAction =
+  | { type: "startTransmission" }
+  | { type: "openBetting" }
+  | { type: "closeBetting" }
+  | { type: "recordResult"; payload: "red" | "draw" | "blue" };
+
 const OperatorDashboard: React.FC = () => {
   // Estado para controlar si se muestra el selector de eventos o el panel principal
-  const [activeEventId, setActiveEventId] = useState<string | null>(null);
-
-  // Estado para el modal de nueva pelea
+  const [activeEventId, setActiveEventId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("activeEventId");
+    }
+    return null;
+  });
   const [isNewFightModalOpen, setIsNewFightModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
+    null
+  );
 
   // Obtener el evento activo
   const activeEvent = activeEventId
@@ -189,15 +197,28 @@ const OperatorDashboard: React.FC = () => {
     : null;
 
   // Obtener las peleas del evento activo
-  const eventFights = activeEventId ? mockFights[activeEventId] || [] : [];
+  const [fightsByEvent, setFightsByEvent] =
+    useState<Record<string, Fight[]>>(mockFights);
+  const eventFights = React.useMemo(
+    () => (activeEventId ? fightsByEvent[activeEventId] || [] : []),
+    [activeEventId, fightsByEvent]
+  );
 
   // Estado para la pelea actual
   const [currentFight, setCurrentFight] = useState<Fight | null>(null);
 
+  // Persistencia de evento activo
+  React.useEffect(() => {
+    if (activeEventId) {
+      localStorage.setItem("activeEventId", activeEventId);
+    } else {
+      localStorage.removeItem("activeEventId");
+    }
+  }, [activeEventId]);
+
   // Efecto para establecer la pelea actual cuando se activa un evento
   React.useEffect(() => {
     if (activeEventId && eventFights.length > 0) {
-      // Buscar la pelea actual según el número de pelea del evento
       const event = mockEvents.find((e) => e.id === activeEventId);
       if (event) {
         const fight = eventFights.find(
@@ -206,111 +227,187 @@ const OperatorDashboard: React.FC = () => {
         if (fight) {
           setCurrentFight(fight);
         } else {
-          // Si no se encuentra la pelea actual, usar la primera pelea no completada
           const firstNonCompletedFight = eventFights.find(
             (f) => f.status !== "completed"
           );
           if (firstNonCompletedFight) {
             setCurrentFight(firstNonCompletedFight);
           } else {
-            // Si todas están completadas, usar la última
             setCurrentFight(eventFights[eventFights.length - 1]);
           }
         }
       }
+    } else {
+      setCurrentFight(null);
     }
   }, [activeEventId, eventFights]);
 
   // Handler para activar un evento
   const handleActivateEvent = (eventId: string) => {
-    setActiveEventId(eventId);
-    const eventFights = mockFights[eventId] || [];
-    if (eventFights.length > 0) {
-      const event = mockEvents.find((e) => e.id === eventId);
-      const currentFight =
-        eventFights.find((f) => f.number === event?.currentFightNumber) ||
-        eventFights[0];
-      setCurrentFight(currentFight);
-    }
+    setLoading(true);
+    setTimeout(() => {
+      setActiveEventId(eventId);
+      setLoading(false);
+      setErrorMsg("");
+    }, 1000);
   };
 
   // Handler para crear una nueva pelea
-  const handleCreateFight = (fightData: {
+  interface NewFightFormData {
+    number: string;
     redBreeder: string;
     blueBreeder: string;
     weight: string;
     notes: string;
-  }) => {
-    console.log("Nueva pelea creada:", fightData);
-    // Aquí se implementaría la lógica para añadir la pelea al evento activo
-    // Para este ejemplo, simplemente mostramos un mensaje en la consola
+  }
+
+  const handleCreateFight = (fightData: NewFightFormData) => {
+    if (!activeEventId) return;
+    const fights = fightsByEvent[activeEventId] || [];
+    // Validar número único
+    if (fights.some((f) => f.number === Number(fightData.number))) {
+      setErrorMsg("Ya existe una pelea con ese número");
+      return;
+    }
+    // Validar criaderos únicos en la pelea
+    if (
+      fights.some(
+        (f) =>
+          f.redBreeder.toLowerCase() === fightData.redBreeder.toLowerCase() &&
+          f.blueBreeder.toLowerCase() === fightData.blueBreeder.toLowerCase()
+      )
+    ) {
+      setErrorMsg("Ya existe una pelea con esos criaderos");
+      return;
+    }
+    const newFight: Fight = {
+      id: `fight-${Date.now()}`,
+      number: Number(fightData.number),
+      redBreeder: fightData.redBreeder,
+      blueBreeder: fightData.blueBreeder,
+      weight: fightData.weight,
+      notes: fightData.notes,
+      status: "upcoming",
+    };
+    setFightsByEvent((prev) => ({
+      ...prev,
+      [activeEventId]: [...fights, newFight],
+    }));
+    setErrorMsg("");
   };
 
-  // Handlers para acciones
+  // Handlers para acciones críticas con confirmación
   const handleStartTransmission = () => {
     if (!currentFight) return;
-
-    console.log("Iniciando transmisión...");
-    // Aquí actualizaríamos el estado de la pelea a "live"
-    setCurrentFight({
-      ...currentFight,
-      status: "live",
-    });
+    setConfirmAction({ type: "startTransmission" });
   };
-
   const handleOpenBetting = () => {
     if (!currentFight) return;
-
-    console.log("Abriendo apuestas...");
-    // Aquí actualizaríamos el estado de la pelea a "betting"
-    setCurrentFight({
-      ...currentFight,
-      status: "betting",
-    });
+    setConfirmAction({ type: "openBetting" });
   };
-
   const handleCloseBetting = () => {
     if (!currentFight) return;
-
-    console.log("Cerrando apuestas...");
-    // Aquí mantendríamos el estado en "betting" pero deshabilitaríamos nuevas apuestas
-    // Para simplificar, mantenemos el mismo estado
+    setConfirmAction({ type: "closeBetting" });
   };
-
   const handleRecordResult = (result: "red" | "draw" | "blue") => {
     if (!currentFight) return;
-
-    console.log(`Registrando resultado: ${result}`);
-    // Aquí actualizaríamos el estado de la pelea a "completed" y guardaríamos el resultado
-    setCurrentFight({
-      ...currentFight,
-      status: "completed",
-      result,
-    });
+    setConfirmAction({ type: "recordResult", payload: result });
   };
 
+  // Ejecutar acción confirmada
+  const executeConfirmedAction = () => {
+    if (!currentFight || !confirmAction) return;
+    switch (confirmAction.type) {
+      case "startTransmission":
+        setCurrentFight({ ...currentFight, status: "live" });
+        break;
+      case "openBetting":
+        setCurrentFight({ ...currentFight, status: "betting" });
+        break;
+      case "closeBetting":
+        setCurrentFight({ ...currentFight, status: "betting" }); // Aquí podrías cambiar el estado si hay uno específico
+        break;
+      case "recordResult":
+        setCurrentFight({
+          ...currentFight,
+          status: "completed",
+          result: confirmAction.payload,
+        });
+        break;
+    }
+    setConfirmAction(null);
+  };
+
+  // Handler para actualizar detalles de la pelea
   const handleUpdateFight = (updatedFight: Partial<Fight>) => {
-    if (!currentFight) return;
-
-    console.log("Actualizando detalles de la pelea:", updatedFight);
-    setCurrentFight({
-      ...currentFight,
-      ...updatedFight,
-    });
+    if (!currentFight || !activeEventId) return;
+    setCurrentFight({ ...currentFight, ...updatedFight });
+    setFightsByEvent((prev) => ({
+      ...prev,
+      [activeEventId]: prev[activeEventId].map((f) =>
+        f.id === currentFight.id ? { ...f, ...updatedFight } : f
+      ),
+    }));
   };
 
+  // Handler para seleccionar pelea
   const handleSelectFight = (fightId: string) => {
     const selectedFight = eventFights.find((f) => f.id === fightId);
     if (selectedFight) {
-      console.log("Seleccionando pelea:", selectedFight);
       setCurrentFight(selectedFight);
     }
   };
 
-  const handleEditFight = (fightId: string) => {
-    console.log("Editando pelea:", fightId);
-    // Aquí podríamos abrir un modal de edición o similar
+  // Handler para editar pelea (no implementado)
+  const handleEditFight = () => {
+    // Aquí podrías abrir un modal de edición
   };
+
+  // Handler para volver a selección de eventos
+  const handleBackToEvents = () => {
+    setActiveEventId(null);
+    setCurrentFight(null);
+    setErrorMsg("");
+  };
+
+  // Simulación de error de transmisión
+  const simulateTransmissionError = () => {
+    setErrorMsg("Error de transmisión. Intentando reconectar...");
+    setTimeout(() => setErrorMsg(""), 2000);
+  };
+
+  // Optimización: evitar renders innecesarios
+  const memoizedFights = React.useMemo(() => eventFights, [eventFights]);
+
+  // Si está cargando
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center">
+          <svg
+            className="animate-spin h-10 w-10 text-red-500 mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8z"
+            />
+          </svg>
+          <span className="text-gray-700 font-medium">Cargando evento...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Si no hay evento activo, mostrar el selector de eventos
   if (!activeEventId || !activeEvent) {
@@ -323,7 +420,7 @@ const OperatorDashboard: React.FC = () => {
   }
 
   // Si no hay peleas en el evento activo
-  if (eventFights.length === 0) {
+  if (memoizedFights.length === 0) {
     return (
       <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
@@ -335,6 +432,9 @@ const OperatorDashboard: React.FC = () => {
             Este evento no tiene peleas programadas. Puedes crear una nueva
             pelea o seleccionar otro evento.
           </p>
+          {errorMsg && (
+            <div className="mb-2 text-red-600 text-sm">{errorMsg}</div>
+          )}
           <div className="flex flex-col space-y-3">
             <button
               onClick={() => setIsNewFightModalOpen(true)}
@@ -343,7 +443,7 @@ const OperatorDashboard: React.FC = () => {
               Crear Nueva Pelea
             </button>
             <button
-              onClick={() => setActiveEventId(null)}
+              onClick={handleBackToEvents}
               className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             >
               Volver a Eventos
@@ -368,10 +468,9 @@ const OperatorDashboard: React.FC = () => {
                 </span>
               </h1>
             </div>
-
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setActiveEventId(null)}
+                onClick={handleBackToEvents}
                 className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Cambiar Evento
@@ -389,7 +488,6 @@ const OperatorDashboard: React.FC = () => {
           </div>
         </div>
       </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         {/* Event Header */}
@@ -400,24 +498,21 @@ const OperatorDashboard: React.FC = () => {
             totalFights={activeEvent.totalFights}
           />
         </div>
-
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Fight Lists */}
           <div className="space-y-6">
             <FightsList
-              fights={eventFights}
+              fights={memoizedFights}
               type="upcoming"
               onSelectFight={handleSelectFight}
               onEditFight={handleEditFight}
             />
-
             <FightsList
-              fights={eventFights}
+              fights={memoizedFights}
               type="completed"
               onSelectFight={handleSelectFight}
             />
-
             <button
               className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={() => setIsNewFightModalOpen(true)}
@@ -426,28 +521,33 @@ const OperatorDashboard: React.FC = () => {
               Añadir Nueva Pelea
             </button>
           </div>
-
           {/* Middle Column - Live Preview and Actions */}
           <div className="space-y-6">
             {currentFight && (
               <>
                 <LivePreview status={currentFight.status} />
-
                 <ActionButtons
                   fightStatus={currentFight.status}
                   onStartTransmission={handleStartTransmission}
                   onOpenBetting={handleOpenBetting}
                   onCloseBetting={handleCloseBetting}
                 />
-
                 <ResultRecorder
                   isActive={currentFight.status === "betting"}
                   onRecordResult={handleRecordResult}
                 />
+                <button
+                  className="mt-4 w-full bg-amber-50 text-amber-700 rounded-lg py-2 font-medium hover:bg-amber-100"
+                  onClick={simulateTransmissionError}
+                >
+                  Simular Error de Transmisión
+                </button>
+                {errorMsg && (
+                  <div className="mt-2 text-red-600 text-sm">{errorMsg}</div>
+                )}
               </>
             )}
           </div>
-
           {/* Right Column - Fight Details */}
           <div className="space-y-6">
             {currentFight && (
@@ -462,7 +562,6 @@ const OperatorDashboard: React.FC = () => {
                   }}
                   onUpdate={handleUpdateFight}
                 />
-
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <div className="flex items-start">
                     <AlertCircle className="w-5 h-5 text-amber-500 mr-2 mt-0.5" />
@@ -479,12 +578,12 @@ const OperatorDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                <TechnicalIssuesPanel />
               </>
             )}
           </div>
         </div>
       </main>
-
       {/* Footer Actions */}
       <footer className="container mx-auto px-4 mt-6">
         <div className="flex justify-between items-center bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -492,7 +591,6 @@ const OperatorDashboard: React.FC = () => {
             Operador:{" "}
             <span className="font-medium text-gray-900">Juan Pérez</span>
           </div>
-
           <div className="flex space-x-3">
             <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors">
               Pausar Evento
@@ -506,16 +604,43 @@ const OperatorDashboard: React.FC = () => {
           </div>
         </div>
       </footer>
-
       {/* Modal para nueva pelea */}
       <NewFightModal
         isOpen={isNewFightModalOpen}
         onClose={() => setIsNewFightModalOpen(false)}
-        onCreateFight={(data: FightDetails) => {
-          handleCreateFight(data);
-          setIsNewFightModalOpen(false);
-        }}
+        onCreateFight={handleCreateFight}
+        existingFightNumbers={memoizedFights.map((f) => f.number)}
       />
+      {/* Modal de confirmación para acciones críticas */}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 border border-gray-200">
+            <div className="flex items-center mb-4">
+              <AlertCircle className="w-6 h-6 text-amber-500 mr-2" />
+              <h2 className="text-lg font-bold text-gray-900">
+                Confirmar Acción
+              </h2>
+            </div>
+            <p className="text-gray-700 mb-4">
+              ¿Estás seguro de realizar esta acción crítica?
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeConfirmedAction}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
