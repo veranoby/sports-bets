@@ -9,6 +9,7 @@ import { Fight } from './Fight';
 import { Bet } from './Bet';
 import { Wallet, Transaction } from './Wallet';
 import { Subscription } from './Subscription';
+import { connectDatabase } from '../config/database';
 
 // Exportar todos los modelos
 export {
@@ -19,12 +20,15 @@ export {
   Bet,
   Wallet,
   Transaction,
-  Subscription
+  Subscription,
+  connectDatabase
 };
 
 // Función para sincronizar todos los modelos
 export const syncModels = async (force: boolean = false): Promise<void> => {
   try {
+    console.log('🔄 Synchronizing models...');
+    
     // Orden de sincronización respetando dependencias
     await User.sync({ force });
     await Venue.sync({ force });
@@ -46,31 +50,35 @@ export const syncModels = async (force: boolean = false): Promise<void> => {
 export const checkAssociations = (): void => {
   console.log('🔗 Checking model associations...');
   
-  // Verificar asociaciones de User
-  console.log('User associations:', Object.keys(User.associations));
-  
-  // Verificar asociaciones de Venue
-  console.log('Venue associations:', Object.keys(Venue.associations));
-  
-  // Verificar asociaciones de Event
-  console.log('Event associations:', Object.keys(Event.associations));
-  
-  // Verificar asociaciones de Fight
-  console.log('Fight associations:', Object.keys(Fight.associations));
-  
-  // Verificar asociaciones de Bet
-  console.log('Bet associations:', Object.keys(Bet.associations));
-  
-  // Verificar asociaciones de Wallet
-  console.log('Wallet associations:', Object.keys(Wallet.associations));
-  
-  // Verificar asociaciones de Transaction
-  console.log('Transaction associations:', Object.keys(Transaction.associations));
-  
-  // Verificar asociaciones de Subscription
-  console.log('Subscription associations:', Object.keys(Subscription.associations));
-  
-  console.log('✅ All associations checked');
+  try {
+    // Verificar asociaciones de User
+    console.log('User associations:', Object.keys(User.associations));
+    
+    // Verificar asociaciones de Venue
+    console.log('Venue associations:', Object.keys(Venue.associations));
+    
+    // Verificar asociaciones de Event
+    console.log('Event associations:', Object.keys(Event.associations));
+    
+    // Verificar asociaciones de Fight
+    console.log('Fight associations:', Object.keys(Fight.associations));
+    
+    // Verificar asociaciones de Bet
+    console.log('Bet associations:', Object.keys(Bet.associations));
+    
+    // Verificar asociaciones de Wallet
+    console.log('Wallet associations:', Object.keys(Wallet.associations));
+    
+    // Verificar asociaciones de Transaction
+    console.log('Transaction associations:', Object.keys(Transaction.associations));
+    
+    // Verificar asociaciones de Subscription
+    console.log('Subscription associations:', Object.keys(Subscription.associations));
+    
+    console.log('✅ All associations checked');
+  } catch (error) {
+    console.error('❌ Error checking associations:', error);
+  }
 };
 
 // Funciones de utilidad para consultas comunes
