@@ -7,18 +7,20 @@
 
 import React from "react";
 import { Wallet, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export interface WalletSummaryProps {
   balance: number;
   frozenAmount: number;
-  onViewWallet: () => void;
+  // onViewWallet: () => void;
 }
 
 const WalletSummary: React.FC<WalletSummaryProps> = ({
   balance,
   frozenAmount,
-  onViewWallet,
+  // onViewWallet,
 }) => {
+  const navigate = useNavigate();
   // Formatear valores monetarios para consistencia
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
@@ -42,7 +44,7 @@ const WalletSummary: React.FC<WalletSummaryProps> = ({
         </div>
       </div>
       <button
-        onClick={onViewWallet}
+        onClick={() => navigate("/wallet")}
         className="ml-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 !border-0"
         aria-label="Ver billetera completa"
         style={{ backgroundColor: "transparent" }}

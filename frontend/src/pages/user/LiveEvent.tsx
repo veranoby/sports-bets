@@ -73,8 +73,12 @@ const LiveEvent = () => {
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white shadow-sm p-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="text-gray-700">
-          <ArrowLeft size={24} />
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center text-gray-700"
+        >
+          <ArrowLeft size={24} className="mr-2" />
+          Volver al Dashboard
         </button>
         <h1 className="text-xl font-bold text-gray-800">Evento en Vivo</h1>
         <div className="w-6"></div> {/* Spacer para alinear */}

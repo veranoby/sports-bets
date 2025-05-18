@@ -1,15 +1,24 @@
 import { useState } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 import OperatorDashboard from "./pages/operator/Dashboard";
 import UserDashboard from "./pages/user/Dashboard";
+import LiveEvent from "./pages/user/LiveEvent";
+import Wallet from "./pages/user/Wallet";
 
 type DashboardType = "operator" | "user";
 
 function App() {
   const [dashboardType, setDashboardType] = useState<DashboardType>("user");
+  const navigate = useNavigate();
 
   const toggleDashboard = (type: DashboardType) => {
     setDashboardType(type);
+    if (type === "operator") {
+      navigate("/operator");
+    } else {
+      navigate("/");
+    }
   };
 
   return (
@@ -42,13 +51,23 @@ function App() {
         </div>
       )}
 
-      {/* Dashboard content */}
+      {/* Dashboard content with routing */}
       <div className="dashboard-content">
-        {dashboardType === "operator" ? (
-          <OperatorDashboard />
-        ) : (
-          <UserDashboard />
-        )}
+        <Routes>
+          {dashboardType === "operator" ? (
+            <>
+              <Route path="/operator" element={<OperatorDashboard />} />
+              <Route path="*" element={<Navigate to="/operator" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<UserDashboard />} />
+              <Route path="/live-event/:id" element={<LiveEvent />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
+        </Routes>
       </div>
     </div>
   );

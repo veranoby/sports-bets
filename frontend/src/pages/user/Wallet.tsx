@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { DollarSign, Plus, Minus, Download, Loader2 } from "lucide-react";
+import {
+  DollarSign,
+  Plus,
+  Minus,
+  Download,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -10,6 +17,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useNavigate } from "react-router-dom";
 
 type TransactionType =
   | "deposit"
@@ -102,6 +110,7 @@ const Wallet = () => {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesType = filterType === "all" || transaction.type === filterType;
@@ -118,6 +127,15 @@ const Wallet = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+      {/* Botón para volver */}
+      <button
+        onClick={() => navigate("/")}
+        className="flex items-center text-gray-600 mb-4"
+      >
+        <ArrowLeft size={20} className="mr-2" />
+        Volver al Dashboard
+      </button>
+
       {/* Resumen de saldos */}
       <div className="flex justify-between mb-4">
         <div className="flex flex-col">

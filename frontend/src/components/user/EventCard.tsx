@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Clock, Users, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 /**
  * EventCard component for displaying event information
@@ -14,7 +15,6 @@ interface EventCardProps {
   dateTime: string;
   activeBettors: number;
   imageUrl?: string; // Made optional with fallback
-  onEnter: (id: string) => void;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -24,8 +24,9 @@ const EventCard: React.FC<EventCardProps> = ({
   dateTime,
   activeBettors,
   imageUrl,
-  onEnter,
 }) => {
+  const navigate = useNavigate();
+
   // Format date for display
   const formattedDate = new Date(dateTime).toLocaleDateString("es-ES", {
     weekday: "short",
@@ -89,7 +90,7 @@ const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         <button
-          onClick={() => onEnter(id)}
+          onClick={() => navigate(`/live-event/${id}`)}
           className={`w-full flex items-center justify-center font-medium py-2.5 px-4 rounded-lg transition-colors ${
             isLive
               ? "bg-red-500 hover:bg-red-600 text-white !border-0"

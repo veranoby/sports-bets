@@ -6,6 +6,7 @@
 
 import React from "react";
 import { Home, Calendar, DollarSign, User } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export type NavigationPage = "home" | "events" | "bets" | "profile";
 
@@ -14,13 +15,29 @@ export interface NavigationProps {
   onNavigate: (page: NavigationPage) => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ activePage, onNavigate }) => {
+const Navigation: React.FC<NavigationProps> = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const navItems = [
-    { id: "home" as const, label: "Inicio", icon: Home },
-    { id: "events" as const, label: "Eventos", icon: Calendar },
-    { id: "bets" as const, label: "Apuestas", icon: DollarSign },
-    { id: "profile" as const, label: "Perfil", icon: User },
+    { id: "home" as const, label: "Inicio", icon: Home, path: "/" },
+    { id: "events" as const, label: "Eventos", icon: Calendar, path: "/" },
+    { id: "bets" as const, label: "Apuestas", icon: DollarSign, path: "/" },
+    { id: "profile" as const, label: "Perfil", icon: User, path: "/profile" },
   ];
+
+  // Determinar página activa por ruta
+  const getActivePage = () => {
+    if (
+      location.pathname === "/" ||
+      location.pathname.startsWith("/live-event")
+    )
+      return "home";
+    if (location.pathname === "/wallet") return "bets";
+    if (location.pathname === "/profile") return "profile";
+    if (location.pathname === "/operator") return "operator";
+    return "home";
+  };
+  const activePage = getActivePage();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-sm z-10 pb-safe">
@@ -30,7 +47,7 @@ const Navigation: React.FC<NavigationProps> = ({ activePage, onNavigate }) => {
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(item.path)}
               className={`flex flex-col items-center justify-center w-full h-full py-2 transition-colors ${
                 isActive ? "text-red-500" : "text-gray-400 hover:text-gray-600"
               }`}
