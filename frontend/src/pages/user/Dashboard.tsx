@@ -5,7 +5,7 @@
  */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Bell,
@@ -14,6 +14,7 @@ import {
   Calendar,
   FlameIcon as Fire,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Importación de componentes
 import Navigation from "../../components/user/Navigation";
@@ -141,7 +142,16 @@ const mockData = {
 };
 
 const Dashboard: React.FC = () => {
-  const [activePage, setActivePage] = useState<NavigationPage>("home");
+  const navigate = useNavigate();
+  const [activePage, setActivePage] = useState<NavigationPage>(
+    () => (localStorage.getItem("activePage") as NavigationPage) || "home"
+  );
+  // const [loading, setLoading] = useState(false); // Uncomment for async operations
+  // const [error, setError] = useState<string | null>(null); // Uncomment for async operations
+
+  useEffect(() => {
+    localStorage.setItem("activePage", activePage);
+  }, [activePage]);
 
   // Handlers para acciones
   const handleNavigate = (page: NavigationPage) => {
@@ -149,13 +159,11 @@ const Dashboard: React.FC = () => {
   };
 
   const handleViewWallet = () => {
-    console.log("Ver billetera completa");
-    // Implementación futura: navegación a vista detallada de billetera
+    navigate("/user/Wallet");
   };
 
   const handleEnterEvent = (id: string) => {
-    console.log(`Entrar al evento: ${id}`);
-    // Implementación futura: navegación a vista detallada del evento
+    navigate(`/user/LiveEvent/${id}`);
   };
 
   const handleViewBetDetails = (id: string) => {
@@ -390,6 +398,10 @@ const Dashboard: React.FC = () => {
 
       {/* Navigation */}
       <Navigation activePage={activePage} onNavigate={handleNavigate} />
+
+      {/* Loading/Error Global */}
+      {/* {loading && <div className="w-full flex justify-center py-8"><Loader2 className="animate-spin" size={32} /></div>}
+      {error && <div className="text-red-500 text-center">{error}</div>} */}
     </div>
   );
 };

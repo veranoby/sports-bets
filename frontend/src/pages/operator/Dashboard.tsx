@@ -247,6 +247,7 @@ const OperatorDashboard: React.FC = () => {
     setLoading(true);
     setTimeout(() => {
       setActiveEventId(eventId);
+      setCurrentFight(null);
       setLoading(false);
       setErrorMsg("");
     }, 1000);
@@ -319,20 +320,16 @@ const OperatorDashboard: React.FC = () => {
     if (!currentFight || !confirmAction) return;
     switch (confirmAction.type) {
       case "startTransmission":
-        setCurrentFight({ ...currentFight, status: "live" });
+        updateFightStatus(currentFight.id, "live");
         break;
       case "openBetting":
-        setCurrentFight({ ...currentFight, status: "betting" });
+        updateFightStatus(currentFight.id, "betting");
         break;
       case "closeBetting":
-        setCurrentFight({ ...currentFight, status: "betting" }); // Aquí podrías cambiar el estado si hay uno específico
+        updateFightStatus(currentFight.id, "live");
         break;
       case "recordResult":
-        setCurrentFight({
-          ...currentFight,
-          status: "completed",
-          result: confirmAction.payload,
-        });
+        updateFightStatus(currentFight.id, "completed", confirmAction.payload);
         break;
     }
     setConfirmAction(null);
@@ -365,15 +362,43 @@ const OperatorDashboard: React.FC = () => {
 
   // Handler para volver a selección de eventos
   const handleBackToEvents = () => {
-    setActiveEventId(null);
-    setCurrentFight(null);
-    setErrorMsg("");
+    setLoading(true);
+    setTimeout(() => {
+      setActiveEventId(null);
+      setCurrentFight(null);
+      setErrorMsg("");
+      setLoading(false);
+    }, 500);
   };
 
   // Simulación de error de transmisión
   const simulateTransmissionError = () => {
     setErrorMsg("Error de transmisión. Intentando reconectar...");
-    setTimeout(() => setErrorMsg(""), 2000);
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setErrorMsg("");
+    }, 2000);
+  };
+
+  // Actualizar pelea y lista de peleas correctamente en cada acción
+  const updateFightStatus = (
+    fightId: string,
+    status: Fight["status"],
+    result?: Fight["result"]
+  ) => {
+    if (!activeEventId) return;
+    setFightsByEvent((prev) => ({
+      ...prev,
+      [activeEventId]: prev[activeEventId].map((f) =>
+        f.id === fightId ? { ...f, status, ...(result ? { result } : {}) } : f
+      ),
+    }));
+    if (currentFight && currentFight.id === fightId) {
+      setCurrentFight((prev) =>
+        prev ? { ...prev, status, ...(result ? { result } : {}) } : prev
+      );
+    }
   };
 
   // Optimización: evitar renders innecesarios
