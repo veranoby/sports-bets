@@ -19,7 +19,7 @@ export class Subscription extends Model<
 > {
   declare id: CreationOptional<string>;
   declare userId: ForeignKey<User['id']>;
-  declare plan: 'daily' | 'weekly' | 'monthly';
+  declare plan: 'daily' | 'monthly';
   declare startDate: Date;
   declare endDate: Date;
   declare status: CreationOptional<'active' | 'expired' | 'cancelled'>;
@@ -60,17 +60,23 @@ export class Subscription extends Model<
 
   getPlanDuration(): number {
     switch (this.plan) {
-      case 'daily': return 1;
-      case 'weekly': return 7;
-      case 'monthly': return 30;
-      default: return 1;
+      case 'daily': return 24; // 24 horas en lugar de 1 día
+      case 'monthly': return 30 * 24; // 30 días en horas
+      default: return 24;
+    }
+  }
+
+  getPlanDurationUnit(): string {
+    switch (this.plan) {
+      case 'daily': return 'hours'; // horas para precisión exacta
+      case 'monthly': return 'hours'; // también en horas para consistencia
+      default: return 'hours';
     }
   }
 
   getPlanPrice(): number {
     const prices = {
       daily: 2.99,
-      weekly: 9.99,
       monthly: 29.99
     };
     return prices[this.plan];
@@ -120,7 +126,7 @@ Subscription.init(
       }
     },
     plan: {
-      type: DataTypes.ENUM('daily', 'weekly', 'monthly'),
+      type: DataTypes.ENUM('daily', 'monthly'),
       allowNull: false
     },
     startDate: {
@@ -178,9 +184,19 @@ Subscription.init(
         // Configurar fecha de fin basada en el plan
         if (!subscription.endDate) {
           const duration = subscription.getPlanDuration();
-          subscription.endDate = new Date(
-            subscription.startDate.getTime() + (duration * 24 * 60 * 60 * 1000)
-          );
+          const unit = subscription.getPlanDurationUnit();
+          
+          if (unit === 'hours') {
+            // Para planes diarios: 24 horas exactas desde el momento de pago
+            subscription.endDate = new Date(
+              subscription.startDate.getTime() + (duration * 60 * 60 * 1000)
+            );
+          } else {
+            // Para otros planes: días completos
+            subscription.endDate = new Date(
+              subscription.startDate.getTime() + (duration * 24 * 60 * 60 * 1000)
+            );
+          }
         }
         
         // Configurar precio si no está establecido

@@ -44,8 +44,8 @@ router.post('/',
   authenticate,
   [
     body('plan')
-      .isIn(['daily', 'weekly', 'monthly'])
-      .withMessage('Plan must be daily, weekly, or monthly'),
+      .isIn(['daily', 'monthly'])
+      .withMessage('Plan must be daily or monthly'),
     body('autoRenew')
       .optional()
       .isBoolean()
@@ -190,25 +190,14 @@ router.get('/plans/info', asyncHandler(async (req, res) => {
       id: 'daily',
       name: 'Plan Diario',
       price: parseFloat(process.env.SUBSCRIPTION_DAILY_PRICE || '2.99'),
-      duration: 1,
-      durationUnit: 'day',
+      duration: 24, // 24 horas exactas
+      durationUnit: 'hours',
+      description: 'Acceso por 24 horas exactas desde el momento del pago',
       features: [
-        'Acceso a transmisiones en vivo',
+        'Acceso a transmisiones en vivo por 24 horas',
         'Participación en apuestas',
-        'Soporte básico'
-      ]
-    },
-    {
-      id: 'weekly',
-      name: 'Plan Semanal',
-      price: parseFloat(process.env.SUBSCRIPTION_WEEKLY_PRICE || '9.99'),
-      duration: 7,
-      durationUnit: 'days',
-      features: [
-        'Acceso a transmisiones en vivo',
-        'Participación en apuestas',
-        'Historial extendido',
-        'Soporte prioritario'
+        'Soporte básico',
+        'Se activa inmediatamente al pagar'
       ]
     },
     {
@@ -217,6 +206,7 @@ router.get('/plans/info', asyncHandler(async (req, res) => {
       price: parseFloat(process.env.SUBSCRIPTION_MONTHLY_PRICE || '29.99'),
       duration: 30,
       durationUnit: 'days',
+      description: 'Acceso por 30 días completos',
       features: [
         'Acceso ilimitado a transmisiones',
         'Participación en apuestas',
