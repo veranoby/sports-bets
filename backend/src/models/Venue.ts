@@ -33,7 +33,7 @@ export class Venue extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  // Asociaciones
+  // Asociaciones (declaradas pero no definidas aquí)
   declare getOwner: BelongsToGetAssociationMixin<User>;
   declare setOwner: BelongsToSetAssociationMixin<User, number>;
   declare createOwner: BelongsToCreateAssociationMixin<User>;
@@ -122,15 +122,6 @@ Venue.init(
   }
 );
 
-// Definir asociaciones
-Venue.belongsTo(User, {
-  foreignKey: "ownerId",
-  as: "owner",
-});
-
-User.hasMany(Venue, {
-  foreignKey: "ownerId",
-  as: "venues",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export default Venue;

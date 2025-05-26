@@ -1,6 +1,6 @@
 // Archivo de exportación central para todos los modelos
 // Este archivo centraliza las importaciones y exportaciones de modelos
-// y configura todas las asociaciones entre modelos
+// IMPORTANTE: Las asociaciones se definen SOLO aquí para evitar duplicados
 
 import { User } from './User';
 import { Venue } from './Venue';
@@ -11,31 +11,22 @@ import { Wallet, Transaction } from './Wallet';
 import { Subscription } from './Subscription';
 import { connectDatabase } from '../config/database';
 
-// Configurar asociaciones después de importar todos los modelos
-// Esto asegura que todas las asociaciones estén disponibles antes de usar los modelos
+// ========================================
+// ASOCIACIONES ÚNICAS - DEFINIDAS SOLO AQUÍ
+// ========================================
 
-// ========================================
-// USER ASSOCIATIONS
-// ========================================
+console.log('🔗 Configurando asociaciones de modelos...');
 
 // User -> Wallet (One-to-One)
 User.hasOne(Wallet, { 
   foreignKey: 'userId', 
   as: 'wallet' 
 });
-Wallet.belongsTo(User, { 
-  foreignKey: 'userId', 
-  as: 'user' 
-});
 
-// User -> Venues (One-to-Many)
+// User -> Venues (One-to-Many) 
 User.hasMany(Venue, { 
   foreignKey: 'ownerId', 
   as: 'venues' 
-});
-Venue.belongsTo(User, { 
-  foreignKey: 'ownerId', 
-  as: 'owner' 
 });
 
 // User -> Events as Operator (One-to-Many)
@@ -43,19 +34,11 @@ User.hasMany(Event, {
   foreignKey: 'operatorId', 
   as: 'operatedEvents' 
 });
-Event.belongsTo(User, { 
-  foreignKey: 'operatorId', 
-  as: 'operator' 
-});
 
 // User -> Events as Creator (One-to-Many)
 User.hasMany(Event, { 
   foreignKey: 'createdBy', 
   as: 'createdEvents' 
-});
-Event.belongsTo(User, { 
-  foreignKey: 'createdBy', 
-  as: 'creator' 
 });
 
 // User -> Bets (One-to-Many)
@@ -63,86 +46,104 @@ User.hasMany(Bet, {
   foreignKey: 'userId', 
   as: 'bets' 
 });
-Bet.belongsTo(User, { 
-  foreignKey: 'userId', 
-  as: 'user' 
-});
 
 // User -> Subscriptions (One-to-Many)
 User.hasMany(Subscription, { 
   foreignKey: 'userId', 
   as: 'subscriptions' 
 });
-Subscription.belongsTo(User, { 
+
+// Wallet -> User (Inverse)
+Wallet.belongsTo(User, { 
   foreignKey: 'userId', 
   as: 'user' 
 });
-
-// ========================================
-// WALLET ASSOCIATIONS
-// ========================================
 
 // Wallet -> Transactions (One-to-Many)
 Wallet.hasMany(Transaction, { 
   foreignKey: 'walletId', 
   as: 'transactions' 
 });
+
+// Transaction -> Wallet (Inverse)
 Transaction.belongsTo(Wallet, { 
   foreignKey: 'walletId', 
   as: 'wallet' 
 });
 
-// ========================================
-// VENUE ASSOCIATIONS
-// ========================================
+// Venue -> User (Inverse)
+Venue.belongsTo(User, { 
+  foreignKey: 'ownerId', 
+  as: 'owner' 
+});
 
 // Venue -> Events (One-to-Many)
 Venue.hasMany(Event, { 
   foreignKey: 'venueId', 
   as: 'events' 
 });
+
+// Event -> Venue (Inverse)
 Event.belongsTo(Venue, { 
   foreignKey: 'venueId', 
   as: 'venue' 
 });
 
-// ========================================
-// EVENT ASSOCIATIONS
-// ========================================
+// Event -> User (Operator - Inverse)
+Event.belongsTo(User, { 
+  foreignKey: 'operatorId', 
+  as: 'operator' 
+});
+
+// Event -> User (Creator - Inverse)
+Event.belongsTo(User, { 
+  foreignKey: 'createdBy', 
+  as: 'creator' 
+});
 
 // Event -> Fights (One-to-Many)
 Event.hasMany(Fight, { 
   foreignKey: 'eventId', 
   as: 'fights' 
 });
+
+// Fight -> Event (Inverse)
 Fight.belongsTo(Event, { 
   foreignKey: 'eventId', 
   as: 'event' 
 });
-
-// ========================================
-// FIGHT ASSOCIATIONS
-// ========================================
 
 // Fight -> Bets (One-to-Many)
 Fight.hasMany(Bet, { 
   foreignKey: 'fightId', 
   as: 'bets' 
 });
+
+// Bet -> Fight (Inverse)
 Bet.belongsTo(Fight, { 
   foreignKey: 'fightId', 
   as: 'fight' 
 });
 
-// ========================================
-// BET ASSOCIATIONS
-// ========================================
+// Bet -> User (Inverse)
+Bet.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user' 
+});
 
 // Bet -> Bet (Self-referencing for matched bets)
 Bet.belongsTo(Bet, { 
   foreignKey: 'matchedWith', 
   as: 'matchedBet' 
 });
+
+// Subscription -> User (Inverse)
+Subscription.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user' 
+});
+
+console.log('✅ Asociaciones configuradas correctamente');
 
 // Exportar todos los modelos
 export {
@@ -164,13 +165,28 @@ export const syncModels = async (force: boolean = false): Promise<void> => {
     
     // Orden de sincronización respetando dependencias
     await User.sync({ force });
-    await Venue.sync({ force });
-    await Event.sync({ force });
-    await Fight.sync({ force });
-    await Bet.sync({ force });
+    console.log('✅ User model synchronized');
+    
     await Wallet.sync({ force });
+    console.log('✅ Wallet model synchronized');
+    
     await Transaction.sync({ force });
+    console.log('✅ Transaction model synchronized');
+    
+    await Venue.sync({ force });
+    console.log('✅ Venue model synchronized');
+    
+    await Event.sync({ force });
+    console.log('✅ Event model synchronized');
+    
+    await Fight.sync({ force });
+    console.log('✅ Fight model synchronized');
+    
+    await Bet.sync({ force });
+    console.log('✅ Bet model synchronized');
+    
     await Subscription.sync({ force });
+    console.log('✅ Subscription model synchronized');
     
     console.log('✅ All models synchronized successfully');
   } catch (error) {
@@ -187,26 +203,17 @@ export const checkAssociations = (): void => {
     // Verificar asociaciones de User
     console.log('User associations:', Object.keys(User.associations));
     
-    // Verificar asociaciones de Venue
-    console.log('Venue associations:', Object.keys(Venue.associations));
+    // Verificar asociaciones de Wallet
+    console.log('Wallet associations:', Object.keys(Wallet.associations));
     
     // Verificar asociaciones de Event
     console.log('Event associations:', Object.keys(Event.associations));
     
-    // Verificar asociaciones de Fight
+    // Verificar asociaciones de Fight  
     console.log('Fight associations:', Object.keys(Fight.associations));
     
     // Verificar asociaciones de Bet
     console.log('Bet associations:', Object.keys(Bet.associations));
-    
-    // Verificar asociaciones de Wallet
-    console.log('Wallet associations:', Object.keys(Wallet.associations));
-    
-    // Verificar asociaciones de Transaction
-    console.log('Transaction associations:', Object.keys(Transaction.associations));
-    
-    // Verificar asociaciones de Subscription
-    console.log('Subscription associations:', Object.keys(Subscription.associations));
     
     console.log('✅ All associations checked');
   } catch (error) {

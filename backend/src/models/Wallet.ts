@@ -25,7 +25,7 @@ class Wallet extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  // Asociaciones
+  // Asociaciones (declaradas pero no definidas aquí)
   declare getUser: BelongsToGetAssociationMixin<User>;
   declare setUser: BelongsToSetAssociationMixin<User, number>;
 
@@ -111,7 +111,7 @@ class Transaction extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  // Asociaciones
+  // Asociaciones (declaradas pero no definidas aquí)
   declare getWallet: BelongsToGetAssociationMixin<Wallet>;
   declare setWallet: BelongsToSetAssociationMixin<Wallet, number>;
 
@@ -283,25 +283,6 @@ Transaction.init(
   }
 );
 
-// Definir asociaciones
-Wallet.belongsTo(User, {
-  foreignKey: "userId",
-  as: "user",
-});
-
-Wallet.hasMany(Transaction, {
-  foreignKey: "walletId",
-  as: "transactions",
-});
-
-Transaction.belongsTo(Wallet, {
-  foreignKey: "walletId",
-  as: "wallet",
-});
-
-User.hasOne(Wallet, {
-  foreignKey: "userId",
-  as: "wallet",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export { Wallet, Transaction };

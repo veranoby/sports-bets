@@ -190,4 +190,6 @@ User.init(
   }
 );
 
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
+
 export default User;
