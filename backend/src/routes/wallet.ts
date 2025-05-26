@@ -352,19 +352,20 @@ router.get(
 
     const stats = {
       totalDeposits: monthlyStats
-        .filter((t) => t.type === "deposit" && t.status === "completed")
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0),
+        .filter((t: any) => t.type === "deposit" && t.status === "completed")
+        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
       totalWithdrawals: monthlyStats
-        .filter((t) => t.type === "withdrawal" && t.status === "completed")
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0),
+        .filter((t: any) => t.type === "withdrawal" && t.status === "completed")
+        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
       totalBetWins: monthlyStats
-        .filter((t) => t.type === "bet-win")
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0),
+        .filter((t: any) => t.type === "bet-win")
+        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
       totalBetLosses: monthlyStats
-        .filter((t) => t.type === "bet-loss")
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0),
-      pendingTransactions: monthlyStats.filter((t) => t.status === "pending")
-        .length,
+        .filter((t: any) => t.type === "bet-loss")
+        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
+      pendingTransactions: monthlyStats.filter(
+        (t: any) => t.status === "pending"
+      ).length,
       currentBalance: wallet.toPublicJSON(),
     };
 

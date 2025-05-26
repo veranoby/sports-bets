@@ -151,14 +151,6 @@ Bet.init(
         isOffer: true,
       },
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
   },
   {
     sequelize,

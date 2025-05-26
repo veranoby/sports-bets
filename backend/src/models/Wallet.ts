@@ -191,7 +191,7 @@ Wallet.init(
     validate: {
       // Validación para asegurar que el monto congelado no exceda el balance
       frozenNotExceedsBalance() {
-        if (this.frozenAmount > this.balance) {
+        if ((this as any).frozenAmount > (this as any).balance) {
           throw new Error("Frozen amount cannot exceed balance");
         }
       },
@@ -305,4 +305,3 @@ User.hasOne(Wallet, {
 });
 
 export { Wallet, Transaction };
-export default Wallet;

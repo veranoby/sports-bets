@@ -1,8 +1,7 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User";
-import { Wallet } from "../models/Wallet";
+import { User, Wallet } from "../models";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
 import { logger } from "../config/logger";
@@ -43,7 +42,7 @@ const loginValidation = [
 
 // Función para generar JWT
 const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, {
+  return jwt.sign({ userId }, process.env.JWT_SECRET as string, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 };

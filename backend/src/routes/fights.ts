@@ -49,13 +49,8 @@ router.get(
         {
           model: Bet,
           as: "bets",
-          include: [
-            {
-              model: require("../models/User").User,
-              as: "user",
-              attributes: ["id", "username"],
-            },
-          ],
+          where: { status: "active" },
+          required: false,
         },
       ],
     });
@@ -215,6 +210,7 @@ router.put(
     // Verificar permisos del operador
     if (
       req.user!.role === "operator" &&
+      fight.event &&
       fight.event.operatorId !== req.user!.id
     ) {
       throw errors.forbidden("You are not assigned to this event");
