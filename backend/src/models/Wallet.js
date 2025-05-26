@@ -228,20 +228,3 @@ Transaction.init({
         },
     ],
 });
-// Definir asociaciones
-Wallet.belongsTo(User_1.User, {
-    foreignKey: "userId",
-    as: "user",
-});
-Wallet.hasMany(Transaction, {
-    foreignKey: "walletId",
-    as: "transactions",
-});
-Transaction.belongsTo(Wallet, {
-    foreignKey: "walletId",
-    as: "wallet",
-});
-User_1.User.hasOne(Wallet, {
-    foreignKey: "userId",
-    as: "wallet",
-});

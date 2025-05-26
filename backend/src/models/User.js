@@ -170,4 +170,5 @@ User.init({
         beforeUpdate: User.beforeUpdateHook,
     },
 });
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = User;

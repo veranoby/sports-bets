@@ -100,13 +100,5 @@ Venue.init({
         },
     ],
 });
-// Definir asociaciones
-Venue.belongsTo(User_1.User, {
-    foreignKey: "ownerId",
-    as: "owner",
-});
-User_1.User.hasMany(Venue, {
-    foreignKey: "ownerId",
-    as: "venues",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Venue;

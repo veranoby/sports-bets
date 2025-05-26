@@ -1,7 +1,6 @@
 "use strict";
 // Archivo de exportación central para todos los modelos
-// Este archivo centraliza las importaciones y exportaciones de modelos
-// y configura todas las asociaciones entre modelos
+// Define asociaciones únicas manteniendo compatibilidad con rutas existentes
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -30,12 +29,11 @@ const Subscription_1 = require("./Subscription");
 Object.defineProperty(exports, "Subscription", { enumerable: true, get: function () { return Subscription_1.Subscription; } });
 const database_1 = require("../config/database");
 Object.defineProperty(exports, "connectDatabase", { enumerable: true, get: function () { return database_1.connectDatabase; } });
-// Configurar asociaciones después de importar todos los modelos
-// Esto asegura que todas las asociaciones estén disponibles antes de usar los modelos
+console.log('📦 Configurando modelos y asociaciones...');
 // ========================================
-// USER ASSOCIATIONS
+// ASOCIACIONES PRINCIPALES - COMPATIBLES CON RUTAS
 // ========================================
-// User -> Wallet (One-to-One)
+// User -> Wallet (usado en users.ts y auth.ts)
 User_1.User.hasOne(Wallet_1.Wallet, {
     foreignKey: 'userId',
     as: 'wallet'
@@ -44,55 +42,7 @@ Wallet_1.Wallet.belongsTo(User_1.User, {
     foreignKey: 'userId',
     as: 'user'
 });
-// User -> Venues (One-to-Many)
-User_1.User.hasMany(Venue_1.Venue, {
-    foreignKey: 'ownerId',
-    as: 'venues'
-});
-Venue_1.Venue.belongsTo(User_1.User, {
-    foreignKey: 'ownerId',
-    as: 'owner'
-});
-// User -> Events as Operator (One-to-Many)
-User_1.User.hasMany(Event_1.Event, {
-    foreignKey: 'operatorId',
-    as: 'operatedEvents'
-});
-Event_1.Event.belongsTo(User_1.User, {
-    foreignKey: 'operatorId',
-    as: 'operator'
-});
-// User -> Events as Creator (One-to-Many)
-User_1.User.hasMany(Event_1.Event, {
-    foreignKey: 'createdBy',
-    as: 'createdEvents'
-});
-Event_1.Event.belongsTo(User_1.User, {
-    foreignKey: 'createdBy',
-    as: 'creator'
-});
-// User -> Bets (One-to-Many)
-User_1.User.hasMany(Bet_1.Bet, {
-    foreignKey: 'userId',
-    as: 'bets'
-});
-Bet_1.Bet.belongsTo(User_1.User, {
-    foreignKey: 'userId',
-    as: 'user'
-});
-// User -> Subscriptions (One-to-Many)
-User_1.User.hasMany(Subscription_1.Subscription, {
-    foreignKey: 'userId',
-    as: 'subscriptions'
-});
-Subscription_1.Subscription.belongsTo(User_1.User, {
-    foreignKey: 'userId',
-    as: 'user'
-});
-// ========================================
-// WALLET ASSOCIATIONS
-// ========================================
-// Wallet -> Transactions (One-to-Many)
+// Wallet -> Transactions (usado en wallet.ts)
 Wallet_1.Wallet.hasMany(Wallet_1.Transaction, {
     foreignKey: 'walletId',
     as: 'transactions'
@@ -101,10 +51,16 @@ Wallet_1.Transaction.belongsTo(Wallet_1.Wallet, {
     foreignKey: 'walletId',
     as: 'wallet'
 });
-// ========================================
-// VENUE ASSOCIATIONS
-// ========================================
-// Venue -> Events (One-to-Many)
+// User -> Venues
+User_1.User.hasMany(Venue_1.Venue, {
+    foreignKey: 'ownerId',
+    as: 'venues'
+});
+Venue_1.Venue.belongsTo(User_1.User, {
+    foreignKey: 'ownerId',
+    as: 'owner'
+});
+// Venue -> Events
 Venue_1.Venue.hasMany(Event_1.Event, {
     foreignKey: 'venueId',
     as: 'events'
@@ -113,10 +69,25 @@ Event_1.Event.belongsTo(Venue_1.Venue, {
     foreignKey: 'venueId',
     as: 'venue'
 });
-// ========================================
-// EVENT ASSOCIATIONS
-// ========================================
-// Event -> Fights (One-to-Many)
+// User -> Events (DOS RELACIONES DIFERENTES - ALIASES ÚNICOS)
+User_1.User.hasMany(Event_1.Event, {
+    foreignKey: 'operatorId',
+    as: 'operatedEvents'
+});
+User_1.User.hasMany(Event_1.Event, {
+    foreignKey: 'createdBy',
+    as: 'createdEvents'
+});
+// Event -> User (INVERSAS CON ALIASES ÚNICOS)
+Event_1.Event.belongsTo(User_1.User, {
+    foreignKey: 'operatorId',
+    as: 'operator'
+});
+Event_1.Event.belongsTo(User_1.User, {
+    foreignKey: 'createdBy',
+    as: 'creator'
+});
+// Event -> Fights (usado en fights.ts)
 Event_1.Event.hasMany(Fight_1.Fight, {
     foreignKey: 'eventId',
     as: 'fights'
@@ -125,10 +96,7 @@ Fight_1.Fight.belongsTo(Event_1.Event, {
     foreignKey: 'eventId',
     as: 'event'
 });
-// ========================================
-// FIGHT ASSOCIATIONS
-// ========================================
-// Fight -> Bets (One-to-Many)
+// Fight -> Bets (usado en fights.ts)
 Fight_1.Fight.hasMany(Bet_1.Bet, {
     foreignKey: 'fightId',
     as: 'bets'
@@ -137,27 +105,51 @@ Bet_1.Bet.belongsTo(Fight_1.Fight, {
     foreignKey: 'fightId',
     as: 'fight'
 });
-// ========================================
-// BET ASSOCIATIONS
-// ========================================
-// Bet -> Bet (Self-referencing for matched bets)
+// User -> Bets
+User_1.User.hasMany(Bet_1.Bet, {
+    foreignKey: 'userId',
+    as: 'bets'
+});
+Bet_1.Bet.belongsTo(User_1.User, {
+    foreignKey: 'userId',
+    as: 'user'
+});
+// Bet -> Bet (Self-referencing)
 Bet_1.Bet.belongsTo(Bet_1.Bet, {
     foreignKey: 'matchedWith',
     as: 'matchedBet'
 });
-// Función para sincronizar todos los modelos
+// User -> Subscriptions
+User_1.User.hasMany(Subscription_1.Subscription, {
+    foreignKey: 'userId',
+    as: 'subscriptions'
+});
+Subscription_1.Subscription.belongsTo(User_1.User, {
+    foreignKey: 'userId',
+    as: 'user'
+});
+console.log('✅ Asociaciones configuradas sin duplicados');
+// Función para sincronizar modelos
 const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (force = false) {
     try {
         console.log('🔄 Synchronizing models...');
-        // Orden de sincronización respetando dependencias
+        // Orden respetando dependencias
         yield User_1.User.sync({ force });
+        console.log('✅ User');
         yield Venue_1.Venue.sync({ force });
-        yield Event_1.Event.sync({ force });
-        yield Fight_1.Fight.sync({ force });
-        yield Bet_1.Bet.sync({ force });
+        console.log('✅ Venue');
         yield Wallet_1.Wallet.sync({ force });
-        yield Wallet_1.Transaction.sync({ force });
+        console.log('✅ Wallet');
         yield Subscription_1.Subscription.sync({ force });
+        console.log('✅ Subscription');
+        yield Event_1.Event.sync({ force });
+        console.log('✅ Event');
+        yield Fight_1.Fight.sync({ force });
+        console.log('✅ Fight');
+        yield Bet_1.Bet.sync({ force });
+        console.log('✅ Bet');
+        yield Wallet_1.Transaction.sync({ force });
+        console.log('✅ Transaction');
         console.log('✅ All models synchronized successfully');
     }
     catch (error) {
@@ -168,34 +160,28 @@ const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, functio
 exports.syncModels = syncModels;
 // Función para verificar asociaciones
 const checkAssociations = () => {
-    console.log('🔗 Checking model associations...');
+    console.log('🔗 Checking associations...');
     try {
-        // Verificar asociaciones de User
-        console.log('User associations:', Object.keys(User_1.User.associations));
-        // Verificar asociaciones de Venue
-        console.log('Venue associations:', Object.keys(Venue_1.Venue.associations));
-        // Verificar asociaciones de Event
-        console.log('Event associations:', Object.keys(Event_1.Event.associations));
-        // Verificar asociaciones de Fight
-        console.log('Fight associations:', Object.keys(Fight_1.Fight.associations));
-        // Verificar asociaciones de Bet
-        console.log('Bet associations:', Object.keys(Bet_1.Bet.associations));
-        // Verificar asociaciones de Wallet
-        console.log('Wallet associations:', Object.keys(Wallet_1.Wallet.associations));
-        // Verificar asociaciones de Transaction
-        console.log('Transaction associations:', Object.keys(Wallet_1.Transaction.associations));
-        // Verificar asociaciones de Subscription
-        console.log('Subscription associations:', Object.keys(Subscription_1.Subscription.associations));
-        console.log('✅ All associations checked');
+        const associations = {
+            User: Object.keys(User_1.User.associations),
+            Venue: Object.keys(Venue_1.Venue.associations),
+            Event: Object.keys(Event_1.Event.associations),
+            Fight: Object.keys(Fight_1.Fight.associations),
+            Bet: Object.keys(Bet_1.Bet.associations),
+            Wallet: Object.keys(Wallet_1.Wallet.associations),
+            Transaction: Object.keys(Wallet_1.Transaction.associations),
+            Subscription: Object.keys(Subscription_1.Subscription.associations)
+        };
+        console.log('📋 Associations summary:', associations);
+        console.log('✅ All associations verified');
     }
     catch (error) {
         console.error('❌ Error checking associations:', error);
     }
 };
 exports.checkAssociations = checkAssociations;
-// Funciones de utilidad para consultas comunes
+// Funciones de utilidad
 exports.ModelUtils = {
-    // Buscar usuario con su wallet
     findUserWithWallet(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             return User_1.User.findByPk(userId, {
@@ -215,106 +201,8 @@ exports.ModelUtils = {
                 ]
             });
         });
-    },
-    // Buscar evento con todos sus datos relacionados
-    findEventWithDetails(eventId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return Event_1.Event.findByPk(eventId, {
-                include: [
-                    {
-                        model: Venue_1.Venue,
-                        as: 'venue'
-                    },
-                    {
-                        model: User_1.User,
-                        as: 'operator',
-                        attributes: ['id', 'username', 'email']
-                    },
-                    {
-                        model: Fight_1.Fight,
-                        as: 'fights',
-                        include: [
-                            {
-                                model: Bet_1.Bet,
-                                as: 'bets'
-                            }
-                        ]
-                    }
-                ]
-            });
-        });
-    },
-    // Buscar peleas activas con apuestas
-    findActiveFightsWithBets() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return Fight_1.Fight.findAll({
-                where: {
-                    status: ['betting', 'live']
-                },
-                include: [
-                    {
-                        model: Event_1.Event,
-                        as: 'event',
-                        include: [
-                            {
-                                model: Venue_1.Venue,
-                                as: 'venue'
-                            }
-                        ]
-                    },
-                    {
-                        model: Bet_1.Bet,
-                        as: 'bets',
-                        where: {
-                            status: ['pending', 'active']
-                        },
-                        required: false
-                    }
-                ]
-            });
-        });
-    },
-    // Buscar apuestas de un usuario con detalles
-    findUserBetsWithDetails(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return Bet_1.Bet.findAll({
-                where: { userId },
-                include: [
-                    {
-                        model: Fight_1.Fight,
-                        as: 'fight',
-                        include: [
-                            {
-                                model: Event_1.Event,
-                                as: 'event',
-                                include: [
-                                    {
-                                        model: Venue_1.Venue,
-                                        as: 'venue'
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                order: [['createdAt', 'DESC']]
-            });
-        });
-    },
-    // Buscar suscripción activa de un usuario
-    findActiveUserSubscription(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return Subscription_1.Subscription.findOne({
-                where: {
-                    userId,
-                    status: 'active'
-                },
-                order: [['endDate', 'DESC']]
-            });
-        });
     }
 };
-// Exportar por defecto un objeto con todos los modelos
 exports.default = {
     User: User_1.User,
     Venue: Venue_1.Venue,

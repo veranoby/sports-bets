@@ -1,6 +1,5 @@
 // Archivo de exportación central para todos los modelos
-// Este archivo centraliza las importaciones y exportaciones de modelos
-// IMPORTANTE: Las asociaciones se definen SOLO aquí para evitar duplicados
+// Define asociaciones únicas manteniendo compatibilidad con rutas existentes
 
 import { User } from './User';
 import { Venue } from './Venue';
@@ -11,141 +10,124 @@ import { Wallet, Transaction } from './Wallet';
 import { Subscription } from './Subscription';
 import { connectDatabase } from '../config/database';
 
+console.log('📦 Configurando modelos y asociaciones...');
+
 // ========================================
-// ASOCIACIONES ÚNICAS - DEFINIDAS SOLO AQUÍ
+// ASOCIACIONES PRINCIPALES - COMPATIBLES CON RUTAS
 // ========================================
 
-console.log('🔗 Configurando asociaciones de modelos...');
-
-// User -> Wallet (One-to-One)
+// User -> Wallet (usado en users.ts y auth.ts)
 User.hasOne(Wallet, { 
   foreignKey: 'userId', 
   as: 'wallet' 
 });
-
-// User -> Venues (One-to-Many) 
-User.hasMany(Venue, { 
-  foreignKey: 'ownerId', 
-  as: 'venues' 
-});
-
-// User -> Events as Operator (One-to-Many)
-User.hasMany(Event, { 
-  foreignKey: 'operatorId', 
-  as: 'operatedEvents' 
-});
-
-// User -> Events as Creator (One-to-Many)
-User.hasMany(Event, { 
-  foreignKey: 'createdBy', 
-  as: 'createdEvents' 
-});
-
-// User -> Bets (One-to-Many)
-User.hasMany(Bet, { 
-  foreignKey: 'userId', 
-  as: 'bets' 
-});
-
-// User -> Subscriptions (One-to-Many)
-User.hasMany(Subscription, { 
-  foreignKey: 'userId', 
-  as: 'subscriptions' 
-});
-
-// Wallet -> User (Inverse)
 Wallet.belongsTo(User, { 
   foreignKey: 'userId', 
   as: 'user' 
 });
 
-// Wallet -> Transactions (One-to-Many)
+// Wallet -> Transactions (usado en wallet.ts)
 Wallet.hasMany(Transaction, { 
   foreignKey: 'walletId', 
   as: 'transactions' 
 });
-
-// Transaction -> Wallet (Inverse)
 Transaction.belongsTo(Wallet, { 
   foreignKey: 'walletId', 
   as: 'wallet' 
 });
 
-// Venue -> User (Inverse)
+// User -> Venues
+User.hasMany(Venue, { 
+  foreignKey: 'ownerId', 
+  as: 'venues' 
+});
 Venue.belongsTo(User, { 
   foreignKey: 'ownerId', 
   as: 'owner' 
 });
 
-// Venue -> Events (One-to-Many)
+// Venue -> Events
 Venue.hasMany(Event, { 
   foreignKey: 'venueId', 
   as: 'events' 
 });
-
-// Event -> Venue (Inverse)
 Event.belongsTo(Venue, { 
   foreignKey: 'venueId', 
   as: 'venue' 
 });
 
-// Event -> User (Operator - Inverse)
+// User -> Events (DOS RELACIONES DIFERENTES - ALIASES ÚNICOS)
+User.hasMany(Event, { 
+  foreignKey: 'operatorId', 
+  as: 'operatedEvents' 
+});
+User.hasMany(Event, { 
+  foreignKey: 'createdBy', 
+  as: 'createdEvents' 
+});
+
+// Event -> User (INVERSAS CON ALIASES ÚNICOS)
 Event.belongsTo(User, { 
   foreignKey: 'operatorId', 
   as: 'operator' 
 });
-
-// Event -> User (Creator - Inverse)
 Event.belongsTo(User, { 
   foreignKey: 'createdBy', 
   as: 'creator' 
 });
 
-// Event -> Fights (One-to-Many)
+// Event -> Fights (usado en fights.ts)
 Event.hasMany(Fight, { 
   foreignKey: 'eventId', 
   as: 'fights' 
 });
-
-// Fight -> Event (Inverse)
 Fight.belongsTo(Event, { 
   foreignKey: 'eventId', 
   as: 'event' 
 });
 
-// Fight -> Bets (One-to-Many)
+// Fight -> Bets (usado en fights.ts)
 Fight.hasMany(Bet, { 
   foreignKey: 'fightId', 
   as: 'bets' 
 });
-
-// Bet -> Fight (Inverse)
 Bet.belongsTo(Fight, { 
   foreignKey: 'fightId', 
   as: 'fight' 
 });
 
-// Bet -> User (Inverse)
+// User -> Bets
+User.hasMany(Bet, { 
+  foreignKey: 'userId', 
+  as: 'bets' 
+});
 Bet.belongsTo(User, { 
   foreignKey: 'userId', 
   as: 'user' 
 });
 
-// Bet -> Bet (Self-referencing for matched bets)
+// Bet -> Bet (Self-referencing)
 Bet.belongsTo(Bet, { 
   foreignKey: 'matchedWith', 
   as: 'matchedBet' 
 });
 
-// Subscription -> User (Inverse)
+// User -> Subscriptions
+User.hasMany(Subscription, { 
+  foreignKey: 'userId', 
+  as: 'subscriptions' 
+});
 Subscription.belongsTo(User, { 
   foreignKey: 'userId', 
   as: 'user' 
 });
 
-console.log('✅ Asociaciones configuradas correctamente');
+console.log('✅ Asociaciones configuradas sin duplicados');
 
-// Exportar todos los modelos
+// ========================================
+// EXPORTACIONES
+// ========================================
+
 export {
   User,
   Venue,
@@ -158,35 +140,35 @@ export {
   connectDatabase
 };
 
-// Función para sincronizar todos los modelos
+// Función para sincronizar modelos
 export const syncModels = async (force: boolean = false): Promise<void> => {
   try {
     console.log('🔄 Synchronizing models...');
     
-    // Orden de sincronización respetando dependencias
+    // Orden respetando dependencias
     await User.sync({ force });
-    console.log('✅ User model synchronized');
-    
-    await Wallet.sync({ force });
-    console.log('✅ Wallet model synchronized');
-    
-    await Transaction.sync({ force });
-    console.log('✅ Transaction model synchronized');
+    console.log('✅ User');
     
     await Venue.sync({ force });
-    console.log('✅ Venue model synchronized');
+    console.log('✅ Venue');
     
-    await Event.sync({ force });
-    console.log('✅ Event model synchronized');
-    
-    await Fight.sync({ force });
-    console.log('✅ Fight model synchronized');
-    
-    await Bet.sync({ force });
-    console.log('✅ Bet model synchronized');
+    await Wallet.sync({ force });
+    console.log('✅ Wallet');
     
     await Subscription.sync({ force });
-    console.log('✅ Subscription model synchronized');
+    console.log('✅ Subscription');
+    
+    await Event.sync({ force });
+    console.log('✅ Event');
+    
+    await Fight.sync({ force });
+    console.log('✅ Fight');
+    
+    await Bet.sync({ force });
+    console.log('✅ Bet');
+    
+    await Transaction.sync({ force });
+    console.log('✅ Transaction');
     
     console.log('✅ All models synchronized successfully');
   } catch (error) {
@@ -197,33 +179,29 @@ export const syncModels = async (force: boolean = false): Promise<void> => {
 
 // Función para verificar asociaciones
 export const checkAssociations = (): void => {
-  console.log('🔗 Checking model associations...');
+  console.log('🔗 Checking associations...');
   
   try {
-    // Verificar asociaciones de User
-    console.log('User associations:', Object.keys(User.associations));
+    const associations = {
+      User: Object.keys(User.associations),
+      Venue: Object.keys(Venue.associations),
+      Event: Object.keys(Event.associations),
+      Fight: Object.keys(Fight.associations),
+      Bet: Object.keys(Bet.associations),
+      Wallet: Object.keys(Wallet.associations),
+      Transaction: Object.keys(Transaction.associations),
+      Subscription: Object.keys(Subscription.associations)
+    };
     
-    // Verificar asociaciones de Wallet
-    console.log('Wallet associations:', Object.keys(Wallet.associations));
-    
-    // Verificar asociaciones de Event
-    console.log('Event associations:', Object.keys(Event.associations));
-    
-    // Verificar asociaciones de Fight  
-    console.log('Fight associations:', Object.keys(Fight.associations));
-    
-    // Verificar asociaciones de Bet
-    console.log('Bet associations:', Object.keys(Bet.associations));
-    
-    console.log('✅ All associations checked');
+    console.log('📋 Associations summary:', associations);
+    console.log('✅ All associations verified');
   } catch (error) {
     console.error('❌ Error checking associations:', error);
   }
 };
 
-// Funciones de utilidad para consultas comunes
+// Funciones de utilidad
 export const ModelUtils = {
-  // Buscar usuario con su wallet
   async findUserWithWallet(userId: string) {
     return User.findByPk(userId, {
       include: [
@@ -241,103 +219,9 @@ export const ModelUtils = {
         }
       ]
     });
-  },
-
-  // Buscar evento con todos sus datos relacionados
-  async findEventWithDetails(eventId: string) {
-    return Event.findByPk(eventId, {
-      include: [
-        {
-          model: Venue,
-          as: 'venue'
-        },
-        {
-          model: User,
-          as: 'operator',
-          attributes: ['id', 'username', 'email']
-        },
-        {
-          model: Fight,
-          as: 'fights',
-          include: [
-            {
-              model: Bet,
-              as: 'bets'
-            }
-          ]
-        }
-      ]
-    });
-  },
-
-  // Buscar peleas activas con apuestas
-  async findActiveFightsWithBets() {
-    return Fight.findAll({
-      where: {
-        status: ['betting', 'live']
-      },
-      include: [
-        {
-          model: Event,
-          as: 'event',
-          include: [
-            {
-              model: Venue,
-              as: 'venue'
-            }
-          ]
-        },
-        {
-          model: Bet,
-          as: 'bets',
-          where: {
-            status: ['pending', 'active']
-          },
-          required: false
-        }
-      ]
-    });
-  },
-
-  // Buscar apuestas de un usuario con detalles
-  async findUserBetsWithDetails(userId: string) {
-    return Bet.findAll({
-      where: { userId },
-      include: [
-        {
-          model: Fight,
-          as: 'fight',
-          include: [
-            {
-              model: Event,
-              as: 'event',
-              include: [
-                {
-                  model: Venue,
-                  as: 'venue'
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      order: [['createdAt', 'DESC']]
-    });
-  },
-
-  // Buscar suscripción activa de un usuario
-  async findActiveUserSubscription(userId: string) {
-    return Subscription.findOne({
-      where: {
-        userId,
-        status: 'active'
-      },
-      order: [['endDate', 'DESC']]
-    });
   }
 };
 
-// Exportar por defecto un objeto con todos los modelos
 export default {
   User,
   Venue,
