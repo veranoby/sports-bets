@@ -42,15 +42,13 @@ router.get(
   asyncHandler(async (req, res) => {
     const fight = await Fight.findByPk(req.params.id, {
       include: [
-        {
-          model: Event,
-          as: "event",
-        },
+        { model: Event, as: "event" },
         {
           model: Bet,
           as: "bets",
-          where: { status: "active" },
-          required: false,
+          include: [
+            { model: User, as: "user", attributes: ["id", "username"] },
+          ],
         },
       ],
     });
@@ -200,7 +198,12 @@ router.put(
     }
 
     const fight = await Fight.findByPk(req.params.id, {
-      include: [{ model: Event, as: "event" }],
+      include: [
+        {
+          model: Event,
+          as: "event",
+        },
+      ],
     });
 
     if (!fight) {
@@ -263,7 +266,12 @@ router.post(
   authorize("operator", "admin"),
   asyncHandler(async (req, res) => {
     const fight = await Fight.findByPk(req.params.id, {
-      include: [{ model: Event, as: "event" }],
+      include: [
+        {
+          model: Event,
+          as: "event",
+        },
+      ],
     });
 
     if (!fight) {
@@ -309,7 +317,12 @@ router.post(
   authorize("operator", "admin"),
   asyncHandler(async (req, res) => {
     const fight = await Fight.findByPk(req.params.id, {
-      include: [{ model: Event, as: "event" }],
+      include: [
+        {
+          model: Event,
+          as: "event",
+        },
+      ],
     });
 
     if (!fight) {

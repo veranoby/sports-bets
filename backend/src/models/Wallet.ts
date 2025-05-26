@@ -15,7 +15,7 @@ import sequelize from "../config/database";
 import { User } from "./User";
 
 // Definición del modelo Wallet
-export class Wallet extends Model<
+class Wallet extends Model<
   InferAttributes<Wallet>,
   InferCreationAttributes<Wallet>
 > {
@@ -89,7 +89,7 @@ export class Wallet extends Model<
 }
 
 // Definición del modelo Transaction
-export class Transaction extends Model<
+class Transaction extends Model<
   InferAttributes<Transaction>,
   InferCreationAttributes<Transaction>
 > {

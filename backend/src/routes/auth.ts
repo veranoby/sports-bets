@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { User, Wallet } from "../models";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
@@ -42,9 +42,10 @@ const loginValidation = [
 
 // Función para generar JWT
 const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET as string, {
+  const options: SignOptions = {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  });
+  };
+  return jwt.sign({ userId }, process.env.JWT_SECRET!, options);
 };
 
 // POST /api/auth/register - Registro de usuario
@@ -194,7 +195,6 @@ router.get(
         {
           model: Wallet,
           as: "wallet",
-          attributes: ["balance", "frozenAmount"],
         },
       ],
     });

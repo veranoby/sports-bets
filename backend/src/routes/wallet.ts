@@ -4,6 +4,7 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
+import { Op } from "sequelize";
 
 const router = Router();
 
