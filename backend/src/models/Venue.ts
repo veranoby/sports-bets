@@ -9,10 +9,10 @@ import {
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
   HasManyCreateAssociationMixin,
-  HasManyGetAssociationsMixin
-} from 'sequelize';
-import sequelize from '../config/database';
-import { User } from './User';
+  HasManyGetAssociationsMixin,
+} from "sequelize";
+import sequelize from "../config/database";
+import { User } from "./User";
 
 // Definición del modelo Venue
 export class Venue extends Model<
@@ -27,8 +27,8 @@ export class Venue extends Model<
     email?: string;
     phone?: string;
   }>;
-  declare ownerId: ForeignKey<User['id']>;
-  declare status: CreationOptional<'pending' | 'active' | 'suspended'>;
+  declare ownerId: ForeignKey<User["id"]>;
+  declare status: CreationOptional<"pending" | "active" | "suspended">;
   declare images: CreationOptional<string[]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -51,78 +51,86 @@ Venue.init(
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        len: [3, 255]
-      }
+        len: [3, 255],
+      },
     },
     location: {
       type: DataTypes.STRING(500),
       allowNull: false,
       validate: {
-        len: [5, 500]
-      }
+        len: [5, 500],
+      },
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: true
+      allowNull: true,
     },
     contactInfo: {
       type: DataTypes.JSONB,
       allowNull: true,
-      defaultValue: {}
+      defaultValue: {},
     },
     ownerId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: User,
-        key: 'id'
-      }
+        key: "id",
+      },
     },
     status: {
-      type: DataTypes.ENUM('pending', 'active', 'suspended'),
+      type: DataTypes.ENUM("pending", "active", "suspended"),
       allowNull: false,
-      defaultValue: 'pending'
+      defaultValue: "pending",
     },
     images: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
-      defaultValue: []
-    }
+      defaultValue: [],
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Venue',
-    tableName: 'venues',
+    modelName: "Venue",
+    tableName: "venues",
     timestamps: true,
     indexes: [
       {
-        fields: ['ownerId']
+        fields: ["ownerId"],
       },
       {
-        fields: ['status']
+        fields: ["status"],
       },
       {
-        fields: ['name']
-      }
-    ]
+        fields: ["name"],
+      },
+    ],
   }
 );
 
 // Definir asociaciones
 Venue.belongsTo(User, {
-  foreignKey: 'ownerId',
-  as: 'owner'
+  foreignKey: "ownerId",
+  as: "owner",
 });
 
 User.hasMany(Venue, {
-  foreignKey: 'ownerId',
-  as: 'venues'
+  foreignKey: "ownerId",
+  as: "venues",
 });
 
 export default Venue;

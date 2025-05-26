@@ -9,17 +9,17 @@ import {
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
   HasManyCreateAssociationMixin,
-  HasManyGetAssociationsMixin
-} from 'sequelize';
-import sequelize from '../config/database';
-import { User } from './User';
+  HasManyGetAssociationsMixin,
+} from "sequelize";
+import sequelize from "../config/database";
+import { User } from "./User";
 
 // Definición del modelo Wallet
 export class Wallet extends Model<
   InferAttributes<Wallet>,
   InferCreationAttributes<Wallet>
 > {
-  declare userId: ForeignKey<User['id']>;
+  declare userId: ForeignKey<User["id"]>;
   declare balance: CreationOptional<number>;
   declare frozenAmount: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
@@ -83,7 +83,7 @@ export class Wallet extends Model<
       balance: this.balance,
       frozenAmount: this.frozenAmount,
       availableBalance: this.getAvailableBalance(),
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     };
   }
 }
@@ -94,10 +94,17 @@ export class Transaction extends Model<
   InferCreationAttributes<Transaction>
 > {
   declare id: CreationOptional<string>;
-  declare walletId: ForeignKey<Wallet['userId']>;
-  declare type: 'deposit' | 'withdrawal' | 'bet-win' | 'bet-loss' | 'bet-refund';
+  declare walletId: ForeignKey<Wallet["userId"]>;
+  declare type:
+    | "deposit"
+    | "withdrawal"
+    | "bet-win"
+    | "bet-loss"
+    | "bet-refund";
   declare amount: number;
-  declare status: CreationOptional<'pending' | 'completed' | 'failed' | 'cancelled'>;
+  declare status: CreationOptional<
+    "pending" | "completed" | "failed" | "cancelled"
+  >;
   declare reference: CreationOptional<string>;
   declare description: string;
   declare metadata: CreationOptional<any>;
@@ -110,23 +117,23 @@ export class Transaction extends Model<
 
   // Métodos de instancia
   isPending(): boolean {
-    return this.status === 'pending';
+    return this.status === "pending";
   }
 
   isCompleted(): boolean {
-    return this.status === 'completed';
+    return this.status === "completed";
   }
 
   isFailed(): boolean {
-    return this.status === 'failed';
+    return this.status === "failed";
   }
 
   isDebit(): boolean {
-    return ['withdrawal', 'bet-loss'].includes(this.type);
+    return ["withdrawal", "bet-loss"].includes(this.type);
   }
 
   isCredit(): boolean {
-    return ['deposit', 'bet-win', 'bet-refund'].includes(this.type);
+    return ["deposit", "bet-win", "bet-refund"].includes(this.type);
   }
 
   toPublicJSON() {
@@ -142,45 +149,53 @@ Wallet.init(
       primaryKey: true,
       references: {
         model: User,
-        key: 'id'
-      }
+        key: "id",
+      },
     },
     balance: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
-      defaultValue: 0.00,
+      defaultValue: 0.0,
       validate: {
-        min: 0
-      }
+        min: 0,
+      },
     },
     frozenAmount: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
-      defaultValue: 0.00,
+      defaultValue: 0.0,
       validate: {
-        min: 0
-      }
-    }
+        min: 0,
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Wallet',
-    tableName: 'wallets',
+    modelName: "Wallet",
+    tableName: "wallets",
     timestamps: true,
     indexes: [
       {
-        fields: ['userId'],
-        unique: true
-      }
+        fields: ["userId"],
+        unique: true,
+      },
     ],
     validate: {
       // Validación para asegurar que el monto congelado no exceda el balance
       frozenNotExceedsBalance() {
         if (this.frozenAmount > this.balance) {
-          throw new Error('Frozen amount cannot exceed balance');
+          throw new Error("Frozen amount cannot exceed balance");
         }
-      }
-    }
+      },
+    },
   }
 );
 
@@ -190,89 +205,103 @@ Transaction.init(
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
     },
     walletId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Wallet,
-        key: 'userId'
-      }
+        key: "userId",
+      },
     },
     type: {
-      type: DataTypes.ENUM('deposit', 'withdrawal', 'bet-win', 'bet-loss', 'bet-refund'),
-      allowNull: false
+      type: DataTypes.ENUM(
+        "deposit",
+        "withdrawal",
+        "bet-win",
+        "bet-loss",
+        "bet-refund"
+      ),
+      allowNull: false,
     },
     amount: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       validate: {
-        min: 0.01
-      }
+        min: 0.01,
+      },
     },
     status: {
-      type: DataTypes.ENUM('pending', 'completed', 'failed', 'cancelled'),
+      type: DataTypes.ENUM("pending", "completed", "failed", "cancelled"),
       allowNull: false,
-      defaultValue: 'pending'
+      defaultValue: "pending",
     },
     reference: {
       type: DataTypes.STRING(255),
-      allowNull: true
+      allowNull: true,
     },
     description: {
       type: DataTypes.STRING(500),
-      allowNull: false
+      allowNull: false,
     },
     metadata: {
       type: DataTypes.JSONB,
-      allowNull: true
-    }
+      allowNull: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Transaction',
-    tableName: 'transactions',
+    modelName: "Transaction",
+    tableName: "transactions",
     timestamps: true,
     indexes: [
       {
-        fields: ['walletId']
+        fields: ["walletId"],
       },
       {
-        fields: ['type']
+        fields: ["type"],
       },
       {
-        fields: ['status']
+        fields: ["status"],
       },
       {
-        fields: ['reference']
+        fields: ["reference"],
       },
       {
-        fields: ['createdAt']
-      }
-    ]
+        fields: ["createdAt"],
+      },
+    ],
   }
 );
 
 // Definir asociaciones
 Wallet.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
+  foreignKey: "userId",
+  as: "user",
 });
 
 Wallet.hasMany(Transaction, {
-  foreignKey: 'walletId',
-  as: 'transactions'
+  foreignKey: "walletId",
+  as: "transactions",
 });
 
 Transaction.belongsTo(Wallet, {
-  foreignKey: 'walletId',
-  as: 'wallet'
+  foreignKey: "walletId",
+  as: "wallet",
 });
 
 User.hasOne(Wallet, {
-  foreignKey: 'userId',
-  as: 'wallet'
+  foreignKey: "userId",
+  as: "wallet",
 });
 
 export { Wallet, Transaction };

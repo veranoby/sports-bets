@@ -7,11 +7,11 @@ import {
   ForeignKey,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
-  BelongsToSetAssociationMixin
-} from 'sequelize';
-import sequelize from '../config/database';
-import { Fight } from './Fight';
-import { User } from './User';
+  BelongsToSetAssociationMixin,
+} from "sequelize";
+import sequelize from "../config/database";
+import { Fight } from "./Fight";
+import { User } from "./User";
 
 // Definición del modelo Bet
 export class Bet extends Model<
@@ -19,20 +19,20 @@ export class Bet extends Model<
   InferCreationAttributes<Bet>
 > {
   declare id: CreationOptional<string>;
-  declare fightId: ForeignKey<Fight['id']>;
-  declare userId: ForeignKey<User['id']>;
-  declare side: 'red' | 'blue';
+  declare fightId: ForeignKey<Fight["id"]>;
+  declare userId: ForeignKey<User["id"]>;
+  declare side: "red" | "blue";
   declare amount: number;
   declare potentialWin: number;
-  declare status: CreationOptional<'pending' | 'active' | 'completed' | 'cancelled'>;
-  declare result: CreationOptional<'win' | 'loss' | 'draw' | 'cancelled'>;
-  declare matchedWith: CreationOptional<ForeignKey<Bet['id']>>;
+  declare status: CreationOptional<
+    "pending" | "active" | "completed" | "cancelled"
+  >;
+  declare result: CreationOptional<"win" | "loss" | "draw" | "cancelled">;
+  declare matchedWith: CreationOptional<ForeignKey<Bet["id"]>>;
   declare terms: CreationOptional<{
     ratio: number;
     isOffer: boolean;
   }>;
-  declare createdAt: CreationOptional<Date>;
-  declare updatedAt: CreationOptional<Date>;
 
   // Asociaciones
   declare getFight: BelongsToGetAssociationMixin<Fight>;
@@ -44,27 +44,27 @@ export class Bet extends Model<
 
   // Métodos de instancia
   isPending(): boolean {
-    return this.status === 'pending';
+    return this.status === "pending";
   }
 
   isActive(): boolean {
-    return this.status === 'active';
+    return this.status === "active";
   }
 
   isCompleted(): boolean {
-    return this.status === 'completed';
+    return this.status === "completed";
   }
 
   isWin(): boolean {
-    return this.result === 'win';
+    return this.result === "win";
   }
 
   isLoss(): boolean {
-    return this.result === 'loss';
+    return this.result === "loss";
   }
 
   isDraw(): boolean {
-    return this.result === 'draw';
+    return this.result === "draw";
   }
 
   calculatePotentialWin(): number {
@@ -75,7 +75,7 @@ export class Bet extends Model<
   }
 
   canBeMatched(): boolean {
-    return this.status === 'pending' && this.terms?.isOffer === true;
+    return this.status === "pending" && this.terms?.isOffer === true;
   }
 
   toPublicJSON() {
@@ -89,202 +89,98 @@ Bet.init(
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
     },
     fightId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Fight,
-        key: 'id'
-      }
+        key: "id",
+      },
     },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: User,
-        key: 'id'
-      }
+        key: "id",
+      },
     },
     side: {
-      type: DataTypes.ENUM('red', 'blue'),
-      allowNull: false
+      type: DataTypes.ENUM("red", "blue"),
+      allowNull: false,
     },
     amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       validate: {
         min: 0.01,
-        max: 10000.00
-      }
+        max: 10000.0,
+      },
     },
     potentialWin: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       validate: {
-        min: 0.01
-      }
+        min: 0.01,
+      },
     },
     status: {
-      type: DataTypes.ENUM('pending', 'active', 'completed', 'cancelled'),
+      type: DataTypes.ENUM("pending", "active", "completed", "cancelled"),
       allowNull: false,
-      defaultValue: 'pending'
+      defaultValue: "pending",
     },
     result: {
-      type: DataTypes.ENUM('win', 'loss', 'draw', 'cancelled'),
-      allowNull: true
+      type: DataTypes.ENUM("win", "loss", "draw", "cancelled"),
+      allowNull: true,
     },
     matchedWith: {
       type: DataTypes.UUID,
       allowNull: true,
       references: {
-        model: 'bets',
-        key: 'id'
-      }
+        model: "bets",
+        key: "id",
+      },
     },
     terms: {
       type: DataTypes.JSONB,
       allowNull: true,
       defaultValue: {
         ratio: 2.0,
-        isOffer: true
-      }
-    }
+        isOffer: true,
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Wallet',
-    tableName: 'wallets',
+    modelName: "Bet",
+    tableName: "bets",
     timestamps: true,
     indexes: [
       {
-        fields: ['userId'],
-        unique: true
-      }
-    ],
-    validate: {
-      // Validación para asegurar que el monto congelado no exceda el balance
-      frozenNotExceedsBalance() {
-        if (this.frozenAmount > this.balance) {
-          throw new Error('Frozen amount cannot exceed balance');
-        }
-      }
-    }
-  }
-);
-
-// Inicialización del modelo Transaction
-Transaction.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
-    },
-    walletId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: Wallet,
-        key: 'userId'
-      }
-    },
-    type: {
-      type: DataTypes.ENUM('deposit', 'withdrawal', 'bet-win', 'bet-loss', 'bet-refund'),
-      allowNull: false
-    },
-    amount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
-      validate: {
-        min: 0.01
-      }
-    },
-    status: {
-      type: DataTypes.ENUM('pending', 'completed', 'failed', 'cancelled'),
-      allowNull: false,
-      defaultValue: 'pending'
-    },
-    reference: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
-    description: {
-      type: DataTypes.STRING(500),
-      allowNull: false
-    },
-    metadata: {
-      type: DataTypes.JSONB,
-      allowNull: true
-    }
-  },
-  {
-    sequelize,
-    modelName: 'Transaction',
-    tableName: 'transactions',
-    timestamps: true,
-    indexes: [
-      {
-        fields: ['walletId']
+        fields: ["fightId"],
       },
       {
-        fields: ['type']
+        fields: ["userId"],
       },
       {
-        fields: ['status']
+        fields: ["status"],
       },
       {
-        fields: ['reference']
+        fields: ["matchedWith"],
       },
       {
-        fields: ['createdAt']
-      }
-    ]
-  }
-);
-
-// Definir asociaciones
-Wallet.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
-});
-
-Wallet.hasMany(Transaction, {
-  foreignKey: 'walletId',
-  as: 'transactions'
-});
-
-Transaction.belongsTo(Wallet, {
-  foreignKey: 'walletId',
-  as: 'wallet'
-});
-
-User.hasOne(Wallet, {
-  foreignKey: 'userId',
-  as: 'wallet'
-});
-
-export { Wallet, Transaction };
-export default Wallet; 'Bet',
-    tableName: 'bets',
-    timestamps: true,
-    indexes: [
-      {
-        fields: ['fightId']
+        fields: ["fightId", "status"],
       },
-      {
-        fields: ['userId']
-      },
-      {
-        fields: ['status']
-      },
-      {
-        fields: ['matchedWith']
-      },
-      {
-        fields: ['fightId', 'status']
-      }
     ],
     hooks: {
       beforeCreate: (bet: Bet) => {
@@ -295,38 +191,38 @@ export default Wallet; 'Bet',
       },
       beforeUpdate: (bet: Bet) => {
         // Recalcular ganancia potencial si cambió el ratio
-        if (bet.changed('terms') && bet.terms?.ratio) {
+        if (bet.changed("terms") && bet.terms?.ratio) {
           bet.potentialWin = bet.calculatePotentialWin();
         }
-      }
-    }
+      },
+    },
   }
 );
 
 // Definir asociaciones
 Bet.belongsTo(Fight, {
-  foreignKey: 'fightId',
-  as: 'fight'
+  foreignKey: "fightId",
+  as: "fight",
 });
 
 Bet.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
+  foreignKey: "userId",
+  as: "user",
 });
 
 Bet.belongsTo(Bet, {
-  foreignKey: 'matchedWith',
-  as: 'matchedBet'
+  foreignKey: "matchedWith",
+  as: "matchedBet",
 });
 
 Fight.hasMany(Bet, {
-  foreignKey: 'fightId',
-  as: 'bets'
+  foreignKey: "fightId",
+  as: "bets",
 });
 
 User.hasMany(Bet, {
-  foreignKey: 'userId',
-  as: 'bets'
+  foreignKey: "userId",
+  as: "bets",
 });
 
 export default Bet;

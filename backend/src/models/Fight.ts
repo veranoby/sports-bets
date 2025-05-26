@@ -9,10 +9,10 @@ import {
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
   HasManyCreateAssociationMixin,
-  HasManyGetAssociationsMixin
-} from 'sequelize';
-import sequelize from '../config/database';
-import { Event } from './Event';
+  HasManyGetAssociationsMixin,
+} from "sequelize";
+import sequelize from "../config/database";
+import { Event } from "./Event";
 
 // Definición del modelo Fight
 export class Fight extends Model<
@@ -20,14 +20,16 @@ export class Fight extends Model<
   InferCreationAttributes<Fight>
 > {
   declare id: CreationOptional<string>;
-  declare eventId: ForeignKey<Event['id']>;
+  declare eventId: ForeignKey<Event["id"]>;
   declare number: number;
   declare redCorner: string;
   declare blueCorner: string;
   declare weight: number;
   declare notes: CreationOptional<string>;
-  declare status: CreationOptional<'upcoming' | 'betting' | 'live' | 'completed' | 'cancelled'>;
-  declare result: CreationOptional<'red' | 'blue' | 'draw' | 'cancelled'>;
+  declare status: CreationOptional<
+    "upcoming" | "betting" | "live" | "completed" | "cancelled"
+  >;
+  declare result: CreationOptional<"red" | "blue" | "draw" | "cancelled">;
   declare startTime: CreationOptional<Date>;
   declare endTime: CreationOptional<Date>;
   declare createdAt: CreationOptional<Date>;
@@ -39,19 +41,19 @@ export class Fight extends Model<
 
   // Métodos de instancia
   isLive(): boolean {
-    return this.status === 'live';
+    return this.status === "live";
   }
 
   isBettingOpen(): boolean {
-    return this.status === 'betting';
+    return this.status === "betting";
   }
 
   isCompleted(): boolean {
-    return this.status === 'completed';
+    return this.status === "completed";
   }
 
   canAcceptBets(): boolean {
-    return this.status === 'betting';
+    return this.status === "betting";
   }
 
   duration(): number | null {
@@ -72,111 +74,125 @@ Fight.init(
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
     },
     eventId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Event,
-        key: 'id'
-      }
+        key: "id",
+      },
     },
     number: {
       type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
         min: 1,
-        max: 999
-      }
+        max: 999,
+      },
     },
     redCorner: {
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        len: [2, 255]
-      }
+        len: [2, 255],
+      },
     },
     blueCorner: {
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        len: [2, 255]
-      }
+        len: [2, 255],
+      },
     },
     weight: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
       validate: {
         min: 1.0,
-        max: 10.0
-      }
+        max: 10.0,
+      },
     },
     notes: {
       type: DataTypes.TEXT,
-      allowNull: true
+      allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM('upcoming', 'betting', 'live', 'completed', 'cancelled'),
+      type: DataTypes.ENUM(
+        "upcoming",
+        "betting",
+        "live",
+        "completed",
+        "cancelled"
+      ),
       allowNull: false,
-      defaultValue: 'upcoming'
+      defaultValue: "upcoming",
     },
     result: {
-      type: DataTypes.ENUM('red', 'blue', 'draw', 'cancelled'),
-      allowNull: true
+      type: DataTypes.ENUM("red", "blue", "draw", "cancelled"),
+      allowNull: true,
     },
     startTime: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
     },
     endTime: {
       type: DataTypes.DATE,
-      allowNull: true
-    }
+      allowNull: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Fight',
-    tableName: 'fights',
+    modelName: "Fight",
+    tableName: "fights",
     timestamps: true,
     indexes: [
       {
-        fields: ['eventId']
+        fields: ["eventId"],
       },
       {
-        fields: ['status']
+        fields: ["status"],
       },
       {
-        fields: ['eventId', 'number'],
-        unique: true
-      }
+        fields: ["eventId", "number"],
+        unique: true,
+      },
     ],
     validate: {
       // Validación personalizada para evitar criaderos iguales
       differentCorners() {
         if (this.redCorner === this.blueCorner) {
-          throw new Error('Red and blue corners cannot be the same');
+          throw new Error("Red and blue corners cannot be the same");
         }
       },
       // Validación de fechas
       endAfterStart() {
         if (this.startTime && this.endTime && this.endTime <= this.startTime) {
-          throw new Error('End time must be after start time');
+          throw new Error("End time must be after start time");
         }
-      }
-    }
+      },
+    },
   }
 );
 
 // Definir asociaciones
 Fight.belongsTo(Event, {
-  foreignKey: 'eventId',
-  as: 'event'
+  foreignKey: "eventId",
+  as: "event",
 });
 
 Event.hasMany(Fight, {
-  foreignKey: 'eventId',
-  as: 'fights'
+  foreignKey: "eventId",
+  as: "fights",
 });
 
 export default Fight;
