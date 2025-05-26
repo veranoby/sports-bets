@@ -11,6 +11,139 @@ import { Wallet, Transaction } from './Wallet';
 import { Subscription } from './Subscription';
 import { connectDatabase } from '../config/database';
 
+// Configurar asociaciones después de importar todos los modelos
+// Esto asegura que todas las asociaciones estén disponibles antes de usar los modelos
+
+// ========================================
+// USER ASSOCIATIONS
+// ========================================
+
+// User -> Wallet (One-to-One)
+User.hasOne(Wallet, { 
+  foreignKey: 'userId', 
+  as: 'wallet' 
+});
+Wallet.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user' 
+});
+
+// User -> Venues (One-to-Many)
+User.hasMany(Venue, { 
+  foreignKey: 'ownerId', 
+  as: 'venues' 
+});
+Venue.belongsTo(User, { 
+  foreignKey: 'ownerId', 
+  as: 'owner' 
+});
+
+// User -> Events as Operator (One-to-Many)
+User.hasMany(Event, { 
+  foreignKey: 'operatorId', 
+  as: 'operatedEvents' 
+});
+Event.belongsTo(User, { 
+  foreignKey: 'operatorId', 
+  as: 'operator' 
+});
+
+// User -> Events as Creator (One-to-Many)
+User.hasMany(Event, { 
+  foreignKey: 'createdBy', 
+  as: 'createdEvents' 
+});
+Event.belongsTo(User, { 
+  foreignKey: 'createdBy', 
+  as: 'creator' 
+});
+
+// User -> Bets (One-to-Many)
+User.hasMany(Bet, { 
+  foreignKey: 'userId', 
+  as: 'bets' 
+});
+Bet.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user' 
+});
+
+// User -> Subscriptions (One-to-Many)
+User.hasMany(Subscription, { 
+  foreignKey: 'userId', 
+  as: 'subscriptions' 
+});
+Subscription.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user' 
+});
+
+// ========================================
+// WALLET ASSOCIATIONS
+// ========================================
+
+// Wallet -> Transactions (One-to-Many)
+Wallet.hasMany(Transaction, { 
+  foreignKey: 'walletId', 
+  as: 'transactions' 
+});
+Transaction.belongsTo(Wallet, { 
+  foreignKey: 'walletId', 
+  as: 'wallet' 
+});
+
+// ========================================
+// VENUE ASSOCIATIONS
+// ========================================
+
+// Venue -> Events (One-to-Many)
+Venue.hasMany(Event, { 
+  foreignKey: 'venueId', 
+  as: 'events' 
+});
+Event.belongsTo(Venue, { 
+  foreignKey: 'venueId', 
+  as: 'venue' 
+});
+
+// ========================================
+// EVENT ASSOCIATIONS
+// ========================================
+
+// Event -> Fights (One-to-Many)
+Event.hasMany(Fight, { 
+  foreignKey: 'eventId', 
+  as: 'fights' 
+});
+Fight.belongsTo(Event, { 
+  foreignKey: 'eventId', 
+  as: 'event' 
+});
+
+// ========================================
+// FIGHT ASSOCIATIONS
+// ========================================
+
+// Fight -> Bets (One-to-Many)
+Fight.hasMany(Bet, { 
+  foreignKey: 'fightId', 
+  as: 'bets' 
+});
+Bet.belongsTo(Fight, { 
+  foreignKey: 'fightId', 
+  as: 'fight' 
+});
+
+// ========================================
+// BET ASSOCIATIONS
+// ========================================
+
+// Bet -> Bet (Self-referencing for matched bets)
+Bet.belongsTo(Bet, { 
+  foreignKey: 'matchedWith', 
+  as: 'matchedBet' 
+});
+
 // Exportar todos los modelos
 export {
   User,

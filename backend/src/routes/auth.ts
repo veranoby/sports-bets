@@ -43,7 +43,7 @@ const loginValidation = [
 // Función para generar JWT
 const generateToken = (userId: string): string => {
   const options: SignOptions = {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d"
   };
   return jwt.sign({ userId }, process.env.JWT_SECRET!, options);
 };
@@ -207,7 +207,7 @@ router.get(
       success: true,
       data: {
         user: user.toPublicJSON(),
-        wallet: user.wallet?.toPublicJSON(),
+        wallet: (user as any).wallet?.toPublicJSON(),
       },
     });
   })

@@ -25,11 +25,13 @@ router.get(
       throw errors.notFound("User not found");
     }
 
+    const userData = user.toJSON() as any;
+
     res.json({
       success: true,
       data: {
         user: user.toPublicJSON(),
-        wallet: user.wallet?.toPublicJSON(),
+        wallet: userData.wallet?.toPublicJSON?.() || userData.wallet,
       },
     });
   })

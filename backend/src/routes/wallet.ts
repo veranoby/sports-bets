@@ -29,12 +29,14 @@ router.get(
       throw errors.notFound("Wallet not found");
     }
 
+    const walletData = wallet.toJSON() as any;
+
     res.json({
       success: true,
       data: {
         wallet: wallet.toPublicJSON(),
         recentTransactions:
-          wallet.transactions?.map((t) => t.toPublicJSON()) || [],
+          walletData.transactions?.map((t: any) => t.toPublicJSON?.() || t) || [],
       },
     });
   })
@@ -65,13 +67,9 @@ router.get(
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom)
-        where.createdAt[require("sequelize").Op.gte] = new Date(
-          dateFrom as string
-        );
+        where.createdAt[Op.gte] = new Date(dateFrom as string);
       if (dateTo)
-        where.createdAt[require("sequelize").Op.lte] = new Date(
-          dateTo as string
-        );
+        where.createdAt[Op.lte] = new Date(dateTo as string);
     }
 
     const wallet = await Wallet.findOne({
@@ -253,7 +251,7 @@ router.post(
         type: "withdrawal",
         status: ["pending", "completed"],
         createdAt: {
-          [require("sequelize").Op.gte]: today,
+          [Op.gte]: today,
         },
       },
     });
@@ -344,7 +342,7 @@ router.get(
       where: {
         walletId: wallet.userId,
         createdAt: {
-          [require("sequelize").Op.gte]: lastMonth,
+          [Op.gte]: lastMonth,
         },
       },
       attributes: ["type", "status", "amount"],
@@ -387,6 +385,11 @@ router.post(
     const parsedAmount = parseFloat(String(amount));
 
     // ... lógica para agregar fondos ...
+    
+    res.json({
+      success: true,
+      message: "Funds processing endpoint - To be implemented",
+    });
   })
 );
 

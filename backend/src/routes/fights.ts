@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Fight, Event, Bet } from "../models";
+import { Fight, Event, Bet, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 
@@ -57,12 +57,13 @@ router.get(
       throw errors.notFound("Fight not found");
     }
 
-    const operatorId = fight.event?.operatorId;
+    const fightData = fight.toJSON() as any;
+    const operatorId = fightData.event?.operatorId;
 
     res.json({
       success: true,
       data: {
-        fight,
+        fight: fightData,
         operatorId,
       },
     });
@@ -114,7 +115,8 @@ router.post(
     }
 
     // Verificar permisos del operador
-    if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
+    const eventData = event.toJSON() as any;
+    if (req.user!.role === "operator" && eventData.operatorId !== req.user!.id) {
       throw errors.forbidden("You are not assigned to this event");
     }
 
@@ -146,9 +148,11 @@ router.post(
 
     // Emitir evento via WebSocket
     const io = req.app.get("io");
-    io.to(`event_${eventId}`).emit("fight_created", {
-      fight: fight.toPublicJSON(),
-    });
+    if (io) {
+      io.to(`event_${eventId}`).emit("fight_created", {
+        fight: fight.toPublicJSON(),
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -211,10 +215,11 @@ router.put(
     }
 
     // Verificar permisos del operador
+    const fightData = fight.toJSON() as any;
     if (
       req.user!.role === "operator" &&
-      fight.event &&
-      fight.event.operatorId !== req.user!.id
+      fightData.event &&
+      fightData.event.operatorId !== req.user!.id
     ) {
       throw errors.forbidden("You are not assigned to this event");
     }
@@ -247,9 +252,11 @@ router.put(
 
     // Emitir evento via WebSocket
     const io = req.app.get("io");
-    io.to(`event_${fight.eventId}`).emit("fight_updated", {
-      fight: fight.toPublicJSON(),
-    });
+    if (io) {
+      io.to(`event_${fight.eventId}`).emit("fight_updated", {
+        fight: fight.toPublicJSON(),
+      });
+    }
 
     res.json({
       success: true,
@@ -279,9 +286,10 @@ router.post(
     }
 
     // Verificar permisos del operador
+    const fightData = fight.toJSON() as any;
     if (
       req.user!.role === "operator" &&
-      fight.event.operatorId !== req.user!.id
+      fightData.event.operatorId !== req.user!.id
     ) {
       throw errors.forbidden("You are not assigned to this event");
     }
@@ -297,10 +305,12 @@ router.post(
 
     // Emitir evento via WebSocket
     const io = req.app.get("io");
-    io.to(`event_${fight.eventId}`).emit("betting_opened", {
-      fightId: fight.id,
-      fight: fight.toPublicJSON(),
-    });
+    if (io) {
+      io.to(`event_${fight.eventId}`).emit("betting_opened", {
+        fightId: fight.id,
+        fight: fight.toPublicJSON(),
+      });
+    }
 
     res.json({
       success: true,
@@ -330,9 +340,10 @@ router.post(
     }
 
     // Verificar permisos del operador
+    const fightData = fight.toJSON() as any;
     if (
       req.user!.role === "operator" &&
-      fight.event.operatorId !== req.user!.id
+      fightData.event.operatorId !== req.user!.id
     ) {
       throw errors.forbidden("You are not assigned to this event");
     }
@@ -360,10 +371,12 @@ router.post(
 
     // Emitir evento via WebSocket
     const io = req.app.get("io");
-    io.to(`event_${fight.eventId}`).emit("betting_closed", {
-      fightId: fight.id,
-      fight: fight.toPublicJSON(),
-    });
+    if (io) {
+      io.to(`event_${fight.eventId}`).emit("betting_closed", {
+        fightId: fight.id,
+        fight: fight.toPublicJSON(),
+      });
+    }
 
     res.json({
       success: true,
@@ -417,9 +430,10 @@ router.post(
     }
 
     // Verificar permisos del operador
+    const fightData = fight.toJSON() as any;
     if (
       req.user!.role === "operator" &&
-      fight.event.operatorId !== req.user!.id
+      fightData.event.operatorId !== req.user!.id
     ) {
       throw errors.forbidden("You are not assigned to this event");
     }
@@ -436,8 +450,12 @@ router.post(
     await fight.save();
 
     // Procesar resultados de apuestas
-    if (fight.bets && fight.bets.length > 0) {
-      for (const bet of fight.bets) {
+    const bets = fightData.bets || [];
+    if (bets.length > 0) {
+      for (const betData of bets) {
+        const bet = await Bet.findByPk(betData.id);
+        if (!bet) continue;
+
         let betResult: "win" | "loss" | "draw" | "cancelled" = "loss";
 
         if (result === "cancelled") {
@@ -456,7 +474,8 @@ router.post(
         await bet.save();
 
         // Actualizar wallet del usuario
-        const wallet = await require("../models/Wallet").Wallet.findOne({
+        const { Wallet, Transaction } = require("../models/Wallet");
+        const wallet = await Wallet.findOne({
           where: { userId: bet.userId },
         });
 
@@ -475,7 +494,7 @@ router.post(
           await wallet.save();
 
           // Crear transacción
-          await require("../models/Wallet").Transaction.create({
+          await Transaction.create({
             walletId: wallet.userId,
             type:
               betResult === "win"
@@ -509,11 +528,13 @@ router.post(
 
     // Emitir evento via WebSocket
     const io = req.app.get("io");
-    io.to(`event_${fight.eventId}`).emit("fight_completed", {
-      fightId: fight.id,
-      result: result,
-      fight: fight.toPublicJSON(),
-    });
+    if (io) {
+      io.to(`event_${fight.eventId}`).emit("fight_completed", {
+        fightId: fight.id,
+        result: result,
+        fight: fight.toPublicJSON(),
+      });
+    }
 
     res.json({
       success: true,
