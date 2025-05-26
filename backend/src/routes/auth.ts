@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { User, Wallet } from "../models";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
@@ -40,12 +40,13 @@ const loginValidation = [
   body("password").notEmpty().withMessage("Password is required"),
 ];
 
-// Función para generar JWT
+// Función para generar JWT - SOLUCIONADO
 const generateToken = (userId: string): string => {
-  const options: SignOptions = {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d"
-  };
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, options);
+  return jwt.sign(
+    { userId }, 
+    process.env.JWT_SECRET!,
+    { expiresIn: '7d' } as any
+  );
 };
 
 // POST /api/auth/register - Registro de usuario

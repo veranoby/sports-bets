@@ -11,7 +11,7 @@
     "db:init:force": "ts-node src/init-db.ts --force",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "echo \"Linting not configured yet\"",
-    "clean": "rm -rf dist",
+    "clean": "powershell -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }\"",
     "prebuild": "npm run clean"
   },
   "keywords": ["sports", "betting", "streaming", "galleros"],
