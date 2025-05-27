@@ -1,5 +1,5 @@
 // Archivo de exportación central para todos los modelos
-// Define asociaciones únicas manteniendo compatibilidad con rutas existentes
+// Define asociaciones únicas evitando duplicados con modelos individuales
 
 import { User } from './User';
 import { Venue } from './Venue';
@@ -13,10 +13,10 @@ import { connectDatabase } from '../config/database';
 console.log('📦 Configurando modelos y asociaciones...');
 
 // ========================================
-// ASOCIACIONES PRINCIPALES - COMPATIBLES CON RUTAS
+// ASOCIACIONES PRINCIPALES - SIN DUPLICADOS
 // ========================================
 
-// User -> Wallet (usado en users.ts y auth.ts)
+// User -> Wallet (One-to-One)
 User.hasOne(Wallet, { 
   foreignKey: 'userId', 
   as: 'wallet' 
@@ -26,7 +26,7 @@ Wallet.belongsTo(User, {
   as: 'user' 
 });
 
-// Wallet -> Transactions (usado en wallet.ts)
+// Wallet -> Transactions (One-to-Many)
 Wallet.hasMany(Transaction, { 
   foreignKey: 'walletId', 
   as: 'transactions' 
@@ -36,7 +36,7 @@ Transaction.belongsTo(Wallet, {
   as: 'wallet' 
 });
 
-// User -> Venues
+// User -> Venues (One-to-Many)
 User.hasMany(Venue, { 
   foreignKey: 'ownerId', 
   as: 'venues' 
@@ -46,7 +46,7 @@ Venue.belongsTo(User, {
   as: 'owner' 
 });
 
-// Venue -> Events
+// Venue -> Events (One-to-Many)
 Venue.hasMany(Event, { 
   foreignKey: 'venueId', 
   as: 'events' 
@@ -56,7 +56,7 @@ Event.belongsTo(Venue, {
   as: 'venue' 
 });
 
-// User -> Events (DOS RELACIONES DIFERENTES - ALIASES ÚNICOS)
+// User -> Events (DOS RELACIONES DIFERENTES CON ALIASES ÚNICOS)
 User.hasMany(Event, { 
   foreignKey: 'operatorId', 
   as: 'operatedEvents' 
@@ -76,7 +76,7 @@ Event.belongsTo(User, {
   as: 'creator' 
 });
 
-// Event -> Fights (usado en fights.ts)
+// Event -> Fights (One-to-Many)
 Event.hasMany(Fight, { 
   foreignKey: 'eventId', 
   as: 'fights' 
@@ -86,7 +86,7 @@ Fight.belongsTo(Event, {
   as: 'event' 
 });
 
-// Fight -> Bets (usado en fights.ts)
+// Fight -> Bets (One-to-Many)
 Fight.hasMany(Bet, { 
   foreignKey: 'fightId', 
   as: 'bets' 
@@ -96,7 +96,7 @@ Bet.belongsTo(Fight, {
   as: 'fight' 
 });
 
-// User -> Bets
+// User -> Bets (One-to-Many)
 User.hasMany(Bet, { 
   foreignKey: 'userId', 
   as: 'bets' 
@@ -112,7 +112,7 @@ Bet.belongsTo(Bet, {
   as: 'matchedBet' 
 });
 
-// User -> Subscriptions
+// User -> Subscriptions (One-to-Many)
 User.hasMany(Subscription, { 
   foreignKey: 'userId', 
   as: 'subscriptions' 
@@ -122,7 +122,7 @@ Subscription.belongsTo(User, {
   as: 'user' 
 });
 
-console.log('✅ Asociaciones configuradas sin duplicados');
+console.log('✅ Asociaciones configuradas correctamente');
 
 // ========================================
 // EXPORTACIONES

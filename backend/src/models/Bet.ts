@@ -191,30 +191,6 @@ Bet.init(
   }
 );
 
-// Definir asociaciones
-Bet.belongsTo(Fight, {
-  foreignKey: "fightId",
-  as: "fight",
-});
-
-Bet.belongsTo(User, {
-  foreignKey: "userId",
-  as: "user",
-});
-
-Bet.belongsTo(Bet, {
-  foreignKey: "matchedWith",
-  as: "matchedBet",
-});
-
-Fight.hasMany(Bet, {
-  foreignKey: "fightId",
-  as: "bets",
-});
-
-User.hasMany(Bet, {
-  foreignKey: "userId",
-  as: "bets",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export default Bet;
