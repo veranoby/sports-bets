@@ -1,6 +1,6 @@
 "use strict";
 // Archivo de exportación central para todos los modelos
-// Define asociaciones únicas manteniendo compatibilidad con rutas existentes
+// Define asociaciones únicas evitando duplicados con modelos individuales
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -31,9 +31,9 @@ const database_1 = require("../config/database");
 Object.defineProperty(exports, "connectDatabase", { enumerable: true, get: function () { return database_1.connectDatabase; } });
 console.log('📦 Configurando modelos y asociaciones...');
 // ========================================
-// ASOCIACIONES PRINCIPALES - COMPATIBLES CON RUTAS
+// ASOCIACIONES PRINCIPALES - SIN DUPLICADOS
 // ========================================
-// User -> Wallet (usado en users.ts y auth.ts)
+// User -> Wallet (One-to-One)
 User_1.User.hasOne(Wallet_1.Wallet, {
     foreignKey: 'userId',
     as: 'wallet'
@@ -42,7 +42,7 @@ Wallet_1.Wallet.belongsTo(User_1.User, {
     foreignKey: 'userId',
     as: 'user'
 });
-// Wallet -> Transactions (usado en wallet.ts)
+// Wallet -> Transactions (One-to-Many)
 Wallet_1.Wallet.hasMany(Wallet_1.Transaction, {
     foreignKey: 'walletId',
     as: 'transactions'
@@ -51,7 +51,7 @@ Wallet_1.Transaction.belongsTo(Wallet_1.Wallet, {
     foreignKey: 'walletId',
     as: 'wallet'
 });
-// User -> Venues
+// User -> Venues (One-to-Many)
 User_1.User.hasMany(Venue_1.Venue, {
     foreignKey: 'ownerId',
     as: 'venues'
@@ -60,7 +60,7 @@ Venue_1.Venue.belongsTo(User_1.User, {
     foreignKey: 'ownerId',
     as: 'owner'
 });
-// Venue -> Events
+// Venue -> Events (One-to-Many)
 Venue_1.Venue.hasMany(Event_1.Event, {
     foreignKey: 'venueId',
     as: 'events'
@@ -69,7 +69,7 @@ Event_1.Event.belongsTo(Venue_1.Venue, {
     foreignKey: 'venueId',
     as: 'venue'
 });
-// User -> Events (DOS RELACIONES DIFERENTES - ALIASES ÚNICOS)
+// User -> Events (DOS RELACIONES DIFERENTES CON ALIASES ÚNICOS)
 User_1.User.hasMany(Event_1.Event, {
     foreignKey: 'operatorId',
     as: 'operatedEvents'
@@ -87,7 +87,7 @@ Event_1.Event.belongsTo(User_1.User, {
     foreignKey: 'createdBy',
     as: 'creator'
 });
-// Event -> Fights (usado en fights.ts)
+// Event -> Fights (One-to-Many)
 Event_1.Event.hasMany(Fight_1.Fight, {
     foreignKey: 'eventId',
     as: 'fights'
@@ -96,7 +96,7 @@ Fight_1.Fight.belongsTo(Event_1.Event, {
     foreignKey: 'eventId',
     as: 'event'
 });
-// Fight -> Bets (usado en fights.ts)
+// Fight -> Bets (One-to-Many)
 Fight_1.Fight.hasMany(Bet_1.Bet, {
     foreignKey: 'fightId',
     as: 'bets'
@@ -105,7 +105,7 @@ Bet_1.Bet.belongsTo(Fight_1.Fight, {
     foreignKey: 'fightId',
     as: 'fight'
 });
-// User -> Bets
+// User -> Bets (One-to-Many)
 User_1.User.hasMany(Bet_1.Bet, {
     foreignKey: 'userId',
     as: 'bets'
@@ -119,7 +119,7 @@ Bet_1.Bet.belongsTo(Bet_1.Bet, {
     foreignKey: 'matchedWith',
     as: 'matchedBet'
 });
-// User -> Subscriptions
+// User -> Subscriptions (One-to-Many)
 User_1.User.hasMany(Subscription_1.Subscription, {
     foreignKey: 'userId',
     as: 'subscriptions'
@@ -128,7 +128,7 @@ Subscription_1.Subscription.belongsTo(User_1.User, {
     foreignKey: 'userId',
     as: 'user'
 });
-console.log('✅ Asociaciones configuradas sin duplicados');
+console.log('✅ Asociaciones configuradas correctamente');
 // Función para sincronizar modelos
 const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (force = false) {
     try {

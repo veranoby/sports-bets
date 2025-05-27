@@ -146,29 +146,5 @@ Event.init({
         },
     },
 });
-// Definir asociaciones
-Event.belongsTo(Venue_1.Venue, {
-    foreignKey: "venueId",
-    as: "venue",
-});
-Event.belongsTo(User_1.User, {
-    foreignKey: "operatorId",
-    as: "operator",
-});
-Event.belongsTo(User_1.User, {
-    foreignKey: "createdBy",
-    as: "creator",
-});
-Venue_1.Venue.hasMany(Event, {
-    foreignKey: "venueId",
-    as: "events",
-});
-User_1.User.hasMany(Event, {
-    foreignKey: "operatorId",
-    as: "operatedEvents",
-});
-User_1.User.hasMany(Event, {
-    foreignKey: "createdBy",
-    as: "createdEvents",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Event;

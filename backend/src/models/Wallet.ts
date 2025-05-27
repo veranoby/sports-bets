@@ -19,6 +19,7 @@ class Wallet extends Model<
   InferAttributes<Wallet>,
   InferCreationAttributes<Wallet>
 > {
+  declare id: CreationOptional<string>;
   declare userId: ForeignKey<User["id"]>;
   declare balance: CreationOptional<number>;
   declare frozenAmount: CreationOptional<number>;
@@ -94,7 +95,7 @@ class Transaction extends Model<
   InferCreationAttributes<Transaction>
 > {
   declare id: CreationOptional<string>;
-  declare walletId: ForeignKey<Wallet["userId"]>;
+  declare walletId: ForeignKey<Wallet["id"]>;
   declare type:
     | "deposit"
     | "withdrawal"
@@ -144,9 +145,15 @@ class Transaction extends Model<
 // Inicialización del modelo Wallet
 Wallet.init(
   {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     userId: {
       type: DataTypes.UUID,
-      primaryKey: true,
+      allowNull: false,
+      unique: true,
       references: {
         model: User,
         key: "id",
@@ -212,7 +219,7 @@ Transaction.init(
       allowNull: false,
       references: {
         model: Wallet,
-        key: "userId",
+        key: "id",
       },
     },
     type: {

@@ -199,13 +199,5 @@ Subscription.init({
         },
     },
 });
-// Definir asociaciones
-Subscription.belongsTo(User_1.User, {
-    foreignKey: "userId",
-    as: "user",
-});
-User_1.User.hasMany(Subscription, {
-    foreignKey: "userId",
-    as: "subscriptions",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Subscription;

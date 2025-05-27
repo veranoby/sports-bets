@@ -119,10 +119,11 @@ Bet.init({
     timestamps: true,
     indexes: [
         {
-            fields: ["fightId"],
+            fields: ["fightId", "userId"],
+            unique: true, // Previene que un usuario apueste múltiples veces en la misma pelea
         },
         {
-            fields: ["userId"],
+            fields: ["createdAt"],
         },
         {
             fields: ["status"],
@@ -151,25 +152,5 @@ Bet.init({
         },
     },
 });
-// Definir asociaciones
-Bet.belongsTo(Fight_1.Fight, {
-    foreignKey: "fightId",
-    as: "fight",
-});
-Bet.belongsTo(User_1.User, {
-    foreignKey: "userId",
-    as: "user",
-});
-Bet.belongsTo(Bet, {
-    foreignKey: "matchedWith",
-    as: "matchedBet",
-});
-Fight_1.Fight.hasMany(Bet, {
-    foreignKey: "fightId",
-    as: "bets",
-});
-User_1.User.hasMany(Bet, {
-    foreignKey: "userId",
-    as: "bets",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Bet;

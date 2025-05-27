@@ -139,13 +139,5 @@ Fight.init({
         },
     },
 });
-// Definir asociaciones
-Fight.belongsTo(Event_1.Event, {
-    foreignKey: "eventId",
-    as: "event",
-});
-Event_1.Event.hasMany(Fight, {
-    foreignKey: "eventId",
-    as: "fights",
-});
+// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Fight;

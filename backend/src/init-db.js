@@ -17,33 +17,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDatabase = initializeDatabase;
 exports.createDefaultAdmin = createDefaultAdmin;
 const dotenv_1 = require("dotenv");
+const database_1 = require("./config/database");
 const models_1 = require("./models");
-const User_1 = require("./models/User");
-const Wallet_1 = require("./models/Wallet");
 const logger_1 = require("./config/logger");
-// Cargar variables de entorno
+// Cargar variables de entorno ANTES de cualquier importación de modelos
 (0, dotenv_1.config)();
 function initializeDatabase() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            logger_1.logger.info('🚀 Starting database initialization...');
+            logger_1.logger.info("🚀 Starting database initialization...");
             // Conectar a la base de datos
-            yield (0, models_1.connectDatabase)();
+            yield (0, database_1.connectDatabase)();
             // Verificar asociaciones
             (0, models_1.checkAssociations)();
             // Sincronizar modelos
-            const force = process.argv.includes('--force');
+            const force = process.argv.includes("--force");
             if (force) {
-                logger_1.logger.warn('⚠️  Force mode enabled - all tables will be recreated!');
+                logger_1.logger.warn("⚠️  Force mode enabled - all tables will be recreated!");
             }
             yield (0, models_1.syncModels)(force);
             // Crear usuario administrador por defecto si no existe
             yield createDefaultAdmin();
-            logger_1.logger.info('✅ Database initialization completed successfully!');
+            logger_1.logger.info("✅ Database initialization completed successfully!");
             process.exit(0);
         }
         catch (error) {
-            logger_1.logger.error('❌ Database initialization failed:', error);
+            logger_1.logger.error("❌ Database initialization failed:", error);
             process.exit(1);
         }
     });
@@ -52,29 +51,29 @@ function createDefaultAdmin() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Verificar si ya existe un admin
-            const existingAdmin = yield User_1.User.findOne({
-                where: { role: 'admin' }
+            const existingAdmin = yield models_1.User.findOne({
+                where: { role: "admin" },
             });
             if (existingAdmin) {
-                logger_1.logger.info('Admin user already exists, skipping creation');
+                logger_1.logger.info("Admin user already exists, skipping creation");
                 return;
             }
             // Crear usuario administrador por defecto
-            const adminUser = yield User_1.User.create({
-                username: 'admin',
-                email: 'admin@sportsbets.com',
-                passwordHash: 'admin123', // Se hashea automáticamente
-                role: 'admin',
+            const adminUser = yield models_1.User.create({
+                username: "admin",
+                email: "admin@sportsbets.com",
+                passwordHash: "admin123", // Se hashea automáticamente
+                role: "admin",
                 profileInfo: {
-                    fullName: 'System Administrator',
-                    verificationLevel: 'full'
-                }
+                    fullName: "System Administrator",
+                    verificationLevel: "full",
+                },
             });
             // Crear wallet para el admin
-            yield Wallet_1.Wallet.create({
+            yield models_1.Wallet.create({
                 userId: adminUser.id,
                 balance: 0,
-                frozenAmount: 0
+                frozenAmount: 0,
             });
             logger_1.logger.info(`✅ Default admin user created successfully!`);
             logger_1.logger.info(`📧 Email: admin@sportsbets.com`);
@@ -82,7 +81,7 @@ function createDefaultAdmin() {
             logger_1.logger.warn(`⚠️  Please change the default password after first login!`);
         }
         catch (error) {
-            logger_1.logger.error('Error creating default admin:', error);
+            logger_1.logger.error("Error creating default admin:", error);
             throw error;
         }
     });

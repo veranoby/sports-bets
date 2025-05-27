@@ -102,9 +102,15 @@ class Transaction extends sequelize_1.Model {
 exports.Transaction = Transaction;
 // Inicialización del modelo Wallet
 Wallet.init({
+    id: {
+        type: sequelize_1.DataTypes.UUID,
+        defaultValue: sequelize_1.DataTypes.UUIDV4,
+        primaryKey: true,
+    },
     userId: {
         type: sequelize_1.DataTypes.UUID,
-        primaryKey: true,
+        allowNull: false,
+        unique: true,
         references: {
             model: User_1.User,
             key: "id",
@@ -166,7 +172,7 @@ Transaction.init({
         allowNull: false,
         references: {
             model: Wallet,
-            key: "userId",
+            key: "id",
         },
     },
     type: {
