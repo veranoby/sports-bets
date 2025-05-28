@@ -39,7 +39,8 @@ router.get("/", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res)
         success: true,
         data: {
             wallet: wallet.toPublicJSON(),
-            recentTransactions: ((_a = walletData.transactions) === null || _a === void 0 ? void 0 : _a.map((t) => { var _a; return ((_a = t.toPublicJSON) === null || _a === void 0 ? void 0 : _a.call(t)) || t; })) || [],
+            recentTransactions: ((_a = walletData.transactions) === null || _a === void 0 ? void 0 : _a.map((t) => { var _a; return ((_a = t.toPublicJSON) === null || _a === void 0 ? void 0 : _a.call(t)) || t; })) ||
+                [],
         },
     });
 })));
@@ -68,7 +69,7 @@ router.get("/transactions", auth_1.authenticate, [
         throw errorHandler_1.errors.notFound("Wallet not found");
     }
     const transactions = yield models_1.Transaction.findAndCountAll({
-        where: Object.assign({ walletId: wallet.userId }, where),
+        where: Object.assign({ walletId: wallet.id }, where),
         order: [["createdAt", "DESC"]],
         limit: parseInt(limit),
         offset: parseInt(offset),
@@ -114,7 +115,7 @@ router.post("/deposit", auth_1.authenticate, [
     yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
         // Crear transacción de depósito pendiente
         const depositTransaction = yield models_1.Transaction.create({
-            walletId: wallet.userId,
+            walletId: wallet.id, // Usar wallet.id
             type: "deposit",
             amount: amount,
             status: "pending",
@@ -198,7 +199,7 @@ router.post("/withdraw", auth_1.authenticate, [
     today.setHours(0, 0, 0, 0);
     const todayWithdrawals = yield models_1.Transaction.sum("amount", {
         where: {
-            walletId: wallet.userId,
+            walletId: wallet.id, // Usar wallet.id
             type: "withdrawal",
             status: ["pending", "completed"],
             createdAt: {
@@ -213,7 +214,7 @@ router.post("/withdraw", auth_1.authenticate, [
     yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
         // Crear transacción de retiro pendiente
         const withdrawalTransaction = yield models_1.Transaction.create({
-            walletId: wallet.userId,
+            walletId: wallet.id, // Usar wallet.id
             type: "withdrawal",
             amount: amount,
             status: "pending",
@@ -264,7 +265,7 @@ router.get("/stats", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req,
     lastMonth.setMonth(lastMonth.getMonth() - 1);
     const monthlyStats = yield models_1.Transaction.findAll({
         where: {
-            walletId: wallet.userId,
+            walletId: wallet.id, // Usar wallet.id
             createdAt: {
                 [sequelize_1.Op.gte]: lastMonth,
             },
@@ -293,15 +294,48 @@ router.get("/stats", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req,
         data: stats,
     });
 })));
-// Ejemplo de uso de parseFloat
-router.post("/add-funds", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { amount } = req.body;
-    // Verificar el tipo antes de parseFloat
-    const parsedAmount = parseFloat(String(amount));
-    // ... lógica para agregar fondos ...
-    res.json({
-        success: true,
-        message: "Funds processing endpoint - To be implemented",
-    });
+// POST /api/wallet/process-payment - Webhook para procesar pagos (solo sistema)
+router.post("/process-payment", 
+// En producción, aquí iría validación de webhook de Kushki
+[
+    (0, express_validator_1.body)("transactionId").isString(),
+    (0, express_validator_1.body)("status").isIn(["approved", "rejected"]),
+    (0, express_validator_1.body)("reference").isString(),
+], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { transactionId, status, reference } = req.body;
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        // Buscar transacción por referencia
+        const depositTransaction = yield models_1.Transaction.findOne({
+            where: {
+                id: transactionId,
+                status: "pending",
+            },
+            transaction: t,
+        });
+        if (!depositTransaction) {
+            throw errorHandler_1.errors.notFound("Transaction not found");
+        }
+        // Actualizar estado de transacción
+        if (status === "approved") {
+            depositTransaction.status = "completed";
+            depositTransaction.reference = reference;
+            yield depositTransaction.save({ transaction: t });
+            // Actualizar balance del wallet
+            const wallet = yield models_1.Wallet.findByPk(depositTransaction.walletId, {
+                transaction: t,
+            });
+            if (wallet) {
+                yield wallet.addBalance(depositTransaction.amount);
+            }
+        }
+        else {
+            depositTransaction.status = "failed";
+            yield depositTransaction.save({ transaction: t });
+        }
+        res.json({
+            success: true,
+            message: "Payment processed successfully",
+        });
+    }));
 })));
 exports.default = router;

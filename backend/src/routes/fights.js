@@ -14,6 +14,7 @@ const auth_1 = require("../middleware/auth");
 const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
+const database_1 = require("../config/database");
 const router = (0, express_1.Router)();
 // GET /api/fights - Listar peleas con filtros
 router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -86,6 +87,10 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("operator", "admin")
         .optional()
         .isLength({ max: 1000 })
         .withMessage("Notes must not exceed 1000 characters"),
+    (0, express_validator_1.body)("initialOdds")
+        .optional()
+        .isObject()
+        .withMessage("Initial odds must be an object"),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validationErrors = (0, express_validator_1.validationResult)(req);
     if (!validationErrors.isEmpty()) {
@@ -95,49 +100,59 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("operator", "admin")
                 .map((err) => err.msg)
                 .join(", "));
     }
-    const { eventId, number, redCorner, blueCorner, weight, notes } = req.body;
-    // Verificar que el evento existe
-    const event = yield models_1.Event.findByPk(eventId);
-    if (!event) {
-        throw errorHandler_1.errors.notFound("Event not found");
-    }
-    // Verificar permisos del operador
-    const eventData = event.toJSON();
-    if (req.user.role === "operator" && eventData.operatorId !== req.user.id) {
-        throw errorHandler_1.errors.forbidden("You are not assigned to this event");
-    }
-    // Verificar que no existe una pelea con el mismo número en el evento
-    const existingFight = yield models_1.Fight.findOne({
-        where: { eventId, number },
-    });
-    if (existingFight) {
-        throw errorHandler_1.errors.conflict("A fight with this number already exists in the event");
-    }
-    // Verificar que los criaderos son diferentes
-    if (redCorner.toLowerCase() === blueCorner.toLowerCase()) {
-        throw errorHandler_1.errors.badRequest("Red and blue corners cannot be the same");
-    }
-    // Crear pelea
-    const fight = yield models_1.Fight.create({
-        eventId,
-        number,
-        redCorner,
-        blueCorner,
-        weight,
-        notes,
-    });
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.to(`event_${eventId}`).emit("fight_created", {
-            fight: fight.toPublicJSON(),
+    const { eventId, number, redCorner, blueCorner, weight, notes, initialOdds, } = req.body;
+    // Usar transacción para operaciones múltiples
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        // Verificar que el evento existe
+        const event = yield models_1.Event.findByPk(eventId, { transaction: t });
+        if (!event) {
+            throw errorHandler_1.errors.notFound("Event not found");
+        }
+        // Verificar permisos del operador
+        const eventData = event.toJSON();
+        if (req.user.role === "operator" && event.operatorId !== req.user.id) {
+            throw errorHandler_1.errors.forbidden("You are not assigned to this event");
+        }
+        // Verificar que no existe una pelea con el mismo número en el evento
+        const existingFight = yield models_1.Fight.findOne({
+            where: { eventId, number },
+            transaction: t,
         });
-    }
-    res.status(201).json({
-        success: true,
-        message: "Fight created successfully",
-        data: fight.toPublicJSON(),
-    });
+        if (existingFight) {
+            throw errorHandler_1.errors.conflict("A fight with this number already exists in the event");
+        }
+        // Verificar que los criaderos son diferentes
+        if (redCorner.toLowerCase() === blueCorner.toLowerCase()) {
+            throw errorHandler_1.errors.badRequest("Red and blue corners cannot be the same");
+        }
+        // Crear pelea con campos nuevos
+        const fight = yield models_1.Fight.create({
+            eventId,
+            number,
+            redCorner,
+            blueCorner,
+            weight,
+            notes,
+            initialOdds: initialOdds || { red: 1.0, blue: 1.0 },
+            totalBets: 0,
+            totalAmount: 0,
+        }, { transaction: t });
+        // Actualizar contador en evento
+        event.totalFights += 1;
+        yield event.save({ transaction: t });
+        // Emitir evento via WebSocket
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`event_${eventId}`).emit("fight_created", {
+                fight: fight.toPublicJSON(),
+            });
+        }
+        res.status(201).json({
+            success: true,
+            message: "Fight created successfully",
+            data: fight.toPublicJSON(),
+        });
+    }));
 })));
 // PUT /api/fights/:id - Actualizar pelea (operador)
 router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)("operator", "admin"), [
@@ -246,8 +261,9 @@ router.post("/:id/open-betting", auth_1.authenticate, (0, auth_1.authorize)("ope
     if (fight.status !== "upcoming") {
         throw errorHandler_1.errors.badRequest("Betting can only be opened for upcoming fights");
     }
-    // Abrir apuestas
+    // Abrir apuestas con timestamp
     fight.status = "betting";
+    fight.bettingStartTime = new Date();
     yield fight.save();
     // Emitir evento via WebSocket
     const io = req.app.get("io");
@@ -286,8 +302,9 @@ router.post("/:id/close-betting", auth_1.authenticate, (0, auth_1.authorize)("op
     if (fight.status !== "betting") {
         throw errorHandler_1.errors.badRequest("Betting is not currently open for this fight");
     }
-    // Cerrar apuestas y pasar a en vivo
+    // Cerrar apuestas con timestamps
     fight.status = "live";
+    fight.bettingEndTime = new Date();
     fight.startTime = new Date();
     yield fight.save();
     // Activar apuestas pendientes
@@ -326,117 +343,126 @@ router.post("/:id/result", auth_1.authenticate, (0, auth_1.authorize)("operator"
                 .join(", "));
     }
     const { result } = req.body;
-    const fight = yield models_1.Fight.findByPk(req.params.id, {
-        include: [
-            {
-                model: models_1.Event,
-                as: "event",
-            },
-            {
-                model: models_1.Bet,
-                as: "bets",
-                where: { status: "active" },
-                required: false,
-            },
-        ],
-    });
-    if (!fight) {
-        throw errorHandler_1.errors.notFound("Fight not found");
-    }
-    // Verificar permisos del operador
-    const fightData = fight.toJSON();
-    if (req.user.role === "operator" &&
-        fightData.event.operatorId !== req.user.id) {
-        throw errorHandler_1.errors.forbidden("You are not assigned to this event");
-    }
-    // Verificar que la pelea está en vivo
-    if (fight.status !== "live") {
-        throw errorHandler_1.errors.badRequest("Can only record results for live fights");
-    }
-    // Completar pelea
-    fight.status = "completed";
-    fight.result = result;
-    fight.endTime = new Date();
-    yield fight.save();
-    // Procesar resultados de apuestas
-    const bets = fightData.bets || [];
-    if (bets.length > 0) {
-        for (const betData of bets) {
-            const bet = yield models_1.Bet.findByPk(betData.id);
-            if (!bet)
-                continue;
-            let betResult = "loss";
-            if (result === "cancelled") {
-                betResult = "cancelled";
-            }
-            else if (result === "draw") {
-                betResult = "draw";
-            }
-            else if ((result === "red" && bet.side === "red") ||
-                (result === "blue" && bet.side === "blue")) {
-                betResult = "win";
-            }
-            bet.result = betResult;
-            bet.status = "completed";
-            yield bet.save();
-            // Actualizar wallet del usuario
-            const { Wallet, Transaction } = require("../models/Wallet");
-            const wallet = yield Wallet.findOne({
-                where: { userId: bet.userId },
-            });
-            if (wallet) {
-                // Liberar cantidad congelada
-                wallet.frozenAmount -= bet.amount;
-                // Si ganó, agregar ganancia
-                if (betResult === "win") {
-                    wallet.balance += bet.potentialWin;
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        const fight = yield models_1.Fight.findByPk(req.params.id, {
+            include: [
+                {
+                    model: models_1.Event,
+                    as: "event",
+                },
+                {
+                    model: models_1.Bet,
+                    as: "bets",
+                    where: { status: "active" },
+                    required: false,
+                },
+            ],
+            transaction: t,
+        });
+        if (!fight) {
+            throw errorHandler_1.errors.notFound("Fight not found");
+        }
+        // Verificar permisos del operador
+        const fightData = fight.toJSON();
+        if (req.user.role === "operator" &&
+            fightData.event.operatorId !== req.user.id) {
+            throw errorHandler_1.errors.forbidden("You are not assigned to this event");
+        }
+        // Verificar que la pelea está en vivo
+        if (fight.status !== "live") {
+            throw errorHandler_1.errors.badRequest("Can only record results for live fights");
+        }
+        // Completar pelea
+        fight.status = "completed";
+        fight.result = result;
+        fight.endTime = new Date();
+        yield fight.save({ transaction: t });
+        // Actualizar evento
+        const event = yield models_1.Event.findByPk(fight.eventId, { transaction: t });
+        if (event) {
+            event.completedFights += 1;
+            yield event.save({ transaction: t });
+        }
+        // Procesar resultados de apuestas
+        const bets = fightData.bets || [];
+        if (bets.length > 0) {
+            for (const betData of bets) {
+                const bet = yield models_1.Bet.findByPk(betData.id, { transaction: t });
+                if (!bet)
+                    continue;
+                let betResult = "loss";
+                if (result === "cancelled") {
+                    betResult = "cancelled";
                 }
-                else if (betResult === "cancelled" || betResult === "draw") {
-                    // Devolver apuesta original
-                    wallet.balance += bet.amount;
+                else if (result === "draw") {
+                    betResult = "draw";
                 }
-                yield wallet.save();
-                // Crear transacción
-                yield Transaction.create({
-                    walletId: wallet.userId,
-                    type: betResult === "win"
-                        ? "bet-win"
-                        : betResult === "cancelled" || betResult === "draw"
-                            ? "bet-refund"
-                            : "bet-loss",
-                    amount: betResult === "win"
-                        ? bet.potentialWin
-                        : betResult === "cancelled" || betResult === "draw"
-                            ? bet.amount
-                            : bet.amount,
-                    status: "completed",
-                    description: `${betResult === "win"
-                        ? "Won"
-                        : betResult === "cancelled" || betResult === "draw"
-                            ? "Refund for"
-                            : "Lost"} bet on fight ${fight.number}`,
-                    metadata: {
-                        fightId: fight.id,
-                        betId: bet.id,
-                        result: result,
-                    },
+                else if ((result === "red" && bet.side === "red") ||
+                    (result === "blue" && bet.side === "blue")) {
+                    betResult = "win";
+                }
+                bet.result = betResult;
+                bet.status = "completed";
+                yield bet.save({ transaction: t });
+                // Actualizar wallet del usuario
+                const wallet = yield models_1.Wallet.findOne({
+                    where: { userId: bet.userId },
+                    transaction: t,
                 });
+                if (wallet) {
+                    // Liberar cantidad congelada
+                    wallet.frozenAmount -= bet.amount;
+                    // Si ganó, agregar ganancia
+                    if (betResult === "win") {
+                        wallet.balance += bet.potentialWin;
+                    }
+                    else if (betResult === "cancelled" || betResult === "draw") {
+                        // Devolver apuesta original
+                        wallet.balance += bet.amount;
+                    }
+                    yield wallet.save({ transaction: t });
+                    // Crear transacción
+                    yield models_1.Transaction.create({
+                        walletId: wallet.id,
+                        type: betResult === "win"
+                            ? "bet-win"
+                            : betResult === "cancelled" || betResult === "draw"
+                                ? "bet-refund"
+                                : "bet-loss",
+                        amount: betResult === "win"
+                            ? bet.potentialWin
+                            : betResult === "cancelled" || betResult === "draw"
+                                ? bet.amount
+                                : bet.amount,
+                        status: "completed",
+                        description: `${betResult === "win"
+                            ? "Won"
+                            : betResult === "cancelled" || betResult === "draw"
+                                ? "Refund for"
+                                : "Lost"} bet on fight ${fight.number}`,
+                        metadata: {
+                            fightId: fight.id,
+                            betId: bet.id,
+                            result: result,
+                        },
+                    }, { transaction: t });
+                }
             }
         }
-    }
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.to(`event_${fight.eventId}`).emit("fight_completed", {
-            fightId: fight.id,
-            result: result,
-            fight: fight.toPublicJSON(),
+        // Emitir evento via WebSocket
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`event_${fight.eventId}`).emit("fight_completed", {
+                fightId: fight.id,
+                result: result,
+                fight: fight.toPublicJSON(),
+            });
+        }
+        res.json({
+            success: true,
+            message: "Fight result recorded successfully",
+            data: fight.toPublicJSON(),
         });
-    }
-    res.json({
-        success: true,
-        message: "Fight result recorded successfully",
-        data: fight.toPublicJSON(),
-    });
+    }));
 })));
 exports.default = router;

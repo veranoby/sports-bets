@@ -36,7 +36,8 @@ router.get(
       data: {
         wallet: wallet.toPublicJSON(),
         recentTransactions:
-          walletData.transactions?.map((t: any) => t.toPublicJSON?.() || t) || [],
+          walletData.transactions?.map((t: any) => t.toPublicJSON?.() || t) ||
+          [],
       },
     });
   })
@@ -66,10 +67,8 @@ router.get(
     // Filtros de fecha
     if (dateFrom || dateTo) {
       where.createdAt = {};
-      if (dateFrom)
-        where.createdAt[Op.gte] = new Date(dateFrom as string);
-      if (dateTo)
-        where.createdAt[Op.lte] = new Date(dateTo as string);
+      if (dateFrom) where.createdAt[Op.gte] = new Date(dateFrom as string);
+      if (dateTo) where.createdAt[Op.lte] = new Date(dateTo as string);
     }
 
     const wallet = await Wallet.findOne({
@@ -82,7 +81,7 @@ router.get(
 
     const transactions = await Transaction.findAndCountAll({
       where: {
-        walletId: wallet.userId,
+        walletId: wallet.id, // Usar wallet.id, NO wallet.userId
         ...where,
       },
       order: [["createdAt", "DESC"]],
@@ -144,7 +143,7 @@ router.post(
       // Crear transacción de depósito pendiente
       const depositTransaction = await Transaction.create(
         {
-          walletId: wallet.userId,
+          walletId: wallet.id, // Usar wallet.id
           type: "deposit",
           amount: amount,
           status: "pending",
@@ -247,7 +246,7 @@ router.post(
 
     const todayWithdrawals = await Transaction.sum("amount", {
       where: {
-        walletId: wallet.userId,
+        walletId: wallet.id, // Usar wallet.id
         type: "withdrawal",
         status: ["pending", "completed"],
         createdAt: {
@@ -269,7 +268,7 @@ router.post(
       // Crear transacción de retiro pendiente
       const withdrawalTransaction = await Transaction.create(
         {
-          walletId: wallet.userId,
+          walletId: wallet.id, // Usar wallet.id
           type: "withdrawal",
           amount: amount,
           status: "pending",
@@ -340,7 +339,7 @@ router.get(
 
     const monthlyStats = await Transaction.findAll({
       where: {
-        walletId: wallet.userId,
+        walletId: wallet.id, // Usar wallet.id
         createdAt: {
           [Op.gte]: lastMonth,
         },
@@ -375,20 +374,55 @@ router.get(
   })
 );
 
-// Ejemplo de uso de parseFloat
+// POST /api/wallet/process-payment - Webhook para procesar pagos (solo sistema)
 router.post(
-  "/add-funds",
+  "/process-payment",
+  // En producción, aquí iría validación de webhook de Kushki
+  [
+    body("transactionId").isString(),
+    body("status").isIn(["approved", "rejected"]),
+    body("reference").isString(),
+  ],
   asyncHandler(async (req, res) => {
-    const { amount } = req.body;
+    const { transactionId, status, reference } = req.body;
 
-    // Verificar el tipo antes de parseFloat
-    const parsedAmount = parseFloat(String(amount));
+    await transaction(async (t) => {
+      // Buscar transacción por referencia
+      const depositTransaction = await Transaction.findOne({
+        where: {
+          id: transactionId,
+          status: "pending",
+        },
+        transaction: t,
+      });
 
-    // ... lógica para agregar fondos ...
-    
-    res.json({
-      success: true,
-      message: "Funds processing endpoint - To be implemented",
+      if (!depositTransaction) {
+        throw errors.notFound("Transaction not found");
+      }
+
+      // Actualizar estado de transacción
+      if (status === "approved") {
+        depositTransaction.status = "completed";
+        depositTransaction.reference = reference;
+        await depositTransaction.save({ transaction: t });
+
+        // Actualizar balance del wallet
+        const wallet = await Wallet.findByPk(depositTransaction.walletId, {
+          transaction: t,
+        });
+
+        if (wallet) {
+          await wallet.addBalance(depositTransaction.amount);
+        }
+      } else {
+        depositTransaction.status = "failed";
+        await depositTransaction.save({ transaction: t });
+      }
+
+      res.json({
+        success: true,
+        message: "Payment processed successfully",
+      });
     });
   })
 );
