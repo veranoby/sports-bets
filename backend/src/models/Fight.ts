@@ -26,6 +26,11 @@ export class Fight extends Model<
   declare blueCorner: string;
   declare weight: number;
   declare notes: CreationOptional<string>;
+  declare initialOdds: CreationOptional<{ red: number; blue: number }>;
+  declare bettingStartTime: CreationOptional<Date>;
+  declare bettingEndTime: CreationOptional<Date>;
+  declare totalBets: number;
+  declare totalAmount: number;
   declare status: CreationOptional<
     "upcoming" | "betting" | "live" | "completed" | "cancelled"
   >;
@@ -53,7 +58,12 @@ export class Fight extends Model<
   }
 
   canAcceptBets(): boolean {
-    return this.status === "betting";
+    const now = new Date();
+    return (
+      this.status === "betting" &&
+      (!this.bettingStartTime || now >= this.bettingStartTime) &&
+      (!this.bettingEndTime || now <= this.bettingEndTime)
+    );
   }
 
   duration(): number | null {
@@ -118,6 +128,38 @@ Fight.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    initialOdds: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: {
+        red: 1.0,
+        blue: 1.0,
+      },
+    },
+    bettingStartTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    bettingEndTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    totalBets: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
+    },
+    totalAmount: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
+    },
     status: {
       type: DataTypes.ENUM(
         "upcoming",
@@ -166,6 +208,9 @@ Fight.init(
         fields: ["eventId", "number"],
         unique: true,
       },
+      {
+        fields: ["eventId", "status"],
+      },
     ],
     validate: {
       // Validación personalizada para evitar criaderos iguales
@@ -178,6 +223,15 @@ Fight.init(
       endAfterStart() {
         if (this.startTime && this.endTime && this.endTime <= this.startTime) {
           throw new Error("End time must be after start time");
+        }
+      },
+      bettingWindow() {
+        if (
+          this.bettingStartTime &&
+          this.bettingEndTime &&
+          this.bettingEndTime <= this.bettingStartTime
+        ) {
+          throw new Error("Betting end time must be after start time");
         }
       },
     },

@@ -32,6 +32,10 @@ export class Event extends Model<
   declare streamKey: CreationOptional<string>;
   declare streamUrl: CreationOptional<string>;
   declare createdBy: ForeignKey<User["id"]>;
+  declare totalFights: number;
+  declare completedFights: number;
+  declare totalBets: number;
+  declare totalPrizePool: number;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -140,6 +144,39 @@ Event.init(
         key: "id",
       },
     },
+    totalFights: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 200,
+      },
+    },
+    completedFights: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
+    },
+    totalBets: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
+    },
+    totalPrizePool: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -170,6 +207,9 @@ Event.init(
       {
         fields: ["streamKey"],
         unique: true,
+      },
+      {
+        fields: ["venueId", "scheduledDate"],
       },
     ],
     hooks: {

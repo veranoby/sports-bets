@@ -29,6 +29,7 @@ export class Venue extends Model<
   }>;
   declare ownerId: ForeignKey<User["id"]>;
   declare status: CreationOptional<"pending" | "active" | "suspended">;
+  declare isVerified: CreationOptional<boolean>;
   declare images: CreationOptional<string[]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -89,6 +90,11 @@ Venue.init(
       allowNull: false,
       defaultValue: "pending",
     },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     images: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
@@ -117,6 +123,9 @@ Venue.init(
       },
       {
         fields: ["name"],
+      },
+      {
+        fields: ["isVerified"],
       },
     ],
   }

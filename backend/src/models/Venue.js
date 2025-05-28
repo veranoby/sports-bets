@@ -70,6 +70,11 @@ Venue.init({
         allowNull: false,
         defaultValue: "pending",
     },
+    isVerified: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
     images: {
         type: sequelize_1.DataTypes.ARRAY(sequelize_1.DataTypes.STRING),
         allowNull: true,
@@ -97,6 +102,9 @@ Venue.init({
         },
         {
             fields: ["name"],
+        },
+        {
+            fields: ["isVerified"],
         },
     ],
 });

@@ -107,6 +107,39 @@ Event.init({
             key: "id",
         },
     },
+    totalFights: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+            max: 200,
+        },
+    },
+    completedFights: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+        },
+    },
+    totalBets: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+        },
+    },
+    totalPrizePool: {
+        type: sequelize_1.DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+        },
+    },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
@@ -136,6 +169,9 @@ Event.init({
         {
             fields: ["streamKey"],
             unique: true,
+        },
+        {
+            fields: ["venueId", "scheduledDate"],
         },
     ],
     hooks: {

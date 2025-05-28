@@ -142,12 +142,20 @@ Bet.init({
             if (!bet.potentialWin && ((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.ratio)) {
                 bet.potentialWin = bet.calculatePotentialWin();
             }
+            // Validar que la ganancia potencial sea mayor que el monto apostado
+            if (bet.potentialWin && bet.potentialWin <= bet.amount) {
+                throw new Error("Potential win must be greater than bet amount");
+            }
         },
         beforeUpdate: (bet) => {
             var _a;
             // Recalcular ganancia potencial si cambió el ratio
             if (bet.changed("terms") && ((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.ratio)) {
                 bet.potentialWin = bet.calculatePotentialWin();
+            }
+            // Validar que la ganancia potencial sea mayor que el monto apostado
+            if (bet.potentialWin && bet.potentialWin <= bet.amount) {
+                throw new Error("Potential win must be greater than bet amount");
             }
         },
     },

@@ -286,6 +286,9 @@ Transaction.init(
       {
         fields: ["createdAt"],
       },
+      {
+        fields: ["walletId", "createdAt"],
+      },
     ],
   }
 );

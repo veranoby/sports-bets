@@ -20,7 +20,10 @@ class Fight extends sequelize_1.Model {
         return this.status === "completed";
     }
     canAcceptBets() {
-        return this.status === "betting";
+        const now = new Date();
+        return (this.status === "betting" &&
+            (!this.bettingStartTime || now >= this.bettingStartTime) &&
+            (!this.bettingEndTime || now <= this.bettingEndTime));
     }
     duration() {
         if (this.startTime && this.endTime) {
@@ -82,6 +85,38 @@ Fight.init({
         type: sequelize_1.DataTypes.TEXT,
         allowNull: true,
     },
+    initialOdds: {
+        type: sequelize_1.DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: {
+            red: 1.0,
+            blue: 1.0,
+        },
+    },
+    bettingStartTime: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+    },
+    bettingEndTime: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+    },
+    totalBets: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+        },
+    },
+    totalAmount: {
+        type: sequelize_1.DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+        },
+    },
     status: {
         type: sequelize_1.DataTypes.ENUM("upcoming", "betting", "live", "completed", "cancelled"),
         allowNull: false,
@@ -123,6 +158,9 @@ Fight.init({
             fields: ["eventId", "number"],
             unique: true,
         },
+        {
+            fields: ["eventId", "status"],
+        },
     ],
     validate: {
         // Validación personalizada para evitar criaderos iguales
@@ -135,6 +173,13 @@ Fight.init({
         endAfterStart() {
             if (this.startTime && this.endTime && this.endTime <= this.startTime) {
                 throw new Error("End time must be after start time");
+            }
+        },
+        bettingWindow() {
+            if (this.bettingStartTime &&
+                this.bettingEndTime &&
+                this.bettingEndTime <= this.bettingStartTime) {
+                throw new Error("Betting end time must be after start time");
             }
         },
     },
