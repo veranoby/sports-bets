@@ -15,6 +15,7 @@ const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const database_1 = require("../config/database");
+const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
 // GET /api/subscriptions - Obtener suscripciones del usuario
 router.get("/", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -34,7 +35,7 @@ router.get("/current", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((re
             userId: req.user.id,
             status: "active",
             endDate: {
-                [require("sequelize").Op.gt]: new Date(),
+                [sequelize_1.Op.gt]: new Date(),
             },
         },
         order: [["endDate", "DESC"]],
@@ -82,7 +83,7 @@ router.post("/", auth_1.authenticate, [
             userId: req.user.id,
             status: "active",
             endDate: {
-                [require("sequelize").Op.gt]: new Date(),
+                [sequelize_1.Op.gt]: new Date(),
             },
         },
     });
@@ -223,7 +224,7 @@ router.post("/check-access", auth_1.authenticate, (0, errorHandler_1.asyncHandle
             userId: req.user.id,
             status: "active",
             endDate: {
-                [require("sequelize").Op.gt]: new Date(),
+                [sequelize_1.Op.gt]: new Date(),
             },
         },
     });

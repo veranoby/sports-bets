@@ -115,7 +115,7 @@ router.post("/deposit", auth_1.authenticate, [
     yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
         // Crear transacción de depósito pendiente
         const depositTransaction = yield models_1.Transaction.create({
-            walletId: wallet.id, // Usar wallet.id
+            walletId: wallet.id,
             type: "deposit",
             amount: amount,
             status: "pending",
@@ -199,7 +199,7 @@ router.post("/withdraw", auth_1.authenticate, [
     today.setHours(0, 0, 0, 0);
     const todayWithdrawals = yield models_1.Transaction.sum("amount", {
         where: {
-            walletId: wallet.id, // Usar wallet.id
+            walletId: wallet.id,
             type: "withdrawal",
             status: ["pending", "completed"],
             createdAt: {
@@ -214,7 +214,7 @@ router.post("/withdraw", auth_1.authenticate, [
     yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
         // Crear transacción de retiro pendiente
         const withdrawalTransaction = yield models_1.Transaction.create({
-            walletId: wallet.id, // Usar wallet.id
+            walletId: wallet.id,
             type: "withdrawal",
             amount: amount,
             status: "pending",
@@ -265,7 +265,7 @@ router.get("/stats", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req,
     lastMonth.setMonth(lastMonth.getMonth() - 1);
     const monthlyStats = yield models_1.Transaction.findAll({
         where: {
-            walletId: wallet.id, // Usar wallet.id
+            walletId: wallet.id,
             createdAt: {
                 [sequelize_1.Op.gte]: lastMonth,
             },

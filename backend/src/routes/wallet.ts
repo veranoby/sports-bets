@@ -81,7 +81,7 @@ router.get(
 
     const transactions = await Transaction.findAndCountAll({
       where: {
-        walletId: wallet.id, // Usar wallet.id, NO wallet.userId
+        walletId: wallet.id,
         ...where,
       },
       order: [["createdAt", "DESC"]],
@@ -143,7 +143,7 @@ router.post(
       // Crear transacción de depósito pendiente
       const depositTransaction = await Transaction.create(
         {
-          walletId: wallet.id, // Usar wallet.id
+          walletId: wallet.id,
           type: "deposit",
           amount: amount,
           status: "pending",
@@ -246,7 +246,7 @@ router.post(
 
     const todayWithdrawals = await Transaction.sum("amount", {
       where: {
-        walletId: wallet.id, // Usar wallet.id
+        walletId: wallet.id,
         type: "withdrawal",
         status: ["pending", "completed"],
         createdAt: {
@@ -268,7 +268,7 @@ router.post(
       // Crear transacción de retiro pendiente
       const withdrawalTransaction = await Transaction.create(
         {
-          walletId: wallet.id, // Usar wallet.id
+          walletId: wallet.id,
           type: "withdrawal",
           amount: amount,
           status: "pending",
@@ -339,7 +339,7 @@ router.get(
 
     const monthlyStats = await Transaction.findAll({
       where: {
-        walletId: wallet.id, // Usar wallet.id
+        walletId: wallet.id,
         createdAt: {
           [Op.gte]: lastMonth,
         },

@@ -35,7 +35,7 @@ router.get(
         userId: req.user!.id,
         status: "active",
         endDate: {
-          [require("sequelize").Op.gt]: new Date(),
+          [Op.gt]: new Date(),
         },
       },
       order: [["endDate", "DESC"]],
@@ -94,7 +94,7 @@ router.post(
         userId: req.user!.id,
         status: "active",
         endDate: {
-          [require("sequelize").Op.gt]: new Date(),
+          [Op.gt]: new Date(),
         },
       },
     });
@@ -276,7 +276,7 @@ router.post(
         userId: req.user!.id,
         status: "active",
         endDate: {
-          [require("sequelize").Op.gt]: new Date(),
+          [Op.gt]: new Date(),
         },
       },
     });
