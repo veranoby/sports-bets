@@ -1,3 +1,6 @@
+// ARCHIVO: backend/src/models/User.ts
+// CORRECCIÓN: Cambiar nombres de índices para compatibilidad con underscored: true
+
 import {
   Model,
   DataTypes,
@@ -180,7 +183,7 @@ User.init(
         fields: ["role"],
       },
       {
-        fields: ["isActive"],
+        fields: ["is_active"],
       },
     ],
     hooks: {

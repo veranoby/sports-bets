@@ -147,7 +147,7 @@ Wallet.init({
     timestamps: true,
     indexes: [
         {
-            fields: ["userId"],
+            fields: ["user_id"],
             unique: true,
         },
     ],
@@ -218,7 +218,7 @@ Transaction.init({
     timestamps: true,
     indexes: [
         {
-            fields: ["walletId"],
+            fields: ["wallet_id"],
         },
         {
             fields: ["type"],
@@ -230,10 +230,10 @@ Transaction.init({
             fields: ["reference"],
         },
         {
-            fields: ["createdAt"],
+            fields: ["created_at"],
         },
         {
-            fields: ["walletId", "createdAt"],
+            fields: ["wallet_id", "created_at"],
         },
     ],
 });

@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sequelize = exports.transaction = exports.closeDatabase = exports.connectDatabase = void 0;
+const dotenv_1 = require("dotenv");
+(0, dotenv_1.config)(); // ← CRÍTICO: DEBE IR AQUÍ
 const sequelize_1 = require("sequelize");
 const logger_1 = require("./logger");
 // Configuración de la base de datos

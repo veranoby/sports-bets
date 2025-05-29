@@ -1,4 +1,6 @@
 "use strict";
+// ARCHIVO: backend/src/models/User.ts
+// CORRECCIÓN: Cambiar nombres de índices para compatibilidad con underscored: true
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -162,7 +164,7 @@ User.init({
             fields: ["role"],
         },
         {
-            fields: ["isActive"],
+            fields: ["is_active"],
         },
     ],
     hooks: {

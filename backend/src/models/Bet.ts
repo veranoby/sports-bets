@@ -159,20 +159,20 @@ Bet.init(
     timestamps: true,
     indexes: [
       {
-        fields: ["fightId", "userId"],
-        unique: true, // Previene que un usuario apueste múltiples veces en la misma pelea
+        fields: ["fight_id", "user_id"],
+        unique: true,
       },
       {
-        fields: ["createdAt"],
+        fields: ["created_at"],
       },
       {
         fields: ["status"],
       },
       {
-        fields: ["matchedWith"],
+        fields: ["matched_with"],
       },
       {
-        fields: ["fightId", "status"],
+        fields: ["fight_id", "status"],
       },
     ],
     hooks: {

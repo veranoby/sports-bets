@@ -158,16 +158,16 @@ Subscription.init({
     timestamps: true,
     indexes: [
         {
-            fields: ["userId"],
+            fields: ["user_id"],
         },
         {
             fields: ["status"],
         },
         {
-            fields: ["endDate"],
+            fields: ["end_date"],
         },
         {
-            fields: ["autoRenew"],
+            fields: ["auto_renew"],
         },
     ],
     hooks: {

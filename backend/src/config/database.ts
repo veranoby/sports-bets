@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config(); // ← CRÍTICO: DEBE IR AQUÍ
+
 import { Sequelize } from "sequelize";
 import { logger } from "./logger";
 

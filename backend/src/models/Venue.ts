@@ -116,7 +116,7 @@ Venue.init(
     timestamps: true,
     indexes: [
       {
-        fields: ["ownerId"],
+        fields: ["owner_id"],
       },
       {
         fields: ["status"],
@@ -125,7 +125,7 @@ Venue.init(
         fields: ["name"],
       },
       {
-        fields: ["isVerified"],
+        fields: ["is_verified"],
       },
     ],
   }

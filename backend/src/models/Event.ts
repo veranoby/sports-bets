@@ -193,23 +193,23 @@ Event.init(
     timestamps: true,
     indexes: [
       {
-        fields: ["venueId"],
+        fields: ["venue_id"],
       },
       {
-        fields: ["operatorId"],
+        fields: ["operator_id"],
       },
       {
         fields: ["status"],
       },
       {
-        fields: ["scheduledDate"],
+        fields: ["scheduled_date"],
       },
       {
-        fields: ["streamKey"],
+        fields: ["stream_key"],
         unique: true,
       },
       {
-        fields: ["venueId", "scheduledDate"],
+        fields: ["venue_id", "scheduled_date"],
       },
     ],
     hooks: {

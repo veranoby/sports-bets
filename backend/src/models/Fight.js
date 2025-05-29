@@ -149,17 +149,17 @@ Fight.init({
     timestamps: true,
     indexes: [
         {
-            fields: ["eventId"],
+            fields: ["event_id"],
         },
         {
             fields: ["status"],
         },
         {
-            fields: ["eventId", "number"],
+            fields: ["event_id", "number"],
             unique: true,
         },
         {
-            fields: ["eventId", "status"],
+            fields: ["event_id", "status"],
         },
     ],
     validate: {
