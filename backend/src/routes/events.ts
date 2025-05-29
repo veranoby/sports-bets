@@ -4,6 +4,15 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Event, Venue, User, Fight } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
+import {
+  generateStreamKey,
+  checkStreamHealth,
+  getStreamUrl,
+  getStreamInfo,
+  startStreaming as startStreamService,
+  stopStreaming as stopStreamService,
+} from "../services/streamingService";
+import { checkStreamServerHealth } from "../services/streamHealthCheck";
 
 const router = Router();
 
