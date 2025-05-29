@@ -41,8 +41,8 @@ class Server {
         this.io = new socket_io_1.Server(this.httpServer, {
             cors: {
                 origin: process.env.FRONTEND_URL || "http://localhost:5173",
-                methods: ["GET", "POST"]
-            }
+                methods: ["GET", "POST"],
+            },
         });
         this.initializeMiddlewares();
         this.initializeRoutes();
@@ -60,96 +60,96 @@ class Server {
                     scriptSrc: ["'self'"],
                     imgSrc: ["'self'", "data:", "https:"],
                     mediaSrc: ["'self'", "https:"],
-                    connectSrc: ["'self'", "ws:", "wss:"]
-                }
-            }
+                    connectSrc: ["'self'", "ws:", "wss:"],
+                },
+            },
         }));
         // CORS
         this.app.use((0, cors_1.default)({
             origin: function (origin, callback) {
                 const allowedOrigins = [
-                    process.env.FRONTEND_URL || 'http://localhost:5173',
-                    'http://localhost:3000',
-                    'http://localhost:5174'
+                    process.env.FRONTEND_URL || "http://localhost:5173",
+                    "http://localhost:3000",
+                    "http://localhost:5174",
                 ];
                 if (!origin || allowedOrigins.includes(origin)) {
                     callback(null, true);
                 }
                 else {
-                    callback(new Error('Not allowed by CORS'));
+                    callback(new Error("Not allowed by CORS"));
                 }
             },
-            credentials: true
+            credentials: true,
         }));
         // Parsing del body
-        this.app.use(express_1.default.json({ limit: '10mb' }));
-        this.app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+        this.app.use(express_1.default.json({ limit: "10mb" }));
+        this.app.use(express_1.default.urlencoded({ extended: true, limit: "10mb" }));
         // Logger de requests
         this.app.use(requestLogger_1.requestLogger);
         // Health check endpoint
-        this.app.get('/health', (req, res) => {
+        this.app.get("/health", (req, res) => {
             res.status(200).json({
-                status: 'OK',
+                status: "OK",
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
-                environment: process.env.NODE_ENV || 'development'
+                environment: process.env.NODE_ENV || "development",
             });
         });
     }
     initializeRoutes() {
         // Rutas API
-        this.app.use('/api/auth', auth_1.default);
-        this.app.use('/api/users', users_1.default);
-        this.app.use('/api/events', events_1.default);
-        this.app.use('/api/fights', fights_1.default);
-        this.app.use('/api/bets', bets_1.default);
-        this.app.use('/api/wallet', wallet_1.default);
-        this.app.use('/api/venues', venues_1.default);
-        this.app.use('/api/subscriptions', subscriptions_1.default);
+        this.app.use("/api/auth", auth_1.default);
+        this.app.use("/api/users", users_1.default);
+        this.app.use("/api/events", events_1.default);
+        this.app.use("/api/fights", fights_1.default);
+        this.app.use("/api/bets", bets_1.default);
+        this.app.use("/api/wallet", wallet_1.default);
+        this.app.use("/api/venues", venues_1.default);
+        this.app.use("/api/subscriptions", subscriptions_1.default);
         // Ruta para servir archivos estáticos si es necesario
-        this.app.use('/uploads', express_1.default.static('uploads'));
+        this.app.use("/uploads", express_1.default.static("uploads"));
         // Ruta 404
-        this.app.use('*', (req, res) => {
+        this.app.use((req, res) => {
             res.status(404).json({
-                error: 'Route not found',
-                path: req.originalUrl
+                error: "Route not found",
+                path: req.originalUrl,
             });
         });
     }
     initializeWebSocket() {
-        this.io.on('connection', (socket) => {
+        this.io.on("connection", (socket) => {
             logger_1.logger.info(`Client connected: ${socket.id}`);
             // Unirse a una sala específica (evento)
-            socket.on('join_event', (eventId) => {
+            socket.on("join_event", (eventId) => {
                 socket.join(`event_${eventId}`);
                 logger_1.logger.info(`Socket ${socket.id} joined event_${eventId}`);
             });
             // Salir de una sala específica
-            socket.on('leave_event', (eventId) => {
+            socket.on("leave_event", (eventId) => {
                 socket.leave(`event_${eventId}`);
                 logger_1.logger.info(`Socket ${socket.id} left event_${eventId}`);
             });
             // Unirse a sala de operador
-            socket.on('join_operator', (eventId) => {
+            socket.on("join_operator", (eventId) => {
                 socket.join(`operator_${eventId}`);
                 logger_1.logger.info(`Operator ${socket.id} joined event_${eventId}`);
             });
             // Desconexión
-            socket.on('disconnect', () => {
+            socket.on("disconnect", () => {
                 logger_1.logger.info(`Client disconnected: ${socket.id}`);
             });
         });
         // Hacer disponible el socket para otros módulos
-        this.app.set('io', this.io);
+        this.app.set("io", this.io);
     }
     initializeErrorHandling() {
         this.app.use(errorHandler_1.errorHandler);
         // Manejo de promesas no capturadas
-        process.on('unhandledRejection', (reason, promise) => {
-            logger_1.logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+        process.on("unhandledRejection", (reason, promise) => {
+            logger_1.logger.error("Unhandled Rejection at:", promise, "reason:", reason);
         });
-        process.on('uncaughtException', (error) => {
-            logger_1.logger.error('Uncaught Exception:', error);
+        process.on("uncaughtException", (error) => {
+            logger_1.logger.error("Uncaught Exception:", error);
             process.exit(1);
         });
     }
@@ -161,12 +161,12 @@ class Server {
                 // Iniciar el servidor
                 this.httpServer.listen(this.port, () => {
                     logger_1.logger.info(`🚀 Server running on port ${this.port}`);
-                    logger_1.logger.info(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+                    logger_1.logger.info(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
                     logger_1.logger.info(`📊 Health check: http://localhost:${this.port}/health`);
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to start server:', error);
+                logger_1.logger.error("Failed to start server:", error);
                 process.exit(1);
             }
         });
