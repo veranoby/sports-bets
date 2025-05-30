@@ -5,9 +5,9 @@ import {
   betsAPI, 
   walletAPI, 
   subscriptionsAPI,
-  venuesAPI,
-  APIResponse 
+  venuesAPI
 } from '../config/api';
+import type { APIResponse } from '../types';
 
 // Hook genérico para APIs
 function useAsyncOperation<T>() {

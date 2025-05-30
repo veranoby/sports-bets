@@ -38,13 +38,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (requiredRole && user?.role !== requiredRole) {
     // Redirigir según el rol del usuario
     const roleRedirects = {
-      admin: '/admin',
+      admin: '/operator', // Admin puede usar panel de operador
       operator: '/operator',
       venue: '/venue',
-      user: '/',
+      user: '/dashboard',
     };
 
-    const userRedirect = roleRedirects[user?.role as keyof typeof roleRedirects] || '/';
+    const userRedirect = roleRedirects[user?.role as keyof typeof roleRedirects] || '/dashboard';
     
     return <Navigate to={userRedirect} replace />;
   }
