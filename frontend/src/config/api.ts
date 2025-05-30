@@ -1,8 +1,7 @@
-// frontend/src/config/api.ts
 import axios from 'axios';
 
 // Configuración base de la API
-export const API_BASE_URL = 'http://localhost:3001/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Crear instancia de axios con configuración base
 export const apiClient = axios.create({
@@ -29,11 +28,20 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
-    return Promise.reject(error.response?.data || error.message);
+    
+    // Extraer mensaje de error del backend
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Error desconocido';
+    
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
@@ -48,21 +56,41 @@ export const authAPI = {
   me: () => apiClient.get('/auth/me'),
   
   refreshToken: () => apiClient.post('/auth/refresh'),
+  
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    apiClient.post('/auth/change-password', data),
+  
+  logout: () => apiClient.post('/auth/logout'),
 };
 
 export const eventsAPI = {
-  getAll: (params?: { venueId?: string; status?: string }) =>
+  getAll: (params?: { venueId?: string; status?: string; upcoming?: boolean; limit?: number; offset?: number }) =>
     apiClient.get('/events', { params }),
   
   getById: (id: string) => apiClient.get(`/events/${id}`),
   
-  create: (data: any) => apiClient.post('/events', data),
+  create: (data: {
+    name: string;
+    venueId: string;
+    scheduledDate: string;
+    operatorId?: string;
+  }) => apiClient.post('/events', data),
+  
+  update: (id: string, data: any) => apiClient.put(`/events/${id}`, data),
   
   activate: (id: string) => apiClient.post(`/events/${id}/activate`),
   
   startStream: (id: string) => apiClient.post(`/events/${id}/stream/start`),
   
   stopStream: (id: string) => apiClient.post(`/events/${id}/stream/stop`),
+  
+  getStreamStatus: (id: string) => apiClient.get(`/events/${id}/stream/status`),
+  
+  complete: (id: string) => apiClient.post(`/events/${id}/complete`),
+  
+  getStats: (id: string) => apiClient.get(`/events/${id}/stats`),
+  
+  delete: (id: string) => apiClient.delete(`/events/${id}`),
 };
 
 export const fightsAPI = {
@@ -71,9 +99,23 @@ export const fightsAPI = {
   
   getById: (id: string) => apiClient.get(`/fights/${id}`),
   
-  create: (data: any) => apiClient.post('/fights', data),
+  create: (data: {
+    eventId: string;
+    number: number;
+    redCorner: string;
+    blueCorner: string;
+    weight: number;
+    notes?: string;
+    initialOdds?: { red: number; blue: number };
+  }) => apiClient.post('/fights', data),
   
-  update: (id: string, data: any) => apiClient.put(`/fights/${id}`, data),
+  update: (id: string, data: {
+    redCorner?: string;
+    blueCorner?: string;
+    weight?: number;
+    notes?: string;
+    status?: string;
+  }) => apiClient.put(`/fights/${id}`, data),
   
   openBetting: (id: string) => apiClient.post(`/fights/${id}/open-betting`),
   
@@ -84,7 +126,7 @@ export const fightsAPI = {
 };
 
 export const betsAPI = {
-  getMyBets: (params?: { status?: string; fightId?: string }) =>
+  getMyBets: (params?: { status?: string; fightId?: string; limit?: number; offset?: number }) =>
     apiClient.get('/bets', { params }),
   
   getAvailable: (fightId: string) =>
@@ -95,6 +137,7 @@ export const betsAPI = {
     side: 'red' | 'blue';
     amount: number;
     ratio?: number;
+    isOffer?: boolean;
   }) => apiClient.post('/bets', data),
   
   accept: (betId: string) => apiClient.post(`/bets/${betId}/accept`),
@@ -112,6 +155,8 @@ export const walletAPI = {
     status?: string;
     limit?: number;
     offset?: number;
+    dateFrom?: string;
+    dateTo?: string;
   }) => apiClient.get('/wallet/transactions', { params }),
   
   deposit: (data: {
@@ -151,30 +196,68 @@ export const subscriptionsAPI = {
   getPlans: () => apiClient.get('/subscriptions/plans/info'),
   
   checkAccess: () => apiClient.post('/subscriptions/check-access'),
+  
+  extend: (id: string) => apiClient.put(`/subscriptions/${id}/extend`),
 };
 
 export const venuesAPI = {
-  getAll: () => apiClient.get('/venues'),
+  getAll: (params?: { status?: string; limit?: number; offset?: number }) =>
+    apiClient.get('/venues', { params }),
+  
+  getById: (id: string) => apiClient.get(`/venues/${id}`),
+  
+  create: (data: {
+    name: string;
+    location: string;
+    description?: string;
+    contactInfo?: any;
+    ownerId?: string;
+  }) => apiClient.post('/venues', data),
+  
+  update: (id: string, data: {
+    name?: string;
+    location?: string;
+    description?: string;
+    contactInfo?: any;
+    status?: string;
+  }) => apiClient.put(`/venues/${id}`, data),
+  
+  updateStatus: (id: string, status: string, reason?: string) =>
+    apiClient.put(`/venues/${id}/status`, { status, reason }),
+  
+  delete: (id: string) => apiClient.delete(`/venues/${id}`),
+  
+  getMyVenues: () => apiClient.get('/venues/my/venues'),
+};
+
+export const usersAPI = {
+  getProfile: () => apiClient.get('/users/profile'),
+  
+  updateProfile: (data: {
+    profileInfo?: {
+      fullName?: string;
+      phoneNumber?: string;
+      address?: string;
+      identificationNumber?: string;
+    };
+  }) => apiClient.put('/users/profile', data),
+  
+  getAll: (params?: { role?: string; isActive?: boolean; limit?: number; offset?: number }) =>
+    apiClient.get('/users', { params }),
+  
+  getById: (id: string) => apiClient.get(`/users/${id}`),
+  
+  updateStatus: (id: string, isActive: boolean, reason?: string) =>
+    apiClient.put(`/users/${id}/status`, { isActive, reason }),
+  
+  updateRole: (id: string, role: string, reason?: string) =>
+    apiClient.put(`/users/${id}/role`, { role, reason }),
+  
+  getAvailableOperators: () => apiClient.get('/users/operators/available'),
 };
 
 // WebSocket configuration
-export const WEBSOCKET_URL = 'http://localhost:3001';
-
-// Hook personalizado para WebSocket
-export const useWebSocket = () => {
-  const [socket, setSocket] = useState<any>(null);
-  
-  useEffect(() => {
-    import('socket.io-client').then(({ io }) => {
-      const newSocket = io(WEBSOCKET_URL);
-      setSocket(newSocket);
-      
-      return () => newSocket.close();
-    });
-  }, []);
-  
-  return socket;
-};
+export const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
 
 // Tipos TypeScript para las respuestas
 export interface APIResponse<T = any> {
@@ -189,7 +272,14 @@ export interface User {
   email: string;
   role: 'admin' | 'operator' | 'venue' | 'user';
   isActive: boolean;
-  profileInfo?: any;
+  profileInfo?: {
+    fullName?: string;
+    phoneNumber?: string;
+    address?: string;
+    identificationNumber?: string;
+    verificationLevel: 'none' | 'basic' | 'full';
+  };
+  lastLogin?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -199,10 +289,22 @@ export interface Event {
   name: string;
   venueId: string;
   scheduledDate: string;
+  endDate?: string;
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  operatorId?: string;
+  streamKey?: string;
   streamUrl?: string;
+  createdBy: string;
   totalFights: number;
   completedFights: number;
+  totalBets: number;
+  totalPrizePool: number;
+  createdAt: string;
+  updatedAt: string;
+  venue?: Venue;
+  operator?: User;
+  creator?: User;
+  fights?: Fight[];
 }
 
 export interface Fight {
@@ -212,8 +314,20 @@ export interface Fight {
   redCorner: string;
   blueCorner: string;
   weight: number;
+  notes?: string;
+  initialOdds?: { red: number; blue: number };
+  bettingStartTime?: string;
+  bettingEndTime?: string;
+  totalBets: number;
+  totalAmount: number;
   status: 'upcoming' | 'betting' | 'live' | 'completed' | 'cancelled';
   result?: 'red' | 'blue' | 'draw' | 'cancelled';
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+  updatedAt: string;
+  event?: Event;
+  bets?: Bet[];
 }
 
 export interface Bet {
@@ -225,4 +339,32 @@ export interface Bet {
   potentialWin: number;
   status: 'pending' | 'active' | 'completed' | 'cancelled';
   result?: 'win' | 'loss' | 'draw' | 'cancelled';
+  matchedWith?: string;
+  terms?: {
+    ratio: number;
+    isOffer: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+  fight?: Fight;
+  user?: User;
+  matchedBet?: Bet;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  location: string;
+  description?: string;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+  };
+  ownerId: string;
+  status: 'pending' | 'active' | 'suspended';
+  isVerified: boolean;
+  images?: string[];
+  createdAt: string;
+  updatedAt: string;
+  owner?: User;
 }
