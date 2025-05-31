@@ -14,19 +14,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export type BetStatus = "pending" | "active" | "settled" | "cancelled";
-export type BetResult = "win" | "loss" | "draw";
-export type BetSide = "red" | "blue";
-
 export interface BetCardProps {
   id: string;
   amount: number;
   potentialWin: number;
-  side: BetSide;
+  side: "red" | "blue";
+  status: "active" | "pending" | "completed";
+  result?: "win" | "loss" | "draw";
   venueName: string;
   fightNumber: number;
-  status: BetStatus;
-  result?: BetResult;
   onViewDetails: (id: string) => void;
 }
 
@@ -35,10 +31,10 @@ const BetCard: React.FC<BetCardProps> = ({
   amount,
   potentialWin,
   side,
-  venueName,
-  fightNumber,
   status,
   result,
+  venueName,
+  fightNumber,
   onViewDetails,
 }) => {
   // Configuración de colores según el estado y resultado
@@ -60,7 +56,7 @@ const BetCard: React.FC<BetCardProps> = ({
           icon: Clock,
           label: "Activa",
         };
-      case "settled":
+      case "completed":
         if (result === "win") {
           return {
             bgColor: "bg-green-50",
@@ -86,14 +82,6 @@ const BetCard: React.FC<BetCardProps> = ({
             label: "Empate",
           };
         }
-      case "cancelled":
-        return {
-          bgColor: "bg-gray-50",
-          textColor: "text-gray-700",
-          borderColor: "border-gray-200",
-          icon: XCircle,
-          label: "Cancelada",
-        };
       default:
         return {
           bgColor: "bg-gray-50",

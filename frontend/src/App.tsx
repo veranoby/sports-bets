@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
@@ -8,7 +8,12 @@ import UserDashboard from "./pages/user/Dashboard";
 import LiveEvent from "./pages/user/LiveEvent";
 import Wallet from "./pages/user/Wallet";
 import Profile from "./pages/user/Profile";
+import EventsPage from "./pages/user/Events";
+import BetsPage from "./pages/user/Bets";
 import "./App.css";
+import { LogOut } from "lucide-react";
+import Navigation from "./components/user/Navigation";
+import VenueDashboard from "./pages/venue/Dashboard";
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -32,11 +37,11 @@ const RoleBasedRedirect: React.FC = () => {
   // Redirigir según el rol del usuario
   switch (user.role) {
     case "admin":
-      return <Navigate to="/operator" replace />; // Admin puede usar panel de operador
+      return <Navigate to="/operator" replace />;
     case "operator":
       return <Navigate to="/operator" replace />;
     case "venue":
-      return <Navigate to="/venue" replace />; // Para implementar después
+      return <Navigate to="/venue" replace />;
     case "user":
     default:
       return <Navigate to="/dashboard" replace />;
@@ -46,6 +51,19 @@ const RoleBasedRedirect: React.FC = () => {
 // Componente principal de la aplicación
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  // Determinar si mostrar la navegación
+  const showNavigation =
+    isAuthenticated &&
+    [
+      "/dashboard",
+      "/events",
+      "/bets",
+      "/profile",
+      "/wallet",
+      "/live-event",
+    ].some((path) => location.pathname.startsWith(path));
 
   return (
     <div className="app-container">
@@ -78,8 +96,14 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Rutas de Eventos en Vivo */}
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <EventsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/live-event/:id"
           element={
@@ -104,14 +128,7 @@ const AppContent: React.FC = () => {
           path="/venue"
           element={
             <ProtectedRoute requiredRole="venue">
-              <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                    Panel de Venue
-                  </h1>
-                  <p className="text-gray-600">En desarrollo...</p>
-                </div>
-              </div>
+              <VenueDashboard />
             </ProtectedRoute>
           }
         />
@@ -122,6 +139,16 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="user">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Ruta de Apuestas */}
+        <Route
+          path="/bets"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <BetsPage />
             </ProtectedRoute>
           }
         />
@@ -145,6 +172,9 @@ const AppContent: React.FC = () => {
           }
         />
       </Routes>
+
+      {/* Navigation component for user routes */}
+      {showNavigation && <Navigation />}
     </div>
   );
 };

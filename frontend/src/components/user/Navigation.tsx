@@ -5,82 +5,78 @@
 "use client";
 
 import React from "react";
-import { Home, Calendar, DollarSign, User } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Home, Calendar, Wallet, User } from "lucide-react";
 
-export type NavigationPage = "home" | "events" | "bets" | "profile";
+type NavigationPage = "home" | "events" | "bets" | "profile";
 
-export interface NavigationProps {
-  activePage: NavigationPage;
-  onNavigate: (page: NavigationPage) => void;
-}
-
-const Navigation: React.FC<NavigationProps> = () => {
+const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const navItems = [
-    { id: "home" as const, label: "Inicio", icon: Home, path: "/" },
-    {
-      id: "events" as const,
-      label: "Eventos",
-      icon: Calendar,
-      path: "/events",
-    },
-    {
-      id: "bets" as const,
-      label: "Apuestas",
-      icon: DollarSign,
-      path: "/wallet",
-    },
-    { id: "profile" as const, label: "Perfil", icon: User, path: "/profile" },
-  ];
 
-  // Determinar página activa por ruta
   const getActivePage = (): NavigationPage => {
-    if (
-      location.pathname === "/" ||
-      location.pathname.startsWith("/live-event")
-    )
-      return "home";
-    if (location.pathname === "/events") return "events";
-    if (location.pathname === "/wallet") return "bets";
-    if (location.pathname === "/profile") return "profile";
+    if (location.pathname.startsWith("/events")) return "events";
+    if (location.pathname.startsWith("/bets")) return "bets";
+    if (location.pathname.startsWith("/profile")) return "profile";
     return "home";
   };
-  const activePage = getActivePage();
+
+  const handleNavigate = (page: NavigationPage) => {
+    switch (page) {
+      case "home":
+        navigate("/dashboard");
+        break;
+      case "events":
+        navigate("/events");
+        break;
+      case "bets":
+        navigate("/bets");
+        break;
+      case "profile":
+        navigate("/profile");
+        break;
+    }
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-sm z-10 pb-safe">
-      <div className="flex justify-around items-center min-h-[64px]">
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center w-full h-full py-2 transition-colors ${
-                isActive ? "text-red-500" : "text-gray-400 hover:text-gray-600"
-              }`}
-              aria-current={isActive ? "page" : undefined}
-              aria-label={`${item.label}${isActive ? " (Página actual)" : ""}`}
-              style={{ border: "none", background: "transparent" }}
-            >
-              <item.icon
-                className={`w-5 h-5 mb-1 flex-shrink-0 ${
-                  isActive ? "stroke-[2.5px]" : "stroke-[1.5px]"
-                }`}
-                aria-hidden="true"
-              />
-              <span
-                className={`text-xs ${
-                  isActive ? "font-semibold" : "font-medium"
-                }`}
-              >
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4">
+      <div className="flex justify-around items-center">
+        <button
+          onClick={() => handleNavigate("home")}
+          className={`flex flex-col items-center p-2 ${
+            getActivePage() === "home" ? "text-red-500" : "text-gray-500"
+          }`}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-xs mt-1">Inicio</span>
+        </button>
+        <button
+          onClick={() => handleNavigate("events")}
+          className={`flex flex-col items-center p-2 ${
+            getActivePage() === "events" ? "text-red-500" : "text-gray-500"
+          }`}
+        >
+          <Calendar className="w-6 h-6" />
+          <span className="text-xs mt-1">Eventos</span>
+        </button>
+        <button
+          onClick={() => handleNavigate("bets")}
+          className={`flex flex-col items-center p-2 ${
+            getActivePage() === "bets" ? "text-red-500" : "text-gray-500"
+          }`}
+        >
+          <Wallet className="w-6 h-6" />
+          <span className="text-xs mt-1">Mis Apuestas</span>
+        </button>
+        <button
+          onClick={() => handleNavigate("profile")}
+          className={`flex flex-col items-center p-2 ${
+            getActivePage() === "profile" ? "text-red-500" : "text-gray-500"
+          }`}
+        >
+          <User className="w-6 h-6" />
+          <span className="text-xs mt-1">Perfil</span>
+        </button>
       </div>
     </nav>
   );

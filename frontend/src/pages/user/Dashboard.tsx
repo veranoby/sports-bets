@@ -17,8 +17,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 // Importación de componentes
-import Navigation from "../../components/user/Navigation";
-import type { NavigationPage } from "../../components/user/Navigation";
 import WalletSummary from "../../components/user/WalletSummary";
 import EventCard from "../../components/user/EventCard";
 import BetCard from "../../components/user/BetCard";
@@ -147,8 +145,57 @@ const Dashboard: React.FC = () => {
   const [activePage, setActivePage] = useState<NavigationPage>(
     () => (localStorage.getItem("activePage") as NavigationPage) || "home"
   );
-  // const [loading, setLoading] = useState(false); // Uncomment for async operations
-  // const [error, setError] = useState<string | null>(null); // Uncomment for async operations
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Mock de notificaciones
+  const [notifications, setNotifications] = useState([
+    {
+      id: "notif-1",
+      type: "new_bet",
+      message: "Nueva apuesta disponible en Gallera El Palenque",
+      read: false,
+      timestamp: new Date(Date.now() - 3600000), // 1 hora atrás
+    },
+    {
+      id: "notif-2",
+      type: "event_start",
+      message: "Evento iniciado en Arena San Juan",
+      read: false,
+      timestamp: new Date(Date.now() - 7200000), // 2 horas atrás
+    },
+    {
+      id: "notif-3",
+      type: "bet_result",
+      message: "Tu apuesta en Coliseo Nacional ha ganado!",
+      read: true,
+      timestamp: new Date(Date.now() - 86400000), // 1 día atrás
+    },
+  ]);
+
+  // Filtrar eventos basados en searchTerm
+  const filteredLiveEvents = mockData.liveEvents.filter((event) =>
+    event.venueName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredUpcomingEvents = mockData.upcomingEvents.filter((event) =>
+    event.venueName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // La búsqueda se aplica automáticamente al state searchTerm
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+    // Marcar como leídas al abrir
+    if (!showNotifications) {
+      setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("activePage", activePage);
@@ -203,29 +250,84 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
-              <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors !border-0"
-                aria-label="Buscar"
-                style={{ backgroundColor: "transparent" }}
-              >
-                <Search className="w-5 h-5 text-gray-600" />
-              </button>
-              <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors relative !border-0"
-                aria-label="Notificaciones"
-                style={{ backgroundColor: "transparent" }}
-              >
-                <Bell className="w-5 h-5 text-gray-600" />
-                <span
-                  className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"
-                  aria-hidden="true"
-                ></span>
-              </button>
+              {/* Barra de búsqueda */}
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar eventos, galleras..."
+                  className="w-40 sm:w-56 pl-3 pr-8 py-1.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </form>
+
+              {/* Notificaciones */}
+              <div className="relative">
+                <button
+                  onClick={toggleNotifications}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors relative"
+                >
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+                  )}
+                </button>
+
+                {/* Dropdown de notificaciones */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200">
+                    <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-100 bg-gray-50">
+                        <p className="text-sm font-medium text-gray-700">
+                          Notificaciones
+                          {unreadNotificationsCount > 0 && (
+                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                              {unreadNotificationsCount}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      {notifications.length === 0 ? (
+                        <p className="px-4 py-3 text-sm text-gray-500">
+                          No hay notificaciones
+                        </p>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${
+                              !notification.read ? "bg-blue-50" : ""
+                            }`}
+                          >
+                            <p className="text-sm text-gray-800">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(
+                                notification.timestamp
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Botón de logout */}
               <button
                 onClick={logout}
-                className="text-sm text-red-500 font-medium flex items-center !border-0"
-                style={{ backgroundColor: "transparent" }}
-                aria-label="Logout"
+                className="text-sm text-red-500 font-medium flex items-center"
               >
                 Logout
               </button>
@@ -233,11 +335,10 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Wallet Summary */}
-          <div className="mt-4">
+          <div className="mt-4 mx-4">
             <WalletSummary
               balance={mockData.wallet.balance}
               frozenAmount={mockData.wallet.frozenAmount}
-              onViewWallet={handleViewWallet}
             />
           </div>
         </div>
@@ -246,7 +347,7 @@ const Dashboard: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         {/* Live Events Section - Mostrado cuando hay eventos en vivo */}
-        {mockData.liveEvents.length > 0 && (
+        {filteredLiveEvents.length > 0 && (
           <section className="mb-8">
             <div className="flex items-center mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2 flex-shrink-0">
@@ -265,7 +366,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {mockData.liveEvents.map((event) => (
+              {filteredLiveEvents.map((event) => (
                 <EventCard
                   key={event.id}
                   id={event.id}
@@ -279,6 +380,14 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
           </section>
+        )}
+
+        {filteredLiveEvents.length === 0 && (
+          <p className="text-gray-500 text-center py-4">
+            {searchTerm
+              ? "No se encontraron eventos con ese nombre"
+              : "No hay eventos en vivo"}
+          </p>
         )}
 
         {/* Upcoming Events Section */}
@@ -310,7 +419,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {mockData.upcomingEvents.map((event) => (
+            {filteredUpcomingEvents.map((event) => (
               <EventCard
                 key={event.id}
                 id={event.id}
@@ -409,9 +518,6 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
       </main>
-
-      {/* Navigation */}
-      <Navigation activePage={activePage} onNavigate={handleNavigate} />
 
       {/* Loading/Error Global */}
       {/* {loading && <div className="w-full flex justify-center py-8"><Loader2 className="animate-spin" size={32} /></div>}

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Plus, Clock, Scale, Users, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Plus, Clock, Scale, Users, Info } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 type Fight = {
   id: string;
@@ -20,7 +20,7 @@ type Bet = {
 };
 
 const LiveEvent = () => {
-  const navigate = useNavigate();
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
@@ -70,18 +70,12 @@ const LiveEvent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm p-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center text-gray-700"
-        >
-          <ArrowLeft size={24} className="mr-2" />
-          Volver al Dashboard
-        </button>
-        <h1 className="text-xl font-bold text-gray-800">Evento en Vivo</h1>
-        <div className="w-6"></div> {/* Spacer para alinear */}
+    <div className="min-h-screen bg-gray-100 pb-20">
+      {/* Header simplificado */}
+      <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
+        <h1 className="text-xl font-bold text-gray-800 text-center">
+          Evento #{id}
+        </h1>
       </header>
 
       {/* Video Player */}
@@ -242,7 +236,7 @@ const LiveEvent = () => {
       </div>
 
       {/* Create New Bet Button */}
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-20 right-6">
         <button className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
           <Plus size={24} />
         </button>
