@@ -6,7 +6,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../contexts/AuthContext";
 import { ChevronLeft } from "lucide-react";
 
 const Profile: React.FC = () => {
