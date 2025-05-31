@@ -15,6 +15,7 @@ import {
   FlameIcon as Fire,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 // Importación de componentes
 import Navigation from "../../components/user/Navigation";
@@ -143,6 +144,7 @@ const mockData = {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activePage, setActivePage] = useState<NavigationPage>(
     () => (localStorage.getItem("activePage") as NavigationPage) || "home"
   );
@@ -194,6 +196,11 @@ const Dashboard: React.FC = () => {
               <h1 className="text-xl font-bold text-gray-900">
                 Sports<span className="text-red-500">Bets</span>
               </h1>
+              {user && (
+                <span className="ml-4 text-gray-700">
+                  Bienvenido, {user.username}!
+                </span>
+              )}
             </div>
 
             <div className="flex items-center space-x-3">
@@ -214,6 +221,14 @@ const Dashboard: React.FC = () => {
                   className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"
                   aria-hidden="true"
                 ></span>
+              </button>
+              <button
+                onClick={logout}
+                className="text-sm text-red-500 font-medium flex items-center !border-0"
+                style={{ backgroundColor: "transparent" }}
+                aria-label="Logout"
+              >
+                Logout
               </button>
             </div>
           </div>

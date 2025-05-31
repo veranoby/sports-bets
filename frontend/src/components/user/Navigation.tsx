@@ -20,21 +20,31 @@ const Navigation: React.FC<NavigationProps> = () => {
   const location = useLocation();
   const navItems = [
     { id: "home" as const, label: "Inicio", icon: Home, path: "/" },
-    { id: "events" as const, label: "Eventos", icon: Calendar, path: "/" },
-    { id: "bets" as const, label: "Apuestas", icon: DollarSign, path: "/" },
+    {
+      id: "events" as const,
+      label: "Eventos",
+      icon: Calendar,
+      path: "/events",
+    },
+    {
+      id: "bets" as const,
+      label: "Apuestas",
+      icon: DollarSign,
+      path: "/wallet",
+    },
     { id: "profile" as const, label: "Perfil", icon: User, path: "/profile" },
   ];
 
   // Determinar página activa por ruta
-  const getActivePage = () => {
+  const getActivePage = (): NavigationPage => {
     if (
       location.pathname === "/" ||
       location.pathname.startsWith("/live-event")
     )
       return "home";
+    if (location.pathname === "/events") return "events";
     if (location.pathname === "/wallet") return "bets";
     if (location.pathname === "/profile") return "profile";
-    if (location.pathname === "/operator") return "operator";
     return "home";
   };
   const activePage = getActivePage();

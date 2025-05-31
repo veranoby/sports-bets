@@ -242,6 +242,13 @@ const OperatorDashboard: React.FC = () => {
     }
   }, [activeEventId, eventFights]);
 
+  // Debug: Mostrar datos actuales en consola
+  React.useEffect(() => {
+    console.log("Active Event:", activeEvent);
+    console.log("Current Fight:", currentFight);
+    console.log("Fights:", eventFights);
+  }, [activeEvent, currentFight, eventFights]);
+
   // Handler para activar un evento
   const handleActivateEvent = (eventId: string) => {
     setLoading(true);
@@ -479,6 +486,25 @@ const OperatorDashboard: React.FC = () => {
     );
   }
 
+  // Debug info (solo en desarrollo)
+  const isDev = process.env.NODE_ENV === "development";
+  const debugInfo = isDev ? (
+    <div className="bg-yellow-50 p-4 rounded-lg mb-6">
+      <h3 className="font-bold text-yellow-800 mb-2">Debug Info</h3>
+      <pre className="text-xs text-yellow-700 overflow-x-auto">
+        {JSON.stringify(
+          {
+            activeEvent,
+            currentFight,
+            eventFights,
+          },
+          null,
+          2
+        )}
+      </pre>
+    </div>
+  ) : null;
+
   return (
     <div className="bg-gray-100 min-h-screen pb-6">
       {/* Header */}
@@ -515,6 +541,20 @@ const OperatorDashboard: React.FC = () => {
       </header>
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
+        {debugInfo}
+
+        {/* Contenido básico de prueba */}
+        {!currentFight && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              No hay pelea seleccionada
+            </h2>
+            <p className="text-gray-600">
+              Selecciona una pelea de la lista para ver los detalles.
+            </p>
+          </div>
+        )}
+
         {/* Event Header */}
         <div className="mb-6">
           <EventHeader
