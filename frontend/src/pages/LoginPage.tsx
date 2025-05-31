@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, UserPlus, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff, LogIn, UserPlus, Loader2 } from "lucide-react";
 
 const LoginPage: React.FC = () => {
   const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
-  
+
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    login: '',
-    username: '',
-    email: '',
-    password: '',
+    login: "",
+    username: "",
+    email: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       if (isLoginMode) {
@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
           password: formData.password,
         });
       }
-      navigate('/');
+      navigate("/");
     } catch (error: any) {
       setError(error.message);
     }
@@ -49,12 +49,12 @@ const LoginPage: React.FC = () => {
 
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
-    setError('');
+    setError("");
     setFormData({
-      login: '',
-      username: '',
-      email: '',
-      password: '',
+      login: "",
+      username: "",
+      email: "",
+      password: "",
     });
   };
 
@@ -66,13 +66,12 @@ const LoginPage: React.FC = () => {
             Sports<span className="text-red-500">Bets</span>
           </h1>
           <h2 className="mt-6 text-2xl font-bold text-gray-900">
-            {isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            {isLoginMode ? "Iniciar Sesión" : "Crear Cuenta"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLoginMode 
-              ? 'Accede a tu cuenta para continuar' 
-              : 'Únete a la plataforma de apuestas'
-            }
+            {isLoginMode
+              ? "Accede a tu cuenta para continuar"
+              : "Únete a la plataforma de apuestas"}
           </p>
         </div>
       </div>
@@ -82,7 +81,10 @@ const LoginPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLoginMode && (
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Nombre de usuario
                 </label>
                 <div className="mt-1">
@@ -102,7 +104,10 @@ const LoginPage: React.FC = () => {
 
             {!isLoginMode && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Correo electrónico
                 </label>
                 <div className="mt-1">
@@ -122,7 +127,10 @@ const LoginPage: React.FC = () => {
 
             {isLoginMode && (
               <div>
-                <label htmlFor="login" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="login"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Usuario o Email
                 </label>
                 <div className="mt-1">
@@ -141,14 +149,17 @@ const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Contraseña
               </label>
               <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
                   onChange={handleChange}
@@ -193,12 +204,11 @@ const LoginPage: React.FC = () => {
                 ) : (
                   <UserPlus className="w-4 h-4 mr-2" />
                 )}
-                {isLoading 
-                  ? 'Procesando...' 
-                  : isLoginMode 
-                    ? 'Iniciar Sesión' 
-                    : 'Crear Cuenta'
-                }
+                {isLoading
+                  ? "Procesando..."
+                  : isLoginMode
+                  ? "Iniciar Sesión"
+                  : "Crear Cuenta"}
               </button>
             </div>
           </form>
@@ -210,7 +220,7 @@ const LoginPage: React.FC = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
-                  {isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                  {isLoginMode ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}
                 </span>
               </div>
             </div>
@@ -221,17 +231,34 @@ const LoginPage: React.FC = () => {
                 onClick={toggleMode}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                {isLoginMode ? 'Crear una cuenta nueva' : 'Iniciar sesión'}
+                {isLoginMode ? "Crear una cuenta nueva" : "Iniciar sesión"}
               </button>
             </div>
           </div>
 
           {/* Credenciales de prueba */}
           <div className="mt-6 p-4 bg-blue-50 rounded-md">
-            <h4 className="text-sm font-medium text-blue-800 mb-2">Credenciales de Prueba:</h4>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">
+              Credenciales de Prueba:
+            </h4>
             <div className="text-xs text-blue-700 space-y-1">
-              <p><strong>Admin:</strong> admin@sportsbets.com / admin123</p>
-              <p><strong>Usuario:</strong> testuser / Test123456</p>
+              <p>
+                <strong>Admin:</strong> admin@sportsbets.com / admin123
+              </p>
+              <p>
+                <strong>Usuario:</strong> testuser / Test123456
+              </p>
+              <p>
+                <strong>Operador:</strong> operator / Operator123
+              </p>
+              <p>
+                <strong>Venue:</strong> venueowner / Venue123
+              </p>
+            </div>
+            <div className="mt-2 text-xs text-blue-600">
+              <p>
+                Nota: Usa el nombre de usuario (no email) para iniciar sesión
+              </p>
             </div>
           </div>
         </div>
