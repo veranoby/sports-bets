@@ -1,11 +1,10 @@
-// NUEVO: backend/src/create-test-user.ts
-// Script para crear usuarios de prueba
+// CORREGIDO: backend/src/create-test-user.ts
+// Script para crear usuarios de prueba - SIN doble hasheo
 
 import { config } from "dotenv";
 import { connectDatabase } from "./config/database";
 import { User, Wallet } from "./models";
 import { logger } from "./config/logger";
-import bcrypt from "bcryptjs";
 
 // Cargar variables de entorno
 config();
@@ -19,12 +18,12 @@ async function createTestUsers() {
     const testUserData = {
       username: "testuser",
       email: "testuser@sportsbets.com",
-      passwordHash: await bcrypt.hash("Test123456", 10),
-      role: "user",
+      passwordHash: "Test123456", // ✅ Texto plano (el hook hashea)
+      role: "user" as const,
       isActive: true,
       profileInfo: {
         fullName: "Test User",
-        verificationLevel: "basic",
+        verificationLevel: "basic" as const,
       },
     };
 
@@ -32,12 +31,12 @@ async function createTestUsers() {
     const operatorData = {
       username: "operator",
       email: "operator@sportsbets.com",
-      passwordHash: await bcrypt.hash("Operator123", 10),
-      role: "operator",
+      passwordHash: "Operator123", // ✅ Texto plano (el hook hashea)
+      role: "operator" as const,
       isActive: true,
       profileInfo: {
         fullName: "Test Operator",
-        verificationLevel: "full",
+        verificationLevel: "full" as const,
       },
     };
 
@@ -46,6 +45,9 @@ async function createTestUsers() {
     await createUserIfNotExists(operatorData);
 
     logger.info("🎉 Test users setup completed!");
+    logger.info("📧 Test User: testuser@sportsbets.com / Test123456");
+    logger.info("📧 Operator: operator@sportsbets.com / Operator123");
+    logger.info("📧 Admin: admin@sportsbets.com / admin123");
     process.exit(0);
   } catch (error) {
     logger.error("❌ Error creating test users:");
@@ -59,20 +61,25 @@ async function createTestUsers() {
 }
 
 async function createUserIfNotExists(userData: any) {
-  const existingUser = await User.findOne({
-    where: { email: userData.email },
-  });
-
-  if (!existingUser) {
-    const user = await User.create(userData);
-    await Wallet.create({
-      userId: user.id,
-      balance: userData.role === "user" ? 500 : 0,
-      frozenAmount: 0,
+  try {
+    const existingUser = await User.findOne({
+      where: { email: userData.email },
     });
-    logger.info(`✅ ${userData.role} user created: ${userData.email}`);
-  } else {
-    logger.info(`ℹ️ User already exists: ${userData.email}`);
+
+    if (!existingUser) {
+      const user = await User.create(userData);
+      await Wallet.create({
+        userId: user.id,
+        balance: userData.role === "user" ? 500 : 0, // Usuario normal empieza con $500
+        frozenAmount: 0,
+      });
+      logger.info(`✅ ${userData.role} user created: ${userData.email}`);
+    } else {
+      logger.info(`ℹ️ User already exists: ${userData.email}`);
+    }
+  } catch (error) {
+    logger.error(`Error creating user ${userData.email}:`, error);
+    throw error;
   }
 }
 
