@@ -246,10 +246,13 @@ const LoginPage: React.FC = () => {
                 <strong>Admin:</strong> admin@sportsbets.com / admin123
               </p>
               <p>
-                <strong>Usuario:</strong> testuser / Test123456
+                <strong>Usuario:</strong> testuser1 / Test123456
+              </p>{" "}
+              <p>
+                <strong>Usuario:</strong> testuser2 / Test123456
               </p>
               <p>
-                <strong>Operador:</strong> operator / Operator123
+                <strong>Operador:</strong> operator1 / Operator123
               </p>
               <p>
                 <strong>Venue:</strong> venueowner / Venue123

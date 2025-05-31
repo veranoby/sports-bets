@@ -1,9 +1,9 @@
-// backend/src/check-existing-users.ts
-// Script para revisar usuarios existentes y crear únicos
+// backend/src/create-test-user.ts
+// Script para revisar usuarios existentes y crear únicos + USUARIO VENUE
 
 import { config } from "dotenv";
 import { connectDatabase } from "./config/database";
-import { User, Wallet } from "./models";
+import { User, Wallet, Venue } from "./models";
 import { logger } from "./config/logger";
 
 config();
@@ -141,6 +141,58 @@ async function createUniqueTestUsers(existingUsers: any[]) {
       logger.info(`ℹ️ Operator user already exists: ${operatorUsername}`);
     }
 
+    // Usuario de prueba 3: VENUE OWNER
+    const venueUsername = generateUniqueUsername("venueowner");
+    const venueEmail = generateUniqueEmail("venueowner@sportsbets.com");
+
+    const [venueUser, venueUserCreated] = await User.findOrCreate({
+      where: { email: venueEmail },
+      defaults: {
+        username: venueUsername,
+        email: venueEmail,
+        passwordHash: "Venue123", // Hook hashea automáticamente
+        role: "venue",
+        isActive: true,
+        profileInfo: {
+          fullName: "Venue Owner",
+          verificationLevel: "full",
+        },
+      },
+    });
+
+    if (venueUserCreated) {
+      await Wallet.create({
+        userId: venueUser.id,
+        balance: 0,
+        frozenAmount: 0,
+      });
+
+      // Crear gallera de ejemplo para el venue owner
+      await Venue.create({
+        name: "Gallera El Ejemplo",
+        location: "Ciudad de Prueba, País Demo",
+        description:
+          "Gallera de ejemplo para testing de la plataforma SportsBets",
+        contactInfo: {
+          email: venueEmail,
+          phone: "+1-555-0123",
+        },
+        ownerId: venueUser.id,
+        status: "active", // Admin pre-aprueba para testing
+        isVerified: true,
+        images: [],
+      });
+
+      logger.info(
+        `✅ Venue owner created: ${venueUsername} (${venueEmail}) / Venue123`
+      );
+      logger.info(
+        `✅ Sample venue "Gallera El Ejemplo" created for venue owner`
+      );
+    } else {
+      logger.info(`ℹ️ Venue owner already exists: ${venueUsername}`);
+    }
+
     // Verificar que admin existe
     const adminUser = await User.findOne({
       where: { role: "admin" },
@@ -158,9 +210,15 @@ async function createUniqueTestUsers(existingUsers: any[]) {
     logger.info("\n📧 CREDENTIALS FOR TESTING:");
     logger.info(`👤 Test User: ${testUsername} / Test123456`);
     logger.info(`🎮 Operator: ${operatorUsername} / Operator123`);
+    logger.info(`🏛️ Venue Owner: ${venueUsername} / Venue123`);
     if (adminUser) {
       logger.info(`👑 Admin: ${adminUser.username} / admin123`);
     }
+
+    logger.info("\n🏛️ VENUE TESTING:");
+    logger.info(`- Venue owner has access to "Gallera El Ejemplo"`);
+    logger.info(`- Can create more venues through API`);
+    logger.info(`- Frontend venue panel currently shows "En desarrollo..."`);
 
     process.exit(0);
   } catch (error) {
