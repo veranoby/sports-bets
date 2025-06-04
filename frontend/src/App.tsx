@@ -14,6 +14,7 @@ import "./App.css";
 import { LogOut } from "lucide-react";
 import Navigation from "./components/user/Navigation";
 import VenueDashboard from "./pages/venue/Dashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -37,7 +38,7 @@ const RoleBasedRedirect: React.FC = () => {
   // Redirigir según el rol del usuario
   switch (user.role) {
     case "admin":
-      return <Navigate to="/operator" replace />;
+      return <Navigate to="/admin" replace />;
     case "operator":
       return <Navigate to="/operator" replace />;
     case "venue":
@@ -76,6 +77,16 @@ const AppContent: React.FC = () => {
 
         {/* Ruta raíz - redirige según autenticación */}
         <Route path="/" element={<RoleBasedRedirect />} />
+
+        {/* Rutas del Panel de Administrador */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Rutas del Panel de Operador */}
         <Route
