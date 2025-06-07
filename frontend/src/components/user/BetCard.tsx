@@ -13,13 +13,14 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import type { BetSide, BetStatus } from "../../types";
 
 export interface BetCardProps {
   id: string;
   amount: number;
   potentialWin?: number;
-  side: "red" | "blue";
-  status: "pending" | "settled" | "cancelled";
+  side: BetSide;
+  status: BetStatus;
   result?: "win" | "loss";
   venueName: string;
   fightNumber: number;

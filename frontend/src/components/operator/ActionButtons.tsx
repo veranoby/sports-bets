@@ -3,7 +3,7 @@
 import React from "react";
 import { Play, DollarSign, XCircle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useEventActions } from "../../hooks/useApi";
-import { Button } from "../shared/ActionButton";
+import { ActionButton } from "../shared/ActionButton";
 
 interface ActionButtonsProps {
   selectedEventId: string | null;
@@ -63,44 +63,44 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     <div className="flex flex-col gap-4 p-4 border border-[#596c95] rounded-lg">
       {/* Sección CRUD */}
       <div className="flex gap-2">
-        <Button
+        <ActionButton
           onClick={handleCreateEvent}
           className="bg-[#596c95] text-white hover:bg-[#596c95]/90"
         >
           <Plus className="h-4 w-4 mr-2" /> Crear
-        </Button>
-        <Button
+        </ActionButton>
+        <ActionButton
           onClick={handleUpdateEvent}
           disabled={!selectedEventId || fightStatus === "live"}
           className="bg-[#596c95] text-white hover:bg-[#596c95]/90 disabled:opacity-50"
         >
           <Pencil className="h-4 w-4 mr-2" /> Editar
-        </Button>
-        <Button
+        </ActionButton>
+        <ActionButton
           onClick={handleDeleteEvent}
           disabled={!selectedEventId || fightStatus === "live"}
           className="bg-[#cd6263] text-white hover:bg-[#cd6263]/90 disabled:opacity-50"
         >
           <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-        </Button>
+        </ActionButton>
       </div>
 
       {/* Sección Streaming */}
       <div className="flex gap-2">
-        <Button
+        <ActionButton
           onClick={onStreamStart}
           disabled={fightStatus === "live"}
           className="bg-[#596c95] text-white hover:bg-[#596c95]/90 disabled:opacity-50"
         >
           Iniciar Streaming
-        </Button>
-        <Button
+        </ActionButton>
+        <ActionButton
           onClick={onStreamStop}
           disabled={fightStatus !== "live"}
           className="bg-[#cd6263] text-white hover:bg-[#cd6263]/90 disabled:opacity-50"
         >
           Detener Streaming
-        </Button>
+        </ActionButton>
       </div>
     </div>
   );

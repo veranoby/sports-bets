@@ -7,8 +7,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Calendar, Wallet, User } from "lucide-react";
-
-type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
+import type { NavigationPage } from "../../types";
 
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
