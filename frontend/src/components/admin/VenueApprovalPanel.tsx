@@ -17,18 +17,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-interface Venue {
-  id: string;
-  name: string;
-  location: string;
-  status: "pending" | "approved" | "rejected";
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-  };
-  createdAt: string;
-}
-
 const VenueApprovalPanel: React.FC = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);

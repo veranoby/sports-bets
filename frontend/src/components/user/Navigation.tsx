@@ -8,7 +8,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Calendar, Wallet, User } from "lucide-react";
 
-type NavigationPage = "home" | "events" | "bets" | "profile";
+type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
 
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const Navigation: React.FC = () => {
   const getActivePage = (): NavigationPage => {
     if (location.pathname.startsWith("/events")) return "events";
     if (location.pathname.startsWith("/bets")) return "bets";
+    if (location.pathname.startsWith("/wallet")) return "wallet";
     if (location.pathname.startsWith("/profile")) return "profile";
     return "home";
   };
@@ -31,6 +32,9 @@ const Navigation: React.FC = () => {
         break;
       case "bets":
         navigate("/bets");
+        break;
+      case "wallet":
+        navigate("/wallet");
         break;
       case "profile":
         navigate("/profile");
@@ -67,6 +71,15 @@ const Navigation: React.FC = () => {
         >
           <Wallet className="w-6 h-6" />
           <span className="text-xs mt-1">Mis Apuestas</span>
+        </button>
+        <button
+          onClick={() => handleNavigate("wallet")}
+          className={`flex flex-col items-center p-2 ${
+            getActivePage() === "wallet" ? "text-red-500" : "text-gray-500"
+          }`}
+        >
+          <Wallet className="w-6 h-6" />
+          <span className="text-xs mt-1">Wallet</span>
         </button>
         <button
           onClick={() => handleNavigate("profile")}

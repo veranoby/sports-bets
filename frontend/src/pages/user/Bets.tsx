@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import BetCard from "../../components/user/BetCard";
-import BettingPanel from "../../components/user/BettingPanel";
+import { BetCard } from "../../components/user/BetCard";
+import { BettingPanel } from "../../components/user/BettingPanel";
 import { useBets } from "../../hooks/useBets";
+import BetHistoryTable from "../../components/user/BetHistoryTable";
+import CreateBetModal from "../../components/user/CreateBetModal";
+import { Plus } from "lucide-react";
 
 // Componente Tabs personalizado con Tailwind
 const Tabs = ({
@@ -55,88 +58,79 @@ const TabsContent = ({
 }) => <div className={`mt-2 ${className}`}>{children}</div>;
 
 const BetsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("active");
-  const { activeBets, availableBets, betHistory, loading, error } = useBets();
+  const { activeBets, betHistory, createBet, cancelBet } = useBets();
+  const [activeTab, setActiveTab] = useState<"active" | "history" | "stats">(
+    "active"
+  );
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-20">
+    <div className="bg-[#1a1f37] min-h-screen pb-20">
       {/* Header */}
-      <header className="bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900 text-center">
-            Mis Apuestas
-          </h1>
-        </div>
+      <header className="bg-[#2a325c] p-4 sticky top-0 z-10">
+        <h1 className="text-xl font-bold">Mis Apuestas</h1>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-lg">
-            <TabsTrigger
-              value="active"
-              className={`rounded-md py-2 text-center text-sm font-medium transition-colors ${
-                activeTab === "active"
-                  ? "bg-white shadow text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Activas
-            </TabsTrigger>
-            <TabsTrigger
-              value="available"
-              className={`rounded-md py-2 text-center text-sm font-medium transition-colors ${
-                activeTab === "available"
-                  ? "bg-white shadow text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Disponibles
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className={`rounded-md py-2 text-center text-sm font-medium transition-colors ${
-                activeTab === "history"
-                  ? "bg-white shadow text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Historial
-            </TabsTrigger>
-          </TabsList>
+      {/* Tabs */}
+      <div className="flex border-b border-[#596c95]">
+        {["active", "history", "stats"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            className={`flex-1 py-3 font-medium ${
+              activeTab === tab
+                ? "border-b-2 border-[#cd6263] text-white"
+                : "text-gray-400"
+            }`}
+          >
+            {tab === "active" && "Activas"}
+            {tab === "history" && "Historial"}
+            {tab === "stats" && "Estadísticas"}
+          </button>
+        ))}
+      </div>
 
-          {/* Pestaña de Apuestas Activas */}
-          <TabsContent value="active" className="mt-4">
-            <div className="space-y-4">
-              {activeBets.length > 0 ? (
-                activeBets.map((bet) => <BetCard key={bet.id} {...bet} />)
-              ) : (
-                <p className="text-center text-gray-500 py-4">
-                  No tienes apuestas activas
-                </p>
-              )}
-            </div>
-          </TabsContent>
+      {/* Contenido */}
+      <div className="p-4">
+        {activeTab === "active" && (
+          <div className="space-y-3">
+            {activeBets.map((bet) => (
+              <BetCard
+                key={bet.id}
+                {...bet}
+                onCancel={() => cancelBet(bet.id)}
+              />
+            ))}
+          </div>
+        )}
 
-          {/* Pestaña de Apuestas Disponibles */}
-          <TabsContent value="available">
-            <BettingPanel bets={availableBets} />
-          </TabsContent>
+        {activeTab === "history" && (
+          <div className="space-y-3">
+            <BetHistoryTable />
+          </div>
+        )}
 
-          {/* Pestaña de Historial */}
-          <TabsContent value="history">
-            <div className="space-y-4">
-              {betHistory.length > 0 ? (
-                betHistory.map((bet) => <BetCard key={bet.id} {...bet} />)
-              ) : (
-                <p className="text-center text-gray-500 py-4">
-                  No hay historial de apuestas
-                </p>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
+        {activeTab === "stats" && (
+          <div className="bg-[#2a325c] p-4 rounded-lg">
+            <BettingPanel
+              onCreateBet={createBet}
+              fights={[]} // Pasar peleas disponibles si es necesario
+            />
+          </div>
+        )}
+      </div>
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="fixed bottom-6 right-6 bg-[#cd6263] text-white p-4 rounded-full shadow-lg"
+      >
+        <Plus />
+      </button>
+      {showCreateModal && (
+        <CreateBetModal
+          fightId="current-fight-id"
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
     </div>
   );
 };

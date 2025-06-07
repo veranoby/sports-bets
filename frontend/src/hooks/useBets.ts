@@ -42,5 +42,46 @@ export const useBets = () => {
     fetchBets();
   }, []);
 
-  return { activeBets, availableBets, betHistory, loading, error };
+  const createBet = async (betData: {
+    fightId: string;
+    amount: number;
+    side: "red" | "blue";
+  }) => {
+    try {
+      const response = await apiClient.post("/bets", betData);
+      setActiveBets([...activeBets, response.data]);
+      return response.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const cancelBet = async (betId: string) => {
+    try {
+      await apiClient.put(`/bets/${betId}/cancel`);
+      setActiveBets(activeBets.filter((bet) => bet.id !== betId));
+      return { success: true, message: "Apuesta cancelada" };
+    } catch (err) {
+      return {
+        success: false,
+        message: (err as Error).message || "Error al cancelar",
+      };
+    }
+  };
+
+  const fetchBets = async (params: { eventId?: string }) => {
+    const res = await apiClient.get("/bets", { params });
+    return res.data;
+  };
+
+  return {
+    activeBets,
+    availableBets,
+    betHistory,
+    loading,
+    error,
+    createBet,
+    cancelBet,
+    fetchBets,
+  };
 };

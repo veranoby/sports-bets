@@ -5,12 +5,21 @@ import React from "react";
 interface ResultRecorderProps {
   isActive: boolean;
   onRecordResult: (result: "red" | "draw" | "blue") => void;
+  fightId: string;
 }
 
 const ResultRecorder: React.FC<ResultRecorderProps> = ({
   isActive,
   onRecordResult,
+  fightId,
 }) => {
+  const handleRecordResult = async (result: "red" | "blue" | "draw") => {
+    await fetch(`/api/fights/${fightId}/result`, {
+      method: "POST",
+      body: JSON.stringify({ result }),
+    });
+  };
+
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
       <h2 className="text-lg font-bold text-gray-900 mb-4">

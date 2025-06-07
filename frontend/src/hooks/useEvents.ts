@@ -31,5 +31,15 @@ export const useEvents = () => {
     fetchEvents();
   }, []);
 
+  const createEvent = async (eventData: Omit<Event, "id">) => {
+    const res = await apiClient.post("/operator/events", eventData);
+    return res.data;
+  };
+
+  const updateEvent = async (id: string, eventData: Partial<Event>) => {
+    const res = await apiClient.put(`/operator/events/${id}`, eventData);
+    return res.data;
+  };
+
   return { events, loading, error };
 };

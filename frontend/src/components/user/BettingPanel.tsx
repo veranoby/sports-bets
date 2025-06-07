@@ -82,7 +82,16 @@ const MOCK_MY_BETS: MyBet[] = [
 
 const MOCK_BALANCE = 1000;
 
-const BettingPanel = () => {
+interface BettingPanelProps {
+  onCreateBet: (betData: {
+    fightId: string;
+    amount: number;
+    side: "red" | "blue";
+  }) => Promise<void>;
+  fights: Array<{ id: string; name: string }>;
+}
+
+const BettingPanel: React.FC<BettingPanelProps> = ({ onCreateBet, fights }) => {
   const [availableBets, setAvailableBets] =
     useState<Bet[]>(MOCK_AVAILABLE_BETS);
   const [myBets, setMyBets] = useState<MyBet[]>(MOCK_MY_BETS);
@@ -188,6 +197,19 @@ const BettingPanel = () => {
       setConfirmAction(null);
       setLoading(false);
     }, 1200);
+  };
+
+  const [amount, setAmount] = useState(0);
+  const [selectedSide, setSelectedSide] = useState<"red" | "blue">("red");
+
+  const handleSubmit = async () => {
+    if (fights.length > 0) {
+      await onCreateBet({
+        fightId: fights[0].id, // O permitir selección
+        amount,
+        side: selectedSide,
+      });
+    }
   };
 
   return (

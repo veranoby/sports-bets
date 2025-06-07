@@ -275,7 +275,9 @@ const Dashboard: React.FC = () => {
                 >
                   <Bell className="w-5 h-5 text-gray-600" />
                   {unreadNotificationsCount > 0 && (
-                    <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute top-0 right-0 h-5 w-5 bg-[#cd6263] text-white text-xs flex items-center justify-center rounded-full">
+                      {unreadNotificationsCount}
+                    </span>
                   )}
                 </button>
 
@@ -339,16 +341,17 @@ const Dashboard: React.FC = () => {
             <WalletSummary
               balance={mockData.wallet.balance}
               frozenAmount={mockData.wallet.frozenAmount}
+              className="bg-gradient-to-r from-[#1a1f37] to-[#2a325c] p-4 rounded-lg shadow-md"
             />
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 bg-[#1a1f37] text-white">
         {/* Live Events Section - Mostrado cuando hay eventos en vivo */}
         {filteredLiveEvents.length > 0 && (
-          <section className="mb-8">
+          <section className="mb-8 bg-[#2a325c] p-4 rounded-lg shadow-md">
             <div className="flex items-center mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2 flex-shrink-0">
                 <Fire className="w-4 h-4 text-red-500" aria-hidden="true" />
@@ -369,13 +372,21 @@ const Dashboard: React.FC = () => {
               {filteredLiveEvents.map((event) => (
                 <EventCard
                   key={event.id}
-                  id={event.id}
-                  venueName={event.venueName}
-                  isLive={event.isLive}
-                  dateTime={event.dateTime}
-                  activeBettors={event.activeBettors}
-                  imageUrl={event.imageUrl}
+                  {...event}
                   onEnter={handleEnterEvent}
+                  statusChip={
+                    event.isLive ? (
+                      <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#cd6263] text-white animate-pulse">
+                        <Fire className="w-3 h-3 mr-1" />
+                        EN VIVO
+                      </span>
+                    ) : (
+                      <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#596c95] text-white">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        PRÓXIMO
+                      </span>
+                    )
+                  }
                 />
               ))}
             </div>
@@ -391,7 +402,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* Upcoming Events Section */}
-        <section className="mb-8">
+        <section className="mb-8 bg-[#2a325c] p-4 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
             <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mr-2 flex-shrink-0">
               <Calendar className="w-4 h-4 text-blue-500" aria-hidden="true" />
@@ -422,13 +433,21 @@ const Dashboard: React.FC = () => {
             {filteredUpcomingEvents.map((event) => (
               <EventCard
                 key={event.id}
-                id={event.id}
-                venueName={event.venueName}
-                isLive={event.isLive}
-                dateTime={event.dateTime}
-                activeBettors={event.activeBettors}
-                imageUrl={event.imageUrl}
+                {...event}
                 onEnter={handleEnterEvent}
+                statusChip={
+                  event.isLive ? (
+                    <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#cd6263] text-white animate-pulse">
+                      <Fire className="w-3 h-3 mr-1" />
+                      EN VIVO
+                    </span>
+                  ) : (
+                    <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#596c95] text-white">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      PRÓXIMO
+                    </span>
+                  )
+                }
               />
             ))}
           </div>
@@ -436,7 +455,7 @@ const Dashboard: React.FC = () => {
 
         {/* Active Bets Section - Mostrado cuando hay apuestas activas */}
         {mockData.activeBets.length > 0 && (
-          <section className="mb-8">
+          <section className="mb-8 bg-[#2a325c] p-4 rounded-lg shadow-md">
             <div className="flex items-center mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-2 flex-shrink-0">
                 <Trophy className="w-4 h-4 text-green-500" aria-hidden="true" />
@@ -464,6 +483,13 @@ const Dashboard: React.FC = () => {
                   status={bet.status}
                   result={bet.result}
                   onViewDetails={handleViewBetDetails}
+                  statusColor={
+                    bet.status === "active"
+                      ? "bg-[#596c95]"
+                      : bet.result === "win"
+                      ? "bg-green-600"
+                      : "bg-[#cd6263]"
+                  }
                 />
               ))}
             </div>
@@ -471,7 +497,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* Featured Venues Section */}
-        <section className="mb-8">
+        <section className="mb-8 bg-[#2a325c] p-4 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
             <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full mr-2 flex-shrink-0">
               <Trophy className="w-4 h-4 text-purple-500" aria-hidden="true" />
@@ -491,18 +517,13 @@ const Dashboard: React.FC = () => {
             {mockData.featuredVenues.map((venue) => (
               <div
                 key={venue.id}
-                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md"
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#596c95] transition-all hover:shadow-lg hover:border-[#cd6263]"
               >
                 <div className="aspect-[4/3] overflow-hidden bg-gray-50">
                   <img
                     src={venue.imageUrl || "/placeholder.svg"}
                     alt={venue.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder.svg";
-                    }}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-3">

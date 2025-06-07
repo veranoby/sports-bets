@@ -5,7 +5,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User } from "../../types/index";
+import type { User } from "../../types";
 import {
   Search,
   RefreshCw,
