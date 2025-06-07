@@ -26,7 +26,7 @@ import type {
   BetStatus,
   BetResult,
 } from "../../types";
-import { useEvents } from "../../hooks/useApi";
+import { useEvents, useBets } from "../hooks/useApi";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +62,8 @@ const Dashboard: React.FC = () => {
     },
   ]);
 
-  const { events, loading, error } = useEvents();
+  const { events, loading: eventsLoading } = useEvents();
+  const { bets, loading: betsLoading } = useBets();
 
   const filteredLiveEvents = events.filter(
     (event) => event.status === "in-progress"

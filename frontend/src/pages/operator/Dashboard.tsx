@@ -9,14 +9,15 @@ import StreamControls from "../../components/operator/StreamControls";
 import LivePreview from "../../components/operator/LivePreview";
 import { useFetchEvents } from "../../hooks/useApi"; // Custom hook for API calls
 //import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
-import { useEvents } from "../../hooks/useApi";
+import { useEvents, useFights } from "../hooks/useApi";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import ActionButtons from "../../components/operator/ActionButtons";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const OperatorDashboard: React.FC = () => {
-  const { events, loading, error } = useEvents();
+  const { events, loading: eventsLoading } = useEvents();
+  const { fights, loading: fightsLoading } = useFights();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 

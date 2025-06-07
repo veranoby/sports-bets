@@ -14,21 +14,10 @@ import {
 } from "lucide-react";
 import { SearchInput } from "../shared/SearchInput";
 import { StatusFilterDropdown } from "../shared/StatusFilterDropdown";
+import type { Event } from "../../types";
 import { useEvents } from "../../hooks/useApi";
-import { Event } from "../../types";
 
 // Definición de tipos
-interface Event {
-  id: string;
-  name: string;
-  venue: string;
-  dateTime: string;
-  status: "scheduled" | "in-progress" | "completed";
-  totalFights: number;
-  completedFights: number;
-  currentFightNumber?: number;
-}
-
 interface EventSelectorProps {
   onActivateEvent: (eventId: string) => void;
   onSearch: (term: string) => void;
