@@ -185,8 +185,8 @@ password: process.env.REDIS_PASSWORD || ''
   status: bet.status,
   timestamp: new Date().toISOString()
   };
-      await redisPublisher.publish('bet-updates', JSON.stringify(betData));
-      return true;
+  await redisPublisher.publish('bet-updates', JSON.stringify(betData));
+  return true;
   } catch (error) {
   console.error('Error publishing new bet:', error);
   return false;
@@ -206,14 +206,15 @@ password: process.env.REDIS_PASSWORD || ''
   action: action, // 'accepted', 'cancelled'
   timestamp: new Date().toISOString()
   };
-      // Si fue aceptada, incluir información del aceptante
-      if (action === 'accepted') {
-        betData.acceptorId = bet.acceptor_id;
-        betData.acceptorUsername = bet.acceptor_username;
-      }
+  // Si fue aceptada, incluir información del aceptante
+  if (action === 'accepted') {
+  betData.acceptorId = bet.acceptor_id;
+  betData.acceptorUsername = bet.acceptor_username;
+  }
 
       await redisPublisher.publish('bet-updates', JSON.stringify(betData));
       return true;
+
   } catch (error) {
   console.error('Error publishing bet update:', error);
   return false;
@@ -230,9 +231,9 @@ password: process.env.REDIS_PASSWORD || ''
   const affectedUsers = new Set();
   const userResults = {};
   const winnerIds = [];
-      affectedBets.forEach(bet => {
-        affectedUsers.add(bet.creator_id);
-        affectedUsers.add(bet.acceptor_id);
+  affectedBets.forEach(bet => {
+  affectedUsers.add(bet.creator_id);
+  affectedUsers.add(bet.acceptor_id);
 
         if (bet.winner_id) {
           winnerIds.push(bet.winner_id);
@@ -253,6 +254,7 @@ password: process.env.REDIS_PASSWORD || ''
 
       await redisPublisher.publish('event-results', JSON.stringify(resultData));
       return true;
+
   } catch (error) {
   console.error('Error publishing event result:', error);
   return false;
@@ -274,8 +276,8 @@ password: process.env.REDIS_PASSWORD || ''
   reason: walletData.reason || 'transaction',
   timestamp: new Date().toISOString()
   };
-      await redisPublisher.publish('wallet-updates', JSON.stringify(walletUpdate));
-      return true;
+  await redisPublisher.publish('wallet-updates', JSON.stringify(walletUpdate));
+  return true;
   } catch (error) {
   console.error('Error publishing wallet update:', error);
   return false;
@@ -450,7 +452,7 @@ import NewBetForm from './NewBetForm';
 import LiveEventInfo from './LiveEventInfo';
 import { useSocket } from '../hooks/useSocket';
 import { useWallet } from '../hooks/useWallet';
-import { useBets } from '../hooks/useBets';
+import { useBets } from '../hooks/useApi';
 import { toast } from 'react-hot-toast';
 
 Guía de Referencia: Sistemas en Tiempo Real para Sports Bets
@@ -640,8 +642,8 @@ password: process.env.REDIS_PASSWORD || ''
   status: bet.status,
   timestamp: new Date().toISOString()
   };
-      await redisPublisher.publish('bet-updates', JSON.stringify(betData));
-      return true;
+  await redisPublisher.publish('bet-updates', JSON.stringify(betData));
+  return true;
   } catch (error) {
   console.error('Error publishing new bet:', error);
   return false;
@@ -661,14 +663,15 @@ password: process.env.REDIS_PASSWORD || ''
   action: action, // 'accepted', 'cancelled'
   timestamp: new Date().toISOString()
   };
-      // Si fue aceptada, incluir información del aceptante
-      if (action === 'accepted') {
-        betData.acceptorId = bet.acceptor_id;
-        betData.acceptorUsername = bet.acceptor_username;
-      }
+  // Si fue aceptada, incluir información del aceptante
+  if (action === 'accepted') {
+  betData.acceptorId = bet.acceptor_id;
+  betData.acceptorUsername = bet.acceptor_username;
+  }
 
       await redisPublisher.publish('bet-updates', JSON.stringify(betData));
       return true;
+
   } catch (error) {
   console.error('Error publishing bet update:', error);
   return false;
@@ -685,9 +688,9 @@ password: process.env.REDIS_PASSWORD || ''
   const affectedUsers = new Set();
   const userResults = {};
   const winnerIds = [];
-      affectedBets.forEach(bet => {
-        affectedUsers.add(bet.creator_id);
-        affectedUsers.add(bet.acceptor_id);
+  affectedBets.forEach(bet => {
+  affectedUsers.add(bet.creator_id);
+  affectedUsers.add(bet.acceptor_id);
 
         if (bet.winner_id) {
           winnerIds.push(bet.winner_id);
@@ -708,6 +711,7 @@ password: process.env.REDIS_PASSWORD || ''
 
       await redisPublisher.publish('event-results', JSON.stringify(resultData));
       return true;
+
   } catch (error) {
   console.error('Error publishing event result:', error);
   return false;
@@ -729,8 +733,8 @@ password: process.env.REDIS_PASSWORD || ''
   reason: walletData.reason || 'transaction',
   timestamp: new Date().toISOString()
   };
-      await redisPublisher.publish('wallet-updates', JSON.stringify(walletUpdate));
-      return true;
+  await redisPublisher.publish('wallet-updates', JSON.stringify(walletUpdate));
+  return true;
   } catch (error) {
   console.error('Error publishing wallet update:', error);
   return false;
@@ -905,5 +909,5 @@ import NewBetForm from './NewBetForm';
 import LiveEventInfo from './LiveEventInfo';
 import { useSocket } from '../hooks/useSocket';
 import { useWallet } from '../hooks/useWallet';
-import { useBets } from '../hooks/useBets';
+import { useBets } from '../hooks/useApi';
 import { toast } from 'react-hot-toast';

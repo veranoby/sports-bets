@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Play, DollarSign, XCircle, Plus, Pencil, Trash2 } from "lucide-react";
-import { useEventActions } from "../../hooks/useEventActions";
+import { useEventActions } from "../../hooks/useApi";
 import { Button } from "../shared/ActionButton";
 
 interface ActionButtonsProps {

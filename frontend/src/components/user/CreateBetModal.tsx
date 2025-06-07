@@ -4,7 +4,7 @@
 // 3. Chips de estado con colores oficiales (#596c95, #cd6263)
 
 import { useState } from "react";
-import { useBets } from "../../hooks/useBets";
+import { useBets } from "../../hooks/useApi";
 
 const CreateBetModal = ({
   fightId,

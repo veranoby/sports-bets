@@ -3,62 +3,20 @@
 import React, { useState } from "react";
 import { BetCard } from "../../components/user/BetCard";
 import { BettingPanel } from "../../components/user/BettingPanel";
-import { useBets } from "../../hooks/useBets";
+import { useBets } from "../../hooks/useApi";
 import BetHistoryTable from "../../components/user/BetHistoryTable";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import { Plus } from "lucide-react";
-
-// Componente Tabs personalizado con Tailwind
-const Tabs = ({
-  value,
-  onValueChange,
-  children,
-  className = "",
-}: {
-  value: string;
-  onValueChange: (value: string) => void;
-  children: React.ReactNode;
-  className?: string;
-}) => <div className={className}>{children}</div>;
-
-const TabsList = ({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={`flex border-b border-gray-200 ${className}`}>{children}</div>
-);
-
-const TabsTrigger = ({
-  value,
-  children,
-  className = "",
-}: {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <button
-    className={`px-4 py-2 font-medium text-sm focus:outline-none ${className}`}
-  >
-    {children}
-  </button>
-);
-
-const TabsContent = ({
-  value,
-  children,
-  className = "",
-}: {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-}) => <div className={`mt-2 ${className}`}>{children}</div>;
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "../../components/shared/Tabs";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const BetsPage: React.FC = () => {
-  const { activeBets, betHistory, createBet, cancelBet } = useBets();
+  const { bets, loading, error } = useBets();
   const [activeTab, setActiveTab] = useState<"active" | "history" | "stats">(
     "active"
   );
@@ -92,9 +50,10 @@ const BetsPage: React.FC = () => {
 
       {/* Contenido */}
       <div className="p-4">
+        {loading && <LoadingSpinner text="Cargando apuestas..." />}
         {activeTab === "active" && (
           <div className="space-y-3">
-            {activeBets.map((bet) => (
+            {bets.map((bet) => (
               <BetCard
                 key={bet.id}
                 {...bet}

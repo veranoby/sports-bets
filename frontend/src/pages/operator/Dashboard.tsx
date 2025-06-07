@@ -7,16 +7,16 @@ import ResultsPanel from "../../components/operator/ResultsPanel";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import LivePreview from "../../components/operator/LivePreview";
-import { useFetchEvents } from "../../hooks/useFetchEvents"; // Custom hook for API calls
-import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
+import { useFetchEvents } from "../../hooks/useApi"; // Custom hook for API calls
+//import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
 import { useEvents } from "../../hooks/useApi";
-import { useFights } from "../../hooks/useFights";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import ActionButtons from "../../components/operator/ActionButtons";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const OperatorDashboard: React.FC = () => {
-  const { events, loading, error, refetchEvents } = useEvents();
+  const { events, loading, error } = useEvents();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -28,7 +28,9 @@ const OperatorDashboard: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  return (
+  return loading ? (
+    <LoadingSpinner />
+  ) : (
     <div className="min-h-screen bg-[#1a1f37] text-white p-4">
       <EventSelector
         events={events}

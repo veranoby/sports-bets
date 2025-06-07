@@ -1,4 +1,4 @@
-import { useBets } from "../../hooks/useBets";
+import { useBets } from "../../hooks/useApi";
 import { StreamPlayer } from "./StreamPlayer";
 import { CreateBetModal } from "./CreateBetModal";
 import { useState } from "react";

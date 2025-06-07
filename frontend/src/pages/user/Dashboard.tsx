@@ -21,123 +21,12 @@ import WalletSummary from "../../components/user/WalletSummary";
 import EventCard from "../../components/user/EventCard";
 import BetCard from "../../components/user/BetCard";
 import type {
+  NavigationPage,
   BetSide,
   BetStatus,
   BetResult,
-} from "../../components/user/BetCard";
-
-// Datos de ejemplo para el dashboard
-const mockData = {
-  wallet: {
-    balance: 1250.75,
-    frozenAmount: 350.0,
-  },
-  liveEvents: [
-    {
-      id: "event-1",
-      venueName: "Gallera El Palenque",
-      isLive: true,
-      dateTime: new Date().toISOString(),
-      activeBettors: 128,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-    {
-      id: "event-2",
-      venueName: "Arena San Juan",
-      isLive: true,
-      dateTime: new Date().toISOString(),
-      activeBettors: 95,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-  ],
-  upcomingEvents: [
-    {
-      id: "event-3",
-      venueName: "Coliseo Nacional",
-      isLive: false,
-      dateTime: new Date(Date.now() + 86400000).toISOString(), // Mañana
-      activeBettors: 42,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-    {
-      id: "event-4",
-      venueName: "Gallera La Victoria",
-      isLive: false,
-      dateTime: new Date(Date.now() + 172800000).toISOString(), // Pasado mañana
-      activeBettors: 31,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-  ],
-  activeBets: [
-    {
-      id: "bet-1",
-      amount: 100,
-      potentialWin: 190,
-      side: "red" as BetSide,
-      venueName: "Gallera El Palenque",
-      fightNumber: 3,
-      status: "active" as BetStatus,
-    },
-    {
-      id: "bet-2",
-      amount: 50,
-      potentialWin: 95,
-      side: "blue" as BetSide,
-      venueName: "Arena San Juan",
-      fightNumber: 5,
-      status: "settled" as BetStatus,
-      result: "win" as BetResult,
-    },
-    {
-      id: "bet-3",
-      amount: 75,
-      potentialWin: 142.5,
-      side: "red" as BetSide,
-      venueName: "Coliseo Nacional",
-      fightNumber: 2,
-      status: "settled" as BetStatus,
-      result: "loss" as BetResult,
-    },
-  ],
-  featuredVenues: [
-    {
-      id: "venue-1",
-      name: "Gallera El Palenque",
-      location: "Ciudad de México",
-      imageUrl: "/placeholder.svg?height=100&width=200",
-    },
-    {
-      id: "venue-2",
-      name: "Arena San Juan",
-      location: "San Juan, PR",
-      imageUrl: "/placeholder.svg?height=100&width=200",
-    },
-    {
-      id: "venue-3",
-      name: "Coliseo Nacional",
-      location: "Bogotá, Colombia",
-      imageUrl: "/placeholder.svg?height=100&width=200",
-    },
-  ],
-  pastEvents: [
-    {
-      id: "event-5",
-      venueName: "Gallera Imperial",
-      isLive: false,
-      dateTime: new Date(Date.now() - 172800000).toISOString(), // Hace 2 días
-      activeBettors: 0,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-    {
-      id: "event-6",
-      venueName: "Arena Central",
-      isLive: false,
-      dateTime: new Date(Date.now() - 86400000).toISOString(), // Ayer
-      activeBettors: 0,
-      imageUrl: "/placeholder.svg?height=200&width=400",
-    },
-  ],
-};
+} from "../../types";
+import { useEvents } from "../../hooks/useApi";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -173,13 +62,14 @@ const Dashboard: React.FC = () => {
     },
   ]);
 
-  // Filtrar eventos basados en searchTerm
-  const filteredLiveEvents = mockData.liveEvents.filter((event) =>
-    event.venueName.toLowerCase().includes(searchTerm.toLowerCase())
+  const { events, loading, error } = useEvents();
+
+  const filteredLiveEvents = events.filter(
+    (event) => event.status === "in-progress"
   );
 
-  const filteredUpcomingEvents = mockData.upcomingEvents.filter((event) =>
-    event.venueName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUpcomingEvents = events.filter(
+    (event) => event.status === "scheduled"
   );
 
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
@@ -339,8 +229,8 @@ const Dashboard: React.FC = () => {
           {/* Wallet Summary */}
           <div className="mt-4 mx-4">
             <WalletSummary
-              balance={mockData.wallet.balance}
-              frozenAmount={mockData.wallet.frozenAmount}
+              balance={events[0]?.wallet?.balance || 0}
+              frozenAmount={events[0]?.wallet?.frozenAmount || 0}
               className="bg-gradient-to-r from-[#1a1f37] to-[#2a325c] p-4 rounded-lg shadow-md"
             />
           </div>
@@ -375,7 +265,7 @@ const Dashboard: React.FC = () => {
                   {...event}
                   onEnter={handleEnterEvent}
                   statusChip={
-                    event.isLive ? (
+                    event.status === "in-progress" ? (
                       <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#cd6263] text-white animate-pulse">
                         <Fire className="w-3 h-3 mr-1" />
                         EN VIVO
@@ -436,7 +326,7 @@ const Dashboard: React.FC = () => {
                 {...event}
                 onEnter={handleEnterEvent}
                 statusChip={
-                  event.isLive ? (
+                  event.status === "in-progress" ? (
                     <span className="flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#cd6263] text-white animate-pulse">
                       <Fire className="w-3 h-3 mr-1" />
                       EN VIVO
@@ -454,7 +344,7 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* Active Bets Section - Mostrado cuando hay apuestas activas */}
-        {mockData.activeBets.length > 0 && (
+        {events.length > 0 && (
           <section className="mb-8 bg-[#2a325c] p-4 rounded-lg shadow-md">
             <div className="flex items-center mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-2 flex-shrink-0">
@@ -471,7 +361,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {mockData.activeBets.map((bet) => (
+              {events.map((bet) => (
                 <BetCard
                   key={bet.id}
                   id={bet.id}
@@ -514,7 +404,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {mockData.featuredVenues.map((venue) => (
+            {events.map((venue) => (
               <div
                 key={venue.id}
                 className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#596c95] transition-all hover:shadow-lg hover:border-[#cd6263]"

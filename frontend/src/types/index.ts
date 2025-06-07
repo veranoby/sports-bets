@@ -45,6 +45,7 @@ export interface Event {
   operator?: User;
   creator?: User;
   fights?: Fight[];
+  startTime: string;
 }
 
 export interface Fight {
@@ -140,3 +141,10 @@ export interface Subscription {
   daysRemaining: number;
   isActive: boolean;
 }
+
+export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
+export type BetSide = "red" | "blue";
+export type BetStatus = "pending" | "active" | "settled" | "cancelled";
+export type BetResult = "win" | "loss" | "draw";
+export type StreamQuality = "720p" | "480p" | "360p";
+export type StreamStatus = "connected" | "disconnected" | "retrying";
