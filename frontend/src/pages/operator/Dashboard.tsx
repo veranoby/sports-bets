@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { List, GitPullRequest, Award, Activity, Video } from "lucide-react";
 import {
-  EventList,
-  EventFilters,
+  EventListComponent,
+  EventFiltersComponent,
 } from "../../components/operator/EventManager";
 import FightManager from "../../components/operator/FightManager";
 import ResultsPanel from "../../components/operator/ResultsPanel";
@@ -13,10 +13,11 @@ import StreamControls from "../../components/operator/StreamControls";
 import LivePreview from "../../components/operator/LivePreview";
 import { useFetchEvents } from "../../hooks/useFetchEvents"; // Custom hook for API calls
 import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
-import { useEvents } from "../../hooks/useEvents";
+import { useEvents } from "../../hooks/useApi";
 import { useFights } from "../../hooks/useFights";
-import { EventList as EventListComponent } from "../../components/operator/EventManager/EventList";
-import { EventFilters as EventFiltersComponent } from "../../components/operator/EventManager/EventFilters";
+import EventSelector from "../../components/operator/EventSelector";
+import FightsList from "../../components/operator/FightsList";
+import ActionButtons from "../../components/operator/ActionButtons";
 
 const OperatorDashboard: React.FC = () => {
   const { events, loading, error, refetchEvents } = useEvents();

@@ -1,4 +1,4 @@
-import { Bet } from "../types"; // Asegurar que el tipo Bet esté definido
+import { Bet } from "../../types"; // Asegurar que el tipo Bet esté definido
 import { useState } from "react";
 import { BetCard } from "./BetCard";
 import { useBets } from "../../hooks/useBets";

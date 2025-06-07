@@ -4,7 +4,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, Calendar } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
-import { useEvents } from "../../hooks/useEvents";
+import { useEvents } from "../../hooks/useApi";
 
 const EventsPage: React.FC = () => {
   const { events, loading, error } = useEvents();

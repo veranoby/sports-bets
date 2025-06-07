@@ -10,14 +10,14 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'operator' | 'venue' | 'user';
+  role: "admin" | "operator" | "venue" | "user";
   isActive: boolean;
   profileInfo?: {
     fullName?: string;
     phoneNumber?: string;
     address?: string;
     identificationNumber?: string;
-    verificationLevel: 'none' | 'basic' | 'full';
+    verificationLevel: "none" | "basic" | "full";
   };
   lastLogin?: string;
   createdAt: string;
@@ -30,7 +30,7 @@ export interface Event {
   venueId: string;
   scheduledDate: string;
   endDate?: string;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  status: "scheduled" | "in-progress" | "completed" | "cancelled";
   operatorId?: string;
   streamKey?: string;
   streamUrl?: string;
@@ -60,8 +60,8 @@ export interface Fight {
   bettingEndTime?: string;
   totalBets: number;
   totalAmount: number;
-  status: 'upcoming' | 'betting' | 'live' | 'completed' | 'cancelled';
-  result?: 'red' | 'blue' | 'draw' | 'cancelled';
+  status: "upcoming" | "betting" | "live" | "completed" | "cancelled";
+  result?: "red" | "blue" | "draw" | "cancelled";
   startTime?: string;
   endTime?: string;
   createdAt: string;
@@ -74,11 +74,11 @@ export interface Bet {
   id: string;
   fightId: string;
   userId: string;
-  side: 'red' | 'blue';
+  side: "red" | "blue";
   amount: number;
   potentialWin: number;
-  status: 'pending' | 'active' | 'completed' | 'cancelled';
-  result?: 'win' | 'loss' | 'draw' | 'cancelled';
+  status: "pending" | "active" | "completed" | "cancelled";
+  result?: "win" | "loss" | "draw" | "cancelled";
   matchedWith?: string;
   terms?: {
     ratio: number;
@@ -101,7 +101,7 @@ export interface Venue {
     phone?: string;
   };
   ownerId: string;
-  status: 'pending' | 'active' | 'suspended';
+  status: "pending" | "active" | "suspended";
   isVerified: boolean;
   images?: string[];
   createdAt: string;
@@ -119,9 +119,9 @@ export interface Wallet {
 export interface Transaction {
   id: string;
   walletId: string;
-  type: 'deposit' | 'withdrawal' | 'bet-win' | 'bet-loss' | 'bet-refund';
+  type: "deposit" | "withdrawal" | "bet-win" | "bet-loss" | "bet-refund";
   amount: number;
-  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  status: "pending" | "completed" | "failed" | "cancelled";
   reference?: string;
   description: string;
   metadata?: any;
@@ -131,10 +131,10 @@ export interface Transaction {
 
 export interface Subscription {
   id: string;
-  plan: 'daily' | 'monthly';
+  plan: "daily" | "monthly";
   startDate: string;
   endDate: string;
-  status: 'active' | 'expired' | 'cancelled';
+  status: "active" | "expired" | "cancelled";
   autoRenew: boolean;
   amount?: number;
   daysRemaining: number;

@@ -1,4 +1,4 @@
-import { useEvents } from "../../../hooks/useEvents";
+import { useEvents } from "../../../hooks/useApi";
 
 export const useEventActions = () => {
   const { createEvent, updateEvent, deleteEvent } = useEvents();
