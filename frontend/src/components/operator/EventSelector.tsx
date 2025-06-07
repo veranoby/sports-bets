@@ -12,6 +12,10 @@ import {
   Loader2,
   AlertTriangle,
 } from "lucide-react";
+import { SearchInput } from "../shared/SearchInput";
+import { StatusFilterDropdown } from "../shared/StatusFilterDropdown";
+import { useEvents } from "../../hooks/useApi";
+import { Event } from "../../types";
 
 // Definición de tipos
 interface Event {
@@ -26,16 +30,19 @@ interface Event {
 }
 
 interface EventSelectorProps {
-  events: Event[];
   onActivateEvent: (eventId: string) => void;
+  onSearch: (term: string) => void;
+  onStatusFilter: (status: string) => void;
 }
 
 type StatusFilter = "all" | "scheduled" | "in-progress" | "completed";
 
-const EventSelector: React.FC<EventSelectorProps> = ({
-  events,
+export const EventSelector = ({
   onActivateEvent,
-}) => {
+  onSearch,
+  onStatusFilter,
+}: EventSelectorProps) => {
+  const { events, loading, error } = useEvents();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -142,207 +149,47 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     setDateFilter("");
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    onSearch(term);
+  };
+
+  const handleStatusChange = (status: string) => {
+    setStatusFilter(status as StatusFilter);
+    onStatusFilter(status);
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Sports<span className="text-red-500">Bets</span>
-            <span className="ml-2 text-lg font-normal">Panel de Operador</span>
-          </h1>
-          <p className="text-gray-600">
-            Selecciona un evento para comenzar a operar
-          </p>
-        </header>
+    <div className="flex flex-col gap-4">
+      {/* Header con filtros */}
+      <div className="flex gap-4 p-4 bg-gray-50 rounded-lg">
+        <SearchInput
+          placeholder="Buscar eventos..."
+          onSearch={onSearch}
+          className="border border-[#596c95] focus:ring-[#cd6263]"
+        />
+        <StatusFilterDropdown
+          options={["Activo", "Finalizado", "Cancelado"]}
+          onSelect={onStatusFilter}
+          className="border border-[#596c95]"
+        />
+      </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Búsqueda */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar por nombre o gallera..."
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Filtro por estado */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter className="h-5 w-5 text-gray-400" />
-              </div>
-              <select
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none"
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as StatusFilter)
-                }
-              >
-                <option value="all">Todos los estados</option>
-                <option value="scheduled">Programados</option>
-                <option value="in-progress">En progreso</option>
-                <option value="completed">Completados</option>
-              </select>
-            </div>
-
-            {/* Filtro por fecha */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="date"
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
-            </div>
+      {/* Grid de eventos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {events.map((event: Event) => (
+          <div
+            key={event.id}
+            onClick={() => onActivateEvent(event.id)}
+            className="p-4 border border-[#596c95] rounded-lg hover:bg-[#596c95]/10 cursor-pointer"
+          >
+            <h3 className="text-lg font-semibold text-[#596c95]">
+              {event.name}
+            </h3>
+            <p className="text-sm text-[#cd6263]">{event.status}</p>
           </div>
-          <div className="flex justify-end mt-3">
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="text-sm text-gray-500 hover:text-red-500 underline"
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        </div>
-
-        {/* Lista de eventos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEvents.length === 0 ? (
-            <div className="col-span-full bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-              <div className="flex flex-col items-center">
-                <Calendar className="h-12 w-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-1">
-                  No se encontraron eventos
-                </h3>
-                <p className="text-gray-500">
-                  Intenta ajustar los filtros o busca con otros términos
-                </p>
-              </div>
-            </div>
-          ) : (
-            filteredEvents.map((event) => {
-              const statusConfig = getStatusLabel(event.status);
-              const isCompleted = event.status === "completed";
-              const isLoading = loadingEventId === event.id;
-              return (
-                <div
-                  key={event.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-gray-900 text-lg">
-                        {event.name}
-                      </h3>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
-                      >
-                        {statusConfig.label}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-gray-600">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        <span>{event.venue}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span>
-                          {formatDate(event.dateTime)} -{" "}
-                          {formatTime(event.dateTime)}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        <span>
-                          {event.completedFights} de {event.totalFights} peleas
-                          completadas
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        !isCompleted && handleConfirmActivate(event.id)
-                      }
-                      disabled={isCompleted || isLoading}
-                      className={`w-full py-2 px-4 rounded-lg font-medium text-white flex items-center justify-center
-                        ${
-                          isCompleted
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : isLoading
-                            ? "bg-blue-400 cursor-wait"
-                            : event.status === "in-progress"
-                            ? "bg-red-500 hover:bg-red-600"
-                            : "bg-blue-500 hover:bg-blue-600"
-                        }`}
-                      aria-disabled={isCompleted || isLoading}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="animate-spin w-5 h-5 mr-2" />
-                      ) : null}
-                      {event.status === "completed"
-                        ? "EVENTO COMPLETADO"
-                        : event.status === "in-progress"
-                        ? "CONTINUAR EVENTO"
-                        : "ACTIVAR EVENTO"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Modal de confirmación */}
-        {confirmEventId && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 border border-gray-200">
-              <div className="flex items-center mb-4">
-                <AlertTriangle className="w-6 h-6 text-amber-500 mr-2" />
-                <h2 className="text-lg font-bold text-gray-900">
-                  Confirmar Activación
-                </h2>
-              </div>
-              <p className="text-gray-700 mb-4">
-                ¿Estás seguro de que deseas activar este evento? Una vez
-                activado, no podrás cambiar de evento sin perder el progreso
-                actual.
-              </p>
-              {errorMsg && (
-                <div className="bg-red-50 text-red-700 rounded-lg px-3 py-2 mb-3 text-sm flex items-center">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  {errorMsg}
-                </div>
-              )}
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={handleCancelConfirm}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => handleActivate(confirmEventId)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Activar Evento
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );
