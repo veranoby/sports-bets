@@ -26,7 +26,7 @@ import type {
   BetStatus,
   BetResult,
 } from "../../types";
-import { useEvents, useBets } from "../hooks/useApi";
+import { useEvents, useBets } from "../../hooks/useApi";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();

@@ -1,5 +1,6 @@
 import FightsList from "./FightsList";
 import FightForm from "./FightForm";
+import { useFights } from "../../hooks/useApi";
 
 const FightManager: React.FC = () => {
   const [fights, setFights] = useState<Fight[]>([]);

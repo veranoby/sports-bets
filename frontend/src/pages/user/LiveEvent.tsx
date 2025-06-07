@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { useFights } from "../../hooks/useApi";
 
 type Fight = {
   id: string;

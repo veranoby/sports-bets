@@ -9,7 +9,7 @@ import StreamControls from "../../components/operator/StreamControls";
 import LivePreview from "../../components/operator/LivePreview";
 import { useFetchEvents } from "../../hooks/useApi"; // Custom hook for API calls
 //import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
-import { useEvents, useFights } from "../hooks/useApi";
+import { useEvents, useBets, useFights } from "../../hooks/useApi";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import ActionButtons from "../../components/operator/ActionButtons";

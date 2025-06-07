@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  eventsAPI, 
-  fightsAPI, 
-  betsAPI, 
-  walletAPI, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  eventsAPI,
+  fightsAPI,
+  betsAPI,
+  walletAPI,
   subscriptionsAPI,
-  venuesAPI
-} from '../config/api';
-import type { APIResponse } from '../types';
+  venuesAPI,
+} from "../config/api";
+import type { APIResponse, Fight, FightStatus, FightResult } from "../types";
 
 // Hook genérico para APIs
 function useAsyncOperation<T>() {
@@ -15,21 +15,24 @@ function useAsyncOperation<T>() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const execute = useCallback(async (operation: () => Promise<APIResponse<T>>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await operation();
-      setData(response.data);
-      return response.data;
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const execute = useCallback(
+    async (operation: () => Promise<APIResponse<T>>) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await operation();
+        setData(response.data);
+        return response.data;
+      } catch (err: any) {
+        const errorMessage = err.message || "An error occurred";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   return { data, loading, error, execute, setData };
 }
@@ -44,7 +47,7 @@ export function useEvents() {
   }>();
 
   const fetchEvents = useCallback(
-    (params?: { venueId?: string; status?: string }) => 
+    (params?: { venueId?: string; status?: string }) =>
       execute(() => eventsAPI.getAll(params)),
     [execute]
   );
@@ -84,21 +87,22 @@ export function useEvents() {
 
 // Hook para peleas
 export function useFights() {
-  const { data, loading, error, execute } = useAsyncOperation<any[]>();
+  const { data, loading, error, execute } = useAsyncOperation<Fight[]>();
 
   const fetchFights = useCallback(
-    (params?: { eventId?: string; status?: string }) => 
+    (params?: { eventId?: string; status?: FightStatus }) =>
       execute(() => fightsAPI.getAll(params)),
     [execute]
   );
 
   const createFight = useCallback(
-    (fightData: any) => execute(() => fightsAPI.create(fightData)),
+    (fightData: Omit<Fight, "id">) =>
+      execute(() => fightsAPI.create(fightData)),
     [execute]
   );
 
   const updateFight = useCallback(
-    (fightId: string, fightData: any) => 
+    (fightId: string, fightData: Partial<Fight>) =>
       execute(() => fightsAPI.update(fightId, fightData)),
     [execute]
   );
@@ -114,7 +118,7 @@ export function useFights() {
   );
 
   const recordResult = useCallback(
-    (fightId: string, result: 'red' | 'blue' | 'draw' | 'cancelled') => 
+    (fightId: string, result: FightResult) =>
       execute(() => fightsAPI.recordResult(fightId, result)),
     [execute]
   );
@@ -140,7 +144,7 @@ export function useBets() {
   }>();
 
   const fetchMyBets = useCallback(
-    (params?: { status?: string; fightId?: string }) => 
+    (params?: { status?: string; fightId?: string }) =>
       execute(() => betsAPI.getMyBets(params)),
     [execute]
   );
@@ -153,7 +157,7 @@ export function useBets() {
   const createBet = useCallback(
     (betData: {
       fightId: string;
-      side: 'red' | 'blue';
+      side: "red" | "blue";
       amount: number;
       ratio?: number;
     }) => execute(() => betsAPI.create(betData)),
@@ -198,69 +202,78 @@ export function useWallet() {
       setWallet(response.data.wallet);
       setTransactions(response.data.recentTransactions || []);
     } catch (err: any) {
-      setError(err.message || 'Error loading wallet');
+      setError(err.message || "Error loading wallet");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchTransactions = useCallback(async (params?: {
-    type?: string;
-    status?: string;
-    limit?: number;
-    offset?: number;
-  }) => {
-    try {
-      setLoading(true);
-      const response = await walletAPI.getTransactions(params);
-      setTransactions(response.data.transactions);
-      return response.data;
-    } catch (err: any) {
-      setError(err.message || 'Error loading transactions');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchTransactions = useCallback(
+    async (params?: {
+      type?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      try {
+        setLoading(true);
+        const response = await walletAPI.getTransactions(params);
+        setTransactions(response.data.transactions);
+        return response.data;
+      } catch (err: any) {
+        setError(err.message || "Error loading transactions");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  const deposit = useCallback(async (data: {
-    amount: number;
-    paymentMethod: 'card' | 'transfer';
-    paymentData?: any;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await walletAPI.deposit(data);
-      await fetchWallet(); // Refresh wallet data
-      return response.data;
-    } catch (err: any) {
-      setError(err.message || 'Error processing deposit');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchWallet]);
+  const deposit = useCallback(
+    async (data: {
+      amount: number;
+      paymentMethod: "card" | "transfer";
+      paymentData?: any;
+    }) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await walletAPI.deposit(data);
+        await fetchWallet(); // Refresh wallet data
+        return response.data;
+      } catch (err: any) {
+        setError(err.message || "Error processing deposit");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchWallet]
+  );
 
-  const withdraw = useCallback(async (data: {
-    amount: number;
-    accountNumber: string;
-    accountType?: string;
-    bankName?: string;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await walletAPI.withdraw(data);
-      await fetchWallet(); // Refresh wallet data
-      return response.data;
-    } catch (err: any) {
-      setError(err.message || 'Error processing withdrawal');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchWallet]);
+  const withdraw = useCallback(
+    async (data: {
+      amount: number;
+      accountNumber: string;
+      accountType?: string;
+      bankName?: string;
+    }) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await walletAPI.withdraw(data);
+        await fetchWallet(); // Refresh wallet data
+        return response.data;
+      } catch (err: any) {
+        setError(err.message || "Error processing withdrawal");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchWallet]
+  );
 
   // Auto-fetch wallet on mount
   useEffect(() => {
@@ -295,7 +308,7 @@ export function useSubscriptions() {
 
   const createSubscription = useCallback(
     (data: {
-      plan: 'daily' | 'monthly';
+      plan: "daily" | "monthly";
       autoRenew?: boolean;
       paymentData?: any;
     }) => execute(() => subscriptionsAPI.create(data)),

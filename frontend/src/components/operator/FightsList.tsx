@@ -3,6 +3,7 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Edit2 } from "lucide-react";
+import { useFights } from "../../hooks/useApi";
 
 interface Fight {
   id: string;

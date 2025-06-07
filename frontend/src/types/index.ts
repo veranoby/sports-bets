@@ -145,6 +145,20 @@ export interface Subscription {
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
 export type BetSide = "red" | "blue";
 export type BetStatus = "pending" | "active" | "settled" | "cancelled";
-export type BetResult = "win" | "loss" | "draw";
+export type BetResult = "win" | "loss" | "draw" | "void";
 export type StreamQuality = "720p" | "480p" | "360p";
 export type StreamStatus = "connected" | "disconnected" | "retrying";
+
+// Tipos para peleas (si no existen):
+export type FightStatus = "scheduled" | "live" | "finished" | "cancelled";
+export type FightResult = "red" | "blue" | "draw" | "no_contest";
+
+// Tipo para Pelea:
+export interface Fight {
+  id: string;
+  eventId: string;
+  redFighter: string;
+  blueFighter: string;
+  status: FightStatus;
+  result?: FightResult;
+}
