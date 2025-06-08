@@ -15,6 +15,7 @@ import { LogOut } from "lucide-react";
 import Navigation from "./components/user/Navigation";
 import VenueDashboard from "./pages/venue/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ErrorBoundary from "./components/shared/ErrorBoundary";
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -193,9 +194,13 @@ const AppContent: React.FC = () => {
 // Componente principal con provider
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary
+      fallback={<div>An error occurred. Please refresh the page.</div>}
+    >
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

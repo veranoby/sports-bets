@@ -7,6 +7,7 @@ import {
   Loader2,
   Shield,
 } from "lucide-react";
+import DataCard from "../shared/DataCard";
 
 // Tipos de apuesta
 type BetType = "Ganador" | "KO" | "Ronda Exacta";
@@ -213,230 +214,254 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ onCreateBet, fights }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-4">
-      {/* Saldo y botón nueva apuesta */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-green-600 font-bold">
-          <DollarSign size={20} />
-          <span>Saldo: ${balance}</span>
+    <div className="space-y-4">
+      <DataCard
+        title="Total Bets"
+        value={availableBets.length}
+        trend="up"
+        color="blue"
+      />
+      <DataCard
+        title="Active Bets"
+        value={myBets.length}
+        trend="neutral"
+        color="green"
+      />
+      <DataCard
+        title="Balance"
+        value={`$${balance}`}
+        trend="neutral"
+        color="gray"
+      />
+      <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-4">
+        {/* Saldo y botón nueva apuesta */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-green-600 font-bold">
+            <DollarSign size={20} />
+            <span>Saldo: ${balance}</span>
+          </div>
+          <button
+            className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded shadow hover:bg-blue-700 transition"
+            onClick={() => setShowNewBet(true)}
+          >
+            <Plus size={18} />
+            Nueva apuesta
+          </button>
         </div>
-        <button
-          className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded shadow hover:bg-blue-700 transition"
-          onClick={() => setShowNewBet(true)}
-        >
-          <Plus size={18} />
-          Nueva apuesta
-        </button>
-      </div>
 
-      {/* Lista de apuestas disponibles */}
-      <div>
-        <h3 className="font-semibold mb-2">Apuestas Disponibles</h3>
-        {Object.entries(groupedBets).map(([type, bets]) => (
-          <div key={type} className="mb-3">
-            <div className="flex items-center gap-2 mb-1 text-blue-700 font-medium">
-              <Shield size={16} />
-              {type}
+        {/* Lista de apuestas disponibles */}
+        <div>
+          <h3 className="font-semibold mb-2">Apuestas Disponibles</h3>
+          {Object.entries(groupedBets).map(([type, bets]) => (
+            <div key={type} className="mb-3">
+              <div className="flex items-center gap-2 mb-1 text-blue-700 font-medium">
+                <Shield size={16} />
+                {type}
+              </div>
+              <div className="space-y-2">
+                {bets.map((bet) => (
+                  <div
+                    key={bet.id}
+                    className="flex items-center justify-between bg-gray-50 rounded p-2"
+                  >
+                    <div>
+                      <div className="font-medium">{bet.breeder}</div>
+                      <div className="text-xs text-gray-500">
+                        Monto: ${bet.amount} | Cuota: {bet.odds}x
+                      </div>
+                    </div>
+                    <button
+                      className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition"
+                      onClick={() => handleAcceptBet(bet)}
+                    >
+                      Aceptar
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Mis apuestas activas */}
+        <div className="mt-6">
+          <h3 className="font-semibold mb-2">Mis Apuestas Activas</h3>
+          {myBets.length === 0 ? (
+            <div className="text-gray-400 text-center py-4">
+              No tienes apuestas activas
+            </div>
+          ) : (
             <div className="space-y-2">
-              {bets.map((bet) => (
+              {myBets.map((bet) => (
                 <div
                   key={bet.id}
-                  className="flex items-center justify-between bg-gray-50 rounded p-2"
+                  className="flex items-center justify-between bg-blue-50 rounded p-2"
                 >
                   <div>
-                    <div className="font-medium">{bet.breeder}</div>
+                    <div className="font-medium">
+                      {bet.breeder}{" "}
+                      <span className="text-xs text-gray-500">
+                        ({bet.type})
+                      </span>
+                    </div>
                     <div className="text-xs text-gray-500">
                       Monto: ${bet.amount} | Cuota: {bet.odds}x
                     </div>
+                    <div className="text-xs text-gray-500">
+                      Potencial:{" "}
+                      <span className="font-bold text-blue-700">
+                        ${(bet.amount * bet.odds).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                  <button
-                    className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition"
-                    onClick={() => handleAcceptBet(bet)}
-                  >
-                    Aceptar
-                  </button>
+                  <div>
+                    {bet.status === "aceptada" ? (
+                      <CheckCircle className="text-green-600" size={20} />
+                    ) : bet.status === "pendiente" ? (
+                      <Loader2
+                        className="text-yellow-500 animate-spin"
+                        size={20}
+                      />
+                    ) : (
+                      <XCircle className="text-red-500" size={20} />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </div>
 
-      {/* Mis apuestas activas */}
-      <div className="mt-6">
-        <h3 className="font-semibold mb-2">Mis Apuestas Activas</h3>
-        {myBets.length === 0 ? (
-          <div className="text-gray-400 text-center py-4">
-            No tienes apuestas activas
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {myBets.map((bet) => (
-              <div
-                key={bet.id}
-                className="flex items-center justify-between bg-blue-50 rounded p-2"
+        {/* Modal nueva apuesta */}
+        {showNewBet && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-xs shadow-lg relative">
+              <button
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowNewBet(false)}
               >
-                <div>
-                  <div className="font-medium">
-                    {bet.breeder}{" "}
-                    <span className="text-xs text-gray-500">({bet.type})</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Monto: ${bet.amount} | Cuota: {bet.odds}x
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Potencial:{" "}
-                    <span className="font-bold text-blue-700">
-                      ${(bet.amount * bet.odds).toFixed(2)}
-                    </span>
-                  </div>
+                <XCircle size={22} />
+              </button>
+              <h4 className="font-bold mb-3">Crear Nueva Apuesta</h4>
+              <div className="mb-2">
+                <label className="block text-xs mb-1">Tipo</label>
+                <select
+                  className="w-full border rounded px-2 py-1"
+                  value={newBetType}
+                  onChange={(e) => setNewBetType(e.target.value as BetType)}
+                >
+                  <option value="Ganador">Ganador</option>
+                  <option value="KO">KO</option>
+                  <option value="Ronda Exacta">Ronda Exacta</option>
+                </select>
+              </div>
+              <div className="mb-2">
+                <label className="block text-xs mb-1">Criadero</label>
+                <input
+                  className="w-full border rounded px-2 py-1"
+                  value={newBetBreeder}
+                  onChange={(e) => setNewBetBreeder(e.target.value)}
+                  placeholder="Nombre del criadero"
+                />
+              </div>
+              <div className="mb-2">
+                <label className="block text-xs mb-1">Monto</label>
+                <input
+                  type="number"
+                  className="w-full border rounded px-2 py-1"
+                  value={newBetAmount}
+                  onChange={(e) => setNewBetAmount(Number(e.target.value))}
+                  min={1}
+                  placeholder="Monto a apostar"
+                />
+              </div>
+              <div className="mb-2">
+                <label className="block text-xs mb-1">Cuota</label>
+                <input
+                  type="number"
+                  className="w-full border rounded px-2 py-1"
+                  value={newBetOdds}
+                  onChange={(e) => setNewBetOdds(Number(e.target.value))}
+                  min={1}
+                  step={0.1}
+                  placeholder="Cuota"
+                />
+              </div>
+              <div className="mb-2 text-xs text-blue-700">
+                Potencial ganancia:{" "}
+                <span className="font-bold">
+                  ${(newBetAmount * newBetOdds).toFixed(2)}
+                </span>
+              </div>
+              {error && (
+                <div className="text-red-500 text-xs mb-2">{error}</div>
+              )}
+              <button
+                className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700 transition"
+                onClick={handleCreateBet}
+              >
+                Crear apuesta
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de confirmación */}
+        {confirmAction && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-xs shadow-lg">
+              <h4 className="font-bold mb-3">
+                Confirmar{" "}
+                {confirmAction.action === "aceptar"
+                  ? "aceptar apuesta"
+                  : "nueva apuesta"}
+              </h4>
+              <div className="mb-2">
+                <div className="font-medium">
+                  {confirmAction.bet.breeder}{" "}
+                  <span className="text-xs text-gray-500">
+                    ({confirmAction.bet.type})
+                  </span>
                 </div>
-                <div>
-                  {bet.status === "aceptada" ? (
-                    <CheckCircle className="text-green-600" size={20} />
-                  ) : bet.status === "pendiente" ? (
-                    <Loader2
-                      className="text-yellow-500 animate-spin"
-                      size={20}
-                    />
-                  ) : (
-                    <XCircle className="text-red-500" size={20} />
-                  )}
+                <div className="text-xs text-gray-500">
+                  Monto: ${confirmAction.bet.amount} | Cuota:{" "}
+                  {confirmAction.bet.odds}x
+                </div>
+                <div className="text-xs text-blue-700">
+                  Potencial ganancia:{" "}
+                  <span className="font-bold">
+                    $
+                    {(
+                      confirmAction.bet.amount * confirmAction.bet.odds
+                    ).toFixed(2)}
+                  </span>
                 </div>
               </div>
-            ))}
+              <div className="flex gap-2 mt-4">
+                <button
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition"
+                  onClick={() => setConfirmAction(null)}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition flex items-center justify-center"
+                  onClick={handleConfirm}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin mr-2" size={18} />
+                  ) : (
+                    <CheckCircle className="mr-2" size={18} />
+                  )}
+                  Confirmar
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Modal nueva apuesta */}
-      {showNewBet && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-xs shadow-lg relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-              onClick={() => setShowNewBet(false)}
-            >
-              <XCircle size={22} />
-            </button>
-            <h4 className="font-bold mb-3">Crear Nueva Apuesta</h4>
-            <div className="mb-2">
-              <label className="block text-xs mb-1">Tipo</label>
-              <select
-                className="w-full border rounded px-2 py-1"
-                value={newBetType}
-                onChange={(e) => setNewBetType(e.target.value as BetType)}
-              >
-                <option value="Ganador">Ganador</option>
-                <option value="KO">KO</option>
-                <option value="Ronda Exacta">Ronda Exacta</option>
-              </select>
-            </div>
-            <div className="mb-2">
-              <label className="block text-xs mb-1">Criadero</label>
-              <input
-                className="w-full border rounded px-2 py-1"
-                value={newBetBreeder}
-                onChange={(e) => setNewBetBreeder(e.target.value)}
-                placeholder="Nombre del criadero"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-xs mb-1">Monto</label>
-              <input
-                type="number"
-                className="w-full border rounded px-2 py-1"
-                value={newBetAmount}
-                onChange={(e) => setNewBetAmount(Number(e.target.value))}
-                min={1}
-                placeholder="Monto a apostar"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-xs mb-1">Cuota</label>
-              <input
-                type="number"
-                className="w-full border rounded px-2 py-1"
-                value={newBetOdds}
-                onChange={(e) => setNewBetOdds(Number(e.target.value))}
-                min={1}
-                step={0.1}
-                placeholder="Cuota"
-              />
-            </div>
-            <div className="mb-2 text-xs text-blue-700">
-              Potencial ganancia:{" "}
-              <span className="font-bold">
-                ${(newBetAmount * newBetOdds).toFixed(2)}
-              </span>
-            </div>
-            {error && <div className="text-red-500 text-xs mb-2">{error}</div>}
-            <button
-              className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700 transition"
-              onClick={handleCreateBet}
-            >
-              Crear apuesta
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de confirmación */}
-      {confirmAction && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-xs shadow-lg">
-            <h4 className="font-bold mb-3">
-              Confirmar{" "}
-              {confirmAction.action === "aceptar"
-                ? "aceptar apuesta"
-                : "nueva apuesta"}
-            </h4>
-            <div className="mb-2">
-              <div className="font-medium">
-                {confirmAction.bet.breeder}{" "}
-                <span className="text-xs text-gray-500">
-                  ({confirmAction.bet.type})
-                </span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Monto: ${confirmAction.bet.amount} | Cuota:{" "}
-                {confirmAction.bet.odds}x
-              </div>
-              <div className="text-xs text-blue-700">
-                Potencial ganancia:{" "}
-                <span className="font-bold">
-                  $
-                  {(confirmAction.bet.amount * confirmAction.bet.odds).toFixed(
-                    2
-                  )}
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition"
-                onClick={() => setConfirmAction(null)}
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button
-                className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition flex items-center justify-center"
-                onClick={handleConfirm}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin mr-2" size={18} />
-                ) : (
-                  <CheckCircle className="mr-2" size={18} />
-                )}
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

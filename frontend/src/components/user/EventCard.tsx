@@ -3,6 +3,7 @@
 import React from "react";
 import { Clock, Users, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import StatusChip from "../shared/StatusChip";
 
 /**
  * EventCard component for displaying event information

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { BetCard } from "../../components/user/BetCard";
-import { BettingPanel } from "../../components/user/BettingPanel";
+import BetCard from "../../components/user/BetCard";
+import BettingPanel from "../../components/user/BettingPanel";
 import { useBets } from "../../hooks/useApi";
 import BetHistoryTable from "../../components/user/BetHistoryTable";
 import CreateBetModal from "../../components/user/CreateBetModal";

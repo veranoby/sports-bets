@@ -5,8 +5,9 @@
 
 import { useState } from "react";
 import { useBets } from "../../hooks/useApi";
+import Modal from "../shared/Modal";
 
-const CreateBetModal: React.FC<CreateBetModalProps> = ({
+const CreateBetModal = ({
   fightId,
   onClose,
 }: {
@@ -28,9 +29,8 @@ const CreateBetModal: React.FC<CreateBetModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-[#1a1f37] p-6 rounded-lg max-w-md w-full">
-        <h3 className="text-white font-bold mb-4">Nueva Apuesta</h3>
+    <Modal title="Create Bet" onClose={onClose}>
+      <div className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-gray-300 mb-1">Monto</label>
@@ -82,7 +82,7 @@ const CreateBetModal: React.FC<CreateBetModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 };
 
