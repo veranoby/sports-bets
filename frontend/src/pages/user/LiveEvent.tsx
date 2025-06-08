@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useFights } from "../../hooks/useApi";
+import { LoadingSpinner } from "../../components/shared/LoadingSpinner";
 
 type Fight = {
   id: string;
@@ -21,10 +22,20 @@ type Bet = {
 };
 
 const LiveEvent = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const { fights, fetchFights, loading, error } = useFights();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
+
+  useEffect(() => {
+    if (id) {
+      fetchFights({ eventId: id });
+    }
+  }, [id]);
+
+  if (loading) return <LoadingSpinner text="Loading fights..." />;
+  if (error) return <div className="error-message">Error: {error.message}</div>;
 
   // Mock data
   const currentFight: Fight = {

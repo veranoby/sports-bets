@@ -1,24 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useFights } from "../../hooks/useApi";
 
 interface ResultRecorderProps {
-  isActive: boolean;
-  onRecordResult: (result: "red" | "draw" | "blue") => void;
   fightId: string;
 }
 
-const ResultRecorder: React.FC<ResultRecorderProps> = ({
-  isActive,
-  onRecordResult,
-  fightId,
-}) => {
-  const handleRecordResult = async (result: "red" | "blue" | "draw") => {
-    await fetch(`/api/fights/${fightId}/result`, {
-      method: "POST",
-      body: JSON.stringify({ result }),
-    });
+export const ResultRecorder = ({ fightId }: ResultRecorderProps) => {
+  const { recordResult } = useFights();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRecordResult = async (
+    result: "red" | "blue" | "draw" | "cancelled"
+  ) => {
+    setIsSubmitting(true);
+    try {
+      await recordResult(fightId, result);
+    } catch (error) {
+      // Handle error
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -29,13 +32,13 @@ const ResultRecorder: React.FC<ResultRecorderProps> = ({
 
       <div className="grid grid-cols-3 gap-3">
         <button
-          onClick={() => onRecordResult("red")}
-          disabled={!isActive}
+          onClick={() => handleRecordResult("red")}
+          disabled={isSubmitting}
           className={`py-4 px-2 rounded-lg font-bold text-white text-center
             ${
-              isActive
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-gray-300 cursor-not-allowed"
+              isSubmitting
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
             }
             transition-colors`}
         >
@@ -43,13 +46,13 @@ const ResultRecorder: React.FC<ResultRecorderProps> = ({
         </button>
 
         <button
-          onClick={() => onRecordResult("draw")}
-          disabled={!isActive}
+          onClick={() => handleRecordResult("draw")}
+          disabled={isSubmitting}
           className={`py-4 px-2 rounded-lg font-bold text-white text-center
             ${
-              isActive
-                ? "bg-gray-500 hover:bg-gray-600"
-                : "bg-gray-300 cursor-not-allowed"
+              isSubmitting
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-gray-500 hover:bg-gray-600"
             }
             transition-colors`}
         >
@@ -57,13 +60,13 @@ const ResultRecorder: React.FC<ResultRecorderProps> = ({
         </button>
 
         <button
-          onClick={() => onRecordResult("blue")}
-          disabled={!isActive}
+          onClick={() => handleRecordResult("blue")}
+          disabled={isSubmitting}
           className={`py-4 px-2 rounded-lg font-bold text-white text-center
             ${
-              isActive
-                ? "bg-blue-500 hover:bg-blue-600"
-                : "bg-gray-300 cursor-not-allowed"
+              isSubmitting
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
             }
             transition-colors`}
         >
@@ -71,7 +74,7 @@ const ResultRecorder: React.FC<ResultRecorderProps> = ({
         </button>
       </div>
 
-      {!isActive && (
+      {!isSubmitting && (
         <p className="text-center text-sm text-gray-500 mt-2">
           Cierre las apuestas para registrar el resultado
         </p>
@@ -79,5 +82,3 @@ const ResultRecorder: React.FC<ResultRecorderProps> = ({
     </div>
   );
 };
-
-export default ResultRecorder;

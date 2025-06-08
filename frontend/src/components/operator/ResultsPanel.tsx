@@ -1,4 +1,4 @@
-import ResultRecorder from "./ResultRecorder";
+import { ResultRecorder } from "./ResultRecorder";
 
 const ResultsPanel: React.FC = () => {
   const handleRecordResult = async (result: "red" | "blue" | "draw") => {

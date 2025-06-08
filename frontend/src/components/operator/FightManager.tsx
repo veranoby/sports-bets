@@ -1,33 +1,36 @@
+import { useEffect } from "react";
+import { useFights } from "../../hooks/useApi";
+import type { Fight } from "../../types";
+import LoadingSpinner from "../shared/LoadingSpinner";
 import FightsList from "./FightsList";
 import FightForm from "./FightForm";
-import { useFights } from "../../hooks/useApi";
 
-const FightManager: React.FC = () => {
-  const [fights, setFights] = useState<Fight[]>([]);
-  const [selectedFight, setSelectedFight] = useState<Fight | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface FightManagerProps {
+  eventId: string;
+}
 
-  // Conectar con GET /api/fights
+export const FightManager = ({ eventId }: FightManagerProps) => {
+  const { fights, fetchFights, createFight, updateFight, loading, error } =
+    useFights();
+
   useEffect(() => {
-    fetchFights();
-  }, []);
+    fetchFights({ eventId });
+  }, [eventId]);
 
-  const fetchFights = async (eventId: string) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/fights?eventId=${eventId}`);
-      setFights(response.data);
-    } catch (err) {
-      setError("Error al cargar peleas");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCreate = async (fightData: Omit<Fight, "id">) => {
+    await createFight(fightData);
+    fetchFights({ eventId }); // Refresh list
   };
 
-  const openBetting = async (fightId: string) => {
-    await fetch(`/api/fights/${fightId}/open-betting`, { method: "POST" });
+  const handleUpdate = async (fightId: string, updates: Partial<Fight>) => {
+    await updateFight(fightId, updates);
+    fetchFights({ eventId }); // Refresh list
   };
+
+  if (loading) return <LoadingSpinner text="Loading fights..." />;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const [selectedFight, setSelectedFight] = useState<Fight | null>(null);
 
   return (
     <div className="space-y-4">
@@ -40,5 +43,3 @@ const FightManager: React.FC = () => {
     </div>
   );
 };
-
-export default FightManager;

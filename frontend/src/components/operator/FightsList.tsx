@@ -3,16 +3,7 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Edit2 } from "lucide-react";
-import { useFights } from "../../hooks/useApi";
-
-interface Fight {
-  id: string;
-  number: number;
-  redBreeder: string;
-  blueBreeder: string;
-  status: "upcoming" | "live" | "betting" | "completed";
-  result?: "red" | "blue" | "draw";
-}
+import type { Fight } from "../../types";
 
 interface FightsListProps {
   fights: Fight[];
