@@ -51,20 +51,12 @@ export interface Event {
 export interface Fight {
   id: string;
   eventId: string;
-  number: number;
-  redCorner: string;
-  blueCorner: string;
-  weight: number;
-  notes?: string;
-  initialOdds?: { red: number; blue: number };
-  bettingStartTime?: string;
-  bettingEndTime?: string;
-  totalBets: number;
-  totalAmount: number;
-  status: "upcoming" | "betting" | "live" | "completed" | "cancelled";
-  result?: "red" | "blue" | "draw" | "cancelled";
-  startTime?: string;
-  endTime?: string;
+  redFighter: string;
+  blueFighter: string;
+  status: FightStatus;
+  result?: FightResult;
+  startTime?: Date;
+  endTime?: Date;
   createdAt: string;
   updatedAt: string;
   event?: Event;
@@ -73,20 +65,21 @@ export interface Fight {
 
 export interface Bet {
   id: string;
-  fightId: string;
   userId: string;
-  side: "red" | "blue";
+  fightId: string;
   amount: number;
-  potentialWin: number;
-  status: "pending" | "active" | "completed" | "cancelled";
-  result?: "win" | "loss" | "draw" | "cancelled";
+  side: BetSide;
+  status: BetStatus;
+  result?: BetResult;
+  odds: number;
+  payout?: number;
+  createdAt: Date;
+  updatedAt: Date;
   matchedWith?: string;
   terms?: {
     ratio: number;
     isOffer: boolean;
   };
-  createdAt: string;
-  updatedAt: string;
   fight?: Fight;
   user?: User;
   matchedBet?: Bet;
@@ -152,13 +145,3 @@ export type StreamStatus = "connected" | "disconnected" | "retrying";
 // Tipos para peleas (si no existen):
 export type FightStatus = "scheduled" | "live" | "finished" | "cancelled";
 export type FightResult = "red" | "blue" | "draw" | "no_contest";
-
-// Tipo para Pelea:
-export interface Fight {
-  id: string;
-  eventId: string;
-  redFighter: string;
-  blueFighter: string;
-  status: FightStatus;
-  result?: FightResult;
-}
