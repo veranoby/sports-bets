@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Loader2, ShieldAlert } from "lucide-react";
 
-const WithdrawModal = ({
-  onClose,
-  availableBalance,
-}: {
+interface WithdrawProps {
   onClose: () => void;
   availableBalance: number;
+}
+
+const WithdrawModal: React.FC<WithdrawProps> = ({
+  onClose,
+  availableBalance,
 }) => {
   const [accountNumber, setAccountNumber] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);

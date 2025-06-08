@@ -63,10 +63,12 @@ export interface Fight {
   bets?: Bet[];
 }
 
+// 1. TIPOS BASE PARA APUESTAS (agregar si faltan)
 export type BetSide = "red" | "blue";
 export type BetStatus = "pending" | "active" | "settled" | "cancelled";
 export type BetResult = "win" | "loss" | "draw" | "void";
 
+// 2. INTERFACE BET COMPLETA (reemplazar la existente)
 export interface Bet {
   id: string;
   userId: string;
@@ -146,10 +148,13 @@ export interface Subscription {
   isActive: boolean;
 }
 
+// 3. NAVIGATION PAGE TYPE (agregar si falta)
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
-export type StreamQuality = "720p" | "480p" | "360p";
-export type StreamStatus = "connected" | "disconnected" | "retrying";
 
-// Tipos para peleas (si no existen):
+// 4. FIGHT TYPES (verificar que existan)
 export type FightStatus = "scheduled" | "live" | "finished" | "cancelled";
 export type FightResult = "red" | "blue" | "draw" | "no_contest";
+
+// 5. STREAMING TYPES (agregar si faltan)
+export type StreamQuality = "720p" | "480p" | "360p";
+export type StreamStatus = "connected" | "disconnected" | "retrying";

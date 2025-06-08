@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Play, Pause, RefreshCw, Wifi, WifiOff, Tv2 } from "lucide-react";
+import type { Stream } from "../../types";
 
 type StreamQuality = "720p" | "480p" | "360p";
 type StreamStatus = "connected" | "disconnected" | "retrying";

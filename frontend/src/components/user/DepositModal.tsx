@@ -1,9 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 type PaymentMethod = "card" | "transfer";
 
-const DepositModal = ({ onClose }: { onClose: () => void }) => {
+interface DepositModalProps {
+  onClose: () => void;
+}
+
+const DepositModal: React.FC<DepositModalProps> = ({ onClose }) => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);

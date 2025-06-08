@@ -1,64 +1,48 @@
-import type { Bet } from "../../types"; // Asegurar que el tipo Bet esté definido
-import { useState } from "react";
-import BetCard from "./BetCard";
-import { useBets } from "../../hooks/useApi";
-import { RefreshCw } from "lucide-react";
+import React from "react";
+import type { Bet } from "../../types"; // 1. Import type correcto
+import { useBets } from "../../hooks/useApi"; // 4. Import desde useApi
+import LoadingSpinner from "../shared/LoadingSpinner";
 
+// 2. Interface local mantenida
 interface BetHistoryTableProps {
-  bets: Bet[];
-  onFilter: (filters: {
-    type?: string;
-    dateFrom?: string;
-    dateTo?: string;
-  }) => void;
+  bets: Bet[]; // 3. Array tipado como Bet[]
+  onBetClick?: (bet: Bet) => void;
 }
 
-const BetHistoryTable = ({ bets }: BetHistoryTableProps) => {
-  const { betHistory, loading, error } = useBets();
+const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
+  const { loading } = useBets();
+
+  if (loading) return <LoadingSpinner size="sm" />;
 
   return (
-    <div className="bg-[#1a1f37] rounded-lg p-4 shadow-md">
-      <h3 className="text-white font-bold mb-4">Historial de Apuestas</h3>
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <RefreshCw className="animate-spin text-[#596c95]" />
-        </div>
-      ) : error ? (
-        <div className="bg-[#cd6263] text-white p-3 rounded-lg">
-          Error al cargar historial
-        </div>
-      ) : (
-        <table className="w-full text-white">
-          <thead>
-            <tr className="border-b border-[#596c95]">
-              <th className="py-2 text-left">Evento</th>
-              <th className="py-2 text-right">Monto</th>
-              <th className="py-2 text-center">Estado</th>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Apuesta</th>
+            <th>Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bets.map((bet) => (
+            <tr
+              key={bet.id}
+              onClick={() => onBetClick?.(bet)}
+              className="hover:bg-gray-50 cursor-pointer"
+            >
+              <td>{bet.eventName}</td>
+              <td>{bet.side === "red" ? "Rojo" : "Azul"}</td>
+              <td>${bet.amount}</td>
+              <td>{bet.status}</td>
             </tr>
-          </thead>
-          <tbody>
-            {betHistory.map((bet) => (
-              <tr key={bet.id} className="border-b border-[#2a325c]">
-                <td className="py-3">{bet.eventName || "N/A"}</td>
-                <td className="py-3 text-right">${bet.amount}</td>
-                <td className="py-3 text-center">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      bet.status === "completed"
-                        ? "bg-[#596c95]"
-                        : "bg-[#cd6263]"
-                    }`}
-                  >
-                    {bet.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
+// 5. Export default correcto
 export default BetHistoryTable;

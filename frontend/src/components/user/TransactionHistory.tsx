@@ -85,7 +85,13 @@ type SortConfig = {
   direction: "asc" | "desc";
 };
 
-const TransactionHistory = ({ transactions }: TransactionHistoryProps) => {
+interface TransactionHistoryProps {
+  transactions: Transaction[];
+}
+
+const TransactionHistory: React.FC<TransactionHistoryProps> = ({
+  transactions,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<TransactionStatus | "all">(
@@ -99,15 +105,18 @@ const TransactionHistory = ({ transactions }: TransactionHistoryProps) => {
     direction: "desc",
   });
 
-  const filteredTransactions = MOCK_TRANSACTIONS.filter((transaction) => {
-    const matchesType = filterType === "all" || transaction.type === filterType;
-    const matchesStatus =
-      filterStatus === "all" || transaction.status === filterStatus;
-    const matchesSearch = transaction.description
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesType && matchesStatus && matchesSearch;
-  }).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by date
+  const filteredTransactions = transactions
+    .filter((transaction) => {
+      const matchesType =
+        filterType === "all" || transaction.type === filterType;
+      const matchesStatus =
+        filterStatus === "all" || transaction.status === filterStatus;
+      const matchesSearch = transaction.description
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesType && matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by date
 
   // Función para manejar ordenamiento
   const requestSort = (key: SortConfig["key"]) => {

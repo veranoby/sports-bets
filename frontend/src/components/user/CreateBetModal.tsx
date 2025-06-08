@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useBets } from "../../hooks/useApi";
 
-const CreateBetModal = ({
+const CreateBetModal: React.FC<CreateBetModalProps> = ({
   fightId,
   onClose,
 }: {
@@ -85,3 +85,5 @@ const CreateBetModal = ({
     </div>
   );
 };
+
+export default CreateBetModal;

@@ -16,35 +16,15 @@ import {
 import type { BetSide, BetStatus, BetResult, Bet } from "../../types";
 
 export interface BetCardProps {
-  id: string;
-  amount: number;
-  potentialWin?: number;
-  side: BetSide;
-  status: BetStatus;
-  result?: "win" | "loss";
-  venueName: string;
-  fightNumber: number;
-  onViewDetails: (id: string) => void;
-  onCancel?: () => void;
-  statusColor?: string;
+  bet: Bet;
+  onSelect?: (bet: Bet) => void;
+  className?: string;
 }
 
-const BetCard: React.FC<BetCardProps> = ({
-  id,
-  amount,
-  potentialWin,
-  side,
-  status,
-  result,
-  venueName,
-  fightNumber,
-  onViewDetails,
-  onCancel,
-  statusColor = "bg-gray-600",
-}) => {
+const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
   // Configuración de colores según el estado y resultado
   const getStatusConfig = () => {
-    switch (status) {
+    switch (bet.status) {
       case "pending":
         return {
           bgColor: "bg-amber-50",
@@ -54,7 +34,7 @@ const BetCard: React.FC<BetCardProps> = ({
           label: "Pendiente",
         };
       case "settled":
-        if (result === "win") {
+        if (bet.result === "win") {
           return {
             bgColor: "bg-green-50",
             textColor: "text-green-700",
@@ -62,7 +42,7 @@ const BetCard: React.FC<BetCardProps> = ({
             icon: CheckCircle,
             label: "Ganada",
           };
-        } else if (result === "loss") {
+        } else if (bet.result === "loss") {
           return {
             bgColor: "bg-red-50",
             textColor: "text-red-700",
@@ -105,33 +85,21 @@ const BetCard: React.FC<BetCardProps> = ({
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
   return (
-    <div className={`p-4 rounded-lg border border-[#596c95] ${statusColor}`}>
+    <div
+      className={`p-4 border rounded-lg ${className}`}
+      onClick={() => onSelect?.(bet)}
+    >
       <div className="flex justify-between">
-        <div>
-          <p className="font-bold">{side === "red" ? "Rojo" : "Azul"}</p>
-          <p>Monto: {formatCurrency(amount)}</p>
-          {potentialWin && <p>Ganancia: {formatCurrency(potentialWin)}</p>}
-        </div>
-        {status === "active" && onCancel && (
-          <button
-            onClick={onCancel}
-            className="mt-2 text-sm bg-[#cd6263] text-white px-3 py-1 rounded"
-          >
-            Cancelar
-          </button>
-        )}
+        <span>
+          {bet.fighterNames?.red} vs {bet.fighterNames?.blue}
+        </span>
+        <span>
+          ${bet.amount} ({bet.odds.toFixed(2)})
+        </span>
       </div>
-      <span
-        className={`px-2 py-1 rounded-full text-xs ${
-          status === "active"
-            ? "bg-[#596c95] text-white"
-            : result === "win"
-            ? "bg-green-600 text-white"
-            : "bg-[#cd6263] text-white"
-        }`}
-      >
-        {status.toUpperCase()}
-      </span>
+      <div className="mt-2 text-sm">
+        Status: {bet.status} | Result: {bet.result || "Pending"}
+      </div>
     </div>
   );
 };
