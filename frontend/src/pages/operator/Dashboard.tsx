@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { List, GitPullRequest, Award, Activity, Video } from "lucide-react";
-import { FightManager } from "../../components/operator/FightManager";
+import FightManager from "../../components/operator/FightManager";
 import ResultsPanel from "../../components/operator/ResultsPanel";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";

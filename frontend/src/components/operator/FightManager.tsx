@@ -43,3 +43,5 @@ export const FightManager = ({ eventId }: FightManagerProps) => {
     </div>
   );
 };
+
+export default FightManager;
