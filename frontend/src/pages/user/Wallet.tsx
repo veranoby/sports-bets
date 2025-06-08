@@ -102,7 +102,7 @@ Chart.register(
   Legend
 );
 
-const Wallet = () => {
+const WalletPage = () => {
   const [transactions, setTransactions] =
     useState<Transaction[]>(MOCK_TRANSACTIONS);
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
@@ -316,4 +316,4 @@ const Wallet = () => {
   );
 };
 
-export default Wallet;
+export default WalletPage;

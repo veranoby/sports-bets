@@ -4,7 +4,7 @@ import { Play, Pause, RefreshCw, Wifi, WifiOff, Tv2 } from "lucide-react";
 type StreamQuality = "720p" | "480p" | "360p";
 type StreamStatus = "connected" | "disconnected" | "retrying";
 
-const StreamPlayer = () => {
+const StreamPlayer = ({ streamUrl }: { streamUrl: string }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [quality, setQuality] = useState<StreamQuality>("720p");
   const [status, setStatus] = useState<StreamStatus>("connected");

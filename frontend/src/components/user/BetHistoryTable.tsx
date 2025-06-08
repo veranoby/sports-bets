@@ -1,6 +1,6 @@
-import { Bet } from "../../types"; // Asegurar que el tipo Bet esté definido
+import type { Bet } from "../../types"; // Asegurar que el tipo Bet esté definido
 import { useState } from "react";
-import { BetCard } from "./BetCard";
+import BetCard from "./BetCard";
 import { useBets } from "../../hooks/useApi";
 import { RefreshCw } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface BetHistoryTableProps {
   }) => void;
 }
 
-const BetHistoryTable = () => {
+const BetHistoryTable = ({ bets }: BetHistoryTableProps) => {
   const { betHistory, loading, error } = useBets();
 
   return (

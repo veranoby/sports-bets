@@ -13,7 +13,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import type { BetSide, BetStatus } from "../../types";
+import type { BetSide, BetStatus, BetResult, Bet } from "../../types";
 
 export interface BetCardProps {
   id: string;

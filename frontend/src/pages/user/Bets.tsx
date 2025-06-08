@@ -15,7 +15,7 @@ import {
 } from "../../components/shared/Tabs";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
-const BetsPage: React.FC = () => {
+const UserBets = () => {
   const { bets, loading, error } = useBets();
   const [activeTab, setActiveTab] = useState<"active" | "history" | "stats">(
     "active"
@@ -94,4 +94,4 @@ const BetsPage: React.FC = () => {
   );
 };
 
-export default BetsPage;
+export default UserBets;

@@ -85,7 +85,7 @@ type SortConfig = {
   direction: "asc" | "desc";
 };
 
-const TransactionHistory = () => {
+const TransactionHistory = ({ transactions }: TransactionHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<TransactionStatus | "all">(

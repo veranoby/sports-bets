@@ -21,8 +21,7 @@ type Bet = {
   createdAt: string;
 };
 
-const LiveEvent = () => {
-  const { id } = useParams<{ id: string }>();
+const LiveEvent = ({ id }: { id: string }) => {
   const { fights, fetchFights, loading, error } = useFights();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"

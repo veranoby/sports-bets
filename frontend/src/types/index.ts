@@ -63,6 +63,10 @@ export interface Fight {
   bets?: Bet[];
 }
 
+export type BetSide = "red" | "blue";
+export type BetStatus = "pending" | "active" | "settled" | "cancelled";
+export type BetResult = "win" | "loss" | "draw" | "void";
+
 export interface Bet {
   id: string;
   userId: string;
@@ -75,6 +79,13 @@ export interface Bet {
   payout?: number;
   createdAt: Date;
   updatedAt: Date;
+  eventName?: string;
+  fighterNames?: {
+    red: string;
+    blue: string;
+  };
+  potentialPayout?: number;
+  isLive?: boolean;
   matchedWith?: string;
   terms?: {
     ratio: number;
@@ -136,9 +147,6 @@ export interface Subscription {
 }
 
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
-export type BetSide = "red" | "blue";
-export type BetStatus = "pending" | "active" | "settled" | "cancelled";
-export type BetResult = "win" | "loss" | "draw" | "void";
 export type StreamQuality = "720p" | "480p" | "360p";
 export type StreamStatus = "connected" | "disconnected" | "retrying";
 
