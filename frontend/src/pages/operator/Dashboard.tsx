@@ -7,9 +7,8 @@ import ResultsPanel from "../../components/operator/ResultsPanel";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import LivePreview from "../../components/operator/LivePreview";
-import { useFetchEvents } from "../../hooks/useApi"; // Custom hook for API calls
-//import { useWebSocket } from "../../hooks/useWebSocket"; // Custom hook for WebSocket
-import { useEvents, useBets, useFights } from "../../hooks/useApi";
+import { useEvents, useBets, useFights } from "../../hooks/useApi"; // ✅ CORRECTO
+import { useWebSocket } from "../../hooks/useWebSocket"; // Comentado temporalmente
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import ActionButtons from "../../components/operator/ActionButtons";
@@ -26,6 +25,9 @@ const OperatorDashboard: React.FC = () => {
   } = useFights();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  // Comentado temporalmente:
+  // const socket = useWebSocket();
 
   useEffect(() => {
     fetchFights();
