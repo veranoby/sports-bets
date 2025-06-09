@@ -14,6 +14,9 @@ import {
   TabsContent,
 } from "../../components/shared/Tabs";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import EmptyState from "../../components/shared/EmptyState";
+import { Activity } from "lucide-react";
 
 const UserBets = () => {
   const { bets, loading, error } = useBets();
@@ -21,6 +24,9 @@ const UserBets = () => {
     "active"
   );
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  if (loading) return <LoadingSpinner text="Cargando apuestas..." />;
+  if (error) return <ErrorBoundary />;
 
   return (
     <div className="bg-[#1a1f37] min-h-screen pb-20">
@@ -50,16 +56,23 @@ const UserBets = () => {
 
       {/* Contenido */}
       <div className="p-4">
-        {loading && <LoadingSpinner text="Cargando apuestas..." />}
         {activeTab === "active" && (
           <div className="space-y-3">
-            {bets.map((bet) => (
-              <BetCard
-                key={bet.id}
-                {...bet}
-                onCancel={() => cancelBet(bet.id)}
+            {bets.length > 0 ? (
+              bets.map((bet) => (
+                <BetCard
+                  key={bet.id}
+                  {...bet}
+                  onCancel={() => cancelBet(bet.id)}
+                />
+              ))
+            ) : (
+              <EmptyState
+                title="No hay apuestas activas"
+                description="Cuando hagas apuestas, aparecerán aquí"
+                icon={<Activity className="w-8 h-8 mx-auto text-gray-400" />}
               />
-            ))}
+            )}
           </div>
         )}
 

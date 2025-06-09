@@ -63,7 +63,7 @@ const EventCard: React.FC<EventCardProps> = ({
         {isLive && (
           <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-md">
             <span className="animate-pulse mr-1.5 h-2 w-2 rounded-full bg-white"></span>
-            EN VIVO
+            <StatusChip status="live" size="sm" />
           </div>
         )}
       </div>

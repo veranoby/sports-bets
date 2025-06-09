@@ -15,6 +15,7 @@ import {
   User as UserIcon,
   XCircle,
 } from "lucide-react";
+import StatusChip from "../shared/StatusChip";
 
 // Configuración de la API (ajusta según tu estructura)
 const usersAPI = {
@@ -309,7 +310,10 @@ const UserManagementTable: React.FC = () => {
                     {renderRoleChip(user.role)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {renderStatusChip(user.isActive)}
+                    <StatusChip
+                      status={user.isActive ? "active" : "inactive"}
+                      size="sm"
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString()}

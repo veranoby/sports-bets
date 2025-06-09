@@ -33,6 +33,7 @@ import type {
 } from "../../types";
 import { useEvents, useBets } from "../../hooks/useApi";
 import DataCard from "../../components/shared/DataCard";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -128,6 +129,9 @@ const Dashboard: React.FC = () => {
     console.log("Ver eventos pasados");
     // Implementación futura: navegación a vista de eventos pasados
   };
+
+  if (eventsLoading) return <LoadingSpinner text="Loading events..." />;
+  if (betsLoading) return <LoadingSpinner text="Loading bets..." />;
 
   return (
     <div className="space-y-6">

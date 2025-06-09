@@ -19,7 +19,8 @@ import {
 } from "chart.js";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorFallback from "../../components/shared/ErrorFallback";
+import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import DataCard from "../../components/shared/DataCard";
 
 type TransactionType =
   | "deposit"
@@ -128,8 +129,8 @@ const WalletPage = () => {
 
   const totalBalance = MOCK_BALANCE.available + MOCK_BALANCE.frozen;
 
-  if (loading) return <LoadingSpinner text="Cargando transacciones..." />;
-  if (error) return <ErrorFallback />;
+  if (loading) return <LoadingSpinner text="Loading wallet..." />;
+  if (error) return <ErrorBoundary />;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -144,24 +145,23 @@ const WalletPage = () => {
 
       <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
         {/* Resumen de saldos */}
-        <div className="flex justify-between mb-4">
-          <div className="flex flex-col">
-            <span className="text-lg font-bold">Saldo Disponible</span>
-            <span className="text-2xl text-green-600">
-              <DollarSign size={16} className="inline mr-1" />$
-              {MOCK_BALANCE.available}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold">Monto Congelado</span>
-            <span className="text-2xl text-yellow-600">
-              ${MOCK_BALANCE.frozen}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold">Saldo Total</span>
-            <span className="text-2xl text-blue-600">${totalBalance}</span>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <DataCard
+            title="Saldo Disponible"
+            value={`$${MOCK_BALANCE.available}`}
+            color="green"
+            icon={<DollarSign />}
+          />
+          <DataCard
+            title="Monto Congelado"
+            value={`$${MOCK_BALANCE.frozen}`}
+            color="yellow"
+          />
+          <DataCard
+            title="Saldo Total"
+            value={`$${totalBalance}`}
+            color="blue"
+          />
         </div>
 
         {/* Gráfica de evolución de saldo */}

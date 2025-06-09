@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { X } from "lucide-react";
 import Modal from "../shared/Modal";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 interface NewFightFormData {
   number: string;

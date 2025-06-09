@@ -16,6 +16,7 @@ import {
   DollarSign,
   AlertCircle,
 } from "lucide-react";
+import StatusChip from "../shared/StatusChip";
 
 const VenueApprovalPanel: React.FC = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -151,9 +152,7 @@ const VenueApprovalPanel: React.FC = () => {
                     <span>{venue.location}</span>
                   </div>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  Pendiente
-                </span>
+                <StatusChip status={venue.status} size="sm" />
               </div>
 
               {venue.description && (

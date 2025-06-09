@@ -6,7 +6,8 @@ import { Search, Filter, Calendar } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
 import { useEvents } from "../../hooks/useApi";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorFallback from "../../components/shared/ErrorFallback";
+import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import EmptyState from "../../components/shared/EmptyState";
 
 const EventsPage: React.FC = () => {
   const { events, loading, error } = useEvents();
@@ -17,7 +18,17 @@ const EventsPage: React.FC = () => {
   );
 
   if (loading) return <LoadingSpinner text="Cargando eventos..." />;
-  if (error) return <ErrorFallback />;
+  if (error) return <ErrorBoundary />;
+
+  const renderEmptyState = (message: string) => (
+    <div className="py-12 text-center">
+      <EmptyState
+        title="No hay eventos"
+        description={message}
+        icon={<Calendar className="w-8 h-8 mx-auto text-gray-400" />}
+      />
+    </div>
+  );
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -55,15 +66,15 @@ const EventsPage: React.FC = () => {
         </div>
 
         {/* Live Events Section */}
-        {liveEvents.length > 0 && (
-          <section className="mb-8">
-            <div className="flex items-center mb-4">
-              <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2 flex-shrink-0">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">En Vivo</h2>
+        <section className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mr-2 flex-shrink-0">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             </div>
+            <h2 className="text-xl font-bold text-gray-900">En Vivo</h2>
+          </div>
 
+          {liveEvents.length > 0 ? (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {liveEvents.map((event) => (
                 <EventCard
@@ -77,8 +88,10 @@ const EventsPage: React.FC = () => {
                 />
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            renderEmptyState("Actualmente no hay eventos en vivo")
+          )}
+        </section>
 
         {/* Upcoming Events Section */}
         <section className="mb-8">
@@ -91,19 +104,23 @@ const EventsPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {upcomingEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                venueName={event.venueName}
-                isLive={event.isLive}
-                dateTime={event.dateTime}
-                activeBettors={event.activeBettors}
-                imageUrl={event.imageUrl}
-              />
-            ))}
-          </div>
+          {upcomingEvents.length > 0 ? (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {upcomingEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  venueName={event.venueName}
+                  isLive={event.isLive}
+                  dateTime={event.dateTime}
+                  activeBettors={event.activeBettors}
+                  imageUrl={event.imageUrl}
+                />
+              ))}
+            </div>
+          ) : (
+            renderEmptyState("No hay eventos programados próximamente")
+          )}
         </section>
       </main>
     </div>

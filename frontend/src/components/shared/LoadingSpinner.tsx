@@ -5,12 +5,16 @@ interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
   text?: string;
   className?: string;
+  color?: "primary" | "secondary"; // #596c95 or #cd6263
+  overlay?: boolean; // For full-screen loading
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
   text,
   className = "",
+  color,
+  overlay,
 }) => {
   const sizes = {
     sm: "w-4 h-4",

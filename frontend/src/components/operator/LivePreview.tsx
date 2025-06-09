@@ -1,5 +1,6 @@
 import React from "react";
 import { Wifi, WifiOff } from "lucide-react";
+import StatusChip from "../shared/StatusChip";
 
 interface LivePreviewProps {
   status: "upcoming" | "betting" | "live" | "completed";
@@ -72,6 +73,11 @@ const LivePreview: React.FC<LivePreviewProps> = ({ status }) => {
       <div className="aspect-video bg-gray-800 flex items-center justify-center">
         <div className="text-gray-400 text-sm">Vista previa de transmisión</div>
       </div>
+
+      <StatusChip
+        status={isConnected ? "connected" : "disconnected"}
+        size="sm"
+      />
     </div>
   );
 };

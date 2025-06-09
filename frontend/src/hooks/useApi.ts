@@ -299,7 +299,7 @@ export function useBets() {
       try {
         setLoading(true);
         const response = await betsAPI.accept(betId);
-        await fetchMyBets(); // Refresh my bets after accepting
+        await fetchMyBets();
         return response.data;
       } catch (err: any) {
         setError(err.message);
@@ -311,26 +311,22 @@ export function useBets() {
     [fetchMyBets]
   );
 
-  const cancelBet = useCallback(
-    async (betId: string) => {
-      try {
-        setLoading(true);
-        const response = await betsAPI.cancel(betId);
-        // Update local state - remove bet from my bets
-        setData((prev) => ({
-          ...prev,
-          bets: prev?.bets.filter((bet) => bet.id !== betId) || [],
-        }));
-        return response.data;
-      } catch (err: any) {
-        setError(err.message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [execute]
-  );
+  const cancelBet = useCallback(async (betId: string) => {
+    try {
+      setLoading(true);
+      const response = await betsAPI.cancel(betId);
+      setData((prev) => ({
+        ...prev,
+        bets: prev?.bets.filter((bet) => bet.id !== betId) || [],
+      }));
+      return response.data;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return {
     bets: data?.bets || [],
@@ -397,7 +393,7 @@ export function useWallet() {
       try {
         setLoading(true);
         const response = await walletAPI.deposit(depositData);
-        await fetchWallet(); // Refresh wallet after deposit
+        await fetchWallet();
         return response.data;
       } catch (err: any) {
         setError(err.message);
@@ -419,7 +415,7 @@ export function useWallet() {
       try {
         setLoading(true);
         const response = await walletAPI.withdraw(withdrawData);
-        await fetchWallet(); // Refresh wallet after withdrawal request
+        await fetchWallet();
         return response.data;
       } catch (err: any) {
         setError(err.message);
@@ -606,7 +602,7 @@ export const useApi = () => {
         try {
           setLoading(true);
           const response = await walletAPI.deposit(depositData);
-          await fetchWallet(); // Refresh wallet after deposit
+          await fetchWallet();
           return response.data;
         } catch (err: any) {
           setError(err.message);
@@ -628,7 +624,7 @@ export const useApi = () => {
         try {
           setLoading(true);
           const response = await walletAPI.withdraw(withdrawData);
-          await fetchWallet(); // Refresh wallet after withdrawal request
+          await fetchWallet();
           return response.data;
         } catch (err: any) {
           setError(err.message);

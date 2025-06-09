@@ -4,6 +4,7 @@ import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Edit2 } from "lucide-react";
 import type { Fight } from "../../types";
+import StatusChip from "../shared/StatusChip";
 
 interface FightsListProps {
   fights: Fight[];
@@ -109,11 +110,16 @@ const FightsList: React.FC<FightsListProps> = ({
                         </span>
                       </div>
 
-                      {fight.status === "live" && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
-                          En vivo
-                        </span>
-                      )}
+                      <StatusChip
+                        status={
+                          fight.status === "live"
+                            ? "live"
+                            : fight.status === "completed"
+                            ? "completed"
+                            : "upcoming"
+                        }
+                        size="sm"
+                      />
 
                       {fight.status === "betting" && (
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">

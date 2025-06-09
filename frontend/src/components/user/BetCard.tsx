@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { BetSide, BetStatus, BetResult, Bet } from "../../types";
+import StatusChip from "../shared/StatusChip";
 
 export interface BetCardProps {
   bet: Bet;
@@ -98,7 +99,18 @@ const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
         </span>
       </div>
       <div className="mt-2 text-sm">
-        Status: {bet.status} | Result: {bet.result || "Pending"}
+        Status:{" "}
+        <StatusChip
+          status={
+            bet.status === "pending"
+              ? "pending"
+              : bet.status === "active"
+              ? "active"
+              : "settled"
+          }
+          size="sm"
+        />{" "}
+        | Result: {bet.result || "Pending"}
       </div>
     </div>
   );
