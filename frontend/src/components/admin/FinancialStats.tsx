@@ -14,7 +14,9 @@ import {
   Calendar,
   Users,
   Wallet,
+  Activity,
 } from "lucide-react";
+import DataCard from "../shared/DataCard";
 
 interface FinancialData {
   totalRevenue: number;
@@ -169,85 +171,26 @@ const FinancialStats: React.FC = () => {
       )}
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-[#596c95] shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-sm font-medium text-gray-500">
-              Ingresos Totales
-            </h4>
-            <div className="p-2 rounded-full bg-blue-50">
-              <DollarSign className="w-5 h-5 text-[#596c95]" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {formatCurrency(data.totalRevenue)}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-medium text-gray-500">Transacciones</h4>
-            <div
-              className="p-2 rounded-full"
-              style={{ backgroundColor: "rgba(205, 98, 99, 0.1)" }}
-            >
-              <Wallet className="w-5 h-5" style={{ color: "#cd6263" }} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {data.totalTransactions.toLocaleString()}
-          </p>
-          <div className="flex items-center mt-2 text-sm">
-            <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
-            <span className="text-green-500 font-medium">+8.2%</span>
-            <span className="text-gray-500 ml-1">vs mes anterior</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-medium text-gray-500">
-              Billeteras Activas
-            </h4>
-            <div
-              className="p-2 rounded-full"
-              style={{ backgroundColor: "rgba(89, 108, 149, 0.1)" }}
-            >
-              <Users className="w-5 h-5" style={{ color: "#596c95" }} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {data.activeWallets.toLocaleString()}
-          </p>
-          <div className="flex items-center mt-2 text-sm">
-            <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
-            <span className="text-green-500 font-medium">+5.3%</span>
-            <span className="text-gray-500 ml-1">vs mes anterior</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-medium text-gray-500">
-              Retiros Pendientes
-            </h4>
-            <div
-              className="p-2 rounded-full"
-              style={{ backgroundColor: "rgba(205, 98, 99, 0.1)" }}
-            >
-              <TrendingDown className="w-5 h-5" style={{ color: "#cd6263" }} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {data.pendingWithdrawals}
-          </p>
-          <div className="flex items-center mt-2 text-sm">
-            <span className="text-gray-500">
-              Valor:{" "}
-              {formatCurrency(data.pendingWithdrawals * data.averageWithdrawal)}
-            </span>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <DataCard
+          title="Total Revenue"
+          value={`$${data.totalRevenue.toLocaleString()}`}
+          icon={<DollarSign />}
+          color="blue"
+        />
+        <DataCard
+          title="Active Users"
+          value={data.activeWallets.toLocaleString()}
+          icon={<Users />}
+          trend={data.activeWallets > 0 ? "up" : "down"}
+          color="green"
+        />
+        <DataCard
+          title="Avg. Bet Amount"
+          value={`$${data.averageDeposit.toFixed(2)}`}
+          icon={<Activity />}
+          color="red"
+        />
       </div>
 
       {/* Gráfico de transacciones (simulado con divs) */}

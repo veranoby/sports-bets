@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Search, Filter, Calendar } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
 import { useEvents } from "../../hooks/useApi";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorFallback from "../../components/shared/ErrorFallback";
 
 const EventsPage: React.FC = () => {
   const { events, loading, error } = useEvents();
@@ -13,6 +15,9 @@ const EventsPage: React.FC = () => {
   const upcomingEvents = events.filter(
     (event) => !event.isLive && new Date(event.dateTime) > new Date()
   );
+
+  if (loading) return <LoadingSpinner text="Cargando eventos..." />;
+  if (error) return <ErrorFallback />;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -100,19 +105,6 @@ const EventsPage: React.FC = () => {
             ))}
           </div>
         </section>
-
-        {loading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando eventos...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 text-red-700 rounded-lg p-4 text-center">
-            Error al cargar los eventos: {error.message}
-          </div>
-        )}
       </main>
     </div>
   );

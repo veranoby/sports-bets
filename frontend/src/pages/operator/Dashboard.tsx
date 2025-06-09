@@ -41,7 +41,9 @@ const OperatorDashboard: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) return <LoadingSpinner text="Loading fights..." />;
+  if (eventsLoading)
+    return <LoadingSpinner text="Cargando eventos asignados..." />;
+  if (fightsLoading) return <LoadingSpinner text="Cargando peleas..." />;
   if (error) return <div>Error loading fights: {error.message}</div>;
 
   return (

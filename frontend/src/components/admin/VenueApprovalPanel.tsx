@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import { venuesAPI } from "../../config/api";
-import { Venue } from "../../types";
+import type { Venue } from "../../types";
 import {
   RefreshCw,
   CheckCircle,

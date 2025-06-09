@@ -10,9 +10,19 @@ import UserManagementTable from "../../components/admin/UserManagementTable";
 import VenueApprovalPanel from "../../components/admin/VenueApprovalPanel";
 import FinancialStats from "../../components/admin/FinancialStats";
 import SystemMonitoring from "../../components/admin/SystemMonitoring";
+import { useAuth } from "../../contexts/AuthContext";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("users");
+  const { logout } = useAuth();
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [reportsLoading, setReportsLoading] = useState(false);
+
+  if (usersLoading || eventsLoading || reportsLoading) {
+    return <LoadingSpinner text="Cargando datos administrativos..." />;
+  }
 
   return (
     <div className="min-h-screen bg-[#1a1f37] text-white">
@@ -20,8 +30,14 @@ const AdminDashboard: React.FC = () => {
       <header className="bg-[#2a325c] border-b border-[#596c95] p-4">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Panel de Administración</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <span className="text-gray-300">Admin</span>
+            <button
+              onClick={logout}
+              className="text-gray-300 hover:text-white text-sm"
+            >
+              Cerrar sesión
+            </button>
             <div className="h-8 w-8 rounded-full bg-[#cd6263] flex items-center justify-center">
               <span className="text-white">A</span>
             </div>

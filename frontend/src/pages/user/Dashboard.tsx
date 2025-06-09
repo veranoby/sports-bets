@@ -13,6 +13,9 @@ import {
   Trophy,
   Calendar,
   FlameIcon as Fire,
+  Activity,
+  Wallet,
+  Award,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -29,6 +32,7 @@ import type {
   Event,
 } from "../../types";
 import { useEvents, useBets } from "../../hooks/useApi";
+import DataCard from "../../components/shared/DataCard";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -126,13 +130,36 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="user-dashboard">
-      <Navigation currentPage="dashboard" />
-
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <WalletSummary />
-        <EventCard event={events[0]} />
-        <BettingPanel fightId="current-fight-id" />
+        <DataCard
+          title="Active Bets"
+          value={userStats.activeBets}
+          icon={<Activity />}
+          color="blue"
+        />
+        <DataCard
+          title="Wallet Balance"
+          value={`$${userStats.balance.toFixed(2)}`}
+          icon={<Wallet />}
+          color="green"
+        />
+        <DataCard
+          title="Winning Streak"
+          value={userStats.winningStreak}
+          icon={<Award />}
+          trend={userStats.streakTrend}
+          color="red"
+        />
+      </div>
+      <div className="user-dashboard">
+        <Navigation currentPage="dashboard" />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <WalletSummary />
+          <EventCard event={events[0]} />
+          <BettingPanel fightId="current-fight-id" />
+        </div>
       </div>
     </div>
   );

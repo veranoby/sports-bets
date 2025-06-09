@@ -18,6 +18,8 @@ import {
   Legend,
 } from "chart.js";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorFallback from "../../components/shared/ErrorFallback";
 
 type TransactionType =
   | "deposit"
@@ -110,6 +112,7 @@ const WalletPage = () => {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const filteredTransactions = transactions.filter((transaction) => {
@@ -124,6 +127,9 @@ const WalletPage = () => {
   });
 
   const totalBalance = MOCK_BALANCE.available + MOCK_BALANCE.frozen;
+
+  if (loading) return <LoadingSpinner text="Cargando transacciones..." />;
+  if (error) return <ErrorFallback />;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -309,8 +315,6 @@ const WalletPage = () => {
             Exportar Historial
           </button>
         </div>
-
-        {loading && <Loader2 className="animate-spin" size={20} />}
       </div>
     </div>
   );
