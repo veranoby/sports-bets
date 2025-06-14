@@ -17,7 +17,7 @@ import TransactionHistory from "../../components/user/TransactionHistory";
 import DepositModal from "../../components/user/DepositModal";
 import WithdrawModal from "../../components/user/WithdrawModal";
 import { useWallet } from "../../hooks/useApi";
-import DataCard from "../../components/shared/DataCard";
+import Card from "../../components/shared/Card";
 import type { Transaction as TransactionTypeFull } from "../../types";
 
 type TransactionType =
@@ -102,22 +102,19 @@ const WalletPage = () => {
       <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
         {/* Resumen de saldos */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <DataCard
+          <Card
+            variant="data"
             title="Saldo Disponible"
             value={`$${wallet?.balance || 0}`}
             color="green"
             icon={<DollarSign />}
           />
-          <DataCard
+          <Card
             title="Monto Congelado"
             value={`$${wallet?.frozenAmount || 0}`}
             color="yellow"
           />
-          <DataCard
-            title="Saldo Total"
-            value={`$${totalBalance}`}
-            color="blue"
-          />
+          <Card title="Saldo Total" value={`$${totalBalance}`} color="blue" />
         </div>
 
         {/* Gráfica de evolución de saldo */}

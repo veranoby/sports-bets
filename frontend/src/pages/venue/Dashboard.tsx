@@ -7,14 +7,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useVenues, useEvents } from "../../hooks/useApi";
-import StatCard from "../../components/shared/StatCard";
-import PageContainer from "../../components/shared/PageContainer";
+import Card from "../../components/shared/Card";
 import Modal from "../../components/shared/Modal";
 import { FormField } from "../../components/shared/FormField";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import { venuesAPI, eventsAPI } from "../../config/api";
-import DataCard from "../../components/shared/DataCard";
 import type { Event } from "../../types";
 
 const VenueDashboard: React.FC = () => {
@@ -206,17 +204,20 @@ const VenueDashboard: React.FC = () => {
                       </h3>
                       <p className="text-sm text-gray-500">{venue.location}</p>
                       <div className="grid grid-cols-2 gap-2 mt-2">
-                        <StatCard
+                        <Card
+                          variant="stat"
                           title="Eventos"
                           value={venueEvents.length}
                           color="blue"
                         />
-                        <StatCard
+                        <Card
+                          variant="stat"
                           title="Apuestas totales"
                           value={totalBets.toLocaleString()}
                           color="red"
                         />
-                        <StatCard
+                        <Card
+                          variant="stat"
                           title="Premio acumulado"
                           value={`$${totalPrize.toLocaleString()}`}
                           color="green"
@@ -250,22 +251,26 @@ const VenueDashboard: React.FC = () => {
                     {venues.find((v) => v.id === event.venueId)?.name || "-"}
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-2">
-                    <DataCard
+                    <Card
+                      variant="data"
                       title="Apuestas"
                       value={stats.totalBets?.toLocaleString() || 0}
                       color="red"
                     />
-                    <DataCard
+                    <Card
+                      variant="data"
                       title="Premio"
                       value={`$${stats.totalPrizePool?.toLocaleString() || 0}`}
                       color="green"
                     />
-                    <DataCard
+                    <Card
+                      variant="data"
                       title="Peleas"
                       value={stats.totalFights?.toLocaleString() || 0}
                       color="blue"
                     />
-                    <DataCard
+                    <Card
+                      variant="data"
                       title="Completadas"
                       value={stats.completedFights?.toLocaleString() || 0}
                       color="gray"
@@ -292,10 +297,11 @@ const VenueDashboard: React.FC = () => {
         <section>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Estadísticas</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard
+            <Card
+              variant="stat"
               title="Eventos programados"
               value={events.length}
-              change={{ value: 12, trend: "up", period: "este mes" }}
+              trend={{ value: 12, direction: "up", period: "este mes" }}
               color="blue"
             />
             <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">

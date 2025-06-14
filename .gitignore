@@ -7,7 +7,7 @@ node_modules/
 # Testing
 /coverage
 
-# Producción
+# Producciï¿½n
 /build
 /dist
 **/build
@@ -39,3 +39,10 @@ yarn-error.log*
 # Archivos temporales
 .tmp
 .temp
+
+# Variables de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

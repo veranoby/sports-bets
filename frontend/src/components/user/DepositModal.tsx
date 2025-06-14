@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import Modal from "../shared/Modal";
+import PaymentForm from "../payments/PaymentForm";
 
 type PaymentMethod = "card" | "transfer";
 
@@ -16,6 +17,7 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmationStep, setConfirmationStep] = useState(1);
+  const [step, setStep] = useState<"amount" | "payment" | "success">("amount");
 
   const MIN_AMOUNT = 10;
   const MAX_AMOUNT = 1000;
@@ -172,6 +174,19 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
         </div>
+      )}
+
+      {step === "payment" && paymentMethod === "card" && (
+        <PaymentForm
+          amount={amount}
+          description={`Depósito a billetera - ${amount} USD`}
+          onSuccess={(transactionId) => {
+            setStep("success");
+            onSuccess?.();
+            // Opcional: actualizar billetera
+          }}
+          onCancel={() => setStep("amount")}
+        />
       )}
     </Modal>
   );

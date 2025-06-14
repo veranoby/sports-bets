@@ -3,7 +3,7 @@ import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useFights } from "../../hooks/useApi";
 import { useBets } from "../../hooks/useApi";
-import { LoadingSpinner } from "../../components/shared/LoadingSpinner";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import { EmptyState } from "../../components/shared/EmptyState";
 

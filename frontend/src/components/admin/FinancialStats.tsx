@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import { RefreshCw, Users, Activity } from "lucide-react";
-import DataCard from "../shared/DataCard";
+import Card from "../shared/Card";
 import ErrorMessage from "../shared/ErrorMessage";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import EmptyState from "../shared/EmptyState";
@@ -149,20 +149,25 @@ const FinancialStats: React.FC = () => {
 
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <DataCard
+        <Card
+          variant="data"
           title="Ingresos Totales"
           value={`$${data.totalRevenue?.toLocaleString?.() ?? 0}`}
           color="blue"
-          trend={data.totalRevenue && data.totalRevenue > 0 ? "up" : "down"}
+          trend={{
+            value: data.totalRevenue && data.totalRevenue > 0 ? 10 : -5,
+            direction:
+              data.totalRevenue && data.totalRevenue > 0 ? "up" : "down",
+          }}
         />
-        <DataCard
+        <Card
           title="Active Users"
           value={data.activeWallets?.toLocaleString?.() ?? 0}
           icon={<Users />}
           trend={data.activeWallets && data.activeWallets > 0 ? "up" : "down"}
           color="green"
         />
-        <DataCard
+        <Card
           title="Avg. Bet Amount"
           value={`$${data.averageDeposit?.toFixed?.(2) ?? 0}`}
           icon={<Activity />}

@@ -13,11 +13,10 @@ import WalletSummary from "../../components/user/WalletSummary";
 import Navigation from "../../components/user/Navigation";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocket } from "../../hooks/useWebSocket";
-import DataCard from "../../components/shared/DataCard";
+import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
-import StatCard from "../../components/shared/StatCard";
 import NotificationBadge from "../../components/shared/NotificationBadge";
 import PageContainer from "../../components/shared/PageContainer";
 import StatusIndicator from "../../components/shared/StatusIndicator";
@@ -39,14 +38,25 @@ const Dashboard: React.FC = () => {
 
   // WebSocket listeners
   const wsListeners = {
-    new_bet: () => {
+    new_bet: (data: any) => {
+      console.log("Nueva apuesta disponible:", data);
       fetchEvents();
       fetchMyBets();
     },
-    bet_matched: () => fetchMyBets(),
-    event_activated: () => fetchEvents(),
+    bet_matched: (data: any) => {
+      console.log("Apuesta emparejada:", data);
+      fetchMyBets();
+    },
+    event_activated: (data: any) => {
+      console.log("Evento activado:", data);
+      fetchEvents();
+    },
+    fight_updated: (data: any) => {
+      console.log("Pelea actualizada:", data);
+      fetchEvents();
+    },
   };
-  const { isConnected } = useWebSocket(undefined, wsListeners);
+  const { isConnected, connectionError } = useWebSocket(undefined, wsListeners);
 
   // Stats
   const userStats = {
@@ -85,41 +95,49 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-3">
           <StatusIndicator
             status={isConnected ? "connected" : "disconnected"}
-            label={isConnected ? "Conectado" : "Desconectado"}
-            size="sm"
+            label={isConnected ? "Conectado" : "Sin conexión"}
           />
-          <button className="px-4 py-2 bg-[#596c95] text-white rounded-lg">
-            Nueva acción
-          </button>
+          <NotificationBadge
+            count={unreadNotificationsCount}
+            onClick={() => {}}
+          />
         </div>
       }
       loading={eventsLoading || betsLoading}
-      error={undefined}
+      error={connectionError}
       onRetry={() => {
         if (eventsError) fetchEvents();
         if (betsError) fetchMyBets();
       }}
     >
+      {connectionError && !isConnected && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p className="text-yellow-800 text-sm">⚠️ {connectionError}</p>
+        </div>
+      )}
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
+          <Card
+            variant="stat"
             title="Apuestas Activas"
             value={userStats.activeBets}
-            change={{ value: 12.5, trend: "up", period: "semana pasada" }}
-            icon={<Activity className="w-4 h-4" />}
+            trend={{ value: 12.5, direction: "up", period: "semana pasada" }}
+            icon={Activity}
             color="blue"
           />
-          <DataCard
+          <Card
+            variant="data"
             title="Wallet Balance"
             value={`$${userStats.balance.toFixed(2)}`}
-            icon={<Wallet />}
+            icon={Wallet}
             color="green"
           />
-          <DataCard
+          <Card
+            variant="data"
             title="Winning Streak"
             value={userStats.winningStreak}
-            icon={<Award />}
-            trend={userStats.streakTrend}
+            icon={Award}
+            trend={{ value: 0, direction: userStats.streakTrend }}
             color="red"
           />
         </div>

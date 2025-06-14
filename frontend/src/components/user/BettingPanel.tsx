@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Plus, CheckCircle, Loader2 } from "lucide-react";
-import DataCard from "../shared/DataCard";
+import Card from "../shared/Card";
 import Modal from "../shared/Modal";
 import ErrorMessage from "../shared/ErrorMessage";
 import { useBets, useWallet } from "../../hooks/useApi";
 import LoadingSpinner from "../shared/LoadingSpinner";
+import { useWebSocket } from "../../hooks/useWebSocket";
 
 // Tipos de apuesta
 type BetType = "Ganador" | "KO" | "Ronda Exacta";
@@ -18,7 +19,7 @@ type Bet = {
   status: "pendiente" | "aceptada" | "rechazada";
 };
 
-const BettingPanel: React.FC = () => {
+const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
   const {
     bets: availableBets,
     loading: betsLoading,
@@ -40,6 +41,32 @@ const BettingPanel: React.FC = () => {
   }>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // WebSocket para actualizaciones en tiempo real
+  const wsListeners = {
+    new_bet: (data: any) => {
+      if (data.fightId === fightId) {
+        // Refrescar apuestas disponibles
+      }
+    },
+    bet_matched: (data: any) => {
+      if (data.fightId === fightId) {
+        console.log("¡Tu apuesta fue emparejada!");
+      }
+    },
+    betting_closed: (data: any) => {
+      if (data.fightId === fightId) {
+        // Deshabilitar formulario de apuestas
+      }
+    },
+    fight_completed: (data: any) => {
+      if (data.fightId === fightId) {
+        // Mostrar resultado
+      }
+    },
+  };
+
+  const { isConnected } = useWebSocket(fightId, wsListeners);
 
   // Validación de saldo
   const canBet = (amount: number) => (wallet?.balance || 0) >= amount;
@@ -104,20 +131,32 @@ const BettingPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <DataCard
+      <Card
+        variant="data"
         title="Apuestas Disponibles"
         value={availableBets.length}
-        trend="up"
         color="blue"
       />
-      <DataCard
+      <Card
+        variant="data"
         title="Saldo"
         value={`$${wallet?.balance?.toFixed(2) || 0}`}
-        trend="neutral"
         color="gray"
       />
       <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-4">
-        {/* Saldo y botón nueva apuesta */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Panel de Apuestas</h3>
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isConnected ? "bg-green-500" : "bg-red-500"
+              }`}
+            ></div>
+            <span className="text-xs text-gray-500">
+              {isConnected ? "En vivo" : "Desconectado"}
+            </span>
+          </div>
+        </div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-green-600 font-bold">
             <span>Saldo: ${wallet?.balance?.toFixed(2) || 0}</span>
@@ -131,7 +170,6 @@ const BettingPanel: React.FC = () => {
           </button>
         </div>
 
-        {/* Lista de apuestas disponibles */}
         <div>
           <h3 className="font-semibold mb-2">Apuestas Disponibles</h3>
           {availableBets.length === 0 ? (
@@ -165,7 +203,6 @@ const BettingPanel: React.FC = () => {
           )}
         </div>
 
-        {/* Modal nueva apuesta */}
         {showNewBet && (
           <Modal
             title="Crear Nueva Apuesta"
@@ -220,7 +257,6 @@ const BettingPanel: React.FC = () => {
           </Modal>
         )}
 
-        {/* Modal de confirmación */}
         {confirmAction && (
           <Modal
             title={

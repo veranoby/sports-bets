@@ -13,7 +13,7 @@ import SystemMonitoring from "../../components/admin/SystemMonitoring";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
-import StatCard from "../../components/shared/StatCard";
+import Card from "../../components/shared/Card";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -123,16 +123,11 @@ const AdminDashboard: React.FC = () => {
             ) : (
               <>
                 <UserManagementTable />
-                <StatCard
+                <Card
+                  variant="stat"
                   title="Usuarios Activos"
                   value={activeUsers}
-                  change={{
-                    value: 8.2,
-                    trend: "up",
-                    period: "mes pasado",
-                  }}
-                  color="green"
-                  icon={<Users className="w-5 h-5" />}
+                  trend={{ value: 8.2, direction: "up", period: "mes pasado" }}
                 />
               </>
             )}

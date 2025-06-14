@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import type { BetSide, BetStatus, BetResult, Bet } from "../../types";
 import StatusChip from "../shared/StatusChip";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
 
 export interface BetCardProps {
   bet: Bet;

@@ -54,7 +54,7 @@ apiClient.interceptors.response.use(
       error.message ||
       "Error desconocido";
 
-    return Promise.reject(new Error(errorMessage)); // Reject with a standard Error object
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
@@ -79,17 +79,21 @@ export const authAPI = {
     username: string;
     email: string;
     password: string;
-  }): Promise<APIResponse<User>> =>
-    formatApiResponse(apiClient.post<User>("/auth/register", data)),
+  }): Promise<APIResponse<{ user: User; token: string }>> =>
+    formatApiResponse(
+      apiClient.post<{ user: User; token: string }>("/auth/register", data)
+    ),
 
   login: (data: {
     login: string;
     password: string;
-  }): Promise<APIResponse<User>> =>
-    formatApiResponse(apiClient.post<User>("/auth/login", data)),
+  }): Promise<APIResponse<{ user: User; token: string }>> =>
+    formatApiResponse(
+      apiClient.post<{ user: User; token: string }>("/auth/login", data)
+    ),
 
-  me: (): Promise<APIResponse<User>> =>
-    formatApiResponse(apiClient.get<User>("/auth/me")),
+  me: (): Promise<APIResponse<{ user: User; wallet: any }>> =>
+    formatApiResponse(apiClient.get<{ user: User; wallet: any }>("/auth/me")),
 
   refreshToken: (): Promise<APIResponse<{ token: string }>> =>
     formatApiResponse(apiClient.post<{ token: string }>("/auth/refresh")),

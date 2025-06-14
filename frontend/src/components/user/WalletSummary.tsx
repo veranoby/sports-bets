@@ -8,6 +8,7 @@
 import React from "react";
 import { Wallet, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Card from "../shared/Card";
 
 export interface WalletSummaryProps {
   balance: number;

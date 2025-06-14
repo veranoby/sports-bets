@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
 import LoadingSpinner from "../shared/LoadingSpinner";
+import Card from "../shared/Card";
 
 interface SystemStatus {
   api: {
