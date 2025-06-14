@@ -15,6 +15,8 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
+import ErrorMessage from "../shared/ErrorMessage";
+import LoadingSpinner from "../shared/LoadingSpinner";
 
 interface SystemStatus {
   api: {
@@ -72,7 +74,7 @@ const SystemMonitoring: React.FC = () => {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
   // Reemplazar mock con datos reales
-  const loadSystemStatus = async () => {
+  const loadSystemStatus = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const response = await systemAPI.getStatus();
@@ -135,61 +137,6 @@ const SystemMonitoring: React.FC = () => {
       default:
         return null;
     }
-  };
-
-  // Datos mock para visualización
-  const mockSystemStatus: SystemStatus = {
-    api: {
-      status: "healthy",
-      responseTime: 120,
-      uptime: 99.98,
-      lastRestart: "2023-01-15T08:30:00Z",
-    },
-    database: {
-      status: "healthy",
-      connections: 42,
-      queryTime: 8.5,
-      diskUsage: 68.2,
-    },
-    streaming: {
-      status: "degraded",
-      activeStreams: 8,
-      bandwidth: 450.5,
-      errors: 3,
-    },
-    cache: {
-      status: "healthy",
-      hitRate: 92.7,
-      size: 256,
-      items: 18540,
-    },
-    recentErrors: [
-      {
-        timestamp: "2023-01-20T14:32:15Z",
-        service: "streaming",
-        message: "Stream connection timeout for event ID: event-123",
-        level: "warning",
-      },
-      {
-        timestamp: "2023-01-20T13:45:22Z",
-        service: "api",
-        message: "Rate limit exceeded for IP: 192.168.1.42",
-        level: "info",
-      },
-      {
-        timestamp: "2023-01-20T12:18:05Z",
-        service: "database",
-        message:
-          "Slow query detected: SELECT * FROM bets WHERE event_id = 'event-456'",
-        level: "warning",
-      },
-      {
-        timestamp: "2023-01-20T10:05:33Z",
-        service: "api",
-        message: "Authentication failure: Invalid token format",
-        level: "error",
-      },
-    ],
   };
 
   return (
@@ -272,17 +219,19 @@ const SystemMonitoring: React.FC = () => {
 
       {/* Mensaje de error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-100 rounded-lg text-red-700">
-          {error}
-        </div>
+        <ErrorMessage
+          error={error}
+          onRetry={loadSystemStatus}
+          className="mb-4"
+        />
       )}
 
       {/* Estado de carga */}
       {isLoading && !systemStatus && (
-        <div className="text-center py-8">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
-          <p className="mt-2 text-gray-500">Cargando estado del sistema...</p>
-        </div>
+        <LoadingSpinner
+          text="Cargando estado del sistema..."
+          className="py-8"
+        />
       )}
 
       {systemStatus && (

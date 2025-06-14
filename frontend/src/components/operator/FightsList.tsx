@@ -9,7 +9,7 @@ import StatusChip from "../shared/StatusChip";
 interface FightsListProps {
   fights: Fight[];
   type: "upcoming" | "completed";
-  onSelectFight?: (fightId: string) => void;
+  onSelectFight: (fightId: string) => void;
   onEditFight?: (fightId: string) => void;
 }
 
@@ -22,13 +22,9 @@ const FightsList: React.FC<FightsListProps> = ({
   // Filtrar peleas según el tipo
   const filteredFights = fights.filter((fight) => {
     if (type === "upcoming") {
-      return (
-        fight.status === "upcoming" ||
-        fight.status === "live" ||
-        fight.status === "betting"
-      );
+      return fight.status === "scheduled" || fight.status === "live";
     } else {
-      return fight.status === "completed";
+      return fight.status === "finished" || fight.status === "cancelled";
     }
   });
 
@@ -92,57 +88,38 @@ const FightsList: React.FC<FightsListProps> = ({
                     ? "bg-blue-50"
                     : ""
                 }`}
-                onClick={() => onSelectFight && onSelectFight(fight.id)}
+                onClick={() => onSelectFight(fight.id)}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <div className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-full mr-3 font-bold text-gray-700">
-                      {fight.number}
+                      {fight.id.slice(-4)}
                     </div>
                     <div>
                       <div className="flex items-center">
                         <span className="font-medium text-gray-900">
-                          {fight.redBreeder}
+                          {fight.redFighter}
                         </span>
                         <span className="mx-2 text-gray-400">vs</span>
                         <span className="font-medium text-gray-900">
-                          {fight.blueBreeder}
+                          {fight.blueFighter}
                         </span>
                       </div>
 
-                      <StatusChip
-                        status={
-                          fight.status === "live"
-                            ? "live"
-                            : fight.status === "completed"
-                            ? "completed"
-                            : "upcoming"
-                        }
-                        size="sm"
-                      />
-
-                      {fight.status === "betting" && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                          Apuestas abiertas
-                        </span>
-                      )}
+                      <StatusChip status={fight.status} size="sm" />
                     </div>
                   </div>
 
                   <div className="flex items-center">
                     {type === "completed" ? (
-                      renderResult(fight.result)
+                      renderResult(fight.result as "red" | "blue" | "draw")
                     ) : (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (onEditFight) onEditFight(fight.id);
                         }}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                          type === "upcoming"
-                            ? "bg-gray-100 text-gray-700"
-                            : "bg-green-500 text-white"
-                        }`}
+                        className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors bg-gray-100 text-gray-700"
                       >
                         <Edit2 className="w-5 h-5 text-gray-600" />
                       </button>

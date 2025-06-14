@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Save } from "lucide-react";
+import { FormField } from "../shared/FormField";
 
 interface FightDetails {
   id: string;
@@ -17,16 +18,6 @@ interface FightFormProps {
 }
 
 const FightForm: React.FC<FightFormProps> = ({ fight, onUpdate }) => {
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    onUpdate({
-      ...fight,
-      [name]: value,
-    });
-  };
-
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
       <div className="flex justify-between items-center mb-4">
@@ -43,59 +34,36 @@ const FightForm: React.FC<FightFormProps> = ({ fight, onUpdate }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Criadero Rojo
-          </label>
-          <input
-            type="text"
-            name="redBreeder"
-            value={fight.redBreeder}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Criadero Azul
-          </label>
-          <input
-            type="text"
-            name="blueBreeder"
-            value={fight.blueBreeder}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Peso (libras)
-          </label>
-          <input
-            type="text"
-            name="weight"
-            value={fight.weight}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-            required
-          />
-        </div>
+        <FormField
+          label="Criadero Rojo"
+          value={fight.redBreeder}
+          onChange={(value) =>
+            onUpdate({ ...fight, redBreeder: String(value) })
+          }
+          required
+        />
+        <FormField
+          label="Criadero Azul"
+          value={fight.blueBreeder}
+          onChange={(value) =>
+            onUpdate({ ...fight, blueBreeder: String(value) })
+          }
+          required
+        />
+        <FormField
+          label="Peso (libras)"
+          value={fight.weight}
+          onChange={(value) => onUpdate({ ...fight, weight: String(value) })}
+          required
+        />
       </div>
 
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Observaciones
-        </label>
-        <textarea
-          name="notes"
+        <FormField
+          label="Observaciones"
+          type="textarea"
           value={fight.notes}
-          onChange={handleChange}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          onChange={(value) => onUpdate({ ...fight, notes: String(value) })}
         />
       </div>
     </div>

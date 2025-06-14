@@ -5,18 +5,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { walletAPI } from "../../config/api";
-import {
-  RefreshCw,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Users,
-  Wallet,
-  Activity,
-} from "lucide-react";
+import { RefreshCw, Users, Activity } from "lucide-react";
 import DataCard from "../shared/DataCard";
+import ErrorMessage from "../shared/ErrorMessage";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import EmptyState from "../shared/EmptyState";
 
 interface FinancialData {
   totalRevenue: number;
@@ -40,7 +33,7 @@ const FinancialStats: React.FC = () => {
   );
 
   // Cargar datos financieros
-  const loadFinancialData = async () => {
+  const loadFinancialData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({ range: dateRange });
@@ -63,35 +56,20 @@ const FinancialStats: React.FC = () => {
     new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN",
-    }).format(value);
+    }).format(value ?? 0);
 
-  // Datos mock para visualización (se reemplazarían con datos reales de la API)
-  const mockData: FinancialData = {
-    totalRevenue: 1250000,
-    totalTransactions: 8750,
-    activeWallets: 1200,
-    averageDeposit: 850,
-    averageWithdrawal: 1200,
-    pendingWithdrawals: 15,
-    transactionsByDay: [
-      { date: "2023-01-01", amount: 12500 },
-      { date: "2023-01-02", amount: 15000 },
-      { date: "2023-01-03", amount: 18000 },
-      { date: "2023-01-04", amount: 14000 },
-      { date: "2023-01-05", amount: 21000 },
-      { date: "2023-01-06", amount: 19500 },
-      { date: "2023-01-07", amount: 22000 },
-    ],
-    transactionsByType: [
-      { type: "deposit", count: 4500, amount: 3825000 },
-      { type: "withdrawal", count: 2800, amount: 3360000 },
-      { type: "bet", count: 12000, amount: 6000000 },
-      { type: "win", count: 5000, amount: 7500000 },
-    ],
-  };
+  // Solo usar datos reales de la API
+  const data = financialData;
 
-  // Usar datos mock hasta que la API esté lista
-  const data = financialData || mockData;
+  if (isLoading) return <LoadingSpinner text="Cargando datos financieros..." />;
+  if (error) return <ErrorMessage error={error} onRetry={loadFinancialData} />;
+  if (!data)
+    return (
+      <EmptyState
+        title="Sin datos"
+        description="No hay datos financieros disponibles."
+      />
+    );
 
   return (
     <div className="space-y-6">
@@ -157,37 +135,36 @@ const FinancialStats: React.FC = () => {
 
       {/* Mensaje de error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-100 rounded-lg text-red-700">
-          {error}
-        </div>
+        <ErrorMessage
+          error={error}
+          onRetry={loadFinancialData}
+          className="mb-6"
+        />
       )}
 
       {/* Estado de carga */}
       {isLoading && (
-        <div className="text-center py-8">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
-          <p className="mt-2 text-gray-500">Cargando datos financieros...</p>
-        </div>
+        <LoadingSpinner text="Cargando datos financieros..." className="py-8" />
       )}
 
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <DataCard
-          title="Total Revenue"
-          value={`$${data.totalRevenue.toLocaleString()}`}
-          icon={<DollarSign />}
+          title="Ingresos Totales"
+          value={`$${data.totalRevenue?.toLocaleString?.() ?? 0}`}
           color="blue"
+          trend={data.totalRevenue && data.totalRevenue > 0 ? "up" : "down"}
         />
         <DataCard
           title="Active Users"
-          value={data.activeWallets.toLocaleString()}
+          value={data.activeWallets?.toLocaleString?.() ?? 0}
           icon={<Users />}
-          trend={data.activeWallets > 0 ? "up" : "down"}
+          trend={data.activeWallets && data.activeWallets > 0 ? "up" : "down"}
           color="green"
         />
         <DataCard
           title="Avg. Bet Amount"
-          value={`$${data.averageDeposit.toFixed(2)}`}
+          value={`$${data.averageDeposit?.toFixed?.(2) ?? 0}`}
           icon={<Activity />}
           color="red"
         />
@@ -199,32 +176,36 @@ const FinancialStats: React.FC = () => {
           Transacciones por Día
         </h4>
         <div className="h-64 flex items-end justify-between space-x-2">
-          {data.transactionsByDay.map((day, index) => {
-            const height =
-              (day.amount /
-                Math.max(...data.transactionsByDay.map((d) => d.amount))) *
-              100;
-            return (
-              <div key={index} className="flex flex-col items-center flex-1">
-                <div
-                  className="w-full rounded-t-md transition-all duration-300 hover:opacity-80"
-                  style={{
-                    height: `${height}%`,
-                    backgroundColor: index % 2 === 0 ? "#596c95" : "#cd6263",
-                    minHeight: "10px",
-                  }}
-                  title={`${new Date(
-                    day.date
-                  ).toLocaleDateString()}: ${formatCurrency(day.amount)}`}
-                ></div>
-                <span className="text-xs text-gray-500 mt-1">
-                  {new Date(day.date).toLocaleDateString(undefined, {
-                    weekday: "short",
-                  })}
-                </span>
-              </div>
-            );
-          })}
+          {data.transactionsByDay && data.transactionsByDay.length > 0 ? (
+            data.transactionsByDay.map((day, index) => {
+              const height =
+                (day.amount /
+                  Math.max(...data.transactionsByDay.map((d) => d.amount))) *
+                100;
+              return (
+                <div key={index} className="flex flex-col items-center flex-1">
+                  <div
+                    className="w-full rounded-t-md transition-all duration-300 hover:opacity-80"
+                    style={{
+                      height: `${height}%`,
+                      backgroundColor: index % 2 === 0 ? "#596c95" : "#cd6263",
+                      minHeight: "10px",
+                    }}
+                    title={`${new Date(
+                      day.date
+                    ).toLocaleDateString()}: ${formatCurrency(day.amount)}`}
+                  ></div>
+                  <span className="text-xs text-gray-500 mt-1">
+                    {new Date(day.date).toLocaleDateString(undefined, {
+                      weekday: "short",
+                    })}
+                  </span>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-gray-400 text-center w-full">Sin datos</div>
+          )}
         </div>
       </div>
 
@@ -252,22 +233,30 @@ const FinancialStats: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data.transactionsByType.map((type, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {type.type.charAt(0).toUpperCase() + type.type.slice(1)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {type.count.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatCurrency(type.amount)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatCurrency(type.amount / type.count)}
+              {data.transactionsByType && data.transactionsByType.length > 0 ? (
+                data.transactionsByType.map((type, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {type.type.charAt(0).toUpperCase() + type.type.slice(1)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {type.count.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatCurrency(type.amount)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatCurrency(type.amount / type.count)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center text-gray-400 py-4">
+                    Sin datos
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

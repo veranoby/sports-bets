@@ -1,45 +1,65 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFights } from "../../hooks/useApi";
 import type { Fight } from "../../types";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import FightsList from "./FightsList";
-import FightForm from "./FightForm";
+import ErrorMessage from "../shared/ErrorMessage";
+import FightDetailModal from "./FightDetailModal";
 
 interface FightManagerProps {
   eventId: string;
 }
 
 export const FightManager = ({ eventId }: FightManagerProps) => {
-  const { fights, fetchFights, createFight, updateFight, loading, error } =
-    useFights();
+  const {
+    fights,
+    fetchFights,
+    openBetting,
+    closeBetting,
+    recordResult,
+    loading,
+    error,
+  } = useFights();
+  const [selectedFight, setSelectedFight] = useState<Fight | null>(null);
 
   useEffect(() => {
     fetchFights({ eventId });
   }, [eventId]);
 
-  const handleCreate = async (fightData: Omit<Fight, "id">) => {
-    await createFight(fightData);
-    fetchFights({ eventId }); // Refresh list
-  };
-
-  const handleUpdate = async (fightId: string, updates: Partial<Fight>) => {
-    await updateFight(fightId, updates);
-    fetchFights({ eventId }); // Refresh list
-  };
-
   if (loading) return <LoadingSpinner text="Loading fights..." />;
-  if (error) return <div>Error: {error.message}</div>;
-
-  const [selectedFight, setSelectedFight] = useState<Fight | null>(null);
+  if (error)
+    return (
+      <ErrorMessage error={error} onRetry={() => fetchFights({ eventId })} />
+    );
 
   return (
     <div className="space-y-4">
       <FightsList
         fights={fights}
         type="upcoming"
-        onSelectFight={setSelectedFight}
+        onSelectFight={(fightId) => {
+          const fight = fights.find((f) => f.id === fightId) || null;
+          setSelectedFight(fight);
+        }}
       />
-      {selectedFight && <FightForm fight={selectedFight} />}
+      {selectedFight && (
+        <FightDetailModal
+          fight={selectedFight}
+          onClose={() => setSelectedFight(null)}
+          onOpenBetting={async (fightId) => {
+            await openBetting(fightId);
+            fetchFights({ eventId });
+          }}
+          onCloseBetting={async (fightId) => {
+            await closeBetting(fightId);
+            fetchFights({ eventId });
+          }}
+          onRecordResult={async (fightId, result) => {
+            await recordResult(fightId, result as "red" | "blue" | "draw");
+            fetchFights({ eventId });
+          }}
+        />
+      )}
     </div>
   );
 };

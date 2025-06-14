@@ -8,6 +8,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import StatusChip from "../shared/StatusChip";
+import EmptyState from "../shared/EmptyState";
 
 type TransactionType =
   | "deposit"
@@ -26,59 +28,6 @@ interface Transaction {
   createdAt: Date;
 }
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  // Mock data for transactions
-  {
-    id: "1",
-    type: "deposit",
-    amount: 500,
-    status: "completed",
-    description: "Depósito inicial",
-    createdAt: new Date("2023-10-01"),
-  },
-  {
-    id: "2",
-    type: "withdrawal",
-    amount: 200,
-    status: "completed",
-    description: "Retiro a cuenta bancaria",
-    createdAt: new Date("2023-10-05"),
-  },
-  {
-    id: "3",
-    type: "bet-win",
-    amount: 150,
-    status: "completed",
-    description: "Ganancia de apuesta",
-    createdAt: new Date("2023-10-10"),
-  },
-  {
-    id: "4",
-    type: "bet-loss",
-    amount: 100,
-    status: "failed",
-    description: "Pérdida de apuesta",
-    createdAt: new Date("2023-10-12"),
-  },
-  {
-    id: "5",
-    type: "withdrawal",
-    amount: 50,
-    status: "pending",
-    description: "Retiro en proceso",
-    createdAt: new Date("2023-10-15"),
-  },
-  {
-    id: "6",
-    type: "bet-refund",
-    amount: 100,
-    status: "failed",
-    description: "Reembolso de apuesta",
-    createdAt: new Date("2023-10-16"),
-  },
-  // Add more mock data as needed
-];
-
 // Nuevo tipo para configuración
 type SortConfig = {
   key: "date" | "amount";
@@ -87,10 +36,12 @@ type SortConfig = {
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
+  onSelectTransaction?: (transaction: Transaction) => void;
 }
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   transactions,
+  onSelectTransaction,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
@@ -165,6 +116,15 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     }
   };
 
+  if (transactions.length === 0) {
+    return (
+      <EmptyState
+        title="No hay transacciones"
+        description="No se encontraron transacciones para los filtros seleccionados."
+      />
+    );
+  }
+
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-lg font-bold mb-4">Historial de Transacciones</h2>
@@ -225,11 +185,15 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                   ? "bg-yellow-50"
                   : "bg-red-50"
               }`}
-              onClick={() =>
-                setExpandedId(
-                  expandedId === transaction.id ? null : transaction.id
-                )
-              }
+              onClick={() => {
+                if (onSelectTransaction) {
+                  onSelectTransaction(transaction);
+                } else {
+                  setExpandedId(
+                    expandedId === transaction.id ? null : transaction.id
+                  );
+                }
+              }}
             >
               <div className="flex items-center gap-2">
                 {getTransactionIcon(transaction.type)}
@@ -251,6 +215,10 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                   {transaction.type === "withdrawal" ? "-" : "+"}$
                   {transaction.amount}
                 </span>
+                <StatusChip
+                  status={transaction.status as TransactionStatus}
+                  size="sm"
+                />
                 {expandedId === transaction.id ? (
                   <ChevronUp size={16} />
                 ) : (
@@ -265,7 +233,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                   <div>ID Transacción:</div>
                   <div className="font-mono">{transaction.id}</div>
                   <div>Estado:</div>
-                  <div className="capitalize">{transaction.status}</div>
+                  <div>
+                    <StatusChip
+                      status={transaction.status as TransactionStatus}
+                      size="sm"
+                    />
+                  </div>
                   <div>Fecha exacta:</div>
                   <div>{transaction.createdAt.toLocaleString()}</div>
                 </div>

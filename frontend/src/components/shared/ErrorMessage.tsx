@@ -8,7 +8,7 @@ interface ErrorMessageProps {
   showIcon?: boolean;
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({
+const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
   onRetry,
   className = "",
@@ -30,3 +30,5 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     )}
   </div>
 );
+
+export default ErrorMessage;

@@ -12,6 +12,8 @@ import FinancialStats from "../../components/admin/FinancialStats";
 import SystemMonitoring from "../../components/admin/SystemMonitoring";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import StatCard from "../../components/shared/StatCard";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -19,6 +21,30 @@ const AdminDashboard: React.FC = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeUsers, setActiveUsers] = useState(0);
+
+  const handleFetchData = async () => {
+    try {
+      setUsersLoading(true);
+      setEventsLoading(true);
+      setReportsLoading(true);
+      // Simulate fetching data
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setActiveUsers(100); // Assuming a default value for activeUsers
+    } catch (e) {
+      console.error("Error fetching data:", e);
+      setError("Error al cargar los datos. Por favor, inténtelo más tarde.");
+    } finally {
+      setUsersLoading(false);
+      setEventsLoading(false);
+      setReportsLoading(false);
+    }
+  };
+
+  const fetchData = () => {
+    handleFetchData();
+  };
 
   if (usersLoading || eventsLoading || reportsLoading) {
     return <LoadingSpinner text="Cargando datos administrativos..." />;
@@ -90,22 +116,59 @@ const AdminDashboard: React.FC = () => {
       <div className="p-4">
         {activeTab === "users" && (
           <div className="bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg p-4">
-            <UserManagementTable />
+            {usersLoading ? (
+              <LoadingSpinner size="md" className="my-8" />
+            ) : error ? (
+              <ErrorMessage error={error} onRetry={fetchData} />
+            ) : (
+              <>
+                <UserManagementTable />
+                <StatCard
+                  title="Usuarios Activos"
+                  value={activeUsers}
+                  change={{
+                    value: 8.2,
+                    trend: "up",
+                    period: "mes pasado",
+                  }}
+                  color="green"
+                  icon={<Users className="w-5 h-5" />}
+                />
+              </>
+            )}
           </div>
         )}
         {activeTab === "venues" && (
           <div className="bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg p-4">
-            <VenueApprovalPanel />
+            {eventsLoading ? (
+              <LoadingSpinner size="md" className="my-8" />
+            ) : error ? (
+              <ErrorMessage error={error} onRetry={fetchData} />
+            ) : (
+              <VenueApprovalPanel />
+            )}
           </div>
         )}
         {activeTab === "finance" && (
           <div className="bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg p-4">
-            <FinancialStats />
+            {reportsLoading ? (
+              <LoadingSpinner size="md" className="my-8" />
+            ) : error ? (
+              <ErrorMessage error={error} onRetry={fetchData} />
+            ) : (
+              <FinancialStats />
+            )}
           </div>
         )}
         {activeTab === "monitoring" && (
           <div className="bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg p-4">
-            <SystemMonitoring />
+            {eventsLoading ? (
+              <LoadingSpinner size="md" className="my-8" />
+            ) : error ? (
+              <ErrorMessage error={error} onRetry={fetchData} />
+            ) : (
+              <SystemMonitoring />
+            )}
           </div>
         )}
       </div>

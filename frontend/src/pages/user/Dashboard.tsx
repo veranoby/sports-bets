@@ -5,167 +5,159 @@
  */
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Bell,
-  ChevronRight,
-  Trophy,
-  Calendar,
-  FlameIcon as Fire,
-  Activity,
-  Wallet,
-  Award,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-// Importación de componentes
+import React, { useEffect } from "react";
+import { Bell, Calendar, Activity, Wallet, Award } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import WalletSummary from "../../components/user/WalletSummary";
 import Navigation from "../../components/user/Navigation";
-import type {
-  NavigationPage,
-  BetSide,
-  BetStatus,
-  BetResult,
-  Event,
-} from "../../types";
-import { useEvents, useBets } from "../../hooks/useApi";
+import { useEvents, useBets, useWallet } from "../../hooks/useApi";
+import { useWebSocket } from "../../hooks/useWebSocket";
 import DataCard from "../../components/shared/DataCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import EmptyState from "../../components/shared/EmptyState";
+import StatCard from "../../components/shared/StatCard";
+import NotificationBadge from "../../components/shared/NotificationBadge";
+import PageContainer from "../../components/shared/PageContainer";
+import StatusIndicator from "../../components/shared/StatusIndicator";
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [activePage, setActivePage] = useState<NavigationPage>(
-    () => (localStorage.getItem("activePage") as NavigationPage) || "home"
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showNotifications, setShowNotifications] = useState(false);
+  const {
+    events,
+    loading: eventsLoading,
+    error: eventsError,
+    fetchEvents,
+  } = useEvents();
+  const {
+    bets,
+    loading: betsLoading,
+    error: betsError,
+    fetchMyBets,
+  } = useBets();
+  const { wallet } = useWallet();
 
-  // Mock de notificaciones
-  const [notifications, setNotifications] = useState([
-    {
-      id: "notif-1",
-      type: "new_bet",
-      message: "Nueva apuesta disponible en Gallera El Palenque",
-      read: false,
-      timestamp: new Date(Date.now() - 3600000), // 1 hora atrás
+  // WebSocket listeners
+  const wsListeners = {
+    new_bet: () => {
+      fetchEvents();
+      fetchMyBets();
     },
-    {
-      id: "notif-2",
-      type: "event_start",
-      message: "Evento iniciado en Arena San Juan",
-      read: false,
-      timestamp: new Date(Date.now() - 7200000), // 2 horas atrás
-    },
-    {
-      id: "notif-3",
-      type: "bet_result",
-      message: "Tu apuesta en Coliseo Nacional ha ganado!",
-      read: true,
-      timestamp: new Date(Date.now() - 86400000), // 1 día atrás
-    },
-  ]);
+    bet_matched: () => fetchMyBets(),
+    event_activated: () => fetchEvents(),
+  };
+  const { isConnected } = useWebSocket(undefined, wsListeners);
 
-  const { events, loading: eventsLoading } = useEvents();
-  const { bets, loading: betsLoading } = useBets();
-
-  const filteredLiveEvents = events.filter(
-    (event) => event.status === "in-progress"
-  );
-
-  const filteredUpcomingEvents = events.filter(
-    (event) => event.status === "scheduled"
-  );
-
-  const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // La búsqueda se aplica automáticamente al state searchTerm
+  // Stats
+  const userStats = {
+    activeBets: bets?.filter((bet) => bet.status === "active").length || 0,
+    balance: wallet?.balance || 0,
+    winningStreak: 3, // Placeholder
+    streakTrend: "up" as "up" | "down" | "neutral",
   };
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-    // Marcar como leídas al abrir
-    if (!showNotifications) {
-      setNotifications(notifications.map((n) => ({ ...n, read: true })));
-    }
-  };
+  // Notificaciones reales: si hay endpoint, usar hook; si no, dejar badge en 0
+  const unreadNotificationsCount = 0;
 
   useEffect(() => {
-    localStorage.setItem("activePage", activePage);
-  }, [activePage]);
+    fetchEvents({ status: "in-progress" });
+    fetchMyBets({ status: "active" });
+  }, []);
 
-  // Handlers para acciones
-  const handleNavigate = (page: NavigationPage) => {
-    setActivePage(page);
-  };
+  if (eventsLoading || betsLoading)
+    return <LoadingSpinner text="Cargando dashboard..." />;
+  if (eventsError)
+    return <ErrorMessage error={eventsError} onRetry={fetchEvents} />;
+  if (betsError)
+    return <ErrorMessage error={betsError} onRetry={fetchMyBets} />;
 
-  const handleViewWallet = () => {
-    navigate("/user/Wallet");
-  };
+  const liveEvents = events.filter((event) => event.status === "in-progress");
+  const activeBets = bets.filter((bet) => bet.status === "active");
 
-  const handleEnterEvent = (id: string) => {
-    navigate(`/user/LiveEvent/${id}`);
-  };
-
-  const handleViewBetDetails = (id: string) => {
-    console.log(`Ver detalles de apuesta: ${id}`);
-    // Implementación futura: navegación a vista detallada de la apuesta
-  };
-
-  const handleViewAllEvents = () => {
-    setActivePage("events");
-  };
-
-  const handleViewAllBets = () => {
-    setActivePage("bets");
-  };
-
-  const handleViewPastEvents = () => {
-    console.log("Ver eventos pasados");
-    // Implementación futura: navegación a vista de eventos pasados
-  };
-
-  if (eventsLoading) return <LoadingSpinner text="Loading events..." />;
-  if (betsLoading) return <LoadingSpinner text="Loading bets..." />;
+  // Selección de evento para EventCard (ejemplo: primero en la lista)
+  const firstEvent = events.length > 0 ? events[0] : null;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <DataCard
-          title="Active Bets"
-          value={userStats.activeBets}
-          icon={<Activity />}
-          color="blue"
-        />
-        <DataCard
-          title="Wallet Balance"
-          value={`$${userStats.balance.toFixed(2)}`}
-          icon={<Wallet />}
-          color="green"
-        />
-        <DataCard
-          title="Winning Streak"
-          value={userStats.winningStreak}
-          icon={<Award />}
-          trend={userStats.streakTrend}
-          color="red"
-        />
-      </div>
-      <div className="user-dashboard">
-        <Navigation currentPage="dashboard" />
-
+    <PageContainer
+      title="Mi Dashboard"
+      subtitle="Resumen de tus actividades"
+      actions={
+        <div className="flex items-center gap-3">
+          <StatusIndicator
+            status={isConnected ? "connected" : "disconnected"}
+            label={isConnected ? "Conectado" : "Desconectado"}
+            size="sm"
+          />
+          <button className="px-4 py-2 bg-[#596c95] text-white rounded-lg">
+            Nueva acción
+          </button>
+        </div>
+      }
+      loading={eventsLoading || betsLoading}
+      error={undefined}
+      onRetry={() => {
+        if (eventsError) fetchEvents();
+        if (betsError) fetchMyBets();
+      }}
+    >
+      <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <WalletSummary />
-          <EventCard event={events[0]} />
-          <BettingPanel fightId="current-fight-id" />
+          <StatCard
+            title="Apuestas Activas"
+            value={userStats.activeBets}
+            change={{ value: 12.5, trend: "up", period: "semana pasada" }}
+            icon={<Activity className="w-4 h-4" />}
+            color="blue"
+          />
+          <DataCard
+            title="Wallet Balance"
+            value={`$${userStats.balance.toFixed(2)}`}
+            icon={<Wallet />}
+            color="green"
+          />
+          <DataCard
+            title="Winning Streak"
+            value={userStats.winningStreak}
+            icon={<Award />}
+            trend={userStats.streakTrend}
+            color="red"
+          />
+        </div>
+        <div className="user-dashboard">
+          <Navigation />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <WalletSummary
+              balance={wallet?.balance || 0}
+              frozenAmount={wallet?.frozenAmount || 0}
+            />
+            {firstEvent && (
+              <EventCard
+                id={firstEvent.id}
+                venueName={firstEvent.venue?.name || ""}
+                isLive={firstEvent.status === "in-progress"}
+                dateTime={firstEvent.scheduledDate}
+                activeBettors={firstEvent.totalBets || 0}
+                imageUrl={firstEvent.venue?.images?.[0]}
+                onSelect={() => {}}
+              />
+            )}
+            <BettingPanel />
+          </div>
+        </div>
+        {/* Empty state */}
+        {events.length === 0 && (
+          <EmptyState
+            title="No hay eventos"
+            description="Prueba ajustando los filtros"
+            icon={<Calendar className="w-8 h-8 text-gray-400" />}
+          />
+        )}
+        <div className="relative">
+          <Bell className="w-5 h-5" />
+          <NotificationBadge count={unreadNotificationsCount} size="lg" />
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

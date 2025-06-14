@@ -1,5 +1,6 @@
 import React from "react";
 import { Play, Square, Video } from "lucide-react";
+import StatusIndicator from "../shared/StatusIndicator";
 
 const StreamControls: React.FC = () => {
   const startStream = async (eventId: string) => {
@@ -33,6 +34,11 @@ const StreamControls: React.FC = () => {
           Detener
         </button>
       </div>
+      <StatusIndicator
+        status={isStreaming ? "connected" : "disconnected"}
+        label={isStreaming ? "Transmisión en vivo" : "Sin conexión"}
+        size="lg"
+      />
     </div>
   );
 };

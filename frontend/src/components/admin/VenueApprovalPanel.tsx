@@ -13,10 +13,13 @@ import {
   XCircle,
   MapPin,
   Calendar,
-  DollarSign,
-  AlertCircle,
 } from "lucide-react";
 import StatusChip from "../shared/StatusChip";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
+import TableLoadingRow from "../shared/TableLoadingRow";
+import FilterBar from "../shared/FilterBar";
+import EmptyState from "../shared/EmptyState";
 
 const VenueApprovalPanel: React.FC = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -35,7 +38,7 @@ const VenueApprovalPanel: React.FC = () => {
       const response = await venuesAPI.getAll({ status: "pending" });
       setVenues(response.data);
     } catch (err: any) {
-      setError(err.message || "Error al cargar venues");
+      setError((err as Error).message || "Error al cargar venues");
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +56,7 @@ const VenueApprovalPanel: React.FC = () => {
       // Actualizar lista local
       setVenues(venues.filter((venue) => venue.id !== venueId));
     } catch (err: any) {
-      setError(err.message || "Error al aprobar venue");
+      setError((err as Error).message || "Error al aprobar venue");
     } finally {
       setIsUpdating(false);
     }
@@ -81,11 +84,14 @@ const VenueApprovalPanel: React.FC = () => {
       setVenues(venues.filter((venue) => venue.id !== selectedVenue.id));
       setShowRejectModal(false);
     } catch (err: any) {
-      setError(err.message || "Error al rechazar venue");
+      setError((err as Error).message || "Error al rechazar venue");
     } finally {
       setIsUpdating(false);
     }
   };
+
+  // Verificar y asegurar que venues sea un array
+  const safeVenues = Array.isArray(venues) ? venues : [];
 
   return (
     <div className="space-y-6">
@@ -112,106 +118,134 @@ const VenueApprovalPanel: React.FC = () => {
 
       {/* Mensaje de error */}
       {error && (
-        <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" />
-          <span>{error}</span>
-        </div>
+        <ErrorMessage
+          error={error}
+          onRetry={loadPendingVenues}
+          className="mb-4"
+        />
       )}
 
       {/* Estado de carga */}
-      {isLoading && (
-        <div className="text-center py-8">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
-          <p className="mt-2 text-gray-500">Cargando venues pendientes...</p>
-        </div>
-      )}
+      {isLoading && <TableLoadingRow colSpan={5} className="bg-white" />}
 
       {/* Lista de venues */}
-      {!isLoading && venues.length === 0 && (
-        <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-100">
-          <p className="text-gray-500">
-            No hay venues pendientes de aprobación
-          </p>
-        </div>
+      {!isLoading && safeVenues.length === 0 && (
+        <EmptyState
+          title="No hay venues pendientes"
+          description="No hay venues pendientes de aprobación en este momento."
+        />
       )}
 
+      <FilterBar
+        searchPlaceholder="Buscar galleras..."
+        onSearch={() => {}}
+        filters={[
+          {
+            key: "status",
+            label: "Estado",
+            type: "select",
+            options: [
+              { value: "pending", label: "Pendientes" },
+              { value: "approved", label: "Aprobadas" },
+            ],
+          },
+        ]}
+        onReset={() => {}}
+      />
+
       <div className="grid grid-cols-1 gap-6">
-        {venues.map((venue) => (
-          <div
-            key={venue.id}
-            className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-1">
-                    {venue.name}
-                  </h4>
-                  <div className="flex items-center text-gray-500 text-sm mb-4">
-                    <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                    <span>{venue.location}</span>
-                  </div>
-                </div>
-                <StatusChip status={venue.status} size="sm" />
-              </div>
-
-              {venue.description && (
-                <p className="text-gray-600 mb-4">{venue.description}</p>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center text-gray-500 text-sm mb-1">
-                    <Calendar className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                    <span>Fecha de solicitud</span>
-                  </div>
-                  <p className="font-medium text-gray-900">
-                    {new Date(venue.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-
-                {venue.contactInfo?.email && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center text-gray-500 text-sm mb-1">
-                      <span>Email de contacto</span>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {isLoading ? (
+            <TableLoadingRow colSpan={5} />
+          ) : safeVenues.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="text-center py-4">
+                No hay venues para aprobar
+              </td>
+            </tr>
+          ) : (
+            safeVenues.map((venue) => (
+              <tr
+                key={venue.id}
+                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900 mb-1">
+                        {venue.name}
+                      </h4>
+                      <div className="flex items-center text-gray-500 text-sm mb-4">
+                        <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                        <span>{venue.location}</span>
+                      </div>
                     </div>
-                    <p className="font-medium text-gray-900">
-                      {venue.contactInfo.email}
-                    </p>
+                    <StatusChip
+                      status={
+                        venue.status as "pending" | "approved" | "rejected"
+                      }
+                    />
                   </div>
-                )}
 
-                {venue.contactInfo?.phone && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center text-gray-500 text-sm mb-1">
-                      <span>Teléfono</span>
+                  {venue.description && (
+                    <p className="text-gray-600 mb-4">{venue.description}</p>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center text-gray-500 text-sm mb-1">
+                        <Calendar className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                        <span>Fecha de solicitud</span>
+                      </div>
+                      <p className="font-medium text-gray-900">
+                        {new Date(venue.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
-                    <p className="font-medium text-gray-900">
-                      {venue.contactInfo.phone}
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => prepareRejectVenue(venue)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium flex items-center bg-red-50 text-red-600 hover:bg-red-100"
-                >
-                  <XCircle className="w-4 h-4 mr-1.5" />
-                  Rechazar
-                </button>
-                <button
-                  onClick={() => handleApproveVenue(venue.id)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium flex items-center bg-green-50 text-green-600 hover:bg-green-100"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1.5" />
-                  Aprobar
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+                    {venue.contactInfo?.email && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center text-gray-500 text-sm mb-1">
+                          <span>Email de contacto</span>
+                        </div>
+                        <p className="font-medium text-gray-900">
+                          {venue.contactInfo.email}
+                        </p>
+                      </div>
+                    )}
+
+                    {venue.contactInfo?.phone && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center text-gray-500 text-sm mb-1">
+                          <span>Teléfono</span>
+                        </div>
+                        <p className="font-medium text-gray-900">
+                          {venue.contactInfo.phone}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={() => prepareRejectVenue(venue)}
+                      className="px-4 py-2 rounded-lg text-sm font-medium flex items-center bg-red-50 text-red-600 hover:bg-red-100"
+                    >
+                      <XCircle className="w-4 h-4 mr-1.5" />
+                      Rechazar
+                    </button>
+                    <button
+                      onClick={() => handleApproveVenue(venue.id)}
+                      className="px-4 py-2 rounded-lg text-sm font-medium flex items-center bg-green-50 text-green-600 hover:bg-green-100"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1.5" />
+                      Aprobar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
       </div>
 
       {/* Modal de rechazo */}

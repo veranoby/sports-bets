@@ -1,21 +1,33 @@
-import axios from 'axios';
+import axios, { type AxiosResponse } from "axios";
+import type {
+  APIResponse,
+  User,
+  Event,
+  Fight,
+  Bet,
+  Venue,
+  Wallet,
+  Transaction,
+  Subscription,
+} from "../types";
 
 // Configuración base de la API
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 // Crear instancia de axios con configuración base
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Interceptor para agregar token automáticamente
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,130 +38,239 @@ apiClient.interceptors.request.use(
 
 // Interceptor para manejar respuestas y errores
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => response, // Return the raw axios response
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    
+    console.error("API Error:", error.response?.data || error.message);
+
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
-    
-    // Extraer mensaje de error del backend
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data?.error || 
-                        error.message || 
-                        'Error desconocido';
-    
-    return Promise.reject(new Error(errorMessage));
+
+    // Extract error message from backend
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Error desconocido";
+
+    return Promise.reject(new Error(errorMessage)); // Reject with a standard Error object
   }
 );
 
+// Helper para formatear respuestas de API a APIResponse
+const formatApiResponse = <T>(
+  promise: Promise<AxiosResponse<T>>
+): Promise<APIResponse<T>> => {
+  return promise
+    .then((res) => ({
+      success: true,
+      data: res.data,
+    }))
+    .catch((err) => {
+      const message = err.message || "Error desconocido";
+      return Promise.reject({ success: false, message });
+    });
+};
+
 // Servicios API organizados por categoría
 export const authAPI = {
-  register: (data: { username: string; email: string; password: string }) =>
-    apiClient.post('/auth/register', data),
-  
-  login: (data: { login: string; password: string }) =>
-    apiClient.post('/auth/login', data),
-  
-  me: () => apiClient.get('/auth/me'),
-  
-  refreshToken: () => apiClient.post('/auth/refresh'),
-  
-  changePassword: (data: { currentPassword: string; newPassword: string }) =>
-    apiClient.post('/auth/change-password', data),
-  
-  logout: () => apiClient.post('/auth/logout'),
+  register: (data: {
+    username: string;
+    email: string;
+    password: string;
+  }): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.post<User>("/auth/register", data)),
+
+  login: (data: {
+    login: string;
+    password: string;
+  }): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.post<User>("/auth/login", data)),
+
+  me: (): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.get<User>("/auth/me")),
+
+  refreshToken: (): Promise<APIResponse<{ token: string }>> =>
+    formatApiResponse(apiClient.post<{ token: string }>("/auth/refresh")),
+
+  changePassword: (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(
+      apiClient.post<{ message: string }>("/auth/change-password", data)
+    ),
+
+  logout: (): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(apiClient.post<{ message: string }>("/auth/logout")),
 };
 
 export const eventsAPI = {
-  getAll: (params?: { venueId?: string; status?: string; upcoming?: boolean; limit?: number; offset?: number }) =>
-    apiClient.get('/events', { params }),
-  
-  getById: (id: string) => apiClient.get(`/events/${id}`),
-  
-  create: (data: {
-    name: string;
-    venueId: string;
-    scheduledDate: string;
-    operatorId?: string;
-  }) => apiClient.post('/events', data),
-  
-  update: (id: string, data: any) => apiClient.put(`/events/${id}`, data),
-  
-  activate: (id: string) => apiClient.post(`/events/${id}/activate`),
-  
-  startStream: (id: string) => apiClient.post(`/events/${id}/stream/start`),
-  
-  stopStream: (id: string) => apiClient.post(`/events/${id}/stream/stop`),
-  
-  getStreamStatus: (id: string) => apiClient.get(`/events/${id}/stream/status`),
-  
-  complete: (id: string) => apiClient.post(`/events/${id}/complete`),
-  
-  getStats: (id: string) => apiClient.get(`/events/${id}/stats`),
-  
-  delete: (id: string) => apiClient.delete(`/events/${id}`),
+  getAll: (params?: {
+    venueId?: string;
+    status?: string;
+    upcoming?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<
+    APIResponse<{
+      events: Event[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>
+  > =>
+    formatApiResponse(
+      apiClient.get<{
+        events: Event[];
+        total: number;
+        limit: number;
+        offset: number;
+      }>("/events", { params })
+    ),
+
+  getById: (id: string): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.get<Event>(`/events/${id}`)),
+
+  create: (
+    data: Omit<
+      Event,
+      | "id"
+      | "status"
+      | "totalFights"
+      | "completedFights"
+      | "totalBets"
+      | "totalPrizePool"
+      | "createdAt"
+      | "updatedAt"
+      | "venue"
+      | "operator"
+      | "creator"
+      | "fights"
+      | "startTime"
+    >
+  ): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.post<Event>("/events", data)),
+
+  update: (id: string, data: Partial<Event>): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.put<Event>(`/events/${id}`, data)),
+
+  activate: (id: string): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.post<Event>(`/events/${id}/activate`)),
+
+  startStream: (id: string): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.post<Event>(`/events/${id}/stream/start`)),
+
+  stopStream: (id: string): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.post<Event>(`/events/${id}/stream/stop`)),
+
+  getStreamStatus: (
+    id: string
+  ): Promise<APIResponse<{ status: string; streamUrl?: string }>> =>
+    formatApiResponse(
+      apiClient.get<{ status: string; streamUrl?: string }>(
+        `/events/${id}/stream/status`
+      )
+    ),
+
+  complete: (id: string): Promise<APIResponse<Event>> =>
+    formatApiResponse(apiClient.post<Event>(`/events/${id}/complete`)),
+
+  getStats: (id: string): Promise<APIResponse<Partial<Event>>> =>
+    formatApiResponse(apiClient.get<Partial<Event>>(`/events/${id}/stats`)),
+
+  delete: (id: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(apiClient.delete<{ message: string }>(`/events/${id}`)),
 };
 
 export const fightsAPI = {
-  getAll: (params?: { eventId?: string; status?: string }) =>
-    apiClient.get('/fights', { params }),
-  
-  getById: (id: string) => apiClient.get(`/fights/${id}`),
-  
-  create: (data: {
-    eventId: string;
-    number: number;
-    redCorner: string;
-    blueCorner: string;
-    weight: number;
-    notes?: string;
-    initialOdds?: { red: number; blue: number };
-  }) => apiClient.post('/fights', data),
-  
-  update: (id: string, data: {
-    redCorner?: string;
-    blueCorner?: string;
-    weight?: number;
-    notes?: string;
+  getAll: (params?: {
+    eventId?: string;
     status?: string;
-  }) => apiClient.put(`/fights/${id}`, data),
-  
-  openBetting: (id: string) => apiClient.post(`/fights/${id}/open-betting`),
-  
-  closeBetting: (id: string) => apiClient.post(`/fights/${id}/close-betting`),
-  
-  recordResult: (id: string, result: 'red' | 'blue' | 'draw' | 'cancelled') =>
-    apiClient.post(`/fights/${id}/result`, { result }),
+  }): Promise<APIResponse<Fight[]>> =>
+    formatApiResponse(apiClient.get<Fight[]>("/fights", { params })),
+
+  getById: (id: string): Promise<APIResponse<Fight>> =>
+    formatApiResponse(apiClient.get<Fight>(`/fights/${id}`)),
+
+  create: (
+    data: Omit<
+      Fight,
+      | "id"
+      | "status"
+      | "result"
+      | "startTime"
+      | "endTime"
+      | "createdAt"
+      | "updatedAt"
+      | "event"
+      | "bets"
+    >
+  ): Promise<APIResponse<Fight>> =>
+    formatApiResponse(apiClient.post<Fight>("/fights", data)),
+
+  update: (id: string, data: Partial<Fight>): Promise<APIResponse<Fight>> =>
+    formatApiResponse(apiClient.put<Fight>(`/fights/${id}`, data)),
+
+  openBetting: (id: string): Promise<APIResponse<Fight>> =>
+    formatApiResponse(apiClient.post<Fight>(`/fights/${id}/open-betting`)),
+
+  closeBetting: (id: string): Promise<APIResponse<Fight>> =>
+    formatApiResponse(apiClient.post<Fight>(`/fights/${id}/close-betting`)),
+
+  recordResult: (
+    id: string,
+    result: "red" | "blue" | "draw" | "no_contest"
+  ): Promise<APIResponse<Fight>> =>
+    formatApiResponse(
+      apiClient.post<Fight>(`/fights/${id}/result`, { result })
+    ),
 };
 
 export const betsAPI = {
-  getMyBets: (params?: { status?: string; fightId?: string; limit?: number; offset?: number }) =>
-    apiClient.get('/bets', { params }),
-  
-  getAvailable: (fightId: string) =>
-    apiClient.get(`/bets/available/${fightId}`),
-  
-  create: (data: {
-    fightId: string;
-    side: 'red' | 'blue';
-    amount: number;
-    ratio?: number;
-    isOffer?: boolean;
-  }) => apiClient.post('/bets', data),
-  
-  accept: (betId: string) => apiClient.post(`/bets/${betId}/accept`),
-  
-  cancel: (betId: string) => apiClient.put(`/bets/${betId}/cancel`),
-  
-  getStats: () => apiClient.get('/bets/stats'),
+  getMyBets: (params?: {
+    status?: string;
+    fightId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<APIResponse<{ bets: Bet[]; total: number }>> =>
+    formatApiResponse(
+      apiClient.get<{ bets: Bet[]; total: number }>("/bets", { params })
+    ),
+
+  getAvailable: (fightId: string): Promise<APIResponse<Bet[]>> =>
+    formatApiResponse(apiClient.get<Bet[]>(`/bets/available/${fightId}`)),
+
+  create: (
+    data: Pick<Bet, "fightId" | "side" | "amount"> & {
+      terms?: { ratio?: number; isOffer?: boolean };
+    }
+  ): Promise<APIResponse<Bet>> =>
+    formatApiResponse(apiClient.post<Bet>("/bets", data)),
+
+  accept: (betId: string): Promise<APIResponse<Bet>> =>
+    formatApiResponse(apiClient.post<Bet>(`/bets/${betId}/accept`)),
+
+  cancel: (betId: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(
+      apiClient.put<{ message: string }>(`/bets/${betId}/cancel`, {})
+    ),
+
+  getStats: (): Promise<APIResponse<Record<string, number>>> =>
+    formatApiResponse(apiClient.get<Record<string, number>>("/bets/stats")),
 };
 
 export const walletAPI = {
-  getWallet: () => apiClient.get('/wallet'),
-  
+  getWallet: (): Promise<
+    APIResponse<{ wallet: Wallet; recentTransactions: Transaction[] }>
+  > =>
+    formatApiResponse(
+      apiClient.get<{ wallet: Wallet; recentTransactions: Transaction[] }>(
+        "/wallet"
+      )
+    ),
+
   getTransactions: (params?: {
     type?: string;
     status?: string;
@@ -157,107 +278,203 @@ export const walletAPI = {
     offset?: number;
     dateFrom?: string;
     dateTo?: string;
-  }) => apiClient.get('/wallet/transactions', { params }),
-  
+  }): Promise<APIResponse<{ transactions: Transaction[]; total: number }>> =>
+    formatApiResponse(
+      apiClient.get<{ transactions: Transaction[]; total: number }>(
+        "/wallet/transactions",
+        { params }
+      )
+    ),
+
   deposit: (data: {
     amount: number;
-    paymentMethod: 'card' | 'transfer';
+    paymentMethod: "card" | "transfer";
     paymentData?: any;
-  }) => apiClient.post('/wallet/deposit', data),
-  
+  }): Promise<APIResponse<{ message: string; transactionId?: string }>> =>
+    formatApiResponse(
+      apiClient.post<{ message: string; transactionId?: string }>(
+        "/wallet/deposit",
+        data
+      )
+    ),
+
   withdraw: (data: {
     amount: number;
     accountNumber: string;
     accountType?: string;
     bankName?: string;
-  }) => apiClient.post('/wallet/withdraw', data),
-  
-  getBalance: () => apiClient.get('/wallet/balance'),
-  
-  getStats: () => apiClient.get('/wallet/stats'),
+  }): Promise<APIResponse<{ message: string; transactionId?: string }>> =>
+    formatApiResponse(
+      apiClient.post<{ message: string; transactionId?: string }>(
+        "/wallet/withdraw",
+        data
+      )
+    ),
+
+  getBalance: (): Promise<
+    APIResponse<{ balance: number; frozenAmount: number }>
+  > =>
+    formatApiResponse(
+      apiClient.get<{ balance: number; frozenAmount: number }>(
+        "/wallet/balance"
+      )
+    ),
+
+  getStats: (): Promise<APIResponse<Record<string, number>>> =>
+    formatApiResponse(apiClient.get<Record<string, number>>("/wallet/stats")),
 };
 
 export const subscriptionsAPI = {
-  getMy: () => apiClient.get('/subscriptions'),
-  
-  getCurrent: () => apiClient.get('/subscriptions/current'),
-  
+  getMy: (): Promise<APIResponse<Subscription[]>> =>
+    formatApiResponse(apiClient.get<Subscription[]>("/subscriptions")),
+
+  getCurrent: (): Promise<APIResponse<Subscription>> =>
+    formatApiResponse(apiClient.get<Subscription>("/subscriptions/current")),
+
   create: (data: {
-    plan: 'daily' | 'monthly';
+    plan: "daily" | "monthly";
     autoRenew?: boolean;
     paymentData?: any;
-  }) => apiClient.post('/subscriptions', data),
-  
-  cancel: (id: string) => apiClient.put(`/subscriptions/${id}/cancel`),
-  
-  toggleAutoRenew: (id: string, autoRenew: boolean) =>
-    apiClient.put(`/subscriptions/${id}/auto-renew`, { autoRenew }),
-  
-  getPlans: () => apiClient.get('/subscriptions/plans/info'),
-  
-  checkAccess: () => apiClient.post('/subscriptions/check-access'),
-  
-  extend: (id: string) => apiClient.put(`/subscriptions/${id}/extend`),
+  }): Promise<APIResponse<Subscription>> =>
+    formatApiResponse(apiClient.post<Subscription>("/subscriptions", data)),
+
+  cancel: (id: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(
+      apiClient.put<{ message: string }>(`/subscriptions/${id}/cancel`, {})
+    ),
+
+  toggleAutoRenew: (
+    id: string,
+    autoRenew: boolean
+  ): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(
+      apiClient.put<{ message: string }>(`/subscriptions/${id}/auto-renew`, {
+        autoRenew,
+      })
+    ),
+
+  getPlans: (): Promise<
+    APIResponse<{ id: string; name: string; price: number; duration: string }[]>
+  > =>
+    formatApiResponse(
+      apiClient.get<
+        { id: string; name: string; price: number; duration: string }[]
+      >("/subscriptions/plans/info")
+    ),
+
+  checkAccess: (): Promise<APIResponse<{ hasAccess: boolean }>> =>
+    formatApiResponse(
+      apiClient.post<{ hasAccess: boolean }>("/subscriptions/check-access")
+    ),
+
+  extend: (id: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(
+      apiClient.put<{ message: string }>(`/subscriptions/${id}/extend`, {})
+    ),
 };
 
 export const venuesAPI = {
-  getAll: (params?: { status?: string; limit?: number; offset?: number }) =>
-    apiClient.get('/venues', { params }),
-  
-  getById: (id: string) => apiClient.get(`/venues/${id}`),
-  
-  create: (data: {
-    name: string;
-    location: string;
-    description?: string;
-    contactInfo?: any;
-    ownerId?: string;
-  }) => apiClient.post('/venues', data),
-  
-  update: (id: string, data: {
-    name?: string;
-    location?: string;
-    description?: string;
-    contactInfo?: any;
+  getAll: (params?: {
     status?: string;
-  }) => apiClient.put(`/venues/${id}`, data),
-  
-  updateStatus: (id: string, status: string, reason?: string) =>
-    apiClient.put(`/venues/${id}/status`, { status, reason }),
-  
-  delete: (id: string) => apiClient.delete(`/venues/${id}`),
-  
-  getMyVenues: () => apiClient.get('/venues/my/venues'),
+    ownerId?: string;
+  }): Promise<APIResponse<{ venues: Venue[]; total: number }>> =>
+    formatApiResponse(
+      apiClient.get<{ venues: Venue[]; total: number }>("/venues", { params })
+    ),
+
+  getById: (id: string): Promise<APIResponse<Venue>> =>
+    formatApiResponse(apiClient.get<Venue>(`/venues/${id}`)),
+
+  create: (
+    data: Omit<
+      Venue,
+      | "id"
+      | "ownerId"
+      | "status"
+      | "isVerified"
+      | "createdAt"
+      | "updatedAt"
+      | "images"
+    >
+  ): Promise<APIResponse<Venue>> =>
+    formatApiResponse(apiClient.post<Venue>("/venues", data)),
+
+  update: (id: string, data: Partial<Venue>): Promise<APIResponse<Venue>> =>
+    formatApiResponse(apiClient.put<Venue>(`/venues/${id}`, data)),
+
+  updateStatus: (
+    id: string,
+    status: "approved" | "rejected",
+    reason?: string
+  ): Promise<APIResponse<Venue>> =>
+    formatApiResponse(
+      apiClient.put<Venue>(`/venues/${id}/status`, { status, reason })
+    ),
+
+  getVenueEvents: (id: string): Promise<APIResponse<Event[]>> =>
+    formatApiResponse(apiClient.get<Event[]>(`/venues/${id}/events`)),
+
+  delete: (id: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(apiClient.delete<{ message: string }>(`/venues/${id}`)),
 };
 
 export const usersAPI = {
-  getProfile: () => apiClient.get('/users/profile'),
-  
-  updateProfile: (data: {
-    profileInfo?: {
-      fullName?: string;
-      phoneNumber?: string;
-      address?: string;
-      identificationNumber?: string;
-    };
-  }) => apiClient.put('/users/profile', data),
-  
-  getAll: (params?: { role?: string; isActive?: boolean; limit?: number; offset?: number }) =>
-    apiClient.get('/users', { params }),
-  
-  getById: (id: string) => apiClient.get(`/users/${id}`),
-  
-  updateStatus: (id: string, isActive: boolean, reason?: string) =>
-    apiClient.put(`/users/${id}/status`, { isActive, reason }),
-  
-  updateRole: (id: string, role: string, reason?: string) =>
-    apiClient.put(`/users/${id}/role`, { role, reason }),
-  
-  getAvailableOperators: () => apiClient.get('/users/operators/available'),
+  getAll: (params?: {
+    role?: string;
+    isActive?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<APIResponse<{ users: User[]; total: number }>> =>
+    formatApiResponse(
+      apiClient.get<{ users: User[]; total: number }>("/users", { params })
+    ),
+
+  getById: (id: string): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.get<User>(`/users/${id}`)),
+
+  create: (
+    data: Omit<
+      User,
+      | "id"
+      | "role"
+      | "isActive"
+      | "profileInfo"
+      | "lastLogin"
+      | "createdAt"
+      | "updatedAt"
+    >
+  ): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.post<User>("/users", data)),
+
+  updateStatus: (id: string, isActive: boolean): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.put<User>(`/users/${id}/status`, { isActive })),
+
+  updateRole: (id: string, role: string): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.put<User>(`/users/${id}/role`, { role })),
+
+  updateProfile: (
+    id: string,
+    data: Partial<User["profileInfo"]>
+  ): Promise<APIResponse<User>> =>
+    formatApiResponse(apiClient.patch<User>(`/users/${id}/profile`, data)),
+
+  delete: (id: string): Promise<APIResponse<{ message: string }>> =>
+    formatApiResponse(apiClient.delete<{ message: string }>(`/users/${id}`)),
 };
 
 // WebSocket configuration
-export const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+export const WEBSOCKET_URL =
+  import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
 // Re-exportar tipos desde el archivo de tipos (para compatibilidad)
-export type { APIResponse, User, Event, Fight, Bet, Venue, Wallet, Transaction, Subscription } from '../types';
+export type {
+  APIResponse,
+  User,
+  Event,
+  Fight,
+  Bet,
+  Venue,
+  Wallet,
+  Transaction,
+  Subscription,
+} from "../types";

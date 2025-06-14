@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  ExclamationTriangleIcon,
-  InformationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { AlertTriangle, Info } from "lucide-react";
 
 interface ConfirmDialogProps {
   title: string;
@@ -33,16 +30,19 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     info: "bg-blue-100 text-blue-700",
   };
 
+  const icon =
+    variant === "danger" || variant === "warning" ? (
+      <AlertTriangle className="w-6 h-6 text-yellow-500" />
+    ) : (
+      <Info className="w-6 h-6 text-blue-500" />
+    );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div className={`p-4 rounded-t-lg ${variantStyles[variant]}`}>
           <div className="flex items-center">
-            {variant === "danger" || variant === "warning" ? (
-              <ExclamationTriangleIcon className="h-6 w-6 mr-2" />
-            ) : (
-              <InformationCircleIcon className="h-6 w-6 mr-2" />
-            )}
+            {icon}
             <h3 className="text-lg font-medium">{title}</h3>
           </div>
         </div>

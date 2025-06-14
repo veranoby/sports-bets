@@ -11,10 +11,10 @@ const LiveStats: React.FC = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <DataCard
-        title="Total Bets"
+        title="Apuestas Totales"
         value={events.length}
         size="sm"
-        color="blue"
+        color="#596c95"
       />
       <DataCard title="Live Viewers" value={0} size="sm" color="red" />
       <DataCard
@@ -28,6 +28,12 @@ const LiveStats: React.FC = () => {
         value={(0).toFixed(2)}
         size="sm"
         color="red"
+      />
+      <DataCard
+        title="Problemas Técnicos"
+        value={0}
+        size="sm"
+        color="#cd6263"
       />
     </div>
   );

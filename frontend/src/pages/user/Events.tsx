@@ -1,24 +1,31 @@
 "use client";
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Filter, Calendar } from "lucide-react";
+import React, { useState } from "react";
+import { Filter, Calendar } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
 import { useEvents } from "../../hooks/useApi";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import FilterBar from "../../components/shared/FilterBar";
 import EmptyState from "../../components/shared/EmptyState";
+import EventDetailModal from "../../components/user/EventDetailModal";
 
 const EventsPage: React.FC = () => {
-  const { events, loading, error } = useEvents();
+  const { events, loading, error, fetchEvents } = useEvents();
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
-  const liveEvents = events.filter((event) => event.isLive);
+  const liveEvents = events.filter((event) => event.status === "in-progress");
   const upcomingEvents = events.filter(
-    (event) => !event.isLive && new Date(event.dateTime) > new Date()
+    (event) =>
+      event.status === "scheduled" && new Date(event.scheduledDate) > new Date()
   );
 
-  if (loading) return <LoadingSpinner text="Cargando eventos..." />;
-  if (error) return <ErrorBoundary />;
+  const selectedEvent = events.find((e) => e.id === selectedEventId) || null;
+
+  if (loading)
+    return <LoadingSpinner text="Cargando eventos..." className="mt-12" />;
+  if (error) return <ErrorMessage error={error} onRetry={fetchEvents} />;
 
   const renderEmptyState = (message: string) => (
     <div className="py-12 text-center">
@@ -45,14 +52,26 @@ const EventsPage: React.FC = () => {
       <main className="container mx-auto px-4 py-6">
         {/* Search and Filters */}
         <div className="mb-6">
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar eventos..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            />
-          </div>
+          <FilterBar
+            searchPlaceholder="Buscar eventos..."
+            filters={[
+              {
+                key: "status",
+                label: "Filtrar por estado",
+                type: "select",
+                options: [
+                  { value: "active", label: "Activos" },
+                  { value: "upcoming", label: "Próximos" },
+                ],
+              },
+            ]}
+            onFilterChange={(key, value) =>
+              setFilters({ ...filters, [key]: value })
+            }
+            onReset={() => {
+              setFilters({});
+            }}
+          />
           <div className="flex space-x-2">
             <button className="flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
               <Filter className="w-4 h-4 mr-1.5" />
@@ -80,11 +99,12 @@ const EventsPage: React.FC = () => {
                 <EventCard
                   key={event.id}
                   id={event.id}
-                  venueName={event.venueName}
-                  isLive={event.isLive}
-                  dateTime={event.dateTime}
-                  activeBettors={event.activeBettors}
-                  imageUrl={event.imageUrl}
+                  venueName={event.venue?.name || ""}
+                  isLive={event.status === "in-progress"}
+                  dateTime={event.scheduledDate}
+                  activeBettors={event.totalBets || 0}
+                  imageUrl={event.venue?.images?.[0]}
+                  onSelect={setSelectedEventId}
                 />
               ))}
             </div>
@@ -110,11 +130,12 @@ const EventsPage: React.FC = () => {
                 <EventCard
                   key={event.id}
                   id={event.id}
-                  venueName={event.venueName}
-                  isLive={event.isLive}
-                  dateTime={event.dateTime}
-                  activeBettors={event.activeBettors}
-                  imageUrl={event.imageUrl}
+                  venueName={event.venue?.name || ""}
+                  isLive={event.status === "in-progress"}
+                  dateTime={event.scheduledDate}
+                  activeBettors={event.totalBets || 0}
+                  imageUrl={event.venue?.images?.[0]}
+                  onSelect={setSelectedEventId}
                 />
               ))}
             </div>
@@ -122,6 +143,13 @@ const EventsPage: React.FC = () => {
             renderEmptyState("No hay eventos programados próximamente")
           )}
         </section>
+
+        {selectedEvent && (
+          <EventDetailModal
+            event={selectedEvent}
+            onClose={() => setSelectedEventId(null)}
+          />
+        )}
       </main>
     </div>
   );

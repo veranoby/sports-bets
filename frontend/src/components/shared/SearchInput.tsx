@@ -1,3 +1,4 @@
+import React from "react";
 import { Search } from "lucide-react";
 
 interface SearchInputProps {
@@ -6,11 +7,11 @@ interface SearchInputProps {
   className?: string;
 }
 
-export const SearchInput = ({
+const SearchInput: React.FC<SearchInputProps> = ({
   placeholder,
   onSearch,
   className,
-}: SearchInputProps) => {
+}) => {
   return (
     <div className={`relative ${className}`}>
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -23,3 +24,5 @@ export const SearchInput = ({
     </div>
   );
 };
+
+export default SearchInput;

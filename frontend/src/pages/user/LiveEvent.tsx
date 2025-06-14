@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useFights } from "../../hooks/useApi";
+import { useBets } from "../../hooks/useApi";
 import { LoadingSpinner } from "../../components/shared/LoadingSpinner";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import { EmptyState } from "../../components/shared/EmptyState";
 
 type Fight = {
   id: string;
@@ -23,6 +26,7 @@ type Bet = {
 
 const LiveEvent = ({ id }: { id: string }) => {
   const { fights, fetchFights, loading, error } = useFights();
+  const { bets, fetchBets, loadingBets, errorBets } = useBets();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
@@ -34,46 +38,7 @@ const LiveEvent = ({ id }: { id: string }) => {
   }, [id]);
 
   if (loading) return <LoadingSpinner text="Loading fights..." />;
-  if (error) return <div className="error-message">Error: {error.message}</div>;
-
-  // Mock data
-  const currentFight: Fight = {
-    id: "fight-123",
-    breeder1: "El Campeón",
-    breeder2: "El Retador",
-    weight: 2.5,
-    status: "en_curso",
-  };
-
-  const availableBets: Bet[] = [
-    {
-      id: "bet-1",
-      amount: 500,
-      odds: 1.8,
-      breeder: "El Campeón",
-      createdBy: "Usuario123",
-      createdAt: "2023-10-15T14:30:00Z",
-    },
-    {
-      id: "bet-2",
-      amount: 300,
-      odds: 2.2,
-      breeder: "El Retador",
-      createdBy: "Usuario456",
-      createdAt: "2023-10-15T14:35:00Z",
-    },
-  ];
-
-  const myBets: Bet[] = [
-    {
-      id: "bet-3",
-      amount: 200,
-      odds: 1.9,
-      breeder: "El Campeón",
-      createdBy: "Yo",
-      createdAt: "2023-10-15T14:25:00Z",
-    },
-  ];
+  if (error) return <ErrorMessage message={error.message} />;
 
   const handleAcceptBet = (betId: string) => {
     console.log(`Aceptando apuesta ${betId}`);
@@ -104,21 +69,21 @@ const LiveEvent = ({ id }: { id: string }) => {
         <h2 className="text-lg font-semibold mb-2">Pelea Actual</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="font-medium">{currentFight.breeder1}</p>
+            <p className="font-medium">{fights[0]?.breeder1}</p>
             <p className="text-gray-600">vs</p>
-            <p className="font-medium">{currentFight.breeder2}</p>
+            <p className="font-medium">{fights[0]?.breeder2}</p>
           </div>
           <div className="space-y-2">
             <div className="flex items-center text-gray-700">
               <Scale className="mr-2" size={16} />
-              <span>{currentFight.weight} kg</span>
+              <span>{fights[0]?.weight} kg</span>
             </div>
             <div className="flex items-center text-gray-700">
               <Clock className="mr-2" size={16} />
               <span>
-                {currentFight.status === "en_curso"
+                {fights[0]?.status === "en_curso"
                   ? "En curso"
-                  : currentFight.status === "preliminar"
+                  : fights[0]?.status === "preliminar"
                   ? "Preliminar"
                   : "Finalizado"}
               </span>
@@ -170,7 +135,7 @@ const LiveEvent = ({ id }: { id: string }) => {
           <div>
             <h3 className="font-semibold mb-3">Apuestas Disponibles</h3>
             <div className="space-y-3">
-              {availableBets.map((bet) => (
+              {bets.map((bet) => (
                 <div key={bet.id} className="bg-white p-3 rounded-lg shadow-sm">
                   <div className="flex justify-between items-start">
                     <div>
@@ -201,13 +166,11 @@ const LiveEvent = ({ id }: { id: string }) => {
         {activeTab === "my_bets" && (
           <div>
             <h3 className="font-semibold mb-3">Mis Apuestas</h3>
-            {myBets.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
-                No tienes apuestas activas
-              </p>
+            {bets.length === 0 ? (
+              <EmptyState message="No tienes apuestas activas" />
             ) : (
               <div className="space-y-3">
-                {myBets.map((bet) => (
+                {bets.map((bet) => (
                   <div
                     key={bet.id}
                     className="bg-white p-3 rounded-lg shadow-sm"

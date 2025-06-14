@@ -15,7 +15,8 @@ interface EventCardProps {
   isLive: boolean;
   dateTime: string;
   activeBettors: number;
-  imageUrl?: string; // Made optional with fallback
+  imageUrl?: string;
+  onSelect: (eventId: string) => void;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -25,6 +26,7 @@ const EventCard: React.FC<EventCardProps> = ({
   dateTime,
   activeBettors,
   imageUrl,
+  onSelect,
 }) => {
   const navigate = useNavigate();
 
@@ -48,7 +50,10 @@ const EventCard: React.FC<EventCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md">
+    <div
+      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md cursor-pointer"
+      onClick={() => onSelect(id)}
+    >
       <div className="relative">
         <div className="aspect-[16/9] overflow-hidden bg-gray-50">
           <img

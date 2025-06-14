@@ -18,7 +18,7 @@ import StatusChip from "../shared/StatusChip";
 
 export interface BetCardProps {
   bet: Bet;
-  onSelect?: (bet: Bet) => void;
+  onSelect: (bet: Bet) => void;
   className?: string;
 }
 
@@ -87,8 +87,8 @@ const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
 
   return (
     <div
-      className={`p-4 border rounded-lg ${className}`}
-      onClick={() => onSelect?.(bet)}
+      className={`p-4 border rounded-lg cursor-pointer hover:shadow ${className}`}
+      onClick={() => onSelect(bet)}
     >
       <div className="flex justify-between">
         <span>

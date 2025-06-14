@@ -6,16 +6,13 @@
 
 import React, { useState, useEffect } from "react";
 import type { User } from "../../types";
-import {
-  Search,
-  RefreshCw,
-  UserCheck,
-  UserX,
-  Shield,
-  User as UserIcon,
-  XCircle,
-} from "lucide-react";
+import { Search, RefreshCw, UserCheck, UserX } from "lucide-react";
 import StatusChip from "../shared/StatusChip";
+import TableLoadingRow from "../shared/TableLoadingRow";
+import FilterBar from "../shared/FilterBar";
+import ErrorMessage from "../shared/ErrorMessage";
+import EmptyState from "../shared/EmptyState";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
 
 // Configuración de la API (ajusta según tu estructura)
 const usersAPI = {
@@ -39,6 +36,15 @@ const usersAPI = {
   },
 };
 
+const TABLE_COLUMNS = [
+  "Usuario",
+  "Email",
+  "Rol",
+  "Estado",
+  "Fecha Registro",
+  "Acciones",
+];
+
 const UserManagementTable: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -48,6 +54,12 @@ const UserManagementTable: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | {
+    type: "status" | "role";
+    user: User;
+    newValue: any;
+  }>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Cargar usuarios
   const loadUsers = async () => {
@@ -57,8 +69,8 @@ const UserManagementTable: React.FC = () => {
       const response = await usersAPI.getAll();
       setUsers(response.data);
       setFilteredUsers(response.data);
-    } catch (err: any) {
-      setError(err.message || "Error al cargar usuarios");
+    } catch (err) {
+      setError((err as Error).message || "Error al cargar usuarios");
     } finally {
       setIsLoading(false);
     }
@@ -97,96 +109,57 @@ const UserManagementTable: React.FC = () => {
   }, [users, searchTerm, roleFilter, statusFilter]);
 
   // Cambiar estado de usuario (activar/desactivar)
-  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
-    try {
-      setIsUpdating(true);
-      await usersAPI.updateStatus(userId, !currentStatus);
-      // Actualizar localmente
-      setUsers(
-        users.map((user) =>
-          user.id === userId ? { ...user, isActive: !currentStatus } : user
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || "Error al actualizar estado");
-    } finally {
-      setIsUpdating(false);
-    }
+  const handleToggleStatus = (user: User) => {
+    setConfirmAction({ type: "status", user, newValue: !user.isActive });
   };
 
   // Cambiar rol de usuario
-  const handleChangeRole = async (
-    userId: string,
+  const handleChangeRole = (
+    user: User,
     newRole: "admin" | "operator" | "venue" | "user"
   ) => {
+    setConfirmAction({ type: "role", user, newValue: newRole });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+    setIsUpdating(true);
+    setError(null);
     try {
-      setIsUpdating(true);
-      await usersAPI.updateRole(userId, newRole);
-      // Actualizar localmente
-      setUsers(
-        users.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || "Error al actualizar rol");
+      if (confirmAction.type === "status") {
+        await usersAPI.updateStatus(
+          confirmAction.user.id,
+          confirmAction.newValue
+        );
+        setUsers(
+          users.map((u) =>
+            u.id === confirmAction.user.id
+              ? { ...u, isActive: confirmAction.newValue }
+              : u
+          )
+        );
+        setSuccessMsg(`Estado actualizado correctamente.`);
+      } else if (confirmAction.type === "role") {
+        await usersAPI.updateRole(
+          confirmAction.user.id,
+          confirmAction.newValue
+        );
+        setUsers(
+          users.map((u) =>
+            u.id === confirmAction.user.id
+              ? { ...u, role: confirmAction.newValue }
+              : u
+          )
+        );
+        setSuccessMsg(`Rol actualizado correctamente.`);
+      }
+    } catch (err) {
+      setError((err as Error).message || "Error al actualizar usuario");
     } finally {
       setIsUpdating(false);
+      setConfirmAction(null);
+      setTimeout(() => setSuccessMsg(null), 2000);
     }
-  };
-
-  // Renderizar chip de rol con color apropiado
-  const renderRoleChip = (role: string) => {
-    const roleConfig = {
-      admin: {
-        bg: "rgba(89, 108, 149, 0.1)",
-        text: "#596c95",
-        icon: <Shield className="w-3 h-3 mr-1" />,
-      },
-      operator: {
-        bg: "rgba(205, 98, 99, 0.1)",
-        text: "#cd6263",
-        icon: <UserCheck className="w-3 h-3 mr-1" />,
-      },
-      venue: {
-        bg: "rgba(16, 185, 129, 0.1)",
-        text: "rgb(16, 185, 129)",
-        icon: <Building className="w-3 h-3 mr-1" />,
-      },
-      user: {
-        bg: "rgba(107, 114, 128, 0.1)",
-        text: "rgb(107, 114, 128)",
-        icon: <UserIcon className="w-3 h-3 mr-1" />,
-      },
-    };
-
-    const config =
-      roleConfig[role as keyof typeof roleConfig] || roleConfig.user;
-
-    return (
-      <span
-        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-        style={{ backgroundColor: config.bg, color: config.text }}
-      >
-        {config.icon}
-        {role.charAt(0).toUpperCase() + role.slice(1)}
-      </span>
-    );
-  };
-
-  // Renderizar chip de estado
-  const renderStatusChip = (isActive: boolean) => {
-    return isActive ? (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-green-500"></span>
-        Activo
-      </span>
-    ) : (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-        <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-red-500"></span>
-        Inactivo
-      </span>
-    );
   };
 
   return (
@@ -244,12 +217,7 @@ const UserManagementTable: React.FC = () => {
 
       {/* Mensaje de error */}
       {error && (
-        <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-          <div className="flex items-center">
-            <XCircle className="w-5 h-5 mr-2" />
-            <span>{error}</span>
-          </div>
-        </div>
+        <ErrorMessage error={error} onRetry={loadUsers} className="mb-4" />
       )}
 
       {/* Tabla de usuarios */}
@@ -279,22 +247,14 @@ const UserManagementTable: React.FC = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-4 text-center text-sm text-gray-500"
-                >
-                  <RefreshCw className="w-5 h-5 animate-spin mx-auto" />
-                  <span className="mt-2 block">Cargando usuarios...</span>
-                </td>
-              </tr>
+              <TableLoadingRow colSpan={TABLE_COLUMNS.length} />
             ) : filteredUsers.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-4 text-center text-sm text-gray-500"
-                >
-                  No se encontraron usuarios con los filtros aplicados
+                <td colSpan={TABLE_COLUMNS.length} className="text-center py-4">
+                  <EmptyState
+                    title="No hay usuarios"
+                    description="No se encontraron usuarios para los filtros seleccionados."
+                  />
                 </td>
               </tr>
             ) : (
@@ -307,12 +267,18 @@ const UserManagementTable: React.FC = () => {
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {renderRoleChip(user.role)}
+                    <StatusChip
+                      status={user.role === "venue" ? "pending" : "active"}
+                      variant="outline"
+                      className="mr-2"
+                    />
+                    <span className="text-xs font-medium">
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <StatusChip
                       status={user.isActive ? "active" : "inactive"}
-                      size="sm"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -337,7 +303,7 @@ const UserManagementTable: React.FC = () => {
                                 <button
                                   key={role}
                                   onClick={() =>
-                                    handleChangeRole(user.id, role as any)
+                                    handleChangeRole(user, role as any)
                                   }
                                   disabled={user.role === role || isUpdating}
                                   className={`w-full text-left px-4 py-2 text-sm ${
@@ -355,9 +321,7 @@ const UserManagementTable: React.FC = () => {
                       </div>
 
                       <button
-                        onClick={() =>
-                          handleToggleStatus(user.id, user.isActive)
-                        }
+                        onClick={() => handleToggleStatus(user)}
                         disabled={isUpdating}
                         className="px-2 py-1 text-xs rounded flex items-center"
                         style={{
@@ -389,6 +353,64 @@ const UserManagementTable: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <FilterBar
+        searchPlaceholder="Buscar usuarios..."
+        onSearch={setSearchTerm}
+        filters={[
+          {
+            key: "role",
+            label: "Rol",
+            type: "select",
+            options: [
+              { value: "admin", label: "Administradores" },
+              { value: "operator", label: "Operadores" },
+              { value: "venue", label: "Galleras" },
+              { value: "user", label: "Usuarios" },
+            ],
+          },
+          {
+            key: "status",
+            label: "Estado",
+            type: "select",
+            options: [
+              { value: "active", label: "Activos" },
+              { value: "inactive", label: "Inactivos" },
+            ],
+          },
+        ]}
+        className="mb-4"
+      />
+
+      {/* Modal de confirmación */}
+      {confirmAction && (
+        <ConfirmDialog
+          title={
+            confirmAction.type === "status"
+              ? `¿Confirmar cambio de estado?`
+              : `¿Confirmar cambio de rol?`
+          }
+          message={
+            confirmAction.type === "status"
+              ? `¿Seguro que deseas ${
+                  confirmAction.newValue ? "activar" : "desactivar"
+                } al usuario ${confirmAction.user.username}?`
+              : `¿Seguro que deseas cambiar el rol de ${confirmAction.user.username} a ${confirmAction.newValue}?`
+          }
+          isOpen={!!confirmAction}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setConfirmAction(null)}
+          confirmText="Confirmar"
+          cancelText="Cancelar"
+          variant={confirmAction.type === "status" ? "warning" : "info"}
+        />
+      )}
+      {/* Mensaje de éxito */}
+      {successMsg && (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">
+          {successMsg}
+        </div>
+      )}
     </div>
   );
 };

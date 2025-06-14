@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import BetCard from "../../components/user/BetCard";
-import BettingPanel from "../../components/user/BettingPanel";
 import { useBets } from "../../hooks/useApi";
+import { useWebSocket } from "../../hooks/useWebSocket";
 import BetHistoryTable from "../../components/user/BetHistoryTable";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import { Plus } from "lucide-react";
@@ -13,94 +13,126 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../../components/shared/Tabs";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorBoundary from "../../components/shared/ErrorBoundary";
 import EmptyState from "../../components/shared/EmptyState";
-import { Activity } from "lucide-react";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import FilterBar from "../../components/shared/FilterBar";
+import StatusIndicator from "../../components/shared/StatusIndicator";
+import BetDetailModal from "../../components/user/BetDetailModal";
+import type { Bet } from "../../types";
 
 const UserBets = () => {
-  const { bets, loading, error } = useBets();
-  const [activeTab, setActiveTab] = useState<"active" | "history" | "stats">(
-    "active"
-  );
+  const { bets, loading, error, fetchMyBets, fetchAvailableBets, cancelBet } =
+    useBets();
+  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filters, setFilters] = useState({});
+  const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
+
+  // TODO: Obtener fightId real del contexto de evento/pelea activa
+  const activeFightId = bets.length > 0 ? bets[0].fightId : null;
+  const wsListeners = {
+    new_bet: () => activeFightId && fetchAvailableBets(activeFightId),
+    bet_matched: () => fetchMyBets(),
+  };
+  const { isConnected } = useWebSocket(undefined, wsListeners);
+
+  // Handler para Tabs que convierte el string a tipo correcto
+  const handleTabChange = (value: string) => {
+    if (value === "active" || value === "history") setActiveTab(value);
+  };
 
   if (loading) return <LoadingSpinner text="Cargando apuestas..." />;
-  if (error) return <ErrorBoundary />;
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
     <div className="bg-[#1a1f37] min-h-screen pb-20">
       {/* Header */}
-      <header className="bg-[#2a325c] p-4 sticky top-0 z-10">
+      <header className="bg-[#2a325c] p-4 sticky top-0 z-10 flex items-center gap-3">
         <h1 className="text-xl font-bold">Mis Apuestas</h1>
+        <StatusIndicator
+          status={isConnected ? "connected" : "disconnected"}
+          label={isConnected ? "Conectado" : "Desconectado"}
+          size="sm"
+        />
       </header>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#596c95]">
-        {["active", "history", "stats"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={`flex-1 py-3 font-medium ${
-              activeTab === tab
-                ? "border-b-2 border-[#cd6263] text-white"
-                : "text-gray-400"
-            }`}
-          >
-            {tab === "active" && "Activas"}
-            {tab === "history" && "Historial"}
-            {tab === "stats" && "Estadísticas"}
-          </button>
-        ))}
-      </div>
-
-      {/* Contenido */}
-      <div className="p-4">
-        {activeTab === "active" && (
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="active">Activas</TabsTrigger>
+          <TabsTrigger value="history">Historial</TabsTrigger>
+        </TabsList>
+        <TabsContent value="active">
           <div className="space-y-3">
             {bets.length > 0 ? (
               bets.map((bet) => (
                 <BetCard
                   key={bet.id}
-                  {...bet}
-                  onCancel={() => cancelBet(bet.id)}
+                  bet={bet}
+                  onSelect={(b) => setSelectedBet(b)}
                 />
               ))
             ) : (
               <EmptyState
-                title="No hay apuestas activas"
-                description="Cuando hagas apuestas, aparecerán aquí"
-                icon={<Activity className="w-8 h-8 mx-auto text-gray-400" />}
+                title="No tienes apuestas activas"
+                description="Cuando hagas apuestas aparecerán aquí"
               />
             )}
           </div>
-        )}
-
-        {activeTab === "history" && (
+        </TabsContent>
+        <TabsContent value="history">
           <div className="space-y-3">
-            <BetHistoryTable />
+            <BetHistoryTable bets={bets} />
           </div>
-        )}
+        </TabsContent>
+      </Tabs>
 
-        {activeTab === "stats" && (
-          <div className="bg-[#2a325c] p-4 rounded-lg">
-            <BettingPanel
-              onCreateBet={createBet}
-              fights={[]} // Pasar peleas disponibles si es necesario
-            />
-          </div>
-        )}
-      </div>
+      {/* Filter Bar */}
+      <FilterBar
+        searchPlaceholder="Buscar apuestas..."
+        onSearch={() => {}}
+        filters={[
+          {
+            key: "status",
+            label: "Estado",
+            type: "select",
+            options: [
+              { value: "pending", label: "Pendientes" },
+              { value: "active", label: "Activas" },
+              { value: "settled", label: "Liquidadas" },
+              { value: "cancelled", label: "Canceladas" },
+            ],
+          },
+        ]}
+        onFilterChange={(key, value) =>
+          setFilters({ ...filters, [key]: value })
+        }
+        className="mb-6"
+      />
+
       <button
         onClick={() => setShowCreateModal(true)}
         className="fixed bottom-6 right-6 bg-[#cd6263] text-white p-4 rounded-full shadow-lg"
+        disabled={!activeFightId}
+        title={!activeFightId ? "No hay pelea activa para apostar" : ""}
       >
         <Plus />
       </button>
-      {showCreateModal && (
+      {showCreateModal && activeFightId && (
         <CreateBetModal
-          fightId="current-fight-id"
+          fightId={activeFightId}
           onClose={() => setShowCreateModal(false)}
+        />
+      )}
+      {selectedBet && (
+        <BetDetailModal
+          bet={selectedBet}
+          onClose={() => setSelectedBet(null)}
+          onCancelBet={async (betId) => {
+            await cancelBet(betId);
+            setSelectedBet(null);
+            fetchMyBets();
+          }}
         />
       )}
     </div>

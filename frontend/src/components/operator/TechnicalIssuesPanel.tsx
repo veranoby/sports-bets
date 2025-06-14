@@ -13,6 +13,7 @@ import {
   Zap,
   ShieldAlert,
 } from "lucide-react";
+import Modal from "../shared/Modal";
 
 const TABS = [
   { key: "transmision", label: "Transmisión" },
@@ -136,19 +137,11 @@ const EMERGENCY_BTN = {
   color: "bg-red-600 text-white hover:bg-red-700",
 };
 
-const MOCK_LOGS = [
-  "[12:01] Transmisión iniciada correctamente.",
-  "[12:15] Latencia: 120ms.",
-  "[12:30] Advertencia: bitrate bajo detectado.",
-  "[12:45] Reconexión automática exitosa.",
-  "[13:00] Evento pausado por el operador.",
-];
-
 const TechnicalIssuesPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<keyof typeof ISSUES>(
     TABS[0].key as keyof typeof ISSUES
   );
-  const [logs, setLogs] = useState<string[]>(MOCK_LOGS);
+  const [logs, setLogs] = useState<string[]>([]);
   const [emergencyConfirm, setEmergencyConfirm] = useState(false);
 
   const handleQuickAction = (action: string) => {
@@ -264,6 +257,24 @@ const TechnicalIssuesPanel: React.FC = () => {
           {emergencyConfirm ? "¡Emergencia confirmada!" : EMERGENCY_BTN.label}
         </button>
       </div>
+      {/* Modal de emergencia */}
+      {emergencyConfirm && (
+        <Modal
+          title="Confirmación de Emergencia"
+          isOpen={emergencyConfirm}
+          onClose={() => setEmergencyConfirm(false)}
+        >
+          <div className="text-red-600 font-bold mb-4">
+            ¡Emergencia confirmada! Se han detenido todos los procesos.
+          </div>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+            onClick={() => setEmergencyConfirm(false)}
+          >
+            Cerrar
+          </button>
+        </Modal>
+      )}
     </div>
   );
 };

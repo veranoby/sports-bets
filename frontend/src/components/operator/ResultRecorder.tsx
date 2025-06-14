@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useFights } from "../../hooks/useApi";
+import ErrorMessage from "../shared/ErrorMessage";
 
 interface ResultRecorderProps {
   fightId: string;
@@ -10,15 +11,17 @@ interface ResultRecorderProps {
 export const ResultRecorder = ({ fightId }: ResultRecorderProps) => {
   const { recordResult } = useFights();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRecordResult = async (
-    result: "red" | "blue" | "draw" | "cancelled"
+    result: "red" | "blue" | "draw" | "no_contest"
   ) => {
     setIsSubmitting(true);
     try {
       await recordResult(fightId, result);
+      setError(null);
     } catch (error) {
-      // Handle error
+      setError(error instanceof Error ? error.message : "Error desconocido");
     } finally {
       setIsSubmitting(false);
     }
@@ -74,6 +77,7 @@ export const ResultRecorder = ({ fightId }: ResultRecorderProps) => {
         </button>
       </div>
 
+      {error && <ErrorMessage error={error} className="mt-2" />}
       {!isSubmitting && (
         <p className="text-center text-sm text-gray-500 mt-2">
           Cierre las apuestas para registrar el resultado

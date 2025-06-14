@@ -1,12 +1,5 @@
-import { useState } from "react";
-import {
-  DollarSign,
-  Plus,
-  Minus,
-  Download,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { DollarSign, Plus, Minus, Download } from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -17,10 +10,15 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import TransactionDetailModal from "../../components/user/TransactionDetailModal";
+import TransactionHistory from "../../components/user/TransactionHistory";
+import DepositModal from "../../components/user/DepositModal";
+import WithdrawModal from "../../components/user/WithdrawModal";
+import { useWallet } from "../../hooks/useApi";
 import DataCard from "../../components/shared/DataCard";
+import type { Transaction as TransactionTypeFull } from "../../types";
 
 type TransactionType =
   | "deposit"
@@ -39,62 +37,6 @@ interface Transaction {
   createdAt: Date;
 }
 
-const MOCK_BALANCE = {
-  available: 1200,
-  frozen: 300,
-};
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "1",
-    type: "deposit",
-    amount: 500,
-    status: "completed",
-    description: "Depósito inicial",
-    createdAt: new Date("2023-10-01"),
-  },
-  {
-    id: "2",
-    type: "withdrawal",
-    amount: 200,
-    status: "completed",
-    description: "Retiro a cuenta bancaria",
-    createdAt: new Date("2023-10-05"),
-  },
-  {
-    id: "3",
-    type: "bet-win",
-    amount: 150,
-    status: "completed",
-    description: "Ganancia de apuesta",
-    createdAt: new Date("2023-10-10"),
-  },
-  {
-    id: "4",
-    type: "bet-loss",
-    amount: 100,
-    status: "completed",
-    description: "Pérdida de apuesta",
-    createdAt: new Date("2023-10-12"),
-  },
-  {
-    id: "5",
-    type: "withdrawal",
-    amount: 50,
-    status: "pending",
-    description: "Retiro en proceso",
-    createdAt: new Date("2023-10-15"),
-  },
-  {
-    id: "6",
-    type: "bet-refund",
-    amount: 100,
-    status: "failed",
-    description: "Reembolso de apuesta",
-    createdAt: new Date("2023-10-16"),
-  },
-];
-
 // Registrar componentes de Chart.js (solo una vez en el archivo)
 Chart.register(
   LineElement,
@@ -106,31 +48,45 @@ Chart.register(
 );
 
 const WalletPage = () => {
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(MOCK_TRANSACTIONS);
+  const {
+    wallet,
+    recentTransactions,
+    loading,
+    error,
+    fetchWallet,
+    fetchTransactions,
+  } = useWallet();
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesType = filterType === "all" || transaction.type === filterType;
-    const matchesSearch = transaction.description
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesDate =
-      (!dateFrom || transaction.createdAt >= new Date(dateFrom)) &&
-      (!dateTo || transaction.createdAt <= new Date(dateTo));
-    return matchesType && matchesSearch && matchesDate;
-  });
+  useEffect(() => {
+    fetchWallet();
+    fetchTransactions();
+  }, []);
 
-  const totalBalance = MOCK_BALANCE.available + MOCK_BALANCE.frozen;
+  const filteredTransactions =
+    recentTransactions?.filter((transaction) => {
+      const matchesType =
+        filterType === "all" || transaction.type === filterType;
+      const matchesSearch = transaction.description
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesDate =
+        (!dateFrom || transaction.createdAt >= new Date(dateFrom)) &&
+        (!dateTo || transaction.createdAt <= new Date(dateTo));
+      return matchesType && matchesSearch && matchesDate;
+    }) || [];
 
-  if (loading) return <LoadingSpinner text="Loading wallet..." />;
-  if (error) return <ErrorBoundary />;
+  const totalBalance = (wallet?.balance || 0) + (wallet?.frozenAmount || 0);
+
+  if (loading) return <LoadingSpinner text="Cargando billetera..." />;
+  if (error) return <ErrorMessage error={error} onRetry={fetchWallet} />;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -148,13 +104,13 @@ const WalletPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <DataCard
             title="Saldo Disponible"
-            value={`$${MOCK_BALANCE.available}`}
+            value={`$${wallet?.balance || 0}`}
             color="green"
             icon={<DollarSign />}
           />
           <DataCard
             title="Monto Congelado"
-            value={`$${MOCK_BALANCE.frozen}`}
+            value={`$${wallet?.frozenAmount || 0}`}
             color="yellow"
           />
           <DataCard
@@ -168,20 +124,24 @@ const WalletPage = () => {
         <div className="mb-6">
           <Line
             data={{
-              labels: transactions
-                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-                .map((t) => t.createdAt.toLocaleDateString()),
+              labels: recentTransactions
+                ?.sort(
+                  (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+                )
+                .map((t) => new Date(t.createdAt).toLocaleDateString()),
               datasets: [
                 {
                   label: "Saldo",
-                  data: transactions
-                    .sort(
-                      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+                  data: recentTransactions
+                    ?.sort(
+                      (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
                     )
                     .reduce((acc, t, i) => {
-                      const prev =
-                        acc[i - 1] ??
-                        MOCK_BALANCE.available + MOCK_BALANCE.frozen;
+                      const prev = acc[i - 1] ?? totalBalance;
                       let delta = 0;
                       if (
                         t.type === "deposit" ||
@@ -216,11 +176,17 @@ const WalletPage = () => {
 
         {/* Botones de acción */}
         <div className="flex justify-between mb-4">
-          <button className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition flex items-center justify-center">
+          <button
+            className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition flex items-center justify-center"
+            onClick={() => setShowDeposit(true)}
+          >
             <Plus size={20} className="mr-2" />
             Depositar
           </button>
-          <button className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition flex items-center justify-center ml-2">
+          <button
+            className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition flex items-center justify-center ml-2"
+            onClick={() => setShowWithdraw(true)}
+          >
             <Minus size={20} className="mr-2" />
             Retirar
           </button>
@@ -270,43 +236,10 @@ const WalletPage = () => {
 
         {/* Lista de transacciones */}
         <h3 className="font-semibold mb-2">Historial de Transacciones</h3>
-        <div className="space-y-2">
-          {filteredTransactions.length === 0 ? (
-            <div className="text-gray-400 text-center py-4">
-              No hay transacciones que mostrar
-            </div>
-          ) : (
-            filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className={`flex justify-between p-3 rounded ${
-                  transaction.status === "completed"
-                    ? "bg-green-50"
-                    : transaction.status === "pending"
-                    ? "bg-yellow-50"
-                    : "bg-red-50"
-                }`}
-              >
-                <div>
-                  <div className="font-medium">{transaction.description}</div>
-                  <div className="text-xs text-gray-500">
-                    {transaction.createdAt.toLocaleDateString()}
-                  </div>
-                </div>
-                <div
-                  className={`font-bold ${
-                    transaction.type === "withdrawal"
-                      ? "text-red-600"
-                      : "text-green-600"
-                  }`}
-                >
-                  {transaction.type === "withdrawal" ? "-" : "+"}$
-                  {transaction.amount}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <TransactionHistory
+          transactions={filteredTransactions}
+          onSelectTransaction={(tx) => setSelectedTransaction(tx)}
+        />
 
         {/* Botón de exportación */}
         <div className="mt-4">
@@ -315,6 +248,26 @@ const WalletPage = () => {
             Exportar Historial
           </button>
         </div>
+
+        {selectedTransaction && (
+          <TransactionDetailModal
+            transaction={selectedTransaction as unknown as TransactionTypeFull}
+            onClose={() => setSelectedTransaction(null)}
+          />
+        )}
+        {showDeposit && (
+          <DepositModal
+            isOpen={showDeposit}
+            onClose={() => setShowDeposit(false)}
+          />
+        )}
+        {showWithdraw && (
+          <WithdrawModal
+            isOpen={showWithdraw}
+            onClose={() => setShowWithdraw(false)}
+            availableBalance={wallet?.balance || 0}
+          />
+        )}
       </div>
     </div>
   );
