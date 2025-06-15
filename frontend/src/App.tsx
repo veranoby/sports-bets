@@ -1,6 +1,10 @@
+// frontend/src/App.tsx
+// 📱 APP.TSX COMPLETO - Con UserThemeProvider integrado
+
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { UserThemeProvider } from "./contexts/UserThemeContext"; // ✅ NUEVO IMPORT
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import OperatorDashboard from "./pages/operator/Dashboard";
@@ -10,12 +14,11 @@ import Wallet from "./pages/user/Wallet";
 import Profile from "./pages/user/Profile";
 import EventsPage from "./pages/user/Events";
 import BetsPage from "./pages/user/Bets";
-import "./App.css";
-import { LogOut } from "lucide-react";
-import Navigation from "./components/user/Navigation";
 import VenueDashboard from "./pages/venue/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
+import Navigation from "./components/user/Navigation";
+import "./App.css";
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -50,12 +53,19 @@ const RoleBasedRedirect: React.FC = () => {
   }
 };
 
+// 🎨 Wrapper para rutas USER con tema unificado
+const UserRouteWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return <UserThemeProvider>{children}</UserThemeProvider>;
+};
+
 // Componente principal de la aplicación
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  // Determinar si mostrar la navegación
+  // Determinar si mostrar la navegación (solo para usuarios)
   const showNavigation =
     isAuthenticated &&
     [
@@ -79,7 +89,9 @@ const AppContent: React.FC = () => {
         {/* Ruta raíz - redirige según autenticación */}
         <Route path="/" element={<RoleBasedRedirect />} />
 
-        {/* Rutas del Panel de Administrador */}
+        {/* ======================== */}
+        {/* RUTAS ADMIN - SIN TEMA   */}
+        {/* ======================== */}
         <Route
           path="/admin"
           element={
@@ -89,7 +101,9 @@ const AppContent: React.FC = () => {
           }
         />
 
-        {/* Rutas del Panel de Operador */}
+        {/* ======================== */}
+        {/* RUTAS OPERATOR - SIN TEMA */}
+        {/* ======================== */}
         <Route
           path="/operator"
           element={
@@ -99,43 +113,9 @@ const AppContent: React.FC = () => {
           }
         />
 
-        {/* Rutas del Dashboard de Usuario */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <UserDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/events"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <EventsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/live-event/:id"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <LiveEvent />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Rutas de Billetera */}
-        <Route
-          path="/wallet"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <Wallet />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Ruta para venues (implementar después) */}
+        {/* ======================== */}
+        {/* RUTAS VENUE - SIN TEMA   */}
+        {/* ======================== */}
         <Route
           path="/venue"
           element={
@@ -145,23 +125,72 @@ const AppContent: React.FC = () => {
           }
         />
 
-        {/* Ruta de Perfil */}
+        {/* ========================== */}
+        {/* RUTAS USER - CON TEMA      */}
+        {/* ========================== */}
         <Route
-          path="/profile"
+          path="/dashboard"
           element={
-            <ProtectedRoute requiredRole="user">
-              <Profile />
-            </ProtectedRoute>
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <UserDashboard />
+              </ProtectedRoute>
+            </UserRouteWrapper>
           }
         />
 
-        {/* Ruta de Apuestas */}
+        <Route
+          path="/events"
+          element={
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <EventsPage />
+              </ProtectedRoute>
+            </UserRouteWrapper>
+          }
+        />
+
+        <Route
+          path="/live-event/:id"
+          element={
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <LiveEvent />
+              </ProtectedRoute>
+            </UserRouteWrapper>
+          }
+        />
+
+        <Route
+          path="/wallet"
+          element={
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <Wallet />
+              </ProtectedRoute>
+            </UserRouteWrapper>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <Profile />
+              </ProtectedRoute>
+            </UserRouteWrapper>
+          }
+        />
+
         <Route
           path="/bets"
           element={
-            <ProtectedRoute requiredRole="user">
-              <BetsPage />
-            </ProtectedRoute>
+            <UserRouteWrapper>
+              <ProtectedRoute requiredRole="user">
+                <BetsPage />
+              </ProtectedRoute>
+            </UserRouteWrapper>
           }
         />
 
@@ -185,8 +214,8 @@ const AppContent: React.FC = () => {
         />
       </Routes>
 
-      {/* Navigation component for user routes */}
-      {showNavigation && <Navigation />}
+      {/* Navigation component for user routes ONLY */}
+      {showNavigation && <Navigation currentPage="dashboard" />}
     </div>
   );
 };
