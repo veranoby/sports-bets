@@ -66,3 +66,446 @@
     transform: translateY(0);
   }
 }
+
+/* frontend/src/App.css */
+/* ✅ ESTILOS EXISTENTES + NUEVAS ANIMACIONES PARA ERROR HANDLING */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== ANIMACIONES PARA ERROR MESSAGES ===== */
+
+/* Animación para barra de progreso del auto-close */
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Animación de entrada suave para errores */
+@keyframes error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de salida suave para errores */
+@keyframes error-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Clases para las animaciones de error */
+.error-enter {
+  animation: error-slide-in 0.3s ease-out forwards;
+}
+
+.error-exit {
+  animation: error-slide-out 0.3s ease-in forwards;
+}
+
+/* Animación de pulso para indicador de estado */
+.pulse-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ===== ESTILOS PARA MEJORAR UX DE ERRORES ===== */
+
+/* Mejor contraste para mensajes de error */
+.error-message-improved {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 4px solid #ef4444;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+}
+
+/* Hover effects para botones de error */
+.error-close-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.error-close-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+/* ===== ESTILOS DARK MODE COMPATIBLES ===== */
+
+/* Para el tema oscuro del login */
+.dark-error-message {
+  background: linear-gradient(135deg, #4c1d1d 0%, #7f1d1d 100%);
+  border-left: 4px solid #ef4444;
+  color: #fecaca;
+}
+
+/* ===== RESPONSIVE IMPROVEMENTS ===== */
+
+/* Mejores espacios en móvil para errores */
+@media (max-width: 640px) {
+  .error-message-mobile {
+    margin: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+/* Focus visible para botones de error */
+.error-action-button:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+/* Reduced motion para usuarios que lo prefieren */
+@media (prefers-reduced-motion: reduce) {
+  .error-enter,
+  .error-exit,
+  .pulse-indicator {
+    animation: none;
+  }
+
+  .error-close-button {
+    transition: none;
+  }
+}
+
+/* ===== UTILIDADES ESPECÍFICAS PARA SPORTSBETS ===== */
+
+/* Colores del brand para errores */
+.sportsbets-error {
+  background: linear-gradient(135deg, #2a325c 0%, #1a1f37 100%);
+  border: 1px solid #596c95;
+  color: #fecaca;
+}
+
+.sportsbets-error-accent {
+  border-left: 4px solid #cd6263;
+}
+
+/* Loading spinner para errores */
+.error-loading-spinner {
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #ef4444;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== MEJORAS GENERALES DE LA APP ===== */
+
+/* Smooth scroll para toda la app */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Mejorar el focus outline general */
+*:focus-visible {
+  outline: 2px solid #cd6263;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Transiciones suaves para todos los elementos interactivos */
+button,
+input,
+select,
+textarea {
+  transition: all 0.2s ease-in-out;
+}
+
+/* ===== CLASES HELPER PARA ESTADOS ===== */
+
+.loading-state {
+  opacity: 0.7;
+  pointer-events: none;
+  filter: grayscale(0.3);
+}
+
+.error-state {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.success-state {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* ===== ANIMACIONES PARA LOADING STATES ===== */
+
+.skeleton-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode skeleton */
+.dark .skeleton-loading {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
+/* frontend/src/App.css */
+/* ✅ ESTILOS EXISTENTES + NUEVAS ANIMACIONES PARA ERROR HANDLING */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== ANIMACIONES PARA ERROR MESSAGES ===== */
+
+/* Animación para barra de progreso del auto-close */
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Animación de entrada suave para errores */
+@keyframes error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de salida suave para errores */
+@keyframes error-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Clases para las animaciones de error */
+.error-enter {
+  animation: error-slide-in 0.3s ease-out forwards;
+}
+
+.error-exit {
+  animation: error-slide-out 0.3s ease-in forwards;
+}
+
+/* Animación de pulso para indicador de estado */
+.pulse-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ===== ESTILOS PARA MEJORAR UX DE ERRORES ===== */
+
+/* Mejor contraste para mensajes de error */
+.error-message-improved {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 4px solid #ef4444;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+}
+
+/* Hover effects para botones de error */
+.error-close-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.error-close-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+/* ===== ESTILOS DARK MODE COMPATIBLES ===== */
+
+/* Para el tema oscuro del login */
+.dark-error-message {
+  background: linear-gradient(135deg, #4c1d1d 0%, #7f1d1d 100%);
+  border-left: 4px solid #ef4444;
+  color: #fecaca;
+}
+
+/* ===== RESPONSIVE IMPROVEMENTS ===== */
+
+/* Mejores espacios en móvil para errores */
+@media (max-width: 640px) {
+  .error-message-mobile {
+    margin: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+/* Focus visible para botones de error */
+.error-action-button:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+/* Reduced motion para usuarios que lo prefieren */
+@media (prefers-reduced-motion: reduce) {
+  .error-enter,
+  .error-exit,
+  .pulse-indicator {
+    animation: none;
+  }
+
+  .error-close-button {
+    transition: none;
+  }
+}
+
+/* ===== UTILIDADES ESPECÍFICAS PARA SPORTSBETS ===== */
+
+/* Colores del brand para errores */
+.sportsbets-error {
+  background: linear-gradient(135deg, #2a325c 0%, #1a1f37 100%);
+  border: 1px solid #596c95;
+  color: #fecaca;
+}
+
+.sportsbets-error-accent {
+  border-left: 4px solid #cd6263;
+}
+
+/* Loading spinner para errores */
+.error-loading-spinner {
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #ef4444;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== MEJORAS GENERALES DE LA APP ===== */
+
+/* Smooth scroll para toda la app */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Mejorar el focus outline general */
+*:focus-visible {
+  outline: 2px solid #cd6263;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Transiciones suaves para todos los elementos interactivos */
+button,
+input,
+select,
+textarea {
+  transition: all 0.2s ease-in-out;
+}
+
+/* ===== CLASES HELPER PARA ESTADOS ===== */
+
+.loading-state {
+  opacity: 0.7;
+  pointer-events: none;
+  filter: grayscale(0.3);
+}
+
+.error-state {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.success-state {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* ===== ANIMACIONES PARA LOADING STATES ===== */
+
+.skeleton-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode skeleton */
+.dark .skeleton-loading {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
