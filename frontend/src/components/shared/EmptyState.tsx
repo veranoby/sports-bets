@@ -1,57 +1,72 @@
-// frontend/src/components/shared/EmptyState.tsx - VERSIÓN CORREGIDA
+// frontend/src/components/shared/EmptyState.tsx
+// 🚨 ARREGLO CRÍTICO: React child object error
 
 import React from "react";
 import { Calendar } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
-  icon?: LucideIcon | React.ReactNode; // Acepta tanto componente como JSX
+  icon?: React.ReactNode;
   action?: {
     label: string;
     onClick: () => void;
   };
   className?: string;
+  variant?: "light" | "dark"; // 🔧 NUEVO: Consistencia visual
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({
+export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   icon,
   action,
   className = "",
+  variant = "light",
 }) => {
-  // Función para renderizar el icono correctamente
+  // 🔧 ARREGLO: Renderizar icono de manera consistente
   const renderIcon = () => {
-    if (!icon) {
-      // Icono por defecto
-      return <Calendar className="w-full h-full" />;
+    if (icon) {
+      // Si es un elemento React, clonarlo sin clases conflictivas
+      if (React.isValidElement(icon)) {
+        return React.cloneElement(icon as React.ReactElement, {
+          className: "w-12 h-12", // 🔧 FIJO: tamaño consistente
+        });
+      }
+      return icon;
     }
-
-    // Si es un componente de Lucide (función), renderizarlo como JSX
-    if (typeof icon === "function") {
-      const IconComponent = icon as LucideIcon;
-      return <IconComponent className="w-full h-full" />;
-    }
-
-    // Si ya es JSX, renderizarlo directamente
-    return icon;
+    // Icono por defecto
+    return <Calendar className="w-12 h-12" />;
   };
+
+  // 🎨 NUEVO: Tema consistente según variante
+  const themeClasses =
+    variant === "dark"
+      ? "text-gray-300 bg-[#1a1f37]"
+      : "text-gray-900 bg-white";
+
+  const iconColor = variant === "dark" ? "text-gray-400" : "text-gray-400";
+  const descColor = variant === "dark" ? "text-gray-400" : "text-gray-500";
 
   return (
     <div className={`text-center p-8 ${className}`}>
-      <div className="mx-auto w-12 h-12 text-gray-400 flex items-center justify-center">
-        {renderIcon()}
-      </div>
-      <h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
+      {/* 🔧 ARREGLO: Contenedor de icono sin clases conflictivas */}
+      <div className={`mx-auto mb-4 ${iconColor}`}>{renderIcon()}</div>
+
+      <h3 className={`text-lg font-medium mb-2 ${themeClasses.split(" ")[0]}`}>
+        {title}
+      </h3>
+
       {description && (
-        <p className="mt-1 text-sm text-gray-500">{description}</p>
+        <p className={`text-sm ${descColor} mb-4 max-w-sm mx-auto`}>
+          {description}
+        </p>
       )}
+
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-[#596c95] hover:bg-[#4a5b80] transition-colors"
+          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-[#596c95] hover:bg-[#4a5b80] focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:ring-offset-2 transition-colors"
         >
           {action.label}
         </button>
