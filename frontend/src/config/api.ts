@@ -38,7 +38,12 @@ apiClient.interceptors.request.use(
 
 // Interceptor para manejar respuestas y errores
 apiClient.interceptors.response.use(
-  (response) => response, // Return the raw axios response
+  (response) => {
+    console.log("🔍 INTERCEPTOR - Raw axios response:", response);
+    console.log("🔍 INTERCEPTOR - response.data:", response.data);
+    console.log("🔍 INTERCEPTOR - Returning:", response.data);
+    return response.data; // Return the raw axios response
+  },
   (error) => {
     console.error("API Error:", error.response?.data || error.message);
 
@@ -62,12 +67,24 @@ apiClient.interceptors.response.use(
 const formatApiResponse = <T>(
   promise: Promise<AxiosResponse<T>>
 ): Promise<APIResponse<T>> => {
+  console.log("🔍 formatApiResponse - Promise received:", promise);
+
   return promise
-    .then((res) => ({
-      success: true,
-      data: res.data,
-    }))
+    .then((res) => {
+      console.log("🔍 formatApiResponse - Raw res:", res);
+      console.log("🔍 formatApiResponse - typeof res:", typeof res);
+      console.log("🔍 formatApiResponse - res.data:", res?.data);
+
+      const result = {
+        success: true,
+        data: res.data,
+      };
+
+      console.log("🔍 formatApiResponse - Final result:", result);
+      return result;
+    })
     .catch((err) => {
+      console.log("🔍 formatApiResponse - Error caught:", err);
       const message = err.message || "Error desconocido";
       return Promise.reject({ success: false, message });
     });

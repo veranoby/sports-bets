@@ -1,7 +1,9 @@
 // frontend/src/components/payments/PaymentForm.tsx
 import React, { useState } from "react";
 import { CreditCard, Calendar, Lock } from "lucide-react";
-import { KushkiCard } from "../../types/kushki";
+
+import type { KushkiCard } from "../../types/kushki.ts";
+
 import { useKushki } from "../../hooks/useKushki";
 
 interface PaymentFormProps {

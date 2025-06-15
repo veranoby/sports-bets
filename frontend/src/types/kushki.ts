@@ -1,3 +1,4 @@
+// ✅ CONTENIDO CORRECTO - COPIAR EXACTAMENTE:
 export interface KushkiConfig {
   publicKey: string;
   environment: "sandbox" | "production";

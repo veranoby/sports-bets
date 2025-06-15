@@ -1,7 +1,10 @@
 // frontend/src/hooks/useKushki.ts
 import { useState, useCallback } from "react";
-import { KushkiCard, KushkiResponse, PaymentRequest } from "../types/kushki";
-
+import type {
+  KushkiCard,
+  KushkiResponse,
+  PaymentRequest,
+} from "../types/kushki.ts";
 // Configuración Kushki
 const KUSHKI_CONFIG = {
   publicKey: import.meta.env.VITE_KUSHKI_PUBLIC_KEY || "test-public-key",
