@@ -38,3 +38,31 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Agregar al final del archivo frontend/src/App.css */
+
+/* ✅ Animación para barra de progreso del error */
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* ✅ Animación de entrada para mensajes de error */
+.error-message-enter {
+  animation: slideInDown 0.9s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
