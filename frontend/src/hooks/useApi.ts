@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+// frontend/src/hooks/useApi.ts - VERSIÓN CORREGIDA SIN DUPLICACIONES
+
+import { useState, useCallback, useEffect } from "react";
 import {
+  authAPI,
   eventsAPI,
   fightsAPI,
   betsAPI,
@@ -9,42 +12,79 @@ import {
   usersAPI,
 } from "../config/api";
 import type {
-  APIResponse,
-  Fight,
-  FightStatus,
-  FightResult,
   User,
+  Event,
+  Fight,
+  Bet,
   Wallet,
   Transaction,
-  Event,
-  Bet,
+  Subscription,
+  FightStatus,
+  FightResult,
 } from "../types";
-import axios from "axios";
-import { useAuth } from "../contexts/AuthContext";
 
-// Hook genérico para APIs
-function useAsyncOperation<T>() {
+// Hook base para operaciones asíncronas
+function useAsyncOperation<T = any>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const execute = useCallback(
-    async (operation: () => Promise<APIResponse<T>>) => {
+  const execute = useCallback(async (operation: () => Promise<any>) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await operation();
+      setData(result.data);
+      return result.data;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "An error occurred";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { data, loading, error, execute, setData };
+}
+
+// Hook para autenticación
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await authAPI.login({ email, password });
+      const { user: userData, token } = response.data;
+
+      localStorage.setItem("token", token);
+      setUser(userData);
+      return userData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Error al iniciar sesión";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(
+    async (userData: { username: string; email: string; password: string }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await operation();
-        if (response.success) {
-          setData(response.data);
-          return response.data;
-        } else {
-          const errorMessage = response.message || "An unknown error occurred";
-          setError(errorMessage);
-          throw new Error(errorMessage);
-        }
+        const response = await authAPI.register(userData);
+        return response.data;
       } catch (err: any) {
-        // Handle errors that might not be APIResponse format (e.g., network errors)
-        const errorMessage = err.message || "An unexpected error occurred";
+        const errorMessage =
+          err.response?.data?.message || "Error al registrar usuario";
         setError(errorMessage);
         throw new Error(errorMessage);
       } finally {
@@ -54,7 +94,36 @@ function useAsyncOperation<T>() {
     []
   );
 
-  return { data, loading, error, execute, setData };
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setError(null);
+  }, []);
+
+  const getCurrentUser = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await authAPI.me();
+      setUser(response.data);
+      return response.data;
+    } catch (err) {
+      logout();
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [logout]);
+
+  return {
+    user,
+    loading,
+    error,
+    login,
+    register,
+    logout,
+    getCurrentUser,
+    isAuthenticated: !!user,
+  };
 }
 
 // Hook para eventos
@@ -62,18 +131,21 @@ export function useEvents() {
   const { data, loading, error, execute, setData } = useAsyncOperation<{
     events: Event[];
     total: number;
-    limit: number;
-    offset: number;
   }>();
 
   const fetchEvents = useCallback(
-    (params?: { venueId?: string; status?: string }) =>
-      execute(() => eventsAPI.getAll(params)),
+    (params?: {
+      status?: string;
+      venueId?: string;
+      limit?: number;
+      offset?: number;
+    }) => execute(() => eventsAPI.getAll(params)),
     [execute]
   );
 
   const createEvent = useCallback(
-    (eventData: any) => execute(() => eventsAPI.create(eventData)),
+    (eventData: Omit<Event, "id" | "createdAt" | "updatedAt">) =>
+      execute(() => eventsAPI.create(eventData)),
     [execute]
   );
 
@@ -93,36 +165,29 @@ export function useEvents() {
   );
 
   const fetchOperatorEvents = useCallback(
-    (operatorId: string) => execute(() => eventsAPI.getAll({ operatorId })),
+    () => execute(() => eventsAPI.getOperatorEvents()),
     [execute]
   );
 
   const getEventStats = useCallback(
-    (eventId: string) => execute(() => eventsAPI.getStats(eventId)),
+    (eventId: string) => execute(() => eventsAPI.getEventStats(eventId)),
     [execute]
   );
 
   const updateEventStatus = useCallback(
-    async (
-      eventId: string,
-      action: "activate" | "complete" | "start-stream" | "stop-stream"
-    ) => {
+    async (eventId: string, action: "activate" | "complete") => {
       const result = await execute(async () => {
         switch (action) {
           case "activate":
             return await eventsAPI.activate(eventId);
           case "complete":
             return await eventsAPI.complete(eventId);
-          case "start-stream":
-            return await eventsAPI.startStream(eventId);
-          case "stop-stream":
-            return await eventsAPI.stopStream(eventId);
           default:
             throw new Error("Invalid action");
         }
       });
 
-      // Update local event in list if the action was successful
+      // Update local event in list
       setData((prev) => {
         if (!prev) return null;
         return {
@@ -156,7 +221,8 @@ export function useEvents() {
 
 // Hook para peleas
 export function useFights() {
-  const { data, loading, error, execute } = useAsyncOperation<Fight[]>();
+  const { data, loading, error, execute, setData } =
+    useAsyncOperation<Fight[]>();
 
   const fetchFights = useCallback(
     (params?: { eventId?: string; status?: FightStatus }) =>
@@ -240,7 +306,7 @@ export function useFights() {
 
 // Hook para apuestas
 export function useBets() {
-  const { data, loading, error, execute } = useAsyncOperation<{
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
     bets: Bet[];
     total: number;
   }>();
@@ -257,18 +323,39 @@ export function useBets() {
   );
 
   const createBet = useCallback(
-    (betData: any) => execute(() => betsAPI.create(betData)),
+    (betData: {
+      fightId: string;
+      side: "red" | "blue";
+      amount: number;
+      ratio?: number;
+    }) => execute(() => betsAPI.create(betData)),
     [execute]
   );
 
   const acceptBet = useCallback(
-    (betId: string) => execute(() => betsAPI.accept(betId)),
-    [execute]
+    async (betId: string) => {
+      const response = await execute(() => betsAPI.accept(betId));
+      // Refresh bets after accepting
+      await fetchMyBets();
+      return response;
+    },
+    [execute, fetchMyBets]
   );
 
   const cancelBet = useCallback(
-    (betId: string) => execute(() => betsAPI.cancel(betId)),
-    [execute]
+    async (betId: string) => {
+      const response = await execute(() => betsAPI.cancel(betId));
+      // Remove bet from local state
+      setData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          bets: prev.bets.filter((bet) => bet.id !== betId),
+        };
+      });
+      return response;
+    },
+    [execute, setData]
   );
 
   const getBetsStats = useCallback(
@@ -290,7 +377,7 @@ export function useBets() {
   };
 }
 
-// Hook para la billetera
+// Hook para billetera - VERSIÓN ÚNICA CONSOLIDADA
 export function useWallet() {
   const { data, loading, error, execute } = useAsyncOperation<{
     wallet: Wallet;
@@ -303,7 +390,12 @@ export function useWallet() {
   );
 
   const fetchTransactions = useCallback(
-    (params?: any) => execute(() => walletAPI.getTransactions(params)),
+    (params?: {
+      type?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    }) => execute(() => walletAPI.getTransactions(params)),
     [execute]
   );
 
@@ -335,6 +427,11 @@ export function useWallet() {
     () => execute(() => walletAPI.getStats()),
     [execute]
   );
+
+  // Auto-fetch wallet on mount
+  useEffect(() => {
+    fetchWallet();
+  }, [fetchWallet]);
 
   return {
     wallet: data?.wallet || null,
@@ -457,7 +554,7 @@ export function useVenues() {
   );
 
   const fetchMyVenues = useCallback(
-    () => execute(() => (venuesAPI as any).getMyVenues()), // Cast to any to access getMyVenues, not defined in base type
+    () => execute(() => (venuesAPI as any).getMyVenues()),
     [execute]
   );
 
@@ -478,7 +575,7 @@ export function useVenues() {
 
 // Hook para usuarios
 export function useUsers() {
-  const { data, loading, error, execute, setData } = useAsyncOperation<{
+  const { data, loading, error, execute } = useAsyncOperation<{
     users: User[];
     total: number;
   }>();
@@ -533,10 +630,10 @@ export function useUsers() {
     updateUserRole,
     updateUserProfile,
     deleteUser,
-    // profile: data?.profile || null, // Assuming fetchUserById can return a single user for profile
   };
 }
 
+// Exportar hook principal
 export const useApi = () => {
   return {
     useAuth,

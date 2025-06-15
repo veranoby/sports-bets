@@ -1,4 +1,5 @@
 // frontend/src/pages/user/Dashboard.tsx - VERSIÓN COMPLETAMENTE CORREGIDA
+
 import React, { useEffect, useState } from "react";
 import {
   Bell,
@@ -7,9 +8,11 @@ import {
   Wallet,
   Award,
   AlertCircle,
-  Wifi,
-  WifiOff,
+  LogOut,
+  RefreshCw,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import EventCard from "../../components/user/EventCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import WalletSummary from "../../components/user/WalletSummary";
@@ -25,6 +28,9 @@ import PageContainer from "../../components/shared/PageContainer";
 import StatusIndicator from "../../components/shared/StatusIndicator";
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const {
     events,
     loading: eventsLoading,
@@ -39,104 +45,121 @@ const Dashboard: React.FC = () => {
     fetchMyBets,
   } = useBets();
 
-  // 🔧 FIX: Manejo defensivo del wallet - compatible con ambas estructuras
-  const walletHook = useWallet();
-  const wallet =
-    walletHook.wallet || walletHook.balance
-      ? {
-          balance:
-            walletHook.wallet?.balance || walletHook.balance?.available || 0,
-          frozenAmount:
-            walletHook.wallet?.frozenAmount || walletHook.balance?.frozen || 0,
-          availableBalance:
-            walletHook.wallet?.availableBalance ||
-            walletHook.balance?.available ||
-            0,
-        }
-      : null;
-
-  const walletLoading = walletHook.loading;
-  const walletError = walletHook.error;
+  const {
+    wallet,
+    loading: walletLoading,
+    error: walletError,
+    fetchWallet,
+  } = useWallet();
 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [connectionRetries, setConnectionRetries] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // WebSocket listeners para actualizaciones en tiempo real
   const wsListeners = {
     new_bet: (data: any) => {
       console.log("🎯 Nueva apuesta disponible:", data);
-      fetchEvents?.();
-      fetchMyBets?.();
+      fetchEvents();
+      fetchMyBets();
       setLastUpdated(new Date());
     },
     bet_matched: (data: any) => {
-      console.log("🤝 Apuesta emparejada:", data);
-      fetchMyBets?.();
+      console.log("💰 Apuesta emparejada:", data);
+      fetchMyBets();
+      fetchWallet(); // Actualizar balance
       setLastUpdated(new Date());
     },
     event_activated: (data: any) => {
-      console.log("🎪 Evento activado:", data);
-      fetchEvents?.();
+      console.log("🏁 Evento activado:", data);
+      fetchEvents();
       setLastUpdated(new Date());
     },
     fight_updated: (data: any) => {
       console.log("🥊 Pelea actualizada:", data);
-      fetchEvents?.();
+      fetchEvents();
+      setLastUpdated(new Date());
+    },
+    betting_opened: (data: any) => {
+      console.log("🔓 Apuestas abiertas:", data);
+      fetchEvents();
+      setLastUpdated(new Date());
+    },
+    betting_closed: (data: any) => {
+      console.log("🔒 Apuestas cerradas:", data);
+      fetchEvents();
       setLastUpdated(new Date());
     },
   };
 
-  // 🔧 FIX: WebSocket con manejo de errores mejorado
-  const { isConnected, connectionError, emit } = useWebSocket(
-    undefined,
-    wsListeners
-  );
+  const { isConnected, connectionError } = useWebSocket(undefined, wsListeners);
 
-  // Función para refrescar todos los datos
-  const refreshAllData = async () => {
-    try {
-      await Promise.all([
-        fetchEvents?.(),
-        fetchMyBets?.(),
-        walletHook.fetchWallet?.(),
-      ]);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    }
-  };
-
-  // Auto-refresh cada 5 minutos
-  useEffect(() => {
-    const interval = setInterval(refreshAllData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Retry connection si falla
-  useEffect(() => {
-    if (!isConnected && connectionRetries < 3) {
-      const timeout = setTimeout(() => {
-        setConnectionRetries((prev) => prev + 1);
-        refreshAllData();
-      }, 5000);
-      return () => clearTimeout(timeout);
-    }
-  }, [isConnected, connectionRetries]);
-
-  // 🔧 FIX: Stats calculados con validación defensiva
+  // Calcular estadísticas del usuario con validaciones
   const userStats = {
     activeBets: Array.isArray(bets)
       ? bets.filter((bet) => bet.status === "active").length
       : 0,
-    balance: typeof wallet?.balance === "number" ? wallet.balance : 0,
-    frozenAmount:
-      typeof wallet?.frozenAmount === "number" ? wallet.frozenAmount : 0,
-    winningStreak: 3, // TODO: Calcular de las últimas apuestas ganadas
-    streakTrend: "up" as "up" | "down" | "neutral",
+    balance: wallet?.balance ? Number(wallet.balance) : 0,
+    availableBalance: wallet?.availableBalance
+      ? Number(wallet.availableBalance)
+      : 0,
+    frozenAmount: wallet?.frozenAmount ? Number(wallet.frozenAmount) : 0,
+    winningStreak: 3, // Placeholder - implementar lógica real
+    totalBets: Array.isArray(bets) ? bets.length : 0,
   };
 
-  // Filtrar eventos por estado con validación
+  // Notificaciones (placeholder - implementar endpoint real)
+  const unreadNotificationsCount = 0;
+
+  // Función para refrescar todos los datos
+  const refreshAllData = async () => {
+    try {
+      setRefreshing(true);
+      await Promise.all([
+        fetchEvents({ status: "in-progress" }),
+        fetchMyBets({ status: "active" }),
+        fetchWallet(),
+      ]);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    refreshAllData();
+  }, []);
+
+  // Handlers
+  const handleViewWallet = () => {
+    navigate("/wallet");
+  };
+
+  const handleEnterEvent = (eventId: string) => {
+    navigate(`/live-event/${eventId}`);
+  };
+
+  const handleViewAllEvents = () => {
+    navigate("/events");
+  };
+
+  const handleViewAllBets = () => {
+    navigate("/bets");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Estados de carga
+  const isLoading = eventsLoading || betsLoading || walletLoading;
+  const hasError = eventsError || betsError || walletError;
+
+  // Filtrar eventos
   const liveEvents = Array.isArray(events)
     ? events.filter((event) => event.status === "in-progress")
     : [];
@@ -147,8 +170,8 @@ const Dashboard: React.FC = () => {
     ? bets.filter((bet) => bet.status === "active")
     : [];
 
-  // Mostrar loading si estamos cargando datos críticos
-  if (eventsLoading && betsLoading && walletLoading) {
+  // Loading state
+  if (isLoading && !events.length && !bets.length) {
     return (
       <PageContainer>
         <LoadingSpinner text="Cargando dashboard..." />
@@ -156,250 +179,291 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Mostrar errores críticos solo si no hay datos
-  if (eventsError && !Array.isArray(events)) {
-    return (
-      <PageContainer>
-        <ErrorMessage
-          error={eventsError}
-          onRetry={refreshAllData}
-          title="Error al cargar eventos"
-        />
-      </PageContainer>
-    );
-  }
-
   return (
     <PageContainer>
-      {/* Header con estado de conexión */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          {lastUpdated && (
-            <p className="text-gray-400 text-sm">
-              Última actualización: {lastUpdated.toLocaleTimeString()}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Estado de conexión */}
-          <div className="flex items-center gap-2">
-            {isConnected ? (
-              <Wifi className="w-5 h-5 text-green-400" />
-            ) : (
-              <WifiOff className="w-5 h-5 text-red-400" />
-            )}
-            <span className="text-sm text-gray-400">
-              {isConnected ? "Conectado" : "Desconectado"}
-            </span>
+      {/* Header with user info and logout */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#596c95] rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold">
+                {user?.username?.charAt(0).toUpperCase() || "U"}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                ¡Hola, {user?.username || "Usuario"}!
+              </h1>
+              <p className="text-sm text-gray-600">
+                {lastUpdated
+                  ? `Última actualización: ${lastUpdated.toLocaleTimeString()}`
+                  : "Bienvenido a SportsBets"}
+              </p>
+            </div>
           </div>
 
-          {/* Toggle diagnósticos */}
-          <button
-            onClick={() => setShowDiagnostics(!showDiagnostics)}
-            className="text-gray-400 hover:text-white"
-            title="Ver diagnósticos de conexión"
-          >
+          <div className="flex items-center gap-3">
+            {/* WebSocket Status */}
             <StatusIndicator
               status={isConnected ? "connected" : "disconnected"}
-              size="sm"
+              label={isConnected ? "En línea" : "Desconectado"}
             />
-          </button>
 
-          {/* Notificaciones */}
-          <div className="relative">
-            <Bell className="w-6 h-6 text-gray-400" />
-            <NotificationBadge count={0} />
-          </div>
-        </div>
-      </div>
-
-      {/* Diagnósticos WebSocket (condicional) */}
-      {(showDiagnostics || (!isConnected && connectionError)) && (
-        <div className="mb-4 p-4 bg-[#2a325c] border border-[#596c95] rounded-lg">
-          <h3 className="text-white font-semibold mb-2">
-            Diagnóstico de Conexión
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div
-              className={`flex items-center gap-2 ${
-                isConnected ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  isConnected ? "bg-green-400" : "bg-red-400"
-                }`}
-              ></div>
-              WebSocket: {isConnected ? "Conectado" : "Desconectado"}
-            </div>
-            {connectionError && (
-              <div className="text-yellow-400">Error: {connectionError}</div>
-            )}
-            <div className="text-gray-400">
-              Intentos de reconexión: {connectionRetries}/3
-            </div>
+            {/* Refresh Button */}
             <button
               onClick={refreshAllData}
-              className="mt-2 px-3 py-1 bg-[#596c95] text-white rounded text-xs hover:bg-[#4a5a85]"
+              disabled={refreshing}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Actualizar datos"
             >
-              Reintentar Conexión
+              <RefreshCw
+                className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+              />
+            </button>
+
+            {/* Notifications */}
+            <div className="relative">
+              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                <Bell className="w-5 h-5" />
+                {unreadNotificationsCount > 0 && (
+                  <NotificationBadge count={unreadNotificationsCount} />
+                )}
+              </button>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">Salir</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Error handling */}
+      {hasError && (
+        <div className="mb-6">
+          <ErrorMessage
+            error={eventsError || betsError || walletError}
+            onRetry={refreshAllData}
+          />
+        </div>
       )}
 
-      {/* Cards de estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card variant="stat" className="bg-[#2a325c] border-[#596c95]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Apuestas Activas</p>
-              <p className="text-2xl font-bold text-white">
-                {userStats.activeBets}
-              </p>
-            </div>
-            <Activity className="w-8 h-8 text-[#596c95]" />
-          </div>
-        </Card>
-
-        <Card variant="stat" className="bg-[#2a325c] border-[#596c95]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Balance Disponible</p>
-              <p className="text-2xl font-bold text-[#cd6263]">
-                ${Number(userStats.balance).toFixed(2)}
-              </p>
-              {userStats.frozenAmount > 0 && (
-                <p className="text-xs text-yellow-400">
-                  ${Number(userStats.frozenAmount).toFixed(2)} congelado
-                </p>
-              )}
-            </div>
-            <Wallet className="w-8 h-8 text-[#cd6263]" />
-          </div>
-        </Card>
-
-        <Card variant="stat" className="bg-[#2a325c] border-[#596c95]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Racha Ganadora</p>
-              <p className="text-2xl font-bold text-white">
-                {userStats.winningStreak}
-              </p>
-            </div>
-            <Award className="w-8 h-8 text-[#596c95]" />
-          </div>
-        </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card
+          variant="stat"
+          title="Apuestas Activas"
+          value={userStats.activeBets.toString()}
+          icon={Activity}
+          color="blue"
+        />
+        <Card
+          variant="stat"
+          title="Balance Disponible"
+          value={`$${userStats.availableBalance.toFixed(2)}`}
+          icon={Wallet}
+          color="green"
+          onClick={handleViewWallet}
+          className="cursor-pointer hover:shadow-md transition-shadow"
+        />
+        <Card
+          variant="stat"
+          title="Balance Total"
+          value={`$${userStats.balance.toFixed(2)}`}
+          icon={Wallet}
+          color="gray"
+        />
+        <Card
+          variant="stat"
+          title="Racha Ganadora"
+          value={userStats.winningStreak.toString()}
+          icon={Award}
+          color="red"
+          trend={{ value: 0, direction: "neutral", period: "última semana" }}
+        />
       </div>
 
-      {/* Contenido principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna izquierda: Eventos en vivo */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Eventos en vivo */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              Eventos en Vivo
-            </h2>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Wallet Summary */}
+        <div className="lg:col-span-1">
+          <WalletSummary />
+        </div>
 
-            {eventsLoading ? (
-              <LoadingSpinner size="sm" />
-            ) : liveEvents.length > 0 ? (
-              <div className="space-y-4">
-                {liveEvents.slice(0, 3).map((event) => (
-                  <EventCard key={event.id} event={event} />
+        {/* Live Events */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Eventos en Vivo
+              </h2>
+              <button
+                onClick={handleViewAllEvents}
+                className="text-[#596c95] hover:text-[#4a5a85] text-sm font-medium"
+              >
+                Ver todos
+              </button>
+            </div>
+
+            {liveEvents.length > 0 ? (
+              <div className="grid gap-4">
+                {liveEvents.slice(0, 2).map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onEnter={() => handleEnterEvent(event.id)}
+                  />
                 ))}
               </div>
             ) : (
               <EmptyState
-                icon={<Calendar />}
+                icon={Calendar}
                 title="No hay eventos en vivo"
-                description="Los eventos aparecerán aquí cuando estén transmitiendo"
+                description="Los eventos aparecerán aquí cuando estén activos"
               />
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Próximos eventos */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Active Bets */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Mis Apuestas Activas
+            </h2>
+            <button
+              onClick={handleViewAllBets}
+              className="text-[#596c95] hover:text-[#4a5a85] text-sm font-medium"
+            >
+              Ver todas
+            </button>
+          </div>
+
+          {activeBets.length > 0 ? (
+            <div className="space-y-3">
+              {activeBets.slice(0, 3).map((bet) => (
+                <div
+                  key={bet.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {bet.eventName || "Evento"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Lado: {bet.side === "red" ? "Rojo" : "Azul"} • $
+                      {bet.amount}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-[#596c95]">
+                      {bet.status === "active" ? "Activa" : bet.status}
+                    </p>
+                    {bet.potentialPayout && (
+                      <p className="text-xs text-gray-500">
+                        Ganancia: ${bet.potentialPayout.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Activity}
+              title="No tienes apuestas activas"
+              description="Tus apuestas aparecerán aquí cuando participes en eventos"
+            />
+          )}
+        </div>
+
+        {/* Upcoming Events */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
               Próximos Eventos
             </h2>
-
-            {upcomingEvents.length > 0 ? (
-              <div className="space-y-4">
-                {upcomingEvents.slice(0, 3).map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={<Calendar />}
-                title="No hay eventos programados"
-                description="Los próximos eventos aparecerán aquí"
-              />
-            )}
+            <button
+              onClick={handleViewAllEvents}
+              className="text-[#596c95] hover:text-[#4a5a85] text-sm font-medium"
+            >
+              Ver calendario
+            </button>
           </div>
-        </div>
 
-        {/* Columna derecha: Panel de apuestas y wallet */}
-        <div className="space-y-6">
-          {/* Resumen de wallet */}
-          <WalletSummary />
-
-          {/* Panel de apuestas rápidas */}
-          {liveEvents.length > 0 && <BettingPanel fightId="current-fight-id" />}
-
-          {/* Mis apuestas activas */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-3">
-              Mis Apuestas Activas
-            </h3>
-
-            {betsLoading ? (
-              <LoadingSpinner size="sm" />
-            ) : activeBets.length > 0 ? (
-              <div className="space-y-2">
-                {activeBets.slice(0, 5).map((bet) => (
-                  <div
-                    key={bet.id}
-                    className="bg-[#2a325c] border border-[#596c95] p-3 rounded-lg"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-white text-sm font-medium">
-                          {bet.eventName || "Evento"}
-                        </p>
-                        <p className="text-gray-400 text-xs">
-                          {bet.side === "red" ? "Rojo" : "Azul"} - ${bet.amount}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[#cd6263] text-sm font-bold">
-                          ${bet.potentialPayout?.toFixed(2) || "0.00"}
-                        </p>
-                        <p className="text-gray-400 text-xs">Potencial</p>
-                      </div>
-                    </div>
+          {upcomingEvents.length > 0 ? (
+            <div className="space-y-3">
+              {upcomingEvents.slice(0, 3).map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{event.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {new Date(event.scheduledDate).toLocaleDateString()} •{" "}
+                      {event.venue?.name}
+                    </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={<Activity />}
-                title="No tienes apuestas activas"
-                description="Tus apuestas aparecerán aquí"
-                size="sm"
-              />
-            )}
-          </div>
+                  <div className="text-right">
+                    <p className="text-sm text-[#596c95]">Programado</p>
+                    <p className="text-xs text-gray-500">
+                      {event.totalFights || 0} peleas
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Calendar}
+              title="No hay eventos programados"
+              description="Los próximos eventos aparecerán aquí"
+            />
+          )}
         </div>
       </div>
 
-      {/* Navegación móvil */}
+      {/* Navigation Component */}
       <Navigation currentPage="home" />
+
+      {/* Debug Info (solo en desarrollo) */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowDiagnostics(!showDiagnostics)}
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            {showDiagnostics ? "Ocultar" : "Mostrar"} información de debug
+          </button>
+
+          {showDiagnostics && (
+            <div className="mt-2 p-4 bg-gray-900 text-green-400 rounded-lg text-xs font-mono">
+              <p>🔌 WebSocket: {isConnected ? "Conectado" : "Desconectado"}</p>
+              <p>
+                📊 Eventos: {events.length} total, {liveEvents.length} en vivo
+              </p>
+              <p>
+                🎯 Apuestas: {bets.length} total, {activeBets.length} activas
+              </p>
+              <p>
+                💰 Wallet: ${userStats.balance.toFixed(2)} ($
+                {userStats.availableBalance.toFixed(2)} disponible)
+              </p>
+              {connectionError && <p>❌ Error WS: {connectionError}</p>}
+            </div>
+          )}
+        </div>
+      )}
     </PageContainer>
   );
 };

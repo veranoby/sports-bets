@@ -107,7 +107,7 @@ const WalletPage = () => {
             title="Saldo Disponible"
             value={`$${wallet?.balance || 0}`}
             color="green"
-            icon={<DollarSign />}
+            icon={DollarSign}
           />
           <Card
             title="Monto Congelado"

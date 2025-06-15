@@ -5,7 +5,7 @@ import { useFights } from "../../hooks/useApi";
 import { useBets } from "../../hooks/useApi";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
-import { EmptyState } from "../../components/shared/EmptyState";
+import EmptyState from "../../components/shared/EmptyState";
 
 type Fight = {
   id: string;
