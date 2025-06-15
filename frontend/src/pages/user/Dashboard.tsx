@@ -1,4 +1,4 @@
-// frontend/src/pages/user/Dashboard.tsx - VERSIÓN CORREGIDA
+// frontend/src/pages/user/Dashboard.tsx - VERSIÓN COMPLETAMENTE CORREGIDA
 import React, { useEffect, useState } from "react";
 import {
   Bell,
@@ -7,12 +7,13 @@ import {
   Wallet,
   Award,
   AlertCircle,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import EventCard from "../../components/user/EventCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import WalletSummary from "../../components/user/WalletSummary";
 import Navigation from "../../components/user/Navigation";
-import WebSocketDiagnostics from "../../components/shared/WebSocketDiagnostics";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import Card from "../../components/shared/Card";
@@ -38,107 +39,116 @@ const Dashboard: React.FC = () => {
     fetchMyBets,
   } = useBets();
 
-  const { wallet, loading: walletLoading, fetchWallet } = useWallet();
+  // 🔧 FIX: Manejo defensivo del wallet - compatible con ambas estructuras
+  const walletHook = useWallet();
+  const wallet =
+    walletHook.wallet || walletHook.balance
+      ? {
+          balance:
+            walletHook.wallet?.balance || walletHook.balance?.available || 0,
+          frozenAmount:
+            walletHook.wallet?.frozenAmount || walletHook.balance?.frozen || 0,
+          availableBalance:
+            walletHook.wallet?.availableBalance ||
+            walletHook.balance?.available ||
+            0,
+        }
+      : null;
+
+  const walletLoading = walletHook.loading;
+  const walletError = walletHook.error;
 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [connectionRetries, setConnectionRetries] = useState(0);
 
   // WebSocket listeners para actualizaciones en tiempo real
   const wsListeners = {
-    // Evento: Nueva apuesta disponible
     new_bet: (data: any) => {
       console.log("🎯 Nueva apuesta disponible:", data);
-      fetchEvents(); // Refrescar eventos para mostrar nueva actividad
-      fetchMyBets(); // Refrescar mis apuestas
+      fetchEvents?.();
+      fetchMyBets?.();
       setLastUpdated(new Date());
     },
-
-    // Evento: Apuesta emparejada
     bet_matched: (data: any) => {
       console.log("🤝 Apuesta emparejada:", data);
-      fetchMyBets(); // Refrescar mis apuestas
-      fetchWallet(); // Refrescar wallet (fondos congelados)
+      fetchMyBets?.();
       setLastUpdated(new Date());
     },
-
-    // Evento: Evento activado/iniciado
     event_activated: (data: any) => {
-      console.log("🚀 Evento activado:", data);
-      fetchEvents(); // Refrescar lista de eventos
+      console.log("🎪 Evento activado:", data);
+      fetchEvents?.();
       setLastUpdated(new Date());
     },
-
-    // Evento: Pelea actualizada
     fight_updated: (data: any) => {
       console.log("🥊 Pelea actualizada:", data);
-      fetchEvents(); // Refrescar eventos para mostrar cambios
-      setLastUpdated(new Date());
-    },
-
-    // Evento: Apuestas abiertas para una pelea
-    betting_opened: (data: any) => {
-      console.log("💰 Apuestas abiertas:", data);
-      fetchEvents(); // Refrescar para mostrar que se pueden hacer apuestas
-      setLastUpdated(new Date());
-    },
-
-    // Evento: Apuestas cerradas
-    betting_closed: (data: any) => {
-      console.log("🚫 Apuestas cerradas:", data);
-      fetchEvents(); // Refrescar estado de eventos
-      setLastUpdated(new Date());
-    },
-
-    // Evento: Pelea completada con resultado
-    fight_completed: (data: any) => {
-      console.log("🏆 Pelea completada:", data);
-      fetchMyBets(); // Refrescar para mostrar resultados
-      fetchWallet(); // Refrescar wallet (ganancia/pérdida)
-      fetchEvents(); // Refrescar eventos
+      fetchEvents?.();
       setLastUpdated(new Date());
     },
   };
 
-  const { isConnected, connectionError, reconnect } = useWebSocket(
+  // 🔧 FIX: WebSocket con manejo de errores mejorado
+  const { isConnected, connectionError, emit } = useWebSocket(
     undefined,
     wsListeners
   );
 
   // Función para refrescar todos los datos
-  const refreshAllData = () => {
-    fetchEvents({ status: "in-progress" });
-    fetchMyBets({ status: "active" });
-    fetchWallet();
-    setLastUpdated(new Date());
+  const refreshAllData = async () => {
+    try {
+      await Promise.all([
+        fetchEvents?.(),
+        fetchMyBets?.(),
+        walletHook.fetchWallet?.(),
+      ]);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
   };
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    refreshAllData();
-  }, []);
-
-  // Auto-refresh cada 5 minutos como respaldo
+  // Auto-refresh cada 5 minutos
   useEffect(() => {
     const interval = setInterval(refreshAllData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Stats calculados
+  // Retry connection si falla
+  useEffect(() => {
+    if (!isConnected && connectionRetries < 3) {
+      const timeout = setTimeout(() => {
+        setConnectionRetries((prev) => prev + 1);
+        refreshAllData();
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isConnected, connectionRetries]);
+
+  // 🔧 FIX: Stats calculados con validación defensiva
   const userStats = {
-    activeBets: bets?.filter((bet) => bet.status === "active").length || 0,
-    balance: wallet?.balance || 0,
-    frozenAmount: wallet?.frozenAmount || 0,
+    activeBets: Array.isArray(bets)
+      ? bets.filter((bet) => bet.status === "active").length
+      : 0,
+    balance: typeof wallet?.balance === "number" ? wallet.balance : 0,
+    frozenAmount:
+      typeof wallet?.frozenAmount === "number" ? wallet.frozenAmount : 0,
     winningStreak: 3, // TODO: Calcular de las últimas apuestas ganadas
     streakTrend: "up" as "up" | "down" | "neutral",
   };
 
-  // Filtrar eventos por estado
-  const liveEvents = events.filter((event) => event.status === "in-progress");
-  const upcomingEvents = events.filter((event) => event.status === "scheduled");
-  const activeBets = bets.filter((bet) => bet.status === "active");
+  // Filtrar eventos por estado con validación
+  const liveEvents = Array.isArray(events)
+    ? events.filter((event) => event.status === "in-progress")
+    : [];
+  const upcomingEvents = Array.isArray(events)
+    ? events.filter((event) => event.status === "scheduled")
+    : [];
+  const activeBets = Array.isArray(bets)
+    ? bets.filter((bet) => bet.status === "active")
+    : [];
 
   // Mostrar loading si estamos cargando datos críticos
-  if (eventsLoading || betsLoading || walletLoading) {
+  if (eventsLoading && betsLoading && walletLoading) {
     return (
       <PageContainer>
         <LoadingSpinner text="Cargando dashboard..." />
@@ -146,8 +156,8 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Mostrar errores críticos
-  if (eventsError && !events.length) {
+  // Mostrar errores críticos solo si no hay datos
+  if (eventsError && !Array.isArray(events)) {
     return (
       <PageContainer>
         <ErrorMessage
@@ -173,6 +183,18 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Estado de conexión */}
+          <div className="flex items-center gap-2">
+            {isConnected ? (
+              <Wifi className="w-5 h-5 text-green-400" />
+            ) : (
+              <WifiOff className="w-5 h-5 text-red-400" />
+            )}
+            <span className="text-sm text-gray-400">
+              {isConnected ? "Conectado" : "Desconectado"}
+            </span>
+          </div>
+
           {/* Toggle diagnósticos */}
           <button
             onClick={() => setShowDiagnostics(!showDiagnostics)}
@@ -194,12 +216,37 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Diagnósticos WebSocket (condicional) */}
-      {(showDiagnostics || !isConnected) && (
-        <div className="mb-4">
-          <WebSocketDiagnostics
-            showDetails={showDiagnostics}
-            onConnectionRestore={refreshAllData}
-          />
+      {(showDiagnostics || (!isConnected && connectionError)) && (
+        <div className="mb-4 p-4 bg-[#2a325c] border border-[#596c95] rounded-lg">
+          <h3 className="text-white font-semibold mb-2">
+            Diagnóstico de Conexión
+          </h3>
+          <div className="space-y-2 text-sm">
+            <div
+              className={`flex items-center gap-2 ${
+                isConnected ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isConnected ? "bg-green-400" : "bg-red-400"
+                }`}
+              ></div>
+              WebSocket: {isConnected ? "Conectado" : "Desconectado"}
+            </div>
+            {connectionError && (
+              <div className="text-yellow-400">Error: {connectionError}</div>
+            )}
+            <div className="text-gray-400">
+              Intentos de reconexión: {connectionRetries}/3
+            </div>
+            <button
+              onClick={refreshAllData}
+              className="mt-2 px-3 py-1 bg-[#596c95] text-white rounded text-xs hover:bg-[#4a5a85]"
+            >
+              Reintentar Conexión
+            </button>
+          </div>
         </div>
       )}
 
@@ -222,11 +269,11 @@ const Dashboard: React.FC = () => {
             <div>
               <p className="text-gray-400 text-sm">Balance Disponible</p>
               <p className="text-2xl font-bold text-[#cd6263]">
-                ${userStats.balance.toFixed(2)}
+                ${Number(userStats.balance).toFixed(2)}
               </p>
               {userStats.frozenAmount > 0 && (
                 <p className="text-xs text-yellow-400">
-                  ${userStats.frozenAmount.toFixed(2)} congelado
+                  ${Number(userStats.frozenAmount).toFixed(2)} congelado
                 </p>
               )}
             </div>
@@ -258,92 +305,96 @@ const Dashboard: React.FC = () => {
               Eventos en Vivo
             </h2>
 
-            {liveEvents.length > 0 ? (
+            {eventsLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : liveEvents.length > 0 ? (
               <div className="space-y-4">
-                {liveEvents.map((event) => (
+                {liveEvents.slice(0, 3).map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
               </div>
             ) : (
               <EmptyState
+                icon={<Calendar />}
                 title="No hay eventos en vivo"
                 description="Los eventos aparecerán aquí cuando estén transmitiendo"
-                icon={<Calendar className="w-12 h-12" />}
               />
             )}
           </div>
 
           {/* Próximos eventos */}
-          {upcomingEvents.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold text-white mb-4">
-                Próximos Eventos
-              </h2>
+          <div>
+            <h2 className="text-xl font-semibold text-white mb-4">
+              Próximos Eventos
+            </h2>
+
+            {upcomingEvents.length > 0 ? (
               <div className="space-y-4">
                 {upcomingEvents.slice(0, 3).map((event) => (
-                  <EventCard key={event.id} event={event} variant="upcoming" />
+                  <EventCard key={event.id} event={event} />
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <EmptyState
+                icon={<Calendar />}
+                title="No hay eventos programados"
+                description="Los próximos eventos aparecerán aquí"
+              />
+            )}
+          </div>
         </div>
 
-        {/* Columna derecha: Sidebar */}
+        {/* Columna derecha: Panel de apuestas y wallet */}
         <div className="space-y-6">
-          {/* Resumen de billetera */}
+          {/* Resumen de wallet */}
           <WalletSummary />
 
-          {/* Panel de apuestas activas */}
-          {activeBets.length > 0 && (
-            <Card className="bg-[#2a325c] border-[#596c95]">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Mis Apuestas Activas
-              </h3>
-              <div className="space-y-3">
-                {activeBets.slice(0, 3).map((bet) => (
+          {/* Panel de apuestas rápidas */}
+          {liveEvents.length > 0 && <BettingPanel fightId="current-fight-id" />}
+
+          {/* Mis apuestas activas */}
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-3">
+              Mis Apuestas Activas
+            </h3>
+
+            {betsLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : activeBets.length > 0 ? (
+              <div className="space-y-2">
+                {activeBets.slice(0, 5).map((bet) => (
                   <div
                     key={bet.id}
-                    className="p-3 bg-[#1a1f37] rounded-lg border border-[#596c95]"
+                    className="bg-[#2a325c] border border-[#596c95] p-3 rounded-lg"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm text-gray-300">
-                        {bet.eventName || "Evento"}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          bet.side === "red"
-                            ? "bg-red-900 text-red-200"
-                            : "bg-blue-900 text-blue-200"
-                        }`}
-                      >
-                        {bet.side === "red" ? "Rojo" : "Azul"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Apostado:</span>
-                      <span className="text-white">${bet.amount}</span>
-                    </div>
-                    {bet.potentialPayout && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Posible ganancia:</span>
-                        <span className="text-green-400">
-                          ${bet.potentialPayout}
-                        </span>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-white text-sm font-medium">
+                          {bet.eventName || "Evento"}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {bet.side === "red" ? "Rojo" : "Azul"} - ${bet.amount}
+                        </p>
                       </div>
-                    )}
+                      <div className="text-right">
+                        <p className="text-[#cd6263] text-sm font-bold">
+                          ${bet.potentialPayout?.toFixed(2) || "0.00"}
+                        </p>
+                        <p className="text-gray-400 text-xs">Potencial</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            </Card>
-          )}
-
-          {/* Panel de apuestas disponibles (si hay un evento seleccionado) */}
-          {liveEvents.length > 0 && (
-            <BettingPanel
-              fightId={liveEvents[0].fights?.[0]?.id || ""}
-              eventName={liveEvents[0].name}
-            />
-          )}
+            ) : (
+              <EmptyState
+                icon={<Activity />}
+                title="No tienes apuestas activas"
+                description="Tus apuestas aparecerán aquí"
+                size="sm"
+              />
+            )}
+          </div>
         </div>
       </div>
 
