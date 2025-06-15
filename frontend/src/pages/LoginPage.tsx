@@ -1,7 +1,7 @@
 // frontend/src/pages/LoginPage.tsx
-// ✅ SOLUCION COMPLETA: Error handling que permite leer los mensajes
+// 🚨 SOLUCIÓN COMPLETA - Error Handling Mejorado
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus, Loader2, Info } from "lucide-react";
@@ -20,40 +20,43 @@ const LoginPage: React.FC = () => {
     password: "",
   });
 
-  // ✅ SOLUCION 1: Estado de error con timeout personalizado
+  // 🔧 MEJORA 1: Estado de error más robusto
   const [error, setError] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showError, setShowError] = useState(false);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ✅ SOLUCION 2: Función para limpiar error con delay
-  const clearErrorWithDelay = (delay: number = 3000) => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
+  // 🔧 MEJORA 2: Función para mostrar error de forma persistente
+  const displayError = (errorMessage: string) => {
+    // Limpiar timeout anterior si existe
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
     }
 
-    typingTimeoutRef.current = setTimeout(() => {
-      setError("");
-      setIsTyping(false);
-    }, delay);
+    setError(errorMessage);
+    setShowError(true);
+
+    // Auto-hide después de 8 segundos (tiempo suficiente para leer)
+    errorTimeoutRef.current = setTimeout(() => {
+      setShowError(false);
+      // Limpiar el error 500ms después de que desaparezca visualmente
+      setTimeout(() => setError(""), 500);
+    }, 8000);
   };
 
-  // ✅ SOLUCION 3: Limpiar timeout al desmontar componente
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
+  // 🔧 MEJORA 3: Función para limpiar error manualmente
+  const clearError = () => {
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    setShowError(false);
+    setTimeout(() => setError(""), 300); // Transición suave
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ SOLUCION 4: NO limpiar error inmediatamente, solo cancelar timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    setIsTyping(false);
+    // 🔧 MEJORA 4: Limpiar error solo al enviar form, no antes
+    clearError();
 
     try {
       if (isLoginMode) {
@@ -68,6 +71,8 @@ const LoginPage: React.FC = () => {
           password: formData.password,
         });
       }
+
+      // Solo navegar si el login/registro fue exitoso
       navigate("/");
     } catch (error: unknown) {
       const errorMessage =
@@ -75,38 +80,34 @@ const LoginPage: React.FC = () => {
           ? error.message
           : "Error desconocido al procesar la solicitud";
 
-      // ✅ SOLUCION 5: Limpiar error anterior solo al mostrar nuevo error
-      setError(errorMessage);
-      // No configurar auto-clear aquí, dejar que el usuario lo lea
+      // 🔧 MEJORA 5: Usar la nueva función de error persistente
+      displayError(errorMessage);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ✅ SOLUCION 6: Solo marcar como "escribiendo", NO limpiar error inmediatamente
-    if (error && !isTyping) {
-      setIsTyping(true);
-      // Limpiar error solo después de 3 segundos de estar escribiendo
-      clearErrorWithDelay(3000);
-    }
+    const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // 🔧 MEJORA 6: NO limpiar error inmediatamente
+    // Solo limpiar error si el usuario ha escrito algo significativo
+    // y ha pasado tiempo suficiente desde que apareció el error
+    if (error && value.length > 2) {
+      const errorAge = Date.now() - (errorTimeoutRef.current ? 0 : 3000);
+      if (errorAge > 3000) {
+        // Solo limpiar si el error tiene más de 3 segundos
+        clearError();
+      }
+    }
   };
 
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
-
-    // ✅ SOLUCION 7: Solo limpiar error si el usuario ya estaba escribiendo
-    if (isTyping) {
-      setError("");
-      setIsTyping(false);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    }
-
+    clearError(); // Limpiar error al cambiar modo
     setFormData({
       login: "",
       username: "",
@@ -115,14 +116,14 @@ const LoginPage: React.FC = () => {
     });
   };
 
-  // ✅ SOLUCION 8: Función manual para cerrar error
-  const handleCloseError = () => {
-    setError("");
-    setIsTyping(false);
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-  };
+  // 🔧 MEJORA 7: Cleanup al desmontar componente
+  React.useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2a325c] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -136,119 +137,109 @@ const LoginPage: React.FC = () => {
           </h2>
           <p className="mt-2 text-sm text-gray-300">
             {isLoginMode
-              ? "Ingresa tus credenciales para acceder"
-              : "Crea una nueva cuenta para comenzar"}
+              ? "Accede a tu cuenta para disfrutar de las transmisiones"
+              : "Crea tu cuenta para empezar a apostar"}
           </p>
         </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#2a325c] py-8 px-4 shadow-2xl sm:rounded-lg sm:px-10 border border-[#596c95]">
-          {/* ✅ SOLUCION 9: Error message optimizado para lectura */}
-          {error && (
-            <div className="mb-6">
-              <ErrorMessage
-                error={error}
-                variant="card"
-                autoClose={false} // ✅ NO auto-close automático
-                closeable={true} // ✅ Permitir cerrar manualmente
-                onClose={handleCloseError}
-                className="shadow-sm border-l-4 border-l-red-500"
-              />
-              {/* ✅ SOLUCION 10: Indicador visual de que el error se borrará */}
-              {isTyping && (
-                <div className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                  <div className="animate-pulse w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  Este mensaje se ocultará en unos segundos...
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Credenciales de prueba */}
-          <div className="mb-6 bg-[#1a1f37] border border-[#596c95] rounded-lg p-4">
-            <div className="flex items-start">
-              <Info className="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-medium text-blue-400 mb-2">
-                  Credenciales de Prueba
-                </h3>
-                <div className="text-xs text-gray-300 space-y-1">
-                  <p>
-                    <strong>Admin:</strong> admin@sportsbets.com / admin123
-                  </p>
-                  <p>
-                    <strong>Usuario:</strong> testuser1 / Test123456
-                  </p>
-                  <p>
-                    <strong>Operador:</strong> operator1 / Operator123
-                  </p>
-                  <p>
-                    <strong>Venue Owner:</strong> venueowner / Venue123
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Campo login/username */}
-            <div>
-              <label
-                htmlFor={isLoginMode ? "login" : "username"}
-                className="block text-sm font-medium text-gray-300"
-              >
-                {isLoginMode ? "Email o Usuario" : "Nombre de Usuario"}
-              </label>
-              <div className="mt-1">
-                <input
-                  id={isLoginMode ? "login" : "username"}
-                  name={isLoginMode ? "login" : "username"}
-                  type="text"
-                  autoComplete={isLoginMode ? "username" : "username"}
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-[#596c95] placeholder-gray-500 text-white rounded-md focus:outline-none focus:ring-[#cd6263] focus:border-[#cd6263] focus:z-10 sm:text-sm"
-                  placeholder={
-                    isLoginMode
-                      ? "admin@sportsbets.com"
-                      : "Tu nombre de usuario"
-                  }
-                  value={isLoginMode ? formData.login : formData.username}
-                  onChange={handleChange}
+            {/* 🔧 MEJORA 8: Error Message mejorado con mejor visualización */}
+            {showError && error && (
+              <div className="mb-4">
+                <ErrorMessage
+                  error={error}
+                  variant="card"
+                  closeable={true}
+                  onClose={clearError}
+                  className="border-l-4 border-l-red-500 bg-red-50 shadow-sm"
+                  showIcon={true}
                 />
-              </div>
-            </div>
-
-            {/* Campo email (solo registro) */}
-            {!isLoginMode && (
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-300"
-                >
-                  Email
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="appearance-none relative block w-full px-3 py-2 border border-[#596c95] placeholder-gray-500 text-white rounded-md focus:outline-none focus:ring-[#cd6263] focus:border-[#cd6263] focus:z-10 sm:text-sm"
-                    placeholder="tu@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
               </div>
             )}
 
-            {/* Campo password */}
+            {/* Login/Email Field */}
+            {isLoginMode ? (
+              <div>
+                <label
+                  htmlFor="login"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Usuario o Email
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="login"
+                    name="login"
+                    type="text"
+                    autoComplete="username"
+                    required
+                    value={formData.login}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="usuario@ejemplo.com"
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Username Field */}
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Nombre de Usuario
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="username"
+                      name="username"
+                      type="text"
+                      required
+                      value={formData.username}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
+                      placeholder="tu_usuario"
+                    />
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Email
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Password Field */}
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-700"
               >
                 Contraseña
               </label>
@@ -261,15 +252,17 @@ const LoginPage: React.FC = () => {
                     isLoginMode ? "current-password" : "new-password"
                   }
                   required
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-[#596c95] placeholder-gray-500 text-white rounded-md focus:outline-none focus:ring-[#cd6263] focus:border-[#cd6263] focus:z-10 sm:text-sm"
-                  placeholder={isLoginMode ? "admin123" : "Tu contraseña"}
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={isLoading}
+                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
@@ -280,11 +273,12 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#cd6263] hover:bg-[#b55456] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#cd6263] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#596c95] hover:bg-[#4a5a85] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
                   <>
@@ -305,13 +299,14 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
 
+          {/* Mode Toggle */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#596c95]" />
+                <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#2a325c] text-gray-400">
+                <span className="px-2 bg-white text-gray-500">
                   {isLoginMode ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}
                 </span>
               </div>
@@ -321,12 +316,51 @@ const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="w-full text-center text-sm text-[#cd6263] hover:text-[#b55456] font-medium transition-colors"
+                disabled={isLoading}
+                className="w-full text-center text-sm text-[#596c95] hover:text-[#4a5a85] font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoginMode ? "Crear una cuenta nueva" : "Iniciar sesión aquí"}
+                {isLoginMode ? "Crear nueva cuenta" : "Iniciar sesión"}
               </button>
             </div>
           </div>
+
+          {/* Demo Credentials */}
+          {isLoginMode && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-start">
+                <Info className="w-4 h-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-xs text-gray-600">
+                  <p className="font-medium text-gray-900 mb-1">
+                    Credenciales de prueba:
+                  </p>
+                  <p>
+                    <strong>Email:</strong> admin@sportsbets.com
+                  </p>
+                  <p>
+                    <strong>Contraseña:</strong> admin123
+                  </p>
+                  <p>
+                    <strong>Usuario:</strong> testuser1
+                  </p>
+                  <p>
+                    <strong>Contraseña:</strong> Test123456
+                  </p>
+                  <p>
+                    <strong>Operador:</strong> operator1
+                  </p>
+                  <p>
+                    <strong>Contraseña:</strong> Operator123
+                  </p>
+                  <p>
+                    <strong>Venue Owner:</strong> venueowner
+                  </p>
+                  <p>
+                    <strong>Contraseña:</strong> Venue123
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

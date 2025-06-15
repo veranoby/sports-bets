@@ -1,5 +1,5 @@
 // frontend/src/components/shared/ErrorMessage.tsx
-// ✅ COMPONENTE MEJORADO: Compatible con nuevo sistema de error handling
+// 🚨 COMPONENTE MEJORADO - Error Message con transiciones suaves
 
 import React, { useState, useEffect } from "react";
 import { AlertCircle, RefreshCw, X } from "lucide-react";
@@ -7,19 +7,15 @@ import { AlertCircle, RefreshCw, X } from "lucide-react";
 interface ErrorMessageProps {
   error: string | Error;
   onRetry?: () => void;
-  variant?: "card" | "inline" | "page" | "dark-card";
+  variant?: "card" | "inline" | "page";
   className?: string;
   showIcon?: boolean;
-  // ✅ Props para control avanzado de timeouts
+  // Funcionalidad de timeout
   autoClose?: boolean;
   duration?: number; // en ms
   onClose?: () => void;
   showProgress?: boolean;
   closeable?: boolean;
-  // ✅ Nuevas props para mejor UX
-  persistent?: boolean; // No se cierra automáticamente
-  dismissible?: boolean; // Se puede cerrar haciendo click
-  animation?: boolean; // Habilitar/deshabilitar animaciones
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({
@@ -28,43 +24,21 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   variant = "card",
   className = "",
   showIcon = true,
-  // Configuración de auto-close
   autoClose = false,
   duration = 8000,
   onClose,
   showProgress = false,
   closeable = false,
-  // Nuevas props
-  persistent = false,
-  dismissible = false,
-  animation = true,
 }) => {
   const [visible, setVisible] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const [progressWidth, setProgressWidth] = useState(100);
 
   const errorText = typeof error === "string" ? error : error.message;
 
-  // ✅ Auto-cerrar con barra de progreso
+  // Auto-cerrar después del tiempo especificado
   useEffect(() => {
-    if (autoClose && visible && !persistent) {
-      // Iniciar countdown de progreso
-      if (showProgress) {
-        const progressInterval = setInterval(() => {
-          setProgressWidth((prev) => {
-            const decrement = (100 / duration) * 100; // Actualizar cada 100ms
-            const newWidth = prev - decrement;
-            return newWidth <= 0 ? 0 : newWidth;
-          });
-        }, 100);
-
-        // Limpiar intervalo después del timeout
-        setTimeout(() => {
-          clearInterval(progressInterval);
-        }, duration);
-      }
-
-      // Configurar timeout principal
+    if (autoClose && visible && !isClosing) {
       const id = setTimeout(() => {
         handleClose();
       }, duration);
@@ -74,9 +48,9 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
         if (id) clearTimeout(id);
       };
     }
-  }, [autoClose, visible, duration, persistent, showProgress]);
+  }, [autoClose, visible, duration, isClosing]);
 
-  // ✅ Cleanup al desmontar
+  // Cleanup al desmontar
   useEffect(() => {
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -89,53 +63,44 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
       setTimeoutId(null);
     }
 
-    if (animation) {
-      // Animación de salida
-      setVisible(false);
-      setTimeout(() => {
-        onClose?.();
-      }, 300);
-    } else {
+    // 🔧 MEJORA: Transición suave de cierre
+    setIsClosing(true);
+
+    // Delay para permitir animación de salida
+    setTimeout(() => {
       setVisible(false);
       onClose?.();
-    }
+    }, 300); // 300ms para transición suave
   };
 
-  const handleDismiss = () => {
-    if (dismissible || closeable) {
-      handleClose();
-    }
-  };
-
+  // 🔧 MEJORA: No renderizar si no es visible
   if (!visible) return null;
 
-  // ✅ Configuración de variantes mejorada
   const variants = {
-    card: "bg-red-50 border border-red-200 rounded-lg p-4 error-message-improved",
-    "dark-card":
-      "bg-[#2a325c] border border-[#596c95] rounded-lg p-4 sportsbets-error sportsbets-error-accent",
+    card: "bg-red-50 border border-red-200 rounded-lg p-4",
     inline: "text-red-600 text-sm",
     page: "min-h-[400px] flex items-center justify-center",
   };
 
-  // ✅ Variant inline (mantener funcionalidad existente)
+  // 🔧 MEJORA: Clases de transición mejoradas
+  const transitionClasses = isClosing
+    ? "opacity-0 transform scale-95 transition-all duration-300 ease-in-out"
+    : "opacity-100 transform scale-100 transition-all duration-300 ease-in-out";
+
+  // Variant inline
   if (variant === "inline") {
     return (
       <div
-        className={`flex items-center gap-2 ${className} ${
-          animation ? "error-enter" : ""
-        }`}
-        onClick={handleDismiss}
+        className={`flex items-center gap-2 ${className} ${transitionClasses}`}
       >
-        {showIcon && <AlertCircle className="w-4 h-4 text-red-500" />}
-        <span className="text-red-600">{errorText}</span>
+        {showIcon && (
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+        )}
+        <span className="text-red-600 flex-1">{errorText}</span>
         {closeable && (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
-            className="ml-2 text-red-400 hover:text-red-600 transition-colors error-close-button"
+            onClick={handleClose}
+            className="ml-2 text-red-400 hover:text-red-600 transition-colors focus:outline-none"
             title="Cerrar mensaje"
           >
             <X className="w-3 h-3" />
@@ -145,15 +110,10 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
     );
   }
 
-  // ✅ Variants card, dark-card y page (mejoradas)
+  // Variants card y page
   return (
     <div
-      className={`${variants[variant]} ${className} relative ${
-        animation ? "error-enter" : ""
-      }`}
-      onClick={handleDismiss}
-      role="alert"
-      aria-live="polite"
+      className={`${variants[variant]} ${className} relative ${transitionClasses}`}
     >
       <div className={variant === "page" ? "text-center" : ""}>
         <div className="flex items-start">
@@ -161,15 +121,13 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
             <AlertCircle
               className={`w-${variant === "page" ? "12" : "5"} h-${
                 variant === "page" ? "12" : "5"
-              } ${variant === "dark-card" ? "text-red-400" : "text-red-500"} ${
-                variant === "page"
-                  ? "mx-auto mb-4"
-                  : "mt-0.5 mr-3 flex-shrink-0"
+              } text-red-500 flex-shrink-0 ${
+                variant === "page" ? "mx-auto mb-4" : "mt-0.5 mr-3"
               }`}
             />
           )}
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {variant === "page" && (
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Error
@@ -179,49 +137,35 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
               className={`${
                 variant === "page"
                   ? "text-gray-600 mb-4"
-                  : variant === "dark-card"
-                  ? "text-sm text-red-100 font-medium"
                   : "text-sm text-red-700 font-medium"
-              }`}
+              } break-words`}
             >
               {errorText}
             </p>
           </div>
 
-          {/* ✅ Botón cerrar mejorado */}
+          {/* Botón cerrar para variants card e inline */}
           {closeable && variant !== "page" && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              className={`ml-2 flex-shrink-0 transition-colors error-close-button ${
-                variant === "dark-card"
-                  ? "text-red-300 hover:text-red-100"
-                  : "text-red-400 hover:text-red-600"
-              }`}
+              onClick={handleClose}
+              className="ml-2 flex-shrink-0 text-red-400 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded p-1"
               title="Cerrar mensaje"
-              aria-label="Cerrar mensaje de error"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* ✅ Botón retry mejorado */}
+        {/* Botón retry */}
         {onRetry && (
-          <div className={variant === "page" ? "" : "mt-3"}>
+          <div
+            className={`${
+              variant === "page" ? "" : "mt-3"
+            } flex justify-center`}
+          >
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRetry();
-              }}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                variant === "dark-card"
-                  ? "bg-[#596c95] text-white hover:bg-[#4a5a85] focus:ring-[#596c95]"
-                  : "bg-[#596c95] text-white hover:bg-[#4a5a85] focus:ring-[#596c95]"
-              }`}
-              aria-label="Reintentar operación"
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 bg-[#596c95] text-white px-4 py-2 rounded-lg hover:bg-[#4a5a85] transition-colors focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:ring-opacity-50"
             >
               <RefreshCw className="w-4 h-4" />
               {variant === "page" ? "Reintentar" : "Retry"}
@@ -229,47 +173,28 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           </div>
         )}
 
-        {/* ✅ Barra de progreso mejorada */}
-        {autoClose && showProgress && variant !== "inline" && !persistent && (
+        {/* Barra de progreso para auto-close */}
+        {autoClose && showProgress && variant !== "inline" && !isClosing && (
           <div className="mt-3 w-full bg-red-200 rounded-full h-1 overflow-hidden">
             <div
-              className={`h-full transition-all ease-linear ${
-                variant === "dark-card" ? "bg-red-400" : "bg-red-500"
-              }`}
+              className="h-full bg-red-400 transition-all ease-linear rounded-full"
               style={{
-                width: `${progressWidth}%`,
-                transition: "width 100ms linear",
+                width: "100%",
+                animation: `progress-shrink ${duration}ms linear forwards`,
               }}
             />
           </div>
         )}
 
-        {/* ✅ Botón cerrar para variant page */}
+        {/* Botón cerrar para variant page */}
         {closeable && variant === "page" && (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors error-close-button"
+            onClick={handleClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 rounded p-1"
             title="Cerrar mensaje"
-            aria-label="Cerrar mensaje de error"
           >
             <X className="w-5 h-5" />
           </button>
-        )}
-
-        {/* ✅ Indicador de persistencia */}
-        {persistent && (
-          <div className="mt-2 text-xs opacity-75">
-            <span
-              className={
-                variant === "dark-card" ? "text-gray-300" : "text-gray-500"
-              }
-            >
-              Este mensaje permanecerá visible hasta que lo cierres manualmente
-            </span>
-          </div>
         )}
       </div>
     </div>
@@ -278,5 +203,5 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
 export default ErrorMessage;
 
-// ✅ MANTENER export named para compatibilidad
+// Mantener export named para compatibilidad
 export { ErrorMessage };
