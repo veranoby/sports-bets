@@ -31,6 +31,9 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import StatusIndicator from "../../components/shared/StatusIndicator";
 import NotificationBadge from "../../components/shared/NotificationBadge";
+import StreamingPanel from "../../components/user/StreamingPanel";
+import QuickBetPanel from "../../components/user/QuickBetPanel";
+import NotificationCenter from "../../components/shared/NotificationCenter";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -63,6 +66,7 @@ const Dashboard: React.FC = () => {
     liveEvents: 0,
     winRate: 0,
   });
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // WebSocket para actualizaciones en tiempo real
   const wsListeners = {
@@ -153,6 +157,13 @@ const Dashboard: React.FC = () => {
     });
   }, [bets, events]);
 
+  // Función para manejar apuestas rápidas
+  const handleBetPlaced = (bet: any) => {
+    addNotification("Apuesta realizada exitosamente", "success");
+    fetchMyBets();
+    fetchWallet();
+  };
+
   // Loading state
   if (eventsLoading || betsLoading || walletLoading) {
     return (
@@ -199,11 +210,7 @@ const Dashboard: React.FC = () => {
                 Actualizado: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
-            <NotificationBadge
-              count={notifications.filter((n) => !n.read).length}
-            >
-              <Bell className="w-5 h-5" />
-            </NotificationBadge>
+            <NotificationCenter />
           </div>
         </div>
       </header>
@@ -293,6 +300,13 @@ const Dashboard: React.FC = () => {
                 description="Los eventos en vivo aparecerán aquí cuando estén disponibles"
                 icon={<Play />}
                 variant="dark"
+              />
+            )}
+            {liveEvents.length > 0 && (
+              <StreamingPanel
+                eventId={liveEvents[0]?.id || ""}
+                isLive={liveEvents.length > 0}
+                onEnterStream={() => navigate("/live-event")}
               />
             )}
           </section>
@@ -414,16 +428,11 @@ const Dashboard: React.FC = () => {
 
           {/* Panel de Apuestas Rápidas */}
           {liveEvents.length > 0 && (
-            <section>
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-400" />
-                Apostar Ahora
-              </h2>
-              <BettingPanel
-                fightId={liveEvents[0]?.fights?.[0]?.id || ""}
-                compact={true}
-              />
-            </section>
+            <QuickBetPanel
+              fightId={liveEvents[0]?.fights?.[0]?.id || ""}
+              compact={true}
+              onBetPlaced={handleBetPlaced}
+            />
           )}
         </div>
       </div>

@@ -2,7 +2,7 @@
 // 🎴 COMPONENTE UNIFICADO - Reemplaza Card.tsx + DataCard.tsx
 
 import React from "react";
-import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface TrendData {
@@ -19,7 +19,7 @@ interface CardProps {
 
   // DataCard functionality
   value?: string | number;
-  icon?: React.ReactNode | LucideIcon;
+  icon?: React.ReactNode;
   trend?: TrendData | "up" | "down" | "neutral";
   description?: string;
 
