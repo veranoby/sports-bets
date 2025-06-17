@@ -188,7 +188,7 @@ const Dashboard: React.FC = () => {
   const recentBets = bets?.slice(0, 3) || [];
 
   return (
-    <div className={theme.pageBackground}>
+    <div className={`${theme.pageBackground} pb-24`}>
       {/* Reemplazar header existente */}
       <UserHeader title="Dashboard" />
 
@@ -293,7 +293,8 @@ const Dashboard: React.FC = () => {
               Mi Billetera
             </h2>
             <WalletSummary
-              wallet={wallet}
+              balance={wallet?.balance || 0}
+              frozenAmount={wallet?.frozenAmount || 0}
               onViewWallet={() => navigate("/wallet")}
               showQuickActions={true}
             />

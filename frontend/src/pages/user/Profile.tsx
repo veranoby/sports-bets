@@ -79,7 +79,7 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className={theme.pageBackground}>
+    <div className={`${theme.pageBackground} pb-24`}>
       <UserHeader
         title="Mi Perfil"
         customActions={

@@ -74,7 +74,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
                 {customActions}
               </h1>
               {title === "Dashboard" && (
-                <p className="text-sm text-gray-400">{getGreeting()}</p>
+                <p className="text-bold text-gray-300">{getGreeting()} !</p>
               )}
             </div>
             {/* User Chip - Mejorado */}

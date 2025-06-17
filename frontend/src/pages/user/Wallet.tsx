@@ -237,7 +237,7 @@ const WalletPage: React.FC = () => {
   }
 
   return (
-    <div className={theme.pageBackground}>
+    <div className={`${theme.pageBackground} pb-24`}>
       <UserHeader title="Mi Billetera" />
 
       <div className="p-4 space-y-6">

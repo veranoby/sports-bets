@@ -46,7 +46,7 @@ const UserBets = () => {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="bg-[#1a1f37] min-h-screen pb-20">
+    <div className="bg-[#1a1f37] min-h-screen pb-24">
       {/* Reemplazar header existente */}
       <UserHeader title="Mis Apuestas" />
 

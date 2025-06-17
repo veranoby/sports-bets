@@ -129,7 +129,7 @@ const EventsPage: React.FC = () => {
   }
 
   return (
-    <div className={theme.pageBackground}>
+    <div className={`${theme.pageBackground} pb-24`}>
       {/* Reemplazar header existente */}
       <UserHeader title="Eventos" />
 

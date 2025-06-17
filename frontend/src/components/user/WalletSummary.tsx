@@ -13,11 +13,15 @@ import Card from "../shared/Card";
 export interface WalletSummaryProps {
   balance: number;
   frozenAmount: number;
+  onViewWallet?: () => void;
+  showQuickActions?: boolean;
 }
 
 const WalletSummary: React.FC<WalletSummaryProps> = ({
   balance,
   frozenAmount,
+  onViewWallet,
+  showQuickActions,
 }) => {
   const navigate = useNavigate();
 
