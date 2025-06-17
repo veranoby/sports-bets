@@ -67,7 +67,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const handleLogout = () => logout();
 
   return (
-    <header className="bg-gradient-theme-header border-b border-theme-primary sticky top-0 z-50 backdrop-blur-sm">
+    <header
+      className={`${theme.gradientHeader} border-b border-theme-primary sticky top-0 z-50 backdrop-blur-sm`}
+    >
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left Side - Title & Greeting */}
@@ -86,7 +88,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
             {title !== "Mi Perfil" && (
               <button
                 onClick={handleUserClick}
-                className="flex items-center gap-3 bg-gradient-theme-user-button px-4 py-2 rounded-xl hover:bg-gradient-theme-user-button-hover transition-all duration-300 shadow-lg hover:shadow-xl"
+                className={`flex items-center gap-3 ${theme.gradientUserButton} px-4 py-2 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl`}
               >
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                   <span className="text-white text-sm font-bold">

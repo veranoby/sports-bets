@@ -173,4 +173,9 @@ export const getUserThemeClasses = () => ({
     "bg-theme-warning/20 text-theme-warning px-2 py-1 rounded-full text-xs font-medium",
   errorChip:
     "bg-theme-error/20 text-theme-error px-2 py-1 rounded-full text-xs font-medium",
+
+  gradientHeader: "bg-gradient-theme-header",
+  gradientUserButton:
+    "bg-gradient-theme-user-button hover:bg-gradient-theme-user-button-hover",
+  gradientNav: "bg-gradient-theme-nav",
 });
