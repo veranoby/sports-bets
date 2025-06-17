@@ -1,38 +1,9 @@
+// REEMPLAZAR TODO EL CONTENIDO
 import React from "react";
-
-type StatusType =
-  | "active"
-  | "inactive" // Usuarios
-  | "pending"
-  | "approved"
-  | "rejected" // Venues
-  | "live"
-  | "upcoming"
-  | "completed"
-  | "cancelled" // Eventos/Peleas
-  | "settled"
-  | "matched" // Apuestas
-  | "connected"
-  | "disconnected"
-  | "banned"
-  | "postponed"
-  | "betting"
-  | "closed"
-  | "processing"
-  | "confirmed"
-  | "failed"
-  | "unmatched"
-  | "retrying"
-  | "info"
-  | "warning"
-  | "error"
-  | "success"
-  | "none" // 🔧 Nuevo tipo para verificación
-  | "basic" // 🔧 Nuevo tipo para verificación
-  | "full"; // 🔧 Nuevo tipo para verificación
+import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface StatusChipProps {
-  status: StatusType;
+  status: string;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "outline";
   className?: string;
@@ -44,46 +15,50 @@ const StatusChip: React.FC<StatusChipProps> = ({
   variant = "default",
   className = "",
 }) => {
+  const theme = getUserThemeClasses();
+
   const statusConfig = {
-    // Estados positivos - Verde
-    active: { bg: "#10b981", text: "white" },
-    approved: { bg: "#10b981", text: "white" },
-    completed: { bg: "#10b981", text: "white" },
-    settled: { bg: "#10b981", text: "white" },
-    connected: { bg: "#10b981", text: "white" },
+    // Estados positivos
+    active: "bg-theme-success/20 text-theme-success",
+    approved: "bg-theme-success/20 text-theme-success",
+    completed: "bg-theme-success/20 text-theme-success",
+    settled: "bg-theme-success/20 text-theme-success",
+    connected: "bg-theme-success/20 text-theme-success",
+    confirmed: "bg-theme-success/20 text-theme-success",
+    success: "bg-theme-success/20 text-theme-success",
+    full: "bg-theme-success/20 text-theme-success",
 
-    // Estados en progreso - Azul oficial
-    live: { bg: "#cd6263", text: "white" },
-    pending: { bg: "#596c95", text: "white" },
-    matched: { bg: "#596c95", text: "white" },
+    // Estados en progreso
+    live: "bg-theme-secondary/20 text-theme-secondary",
+    pending: "bg-theme-primary/20 text-theme-primary",
+    matched: "bg-theme-primary/20 text-theme-primary",
+    betting: "bg-theme-primary/20 text-theme-primary",
+    processing: "bg-theme-primary/20 text-theme-primary",
+    retrying: "bg-theme-primary/20 text-theme-primary",
 
-    // Estados neutrales - Gris
-    upcoming: { bg: "#6b7280", text: "white" },
-    inactive: { bg: "#6b7280", text: "white" },
+    // Estados warning
+    upcoming: "bg-theme-warning/20 text-theme-warning",
+    basic: "bg-theme-warning/20 text-theme-warning",
+    warning: "bg-theme-warning/20 text-theme-warning",
 
-    // Estados negativos - Rojo
-    cancelled: { bg: "#ef4444", text: "white" },
-    rejected: { bg: "#ef4444", text: "white" },
-    disconnected: { bg: "#ef4444", text: "white" },
+    // Estados negativos
+    cancelled: "bg-theme-error/20 text-theme-error",
+    rejected: "bg-theme-error/20 text-theme-error",
+    disconnected: "bg-theme-error/20 text-theme-error",
+    banned: "bg-theme-error/20 text-theme-error",
+    failed: "bg-theme-error/20 text-theme-error",
+    error: "bg-theme-error/20 text-theme-error",
 
-    banned: { bg: "#ef4444", text: "white" },
-    postponed: { bg: "#6b7280", text: "white" },
-    betting: { bg: "#596c95", text: "white" },
-    closed: { bg: "#6b7280", text: "white" },
-    processing: { bg: "#596c95", text: "white" },
-    confirmed: { bg: "#10b981", text: "white" },
-    failed: { bg: "#ef4444", text: "white" },
-    unmatched: { bg: "#6b7280", text: "white" },
-    retrying: { bg: "#596c95", text: "white" },
-    info: { bg: "#3b82f6", text: "white" }, // Azul
-    warning: { bg: "#f59e0b", text: "white" }, // Amarillo
-    error: { bg: "#ef4444", text: "white" }, // Rojo
-    success: { bg: "#10b981", text: "white" }, // Verde
-    none: { bg: "#6b7280", text: "white" }, // Gris - Sin verificar
-    basic: { bg: "#f59e0b", text: "white" }, // Amarillo - Básico
-    full: { bg: "#10b981", text: "white" }, // Verde - Verificado
-    // 🔧 Fallback para valores no definidos
-    unknown: { bg: "#6b7280", text: "white" },
+    // Estados neutros
+    inactive: "bg-gray-500/20 text-gray-400",
+    postponed: "bg-gray-500/20 text-gray-400",
+    closed: "bg-gray-500/20 text-gray-400",
+    unmatched: "bg-gray-500/20 text-gray-400",
+    none: "bg-gray-500/20 text-gray-400",
+    unknown: "bg-gray-500/20 text-gray-400",
+
+    // Información
+    info: "bg-theme-info/20 text-theme-info",
   };
 
   const sizeClasses = {
@@ -125,24 +100,18 @@ const StatusChip: React.FC<StatusChipProps> = ({
     unknown: "Desconocido",
   };
 
+  const statusClass =
+    statusConfig[status as keyof typeof statusConfig] || statusConfig.unknown;
+  const label =
+    statusLabels[status as keyof typeof statusLabels] || statusLabels.unknown;
+
   return (
     <span
-      className={`rounded-full font-medium ${sizeClasses[size]} ${
-        variant === "outline" ? "border" : ""
-      } ${className}`}
-      style={{
-        backgroundColor:
-          variant === "default"
-            ? statusConfig[status]?.bg || statusConfig.unknown.bg
-            : "transparent",
-        color:
-          variant === "default"
-            ? statusConfig[status]?.text || statusConfig.unknown.text
-            : statusConfig[status]?.bg || statusConfig.unknown.bg,
-        borderColor: statusConfig[status]?.bg || statusConfig.unknown.bg,
-      }}
+      className={`rounded-full font-medium ${
+        sizeClasses[size]
+      } ${statusClass} ${variant === "outline" ? "border" : ""} ${className}`}
     >
-      {statusLabels[status] || statusLabels.unknown}
+      {label}
     </span>
   );
 };

@@ -1,38 +1,56 @@
+// CREAR O REEMPLAZAR CONTENIDO
 import React from "react";
+import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface StatusIndicatorProps {
   status: "connected" | "disconnected" | "connecting";
   label?: string;
   size?: "sm" | "md" | "lg";
-  showLabel?: boolean;
+  className?: string;
 }
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   status,
   label,
   size = "md",
-  showLabel = true,
+  className = "",
 }) => {
-  const statusClasses = {
-    connected: "text-[#10b981]", // Verde
-    disconnected: "text-[#cd6263]", // Rojo
-    connecting: "text-[#596c95]", // Azul
+  const theme = getUserThemeClasses();
+
+  const statusConfig = {
+    connected: {
+      color: "bg-theme-success",
+      textColor: theme.successText,
+      pulse: false,
+    },
+    disconnected: {
+      color: "bg-theme-error",
+      textColor: theme.errorText,
+      pulse: true,
+    },
+    connecting: {
+      color: "bg-theme-warning",
+      textColor: theme.warningText,
+      pulse: true,
+    },
   };
 
   const sizeClasses = {
-    sm: "w-3 h-3",
-    md: "w-5 h-5",
-    lg: "w-7 h-7",
+    sm: "w-2 h-2",
+    md: "w-3 h-3",
+    lg: "w-4 h-4",
   };
 
+  const config = statusConfig[status];
+
   return (
-    <div className={`flex items-center ${sizeClasses[size]}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
       <div
-        className={`animate-ping rounded-full ${statusClasses[status]} bg-opacity-50`}
+        className={`${sizeClasses[size]} ${config.color} rounded-full ${
+          config.pulse ? "animate-pulse" : ""
+        }`}
       />
-      {showLabel && label && (
-        <span className={`ml-2 ${statusClasses[status]}`}>{label}</span>
-      )}
+      {label && <span className={`text-sm ${config.textColor}`}>{label}</span>}
     </div>
   );
 };
