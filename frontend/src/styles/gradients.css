@@ -1,0 +1,41 @@
+/* 🎨 GRADIENTES DINÁMICOS */
+.bg-gradient-theme-header {
+  background: linear-gradient(
+    to right,
+    var(--color-bg-card),
+    var(--color-bg-main),
+    var(--color-bg-card)
+  );
+}
+
+.bg-gradient-theme-user-button {
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-accent)
+  );
+}
+
+.bg-gradient-theme-user-button-hover {
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-primary)
+  );
+}
+
+.bg-gradient-theme-nav {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-main),
+    var(--color-bg-card)
+  );
+}
+
+.hover\:bg-gradient-theme-user-button-hover:hover {
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-primary)
+  );
+}

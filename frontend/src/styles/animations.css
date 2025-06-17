@@ -1,0 +1,69 @@
+/* 🔧 TRANSICIONES SUAVES */
+.app-container,
+.bg-theme-main,
+.bg-theme-card,
+.bg-theme-header {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+/* Estados de conexión WebSocket */
+.connection-indicator {
+  position: relative;
+}
+
+.connection-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.connection-indicator.disconnected::before {
+  background-color: #ef4444;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.connection-indicator.connecting::before {
+  background-color: #f59e0b;
+  animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Error message animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.error-message {
+  animation: slideInDown 0.3s ease-out;
+}
+
+.error-message.closing {
+  animation: slideOutUp 0.3s ease-in forwards;
+}
