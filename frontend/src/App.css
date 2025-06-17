@@ -355,3 +355,151 @@ body {
   background-color: #f59e0b; /* Amarillo para conectando */
   animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+/* AGREGAR AL FINAL DEL ARCHIVO */
+
+/* 🎨 CSS VARIABLES DINÁMICAS PARA TEMA */
+:root {
+  /* Variables por defecto (fallback) */
+  --color-primary: #596c95;
+  --color-secondary: #cd6263;
+  --color-accent: #4a5b80;
+  --color-bg-main: #1a1f37;
+  --color-bg-card: #2a325c;
+  --color-bg-header: #2a325c;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e2e8f0;
+  --color-text-light: #94a3b8;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
+/* 🎨 UTILIDADES TEMA CON CSS VARIABLES */
+.bg-theme-main {
+  background-color: var(--color-bg-main);
+}
+.bg-theme-card {
+  background-color: var(--color-bg-card);
+}
+.bg-theme-header {
+  background-color: var(--color-bg-header);
+}
+.bg-theme-primary {
+  background-color: var(--color-primary);
+}
+.bg-theme-secondary {
+  background-color: var(--color-secondary);
+}
+.bg-theme-accent {
+  background-color: var(--color-accent);
+}
+
+.text-theme-primary {
+  color: var(--color-primary);
+}
+.text-theme-secondary {
+  color: var(--color-secondary);
+}
+.text-theme-text-primary {
+  color: var(--color-text-primary);
+}
+.text-theme-text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-theme-text-light {
+  color: var(--color-text-light);
+}
+.text-theme-success {
+  color: var(--color-success);
+}
+.text-theme-warning {
+  color: var(--color-warning);
+}
+.text-theme-error {
+  color: var(--color-error);
+}
+.text-theme-info {
+  color: var(--color-info);
+}
+
+.border-theme-primary {
+  border-color: var(--color-primary);
+}
+.border-theme-secondary {
+  border-color: var(--color-secondary);
+}
+
+.ring-theme-primary {
+  --tw-ring-color: var(--color-primary);
+}
+.ring-theme-secondary {
+  --tw-ring-color: var(--color-secondary);
+}
+
+/* Hover states */
+.hover\:bg-theme-accent:hover {
+  background-color: var(--color-accent);
+}
+.hover\:bg-theme-primary:hover {
+  background-color: var(--color-primary);
+}
+
+/* 🔧 TRANSICIONES SUAVES PARA CAMBIOS DE TEMA */
+.app-container,
+.bg-theme-main,
+.bg-theme-card,
+.bg-theme-header {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+/* AGREGAR AL FINAL DEL ARCHIVO (después de las variables CSS existentes): */
+
+/* 🎨 GRADIENTES DINÁMICOS PARA HEADER */
+.bg-gradient-theme-header {
+  background: linear-gradient(
+    to right,
+    var(--color-bg-card),
+    var(--color-bg-main),
+    var(--color-bg-card)
+  );
+}
+
+.bg-gradient-theme-user-button {
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-accent)
+  );
+}
+
+.bg-gradient-theme-user-button-hover {
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-primary)
+  );
+}
+
+/* 🎨 GRADIENTES ADICIONALES PARA NAVEGACIÓN */
+.bg-gradient-theme-nav {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-main),
+    var(--color-bg-card)
+  );
+}
+
+/* 🎨 HOVER EFFECTS CON VARIABLES */
+.hover\:bg-gradient-theme-user-button-hover:hover {
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-primary)
+  );
+}

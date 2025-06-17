@@ -1,7 +1,5 @@
-// frontend/src/contexts/UserThemeContext.tsx
-// 🎨 NUEVO: Consistencia visual para rol USER
-
-import React, { createContext, useContext } from "react";
+// REEMPLAZAR TODO EL CONTENIDO
+import React, { createContext, useContext, useEffect } from "react";
 
 interface UserThemeContextType {
   colors: {
@@ -37,23 +35,24 @@ interface UserThemeContextType {
     md: string;
     lg: string;
   };
+  updateColors: (newColors: Partial<UserThemeContextType["colors"]>) => void;
 }
 
-// 🎨 TEMA OFICIAL SPORTS BETS - ROL USER
-const userTheme: UserThemeContextType = {
+// 🎨 TEMA DINÁMICO SPORTS BETS
+const defaultTheme = {
   colors: {
-    primary: "#596c95", // Azul principal
-    secondary: "#cd6263", // Rojo secundario
-    accent: "#4a5b80", // Azul hover
+    primary: "#596c95",
+    secondary: "#cd6263",
+    accent: "#4a5b80",
     background: {
-      main: "#1a1f37", // Fondo principal oscuro
-      card: "#2a325c", // Cards oscuras
-      header: "#2a325c", // Header consistente
+      main: "#1a1f37e3",
+      card: "#2a325c",
+      header: "#2a325c",
     },
     text: {
-      primary: "#ffffff", // Texto principal blanco
-      secondary: "#e2e8f0", // Texto secundario gris claro
-      light: "#94a3b8", // Texto ligero
+      primary: "#ffffff",
+      secondary: "#e2e8f0",
+      light: "#94a3b8",
     },
     status: {
       success: "#10b981",
@@ -63,20 +62,20 @@ const userTheme: UserThemeContextType = {
     },
   },
   spacing: {
-    xs: "0.25rem", // 4px
-    sm: "0.5rem", // 8px
-    md: "1rem", // 16px
-    lg: "1.5rem", // 24px
-    xl: "2rem", // 32px
+    xs: "0.25rem",
+    sm: "0.5rem",
+    md: "1rem",
+    lg: "1.5rem",
+    xl: "2rem",
   },
   borderRadius: {
-    sm: "0.375rem", // 6px
-    md: "0.5rem", // 8px
-    lg: "0.75rem", // 12px
+    sm: "0.375rem",
+    md: "0.5rem",
+    lg: "0.75rem",
   },
 };
 
-const UserThemeContext = createContext<UserThemeContextType>(userTheme);
+const UserThemeContext = createContext<UserThemeContextType | null>(null);
 
 export const useUserTheme = () => {
   const context = useContext(UserThemeContext);
@@ -93,48 +92,85 @@ interface UserThemeProviderProps {
 export const UserThemeProvider: React.FC<UserThemeProviderProps> = ({
   children,
 }) => {
+  const [theme, setTheme] = React.useState(defaultTheme);
+
+  // 🎨 INYECTAR CSS VARIABLES DINÁMICAMENTE
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // Aplicar variables CSS
+    root.style.setProperty("--color-primary", theme.colors.primary);
+    root.style.setProperty("--color-secondary", theme.colors.secondary);
+    root.style.setProperty("--color-accent", theme.colors.accent);
+    root.style.setProperty("--color-bg-main", theme.colors.background.main);
+    root.style.setProperty("--color-bg-card", theme.colors.background.card);
+    root.style.setProperty("--color-bg-header", theme.colors.background.header);
+    root.style.setProperty("--color-text-primary", theme.colors.text.primary);
+    root.style.setProperty(
+      "--color-text-secondary",
+      theme.colors.text.secondary
+    );
+    root.style.setProperty("--color-text-light", theme.colors.text.light);
+    root.style.setProperty("--color-success", theme.colors.status.success);
+    root.style.setProperty("--color-warning", theme.colors.status.warning);
+    root.style.setProperty("--color-error", theme.colors.status.error);
+    root.style.setProperty("--color-info", theme.colors.status.info);
+  }, [theme]);
+
+  const updateColors = (newColors: Partial<UserThemeContextType["colors"]>) => {
+    setTheme((prev) => ({
+      ...prev,
+      colors: { ...prev.colors, ...newColors },
+    }));
+  };
+
+  const value: UserThemeContextType = {
+    ...theme,
+    updateColors,
+  };
+
   return (
-    <UserThemeContext.Provider value={userTheme}>
+    <UserThemeContext.Provider value={value}>
       {children}
     </UserThemeContext.Provider>
   );
 };
 
-// 🎨 UTILITY: Clases CSS dinámicas para componentes
+// 🎨 UTILITY: Clases CSS usando CSS Variables
 export const getUserThemeClasses = () => ({
   // Layouts principales
-  pageBackground: "bg-[#1a1f37] min-h-screen text-white",
-  cardBackground: "bg-[#2a325c] border border-[#596c95] rounded-lg",
-  headerBackground: "bg-[#2a325c] border-b border-[#596c95]",
+  pageBackground: "min-h-screen text-white bg-theme-main",
+  cardBackground: "bg-theme-card border border-theme-primary rounded-lg",
+  headerBackground: "bg-theme-header border-b border-theme-primary",
 
   // Botones
   primaryButton:
-    "bg-[#596c95] hover:bg-[#4a5b80] text-white font-medium px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:ring-offset-2",
+    "bg-theme-primary hover:bg-theme-accent text-white font-medium px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2",
   secondaryButton:
-    "bg-[#cd6263] hover:bg-[#b85456] text-white font-medium px-4 py-2 rounded-lg transition-colors",
+    "bg-theme-secondary hover:opacity-90 text-white font-medium px-4 py-2 rounded-lg transition-colors",
   ghostButton:
-    "border border-[#596c95] text-[#596c95] hover:bg-[#596c95] hover:text-white px-4 py-2 rounded-lg transition-colors",
+    "border border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white px-4 py-2 rounded-lg transition-colors",
 
   // Texto
-  primaryText: "text-white",
-  secondaryText: "text-gray-300",
-  lightText: "text-gray-400",
+  primaryText: "text-theme-text-primary",
+  secondaryText: "text-theme-text-secondary",
+  lightText: "text-theme-text-light",
 
   // Estados
-  successText: "text-green-400",
-  warningText: "text-yellow-400",
-  errorText: "text-red-400",
-  infoText: "text-blue-400",
+  successText: "text-theme-success",
+  warningText: "text-theme-warning",
+  errorText: "text-theme-error",
+  infoText: "text-theme-info",
 
   // Inputs
   input:
-    "bg-[#1a1f37] border border-[#596c95] text-white placeholder-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#596c95] focus:border-transparent",
+    "bg-theme-main border border-theme-primary text-theme-text-primary placeholder:text-theme-text-light rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-transparent",
 
   // Status chips
   activeChip:
-    "bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium",
+    "bg-theme-success/20 text-theme-success px-2 py-1 rounded-full text-xs font-medium",
   pendingChip:
-    "bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium",
+    "bg-theme-warning/20 text-theme-warning px-2 py-1 rounded-full text-xs font-medium",
   errorChip:
-    "bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium",
+    "bg-theme-error/20 text-theme-error px-2 py-1 rounded-full text-xs font-medium",
 });

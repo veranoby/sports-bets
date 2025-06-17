@@ -6,7 +6,10 @@ import { Bell, LogOut, Wifi, WifiOff, Sun, Moon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { useWallet, useBets } from "../../hooks/useApi";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
+import {
+  getUserThemeClasses,
+  useUserTheme,
+} from "../../contexts/UserThemeContext";
 import { useNavigate } from "react-router-dom";
 
 interface UserHeaderProps {
@@ -21,6 +24,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const { isConnected } = useWebSocket();
   const navigate = useNavigate();
   const theme = getUserThemeClasses();
+  const { updateColors } = useUserTheme();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -63,7 +67,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const handleLogout = () => logout();
 
   return (
-    <header className="bg-gradient-to-r from-[#2a325c] via-[#1a1f37] to-[#2a325c] border-b border-[#596c95]/30 sticky top-0 z-50 backdrop-blur-sm">
+    <header className="bg-gradient-theme-header border-b border-theme-primary sticky top-0 z-50 backdrop-blur-sm">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left Side - Title & Greeting */}
@@ -78,29 +82,32 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
               )}
             </div>
             {/* User Chip - Mejorado */}
-            <button
-              onClick={handleUserClick}
-              className="flex items-center gap-3 bg-gradient-to-r from-[#596c95] to-[#4a5b80] px-4 py-2 rounded-xl hover:from-[#4a5b80] hover:to-[#596c95] transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                <span className="text-white text-sm font-bold">
-                  {user?.username?.charAt(0).toUpperCase() || "U"}
-                </span>
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-white text-sm font-medium leading-tight">
-                  {user?.username || "Usuario"}
-                </p>
-                <div className="flex items-center gap-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${getRoleLabel().color}`}
-                  ></div>
-                  <span className="text-white/80 text-xs">
-                    {getRoleLabel().label}
+
+            {title !== "Mi Perfil" && (
+              <button
+                onClick={handleUserClick}
+                className="flex items-center gap-3 bg-gradient-theme-user-button px-4 py-2 rounded-xl hover:bg-gradient-theme-user-button-hover transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-white text-sm font-bold">
+                    {user?.username?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
-              </div>
-            </button>
+                <div className="hidden sm:block text-left">
+                  <p className="text-white text-sm font-medium leading-tight">
+                    {user?.username || "Usuario"}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <div
+                      className={`w-2 h-2 rounded-full ${getRoleLabel().color}`}
+                    ></div>
+                    <span className="text-white/80 text-xs">
+                      {getRoleLabel().label}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
 
           {/* Right Side - User Controls */}
@@ -128,7 +135,6 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
               ) : (
                 <WifiOff className="w-3 h-3" />
               )}
-              <span>{isConnected ? "Conectado" : "Desconectado"}</span>
             </div>
 
             {/* Notifications Bell */}

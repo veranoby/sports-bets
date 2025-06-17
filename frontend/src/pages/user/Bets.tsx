@@ -20,6 +20,10 @@ import StatusIndicator from "../../components/shared/StatusIndicator";
 import BetDetailModal from "../../components/user/BetDetailModal";
 import type { Bet } from "../../types";
 import UserHeader from "../../components/user/UserHeader";
+import {
+  getUserThemeClasses,
+  useUserTheme,
+} from "../../contexts/UserThemeContext";
 
 const UserBets = () => {
   const { bets, loading, error, fetchMyBets, fetchAvailableBets, cancelBet } =
@@ -28,6 +32,8 @@ const UserBets = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filters, setFilters] = useState({});
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
+  const theme = getUserThemeClasses();
+  const { updateColors } = useUserTheme();
 
   // TODO: Obtener fightId real del contexto de evento/pelea activa
   const activeFightId = bets.length > 0 ? bets[0].fightId : null;
@@ -46,15 +52,19 @@ const UserBets = () => {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="bg-[#1a1f37] min-h-screen pb-24">
+    <div className={`${theme.pageBackground} pb-24`}>
       {/* Reemplazar header existente */}
       <UserHeader title="Mis Apuestas" />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
         <TabsList>
-          <TabsTrigger value="active">Activas</TabsTrigger>
-          <TabsTrigger value="history">Historial</TabsTrigger>
+          <TabsTrigger value="active" className={theme.primaryButton}>
+            Activas
+          </TabsTrigger>
+          <TabsTrigger value="history" className={theme.primaryButton}>
+            Historial
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="active">
           <div className="space-y-3">
@@ -106,7 +116,7 @@ const UserBets = () => {
 
       <button
         onClick={() => setShowCreateModal(true)}
-        className="fixed bottom-6 right-6 bg-[#cd6263] text-white p-4 rounded-full shadow-lg"
+        className={`fixed bottom-6 right-6 ${theme.primaryButton} p-4 rounded-full shadow-lg`}
         disabled={!activeFightId}
         title={!activeFightId ? "No hay pelea activa para apostar" : ""}
       >

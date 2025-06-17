@@ -19,7 +19,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocket } from "../../hooks/useWebSocket";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
+import {
+  getUserThemeClasses,
+  useUserTheme,
+} from "../../contexts/UserThemeContext";
 
 // Componentes optimizados
 import EventCard from "../../components/user/EventCard";
@@ -40,6 +43,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const theme = getUserThemeClasses();
+  const { updateColors } = useUserTheme();
 
   // API Hooks
   const {
@@ -165,7 +169,7 @@ const Dashboard: React.FC = () => {
   const recentBets = bets?.slice(0, 3) || [];
 
   return (
-    <div className={`${theme.pageBackground} pb-24`}>
+    <div className={theme.pageBackground}>
       {/* Reemplazar header existente */}
       <UserHeader title="Dashboard" />
 
