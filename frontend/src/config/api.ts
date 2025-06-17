@@ -72,12 +72,10 @@ const formatApiResponse = <T>(
   return promise
     .then((res) => {
       console.log("🔍 formatApiResponse - Raw res:", res);
-      console.log("🔍 formatApiResponse - typeof res:", typeof res);
-      console.log("🔍 formatApiResponse - res.data:", res?.data);
 
       const result = {
         success: true,
-        data: res.data,
+        data: res.data || res, // 🔧 FIX: Manejar ambos casos
       };
 
       console.log("🔍 formatApiResponse - Final result:", result);

@@ -22,7 +22,11 @@ type StatusType =
   | "confirmed"
   | "failed"
   | "unmatched"
-  | "retrying"; // Streaming
+  | "retrying"
+  | "info"
+  | "warning"
+  | "error"
+  | "success"; // Streaming
 
 interface StatusChipProps {
   status: StatusType;
@@ -68,6 +72,10 @@ const StatusChip: React.FC<StatusChipProps> = ({
     failed: { bg: "#ef4444", text: "white" },
     unmatched: { bg: "#6b7280", text: "white" },
     retrying: { bg: "#596c95", text: "white" },
+    info: { bg: "#3b82f6", text: "white" }, // Azul
+    warning: { bg: "#f59e0b", text: "white" }, // Amarillo
+    error: { bg: "#ef4444", text: "white" }, // Rojo
+    success: { bg: "#10b981", text: "white" }, // Verde
   };
 
   const sizeClasses = {
@@ -99,6 +107,10 @@ const StatusChip: React.FC<StatusChipProps> = ({
     failed: "Fallido",
     unmatched: "No emparejado",
     retrying: "Reintentando",
+    info: "Info",
+    warning: "Advertencia",
+    error: "Error",
+    success: "Éxito",
   };
 
   return (

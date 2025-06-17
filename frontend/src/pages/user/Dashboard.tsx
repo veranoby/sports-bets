@@ -124,15 +124,11 @@ const Dashboard: React.FC = () => {
 
   // Cargar datos iniciales
   useEffect(() => {
-    const loadInitialData = async () => {
-      await Promise.all([
-        fetchEvents({ status: "in-progress" }),
-        fetchMyBets({ status: "active" }),
-        fetchWallet(),
-      ]);
-    };
-    loadInitialData();
-  }, []);
+    // Solo cargar una vez
+    fetchEvents({ status: "in-progress" });
+    fetchMyBets({ status: "active" });
+    fetchWallet();
+  }, []); // 🔧 FIX: Sin dependencias
 
   // Calcular estadísticas rápidas
   useEffect(() => {
@@ -232,7 +228,7 @@ const Dashboard: React.FC = () => {
             <DollarSign className="w-8 h-8 text-green-400" />
             <div>
               <p className="text-2xl font-bold">
-                ${wallet?.balance.toFixed(2) || "0.00"}
+                ${Number(wallet?.balance || 0).toFixed(2)}
               </p>
               <p className="text-sm text-gray-400">Saldo Disponible</p>
             </div>

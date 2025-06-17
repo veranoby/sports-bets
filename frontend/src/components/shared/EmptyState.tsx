@@ -24,34 +24,22 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   className = "",
   variant = "light",
 }) => {
-  // 🔧 ARREGLO: Renderizar icono de manera consistente
-  const renderIcon = () => {
-    if (icon) {
-      // Si es un elemento React, clonarlo sin clases conflictivas
-      if (React.isValidElement(icon)) {
-        return React.cloneElement(icon as React.ReactElement, {
-          className: "w-12 h-12", // 🔧 FIJO: tamaño consistente
-        });
-      }
-      return icon;
-    }
-    // Icono por defecto
-    return <Calendar className="w-12 h-12" />;
-  };
-
-  // 🎨 NUEVO: Tema consistente según variante
+  // 🎨 Tema consistente según variante
   const themeClasses =
     variant === "dark"
       ? "text-gray-300 bg-[#1a1f37]"
       : "text-gray-900 bg-white";
 
-  const iconColor = variant === "dark" ? "text-gray-400" : "text-gray-400";
   const descColor = variant === "dark" ? "text-gray-400" : "text-gray-500";
 
   return (
     <div className={`text-center p-8 ${className}`}>
-      {/* 🔧 ARREGLO: Contenedor de icono sin clases conflictivas */}
-      <div className={`mx-auto mb-4 ${iconColor}`}>{renderIcon()}</div>
+      {/* 🔧 Renderizado optimizado del icono */}
+      <div className="mx-auto w-12 h-12 text-gray-400">
+        {React.isValidElement(icon)
+          ? React.cloneElement(icon, { className: "w-12 h-12" })
+          : icon || <Calendar className="w-12 h-12" />}
+      </div>
 
       <h3 className={`text-lg font-medium mb-2 ${themeClasses.split(" ")[0]}`}>
         {title}

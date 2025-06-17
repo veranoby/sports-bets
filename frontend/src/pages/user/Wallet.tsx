@@ -260,7 +260,9 @@ const WalletPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-400">Balance Total</p>
                 <p className="text-3xl font-bold">
-                  {showBalance ? `$${balanceData.total.toFixed(2)}` : "••••••"}
+                  {showBalance
+                    ? `$${Number(balanceData?.total || 0).toFixed(2)}`
+                    : "••••••"}
                 </p>
               </div>
             </div>
@@ -293,7 +295,9 @@ const WalletPage: React.FC = () => {
                 <span className="text-sm text-gray-400">Congelado</span>
               </div>
               <p className="text-xl font-bold text-yellow-400">
-                ${balanceData.frozen.toFixed(2)}
+                {showBalance
+                  ? `$${(Number(balanceData?.frozen) || 0).toFixed(2)}`
+                  : "••••••"}
               </p>
             </div>
           </div>

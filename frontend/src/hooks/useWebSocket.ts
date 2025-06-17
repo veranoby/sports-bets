@@ -50,9 +50,8 @@ export const useWebSocket = (
     try {
       console.log("🔌 Intentando conectar WebSocket a:", WEBSOCKET_URL);
 
-      // 🔧 FIX: Configuración correcta de socket.io
       const socket = io(WEBSOCKET_URL + (namespace || ""), {
-        transports: ["websocket", "polling"], // Fallback a polling
+        transports: ["websocket", "polling"],
         upgrade: true,
         rememberUpgrade: true,
         timeout: 20000,
@@ -60,12 +59,11 @@ export const useWebSocket = (
         reconnection: reconnect,
         reconnectionAttempts: maxRetries,
         reconnectionDelay: retryDelay,
-        autoConnect: false, // Control manual
+        autoConnect: false,
       });
 
       socketRef.current = socket;
 
-      // 🔧 FIX: Event listeners básicos
       socket.on("connect", () => {
         console.log("✅ WebSocket conectado exitosamente");
         updateState({
@@ -86,13 +84,12 @@ export const useWebSocket = (
 
       socket.on("connect_error", (error) => {
         console.error("❌ Error de conexión WebSocket:", error);
-        updateState({
+        updateState((prev) => ({
           isConnected: false,
           connectionError: error.message,
-          retryCount: state.retryCount + 1,
-        });
+          retryCount: prev.retryCount + 1,
+        }));
 
-        // 🔧 FIX: Retry lógico
         if (reconnect && state.retryCount < maxRetries) {
           reconnectTimeoutRef.current = setTimeout(() => {
             console.log(
@@ -103,14 +100,12 @@ export const useWebSocket = (
         }
       });
 
-      // 🔧 FIX: Registrar listeners personalizados
       if (listeners) {
         Object.entries(listeners).forEach(([event, handler]) => {
           socket.on(event, handler);
         });
       }
 
-      // Conectar si autoConnect está habilitado
       if (autoConnect) {
         socket.connect();
       }
@@ -165,7 +160,7 @@ export const useWebSocket = (
   useEffect(() => {
     connect();
     return disconnect;
-  }, []); // Solo al montar/desmontar
+  }, []); // 🔧 FIX: Dependencias vacías
 
   // Cleanup al desmontar
   useEffect(() => {
