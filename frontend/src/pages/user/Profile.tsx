@@ -96,75 +96,78 @@ const Profile: React.FC = () => {
       />
 
       <div className="px-4 py-6 max-w-2xl mx-auto">
-        {/* Avatar y Info Principal - Estilo Original Mejorado */}
-        <div className="bg-gradient-to-br from-[#2a325c] to-[#1a1f37] rounded-2xl p-8 mb-6 border border-[#596c95]/20">
-          <div className="text-center">
-            {/* Avatar Grande */}
-            <div className="relative mx-auto mb-6">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#596c95] to-[#cd6263] p-1">
+        {/* Avatar y Info Principal - Rediseño responsivo */}
+        <div className="bg-gradient-to-br from-[#2a325c] to-[#1a1f37] rounded-2xl p-6 mb-6 border border-[#596c95]/20">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Avatar (50% ancho) */}
+            <div className="relative">
+              <div className="w-full aspect-square rounded-full bg-gradient-to-br from-[#596c95] to-[#cd6263] p-1">
                 <div className="w-full h-full rounded-full bg-[#2a325c] flex items-center justify-center">
-                  <span className="text-4xl font-bold text-white">
+                  <span className="text-2xl font-bold text-white">
                     {user?.username?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
               </div>
               {isEditing && (
-                <button className="absolute bottom-2 right-2 w-10 h-10 bg-[#cd6263] rounded-full flex items-center justify-center hover:bg-[#b85456] transition-colors">
-                  <Edit3 className="w-5 h-5 text-white" />
+                <button className="absolute bottom-0 right-0 w-12 h-12 bg-[#cd6263] rounded-full flex items-center justify-center hover:bg-[#b85456] transition-colors">
+                  <Edit3 className="w-4 h-4 text-white" />
                 </button>
               )}
             </div>
 
-            {/* Nombre y Estado */}
-            <div className="mb-6">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                {" "}
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  {formData.fullName || user?.username || "Usuario"}
-                </h2>
-                <StatusChip {...getVerificationBadge()} size="sm" />
-                <div className="flex items-center gap-1 text-gray-400">
-                  <Shield className="w-4 h-4" />
-                  <span className="capitalize text-xs">{user?.role}</span>
-                </div>
-              </div>
+            {/* Información del usuario (50% ancho) */}
+            <div className="flex flex-col justify-center space-y-1 md:space-y-2">
+              {/* Nombre - Más grande en desktop */}
+              <h2 className="text-xl md:text-2xl font-bold text-white">
+                {formData.fullName || user?.username || "Usuario"}
+              </h2>
 
-              <div className="flex items-center justify-center gap-2 text-gray-400">
-                <Mail className="w-4 h-4" />
-                <span className="text-sm">{user?.email}</span>
-                <Calendar className="w-5 h-5 text-[#596c95]" />
-                <span className="font-medium text-white">Miembro desde</span>
-                <span className="text-sm text-gray-400">
-                  {userStats.memberSince}
+              {/* Verificación y Rol */}
+              <div className="flex items-center gap-2">
+                <StatusChip {...getVerificationBadge()} size="sm" />
+                <span className="text-xs md:text-sm text-gray-400 capitalize">
+                  {user?.role}
                 </span>
               </div>
-            </div>
 
-            {/* Estadísticas Elegantes */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[#596c95] mb-1">
-                  {userStats.totalBets}
-                </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
-                  Apuestas
-                </div>
+              {/* Email - Más pequeño en móvil */}
+              <div className="flex items-center gap-1 text-xs md:text-sm text-gray-400">
+                <Mail className="w-3 h-3 md:w-4 md:h-4" />
+                <span>{user?.email}</span>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400 mb-1">
-                  {userStats.winRate}%
-                </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
-                  Aciertos
-                </div>
+
+              {/* Fecha de registro - Más pequeño en móvil */}
+              <div className="flex items-center gap-1 text-xs md:text-sm text-gray-400">
+                <Calendar className="w-3 h-3 md:w-4 md:h-4 text-[#596c95]" />
+                <span>Miembro desde {userStats.memberSince}</span>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400 mb-1">
-                  ${userStats.totalBalance.toFixed(2)}
-                </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
-                  Balance
-                </div>
+            </div>
+          </div>
+
+          {/* Estadísticas */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="text-center">
+              <div className="text-xl font-bold text-[#596c95] mb-1">
+                {userStats.totalBets}
+              </div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide">
+                Apuestas
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-green-400 mb-1">
+                {userStats.winRate}%
+              </div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide">
+                Aciertos
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-yellow-400 mb-1">
+                ${userStats.totalBalance.toFixed(2)}
+              </div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide">
+                Balance
               </div>
             </div>
           </div>
@@ -173,15 +176,13 @@ const Profile: React.FC = () => {
         {/* Información Personal - Estilo Elegante */}
         <div className="bg-[#2a325c] rounded-2xl p-6 mb-6 border border-[#596c95]/20">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-white">
-              Información Personal
-            </h3>
+            <h3 className="text-xl font-bold text-white">Información</h3>
             {isEditing && (
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
                 >
                   {loading ? (
                     <LoadingSpinner size="sm" />
@@ -192,7 +193,7 @@ const Profile: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-xs rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   Cancelar
