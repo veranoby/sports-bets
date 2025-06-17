@@ -1,5 +1,5 @@
 // frontend/src/pages/user/Wallet.tsx
-// 💰 WALLET OPTIMIZADO - TEMA CONSISTENTE Y FUNCIONAL
+// 💰 WALLET OPTIMIZADO - Refresh button en balance, header unificado
 
 import React, { useState, useEffect } from "react";
 import {
@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Clock,
   CheckCircle,
-  AlertCircle,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -25,6 +24,7 @@ import {
   CategoryScale,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 
 // Hooks y contextos
@@ -32,13 +32,13 @@ import { useWallet } from "../../hooks/useApi";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 // Componentes
+import UserHeader from "../../components/user/UserHeader";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import TransactionHistory from "../../components/user/TransactionHistory";
 import DepositModal from "../../components/user/DepositModal";
 import WithdrawModal from "../../components/user/WithdrawModal";
 import Card from "../../components/shared/Card";
-import StatusChip from "../../components/shared/StatusChip";
 import Navigation from "../../components/user/Navigation";
 
 // Tipos
@@ -51,7 +51,8 @@ Chart.register(
   LinearScale,
   CategoryScale,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const WalletPage: React.FC = () => {
@@ -77,6 +78,7 @@ const WalletPage: React.FC = () => {
     "30d"
   );
   const [transactionFilter, setTransactionFilter] = useState<string>("all");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Datos calculados
   const balanceData = {
@@ -137,9 +139,7 @@ const WalletPage: React.FC = () => {
     scales: {
       y: {
         beginAtZero: true,
-        grid: {
-          color: "rgba(89, 108, 149, 0.2)",
-        },
+        grid: { color: "rgba(89, 108, 149, 0.2)" },
         ticks: {
           color: "#94a3b8",
           callback: function (value: any) {
@@ -148,18 +148,12 @@ const WalletPage: React.FC = () => {
         },
       },
       x: {
-        grid: {
-          color: "rgba(89, 108, 149, 0.2)",
-        },
-        ticks: {
-          color: "#94a3b8",
-        },
+        grid: { color: "rgba(89, 108, 149, 0.2)" },
+        ticks: { color: "#94a3b8" },
       },
     },
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
         backgroundColor: "#2a325c",
         titleColor: "#ffffff",
@@ -181,7 +175,19 @@ const WalletPage: React.FC = () => {
     fetchTransactions();
   }, []);
 
-  // Handlers
+  // 🔧 NUEVO: Handler para refresh específico del balance
+  const handleRefreshBalance = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchWallet(), fetchTransactions()]);
+    } catch (error) {
+      console.error("Error refreshing wallet:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Handlers para modales
   const handleDeposit = async (
     amount: number,
     paymentMethod: string,
@@ -190,8 +196,7 @@ const WalletPage: React.FC = () => {
     try {
       await deposit(amount, paymentMethod, paymentData);
       setShowDepositModal(false);
-      fetchWallet();
-      fetchTransactions();
+      await handleRefreshBalance();
     } catch (error) {
       console.error("Error en depósito:", error);
     }
@@ -206,19 +211,13 @@ const WalletPage: React.FC = () => {
     try {
       await withdraw(amount, accountNumber, accountType, bankName);
       setShowWithdrawModal(false);
-      fetchWallet();
-      fetchTransactions();
+      await handleRefreshBalance();
     } catch (error) {
       console.error("Error en retiro:", error);
     }
   };
 
-  const handleRefresh = () => {
-    fetchWallet();
-    fetchTransactions();
-  };
-
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <div className={theme.pageBackground}>
         <LoadingSpinner text="Cargando billetera..." className="mt-20" />
@@ -229,29 +228,21 @@ const WalletPage: React.FC = () => {
   if (error) {
     return (
       <div className={theme.pageBackground}>
-        <ErrorMessage error={error} onRetry={handleRefresh} />
+        <UserHeader title="Mi Billetera" />
+        <div className="p-4">
+          <ErrorMessage error={error} onRetry={handleRefreshBalance} />
+        </div>
       </div>
     );
   }
 
   return (
     <div className={theme.pageBackground}>
-      {/* Header */}
-      <header className={`${theme.headerBackground} p-4 sticky top-0 z-10`}>
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">Mi Billetera</h1>
-          <button
-            onClick={handleRefresh}
-            className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
+      <UserHeader title="Mi Billetera" />
 
-      {/* Balance Principal */}
-      <div className="p-4">
-        <div className={`${theme.cardBackground} p-6 mb-6`}>
+      <div className="p-4 space-y-6">
+        {/* Balance Principal */}
+        <Card className={`${theme.cardBackground} p-6`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-[#596c95] to-[#4a5b80] rounded-full flex items-center justify-center">
@@ -259,16 +250,33 @@ const WalletPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Balance Total</p>
-                <p className="text-3xl font-bold">
-                  {showBalance
-                    ? `$${Number(balanceData?.total || 0).toFixed(2)}`
-                    : "••••••"}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-3xl font-bold text-white">
+                    {showBalance
+                      ? `$${Number(balanceData.total || 0).toFixed(2)}`
+                      : "••••••"}
+                  </p>
+
+                  {/* 🔧 NUEVO: Refresh button AQUÍ junto al balance */}
+                  <button
+                    onClick={handleRefreshBalance}
+                    disabled={refreshing}
+                    className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-gray-400 hover:text-white disabled:opacity-50"
+                    title="Actualizar balance"
+                  >
+                    <RefreshCw
+                      className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Show/Hide Balance Toggle */}
             <button
               onClick={() => setShowBalance(!showBalance)}
-              className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors"
+              className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-gray-400 hover:text-white"
+              title={showBalance ? "Ocultar balance" : "Mostrar balance"}
             >
               {showBalance ? (
                 <EyeOff className="w-5 h-5" />
@@ -286,7 +294,7 @@ const WalletPage: React.FC = () => {
                 <span className="text-sm text-gray-400">Disponible</span>
               </div>
               <p className="text-xl font-bold text-green-400">
-                ${balanceData.available.toFixed(2)}
+                ${Number(balanceData.available || 0).toFixed(2)}
               </p>
             </div>
             <div className="bg-[#1a1f37] rounded-lg p-4">
@@ -295,9 +303,7 @@ const WalletPage: React.FC = () => {
                 <span className="text-sm text-gray-400">Congelado</span>
               </div>
               <p className="text-xl font-bold text-yellow-400">
-                {showBalance
-                  ? `$${(Number(balanceData?.frozen) || 0).toFixed(2)}`
-                  : "••••••"}
+                ${Number(balanceData.frozen || 0).toFixed(2)}
               </p>
             </div>
           </div>
@@ -320,61 +326,65 @@ const WalletPage: React.FC = () => {
               Retirar
             </button>
           </div>
-        </div>
+        </Card>
 
         {/* Estadísticas Rápidas */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className={`${theme.cardBackground} p-4`}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className={`${theme.cardBackground} p-4`}>
             <div className="flex items-center gap-3">
               <TrendingUp className="w-6 h-6 text-green-400" />
               <div>
-                <p className="text-lg font-bold">
+                <p className="text-lg font-bold text-white">
                   ${stats.totalDeposits.toFixed(0)}
                 </p>
                 <p className="text-xs text-gray-400">Depósitos</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className={`${theme.cardBackground} p-4`}>
+          <Card className={`${theme.cardBackground} p-4`}>
             <div className="flex items-center gap-3">
               <TrendingDown className="w-6 h-6 text-red-400" />
               <div>
-                <p className="text-lg font-bold">
+                <p className="text-lg font-bold text-white">
                   ${stats.totalWithdrawals.toFixed(0)}
                 </p>
                 <p className="text-xs text-gray-400">Retiros</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className={`${theme.cardBackground} p-4`}>
+          <Card className={`${theme.cardBackground} p-4`}>
             <div className="flex items-center gap-3">
               <DollarSign className="w-6 h-6 text-yellow-400" />
               <div>
-                <p className="text-lg font-bold">
+                <p className="text-lg font-bold text-white">
                   ${stats.winnings.toFixed(0)}
                 </p>
                 <p className="text-xs text-gray-400">Ganancias</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className={`${theme.cardBackground} p-4`}>
+          <Card className={`${theme.cardBackground} p-4`}>
             <div className="flex items-center gap-3">
               <Clock className="w-6 h-6 text-blue-400" />
               <div>
-                <p className="text-lg font-bold">{stats.pendingTransactions}</p>
+                <p className="text-lg font-bold text-white">
+                  {stats.pendingTransactions}
+                </p>
                 <p className="text-xs text-gray-400">Pendientes</p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Gráfico de Balance */}
-        <div className={`${theme.cardBackground} p-6 mb-6`}>
+        <Card className={`${theme.cardBackground} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">Evolución del Balance</h2>
+            <h2 className="text-lg font-bold text-white">
+              Evolución del Balance
+            </h2>
             <select
               value={selectedPeriod}
               onChange={(e) =>
@@ -390,12 +400,14 @@ const WalletPage: React.FC = () => {
           <div className="h-64">
             <Line data={chartData} options={chartOptions} />
           </div>
-        </div>
+        </Card>
 
         {/* Historial de Transacciones */}
-        <div className={`${theme.cardBackground} p-6`}>
+        <Card className={`${theme.cardBackground} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">Historial de Transacciones</h2>
+            <h2 className="text-lg font-bold text-white">
+              Historial de Transacciones
+            </h2>
             <select
               value={transactionFilter}
               onChange={(e) => setTransactionFilter(e.target.value)}
@@ -411,10 +423,10 @@ const WalletPage: React.FC = () => {
 
           <TransactionHistory
             transactions={filteredTransactions}
-            loading={loading}
+            loading={refreshing}
             variant="dark"
           />
-        </div>
+        </Card>
       </div>
 
       {/* Modales */}

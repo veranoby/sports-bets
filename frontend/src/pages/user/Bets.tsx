@@ -19,6 +19,7 @@ import FilterBar from "../../components/shared/FilterBar";
 import StatusIndicator from "../../components/shared/StatusIndicator";
 import BetDetailModal from "../../components/user/BetDetailModal";
 import type { Bet } from "../../types";
+import UserHeader from "../../components/user/UserHeader";
 
 const UserBets = () => {
   const { bets, loading, error, fetchMyBets, fetchAvailableBets, cancelBet } =
@@ -46,15 +47,8 @@ const UserBets = () => {
 
   return (
     <div className="bg-[#1a1f37] min-h-screen pb-20">
-      {/* Header */}
-      <header className="bg-[#2a325c] p-4 sticky top-0 z-10 flex items-center gap-3">
-        <h1 className="text-xl font-bold">Mis Apuestas</h1>
-        <StatusIndicator
-          status={isConnected ? "connected" : "disconnected"}
-          label={isConnected ? "Conectado" : "Desconectado"}
-          size="sm"
-        />
-      </header>
+      {/* Reemplazar header existente */}
+      <UserHeader title="Mis Apuestas" />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">

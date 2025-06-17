@@ -34,6 +34,7 @@ import NotificationBadge from "../../components/shared/NotificationBadge";
 import StreamingPanel from "../../components/user/StreamingPanel";
 import QuickBetPanel from "../../components/user/QuickBetPanel";
 import NotificationCenter from "../../components/shared/NotificationCenter";
+import UserHeader from "../../components/user/UserHeader";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -188,75 +189,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={theme.pageBackground}>
-      {/* Header con notificaciones */}
-      <header className={`${theme.headerBackground} p-4 sticky top-0 z-10`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold">¡Hola, {user?.username}!</h1>
-            <StatusIndicator
-              status={isConnected ? "connected" : "disconnected"}
-              label={isConnected ? "En línea" : "Desconectado"}
-              size="sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-4">
-            {lastUpdated && (
-              <span className="text-xs text-gray-400">
-                Actualizado: {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-            <NotificationCenter />
-          </div>
-        </div>
-      </header>
-
-      {/* Quick Stats Cards */}
-      <div className="p-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`${theme.cardBackground} p-4`}>
-          <div className="flex items-center gap-3">
-            <Activity className="w-8 h-8 text-[#cd6263]" />
-            <div>
-              <p className="text-2xl font-bold">{quickStats.activeBets}</p>
-              <p className="text-sm text-gray-400">Apuestas Activas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`${theme.cardBackground} p-4`}>
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-green-400" />
-            <div>
-              <p className="text-2xl font-bold">
-                ${Number(wallet?.balance || 0).toFixed(2)}
-              </p>
-              <p className="text-sm text-gray-400">Saldo Disponible</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`${theme.cardBackground} p-4`}>
-          <div className="flex items-center gap-3">
-            <Play className="w-8 h-8 text-[#596c95]" />
-            <div>
-              <p className="text-2xl font-bold">{quickStats.liveEvents}</p>
-              <p className="text-sm text-gray-400">Eventos En Vivo</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`${theme.cardBackground} p-4`}>
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-yellow-400" />
-            <div>
-              <p className="text-2xl font-bold">
-                {quickStats.winRate.toFixed(1)}%
-              </p>
-              <p className="text-sm text-gray-400">Tasa de Acierto</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Reemplazar header existente */}
+      <UserHeader title="Dashboard" />
 
       {/* Main Content Grid */}
       <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -415,8 +349,8 @@ const Dashboard: React.FC = () => {
                 icon={<Activity />}
                 variant="dark"
                 action={{
-                  label: "Ver Eventos",
-                  onClick: () => navigate("/events"),
+                  label: "Ver Apuestas disponibles",
+                  onClick: () => navigate("/bets"),
                 }}
               />
             )}

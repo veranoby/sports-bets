@@ -26,7 +26,10 @@ type StatusType =
   | "info"
   | "warning"
   | "error"
-  | "success"; // Streaming
+  | "success"
+  | "none" // 🔧 Nuevo tipo para verificación
+  | "basic" // 🔧 Nuevo tipo para verificación
+  | "full"; // 🔧 Nuevo tipo para verificación
 
 interface StatusChipProps {
   status: StatusType;
@@ -76,6 +79,11 @@ const StatusChip: React.FC<StatusChipProps> = ({
     warning: { bg: "#f59e0b", text: "white" }, // Amarillo
     error: { bg: "#ef4444", text: "white" }, // Rojo
     success: { bg: "#10b981", text: "white" }, // Verde
+    none: { bg: "#6b7280", text: "white" }, // Gris - Sin verificar
+    basic: { bg: "#f59e0b", text: "white" }, // Amarillo - Básico
+    full: { bg: "#10b981", text: "white" }, // Verde - Verificado
+    // 🔧 Fallback para valores no definidos
+    unknown: { bg: "#6b7280", text: "white" },
   };
 
   const sizeClasses = {
@@ -111,6 +119,10 @@ const StatusChip: React.FC<StatusChipProps> = ({
     warning: "Advertencia",
     error: "Error",
     success: "Éxito",
+    none: "Sin verificar",
+    basic: "Básico",
+    full: "Verificado",
+    unknown: "Desconocido",
   };
 
   return (
@@ -120,15 +132,17 @@ const StatusChip: React.FC<StatusChipProps> = ({
       } ${className}`}
       style={{
         backgroundColor:
-          variant === "default" ? statusConfig[status].bg : "transparent",
+          variant === "default"
+            ? statusConfig[status]?.bg || statusConfig.unknown.bg
+            : "transparent",
         color:
           variant === "default"
-            ? statusConfig[status].text
-            : statusConfig[status].bg,
-        borderColor: statusConfig[status].bg,
+            ? statusConfig[status]?.text || statusConfig.unknown.text
+            : statusConfig[status]?.bg || statusConfig.unknown.bg,
+        borderColor: statusConfig[status]?.bg || statusConfig.unknown.bg,
       }}
     >
-      {statusLabels[status]}
+      {statusLabels[status] || statusLabels.unknown}
     </span>
   );
 };
