@@ -131,29 +131,6 @@ const Dashboard: React.FC = () => {
     fetchWallet();
   }, []); // 🔧 FIX: Sin dependencias
 
-  // Calcular estadísticas rápidas
-  useEffect(() => {
-    const activeBets =
-      bets?.filter((bet) => bet.status === "active").length || 0;
-    const liveEvents =
-      events?.filter((event) => event.status === "in-progress").length || 0;
-    const completedBets = bets?.filter((bet) => bet.status === "settled") || [];
-    const wins = completedBets.filter((bet) => bet.result === "win").length;
-    const winRate =
-      completedBets.length > 0 ? (wins / completedBets.length) * 100 : 0;
-    const totalWinnings = completedBets.reduce(
-      (sum, bet) => (bet.result === "win" ? sum + (bet.payout || 0) : sum),
-      0
-    );
-
-    setQuickStats({
-      activeBets,
-      totalWinnings,
-      liveEvents,
-      winRate,
-    });
-  }, [bets, events]);
-
   // Función para manejar apuestas rápidas
   const handleBetPlaced = (bet: any) => {
     addNotification("Apuesta realizada exitosamente", "success");
