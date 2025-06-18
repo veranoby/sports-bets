@@ -3,7 +3,13 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Calendar, Activity, Wallet, User } from "lucide-react";
+import {
+  Home,
+  Calendar,
+  User,
+  Newspaper,
+  Users as UsersIcon,
+} from "lucide-react";
 
 const Navigation: React.FC<{ currentPage?: string }> = () => {
   const navigate = useNavigate();
@@ -35,25 +41,25 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
       gradient: "from-purple-500 to-purple-600",
     },
     {
-      id: "bets",
-      icon: Activity,
-      label: "Apuestas",
-      path: "/bets",
-      gradient: "from-red-500 to-red-600",
+      id: "news",
+      icon: Newspaper,
+      label: "Noticias",
+      path: "/news",
+      gradient: "from-pink-500 to-pink-600",
     },
     {
-      id: "wallet",
-      icon: Wallet,
-      label: "Billetera",
-      path: "/wallet",
-      gradient: "from-green-500 to-green-600",
+      id: "venues",
+      icon: UsersIcon,
+      label: "Galleras",
+      path: "/venues",
+      gradient: "from-orange-500 to-orange-600",
     },
     {
       id: "profile",
       icon: User,
       label: "Perfil",
       path: "/profile",
-      gradient: "from-orange-500 to-orange-600",
+      gradient: "from-green-500 to-green-600",
     },
   ];
 

@@ -3,17 +3,13 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Bell,
   Calendar,
   Activity,
   Wallet,
-  Award,
   Play,
-  TrendingUp,
   Clock,
-  DollarSign,
-  Users,
   Zap,
+  Dices,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -26,18 +22,15 @@ import {
 
 // Componentes optimizados
 import EventCard from "../../components/user/EventCard";
-import BettingPanel from "../../components/user/BettingPanel";
 import WalletSummary from "../../components/user/WalletSummary";
 import Navigation from "../../components/user/Navigation";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
-import StatusIndicator from "../../components/shared/StatusIndicator";
-import NotificationBadge from "../../components/shared/NotificationBadge";
 import StreamingPanel from "../../components/user/StreamingPanel";
 import QuickBetPanel from "../../components/user/QuickBetPanel";
-import NotificationCenter from "../../components/shared/NotificationCenter";
 import UserHeader from "../../components/user/UserHeader";
+import NewsBanner from "../../components/shared/NewsBanner";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -170,104 +163,107 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={theme.pageBackground}>
-      {/* Reemplazar header existente */}
       <UserHeader title="Dashboard" />
-
+      <NewsBanner />
       {/* Main Content Grid */}
       <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Eventos En Vivo - Columna Principal */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Eventos En Vivo */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Zap className="w-5 h-5 text-[#cd6263]" />
-                Eventos En Vivo
-              </h2>
-              {liveEvents.length > 2 && (
-                <button
-                  onClick={() => navigate("/events")}
-                  className="text-[#596c95] hover:text-[#4a5b80] text-sm font-medium"
-                >
-                  Ver todos ({liveEvents.length})
-                </button>
-              )}
-            </div>
-
-            {liveEvents.length > 0 ? (
-              <div className="grid gap-4">
-                {liveEvents.slice(0, 2).map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onEnter={() => navigate(`/live-event/${event.id}`)}
-                    showStreamingIndicator={true}
-                  />
-                ))}
+          {/* Evento en Vivo */}
+          {liveEvents.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-[#cd6263]" />
+                  Eventos En Vivo
+                </h2>
+                {liveEvents.length > 2 && (
+                  <button
+                    onClick={() => navigate("/events")}
+                    className="text-[#596c95] hover:text-[#4a5b80] text-sm font-medium"
+                  >
+                    Ver todos ({liveEvents.length})
+                  </button>
+                )}
               </div>
-            ) : (
-              <EmptyState
-                title="No hay eventos en vivo"
-                description="Los eventos en vivo aparecerán aquí cuando estén disponibles"
-                icon={<Play />}
-                variant="dark"
-              />
-            )}
-            {liveEvents.length > 0 && (
-              <StreamingPanel
-                eventId={liveEvents[0]?.id || ""}
-                isLive={liveEvents.length > 0}
-                onEnterStream={() => navigate("/live-event")}
-              />
-            )}
-          </section>
 
+              {liveEvents.length > 0 ? (
+                <div className="grid gap-4">
+                  {liveEvents.slice(0, 2).map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onEnter={() => navigate(`/live-event/${event.id}`)}
+                      showStreamingIndicator={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No hay eventos en vivo"
+                  description="Los eventos en vivo aparecerán aquí cuando estén disponibles"
+                  icon={<Play />}
+                />
+              )}
+              {liveEvents.length > 0 && (
+                <StreamingPanel
+                  eventId={liveEvents[0]?.id || ""}
+                  isLive={liveEvents.length > 0}
+                  onEnterStream={() => navigate("/live-event")}
+                />
+              )}
+            </section>
+          )}
           {/* Próximos Eventos */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Clock className="w-5 h-5 text-[#596c95]" />
-                Próximos Eventos
-              </h2>
-            </div>
+          {upcomingEvents.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#596c95]" />
+                  Próximos Eventos
+                </h2>
+              </div>
 
-            {upcomingEvents.length > 0 ? (
-              <div className="grid gap-3">
-                {upcomingEvents.slice(0, 3).map((event) => (
-                  <div key={event.id} className={`${theme.cardBackground} p-4`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{event.name}</h3>
-                        <p className="text-sm text-gray-400">
-                          {event.venue?.name}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {new Date(event.scheduledDate).toLocaleDateString()}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(event.scheduledDate).toLocaleTimeString()}
-                        </p>
+              {upcomingEvents.length > 0 ? (
+                <div className="grid gap-3">
+                  {upcomingEvents.slice(0, 3).map((event) => (
+                    <div
+                      key={event.id}
+                      className={`${theme.cardBackground} p-4`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium">{event.name}</h3>
+                          <p className="text-sm text-gray-400">
+                            {event.venue?.name}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            {new Date(event.scheduledDate).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(event.scheduledDate).toLocaleTimeString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="No hay eventos programados"
-                description="Los próximos eventos aparecerán aquí"
-                icon={<Calendar />}
-                variant="dark"
-              />
-            )}
-          </section>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No hay eventos programados"
+                  description="Los próximos eventos aparecerán aquí"
+                  icon={<Calendar />}
+                />
+              )}
+            </section>
+          )}
         </div>
 
         {/* Sidebar - Panel Lateral */}
         <div className="space-y-6">
-          {/* Billetera Rápida */}
+          {/* Billetera Rápida 
           <section>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Wallet className="w-5 h-5 text-green-400" />
@@ -279,13 +275,13 @@ const Dashboard: React.FC = () => {
               onViewWallet={() => navigate("/wallet")}
               showQuickActions={true}
             />
-          </section>
+          </section> */}
 
-          {/* Apuestas Activas */}
+          {/* Apuestas Activas 
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <Activity className="w-5 h-5 text-[#cd6263]" />
+                <Dices className="w-5 h-5 text-[#cd6263]" />
                 Mis Apuestas
               </h2>
               {activeBets.length > 0 && (
@@ -329,14 +325,13 @@ const Dashboard: React.FC = () => {
                 title="No tienes apuestas activas"
                 description="Explora eventos y realiza tu primera apuesta"
                 icon={<Activity />}
-                variant="dark"
                 action={{
                   label: "Ver Apuestas disponibles",
                   onClick: () => navigate("/bets"),
                 }}
               />
             )}
-          </section>
+          </section> */}
 
           {/* Panel de Apuestas Rápidas */}
           {liveEvents.length > 0 && (
