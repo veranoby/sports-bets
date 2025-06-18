@@ -30,6 +30,50 @@ body {
   }
 }
 
+/* AGREGAR al final del archivo para animación del error */
+
+/* 🎨 ANIMACIONES PARA ERROR MESSAGE */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+/* 🎨 LOADING BUTTON STATES */
+.loading-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.loading-button:disabled::after {
+  left: 100%;
+}
+
 /* Import modular styles */
 @import "./styles/theme.css";
 @import "./styles/gradients.css";

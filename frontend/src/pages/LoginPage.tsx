@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus, Loader2, Info } from "lucide-react";
 import ErrorMessage from "../components/shared/ErrorMessage";
+import LoadingSpinner from "../components/shared/LoadingSpinner";
 
 const LoginPage: React.FC = () => {
   const { login, register, isLoading } = useAuth();
@@ -27,20 +28,13 @@ const LoginPage: React.FC = () => {
 
   // 🔧 MEJORA 2: Función para mostrar error de forma persistente
   const displayError = (errorMessage: string) => {
-    // Limpiar timeout anterior si existe
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null; // Limpiar la referencia
     }
-
     setError(errorMessage);
     setShowError(true);
-
-    // Auto-hide después de 8 segundos (tiempo suficiente para leer)
-    errorTimeoutRef.current = setTimeout(() => {
-      setShowError(false);
-      // Limpiar el error 500ms después de que desaparezca visualmente
-      setTimeout(() => setError(""), 500);
-    }, 8000);
+    // Eliminar el setTimeout que ocultaba el error automáticamente
   };
 
   // 🔧 MEJORA 3: Función para limpiar error manualmente
@@ -52,11 +46,12 @@ const LoginPage: React.FC = () => {
     setTimeout(() => setError(""), 300); // Transición suave
   };
 
+  const [localIsLoading, setLocalIsLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 🔧 MEJORA 4: Limpiar error solo al enviar form, no antes
     clearError();
+    setLocalIsLoading(true);
 
     try {
       if (isLoginMode) {
@@ -71,17 +66,15 @@ const LoginPage: React.FC = () => {
           password: formData.password,
         });
       }
-
-      // Solo navegar si el login/registro fue exitoso
       navigate("/");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Error desconocido al procesar la solicitud";
-
-      // 🔧 MEJORA 5: Usar la nueva función de error persistente
       displayError(errorMessage);
+    } finally {
+      setLocalIsLoading(false);
     }
   };
 
@@ -154,7 +147,7 @@ const LoginPage: React.FC = () => {
                   variant="card"
                   closeable={true}
                   onClose={clearError}
-                  className="border-l-4 border-l-red-500 bg-red-50 shadow-sm"
+                  className="border-l-4 border-l-red-500 bg-red-50 shadow-sm animate-slide-down"
                   showIcon={true}
                 />
               </div>
@@ -178,7 +171,7 @@ const LoginPage: React.FC = () => {
                     required
                     value={formData.login}
                     onChange={handleChange}
-                    disabled={isLoading}
+                    disabled={localIsLoading || isLoading}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="usuario@ejemplo.com"
                   />
@@ -202,7 +195,7 @@ const LoginPage: React.FC = () => {
                       required
                       value={formData.username}
                       onChange={handleChange}
-                      disabled={isLoading}
+                      disabled={localIsLoading || isLoading}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="tu_usuario"
                     />
@@ -226,7 +219,7 @@ const LoginPage: React.FC = () => {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      disabled={isLoading}
+                      disabled={localIsLoading || isLoading}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="tu@email.com"
                     />
@@ -254,7 +247,7 @@ const LoginPage: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  disabled={isLoading}
+                  disabled={localIsLoading || isLoading}
                   className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="••••••••"
                 />
@@ -262,7 +255,7 @@ const LoginPage: React.FC = () => {
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
+                  disabled={localIsLoading || isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
@@ -277,10 +270,10 @@ const LoginPage: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={localIsLoading || isLoading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#596c95] hover:bg-[#4a5a85] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? (
+                {localIsLoading || isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Procesando...
@@ -316,7 +309,7 @@ const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleMode}
-                disabled={isLoading}
+                disabled={localIsLoading || isLoading}
                 className="w-full text-center text-sm text-[#596c95] hover:text-[#4a5a85] font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoginMode ? "Crear nueva cuenta" : "Iniciar sesión"}
