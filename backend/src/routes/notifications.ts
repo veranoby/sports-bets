@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth";
 import { asyncHandler } from "../middleware/errorHandler";
-import Notification from "../models/Notification"; // Asumiendo modelo existente
 
 const router = Router();
 
