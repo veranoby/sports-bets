@@ -534,6 +534,8 @@ router.post(
           proposalStatus: "pending",
           parentBetId: originalBet.id,
           terms: {
+            ratio: 2.0, // Valor por defecto
+            isOffer: false, // Es una propuesta, no una oferta
             pagoAmount,
             proposedBy: req.user!.id,
           },

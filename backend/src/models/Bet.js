@@ -43,6 +43,35 @@ class Bet extends sequelize_1.Model {
     toPublicJSON() {
         return this.toJSON();
     }
+    isPagoProposal() {
+        var _a;
+        return this.betType === "flat" && ((_a = this.terms) === null || _a === void 0 ? void 0 : _a.pagoAmount) !== undefined;
+    }
+    isDoyBet() {
+        return this.betType === "doy";
+    }
+    canAcceptProposal() {
+        var _a;
+        return (this.proposalStatus === "pending" &&
+            this.betType === "flat" &&
+            ((_a = this.terms) === null || _a === void 0 ? void 0 : _a.proposedBy) !== undefined);
+    }
+    calculatePayoutAmounts() {
+        var _a, _b;
+        if (this.isDoyBet()) {
+            return {
+                winner: this.amount + (((_a = this.terms) === null || _a === void 0 ? void 0 : _a.doyAmount) || 0),
+                loser: this.amount,
+            };
+        }
+        else if (this.isPagoProposal()) {
+            return {
+                winner: this.amount,
+                loser: this.amount + (((_b = this.terms) === null || _b === void 0 ? void 0 : _b.pagoAmount) || 0),
+            };
+        }
+        return { winner: this.potentialWin, loser: this.amount };
+    }
 }
 exports.Bet = Bet;
 // Inicialización del modelo
@@ -104,6 +133,24 @@ Bet.init({
             key: "id",
         },
     },
+    parentBetId: {
+        type: sequelize_1.DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: "bets",
+            key: "id",
+        },
+    },
+    betType: {
+        type: sequelize_1.DataTypes.ENUM("flat", "doy"),
+        allowNull: false,
+        defaultValue: "flat",
+    },
+    proposalStatus: {
+        type: sequelize_1.DataTypes.ENUM("none", "pending", "accepted", "rejected"),
+        allowNull: false,
+        defaultValue: "none",
+    },
     terms: {
         type: sequelize_1.DataTypes.JSONB,
         allowNull: true,
@@ -134,12 +181,28 @@ Bet.init({
         {
             fields: ["fight_id", "status"],
         },
+        {
+            fields: ["parent_bet_id"],
+        },
+        {
+            fields: ["bet_type"],
+        },
+        {
+            fields: ["proposal_status"],
+        },
     ],
     hooks: {
         beforeCreate: (bet) => {
-            var _a;
+            var _a, _b, _c;
+            // Validar campos PAGO/DOY
+            if (bet.betType === "doy" && !((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.doyAmount)) {
+                throw new Error("DOY bets require doyAmount in terms");
+            }
+            if (bet.isPagoProposal() && !((_b = bet.terms) === null || _b === void 0 ? void 0 : _b.pagoAmount)) {
+                throw new Error("PAGO proposals require pagoAmount in terms");
+            }
             // Calcular ganancia potencial si no está configurada
-            if (!bet.potentialWin && ((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.ratio)) {
+            if (!bet.potentialWin && ((_c = bet.terms) === null || _c === void 0 ? void 0 : _c.ratio)) {
                 bet.potentialWin = bet.calculatePotentialWin();
             }
             // Validar que la ganancia potencial sea mayor que el monto apostado
@@ -148,9 +211,18 @@ Bet.init({
             }
         },
         beforeUpdate: (bet) => {
-            var _a;
+            var _a, _b, _c;
+            // Validar campos PAGO/DOY
+            if (bet.changed("betType") || bet.changed("terms")) {
+                if (bet.betType === "doy" && !((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.doyAmount)) {
+                    throw new Error("DOY bets require doyAmount in terms");
+                }
+                if (bet.isPagoProposal() && !((_b = bet.terms) === null || _b === void 0 ? void 0 : _b.pagoAmount)) {
+                    throw new Error("PAGO proposals require pagoAmount in terms");
+                }
+            }
             // Recalcular ganancia potencial si cambió el ratio
-            if (bet.changed("terms") && ((_a = bet.terms) === null || _a === void 0 ? void 0 : _a.ratio)) {
+            if (bet.changed("terms") && ((_c = bet.terms) === null || _c === void 0 ? void 0 : _c.ratio)) {
                 bet.potentialWin = bet.calculatePotentialWin();
             }
             // Validar que la ganancia potencial sea mayor que el monto apostado

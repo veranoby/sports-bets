@@ -403,4 +403,174 @@ router.get("/stats", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req,
         },
     });
 })));
+// POST /api/bets/:id/propose-pago - Proponer un PAGO para una apuesta
+router.post("/:id/propose-pago", auth_1.authenticate, [
+    (0, express_validator_1.body)("pagoAmount")
+        .isFloat({ min: 0.01, max: 10000 })
+        .withMessage("PAGO amount must be between 0.01 and 10000"),
+], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { pagoAmount } = req.body;
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        const originalBet = yield models_1.Bet.findByPk(req.params.id, { transaction: t });
+        if (!originalBet ||
+            originalBet.betType !== "flat" ||
+            !originalBet.isPending()) {
+            throw errorHandler_1.errors.badRequest("Invalid bet for PAGO proposal");
+        }
+        if (pagoAmount >= originalBet.amount) {
+            throw errorHandler_1.errors.badRequest("PAGO amount must be less than original bet");
+        }
+        const wallet = yield models_1.Wallet.findOne({
+            where: { userId: req.user.id },
+            transaction: t,
+        });
+        if (!wallet || !wallet.canBet(pagoAmount)) {
+            throw errorHandler_1.errors.badRequest("Insufficient available balance");
+        }
+        const pagoBet = yield models_1.Bet.create({
+            fightId: originalBet.fightId,
+            userId: req.user.id,
+            side: originalBet.side,
+            amount: pagoAmount,
+            betType: "flat",
+            proposalStatus: "pending",
+            parentBetId: originalBet.id,
+            terms: {
+                ratio: 2.0, // Valor por defecto
+                isOffer: false, // Es una propuesta, no una oferta
+                pagoAmount,
+                proposedBy: req.user.id,
+            },
+        }, { transaction: t });
+        yield wallet.freezeAmount(pagoAmount);
+        yield wallet.save({ transaction: t });
+        // Emitir evento WebSocket
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`user_${originalBet.userId}`).emit("pago_proposed", {
+                originalBet: originalBet.toPublicJSON(),
+                pagoBet: pagoBet.toPublicJSON(),
+            });
+        }
+        res.status(201).json({
+            success: true,
+            message: "PAGO proposal created",
+            data: pagoBet.toPublicJSON(),
+        });
+    }));
+})));
+// PUT /api/bets/:id/accept-proposal - Aceptar una propuesta de PAGO
+router.put("/:id/accept-proposal", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        const originalBet = yield models_1.Bet.findByPk(req.params.id, { transaction: t });
+        if (!originalBet ||
+            originalBet.userId !== req.user.id ||
+            originalBet.proposalStatus !== "pending") {
+            throw errorHandler_1.errors.badRequest("Invalid bet for accepting PAGO proposal");
+        }
+        const pagoBet = yield models_1.Bet.findOne({
+            where: { parentBetId: originalBet.id, proposalStatus: "pending" },
+            transaction: t,
+        });
+        if (!pagoBet) {
+            throw errorHandler_1.errors.notFound("PAGO proposal not found");
+        }
+        // Validar saldos
+        const originalWallet = yield models_1.Wallet.findOne({
+            where: { userId: originalBet.userId },
+            transaction: t,
+        });
+        if (!originalWallet || !originalWallet.canBet(originalBet.amount)) {
+            throw errorHandler_1.errors.badRequest("Insufficient available balance");
+        }
+        // Activar apuestas
+        originalBet.proposalStatus = "accepted";
+        pagoBet.proposalStatus = "accepted";
+        originalBet.status = "active";
+        pagoBet.status = "active";
+        yield Promise.all([
+            originalBet.save({ transaction: t }),
+            pagoBet.save({ transaction: t }),
+        ]);
+        // Emitir evento WebSocket
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`user_${pagoBet.userId}`).emit("pago_accepted", {
+                originalBet: originalBet.toPublicJSON(),
+                pagoBet: pagoBet.toPublicJSON(),
+            });
+        }
+        res.json({
+            success: true,
+            message: "PAGO proposal accepted",
+            data: {
+                originalBet: originalBet.toPublicJSON(),
+                pagoBet: pagoBet.toPublicJSON(),
+            },
+        });
+    }));
+})));
+// PUT /api/bets/:id/reject-proposal - Rechazar una propuesta de PAGO
+router.put("/:id/reject-proposal", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        const originalBet = yield models_1.Bet.findByPk(req.params.id, { transaction: t });
+        if (!originalBet ||
+            originalBet.userId !== req.user.id ||
+            originalBet.proposalStatus !== "pending") {
+            throw errorHandler_1.errors.badRequest("Invalid bet for rejecting PAGO proposal");
+        }
+        const pagoBet = yield models_1.Bet.findOne({
+            where: { parentBetId: originalBet.id, proposalStatus: "pending" },
+            transaction: t,
+        });
+        if (!pagoBet) {
+            throw errorHandler_1.errors.notFound("PAGO proposal not found");
+        }
+        // Liberar fondos
+        const pagoWallet = yield models_1.Wallet.findOne({
+            where: { userId: pagoBet.userId },
+            transaction: t,
+        });
+        if (pagoWallet) {
+            yield pagoWallet.unfreezeAmount(pagoBet.amount);
+            yield pagoWallet.save({ transaction: t });
+        }
+        // Eliminar propuesta
+        yield pagoBet.destroy({ transaction: t });
+        // Emitir evento WebSocket
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`user_${pagoBet.userId}`).emit("pago_rejected", {
+                originalBet: originalBet.toPublicJSON(),
+            });
+        }
+        res.json({
+            success: true,
+            message: "PAGO proposal rejected",
+        });
+    }));
+})));
+// GET /api/bets/pending-proposals - Obtener propuestas de PAGO pendientes del usuario
+router.get("/pending-proposals", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const pendingProposals = yield models_1.Bet.findAll({
+        where: {
+            parentBetId: { [sequelize_1.Op.not]: null },
+            proposalStatus: "pending",
+            userId: req.user.id,
+        },
+        include: [
+            {
+                model: models_1.Bet,
+                as: "parentBet",
+                include: [
+                    { model: models_1.User, as: "user", attributes: ["id", "username"] },
+                ],
+            },
+        ],
+    });
+    res.json({
+        success: true,
+        data: pendingProposals.map((proposal) => proposal.toPublicJSON()),
+    });
+})));
 exports.default = router;

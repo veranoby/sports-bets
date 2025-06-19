@@ -363,6 +363,40 @@ export function useBets() {
     [execute]
   );
 
+  const getPendingProposals = useCallback(
+    () => execute(() => betsAPI.get("/pending-proposals")),
+    [execute]
+  );
+
+  const acceptProposal = useCallback(
+    (proposalId: string) =>
+      execute(() => betsAPI.put(`/${proposalId}/accept-proposal`)),
+    [execute]
+  );
+
+  const rejectProposal = useCallback(
+    (proposalId: string) =>
+      execute(() => betsAPI.put(`/${proposalId}/reject-proposal`)),
+    [execute]
+  );
+
+  const proposePago = useCallback(
+    (betId: string, pagoAmount: number) =>
+      execute(() => betsAPI.post(`/${betId}/propose-pago`, { pagoAmount })),
+    [execute]
+  );
+
+  const getCompatibleBets = useCallback(
+    (params: {
+      fightId: string;
+      side: string;
+      minAmount: number;
+      maxAmount: number;
+    }) =>
+      execute(() => betsAPI.get("/available/" + params.fightId, { params })),
+    [execute]
+  );
+
   return {
     bets: data?.bets || [],
     total: data?.total || 0,
@@ -374,6 +408,11 @@ export function useBets() {
     acceptBet,
     cancelBet,
     getBetsStats,
+    getPendingProposals,
+    acceptProposal,
+    rejectProposal,
+    proposePago,
+    getCompatibleBets,
   };
 }
 
