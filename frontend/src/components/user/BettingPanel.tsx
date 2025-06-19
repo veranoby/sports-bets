@@ -1,15 +1,15 @@
 CONSOLIDAR BettingPanel.tsx
 // Archivo: frontend/src/components/user/BettingPanel.tsx (REEMPLAZAR COMPLETO)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useBets, useWallet } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import { Plus, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import CreateBetModal from './CreateBetModal';
-import { Plus, Zap } from 'lucide-react';
 
 interface BettingPanelProps {
   fightId: string;
-  mode?: 'quick' | 'advanced';
+  mode?: 'quick' | 'advanced' | 'embedded';
   onBetPlaced?: () => void;
 }
 
@@ -24,51 +24,33 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { wallet } = useWallet();
 
   // WebSocket para actualizaciones en tiempo real
-  const wsListeners = {
-    new_bet: () => fetchAvailableBets(fightId),
-    bet_matched: () => {
-      console.log('¡Apuesta emparejada!');
-      onBetPlaced?.();
-    },
-  };
+  const { isConnected } = useWebSocket(fightId, {
+    new_bet: fetchAvailableBets,
+    bet_matched: onBetPlaced,
+  });
 
-  const { isConnected } = useWebSocket(fightId, wsListeners);
+  const renderQuickMode = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="w-full bg-[#cd6263] text-white p-3 rounded-lg flex items-center justify-center gap-2"
+      >
+        <Plus size={20} />
+        Crear Apuesta
+      </button>
+      <button
+        onClick={() => setCurrentMode('advanced')}
+        className="text-[#596c95] text-sm w-full text-center"
+      >
+        Mostrar opciones avanzadas
+      </button>
+    </div>
+  );
 
-  if (currentMode === 'quick') {
-    return (
-      <div className="bg-[#2a325c] p-4 rounded-lg">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white font-medium">Apuestas Rápidas</h3>
-          <button
-            onClick={() => setCurrentMode('advanced')}
-            className="text-[#596c95] text-sm"
-          >
-            Opciones avanzadas
-          </button>
-        </div>
-        
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="w-full bg-[#cd6263] text-white p-3 rounded-lg flex items-center justify-center gap-2"
-        >
-          <Plus size={20} />
-          Crear Apuesta
-        </button>
-
-        {showCreateModal && (
-          <CreateBetModal
-            fightId={fightId}
-            onClose={() => setShowCreateModal(false)}
-          />
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-[#2a325c] p-4 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-white font-medium">Panel de Apuestas</h3>
+  const renderAdvancedMode = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-white font-medium">Apuestas disponibles</h3>
         <button
           onClick={() => setCurrentMode('quick')}
           className="text-[#596c95] text-sm flex items-center gap-1"
@@ -78,8 +60,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         </button>
       </div>
 
-      {/* Mostrar apuestas disponibles */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2">
         {bets.length > 0 ? (
           bets.map(bet => (
             <div key={bet.id} className="bg-[#596c95] p-3 rounded">
@@ -105,6 +86,12 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         <Plus size={20} />
         Nueva Apuesta
       </button>
+    </div>
+  );
+
+  return (
+    <div className="bg-[#2a325c] p-4 rounded-lg">
+      {currentMode === 'quick' ? renderQuickMode() : renderAdvancedMode()}
 
       {showCreateModal && (
         <CreateBetModal
