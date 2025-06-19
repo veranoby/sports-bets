@@ -846,17 +846,3 @@ export function useUsers() {
     updateUserProfile,
   };
 }
-
-// Exportar hook principal con todos los hooks
-export const useApi = () => {
-  return {
-    useAuth,
-    useEvents,
-    useFights,
-    useBets,
-    useWallet,
-    useSubscriptions,
-    useVenues,
-    useUsers,
-  };
-};
