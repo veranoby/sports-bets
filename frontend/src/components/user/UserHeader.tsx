@@ -15,6 +15,7 @@ import NotificationBadge from "../shared/NotificationBadge";
 import { Wallet, Dices } from "lucide-react";
 import NotificationCenter from "../shared/NotificationCenter";
 import ProposalNotifications from "./ProposalNotifications";
+import BetCard from "./BetCard";
 
 interface UserHeaderProps {
   title: string;
@@ -33,6 +34,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showProposals, setShowProposals] = useState(false);
+  const [showBetsMenu, setShowBetsMenu] = useState(false);
 
   // ✅ REAL DATA - Notificaciones basadas en apuestas activas
   const unreadCount =
@@ -41,6 +43,18 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
         bet.status === "active" ||
         (bet.status === "settled" && bet.result === "win")
     ).length || 0;
+
+  // Datos para el dropdown
+  const activeBetsCount =
+    bets?.filter((bet) => bet.status === "active").length || 0;
+  const recentActiveBets =
+    bets
+      ?.filter((bet) => bet.status === "active")
+      ?.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      ?.slice(0, 3) || [];
 
   // Actualizar hora cada minuto
   useEffect(() => {
@@ -70,6 +84,68 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
 
   const handleUserClick = () => navigate("/profile");
   const handleLogout = () => logout();
+
+  // Componente dropdown de apuestas
+  const BetsDropdown = () => (
+    <div className="relative">
+      <button
+        onClick={() => setShowBetsMenu(!showBetsMenu)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2a325c] hover:bg-[#3a426c] transition-colors"
+      >
+        <Dices size={18} />
+        {activeBetsCount > 0 && (
+          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {activeBetsCount}
+          </span>
+        )}
+      </button>
+
+      {showBetsMenu && (
+        <div className="absolute right-0 mt-2 w-80 bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg z-50">
+          {/* Encabezado */}
+          <div className="p-3 border-b border-[#596c95]">
+            <h3 className="font-medium text-white">Mis Apuestas</h3>
+          </div>
+
+          {/* Acciones rápidas */}
+          <div className="p-2 border-b border-[#596c95]">
+            <button
+              onClick={() => {
+                navigate("/user/bets");
+                setShowBetsMenu(false);
+              }}
+              className="w-full text-left text-sm text-gray-300 hover:text-white p-2 rounded hover:bg-[#3a426c]"
+            >
+              Ver todas las apuestas →
+            </button>
+          </div>
+
+          {/* Propuestas PAGO pendientes */}
+          <div className="max-h-60 overflow-y-auto">
+            <ProposalNotifications />
+
+            {/* Apuestas activas recientes */}
+            {recentActiveBets.length > 0 && (
+              <div className="p-2">
+                <h4 className="text-xs text-gray-400 mb-2">
+                  ACTIVAS RECIENTES
+                </h4>
+                {recentActiveBets.map((bet) => (
+                  <div key={bet.id} className="mb-2 last:mb-0">
+                    <BetCard
+                      bet={bet}
+                      mode="compact"
+                      onClick={() => setShowBetsMenu(false)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <header
@@ -132,25 +208,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
 
           {/* Right Side - User Controls */}
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <button
-                onClick={() => navigate("/user/bets")}
-                className="relative p-2 text-white hover:text-gray-300"
-                title="Mis Apuestas"
-              >
-                <Dices className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              {showProposals && (
-                <div className="absolute right-0 mt-2 w-72 bg-[#2a325c] rounded-lg shadow-lg z-50">
-                  <ProposalNotifications />
-                </div>
-              )}
-            </div>
+            <BetsDropdown />
 
             {/* Balance Quick View */}
             <button
@@ -164,12 +222,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
               </span>
             </button>
 
-            {/* Notifications Bell */}
-            <button>
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
-            </button>
+            {/* Notification Center */}
             <NotificationCenter />
 
             {/* Logout Button */}

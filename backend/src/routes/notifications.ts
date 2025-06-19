@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth";
 import { asyncHandler } from "../middleware/errorHandler";
+import Notification from "../models/Notification"; // Importación corregida
+import { Op } from "sequelize"; // Importación necesaria para operadores
 
 const router = Router();
 
@@ -9,17 +11,19 @@ router.get(
   "/",
   authenticate,
   asyncHandler(async (req, res) => {
-    const notifications = await Notification.find({
-      userId: req.user.id,
-      status: { $ne: "archived" },
-    })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const notifications = await Notification.findAll({
+      where: {
+        userId: req.user.id,
+        status: { [Op.ne]: "archived" },
+      },
+      order: [["createdAt", "DESC"]],
+      limit: 50,
+    });
 
     res.json({
       success: true,
       data: notifications.map((n) => ({
-        id: n._id,
+        id: n.id,
         title: n.title,
         message: n.message,
         timestamp: n.createdAt,
@@ -35,9 +39,14 @@ router.put(
   "/:id/read",
   authenticate,
   asyncHandler(async (req, res) => {
-    await Notification.updateOne(
-      { _id: req.params.id, userId: req.user.id },
-      { status: "read" }
+    await Notification.update(
+      { status: "read" },
+      {
+        where: {
+          id: req.params.id,
+          userId: req.user.id,
+        },
+      }
     );
     res.json({ success: true });
   })
@@ -48,9 +57,14 @@ router.put(
   "/:id/archive",
   authenticate,
   asyncHandler(async (req, res) => {
-    await Notification.updateOne(
-      { _id: req.params.id, userId: req.user.id },
-      { status: "archived" }
+    await Notification.update(
+      { status: "archived" },
+      {
+        where: {
+          id: req.params.id,
+          userId: req.user.id,
+        },
+      }
     );
     res.json({ success: true });
   })
