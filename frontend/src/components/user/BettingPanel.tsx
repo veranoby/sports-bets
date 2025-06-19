@@ -6,6 +6,9 @@ import ErrorMessage from "../shared/ErrorMessage";
 import { useBets, useWallet } from "../../hooks/useApi";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import { useWebSocket } from "../../hooks/useWebSocket";
+import QuickBetForm from "./QuickBetForm";
+import AdvancedBetForm from "./AdvancedBetForm";
+import BetSuggestions from "./BetSuggestions";
 
 // Tipos de apuesta
 type BetType = "Ganador" | "KO" | "Ronda Exacta";
@@ -19,28 +22,32 @@ type Bet = {
   status: "pendiente" | "aceptada" | "rechazada";
 };
 
-const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
-  const {
-    bets: availableBets,
-    loading: betsLoading,
-    error: betsError,
-    createBet,
-    acceptBet,
-    fetchMyBets,
-    fetchAvailableBets,
-  } = useBets();
-  const { wallet, loading: walletLoading, error: walletError } = useWallet();
+interface BettingPanelProps {
+  fightId: string;
+  mode?: "quick" | "advanced"; // Por defecto: "quick"
+  onBetPlaced?: () => void; // Callback post-apuesta
+}
 
-  // Nueva apuesta
-  const [showNewBet, setShowNewBet] = useState(false);
-  const [newBetAmount, setNewBetAmount] = useState<number>(0);
-  const [newBetSide, setNewBetSide] = useState<"red" | "blue">("red");
-  const [confirmAction, setConfirmAction] = useState<null | {
-    betId?: string;
-    action: "aceptar" | "crear";
-  }>();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+const BettingPanel = ({
+  fightId,
+  mode = "quick",
+  onBetPlaced,
+}: BettingPanelProps) => {
+  // Estado unificado
+  const [view, setView] = useState<"quick" | "advanced">(mode);
+  const [amount, setAmount] = useState("");
+  const [side, setSide] = useState<"red" | "blue">("red");
+  const [betType, setBetType] = useState<"flat" | "doy">("flat");
+  const [doyAmount, setDoyAmount] = useState("");
+  const [suggestions, setSuggestions] = useState<Bet[]>([]);
+  const [pagoProposal, setPagoProposal] = useState<{
+    bet: Bet;
+    amount: string;
+  } | null>(null);
+
+  // Lógica compartida
+  const { createBet, getCompatibleBets } = useBets();
+  const { balance } = useWallet();
 
   // WebSocket para actualizaciones en tiempo real
   const wsListeners = {
@@ -69,15 +76,15 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
   const { isConnected } = useWebSocket(fightId, wsListeners);
 
   // Validación de saldo
-  const canBet = (amount: number) => (wallet?.balance || 0) >= amount;
+  const canBet = (amount: number) => (balance || 0) >= amount;
 
   // Crear nueva apuesta
   const handleCreateBet = async () => {
-    if (newBetAmount <= 0) {
+    if (amount <= 0) {
       setError("El monto debe ser mayor a 0.");
       return;
     }
-    if (!canBet(newBetAmount)) {
+    if (!canBet(amount)) {
       setError("Saldo insuficiente.");
       return;
     }
@@ -107,14 +114,14 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
       } else if (confirmAction.action === "crear") {
         await createBet({
           fightId: "current-fight-id", // TODO: parametrizar correctamente
-          side: newBetSide,
-          amount: newBetAmount,
+          side: side,
+          amount: amount,
         });
         await fetchMyBets({});
         await fetchAvailableBets({});
         setShowNewBet(false);
-        setNewBetAmount(0);
-        setNewBetSide("red");
+        setAmount(0);
+        setSide("red");
       }
       setConfirmAction(null);
     } catch (e) {
@@ -140,7 +147,7 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
       <Card
         variant="data"
         title="Saldo"
-        value={`$${wallet?.balance?.toFixed(2) || 0}`}
+        value={`$${balance?.toFixed(2) || 0}`}
         color="gray"
       />
       <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-4">
@@ -159,7 +166,7 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
         </div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-green-600 font-bold">
-            <span>Saldo: ${wallet?.balance?.toFixed(2) || 0}</span>
+            <span>Saldo: ${balance?.toFixed(2) || 0}</span>
           </div>
           <button
             className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded shadow hover:bg-blue-700 transition"
@@ -203,6 +210,52 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
           )}
         </div>
 
+        {view === "quick" && (
+          <div className="space-y-4">
+            <QuickBetForm
+              amount={amount}
+              side={side}
+              onAmountChange={setAmount}
+              onSideChange={setSide}
+              onSubmit={() => handleSubmit("flat")}
+            />
+            <button
+              onClick={() => setView("advanced")}
+              className="text-sm text-gray-400"
+            >
+              Mostrar opciones avanzadas (PAGO/DOY)
+            </button>
+          </div>
+        )}
+
+        {view === "advanced" && (
+          <div className="space-y-4">
+            <AdvancedBetForm
+              amount={amount}
+              side={side}
+              betType={betType}
+              doyAmount={doyAmount}
+              onAmountChange={setAmount}
+              onSideChange={setSide}
+              onBetTypeChange={setBetType}
+              onDoyAmountChange={setDoyAmount}
+              onSubmit={handleSubmit}
+            />
+            <button
+              onClick={() => setView("quick")}
+              className="text-sm text-gray-400"
+            >
+              Ocultar opciones avanzadas
+            </button>
+          </div>
+        )}
+
+        <BetSuggestions
+          suggestions={suggestions}
+          onProposePago={handleProposePago}
+          fightId={fightId}
+        />
+
         {showNewBet && (
           <Modal
             title="Crear Nueva Apuesta"
@@ -213,10 +266,8 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
               <label className="block text-xs mb-1">Lado</label>
               <select
                 className="w-full border rounded px-2 py-1"
-                value={newBetSide}
-                onChange={(e) =>
-                  setNewBetSide(e.target.value as "red" | "blue")
-                }
+                value={side}
+                onChange={(e) => setSide(e.target.value as "red" | "blue")}
               >
                 <option value="red">Rojo</option>
                 <option value="blue">Azul</option>
@@ -227,17 +278,15 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
               <input
                 type="number"
                 className="w-full border rounded px-2 py-1"
-                value={newBetAmount}
-                onChange={(e) => setNewBetAmount(Number(e.target.value))}
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
                 min={1}
                 placeholder="Monto a apostar"
               />
             </div>
             <div className="mb-2 text-xs text-blue-700">
               Potencial ganancia:{" "}
-              <span className="font-bold">
-                ${(newBetAmount * 2).toFixed(2)}
-              </span>
+              <span className="font-bold">${(amount * 2).toFixed(2)}</span>
             </div>
             {error && <ErrorMessage error={error} />}
             <div className="flex gap-2 mt-4">
@@ -272,8 +321,8 @@ const BettingPanel: React.FC<{ fightId: string }> = ({ fightId }) => {
                 <div>Aceptarás la apuesta seleccionada. ¿Confirmar?</div>
               ) : (
                 <div>
-                  Nueva apuesta por <b>${newBetAmount}</b> al lado{" "}
-                  <b>{newBetSide === "red" ? "Rojo" : "Azul"}</b>.
+                  Nueva apuesta por <b>${amount}</b> al lado{" "}
+                  <b>{side === "red" ? "Rojo" : "Azul"}</b>.
                 </div>
               )}
             </div>

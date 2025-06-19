@@ -29,9 +29,17 @@ export class Bet extends Model<
   >;
   declare result: CreationOptional<"win" | "loss" | "draw" | "cancelled">;
   declare matchedWith: CreationOptional<ForeignKey<Bet["id"]>>;
+  declare parentBetId: CreationOptional<ForeignKey<Bet["id"]>>;
+  declare betType: CreationOptional<"flat" | "doy">;
+  declare proposalStatus: CreationOptional<
+    "none" | "pending" | "accepted" | "rejected"
+  >;
   declare terms: CreationOptional<{
     ratio: number;
     isOffer: boolean;
+    pagoAmount?: number;
+    doyAmount?: number;
+    proposedBy?: string;
   }>;
 
   // Asociaciones
@@ -80,6 +88,37 @@ export class Bet extends Model<
 
   toPublicJSON() {
     return this.toJSON();
+  }
+
+  isPagoProposal(): boolean {
+    return this.betType === "flat" && this.terms?.pagoAmount !== undefined;
+  }
+
+  isDoyBet(): boolean {
+    return this.betType === "doy";
+  }
+
+  canAcceptProposal(): boolean {
+    return (
+      this.proposalStatus === "pending" &&
+      this.betType === "flat" &&
+      this.terms?.proposedBy !== undefined
+    );
+  }
+
+  calculatePayoutAmounts(): { winner: number; loser: number } {
+    if (this.isDoyBet()) {
+      return {
+        winner: this.amount + (this.terms?.doyAmount || 0),
+        loser: this.amount,
+      };
+    } else if (this.isPagoProposal()) {
+      return {
+        winner: this.amount,
+        loser: this.amount + (this.terms?.pagoAmount || 0),
+      };
+    }
+    return { winner: this.potentialWin, loser: this.amount };
   }
 }
 
@@ -143,6 +182,24 @@ Bet.init(
         key: "id",
       },
     },
+    parentBetId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: "bets",
+        key: "id",
+      },
+    },
+    betType: {
+      type: DataTypes.ENUM("flat", "doy"),
+      allowNull: false,
+      defaultValue: "flat",
+    },
+    proposalStatus: {
+      type: DataTypes.ENUM("none", "pending", "accepted", "rejected"),
+      allowNull: false,
+      defaultValue: "none",
+    },
     terms: {
       type: DataTypes.JSONB,
       allowNull: true,
@@ -174,9 +231,25 @@ Bet.init(
       {
         fields: ["fight_id", "status"],
       },
+      {
+        fields: ["parent_bet_id"],
+      },
+      {
+        fields: ["bet_type"],
+      },
+      {
+        fields: ["proposal_status"],
+      },
     ],
     hooks: {
       beforeCreate: (bet: Bet) => {
+        // Validar campos PAGO/DOY
+        if (bet.betType === "doy" && !bet.terms?.doyAmount) {
+          throw new Error("DOY bets require doyAmount in terms");
+        }
+        if (bet.isPagoProposal() && !bet.terms?.pagoAmount) {
+          throw new Error("PAGO proposals require pagoAmount in terms");
+        }
         // Calcular ganancia potencial si no está configurada
         if (!bet.potentialWin && bet.terms?.ratio) {
           bet.potentialWin = bet.calculatePotentialWin();
@@ -187,6 +260,15 @@ Bet.init(
         }
       },
       beforeUpdate: (bet: Bet) => {
+        // Validar campos PAGO/DOY
+        if (bet.changed("betType") || bet.changed("terms")) {
+          if (bet.betType === "doy" && !bet.terms?.doyAmount) {
+            throw new Error("DOY bets require doyAmount in terms");
+          }
+          if (bet.isPagoProposal() && !bet.terms?.pagoAmount) {
+            throw new Error("PAGO proposals require pagoAmount in terms");
+          }
+        }
         // Recalcular ganancia potencial si cambió el ratio
         if (bet.changed("terms") && bet.terms?.ratio) {
           bet.potentialWin = bet.calculatePotentialWin();

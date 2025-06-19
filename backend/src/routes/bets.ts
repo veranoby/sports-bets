@@ -492,4 +492,218 @@ router.get(
   })
 );
 
+// POST /api/bets/:id/propose-pago - Proponer un PAGO para una apuesta
+router.post(
+  "/:id/propose-pago",
+  authenticate,
+  [
+    body("pagoAmount")
+      .isFloat({ min: 0.01, max: 10000 })
+      .withMessage("PAGO amount must be between 0.01 and 10000"),
+  ],
+  asyncHandler(async (req, res) => {
+    const { pagoAmount } = req.body;
+    await transaction(async (t) => {
+      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
+      if (
+        !originalBet ||
+        originalBet.betType !== "flat" ||
+        !originalBet.isPending()
+      ) {
+        throw errors.badRequest("Invalid bet for PAGO proposal");
+      }
+      if (pagoAmount >= originalBet.amount) {
+        throw errors.badRequest("PAGO amount must be less than original bet");
+      }
+
+      const wallet = await Wallet.findOne({
+        where: { userId: req.user!.id },
+        transaction: t,
+      });
+      if (!wallet || !wallet.canBet(pagoAmount)) {
+        throw errors.badRequest("Insufficient available balance");
+      }
+
+      const pagoBet = await Bet.create(
+        {
+          fightId: originalBet.fightId,
+          userId: req.user!.id,
+          side: originalBet.side,
+          amount: pagoAmount,
+          betType: "flat",
+          proposalStatus: "pending",
+          parentBetId: originalBet.id,
+          terms: {
+            pagoAmount,
+            proposedBy: req.user!.id,
+          },
+        },
+        { transaction: t }
+      );
+
+      await wallet.freezeAmount(pagoAmount);
+      await wallet.save({ transaction: t });
+
+      // Emitir evento WebSocket
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${originalBet.userId}`).emit("pago_proposed", {
+          originalBet: originalBet.toPublicJSON(),
+          pagoBet: pagoBet.toPublicJSON(),
+        });
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "PAGO proposal created",
+        data: pagoBet.toPublicJSON(),
+      });
+    });
+  })
+);
+
+// PUT /api/bets/:id/accept-proposal - Aceptar una propuesta de PAGO
+router.put(
+  "/:id/accept-proposal",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    await transaction(async (t) => {
+      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
+      if (
+        !originalBet ||
+        originalBet.userId !== req.user!.id ||
+        originalBet.proposalStatus !== "pending"
+      ) {
+        throw errors.badRequest("Invalid bet for accepting PAGO proposal");
+      }
+
+      const pagoBet = await Bet.findOne({
+        where: { parentBetId: originalBet.id, proposalStatus: "pending" },
+        transaction: t,
+      });
+      if (!pagoBet) {
+        throw errors.notFound("PAGO proposal not found");
+      }
+
+      // Validar saldos
+      const originalWallet = await Wallet.findOne({
+        where: { userId: originalBet.userId },
+        transaction: t,
+      });
+      if (!originalWallet || !originalWallet.canBet(originalBet.amount)) {
+        throw errors.badRequest("Insufficient available balance");
+      }
+
+      // Activar apuestas
+      originalBet.proposalStatus = "accepted";
+      pagoBet.proposalStatus = "accepted";
+      originalBet.status = "active";
+      pagoBet.status = "active";
+      await Promise.all([
+        originalBet.save({ transaction: t }),
+        pagoBet.save({ transaction: t }),
+      ]);
+
+      // Emitir evento WebSocket
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${pagoBet.userId}`).emit("pago_accepted", {
+          originalBet: originalBet.toPublicJSON(),
+          pagoBet: pagoBet.toPublicJSON(),
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "PAGO proposal accepted",
+        data: {
+          originalBet: originalBet.toPublicJSON(),
+          pagoBet: pagoBet.toPublicJSON(),
+        },
+      });
+    });
+  })
+);
+
+// PUT /api/bets/:id/reject-proposal - Rechazar una propuesta de PAGO
+router.put(
+  "/:id/reject-proposal",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    await transaction(async (t) => {
+      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
+      if (
+        !originalBet ||
+        originalBet.userId !== req.user!.id ||
+        originalBet.proposalStatus !== "pending"
+      ) {
+        throw errors.badRequest("Invalid bet for rejecting PAGO proposal");
+      }
+
+      const pagoBet = await Bet.findOne({
+        where: { parentBetId: originalBet.id, proposalStatus: "pending" },
+        transaction: t,
+      });
+      if (!pagoBet) {
+        throw errors.notFound("PAGO proposal not found");
+      }
+
+      // Liberar fondos
+      const pagoWallet = await Wallet.findOne({
+        where: { userId: pagoBet.userId },
+        transaction: t,
+      });
+      if (pagoWallet) {
+        await pagoWallet.unfreezeAmount(pagoBet.amount);
+        await pagoWallet.save({ transaction: t });
+      }
+
+      // Eliminar propuesta
+      await pagoBet.destroy({ transaction: t });
+
+      // Emitir evento WebSocket
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${pagoBet.userId}`).emit("pago_rejected", {
+          originalBet: originalBet.toPublicJSON(),
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "PAGO proposal rejected",
+      });
+    });
+  })
+);
+
+// GET /api/bets/pending-proposals - Obtener propuestas de PAGO pendientes del usuario
+router.get(
+  "/pending-proposals",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const pendingProposals = await Bet.findAll({
+      where: {
+        parentBetId: { [Op.not]: null },
+        proposalStatus: "pending",
+        userId: req.user!.id,
+      },
+      include: [
+        {
+          model: Bet,
+          as: "parentBet",
+          include: [
+            { model: User, as: "user", attributes: ["id", "username"] },
+          ],
+        },
+      ],
+    });
+
+    res.json({
+      success: true,
+      data: pendingProposals.map((proposal) => proposal.toPublicJSON()),
+    });
+  })
+);
+
 export default router;

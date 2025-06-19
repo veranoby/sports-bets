@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationBadge from "../shared/NotificationBadge";
 import { Wallet, Dices } from "lucide-react";
 import NotificationCenter from "../shared/NotificationCenter";
+import ProposalNotifications from "./ProposalNotifications";
 
 interface UserHeaderProps {
   title: string;
@@ -31,6 +32,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showProposals, setShowProposals] = useState(false);
 
   // ✅ REAL DATA - Notificaciones basadas en apuestas activas
   const unreadCount =
@@ -83,7 +85,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
                 {customActions}
               </h1>
               {title === "Dashboard" && (
-                <p className="text-bold text-gray-300">{getGreeting()} !</p>
+                <p className="text-bold text-gray-300">{getGreeting()}</p>
               )}
             </div>
             {/* User Chip - Mejorado */}
@@ -130,18 +132,23 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
 
           {/* Right Side - User Controls */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/bets")}
-              className="flex items-center gap-1 text-white hover:text-theme-primary p-2 relative"
-              aria-label="Apuestas"
-            >
-              <Dices className="w-6 h-6" />
-              <NotificationBadge
-                count={bets?.filter((b) => b.status === "active").length || 0}
-                size="sm"
-                className="absolute -top-1 -right-1"
-              />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowProposals(!showProposals)}
+                className="p-2 relative"
+                aria-label="Propuestas PAGO"
+              >
+                <Dices className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+                )}
+              </button>
+              {showProposals && (
+                <div className="absolute right-0 mt-2 w-72 bg-[#2a325c] rounded-lg shadow-lg z-50">
+                  <ProposalNotifications />
+                </div>
+              )}
+            </div>
 
             {/* Balance Quick View */}
             <button
