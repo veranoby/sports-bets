@@ -1,3 +1,4 @@
+// backend/src/models/Notification.ts - VERSIÓN CORREGIDA
 import {
   Model,
   DataTypes,
@@ -55,6 +56,7 @@ Notification.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "user_id", // ✅ IMPORTANTE: Mapear al nombre de columna en DB
       references: {
         model: User,
         key: "id",
@@ -75,6 +77,7 @@ Notification.init(
       },
     },
     type: {
+      // ✅ USAR EL ENUM EXACTO DE LA DB
       type: DataTypes.ENUM(
         "info",
         "warning",
@@ -86,6 +89,7 @@ Notification.init(
       defaultValue: "info",
     },
     status: {
+      // ✅ USAR EL ENUM EXACTO DE LA DB
       type: DataTypes.ENUM("unread", "read", "archived"),
       allowNull: false,
       defaultValue: "unread",
@@ -97,10 +101,12 @@ Notification.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at", // ✅ IMPORTANTE: Mapear al nombre de columna en DB
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at", // ✅ IMPORTANTE: Mapear al nombre de columna en DB
     },
   },
   {
@@ -108,15 +114,16 @@ Notification.init(
     modelName: "Notification",
     tableName: "notifications",
     timestamps: true,
+    // ✅ IMPORTANTE: Configurar underscored para coincir con DB
+    underscored: true,
     indexes: [
-      { fields: ["userId"] },
+      { fields: ["user_id"] },
       { fields: ["status"] },
       { fields: ["type"] },
-      { fields: ["createdAt"] },
+      { fields: ["created_at"] },
+      { fields: ["user_id", "status"] },
     ],
   }
 );
-
-// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export default Notification;

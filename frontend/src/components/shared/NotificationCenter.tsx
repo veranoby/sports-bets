@@ -1,10 +1,9 @@
+// frontend/src/components/shared/NotificationCenter.tsx - VERSIÓN CORREGIDA
 import React, { useState, useEffect } from "react";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { useUserTheme } from "../../contexts/UserThemeContext";
-import Card from "./Card";
-import StatusChip from "./StatusChip";
-import { Bell } from "lucide-react";
-import { useApi } from "../../hooks/useApi";
+import { Bell, X, Check, Archive } from "lucide-react";
+import { apiClient } from "../../config/api"; // ✅ IMPORTACIÓN CORRECTA
 
 interface Notification {
   id: string;
@@ -12,16 +11,17 @@ interface Notification {
   message: string;
   timestamp: Date;
   status: "unread" | "read" | "archived";
-  type: "info" | "warning" | "error" | "success";
+  type: "info" | "warning" | "error" | "success" | "bet_proposal";
+  metadata?: any;
 }
 
 const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { colors } = useUserTheme();
-  const { get } = useApi().useAuth();
 
-  // Configurar listeners para WebSocket
+  // WebSocket listeners
   const listeners = {
     "notification:new": (notification: Notification) => {
       setNotifications((prev) => [notification, ...prev]);
@@ -35,125 +35,138 @@ const NotificationCenter: React.FC = () => {
     },
   };
 
-  const { socket, isConnected } = useWebSocket(undefined, listeners);
+  const { isConnected } = useWebSocket(undefined, listeners);
 
-  // Cargar notificaciones reales desde la API
+  // ✅ CARGAR NOTIFICACIONES - ENDPOINT CORRECTO
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await get("/api/notifications");
+        setLoading(true);
+        const response = await apiClient.get("/notifications"); // ✅ ENDPOINT VÁLIDO
         setNotifications(
           response.data.map((n: any) => ({
             ...n,
-            timestamp: new Date(n.timestamp),
+            timestamp: new Date(n.timestamp || n.createdAt),
           }))
         );
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        setNotifications([]); // Fallback seguro
+        setNotifications([]);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchNotifications();
-  }, [get]);
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, status: "read" } : n))
-    );
-    if (socket && isConnected) {
-      socket.emit("notification:markAsRead", id);
+    if (isOpen) {
+      fetchNotifications();
+    }
+  }, [isOpen]);
+
+  // ✅ MARCAR COMO LEÍDA
+  const markAsRead = async (id: string) => {
+    try {
+      await apiClient.put(`/notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, status: "read" } : n))
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
     }
   };
 
-  const archiveNotification = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, status: "archived" } : n))
-    );
-    if (socket && isConnected) {
-      socket.emit("notification:archive", id);
+  // ✅ ARCHIVAR NOTIFICACIÓN
+  const archiveNotification = async (id: string) => {
+    try {
+      await apiClient.put(`/notifications/${id}/archive`);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error("Error archiving notification:", error);
     }
   };
+
+  const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
   return (
     <div className="relative">
+      {/* Botón de campana */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2 rounded-full bg-${colors.primary} hover:bg-${colors.accent} text-white relative`}
-        aria-label="Notificaciones"
+        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
       >
-        <Bell className="w-5 h-5" />
-        {notifications.some((n) => n.status === "unread") && (
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+        <Bell size={20} />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
+      {/* Panel de notificaciones */}
       {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/10 z-40 md:hidden"
-            onClick={() => setIsOpen(false)}
-          />
-          <Card
-            className={`fixed md:absolute right-0 mt-2 w-full max-w-xs sm:w-80 max-h-[calc(100vh-120px)] md:max-h-96 overflow-y-auto z-50 backdrop-blur-lg bg-${colors.background.card} border border-${colors.primary} rounded-lg`}
-          >
-            <h3
-              className={`text-lg font-semibold mb-4 px-4 pt-4 text-${colors.text.primary}`}
-            >
-              Notificaciones
-            </h3>
-            {notifications.length === 0 ? (
-              <p
-                className={`text-gray-400 px-4 pb-4 text-${colors.text.light}`}
+        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+          <div className="p-3 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
               >
-                No hay notificaciones.
-              </p>
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="max-h-80 overflow-y-auto">
+            {loading ? (
+              <div className="p-4 text-center text-gray-500">Cargando...</div>
+            ) : notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-500">
+                No hay notificaciones
+              </div>
             ) : (
-              <ul className="space-y-3 px-4 pb-4">
-                {notifications.map((notification) => (
-                  <li
-                    key={notification.id}
-                    className={`p-3 rounded-lg ${
-                      notification.status === "unread"
-                        ? `bg-${colors.status.success}/20`
-                        : `bg-${colors.background.card}`
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4
-                          className={`font-medium text-${colors.text.primary}`}
-                        >
-                          {notification.title}
-                        </h4>
-                        <p className={`text-sm text-${colors.text.secondary}`}>
-                          {notification.message}
-                        </p>
-                        <p className={`text-xs text-${colors.text.light} mt-1`}>
-                          {notification.timestamp.toLocaleTimeString()}
-                        </p>
-                      </div>
-                      <StatusChip status={notification.type} />
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 ${
+                    notification.status === "unread" ? "bg-blue-50" : ""
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm text-gray-900">
+                        {notification.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {notification.timestamp.toLocaleString()}
+                      </p>
                     </div>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => markAsRead(notification.id)}
-                        className={`text-xs text-${colors.status.info} hover:underline`}
-                      >
-                        Marcar como leído
-                      </button>
+                    <div className="flex gap-1 ml-2">
+                      {notification.status === "unread" && (
+                        <button
+                          onClick={() => markAsRead(notification.id)}
+                          className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                          title="Marcar como leída"
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => archiveNotification(notification.id)}
-                        className={`text-xs text-${colors.text.light} hover:underline`}
+                        className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                        title="Archivar"
                       >
-                        Archivar
+                        <Archive size={14} />
                       </button>
                     </div>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                </div>
+              ))
             )}
-          </Card>
-        </>
+          </div>
+        </div>
       )}
     </div>
   );

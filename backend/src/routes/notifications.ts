@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth";
 import { asyncHandler } from "../middleware/errorHandler";
-import Notification from "../models/Notification"; // Importación corregida
+import Notification from "../models/Notification"; // ✅ Debe ser exactamente así
+
 import { Op } from "sequelize"; // Importación necesaria para operadores
 
 const router = Router();
