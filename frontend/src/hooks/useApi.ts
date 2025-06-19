@@ -364,25 +364,27 @@ export function useBets() {
   );
 
   const getPendingProposals = useCallback(
-    () => execute(() => betsAPI.get("/pending-proposals")),
+    () => execute(() => apiClient.get("/api/bets/pending-proposals")),
     [execute]
   );
 
   const acceptProposal = useCallback(
     (proposalId: string) =>
-      execute(() => betsAPI.put(`/${proposalId}/accept-proposal`)),
+      execute(() => apiClient.put(`/api/bets/${proposalId}/accept-proposal`)),
     [execute]
   );
 
   const rejectProposal = useCallback(
     (proposalId: string) =>
-      execute(() => betsAPI.put(`/${proposalId}/reject-proposal`)),
+      execute(() => apiClient.put(`/api/bets/${proposalId}/reject-proposal`)),
     [execute]
   );
 
   const proposePago = useCallback(
     (betId: string, pagoAmount: number) =>
-      execute(() => betsAPI.post(`/${betId}/propose-pago`, { pagoAmount })),
+      execute(() =>
+        apiClient.post(`/api/bets/${betId}/propose-pago`, { pagoAmount })
+      ),
     [execute]
   );
 
@@ -393,7 +395,15 @@ export function useBets() {
       minAmount: number;
       maxAmount: number;
     }) =>
-      execute(() => betsAPI.get("/available/" + params.fightId, { params })),
+      execute(() =>
+        apiClient.get(`/api/bets/available/${params.fightId}`, {
+          params: {
+            side: params.side,
+            minAmount: params.minAmount,
+            maxAmount: params.maxAmount,
+          },
+        })
+      ),
     [execute]
   );
 

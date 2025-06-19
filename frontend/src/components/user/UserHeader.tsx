@@ -134,13 +134,15 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <button
-                onClick={() => setShowProposals(!showProposals)}
-                className="p-2 relative"
-                aria-label="Propuestas PAGO"
+                onClick={() => navigate("/user/bets")}
+                className="relative p-2 text-white hover:text-gray-300"
+                title="Mis Apuestas"
               >
-                <Dices className="w-6 h-6" />
+                <Dices className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
               {showProposals && (

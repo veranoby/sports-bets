@@ -67,6 +67,8 @@ export interface Fight {
 export type BetSide = "red" | "blue";
 export type BetStatus = "pending" | "active" | "settled" | "cancelled";
 export type BetResult = "win" | "loss" | "draw" | "void";
+export type BetType = "flat" | "doy";
+export type ProposalStatus = "none" | "pending" | "accepted" | "rejected";
 
 // 2. INTERFACE BET COMPLETA (reemplazar la existente)
 export interface Bet {
@@ -79,23 +81,35 @@ export interface Bet {
   result?: BetResult;
   odds: number;
   payout?: number;
+  potentialWin: number;
   createdAt: Date;
   updatedAt: Date;
+
+  // Campos para sistema PAGO/DOY
+  betType?: BetType;
+  proposalStatus?: ProposalStatus;
+  parentBetId?: string;
+
+  // Relaciones y datos adicionales
+  matchedWith?: string;
+  terms?: {
+    ratio: number;
+    isOffer: boolean;
+    pagoAmount?: number;
+    doyAmount?: number;
+    proposedBy?: string;
+  };
+
+  // Datos poblados
+  fight?: Fight;
+  user?: User;
+  matchedBet?: Bet;
   eventName?: string;
   fighterNames?: {
     red: string;
     blue: string;
   };
-  potentialPayout?: number;
   isLive?: boolean;
-  matchedWith?: string;
-  terms?: {
-    ratio: number;
-    isOffer: boolean;
-  };
-  fight?: Fight;
-  user?: User;
-  matchedBet?: Bet;
 }
 
 export interface Venue {

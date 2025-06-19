@@ -18,6 +18,7 @@ import betRoutes from "./routes/bets";
 import walletRoutes from "./routes/wallet";
 import venueRoutes from "./routes/venues";
 import subscriptionRoutes from "./routes/subscriptions";
+import notificationRoutes from "./routes/notifications";
 
 // Cargar variables de entorno
 config();
@@ -110,6 +111,7 @@ class Server {
     this.app.use("/api/wallet", walletRoutes);
     this.app.use("/api/venues", venueRoutes);
     this.app.use("/api/subscriptions", subscriptionRoutes);
+    this.app.use("/api/notifications", notificationRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));

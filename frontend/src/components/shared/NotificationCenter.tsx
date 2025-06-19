@@ -41,20 +41,18 @@ const NotificationCenter: React.FC = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await get("/notifications");
-        if (response.data) {
-          setNotifications(
-            response.data.map((n: any) => ({
-              ...n,
-              timestamp: new Date(n.timestamp),
-            }))
-          );
-        }
+        const response = await get("/api/notifications");
+        setNotifications(
+          response.data.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp),
+          }))
+        );
       } catch (error) {
         console.error("Error fetching notifications:", error);
+        setNotifications([]); // Fallback seguro
       }
     };
-
     fetchNotifications();
   }, [get]);
 
