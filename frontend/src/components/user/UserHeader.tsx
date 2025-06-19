@@ -111,7 +111,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
           <div className="p-2 border-b border-[#596c95]">
             <button
               onClick={() => {
-                navigate("/user/bets");
+                navigate("/bets");
                 setShowBetsMenu(false);
               }}
               className="w-full text-left text-sm text-gray-300 hover:text-white p-2 rounded hover:bg-[#3a426c]"

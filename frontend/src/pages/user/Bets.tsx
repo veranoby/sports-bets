@@ -12,6 +12,8 @@ import {
   Plus,
   Filter,
   ArrowLeft,
+  Bell,
+  dices,
 } from "lucide-react";
 
 // ✅ SOLO IMPORTACIONES DE COMPONENTES EXISTENTES
@@ -22,7 +24,7 @@ import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import DataCard from "../../components/shared/DataCard";
+import UserHeader from "../../components/user/UserHeader";
 
 // ✅ TIPOS LOCALES PARA EVITAR DEPENDENCIAS EXTERNAS
 type TabType = "my_bets" | "available" | "history" | "stats";
@@ -130,57 +132,82 @@ const UserBets: React.FC = () => {
   return (
     <div className="bg-[#1a1f37] min-h-screen pb-20">
       {/* Header */}
-      <header className="bg-[#2a325c] p-4 sticky top-0 z-10 border-b border-[#596c95]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="text-white hover:text-gray-300"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="text-xl font-bold text-white">Mis Apuestas</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? "bg-green-500" : "bg-red-500"
-              }`}
-            />
-            <span className="text-sm text-gray-300">
-              {isConnected ? "Conectado" : "Desconectado"}
-            </span>
-          </div>
-        </div>
-      </header>
+      <UserHeader title="Mis Apuestas" />
 
       {/* Estadísticas rápidas */}
       <div className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <DataCard
-            title="Activas"
-            value={betStats.activeBets}
-            icon={<Activity />}
-            color="blue"
-          />
-          <DataCard
-            title="Ganadas"
-            value={betStats.wonBets}
-            icon={<Award />}
-            color="green"
-          />
-          <DataCard
-            title="% Victoria"
-            value={`${betStats.winRate.toFixed(1)}%`}
-            icon={<TrendingUp />}
-            color="purple"
-          />
-          <DataCard
-            title="Ganancia"
-            value={`$${betStats.netProfit.toFixed(2)}`}
-            icon={<DollarSign />}
-            color={betStats.netProfit >= 0 ? "green" : "red"}
-          />
+          {/* Tarjeta Activas */}
+          <div className="bg-[#2a325c] p-4 rounded-lg border border-[#596c95]">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Activity className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Activas</p>
+                <p className="text-xl font-bold text-white">
+                  {betStats.activeBets}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tarjeta Ganadas */}
+          <div className="bg-[#2a325c] p-4 rounded-lg border border-[#596c95]">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Award className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Ganadas</p>
+                <p className="text-xl font-bold text-white">
+                  {betStats.wonBets}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tarjeta % Victoria */}
+          <div className="bg-[#2a325c] p-4 rounded-lg border border-[#596c95]">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">% Victoria</p>
+                <p className="text-xl font-bold text-white">
+                  {betStats.winRate.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tarjeta Ganancia */}
+          <div className="bg-[#2a325c] p-4 rounded-lg border border-[#596c95]">
+            <div className="flex items-center gap-3">
+              <div
+                className={`p-2 rounded-lg ${
+                  betStats.netProfit >= 0 ? "bg-green-500/20" : "bg-red-500/20"
+                }`}
+              >
+                <DollarSign
+                  className={`w-5 h-5 ${
+                    betStats.netProfit >= 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Ganancia</p>
+                <p
+                  className={`text-xl font-bold ${
+                    betStats.netProfit >= 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  ${betStats.netProfit.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
