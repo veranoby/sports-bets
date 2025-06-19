@@ -340,4 +340,6 @@ const UserBets: React.FC = () => {
   );
 };
 
+//"TERMINANDO REFACTORING  del sistema por nueva logica de apuestas - ACTUALIZACION 1"
+
 export default UserBets;

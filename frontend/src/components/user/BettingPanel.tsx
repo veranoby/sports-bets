@@ -42,7 +42,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         onClick={() => setCurrentMode("advanced")}
         className="text-[#596c95] text-sm w-full text-center"
       >
-        Mostrar opciones avanzadas
+        Ver opciones avanzadas
       </button>
     </div>
   );
@@ -104,5 +104,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     </div>
   );
 };
+
+//"TERMINANDO REFACTORING  del sistema por nueva logica de apuestas - ACTUALIZACION 1"
 
 export default BettingPanel;
