@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { LogOut, Wifi, WifiOff } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useWallet, useBets } from "../../hooks/useApi";
 import {
   getUserThemeClasses,
@@ -26,7 +26,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const { user, logout } = useAuth();
   const { wallet } = useWallet();
   const { bets } = useBets();
-  const { isConnected } = useWebSocket();
+  const { isConnected } = useWebSocketContext();
   const navigate = useNavigate();
   const theme = getUserThemeClasses();
   const { updateColors } = useUserTheme();

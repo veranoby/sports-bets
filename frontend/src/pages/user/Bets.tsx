@@ -1,7 +1,7 @@
 // frontend/src/pages/user/Bets.tsx - VERSIÓN CORREGIDA
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -17,7 +17,7 @@ import {
 
 // ✅ SOLO IMPORTACIONES DE COMPONENTES EXISTENTES
 import { useBets, useWallet } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import BetCard from "../../components/user/BetCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
@@ -54,13 +54,34 @@ const UserBets: React.FC = () => {
   });
 
   // WebSocket para actualizaciones
-  const wsListeners = {
-    bet_matched: () => fetchMyBets(),
-    bet_result: () => fetchMyBets(),
-    pago_proposed: () => fetchMyBets(),
-  };
+  const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  const { isConnected } = useWebSocket(undefined, wsListeners);
+  const handleBetMatched = useCallback(() => {
+    fetchMyBets();
+    console.log("Listener bet_matched ejecutado");
+  }, []);
+  const handleBetResult = useCallback(() => {
+    fetchMyBets();
+    console.log("Listener bet_result ejecutado");
+  }, []);
+  const handlePagoProposed = useCallback(() => {
+    fetchMyBets();
+    console.log("Listener pago_proposed ejecutado");
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    addListener("bet_matched", handleBetMatched);
+    addListener("bet_result", handleBetResult);
+    addListener("pago_proposed", handlePagoProposed);
+    console.log("Listener agregado Bets");
+    return () => {
+      removeListener("bet_matched", handleBetMatched);
+      removeListener("bet_result", handleBetResult);
+      removeListener("pago_proposed", handlePagoProposed);
+      console.log("Listener removido Bets");
+    };
+  }, [isConnected]);
 
   // Cargar datos al montar
   useEffect(() => {

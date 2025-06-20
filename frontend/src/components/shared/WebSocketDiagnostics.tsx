@@ -7,7 +7,7 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 
 interface DiagnosticsProps {
   showDetails?: boolean;
@@ -18,7 +18,7 @@ const WebSocketDiagnostics: React.FC<DiagnosticsProps> = ({
   showDetails = false,
   onConnectionRestore,
 }) => {
-  const { isConnected, connectionError, reconnect } = useWebSocket();
+  const { isConnected, connectionError, isConnecting } = useWebSocketContext();
   const [backendHealth, setBackendHealth] = useState<
     "checking" | "healthy" | "unhealthy"
   >("checking");
@@ -82,7 +82,6 @@ const WebSocketDiagnostics: React.FC<DiagnosticsProps> = ({
 
   const handleReconnect = () => {
     checkBackendHealth();
-    reconnect();
   };
 
   if (!showDetails && isConnected && backendHealth === "healthy") {

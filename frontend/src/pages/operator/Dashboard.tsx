@@ -1,11 +1,11 @@
 // Reemplazar TODO el contenido de frontend/src/pages/operator/Dashboard.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { GitPullRequest, Award, Activity, Bell } from "lucide-react";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import { useEvents, useFights } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -20,46 +20,47 @@ const OperatorDashboard: React.FC = () => {
   const { events, loading: eventsLoading } = useEvents();
   const { fights, loading: fightsLoading, fetchFights, error } = useFights();
 
-  // WebSocket listeners para operador
-  const wsListeners = {
-    new_bet: (data: any) => {
-      console.log("Nueva apuesta creada:", data);
-      // Refrescar estadísticas en tiempo real
-    },
-    bet_matched: (data: any) => {
-      console.log("Apuesta emparejada:", data);
-      // Actualizar contadores de apuestas
-    },
-    fight_updated: (data: any) => {
-      console.log("Pelea actualizada:", data);
-      // Refrescar lista de peleas
-    },
-    betting_opened: (data: any) => {
-      console.log("Apuestas abiertas:", data);
-      // Refrescar peleas
-    },
-    betting_closed: (data: any) => {
-      console.log("Apuestas cerradas:", data);
-      // Refrescar peleas
-    },
-    event_activated: (data: any) => {
-      console.log("Evento activado:", data);
-      // Refrescar eventos
-    },
-  };
+  const { addListener, removeListener, isConnected, emit } =
+    useWebSocketContext();
 
-  const { isConnected, connectionError, emit } = useWebSocket(
-    undefined,
-    wsListeners
-  );
+  const handleNewBet = useCallback((data) => {
+    console.log("Nueva apuesta creada:", data);
+  }, []);
+  const handleBetMatched = useCallback((data) => {
+    console.log("Apuesta emparejada:", data);
+  }, []);
+  const handleFightUpdated = useCallback((data) => {
+    console.log("Pelea actualizada:", data);
+  }, []);
+  const handleBettingOpened = useCallback((data) => {
+    console.log("Apuestas abiertas:", data);
+  }, []);
+  const handleBettingClosed = useCallback((data) => {
+    console.log("Apuestas cerradas:", data);
+  }, []);
+  const handleEventActivated = useCallback((data) => {
+    console.log("Evento activado:", data);
+  }, []);
 
-  const notifyChange = (type: string, data: any) => {
-    emit("operator_action", {
-      type,
-      data,
-      timestamp: new Date().toISOString(),
-    });
-  };
+  useEffect(() => {
+    if (!isConnected) return;
+    addListener("new_bet", handleNewBet);
+    addListener("bet_matched", handleBetMatched);
+    addListener("fight_updated", handleFightUpdated);
+    addListener("betting_opened", handleBettingOpened);
+    addListener("betting_closed", handleBettingClosed);
+    addListener("event_activated", handleEventActivated);
+    console.log("Listener agregado OperatorDashboard");
+    return () => {
+      removeListener("new_bet", handleNewBet);
+      removeListener("bet_matched", handleBetMatched);
+      removeListener("fight_updated", handleFightUpdated);
+      removeListener("betting_opened", handleBettingOpened);
+      removeListener("betting_closed", handleBettingClosed);
+      removeListener("event_activated", handleEventActivated);
+      console.log("Listener removido OperatorDashboard");
+    };
+  }, [isConnected]);
 
   const [selectedFightId, setSelectedFightId] = useState<string | null>(null);
   const selectedFight = fights.find((f) => f.id === selectedFightId) || null;

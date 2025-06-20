@@ -10,7 +10,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useEvents, useFights } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 
 const SimplifiedPanel: React.FC = () => {
   const { events, loading: eventsLoading } = useEvents();
@@ -20,7 +20,7 @@ const SimplifiedPanel: React.FC = () => {
     updateFightStatus,
     recordFightResult,
   } = useFights();
-  const { isConnected } = useWebSocket();
+  const { isConnected } = useWebSocketContext();
 
   const [currentFight, setCurrentFight] = useState<any>(null);
   const [currentEvent, setCurrentEvent] = useState<any>(null);
