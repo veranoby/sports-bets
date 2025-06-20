@@ -1,5 +1,12 @@
-// frontend/src/components/shared/NotificationCenter.tsx - VERSIÓN CORREGIDA
-import React, { useState, useEffect, useCallback } from "react";
+// frontend/src/components/shared/NotificationCenter.tsx - OPTIMIZACIÓN ANTI-THRASHING
+
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useUserTheme } from "../../contexts/UserThemeContext";
 import { Bell, X, Check, Archive } from "lucide-react";
 import { apiClient } from "../../config/api";
@@ -22,13 +29,23 @@ const NotificationCenter: React.FC = React.memo(() => {
   const { colors } = useUserTheme();
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // ✅ Memoizar callbacks
+  // 🛡️ REF PARA PREVENIR MULTIPLE REGISTRATIONS
+  const listenersRegisteredRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  // ✅ CALLBACKS COMPLETAMENTE ESTABLES
   const handleNewNotification = useCallback((notification: Notification) => {
-    setNotifications((prev) => [notification, ...prev]);
+    if (!isMountedRef.current) return;
+
+    console.log("🔔 Nueva notificación recibida:", notification.id);
+    setNotifications((prev) => [notification, ...prev.slice(0, 49)]); // Limitar a 50
   }, []);
 
   const handleUpdateNotification = useCallback(
     (updatedNotification: Notification) => {
+      if (!isMountedRef.current) return;
+
+      console.log("🔄 Notificación actualizada:", updatedNotification.id);
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === updatedNotification.id ? updatedNotification : n
@@ -38,152 +55,201 @@ const NotificationCenter: React.FC = React.memo(() => {
     []
   );
 
-  // ✅ Configurar listeners en mount y limpiar en unmount
+  // 🔒 EFFECT ÚNICO PARA LISTENERS - SOLO SE EJECUTA UNA VEZ
   useEffect(() => {
-    if (!isConnected) return;
+    // Prevenir multiple registrations
+    if (!isConnected || listenersRegisteredRef.current) {
+      return;
+    }
+
+    console.log("🎧 NotificationCenter: Registrando listeners (único)");
 
     addListener("notification:new", handleNewNotification);
     addListener("notification:update", handleUpdateNotification);
 
+    listenersRegisteredRef.current = true;
+
     return () => {
+      console.log("🧹 NotificationCenter: Limpiando listeners");
       removeListener("notification:new", handleNewNotification);
       removeListener("notification:update", handleUpdateNotification);
+      listenersRegisteredRef.current = false;
     };
-  }, [isConnected]); // Solo depende de isConnected
+  }, [isConnected]); // SOLO isConnected como dependency
 
-  // ✅ Cargar notificaciones solo cuando se abre el panel
+  // 🧹 CLEANUP EN UNMOUNT
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.get("/notifications");
-        setNotifications(
-          response.data.map((n: any) => ({
-            ...n,
-            timestamp: new Date(n.timestamp || n.createdAt),
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      console.log("🗑️ NotificationCenter: Desmontado");
+    };
+  }, []);
+
+  // ✅ FETCH NOTIFICATIONS CON DEBOUNCING
+  const fetchNotifications = useCallback(async () => {
+    if (!isMountedRef.current) return;
+
+    try {
+      setLoading(true);
+      const response = await apiClient.get("/notifications");
+
+      if (!isMountedRef.current) return; // Check again after async operation
+
+      setNotifications(
+        response.data.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp || n.createdAt),
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      if (isMountedRef.current) {
         setNotifications([]);
-      } finally {
+      }
+    } finally {
+      if (isMountedRef.current) {
         setLoading(false);
       }
-    };
+    }
+  }, []);
 
+  // ✅ EFFECT PARA FETCH - SOLO CUANDO SE ABRE
+  useEffect(() => {
     if (isOpen) {
       fetchNotifications();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchNotifications]);
 
-  // ✅ MARCAR COMO LEÍDA
-  const markAsRead = async (id: string) => {
+  // ✅ MEMOIZAR FUNCIONES DE ACCIÓN
+  const markAsRead = useCallback(async (id: string) => {
+    if (!isMountedRef.current) return;
+
     try {
       await apiClient.put(`/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, status: "read" } : n))
+        prev.map((n) => (n.id === id ? { ...n, status: "read" as const } : n))
       );
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
-  };
+  }, []);
 
-  // ✅ ARCHIVAR NOTIFICACIÓN
-  const archiveNotification = async (id: string) => {
+  const markAsArchived = useCallback(async (id: string) => {
+    if (!isMountedRef.current) return;
+
     try {
       await apiClient.put(`/notifications/${id}/archive`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     } catch (error) {
       console.error("Error archiving notification:", error);
     }
-  };
+  }, []);
 
-  const unreadCount = notifications.filter((n) => n.status === "unread").length;
+  // ✅ MEMOIZAR UNREAD COUNT
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => n.status === "unread").length;
+  }, [notifications]);
+
+  // ✅ MEMOIZAR NOTIFICATION ITEMS
+  const notificationItems = useMemo(() => {
+    return notifications.slice(0, 10).map((notification) => (
+      <div
+        key={notification.id}
+        className={`p-3 border-b border-gray-200 hover:bg-gray-50 ${
+          notification.status === "unread" ? "bg-blue-50" : ""
+        }`}
+      >
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h4 className="text-sm font-medium text-gray-900">
+              {notification.title}
+            </h4>
+            <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {notification.timestamp.toLocaleString()}
+            </p>
+          </div>
+          <div className="flex space-x-1 ml-2">
+            {notification.status === "unread" && (
+              <button
+                onClick={() => markAsRead(notification.id)}
+                className="text-gray-400 hover:text-green-600"
+                title="Marcar como leída"
+              >
+                <Check size={16} />
+              </button>
+            )}
+            <button
+              onClick={() => markAsArchived(notification.id)}
+              className="text-gray-400 hover:text-red-600"
+              title="Archivar"
+            >
+              <Archive size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    ));
+  }, [notifications, markAsRead, markAsArchived]);
 
   return (
     <div className="relative">
-      {/* Botón de campana */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
       >
         <Bell size={20} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Panel de notificaciones */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-          <div className="p-3 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">Notificaciones</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Notificaciones
+            </h3>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-500">Cargando...</div>
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="mt-2 text-gray-600">Cargando...</p>
+              </div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-8 text-center text-gray-500">
                 No hay notificaciones
               </div>
             ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 ${
-                    notification.status === "unread" ? "bg-blue-50" : ""
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm text-gray-900">
-                        {notification.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {notification.timestamp.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex gap-1 ml-2">
-                      {notification.status === "unread" && (
-                        <button
-                          onClick={() => markAsRead(notification.id)}
-                          className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                          title="Marcar como leída"
-                        >
-                          <Check size={14} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => archiveNotification(notification.id)}
-                        className="p-1 text-gray-400 hover:bg-gray-100 rounded"
-                        title="Archivar"
-                      >
-                        <Archive size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              notificationItems
             )}
           </div>
+
+          {notifications.length > 10 && (
+            <div className="p-3 border-t border-gray-200 text-center">
+              <button className="text-sm text-blue-600 hover:text-blue-800">
+                Ver todas las notificaciones
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 });
+
+NotificationCenter.displayName = "NotificationCenter";
 
 export default NotificationCenter;

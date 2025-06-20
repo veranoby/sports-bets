@@ -31,6 +31,7 @@ import StreamingPanel from "../../components/user/StreamingPanel";
 
 import UserHeader from "../../components/user/UserHeader";
 import NewsBanner from "../../components/shared/NewsBanner";
+import WebSocketDiagnostics from "../../components/shared/WebSocketDiagnostics";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -337,6 +338,11 @@ const Dashboard: React.FC = () => {
 
       {/* Navigation móvil */}
       <Navigation currentPage="home" />
+
+      {/* Monitor de WebSocket - Solo en desarrollo */}
+      {process.env.NODE_ENV === "development" && (
+        <WebSocketDiagnostics position="fixed" showDetails={false} />
+      )}
     </div>
   );
 };
