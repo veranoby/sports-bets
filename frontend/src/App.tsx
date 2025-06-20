@@ -1,10 +1,11 @@
 // frontend/src/App.tsx
-// 📱 APP.TSX COMPLETO - Con UserThemeProvider integrado
+// 🔧 CORRECCIÓN CRÍTICA: Order de Providers Corregido
 
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { UserThemeProvider } from "./contexts/UserThemeContext"; // ✅ NUEVO IMPORT
+import { UserThemeProvider } from "./contexts/UserThemeContext";
+import { WebSocketProvider } from "./contexts/WebSocketContext"; // ✅ Import correcto
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import OperatorDashboard from "./pages/operator/Dashboard";
@@ -19,7 +20,6 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import Navigation from "./components/user/Navigation";
 import "./App.css";
-import { WebSocketProvider } from "./contexts/WebSocketContext"; // ✅ Nuevo import
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -87,24 +87,19 @@ const AppContent: React.FC = () => {
           element={isAuthenticated ? <RoleBasedRedirect /> : <LoginPage />}
         />
 
-        {/* Ruta raíz - redirige según autenticación */}
-        <Route path="/" element={<RoleBasedRedirect />} />
-
-        {/* ======================== */}
-        {/* RUTAS ADMIN - SIN TEMA   */}
-        {/* ======================== */}
+        {/* Ruta raíz */}
         <Route
-          path="/admin"
+          path="/"
           element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
+            isAuthenticated ? (
+              <RoleBasedRedirect />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
 
-        {/* ======================== */}
-        {/* RUTAS OPERATOR - SIN TEMA */}
-        {/* ======================== */}
+        {/* Rutas de operador */}
         <Route
           path="/operator"
           element={
@@ -114,9 +109,17 @@ const AppContent: React.FC = () => {
           }
         />
 
-        {/* ======================== */}
-        {/* RUTAS VENUE - SIN TEMA   */}
-        {/* ======================== */}
+        {/* Rutas de administrador */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de venue */}
         <Route
           path="/venue"
           element={
@@ -126,9 +129,7 @@ const AppContent: React.FC = () => {
           }
         />
 
-        {/* ========================== */}
-        {/* RUTAS USER - CON TEMA      */}
-        {/* ========================== */}
+        {/* Rutas de usuario con tema unificado */}
         <Route
           path="/dashboard"
           element={
@@ -152,7 +153,7 @@ const AppContent: React.FC = () => {
         />
 
         <Route
-          path="/live-event/:id"
+          path="/live-event/:eventId"
           element={
             <UserRouteWrapper>
               <ProtectedRoute requiredRole="user">
@@ -221,19 +222,19 @@ const AppContent: React.FC = () => {
   );
 };
 
-// Componente principal con provider
+// 🔧 CORRECCIÓN PRINCIPAL: Orden correcto de providers
 function App() {
   return (
     <ErrorBoundary
       fallback={<div>An error occurred. Please refresh the page.</div>}
     >
-      <WebSocketProvider>
-        {" "}
-        {/* ✅ Nuevo wrapper */}
-        <AuthProvider>
+      {/* ✅ CORRECTO: AuthProvider PRIMERO */}
+      <AuthProvider>
+        {/* ✅ CORRECTO: WebSocketProvider DESPUÉS de AuthProvider */}
+        <WebSocketProvider>
           <AppContent />
-        </AuthProvider>
-      </WebSocketProvider>
+        </WebSocketProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
