@@ -18,7 +18,8 @@ interface WebSocketState {
 // Hook optimizado - NO reconecta innecesariamente
 export const useWebSocket = (
   roomId?: string,
-  listeners?: Record<string, (data: any) => void>
+  listeners?: Record<string, (data: any) => void>,
+  options?: { shouldConnect?: boolean }
 ) => {
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,
@@ -179,8 +180,20 @@ export const useWebSocket = (
     listenersRef.current = {};
   }, []);
 
-  // Effect principal - SOLO conecta una vez
+  // Effect principal - SOLO conecta si shouldConnect es true o no está definido (compatibilidad)
   useEffect(() => {
+    if (options?.shouldConnect === false) {
+      // Si no debe conectar, limpiar cualquier room/listener
+      mountedRef.current = false;
+      cleanup();
+      updateState({
+        isConnected: false,
+        isConnecting: false,
+        connectionError: null,
+      });
+      return;
+    }
+
     mountedRef.current = true;
     connect();
 
@@ -188,7 +201,8 @@ export const useWebSocket = (
       mountedRef.current = false;
       cleanup();
     };
-  }, []); // SIN DEPENDENCIAS - evita reconexiones
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options?.shouldConnect]); // Reconectar cuando cambie shouldConnect
 
   // Effect separado para actualizar listeners - SIN reconectar
   useEffect(() => {

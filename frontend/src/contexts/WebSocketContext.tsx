@@ -1,6 +1,7 @@
-// frontend/src/contexts/WebSocketContext.tsx
+// frontend/src/contexts/WebSocketContext.tsx - CORREGIDO
 import React, { createContext, useContext, ReactNode } from "react";
 import { useWebSocket } from "../hooks/useWebSocket";
+import { useAuth } from "./AuthContext"; // AÑADIR
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -11,14 +12,15 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-interface WebSocketProviderProps {
-  children: ReactNode;
-}
-
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const websocket = useWebSocket();
+  const { isAuthenticated } = useAuth(); // VERIFICAR AUTH
+
+  // SOLO conectar si está autenticado
+  const websocket = useWebSocket(undefined, undefined, {
+    shouldConnect: isAuthenticated, // NUEVA PROP
+  });
 
   return (
     <WebSocketContext.Provider value={websocket}>
