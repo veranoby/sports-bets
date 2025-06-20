@@ -1,5 +1,4 @@
-// frontend/src/contexts/WebSocketContext.tsx
-// 🚀 WEBSOCKET CONTEXT V3 - OPTIMIZACIÓN COMPLETA
+// 🚀 WEBSOCKET CONTEXT V4 - SOLUCIÓN CICLO INFINITO
 
 import React, {
   createContext,
@@ -7,6 +6,8 @@ import React, {
   ReactNode,
   useEffect,
   useState,
+  useCallback,
+  useRef,
 } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -33,154 +34,232 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Referencia al socket global
-  const [socket, setSocket] = useState<any>(null);
+  // Referencias estables
+  const socketRef = useRef<any>(null);
+  const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Función para crear/obtener conexión WebSocket
-  const getSocket = async () => {
+  // 🛡️ FUNCIONES ESTABLES MEMOIZADAS
+  const emit = useCallback((event: string, data?: any): boolean => {
+    if (!socketRef.current?.connected) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("⚠️ Intento de emit sin conexión WebSocket");
+      }
+      return false;
+    }
+
+    socketRef.current.emit(event, data);
+    return true;
+  }, []);
+
+  const joinRoom = useCallback((roomId: string) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("join_room", roomId);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🚪 Uniéndose a sala: ${roomId}`);
+      }
+    }
+  }, []);
+
+  const leaveRoom = useCallback((roomId: string) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("leave_room", roomId);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🚪 Saliendo de sala: ${roomId}`);
+      }
+    }
+  }, []);
+
+  // 🔧 REGISTRY DE LISTENERS PARA EVITAR DUPLICADOS
+  const addListener = useCallback(
+    (event: string, handler: (data: any) => void) => {
+      if (!socketRef.current) return;
+
+      // Verificar si ya está registrado
+      const eventListeners =
+        listenersRegistryRef.current.get(event) || new Set();
+      if (eventListeners.has(handler)) {
+        return; // Ya está registrado, no agregar duplicado
+      }
+
+      // Agregar al registry
+      eventListeners.add(handler);
+      listenersRegistryRef.current.set(event, eventListeners);
+
+      // Agregar al socket
+      socketRef.current.on(event, handler);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `🎧 Listener agregado para: ${event} (Total: ${eventListeners.size})`
+        );
+      }
+    },
+    []
+  );
+
+  const removeListener = useCallback(
+    (event: string, handler: (data: any) => void) => {
+      if (!socketRef.current) return;
+
+      // Remover del registry
+      const eventListeners = listenersRegistryRef.current.get(event);
+      if (eventListeners) {
+        eventListeners.delete(handler);
+        if (eventListeners.size === 0) {
+          listenersRegistryRef.current.delete(event);
+        }
+      }
+
+      // Remover del socket
+      socketRef.current.off(event, handler);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `🎧 Listener removido para: ${event} (Restantes: ${
+            eventListeners?.size || 0
+          })`
+        );
+      }
+    },
+    []
+  );
+
+  // 🔌 FUNCIÓN DE CONEXIÓN CON CLEANUP COMPLETO
+  const createConnection = useCallback(async () => {
     if (!isAuthenticated || !token) {
       return null;
     }
 
-    // Si ya tenemos socket conectado, devolverlo
-    if (socket?.connected) {
-      return socket;
+    // Limpiar conexión anterior si existe
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
     }
 
-    // Importación dinámica para evitar problemas de SSR
-    const { io } = await import("socket.io-client");
+    // Limpiar registry de listeners
+    listenersRegistryRef.current.clear();
 
-    const WEBSOCKET_URL =
-      import.meta.env.VITE_WS_URL || "http://localhost:3001";
+    try {
+      const { io } = await import("socket.io-client");
+      const WEBSOCKET_URL =
+        import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
-    const newSocket = io(WEBSOCKET_URL, {
-      transports: ["websocket", "polling"],
-      timeout: 10000,
-      forceNew: false,
-      auth: {
-        token: token, // Enviar token para autenticación
-      },
-      query: {
-        userId: token, // También en query como backup
-      },
-    });
+      const newSocket = io(WEBSOCKET_URL, {
+        transports: ["websocket", "polling"],
+        timeout: 10000,
+        forceNew: true, // 🔥 FORZAR NUEVA CONEXIÓN
+        auth: { token },
+        query: { userId: token },
+      });
 
-    // Configurar listeners básicos
-    newSocket.on("connect", () => {
-      console.log("✅ WebSocket conectado:", newSocket.id);
-      setIsConnected(true);
+      // Eventos de conexión
+      newSocket.on("connect", () => {
+        if (process.env.NODE_ENV === "development") {
+          console.log("✅ WebSocket conectado:", newSocket.id);
+        }
+        setIsConnected(true);
+        setIsConnecting(false);
+        setConnectionError(null);
+      });
+
+      newSocket.on("disconnect", (reason) => {
+        if (process.env.NODE_ENV === "development") {
+          console.log("🔌 WebSocket desconectado:", reason);
+        }
+        setIsConnected(false);
+        setIsConnecting(false);
+
+        // Error solo si no fue desconexión intencional
+        if (reason !== "io client disconnect") {
+          setConnectionError(`Desconectado: ${reason}`);
+          // Auto-reconectar después de 3 segundos
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (isAuthenticated && token) {
+              createConnection();
+            }
+          }, 3000);
+        }
+      });
+
+      newSocket.on("connect_error", (error) => {
+        console.error("❌ Error de conexión WebSocket:", error);
+        setIsConnected(false);
+        setIsConnecting(false);
+        setConnectionError(error.message || "Error de conexión");
+      });
+
+      socketRef.current = newSocket;
+      return newSocket;
+    } catch (error) {
+      console.error("Error creating socket:", error);
       setIsConnecting(false);
-      setConnectionError(null);
-    });
+      setConnectionError("Error al crear conexión");
+      return null;
+    }
+  }, [isAuthenticated, token]);
 
-    newSocket.on("disconnect", (reason) => {
-      console.log("🔌 WebSocket desconectado:", reason);
-      setIsConnected(false);
-      setIsConnecting(false);
-
-      // Solo mostrar error si no fue desconexión intencional
-      if (reason !== "io client disconnect") {
-        setConnectionError(`Desconectado: ${reason}`);
-      }
-    });
-
-    newSocket.on("connect_error", (error) => {
-      console.error("❌ Error de conexión WebSocket:", error);
-      setIsConnected(false);
-      setIsConnecting(false);
-      setConnectionError(error.message || "Error de conexión");
-    });
-
-    // Eventos específicos de la aplicación
-    newSocket.on("auth_error", (data) => {
-      console.error("🚫 Error de autenticación WebSocket:", data);
-      setConnectionError("Error de autenticación");
-    });
-
-    setSocket(newSocket);
-    return newSocket;
-  };
-
-  // Efecto para manejar conexión basada en autenticación
+  // 🔄 EFECTO PRINCIPAL DE CONEXIÓN
   useEffect(() => {
+    let mounted = true;
+
     if (isAuthenticated && token) {
       setIsConnecting(true);
       setConnectionError(null);
 
-      getSocket().catch((error) => {
-        console.error("Error getting socket:", error);
-        setIsConnecting(false);
-        setConnectionError(error.message);
+      createConnection().then(() => {
+        if (mounted) {
+          setIsConnecting(false);
+        }
       });
     } else {
-      // Desconectar si no está autenticado
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
+      // Cleanup si no autenticado
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
+      listenersRegistryRef.current.clear();
       setIsConnected(false);
       setIsConnecting(false);
       setConnectionError(null);
     }
 
-    // Cleanup al desmontar
     return () => {
-      if (socket) {
-        socket.disconnect();
+      mounted = false;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      listenersRegistryRef.current.clear();
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, createConnection]);
 
-  // Funciones del contexto
-  const emit = (event: string, data?: any): boolean => {
-    if (!socket || !socket.connected) {
-      console.warn("⚠️ Intento de emit sin conexión WebSocket");
-      return false;
-    }
-
-    socket.emit(event, data);
-    return true;
-  };
-
-  const joinRoom = (roomId: string) => {
-    if (socket?.connected) {
-      socket.emit("join_room", roomId);
-      console.log(`🚪 Uniéndose a sala: ${roomId}`);
-    }
-  };
-
-  const leaveRoom = (roomId: string) => {
-    if (socket?.connected) {
-      socket.emit("leave_room", roomId);
-      console.log(`🚪 Saliendo de sala: ${roomId}`);
-    }
-  };
-
-  const addListener = (event: string, handler: (data: any) => void) => {
-    if (socket) {
-      socket.on(event, handler);
-      console.log(`🎧 Listener agregado para: ${event}`);
-    }
-  };
-
-  const removeListener = (event: string, handler: (data: any) => void) => {
-    if (socket) {
-      socket.off(event, handler);
-      console.log(`🎧 Listener removido para: ${event}`);
-    }
-  };
-
-  // Valor del contexto
-  const contextValue: WebSocketContextType = {
-    isConnected,
-    connectionError,
-    isConnecting,
-    emit,
-    joinRoom,
-    leaveRoom,
-    addListener,
-    removeListener,
-  };
+  // 📊 VALOR DEL CONTEXTO - ESTABLE
+  const contextValue: WebSocketContextType = React.useMemo(
+    () => ({
+      isConnected,
+      connectionError,
+      isConnecting,
+      emit,
+      joinRoom,
+      leaveRoom,
+      addListener,
+      removeListener,
+    }),
+    [
+      isConnected,
+      connectionError,
+      isConnecting,
+      emit,
+      joinRoom,
+      leaveRoom,
+      addListener,
+      removeListener,
+    ]
+  );
 
   return (
     <WebSocketContext.Provider value={contextValue}>
