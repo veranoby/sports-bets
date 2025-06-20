@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import Navigation from "./components/user/Navigation";
 import "./App.css";
+import { WebSocketProvider } from "./contexts/WebSocketContext"; // ✅ Nuevo import
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -226,9 +227,13 @@ function App() {
     <ErrorBoundary
       fallback={<div>An error occurred. Please refresh the page.</div>}
     >
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <WebSocketProvider>
+        {" "}
+        {/* ✅ Nuevo wrapper */}
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </WebSocketProvider>
     </ErrorBoundary>
   );
 }
