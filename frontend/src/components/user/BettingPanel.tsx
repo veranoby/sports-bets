@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets, useWallet } from "../../hooks/useApi";
+import { useWebSocketRoom } from "../../hooks/useWebSocket";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
@@ -22,39 +23,29 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { bets, fetchAvailableBets } = useBets();
   const { wallet } = useWallet();
-  const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
-    useWebSocketContext();
+  const { isConnected } = useWebSocketRoom(fightId);
+  const { addListener, removeListener } = useWebSocketContext();
 
-  // ✅ Referencia estable para fetchAvailableBets
+  // Referencia estable para fetchAvailableBets
   const fetchAvailableBetsRef = useRef(fetchAvailableBets);
   useEffect(() => {
     fetchAvailableBetsRef.current = fetchAvailableBets;
   }, [fetchAvailableBets]);
 
-  // ✅ Handlers memoizados sin dependencias externas
+  // Handlers memoizados
   const handleNewBet = useCallback(() => {
     fetchAvailableBetsRef.current();
   }, []);
 
   const handleBetMatched = useCallback(() => {
     onBetPlaced?.();
-  }, []); // No depende de onBetPlaced directamente
+  }, []);
 
   const handleBettingWindowClosed = useCallback(() => {
     fetchAvailableBetsRef.current();
   }, []);
 
-  // 🚀 Efecto para manejar rooms (solo depende de isConnected y fightId)
-  useEffect(() => {
-    if (!isConnected || !fightId) return;
-
-    joinRoom(fightId);
-    return () => {
-      leaveRoom(fightId);
-    };
-  }, [isConnected, fightId, joinRoom, leaveRoom]);
-
-  // 🚀 Efecto simplificado para listeners (solo depende de isConnected)
+  // Listeners (solo depende de isConnected)
   useEffect(() => {
     if (!isConnected) return;
 
@@ -71,7 +62,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         removeListener("bet_matched", handleBetMatched);
       }
     };
-  }, [isConnected]); // ✅ Solo isConnected como dependencia
+  }, [isConnected]);
 
   const renderQuickMode = () => (
     <div className="space-y-3">

@@ -1,20 +1,5 @@
-/* import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
-import { BrowserRouter } from "react-router-dom";
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
-);
-
-*/
-
-// frontend/src/main.tsx - DESHABILITAR STRICT MODE TEMPORALMENTE
+// frontend/src/main.tsx - DESHABILITAR STRICTMODE TEMPORALMENTE
+// ====================================================================
 
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -26,10 +11,23 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 
+// 🚨 STRICTMODE DESHABILITADO PARA ELIMINAR DOUBLE MOUNTING
+// En desarrollo, StrictMode causa que componentes se monten 2 veces
+// esto crea listener thrashing artificial que no existe en producción
+
 root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
+  // <React.StrictMode>  // ← COMENTADO TEMPORALMENTE
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+  // </React.StrictMode>
 );
+
+// 📝 NOTA: Re-habilitar StrictMode después de optimizar WebSocket
+// root.render(
+//   <React.StrictMode>
+//     <BrowserRouter>
+//       <App />
+//     </BrowserRouter>
+//   </React.StrictMode>
+// );

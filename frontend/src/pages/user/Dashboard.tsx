@@ -19,6 +19,10 @@ import {
   getUserThemeClasses,
   useUserTheme,
 } from "../../contexts/UserThemeContext";
+import {
+  useWebSocketListener,
+  useWebSocketRoom,
+} from "../../hooks/useWebSocket";
 
 // Componentes optimizados
 import EventCard from "../../components/user/EventCard";
@@ -67,114 +71,62 @@ const Dashboard: React.FC = () => {
   });
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // ✅ WebSocket consolidado
-  const {
-    addListener,
-    removeListener,
-    joinRoom,
-    leaveRoom,
-    isConnected,
-    activeEvent,
-  } = useWebSocketContext();
+  // ✅ WebSocket Room Management (simplificado)
+  const activeEvent = events?.find((e) => e.status === "in-progress");
+  const { isConnected: isRoomConnected } = useWebSocketRoom(
+    activeEvent?.id || ""
+  );
 
-  // Función para agregar notificaciones (ya memoizada)
+  // ✅ Notifications (ya memoizado)
   const addNotification = useCallback(
     (message: string, type: "info" | "success" | "error") => {
-      const newNotification = {
-        id: Date.now(),
-        message,
-        type,
-        timestamp: new Date(),
-        read: false,
-      };
-      setNotifications((prev) => [newNotification, ...prev.slice(0, 4)]);
+      setNotifications((prev) => [
+        { id: Date.now(), message, type, timestamp: new Date(), read: false },
+        ...prev.slice(0, 4),
+      ]);
     },
     []
   );
 
-  // Handlers memoizados con dependencias mínimas
-  const handleNewBet = useCallback(
-    (data: any) => {
-      fetchEvents(); // Llamada directa sin ref
-      fetchMyBets(); // Llamada directa sin ref
-      addNotification("Nueva apuesta disponible", "info");
-      setLastUpdated(new Date());
-    },
-    [addNotification, fetchEvents, fetchMyBets] // Dependencias estables
-  );
-
-  const handleBetMatched = useCallback(
-    (data: any) => {
-      fetchMyBets(); // Llamada directa sin ref
-      addNotification("¡Tu apuesta fue emparejada!", "success");
-      setLastUpdated(new Date());
-    },
-    [addNotification, fetchMyBets] // Dependencias estables
-  );
-
-  const handleEventActivated = useCallback(
-    (data: any) => {
-      fetchEvents(); // Llamada directa sin ref
-      addNotification(`Evento iniciado: ${data.eventName}`, "info");
-    },
-    [addNotification, fetchEvents] // Dependencias estables
-  );
-
-  const handleFightUpdated = useCallback(() => {
-    fetchEvents(); // Llamada directa sin ref
+  // ✅ Listeners optimizados con useWebSocketListener
+  useWebSocketListener("new_bet", () => {
+    fetchEvents();
+    fetchMyBets();
+    addNotification("Nueva apuesta disponible", "info");
     setLastUpdated(new Date());
-  }, [fetchEvents]); // Dependencias estables
+  });
 
-  const handleBetResult = useCallback(
-    (data: any) => {
-      fetchMyBets(); // Llamada directa sin ref
-      fetchWallet(); // Llamada directa sin ref
-      const isWin = data.result === "win";
-      addNotification(
-        isWin ? "¡Ganaste una apuesta!" : "Apuesta perdida",
-        isWin ? "success" : "error"
-      );
-    },
-    [addNotification, fetchMyBets, fetchWallet] // Dependencias estables
+  useWebSocketListener("bet_matched", () => {
+    fetchMyBets();
+    addNotification("¡Tu apuesta fue emparejada!", "success");
+    setLastUpdated(new Date());
+  });
+
+  useWebSocketListener("event_activated", (data: { eventName: string }) => {
+    fetchEvents();
+    addNotification(`Evento iniciado: ${data.eventName}`, "info");
+  });
+
+  useWebSocketListener("fight_updated", () => {
+    fetchEvents();
+    setLastUpdated(new Date());
+  });
+
+  useWebSocketListener("bet_result", (data: { result: string }) => {
+    fetchMyBets();
+    fetchWallet();
+    addNotification(
+      data.result === "win" ? "¡Ganaste una apuesta!" : "Apuesta perdida",
+      data.result === "win" ? "success" : "error"
+    );
+  });
+
+  useWebSocketListener(
+    "notification:new",
+    (data: { message: string; type: string }) => {
+      addNotification(data.message, data.type as "info" | "success" | "error");
+    }
   );
-
-  // Efecto para manejar rooms (solo depende de isConnected y activeEvent.id)
-  useEffect(() => {
-    if (!isConnected || !activeEvent?.id) return;
-    joinRoom(activeEvent.id);
-    return () => leaveRoom(activeEvent.id);
-  }, [isConnected, activeEvent?.id, joinRoom, leaveRoom]);
-
-  // Efecto principal para listeners (solo depende de isConnected y handlers memoizados)
-  useEffect(() => {
-    if (!isConnected) return;
-
-    addListener("new_bet", handleNewBet);
-    addListener("bet_matched", handleBetMatched);
-    addListener("event_activated", handleEventActivated);
-    addListener("fight_updated", handleFightUpdated);
-    addListener("bet_result", handleBetResult);
-    addListener("notification:new", addNotification);
-
-    return () => {
-      removeListener("new_bet", handleNewBet);
-      removeListener("bet_matched", handleBetMatched);
-      removeListener("event_activated", handleEventActivated);
-      removeListener("fight_updated", handleFightUpdated);
-      removeListener("bet_result", handleBetResult);
-      removeListener("notification:new", addNotification);
-    };
-  }, [
-    isConnected,
-    handleNewBet,
-    handleBetMatched,
-    handleEventActivated,
-    handleFightUpdated,
-    handleBetResult,
-    addNotification,
-    addListener,
-    removeListener,
-  ]);
 
   // Cargar datos iniciales
   useEffect(() => {

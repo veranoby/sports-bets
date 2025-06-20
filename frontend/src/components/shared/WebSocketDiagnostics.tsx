@@ -1,4 +1,5 @@
-// frontend/src/components/shared/WebSocketDiagnostics.tsx - MONITOR ANTI-THRASHING
+// frontend/src/components/shared/WebSocketDiagnostics.tsx - MONITOR OPTIMIZADO
+// =============================================================================
 
 import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
@@ -6,25 +7,17 @@ import {
   WifiOff,
   AlertTriangle,
   CheckCircle,
-  RefreshCw,
   Activity,
   X,
   Eye,
   EyeOff,
-  Zap,
 } from "lucide-react";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface LogEntry {
   timestamp: Date;
-  type:
-    | "connect"
-    | "disconnect"
-    | "listener_add"
-    | "listener_remove"
-    | "thrashing"
-    | "error";
+  type: "connect" | "disconnect" | "error" | "info";
   message: string;
   details?: any;
 }
@@ -35,307 +28,270 @@ interface WebSocketDiagnosticsProps {
   onClose?: () => void;
 }
 
-// Monitoring component - no direct WebSocket usage
-// Propósito: Intercepta logs de WebSocketContext para diagnóstico.
-const WebSocketDiagnostics: React.FC<WebSocketDiagnosticsProps> = ({
-  showDetails = false,
-  position = "fixed",
-  onClose,
-}) => {
-  const { isConnected, connectionError, isConnecting } = useWebSocketContext();
-  const { isAuthenticated, user } = useAuth();
+// 🔍 COMPONENTE DE DIAGNÓSTICO OPTIMIZADO (sin interferir con WebSocket)
+const WebSocketDiagnostics: React.FC<WebSocketDiagnosticsProps> = memo(
+  ({ showDetails = false, position = "fixed", onClose }) => {
+    const { isConnected, connectionError, isConnecting } =
+      useWebSocketContext();
+    const { isAuthenticated, user } = useAuth();
 
-  // Estados locales
-  const [expanded, setExpanded] = useState(showDetails);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [thrashingAlerts, setThrashingAlerts] = useState(0);
-  const [listenerCount, setListenerCount] = useState(0);
+    // Estados locales minimalistas
+    const [expanded, setExpanded] = useState(showDetails);
+    const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [stats, setStats] = useState({
+      connectTime: null as Date | null,
+      reconnects: 0,
+      errors: 0,
+    });
 
-  // Referencias para monitoreo
-  const lastActivityRef = useRef<Date>(new Date());
-  const activityCountRef = useRef(0);
-  const thrashingWindowRef = useRef<Date[]>([]);
+    // Referencias para evitar re-renders
+    const lastStatusRef = useRef<boolean>(false);
+    const componentIdRef = useRef(`diagnostics-${Date.now()}`);
+    const isMountedRef = useRef(true);
 
-  // 🔍 DETECTOR DE THRASHING
-  const detectThrashing = useCallback(() => {
-    const now = new Date();
-    const THRASHING_WINDOW = 5000; // 5 segundos
-    const THRASHING_THRESHOLD = 10; // 10 operaciones en 5 segundos = thrashing
+    // 📝 FUNCIÓN PARA AGREGAR LOGS (estable)
+    const addLog = useCallback((entry: Omit<LogEntry, "timestamp">) => {
+      if (!isMountedRef.current) return;
 
-    // Limpiar ventana antigua
-    thrashingWindowRef.current = thrashingWindowRef.current.filter(
-      (timestamp) => now.getTime() - timestamp.getTime() < THRASHING_WINDOW
-    );
-
-    // Agregar actividad actual
-    thrashingWindowRef.current.push(now);
-
-    // Detectar thrashing
-    if (thrashingWindowRef.current.length >= THRASHING_THRESHOLD) {
-      setThrashingAlerts((prev) => prev + 1);
-
-      addLog({
-        type: "thrashing",
-        message: `🚨 LISTENER THRASHING DETECTADO: ${
-          thrashingWindowRef.current.length
-        } operaciones en ${THRASHING_WINDOW / 1000}s`,
-        details: {
-          operations: thrashingWindowRef.current.length,
-          windowMs: THRASHING_WINDOW,
-        },
-      });
-
-      // Reset window después de alert
-      thrashingWindowRef.current = [];
-    }
-  }, []);
-
-  // 📝 FUNCIÓN PARA AGREGAR LOGS
-  const addLog = useCallback(
-    (entry: Omit<LogEntry, "timestamp">) => {
       const logEntry: LogEntry = {
         ...entry,
         timestamp: new Date(),
       };
 
-      setLogs((prev) => [logEntry, ...prev.slice(0, 99)]); // Mantener solo 100 logs
+      setLogs((prev) => [logEntry, ...prev.slice(0, 49)]); // Mantener solo 50 logs
 
-      // Detectar thrashing en cada log
-      if (entry.type === "listener_add" || entry.type === "listener_remove") {
-        detectThrashing();
+      // Actualizar stats según el tipo
+      if (entry.type === "error") {
+        setStats((prev) => ({ ...prev, errors: prev.errors + 1 }));
+      } else if (entry.type === "connect") {
+        setStats((prev) => ({
+          ...prev,
+          connectTime: new Date(),
+          reconnects: prev.connectTime ? prev.reconnects + 1 : 0,
+        }));
       }
-    },
-    [detectThrashing]
-  );
+    }, []);
 
-  // 📊 MONITOREAR ESTADOS DE CONEXIÓN
-  useEffect(() => {
-    if (isConnected) {
-      addLog({
-        type: "connect",
-        message: "✅ WebSocket conectado",
-        details: { authenticated: isAuthenticated, user: user?.username },
-      });
-    } else if (!isConnecting) {
-      addLog({
-        type: "disconnect",
-        message: "❌ WebSocket desconectado",
-        details: { error: connectionError },
-      });
+    // 👀 MONITOR DE CAMBIOS DE ESTADO (sin listeners WebSocket)
+    useEffect(() => {
+      const currentStatus = isConnected;
+      const previousStatus = lastStatusRef.current;
+
+      if (currentStatus !== previousStatus) {
+        if (currentStatus) {
+          addLog({
+            type: "connect",
+            message: "✅ WebSocket conectado",
+            details: { user: user?.username, timestamp: new Date() },
+          });
+        } else {
+          addLog({
+            type: "disconnect",
+            message: "❌ WebSocket desconectado",
+            details: { user: user?.username, timestamp: new Date() },
+          });
+        }
+
+        lastStatusRef.current = currentStatus;
+      }
+    }, [isConnected, user?.username, addLog]);
+
+    // 🚨 MONITOR DE ERRORES
+    useEffect(() => {
+      if (connectionError) {
+        addLog({
+          type: "error",
+          message: `🚨 Error de conexión: ${connectionError}`,
+          details: { error: connectionError, timestamp: new Date() },
+        });
+      }
+    }, [connectionError, addLog]);
+
+    // 🧹 CLEANUP EN UNMOUNT
+    useEffect(() => {
+      isMountedRef.current = true;
+
+      return () => {
+        console.log(
+          `🗑️ ${componentIdRef.current} desmontado - cleanup completo`
+        );
+        isMountedRef.current = false;
+      };
+    }, []);
+
+    // 🎨 OBTENER ICONO Y COLOR SEGÚN ESTADO
+    const getStatusInfo = () => {
+      if (isConnecting) {
+        return {
+          icon: Activity,
+          color: "text-yellow-500",
+          bg: "bg-yellow-50",
+          label: "Conectando...",
+        };
+      } else if (isConnected) {
+        return {
+          icon: CheckCircle,
+          color: "text-green-500",
+          bg: "bg-green-50",
+          label: "Conectado",
+        };
+      } else if (connectionError) {
+        return {
+          icon: AlertTriangle,
+          color: "text-red-500",
+          bg: "bg-red-50",
+          label: "Error",
+        };
+      } else {
+        return {
+          icon: WifiOff,
+          color: "text-gray-500",
+          bg: "bg-gray-50",
+          label: "Desconectado",
+        };
+      }
+    };
+
+    const statusInfo = getStatusInfo();
+    const StatusIcon = statusInfo.icon;
+
+    // Solo mostrar en desarrollo
+    if (process.env.NODE_ENV !== "development" && !showDetails) {
+      return null;
     }
-  }, [
-    isConnected,
-    isConnecting,
-    connectionError,
-    isAuthenticated,
-    user,
-    addLog,
-  ]);
 
-  // 🎧 INTERCEPTAR CONSOLE LOGS PARA DETECTAR LISTENER ACTIVITY
-  useEffect(() => {
-    const originalLog = console.log;
-
-    console.log = (...args) => {
-      const message = args.join(" ");
-
-      // Detectar logs de listeners
-      if (message.includes("🎧 Listener agregado")) {
-        const match = message.match(
-          /Listener agregado para: (.*?) \(Total: (\d+)\)/
-        );
-        if (match) {
-          addLog({
-            type: "listener_add",
-            message: `➕ Listener agregado: ${match[1]}`,
-            details: { event: match[1], total: parseInt(match[2]) },
-          });
-          setListenerCount(parseInt(match[2]));
-        }
-      } else if (message.includes("🎧 Listener removido")) {
-        const match = message.match(
-          /Listener removido para: (.*?) \(Restantes: (\d+)\)/
-        );
-        if (match) {
-          addLog({
-            type: "listener_remove",
-            message: `➖ Listener removido: ${match[1]}`,
-            details: { event: match[1], remaining: parseInt(match[2]) },
-          });
-        }
-      }
-
-      // Llamar al log original
-      originalLog.apply(console, args);
-    };
-
-    return () => {
-      console.log = originalLog;
-    };
-  }, [addLog]);
-
-  // 🔄 ACTUALIZAR ACTIVIDAD
-  useEffect(() => {
-    lastActivityRef.current = new Date();
-    activityCountRef.current++;
-  }, [logs]);
-
-  // 🎨 FUNCIÓN PARA OBTENER COLOR DEL ESTADO
-  const getStatusColor = () => {
-    if (thrashingAlerts > 0) return "text-red-500";
-    if (!isConnected) return "text-red-500";
-    if (isConnecting) return "text-yellow-500";
-    return "text-green-500";
-  };
-
-  // 🎨 FUNCIÓN PARA OBTENER ICONO DEL ESTADO
-  const getStatusIcon = () => {
-    if (thrashingAlerts > 0) return <Zap className="w-4 h-4" />;
-    if (!isConnected) return <WifiOff className="w-4 h-4" />;
-    if (isConnecting) return <RefreshCw className="w-4 h-4 animate-spin" />;
-    return <Wifi className="w-4 h-4" />;
-  };
-
-  return (
-    <div
-      className={`
-      ${position === "fixed" ? "fixed bottom-4 right-4 z-[9999]" : "relative"}
+    return (
+      <div
+        className={`
+      ${position === "fixed" ? "fixed bottom-4 right-4 z-50" : "relative"}
     `}
-    >
-      {/* 🔘 INDICATOR COMPACTO */}
-      {!expanded && (
-        <button
-          onClick={() => setExpanded(true)}
+      >
+        {/* 🎛️ INDICADOR PRINCIPAL */}
+        <div
           className={`
-            flex items-center gap-2 px-3 py-2 rounded-lg border 
-            bg-white shadow-lg hover:shadow-xl transition-all
-            ${
-              thrashingAlerts > 0
-                ? "border-red-500 bg-red-50"
-                : "border-gray-300"
-            }
-          `}
+          ${statusInfo.bg} ${statusInfo.color} 
+          rounded-lg p-3 border border-gray-200 shadow-sm
+          cursor-pointer transition-all duration-200
+          ${expanded ? "mb-2" : ""}
+        `}
+          onClick={() => setExpanded(!expanded)}
         >
-          <span className={getStatusColor()}>{getStatusIcon()}</span>
-          <span className="text-sm font-medium">
-            {isConnected ? "WS" : "Offline"}
-          </span>
-          {thrashingAlerts > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-              {thrashingAlerts}
+          <div className="flex items-center space-x-2">
+            <StatusIcon size={18} className={statusInfo.color} />
+            <span className="text-sm font-medium">
+              WebSocket: {statusInfo.label}
             </span>
-          )}
-        </button>
-      )}
-
-      {/* 📊 PANEL EXPANDIDO */}
-      {expanded && (
-        <div className="bg-white rounded-lg shadow-xl border border-gray-300 w-96 max-h-96 overflow-hidden">
-          {/* Header */}
-          <div className="p-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-            <div className="flex items-center gap-2">
-              <span className={getStatusColor()}>{getStatusIcon()}</span>
-              <h3 className="font-semibold text-gray-900">WebSocket Monitor</h3>
-              {thrashingAlerts > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {thrashingAlerts} alerts
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                setExpanded(false);
-                onClose?.();
-              }}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="p-3 border-b border-gray-200 bg-gray-50">
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">
-                  {listenerCount}
-                </div>
-                <div className="text-gray-600">Listeners</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">{logs.length}</div>
-                <div className="text-gray-600">Events</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">
-                  {thrashingAlerts}
-                </div>
-                <div className="text-gray-600">Thrashing</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Logs */}
-          <div className="max-h-64 overflow-y-auto">
-            {logs.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-sm">
-                Sin actividad reciente
-              </div>
-            ) : (
-              logs.slice(0, 20).map((log, index) => (
-                <div
-                  key={index}
-                  className={`
-                    p-2 border-b border-gray-100 text-xs
-                    ${
-                      log.type === "thrashing" ? "bg-red-50 border-red-200" : ""
-                    }
-                    ${
-                      log.type === "error"
-                        ? "bg-yellow-50 border-yellow-200"
-                        : ""
-                    }
-                  `}
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="font-mono text-gray-900">
-                      {log.message}
-                    </span>
-                    <span className="text-gray-500 ml-2">
-                      {log.timestamp.toLocaleTimeString()}
-                    </span>
-                  </div>
-                  {log.details && (
-                    <div className="mt-1 text-gray-600 font-mono">
-                      {JSON.stringify(log.details, null, 2)}
-                    </div>
-                  )}
-                </div>
-              ))
+            {expanded ? <EyeOff size={14} /> : <Eye size={14} />}
+            {onClose && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="ml-2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="p-3 border-t border-gray-200 bg-gray-50">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setLogs([])}
-                className="flex-1 text-xs px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Limpiar
-              </button>
-              <button
-                onClick={() => setThrashingAlerts(0)}
-                className="flex-1 text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Reset Alerts
-              </button>
-            </div>
+          {/* 📊 STATS RESUMIDAS */}
+          <div className="text-xs text-gray-600 mt-1 space-x-4">
+            <span>Reconexiones: {stats.reconnects}</span>
+            <span>Errores: {stats.errors}</span>
+            {stats.connectTime && (
+              <span>
+                Activo:{" "}
+                {Math.round((Date.now() - stats.connectTime.getTime()) / 1000)}s
+              </span>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  );
-};
 
-export default memo(WebSocketDiagnostics);
+        {/* 📋 PANEL EXPANDIDO */}
+        {expanded && (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-4 w-80 max-h-96 overflow-hidden">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-gray-900">
+                Diagnóstico WebSocket
+              </h3>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* 📊 INFORMACIÓN DETALLADA */}
+            <div className="space-y-2 mb-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Estado:</span>
+                <span className={statusInfo.color}>{statusInfo.label}</span>
+              </div>
+
+              {isAuthenticated && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Usuario:</span>
+                  <span className="text-gray-900">
+                    {user?.username || "N/A"}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <span className="text-gray-600">Logs:</span>
+                <span className="text-gray-900">{logs.length}</span>
+              </div>
+            </div>
+
+            {/* 📜 LOGS RECIENTES */}
+            <div className="border-t border-gray-200 pt-3">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                Logs Recientes
+              </h4>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {logs.slice(0, 10).map((log, index) => (
+                  <div key={index} className="text-xs p-2 rounded bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <span className="font-mono text-gray-600">
+                        {log.timestamp.toLocaleTimeString()}
+                      </span>
+                      <span
+                        className={`
+                      px-1 rounded text-xs
+                      ${
+                        log.type === "error"
+                          ? "bg-red-100 text-red-700"
+                          : log.type === "connect"
+                          ? "bg-green-100 text-green-700"
+                          : log.type === "disconnect"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-blue-100 text-blue-700"
+                      }
+                    `}
+                      >
+                        {log.type}
+                      </span>
+                    </div>
+                    <div className="text-gray-800 mt-1">{log.message}</div>
+                  </div>
+                ))}
+
+                {logs.length === 0 && (
+                  <div className="text-center text-gray-500 py-4">
+                    No hay logs disponibles
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+WebSocketDiagnostics.displayName = "WebSocketDiagnostics";
+
+export default WebSocketDiagnostics;

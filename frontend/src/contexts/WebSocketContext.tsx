@@ -1,5 +1,5 @@
-// frontend/src/contexts/WebSocketContext.tsx V9 - SOLUCIÓN DEFINITIVA ANTI-THRASHING
-// =====================================================================================
+// frontend/src/contexts/WebSocketContext.tsx - SOLUCIÓN DEFINITIVA ANTI-THRASHING
+// ================================================================================
 
 import React, {
   createContext,
@@ -10,6 +10,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 
 interface WebSocketContextType {
@@ -35,116 +36,77 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Referencias estables
-  const socketRef = useRef<any>(null);
+  // 🔒 REFERENCIAS ESTABLES - SIN RE-RENDERS
+  const socketRef = useRef<Socket | null>(null);
   const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isConnectionInProgressRef = useRef(false);
+  const pendingRoomsRef = useRef<Set<string>>(new Set());
 
-  // 🛡️ NUEVO SISTEMA ANTI-THRASHING INTELIGENTE
-  const operationQueueRef = useRef<Array<() => void>>([]);
-  const isProcessingQueueRef = useRef(false);
-  const lastComponentMountTimeRef = useRef<number>(0);
-  const BATCH_DELAY_MS = 50; // Reducido drásticamente
-  const MOUNT_GRACE_PERIOD_MS = 100; // Período de gracia para montajes
-
-  // 🚀 FUNCIÓN DE PROCESAMIENTO POR LOTES
-  const processOperationQueue = useCallback(() => {
-    if (
-      isProcessingQueueRef.current ||
-      operationQueueRef.current.length === 0
-    ) {
+  // 🚀 CONEXIÓN SIMPLIFICADA (sin batching complejo)
+  const createConnection = useCallback(async () => {
+    if (isConnectionInProgressRef.current || socketRef.current?.connected) {
       return;
     }
 
-    isProcessingQueueRef.current = true;
-
-    // Procesar todas las operaciones en lote
-    const operations = [...operationQueueRef.current];
-    operationQueueRef.current = [];
-
-    // Ejecutar en el siguiente tick para evitar conflictos
-    setTimeout(() => {
-      operations.forEach((operation) => {
-        try {
-          operation();
-        } catch (error) {
-          console.error("Error ejecutando operación WebSocket:", error);
-        }
-      });
-
-      isProcessingQueueRef.current = false;
-
-      // Si hay más operaciones en cola, procesarlas
-      if (operationQueueRef.current.length > 0) {
-        processOperationQueue();
-      }
-    }, 0);
-  }, []);
-
-  // 🔄 FUNCIÓN DE CONEXIÓN SIMPLIFICADA
-  const createConnection = useCallback(async () => {
-    if (!isAuthenticated || !token) return null;
-
-    if (socketRef.current?.connected) {
-      return socketRef.current;
-    }
-
-    if (isConnecting) return null;
-
     try {
+      isConnectionInProgressRef.current = true;
       setIsConnecting(true);
       setConnectionError(null);
-
-      // Importación dinámica para evitar problemas de SSR
-      const { io } = await import("socket.io-client");
 
       const WEBSOCKET_URL =
         import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
-      const newSocket = io(WEBSOCKET_URL, {
-        transports: ["websocket", "polling"],
-        timeout: 15000,
-        reconnection: true,
-        reconnectionAttempts: 3,
-        reconnectionDelay: 2000,
-        forceNew: false,
+      const socket = io(WEBSOCKET_URL, {
         auth: { token },
+        transports: ["websocket", "polling"],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       });
 
-      // Configurar eventos del socket
-      newSocket.on("connect", () => {
-        setIsConnected(true);
-        setIsConnecting(false);
-        setConnectionError(null);
+      // 📡 EVENTOS DE CONEXIÓN
+      socket.on("connect", () => {
         console.log("✅ WebSocket conectado");
+        setIsConnected(true);
+        setConnectionError(null);
+
+        // Reconectar a rooms pendientes
+        pendingRoomsRef.current.forEach((roomId) => {
+          socket.emit("join_room", roomId);
+        });
       });
 
-      newSocket.on("disconnect", (reason) => {
-        setIsConnected(false);
+      socket.on("disconnect", (reason) => {
         console.log("❌ WebSocket desconectado:", reason);
+        setIsConnected(false);
+
+        if (reason === "io server disconnect") {
+          socket.connect();
+        }
       });
 
-      newSocket.on("connect_error", (error) => {
+      socket.on("connect_error", (error) => {
+        console.error("🚨 Error de conexión WebSocket:", error);
         setConnectionError(error.message);
         setIsConnecting(false);
-        console.error("❌ Error de conexión WebSocket:", error);
       });
 
-      socketRef.current = newSocket;
-      return newSocket;
+      socketRef.current = socket;
     } catch (error: any) {
-      setConnectionError(error?.message || "Error desconocido");
+      console.error("🚨 Error creando conexión WebSocket:", error);
+      setConnectionError(error.message);
+    } finally {
+      isConnectionInProgressRef.current = false;
       setIsConnecting(false);
-      console.error("❌ Error creando conexión WebSocket:", error);
     }
-  }, [isAuthenticated, token]);
+  }, [token]);
 
-  // 📡 FUNCIONES DE COMUNICACIÓN ESTABLES
+  // 📤 EMIT SIMPLIFICADO
   const emit = useCallback((event: string, data?: any): boolean => {
     if (!socketRef.current?.connected) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("⚠️ Intento de emit sin conexión WebSocket");
-      }
+      console.warn("⚠️ Intento de emit sin conexión WebSocket");
       return false;
     }
 
@@ -152,101 +114,87 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     return true;
   }, []);
 
+  // 🏠 GESTIÓN DE ROOMS SIMPLIFICADA
   const joinRoom = useCallback((roomId: string) => {
+    if (!roomId) return;
+
+    pendingRoomsRef.current.add(roomId);
+
     if (socketRef.current?.connected) {
       socketRef.current.emit("join_room", roomId);
-      console.log(`🚪 Uniéndose a sala: ${roomId}`);
+      console.log(`🏠 Uniéndose a room: ${roomId}`);
     }
   }, []);
 
   const leaveRoom = useCallback((roomId: string) => {
+    if (!roomId) return;
+
+    pendingRoomsRef.current.delete(roomId);
+
     if (socketRef.current?.connected) {
       socketRef.current.emit("leave_room", roomId);
-      console.log(`🚪 Saliendo de sala: ${roomId}`);
+      console.log(`🚪 Saliendo de room: ${roomId}`);
     }
   }, []);
 
-  // 🎧 SISTEMA DE LISTENERS OPTIMIZADO POR LOTES
+  // 🎧 SISTEMA DE LISTENERS OPTIMIZADO (sin batching)
   const addListener = useCallback(
     (event: string, handler: (data: any) => void) => {
-      const operation = () => {
-        if (!socketRef.current) {
-          console.warn(`⚠️ Intento de agregar listener ${event} sin socket`);
-          return;
-        }
+      if (!socketRef.current || !event || !handler) return;
 
-        // Verificar si ya está registrado (evitar duplicados)
-        const eventListeners =
-          listenersRegistryRef.current.get(event) || new Set();
+      // Agregar al registry interno
+      if (!listenersRegistryRef.current.has(event)) {
+        listenersRegistryRef.current.set(event, new Set());
+      }
 
-        for (const existingHandler of eventListeners) {
-          if (existingHandler === handler) {
-            if (process.env.NODE_ENV === "development") {
-              console.warn(`🔄 Listener duplicado ignorado para: ${event}`);
-            }
-            return;
-          }
-        }
+      const eventListeners = listenersRegistryRef.current.get(event)!;
 
-        // Agregar al registry
-        eventListeners.add(handler);
-        listenersRegistryRef.current.set(event, eventListeners);
+      // Evitar duplicados
+      if (eventListeners.has(handler)) {
+        console.warn(`⚠️ Listener ya registrado para evento: ${event}`);
+        return;
+      }
 
-        // Agregar al socket
-        socketRef.current.on(event, handler);
+      eventListeners.add(handler);
+      socketRef.current.on(event, handler);
 
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `🎧 Listener agregado: ${event} (Total: ${eventListeners.size})`
-          );
-        }
-      };
-
-      // Agregar a la cola de operaciones
-      operationQueueRef.current.push(operation);
-
-      // Procesar cola después de un breve delay
-      setTimeout(processOperationQueue, BATCH_DELAY_MS);
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `🎧 Listener agregado: ${event} (Total: ${eventListeners.size})`
+        );
+      }
     },
-    [processOperationQueue]
+    []
   );
 
   const removeListener = useCallback(
     (event: string, handler: (data: any) => void) => {
-      const operation = () => {
-        if (!socketRef.current) return;
+      if (!socketRef.current || !event || !handler) return;
 
-        // Remover del registry
-        const eventListeners = listenersRegistryRef.current.get(event);
-        if (eventListeners) {
-          eventListeners.delete(handler);
-          if (eventListeners.size === 0) {
-            listenersRegistryRef.current.delete(event);
-          }
+      // Remover del registry
+      const eventListeners = listenersRegistryRef.current.get(event);
+      if (eventListeners) {
+        eventListeners.delete(handler);
+        if (eventListeners.size === 0) {
+          listenersRegistryRef.current.delete(event);
         }
+      }
 
-        // Remover del socket
-        socketRef.current.off(event, handler);
+      // Remover del socket
+      socketRef.current.off(event, handler);
 
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `🎧 Listener removido: ${event} (Restantes: ${
-              eventListeners?.size || 0
-            })`
-          );
-        }
-      };
-
-      // Agregar a la cola de operaciones
-      operationQueueRef.current.push(operation);
-
-      // Procesar cola inmediatamente para removals (mayor prioridad)
-      setTimeout(processOperationQueue, 10);
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `🎧 Listener removido: ${event} (Restantes: ${
+            eventListeners?.size || 0
+          })`
+        );
+      }
     },
-    [processOperationQueue]
+    []
   );
 
-  // 🔄 EFFECT PRINCIPAL DE CONEXIÓN
+  // 🔄 EFFECT PRINCIPAL DE CONEXIÓN (simplificado)
   useEffect(() => {
     let mounted = true;
 
@@ -263,6 +211,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         socketRef.current = null;
       }
       listenersRegistryRef.current.clear();
+      pendingRoomsRef.current.clear();
       setIsConnected(false);
       setIsConnecting(false);
       setConnectionError(null);
@@ -276,10 +225,6 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         clearTimeout(reconnectTimeoutRef.current);
       }
 
-      // Limpiar cola de operaciones
-      operationQueueRef.current = [];
-      isProcessingQueueRef.current = false;
-
       // Desconectar socket
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -288,6 +233,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
       // Limpiar registry
       listenersRegistryRef.current.clear();
+      pendingRoomsRef.current.clear();
+      isConnectionInProgressRef.current = false;
     };
   }, [isAuthenticated, token, createConnection]);
 

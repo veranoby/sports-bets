@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -56,7 +57,7 @@ const EventsPage: React.FC = () => {
   // WebSocket para actualizaciones en tiempo real
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // ✅ Handlers memoizados SIN dependencias inestables
+  // ✅ Handlers memoizados
   const handleEventActivated = useCallback((data: any) => {
     console.log("🔥 Evento activado:", data);
     fetchEventsRef.current();
@@ -72,20 +73,10 @@ const EventsPage: React.FC = () => {
     fetchEventsRef.current();
   }, []);
 
-  // WebSocket listeners (solo depende de isConnected)
-  useEffect(() => {
-    if (!isConnected) return;
-
-    addListener("event_activated", handleEventActivated);
-    addListener("event_completed", handleEventCompleted);
-    addListener("stream_started", handleStreamStarted);
-
-    return () => {
-      removeListener("event_activated", handleEventActivated);
-      removeListener("event_completed", handleEventCompleted);
-      removeListener("stream_started", handleStreamStarted);
-    };
-  }, [isConnected]); // ✅ Solo isConnected como dependencia
+  // ✅ Listeners optimizados
+  useWebSocketListener("event_activated", handleEventActivated);
+  useWebSocketListener("event_completed", handleEventCompleted);
+  useWebSocketListener("stream_started", handleStreamStarted);
 
   // Cargar eventos iniciales
   useEffect(() => {

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import { useState, useCallback } from "react";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useBets } from "../../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,7 +16,6 @@ const ProposalNotifications = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
   const { acceptProposal, rejectProposal, getPendingProposals } = useBets();
-  const { addListener, removeListener, isConnected } = useWebSocketContext();
 
   const handleProposalReceived = useCallback((proposal: Proposal) => {
     setProposals((prev) => [proposal, ...prev]);
@@ -40,21 +39,12 @@ const ProposalNotifications = () => {
 
   useEffect(() => {
     getPendingProposals().then(setProposals);
+  }, []);
 
-    if (!isConnected) return;
-
-    addListener("proposal:received", handleProposalReceived);
-    addListener("proposal:accepted", handleProposalAccepted);
-    addListener("proposal:rejected", handleProposalRejected);
-    addListener("bet_proposal_update", handleBetProposalUpdate);
-
-    return () => {
-      removeListener("proposal:received", handleProposalReceived);
-      removeListener("proposal:accepted", handleProposalAccepted);
-      removeListener("proposal:rejected", handleProposalRejected);
-      removeListener("bet_proposal_update", handleBetProposalUpdate);
-    };
-  }, [isConnected]);
+  useWebSocketListener("proposal:received", handleProposalReceived);
+  useWebSocketListener("proposal:accepted", handleProposalAccepted);
+  useWebSocketListener("proposal:rejected", handleProposalRejected);
+  useWebSocketListener("bet_proposal_update", handleBetProposalUpdate);
 
   const handleAccept = async (proposalId: string) => {
     await acceptProposal(proposalId);

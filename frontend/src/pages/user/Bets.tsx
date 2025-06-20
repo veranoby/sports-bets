@@ -24,6 +24,7 @@ import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserHeader from "../../components/user/UserHeader";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // ✅ TIPOS LOCALES PARA EVITAR DEPENDENCIAS EXTERNAS
 type TabType = "my_bets" | "available" | "history" | "stats";
@@ -39,6 +40,10 @@ const UserBets: React.FC = () => {
   // API Hooks
   const { bets, loading, error, fetchMyBets, cancelBet, acceptBet, setBets } =
     useBets();
+  const setBetsRef = useRef(setBets);
+  useEffect(() => {
+    setBetsRef.current = setBets;
+  }, [setBets]);
 
   const { wallet } = useWallet();
 
@@ -57,40 +62,30 @@ const UserBets: React.FC = () => {
   // WebSocket para actualizaciones
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // ✅ Handlers estables sin dependencias externas
-  const handleBetMatched = useCallback(
-    (data: any) => {
-      setBets((prev) => {
-        // Actualizar apuesta emparejada
-        return prev.map((bet) =>
-          bet.id === data.betId ? { ...bet, status: "matched" } : bet
-        );
-      });
-    },
-    [setBets]
-  );
+  // WebSocket Listeners optimizados
+  const handleBetMatched = useCallback((data: any) => {
+    setBetsRef.current((prev) =>
+      prev.map((bet) =>
+        bet.id === data.betId ? { ...bet, status: "matched" } : bet
+      )
+    );
+  }, []);
 
-  const handleBetResult = useCallback(
-    (data: any) => {
-      setBets((prev) => {
-        // Actualizar resultado de apuesta
-        return prev.map((bet) =>
-          bet.id === data.betId ? { ...bet, result: data.result } : bet
-        );
-      });
-    },
-    [setBets]
-  );
+  const handleBetResult = useCallback((data: any) => {
+    setBetsRef.current((prev) =>
+      prev.map((bet) =>
+        bet.id === data.betId ? { ...bet, result: data.result } : bet
+      )
+    );
+  }, []);
 
-  const handlePagoProposed = useCallback(
-    (data: any) => {
-      setBets((prev) => {
-        // Agregar nueva propuesta PAGO
-        return [...prev, data.newBet];
-      });
-    },
-    [setBets]
-  );
+  const handlePagoProposed = useCallback((data: any) => {
+    setBetsRef.current((prev) => [...prev, data.newBet]);
+  }, []);
+
+  useWebSocketListener("bet_matched", handleBetMatched);
+  useWebSocketListener("bet_result", handleBetResult);
+  useWebSocketListener("pago_proposed", handlePagoProposed);
 
   // ✅ useEffect simplificado con dependencias mínimas
   useEffect(() => {

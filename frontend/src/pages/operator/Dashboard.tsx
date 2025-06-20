@@ -1,11 +1,14 @@
 // Reemplazar TODO el contenido de frontend/src/pages/operator/Dashboard.tsx
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { GitPullRequest, Award, Activity, Bell } from "lucide-react";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import { useEvents, useFights } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketEmit } from "../../hooks/useWebSocket";
+
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
+
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -22,27 +25,37 @@ const OperatorDashboard: React.FC = () => {
   const { events, loading: eventsLoading } = useEvents();
   const { fights, loading: fightsLoading, fetchFights, error } = useFights();
 
-  // ✅ Hook especializado con listeners estables
-  const { isConnected } = useWebSocket(OPERATOR_ROOM_ID, {
-    new_bet: useCallback((data: any) => {
-      console.log("Nueva apuesta creada:", data);
-    }, []),
-    bet_matched: useCallback((data: any) => {
-      console.log("Apuesta emparejada:", data);
-    }, []),
-    fight_updated: useCallback((data: any) => {
-      console.log("Pelea actualizada:", data);
-    }, []),
-    betting_opened: useCallback((data: any) => {
-      console.log("Apuestas abiertas:", data);
-    }, []),
-    betting_closed: useCallback((data: any) => {
-      console.log("Apuestas cerradas:", data);
-    }, []),
-    event_activated: useCallback((data: any) => {
-      console.log("Evento activado:", data);
-    }, []),
-  });
+  // ✅ WebSocket optimizado para operador
+  const { isConnected } = useWebSocketContext();
+  const { emit } = useWebSocketEmit();
+
+  // Listeners específicos para operador
+  const handleFightUpdated = useCallback(
+    (data: { fightId: string }) => {
+      console.log("Pelea actualizada:", data.fightId);
+      fetchFights(); // Refrescar lista de peleas
+    },
+    [fetchFights]
+  );
+
+  const handleBettingOpened = useCallback((data: { fightId: string }) => {
+    console.log("Apuestas abiertas para pelea:", data.fightId);
+  }, []);
+
+  // ✅ Room management para eventos activos
+  useEffect(() => {
+    if (!isConnected) return;
+    joinRoom(OPERATOR_ROOM_ID);
+    return () => leaveRoom(OPERATOR_ROOM_ID);
+  }, [isConnected, joinRoom, leaveRoom]);
+
+  // ✅ Emitir acciones del operador
+  const openBetting = useCallback(
+    (fightId: string) => {
+      emit("operator:open_betting", { fightId });
+    },
+    [emit]
+  );
 
   const [selectedFightId, setSelectedFightId] = useState<string | null>(null);
   const selectedFight = fights.find((f) => f.id === selectedFightId) || null;

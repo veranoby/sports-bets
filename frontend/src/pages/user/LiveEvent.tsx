@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { useFights } from "../../hooks/useApi";
-import { useBets } from "../../hooks/useApi";
+import { useFights, useBets } from "../../hooks/useApi";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
@@ -24,33 +24,80 @@ type Bet = {
   createdAt: string;
 };
 
-const LiveEvent = ({ id }: { id: string }) => {
+const LiveEvent = () => {
+  const { id: eventId } = useParams<{ id: string }>();
   const { fights, fetchFights, loading, error } = useFights();
   const { bets, fetchBets, loadingBets, errorBets } = useBets();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
+  const { isConnected, joinRoom, leaveRoom, addListener, removeListener } =
+    useWebSocketContext();
 
+  // ✅ 1. Room Management: Unirse a la room del evento
   useEffect(() => {
-    if (id) {
-      fetchFights({ eventId: id });
+    if (isConnected && eventId) {
+      joinRoom(eventId);
+      return () => leaveRoom(eventId);
     }
-  }, [id]);
+  }, [isConnected, eventId, joinRoom, leaveRoom]);
 
-  if (loading) return <LoadingSpinner text="Loading fights..." />;
+  // ✅ 2. Listeners para actualizaciones en tiempo real
+  useEffect(() => {
+    if (!isConnected || !eventId) return;
+
+    const handleStreamUpdate = (data: { status: string }) => {
+      console.log("Stream actualizado:", data.status);
+    };
+
+    const handleFightUpdate = (data: { fightId: string; status: string }) => {
+      console.log("Pelea actualizada:", data);
+      fetchFights({ eventId });
+    };
+
+    const handleNewBet = () => {
+      fetchBets();
+    };
+
+    addListener("stream:status", handleStreamUpdate);
+    addListener("fight:updated", handleFightUpdate);
+    addListener("bet:new", handleNewBet);
+
+    return () => {
+      removeListener("stream:status", handleStreamUpdate);
+      removeListener("fight:updated", handleFightUpdate);
+      removeListener("bet:new", handleNewBet);
+    };
+  }, [
+    isConnected,
+    eventId,
+    addListener,
+    removeListener,
+    fetchFights,
+    fetchBets,
+  ]);
+
+  // ✅ 3. Cargar datos iniciales
+  useEffect(() => {
+    if (eventId) {
+      fetchFights({ eventId });
+      fetchBets();
+    }
+  }, [eventId]);
+
+  const handleAcceptBet = useCallback((betId: string) => {
+    console.log("Aceptando apuesta:", betId);
+  }, []);
+
+  if (loading) return <LoadingSpinner text="Cargando evento..." />;
   if (error) return <ErrorMessage message={error.message} />;
-
-  const handleAcceptBet = (betId: string) => {
-    console.log(`Aceptando apuesta ${betId}`);
-    // Lógica para aceptar apuesta
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
       {/* Header simplificado */}
       <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
         <h1 className="text-xl font-bold text-gray-800 text-center">
-          Evento #{id}
+          Evento #{eventId}
         </h1>
       </header>
 

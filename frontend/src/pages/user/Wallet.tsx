@@ -30,6 +30,7 @@ import {
 // Hooks y contextos
 import { useWallet } from "../../hooks/useApi";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // Componentes
 import UserHeader from "../../components/user/UserHeader";
@@ -216,6 +217,30 @@ const WalletPage: React.FC = () => {
       console.error("Error en retiro:", error);
     }
   };
+
+  // ✅ 1. Listener para actualizaciones de billetera
+  useWebSocketListener<{ balance: number; frozenAmount: number }>(
+    "wallet_updated",
+    (data) => {
+      if (data) {
+        // Actualizar balance sin necesidad de refresh manual
+        fetchWallet();
+        addNotification("Tu balance ha sido actualizado", "info");
+      }
+    }
+  );
+
+  // ✅ 2. Listener para transacciones completadas
+  useWebSocketListener<Transaction>("transaction_completed", (transaction) => {
+    if (transaction) {
+      fetchTransactions();
+      const message =
+        transaction.type === "deposit"
+          ? `Depósito completado: $${transaction.amount}`
+          : `Retiro completado: $${transaction.amount}`;
+      addNotification(message, "success");
+    }
+  });
 
   if (loading && !refreshing) {
     return (

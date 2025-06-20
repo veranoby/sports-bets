@@ -1,4 +1,5 @@
-// frontend/src/components/shared/NotificationCenter.tsx - OPTIMIZACIÓN ANTI-THRASHING
+// frontend/src/components/shared/NotificationCenter.tsx - OPTIMIZACIÓN DEFINITIVA
+// ==============================================================================
 
 import React, {
   useState,
@@ -6,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
   useRef,
+  memo,
 } from "react";
 import { useUserTheme } from "../../contexts/UserThemeContext";
 import { Bell, X, Check, Archive } from "lucide-react";
@@ -22,18 +24,19 @@ interface Notification {
   metadata?: any;
 }
 
-const NotificationCenter: React.FC = React.memo(() => {
+const NotificationCenter: React.FC = memo(() => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors } = useUserTheme();
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // 🛡️ REF PARA PREVENIR MULTIPLE REGISTRATIONS
-  const listenersRegisteredRef = useRef(false);
+  // 🛡️ REFERENCIAS ESTABLES PARA PREVENIR RE-RENDERS
   const isMountedRef = useRef(true);
+  const listenersRegisteredRef = useRef(false);
+  const componentIdRef = useRef(`notification-${Date.now()}`);
 
-  // ✅ FETCH NOTIFICATIONS ESTABLE (sin dependencias inestables)
+  // ✅ FETCH NOTIFICATIONS COMPLETAMENTE ESTABLE
   const fetchNotifications = useCallback(async () => {
     if (!isMountedRef.current) return;
 
@@ -43,12 +46,12 @@ const NotificationCenter: React.FC = React.memo(() => {
 
       if (!isMountedRef.current) return;
 
-      setNotifications(
-        response.data.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp || n.createdAt),
-        }))
-      );
+      const formattedNotifications = response.data.map((n: any) => ({
+        ...n,
+        timestamp: new Date(n.timestamp || n.createdAt),
+      }));
+
+      setNotifications(formattedNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       if (isMountedRef.current) {
@@ -59,17 +62,29 @@ const NotificationCenter: React.FC = React.memo(() => {
         setLoading(false);
       }
     }
-  }, []); // ✅ Sin dependencias
+  }, []); // ✅ Sin dependencias - completamente estable
 
-  // ✅ CALLBACKS COMPLETAMENTE ESTABLES
+  // ✅ HANDLERS COMPLETAMENTE ESTABLES
   const handleNewNotification = useCallback((notification: Notification) => {
     if (!isMountedRef.current) return;
-    setNotifications((prev) => [notification, ...prev.slice(0, 49)]);
+
+    console.log(`📢 Nueva notificación recibida:`, notification);
+
+    setNotifications((prev) => {
+      // Evitar duplicados
+      if (prev.some((n) => n.id === notification.id)) {
+        return prev;
+      }
+      return [notification, ...prev.slice(0, 49)]; // Mantener máximo 50
+    });
   }, []);
 
   const handleUpdateNotification = useCallback(
     (updatedNotification: Notification) => {
       if (!isMountedRef.current) return;
+
+      console.log(`🔄 Notificación actualizada:`, updatedNotification);
+
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === updatedNotification.id ? updatedNotification : n
@@ -79,42 +94,63 @@ const NotificationCenter: React.FC = React.memo(() => {
     []
   );
 
-  // 🔒 EFFECT ÚNICO PARA LISTENERS - SIN DEPENDENCIAS INESTABLES
+  // 🔒 EFFECT ÚNICO PARA LISTENERS - REGISTRO ÚNICO
   useEffect(() => {
-    if (!isConnected || listenersRegisteredRef.current) return;
+    if (!isConnected || listenersRegisteredRef.current) {
+      return;
+    }
 
-    console.log("🎧 Registrando listeners (estable)");
+    console.log(`🎧 ${componentIdRef.current} registrando listeners WebSocket`);
+
     addListener("notification:new", handleNewNotification);
     addListener("notification:update", handleUpdateNotification);
     listenersRegisteredRef.current = true;
 
     return () => {
       if (listenersRegisteredRef.current) {
-        console.log("🧹 Limpiando listeners (estable)");
+        console.log(
+          `🧹 ${componentIdRef.current} limpiando listeners WebSocket`
+        );
         removeListener("notification:new", handleNewNotification);
         removeListener("notification:update", handleUpdateNotification);
         listenersRegisteredRef.current = false;
       }
     };
-  }, [isConnected]); // ✅ Solo isConnected como dependencia
+  }, [
+    isConnected,
+    addListener,
+    removeListener,
+    handleNewNotification,
+    handleUpdateNotification,
+  ]);
 
-  // 🧹 CLEANUP EN UNMOUNT (robusto)
+  // 🧹 CLEANUP EN UNMOUNT - ROBUSTO
   useEffect(() => {
     isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-      console.log("🗑️ Componente desmontado (cleanup completo)");
-    };
-  }, []);
 
-  // ✅ EFFECT PARA FETCH - SOLO CUANDO SE ABRE
+    return () => {
+      console.log(
+        `🗑️ ${componentIdRef.current} desmontando - cleanup completo`
+      );
+      isMountedRef.current = false;
+
+      // Forzar cleanup de listeners si aún están registrados
+      if (listenersRegisteredRef.current) {
+        removeListener("notification:new", handleNewNotification);
+        removeListener("notification:update", handleUpdateNotification);
+        listenersRegisteredRef.current = false;
+      }
+    };
+  }, [removeListener, handleNewNotification, handleUpdateNotification]);
+
+  // ✅ FETCH SOLO CUANDO SE ABRE EL PANEL
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && notifications.length === 0) {
       fetchNotifications();
     }
-  }, [isOpen]); // ✅ fetchNotifications no es dependencia
+  }, [isOpen, fetchNotifications]); // fetchNotifications es estable
 
-  // ✅ MEMOIZAR FUNCIONES DE ACCIÓN
+  // ✅ ACCIONES DE NOTIFICACIÓN MEMOIZADAS
   const markAsRead = useCallback(async (id: string) => {
     if (!isMountedRef.current) return;
 
@@ -139,17 +175,20 @@ const NotificationCenter: React.FC = React.memo(() => {
     }
   }, []);
 
-  // ✅ MEMOIZAR UNREAD COUNT
+  const toggleOpen = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
+
+  // ✅ MEMOIZAR VALORES COMPUTADOS
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => n.status === "unread").length;
   }, [notifications]);
 
-  // ✅ MEMOIZAR NOTIFICATION ITEMS
   const notificationItems = useMemo(() => {
     return notifications.slice(0, 10).map((notification) => (
       <div
         key={notification.id}
-        className={`p-3 border-b border-gray-200 hover:bg-gray-50 ${
+        className={`p-3 border-b border-gray-200 hover:bg-gray-50 transition-colors ${
           notification.status === "unread" ? "bg-blue-50" : ""
         }`}
       >
@@ -159,26 +198,31 @@ const NotificationCenter: React.FC = React.memo(() => {
               {notification.title}
             </h4>
             <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {notification.timestamp.toLocaleString()}
-            </p>
+            <span className="text-xs text-gray-500">
+              {notification.timestamp.toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
           <div className="flex space-x-1 ml-2">
             {notification.status === "unread" && (
               <button
                 onClick={() => markAsRead(notification.id)}
-                className="text-gray-400 hover:text-green-600"
+                className="text-blue-600 hover:text-blue-800 p-1"
                 title="Marcar como leída"
               >
-                <Check size={16} />
+                <Check size={14} />
               </button>
             )}
             <button
               onClick={() => markAsArchived(notification.id)}
-              className="text-gray-400 hover:text-red-600"
+              className="text-gray-600 hover:text-gray-800 p-1"
               title="Archivar"
             >
-              <Archive size={16} />
+              <Archive size={14} />
             </button>
           </div>
         </div>
@@ -188,11 +232,13 @@ const NotificationCenter: React.FC = React.memo(() => {
 
   return (
     <div className="relative">
+      {/* 🔔 BOTÓN DE NOTIFICACIONES */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        onClick={toggleOpen}
+        className="relative p-2 rounded-lg transition-colors hover:bg-gray-100"
+        title="Notificaciones"
       >
-        <Bell size={20} />
+        <Bell size={20} className="text-gray-600" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -200,17 +246,18 @@ const NotificationCenter: React.FC = React.memo(() => {
         )}
       </button>
 
+      {/* 📋 PANEL DE NOTIFICACIONES */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-900">
               Notificaciones
             </h3>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={toggleOpen}
               className="text-gray-400 hover:text-gray-600"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
