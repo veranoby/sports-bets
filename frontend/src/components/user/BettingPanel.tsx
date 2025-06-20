@@ -25,7 +25,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
     useWebSocketContext();
 
-  // Memoizar callbacks para listeners
+  // Handlers memoizados (estables)
   const handleNewBet = useCallback(() => {
     fetchAvailableBets();
   }, []);
@@ -38,10 +38,19 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     fetchAvailableBets();
   }, []);
 
+  // Efecto para manejar rooms (solo depende de isConnected y fightId)
   useEffect(() => {
     if (!isConnected || !fightId) return;
 
     joinRoom(fightId);
+    return () => {
+      leaveRoom(fightId);
+    };
+  }, [isConnected, fightId, joinRoom, leaveRoom]);
+
+  // Efecto para manejar listeners (solo depende de isConnected y handlers estables)
+  useEffect(() => {
+    if (!isConnected) return;
 
     addListener("new_bet", handleNewBet);
     addListener("betting_window_closed", handleBettingWindowClosed);
@@ -50,15 +59,21 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     }
 
     return () => {
-      leaveRoom(fightId);
       removeListener("new_bet", handleNewBet);
       removeListener("betting_window_closed", handleBettingWindowClosed);
       if (onBetPlaced) {
         removeListener("bet_matched", handleBetMatched);
       }
     };
-    // Solo depende de isConnected y fightId (callbacks son estables)
-  }, [isConnected, fightId]);
+  }, [
+    isConnected,
+    handleNewBet,
+    handleBettingWindowClosed,
+    handleBetMatched,
+    onBetPlaced,
+    addListener,
+    removeListener,
+  ]);
 
   const renderQuickMode = () => (
     <div className="space-y-3">

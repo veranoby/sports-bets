@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useBets } from "../../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";
@@ -18,22 +18,25 @@ const ProposalNotifications = () => {
   const { acceptProposal, rejectProposal, getPendingProposals } = useBets();
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  const handleProposalReceived = (proposal: Proposal) => {
+  const handleProposalReceived = useCallback((proposal: Proposal) => {
     setProposals((prev) => [proposal, ...prev]);
     setHasUnread(true);
-  };
+  }, []);
 
-  const handleProposalAccepted = (proposalId: string) => {
+  const handleProposalAccepted = useCallback((proposalId: string) => {
     setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-  };
+  }, []);
 
-  const handleProposalRejected = (proposalId: string) => {
+  const handleProposalRejected = useCallback((proposalId: string) => {
     setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-  };
+  }, []);
 
-  const handleBetProposalUpdate = (data: { proposalId: string }) => {
-    console.log("Actualización de propuesta:", data);
-  };
+  const handleBetProposalUpdate = useCallback(
+    (data: { proposalId: string }) => {
+      console.log("Actualización de propuesta:", data);
+    },
+    []
+  );
 
   useEffect(() => {
     getPendingProposals().then(setProposals);
@@ -51,7 +54,7 @@ const ProposalNotifications = () => {
       removeListener("proposal:rejected", handleProposalRejected);
       removeListener("bet_proposal_update", handleBetProposalUpdate);
     };
-  }, [isConnected, addListener, removeListener, getPendingProposals]);
+  }, [isConnected]);
 
   const handleAccept = async (proposalId: string) => {
     await acceptProposal(proposalId);

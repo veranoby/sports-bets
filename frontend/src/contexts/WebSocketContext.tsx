@@ -1,4 +1,4 @@
-// frontend/src/contexts/WebSocketContext.tsx - ANTI-THRASHING V5
+// frontend/src/contexts/WebSocketContext.tsx V8 - CHEQUEAR ANTI-CICLO INFINITO Y TRASHING y DEPENDENCIES ESTABLES
 
 import React, {
   createContext,
@@ -39,38 +39,12 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 🛡️ GUARDS ANTI-THRASHING
+  // 🛡️ GUARDS ANTI-THRASHING - REFS SIMPLES (sin función inestable)
   const operationInProgressRef = useRef(false);
   const lastOperationTimeRef = useRef<number>(0);
-  const OPERATION_DEBOUNCE_MS = 150; // Debounce más agresivo
+  const OPERATION_DEBOUNCE_MS = 200;
 
-  // 🔒 FUNCIÓN PARA PREVENIR THRASHING
-  const canPerformOperation = useCallback((): boolean => {
-    const now = Date.now();
-    const timeSinceLastOp = now - lastOperationTimeRef.current;
-
-    if (
-      operationInProgressRef.current ||
-      timeSinceLastOp < OPERATION_DEBOUNCE_MS
-    ) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("🛡️ Operación bloqueada para prevenir thrashing");
-      }
-      return false;
-    }
-
-    operationInProgressRef.current = true;
-    lastOperationTimeRef.current = now;
-
-    // Liberar flag después del debounce
-    setTimeout(() => {
-      operationInProgressRef.current = false;
-    }, OPERATION_DEBOUNCE_MS);
-
-    return true;
-  }, []);
-
-  // 🛡️ FUNCIONES ESTABLES CON GUARDS
+  // 🛡️ FUNCIONES ESTABLES CON GUARDS - SIN DEPENDENCIES VARIABLES
   const emit = useCallback((event: string, data?: any): boolean => {
     if (!socketRef.current?.connected) {
       if (process.env.NODE_ENV === "development") {
@@ -81,37 +55,31 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
     socketRef.current.emit(event, data);
     return true;
-  }, []);
+  }, []); // 🔑 DEPENDENCIES VACÍAS
 
-  const joinRoom = useCallback(
-    (roomId: string) => {
-      if (!canPerformOperation()) return;
+  const joinRoom = useCallback((roomId: string) => {
+    if (!canPerformOperation()) return;
 
-      if (socketRef.current?.connected) {
-        socketRef.current.emit("join_room", roomId);
-        if (process.env.NODE_ENV === "development") {
-          console.log(`🚪 Uniéndose a sala: ${roomId}`);
-        }
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("join_room", roomId);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🚪 Uniéndose a sala: ${roomId}`);
       }
-    },
-    [canPerformOperation]
-  );
+    }
+  }, []); // 🔑 DEPENDENCIES VACÍAS
 
-  const leaveRoom = useCallback(
-    (roomId: string) => {
-      if (!canPerformOperation()) return;
+  const leaveRoom = useCallback((roomId: string) => {
+    if (!canPerformOperation()) return;
 
-      if (socketRef.current?.connected) {
-        socketRef.current.emit("leave_room", roomId);
-        if (process.env.NODE_ENV === "development") {
-          console.log(`🚪 Saliendo de sala: ${roomId}`);
-        }
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("leave_room", roomId);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🚪 Saliendo de sala: ${roomId}`);
       }
-    },
-    [canPerformOperation]
-  );
+    }
+  }, []); // 🔑 DEPENDENCIES VACÍAS
 
-  // 🔧 REGISTRY DE LISTENERS CON ANTI-DUPLICACIÓN MEJORADA
+  // 🔧 REGISTRY DE LISTENERS - FUNCIONES ESTABLES SIN DEPENDENCIES
   const addListener = useCallback(
     (event: string, handler: (data: any) => void) => {
       if (!socketRef.current) {
@@ -121,22 +89,36 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      // Guard anti-thrashing
-      if (!canPerformOperation()) return;
+      // Guard anti-thrashing usando ref directamente (sin dependency)
+      const now = Date.now();
+      const timeSinceLastOp = now - lastOperationTimeRef.current;
 
-      // Verificar si ya está registrado (comparación por referencia)
+      if (
+        operationInProgressRef.current ||
+        timeSinceLastOp < OPERATION_DEBOUNCE_MS
+      ) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("🛡️ addListener bloqueado para prevenir thrashing");
+        }
+        return;
+      }
+
+      operationInProgressRef.current = true;
+      lastOperationTimeRef.current = now;
+
+      // Verificar si ya está registrado
       const eventListeners =
         listenersRegistryRef.current.get(event) || new Set();
 
-      // 🔍 VERIFICACIÓN ESTRICTA DE DUPLICADOS
       for (const existingHandler of eventListeners) {
         if (existingHandler === handler) {
+          operationInProgressRef.current = false;
           if (process.env.NODE_ENV === "development") {
             console.warn(
               `🔄 Listener duplicado detectado para: ${event} - IGNORADO`
             );
           }
-          return; // Ya está registrado, no agregar duplicado
+          return;
         }
       }
 
@@ -152,16 +134,35 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           `🎧 Listener agregado para: ${event} (Total: ${eventListeners.size})`
         );
       }
+
+      // Liberar flag después del debounce
+      setTimeout(() => {
+        operationInProgressRef.current = false;
+      }, OPERATION_DEBOUNCE_MS);
     },
-    [canPerformOperation]
-  );
+    []
+  ); // 🔑 NO DEPENDENCIES - FUNCIÓN COMPLETAMENTE ESTABLE
 
   const removeListener = useCallback(
     (event: string, handler: (data: any) => void) => {
       if (!socketRef.current) return;
 
-      // Guard anti-thrashing
-      if (!canPerformOperation()) return;
+      // Guard anti-thrashing usando ref directamente (sin dependency)
+      const now = Date.now();
+      const timeSinceLastOp = now - lastOperationTimeRef.current;
+
+      if (
+        operationInProgressRef.current ||
+        timeSinceLastOp < OPERATION_DEBOUNCE_MS
+      ) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("🛡️ removeListener bloqueado para prevenir thrashing");
+        }
+        return;
+      }
+
+      operationInProgressRef.current = true;
+      lastOperationTimeRef.current = now;
 
       // Remover del registry
       const eventListeners = listenersRegistryRef.current.get(event);
@@ -182,11 +183,16 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           })`
         );
       }
-    },
-    [canPerformOperation]
-  );
 
-  // 🔌 FUNCIÓN DE CONEXIÓN CON CLEANUP COMPLETO Y GUARDS
+      // Liberar flag después del debounce
+      setTimeout(() => {
+        operationInProgressRef.current = false;
+      }, OPERATION_DEBOUNCE_MS);
+    },
+    []
+  ); // 🔑 NO DEPENDENCIES - FUNCIÓN COMPLETAMENTE ESTABLE
+
+  // 🔌 FUNCIÓN DE CONEXIÓN ESTABLE
   const createConnection = useCallback(async () => {
     if (!isAuthenticated || !token) {
       return null;
@@ -223,56 +229,43 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         query: { userId: token },
       });
 
-      // Eventos de conexión con guards
+      // Eventos de conexión
       newSocket.on("connect", () => {
-        console.log("✅ WebSocket conectado:", newSocket.id);
         setIsConnected(true);
         setConnectionError(null);
         setIsConnecting(false);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`✅ WebSocket conectado: ${newSocket.id}`);
+        }
       });
 
       newSocket.on("disconnect", (reason) => {
-        console.log("❌ WebSocket desconectado:", reason);
         setIsConnected(false);
-
-        // Reconexión automática con backoff
-        if (reason === "io server disconnect") {
-          // Server desconectó, no intentar reconectar automáticamente
-          setConnectionError("Servidor desconectó la conexión");
-        } else {
-          // Reconexión automática con delay
-          if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-          }
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (isAuthenticated && token) {
-              console.log("🔄 Intentando reconexión automática...");
-              createConnection();
-            }
-          }, 3000);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`❌ WebSocket desconectado: ${reason}`);
         }
       });
 
       newSocket.on("connect_error", (error) => {
-        console.error("❌ Error de conexión WebSocket:", error);
         setConnectionError(error.message);
+        setIsConnected(false);
         setIsConnecting(false);
+        if (process.env.NODE_ENV === "development") {
+          console.error("❌ Error de conexión WebSocket:", error);
+        }
       });
 
       socketRef.current = newSocket;
-    } catch (error) {
-      console.error("❌ Error creando conexión WebSocket:", error);
-      setConnectionError(
-        error instanceof Error ? error.message : "Error desconocido"
-      );
+      return newSocket;
+    } catch (error: any) {
+      setConnectionError(error?.message || "Error desconocido");
       setIsConnecting(false);
     } finally {
       operationInProgressRef.current = false;
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token]); // 🔑 SOLO AUTH DEPENDENCIES
 
-  // 🔄 EFFECT PRINCIPAL CON GUARDS
+  // 🔄 EFFECT PRINCIPAL
   useEffect(() => {
     let mounted = true;
 
@@ -309,9 +302,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
       }
       listenersRegistryRef.current.clear();
     };
-  }, [isAuthenticated, token, createConnection]);
+  }, [isAuthenticated, token]); // 🔑 SOLO AUTH DEPENDENCIES
 
-  // 📊 VALOR DEL CONTEXTO - COMPLETAMENTE ESTABLE
+  // 📊 VALOR DEL CONTEXTO - FUNCIONES ESTABLES
   const contextValue: WebSocketContextType = React.useMemo(
     () => ({
       isConnected,

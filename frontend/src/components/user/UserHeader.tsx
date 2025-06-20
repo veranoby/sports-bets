@@ -22,6 +22,7 @@ interface UserHeaderProps {
   customActions?: React.ReactNode;
 }
 
+// No WebSocket usage found (only connection status display)
 const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const { user, logout } = useAuth();
   const { wallet } = useWallet();

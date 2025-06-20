@@ -23,22 +23,27 @@ const OperatorDashboard: React.FC = () => {
   const { addListener, removeListener, isConnected, emit } =
     useWebSocketContext();
 
-  const handleNewBet = useCallback((data) => {
+  const handleNewBet = useCallback((data: any) => {
     console.log("Nueva apuesta creada:", data);
   }, []);
-  const handleBetMatched = useCallback((data) => {
+
+  const handleBetMatched = useCallback((data: any) => {
     console.log("Apuesta emparejada:", data);
   }, []);
-  const handleFightUpdated = useCallback((data) => {
+
+  const handleFightUpdated = useCallback((data: any) => {
     console.log("Pelea actualizada:", data);
   }, []);
-  const handleBettingOpened = useCallback((data) => {
+
+  const handleBettingOpened = useCallback((data: any) => {
     console.log("Apuestas abiertas:", data);
   }, []);
-  const handleBettingClosed = useCallback((data) => {
+
+  const handleBettingClosed = useCallback((data: any) => {
     console.log("Apuestas cerradas:", data);
   }, []);
-  const handleEventActivated = useCallback((data) => {
+
+  const handleEventActivated = useCallback((data: any) => {
     console.log("Evento activado:", data);
   }, []);
 

@@ -1,4 +1,4 @@
-// 🔧 HOOK USEWEBSOCKET V4 - ANTI-CICLO INFINITO
+// 🔧 HOOK USEWEBSOCKET V8 - CHEQUEAR ANTI-CICLO INFINITO Y TRASHING
 // ==========================================
 
 import { useEffect, useRef, useCallback, useMemo } from "react";

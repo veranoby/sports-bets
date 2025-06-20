@@ -1,7 +1,7 @@
 // frontend/src/pages/user/Bets.tsx - VERSIÓN CORREGIDA
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -56,30 +56,36 @@ const UserBets: React.FC = () => {
   // WebSocket para actualizaciones
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
+  // ✅ Handlers memoizados con useRef para fetchMyBets
+  const fetchMyBetsRef = useRef(fetchMyBets);
+  useEffect(() => {
+    fetchMyBetsRef.current = fetchMyBets;
+  }, [fetchMyBets]);
+
   const handleBetMatched = useCallback(() => {
-    fetchMyBets();
-    console.log("Listener bet_matched ejecutado");
-  }, []);
-  const handleBetResult = useCallback(() => {
-    fetchMyBets();
-    console.log("Listener bet_result ejecutado");
-  }, []);
-  const handlePagoProposed = useCallback(() => {
-    fetchMyBets();
-    console.log("Listener pago_proposed ejecutado");
+    fetchMyBetsRef.current();
   }, []);
 
+  const handleBetResult = useCallback(() => {
+    fetchMyBetsRef.current();
+  }, []);
+
+  const handlePagoProposed = useCallback(() => {
+    fetchMyBetsRef.current();
+  }, []);
+
+  // ✅ useEffect simplificado
   useEffect(() => {
     if (!isConnected) return;
+
     addListener("bet_matched", handleBetMatched);
     addListener("bet_result", handleBetResult);
     addListener("pago_proposed", handlePagoProposed);
-    console.log("Listener agregado Bets");
+
     return () => {
       removeListener("bet_matched", handleBetMatched);
       removeListener("bet_result", handleBetResult);
       removeListener("pago_proposed", handlePagoProposed);
-      console.log("Listener removido Bets");
     };
   }, [isConnected]);
 

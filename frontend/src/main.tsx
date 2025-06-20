@@ -27,14 +27,9 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  // ❌ COMENTAR STRICT MODE TEMPORALMENTE PARA TESTING
-  // <React.StrictMode>
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-  // </React.StrictMode>
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
 );
-
-// ⚠️ NOTA: Esto es temporal para diagnosticar el problema.
-// React Strict Mode causa double mounting en desarrollo.
-// Una vez solucionado el listener thrashing, volver a habilitar.
