@@ -39,14 +39,9 @@ apiClient.interceptors.request.use(
 // Interceptor para manejar respuestas y errores
 apiClient.interceptors.response.use(
   (response) => {
-    console.log("🔍 INTERCEPTOR - Raw axios response:", response);
-    console.log("🔍 INTERCEPTOR - response.data:", response.data);
-    console.log("🔍 INTERCEPTOR - Returning:", response.data);
     return response.data; // Return the raw axios response
   },
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
-
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
@@ -67,22 +62,15 @@ apiClient.interceptors.response.use(
 const formatApiResponse = <T>(
   promise: Promise<AxiosResponse<T>>
 ): Promise<APIResponse<T>> => {
-  console.log("🔍 formatApiResponse - Promise received:", promise);
-
   return promise
     .then((res) => {
-      console.log("🔍 formatApiResponse - Raw res:", res);
-
       const result = {
         success: true,
         data: res.data || res, // 🔧 FIX: Manejar ambos casos
       };
-
-      console.log("🔍 formatApiResponse - Final result:", result);
       return result;
     })
     .catch((err) => {
-      console.log("🔍 formatApiResponse - Error caught:", err);
       const message = err.message || "Error desconocido";
       return Promise.reject({ success: false, message });
     });

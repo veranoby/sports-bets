@@ -1,5 +1,5 @@
 // frontend/src/hooks/useWebSocket.ts
-// 🔧 WEBSOCKET HOOK FIXED - Sin loops setState
+// 🔧 WEBSOCKET HOOK COMPLETO - Mantiene todas las funcionalidades + Fix loops
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
@@ -9,6 +9,8 @@ interface UseWebSocketOptions {
   reconnect?: boolean;
   maxRetries?: number;
   retryDelay?: number;
+  forceNew?: boolean;
+  timeout?: number;
 }
 
 interface WebSocketState {
@@ -16,6 +18,7 @@ interface WebSocketState {
   connectionError: string | null;
   retryCount: number;
   lastConnected: Date | null;
+  reconnecting: boolean;
 }
 
 export const useWebSocket = (
@@ -28,68 +31,83 @@ export const useWebSocket = (
     reconnect = true,
     maxRetries = 5,
     retryDelay = 3000,
+    forceNew = false,
+    timeout = 20000,
   } = options;
 
-  // 🔧 FIX: useRef para evitar re-renders
+  // Refs para prevenir re-renders y memory leaks
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const listenersRef = useRef(listeners);
   const mountedRef = useRef(true);
+  const connectionAttemptsRef = useRef(0);
 
-  // 🔧 FIX: Estado inicial estable
+  // Estado con manejo avanzado
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,
     connectionError: null,
     retryCount: 0,
     lastConnected: null,
+    reconnecting: false,
   });
 
   // URL del WebSocket
   const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
-  // 🔧 FIX: updateState con useCallback y verificación de mounted
+  // 🔧 FIX: updateState seguro
   const updateState = useCallback((updates: Partial<WebSocketState>) => {
     if (!mountedRef.current) return;
     setState((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  // 🔧 FIX: Actualizar listeners ref sin causar re-render
+  // 🔧 Mantener listeners actualizados sin reconectar
   useEffect(() => {
     listenersRef.current = listeners;
   }, [listeners]);
 
-  // 🔧 FIX: Connect function estable
+  // 🔧 FUNCIÓN DE CONEXIÓN PRINCIPAL
   const connect = useCallback(() => {
     if (!mountedRef.current) return;
 
-    // Si ya existe un socket, no crear otro
-    if (socketRef.current?.connected) return;
+    // Prevenir múltiples conexiones
+    if (socketRef.current?.connected) {
+      console.log("🔌 Socket ya conectado, omitiendo conexión");
+      return;
+    }
+
+    // Incrementar intentos SOLO si no hay socket o está desconectado
+    if (!socketRef.current) {
+      connectionAttemptsRef.current++;
+      console.log(
+        `🔌 Intento de conexión #${connectionAttemptsRef.current} - WebSocket: ${WEBSOCKET_URL}`
+      );
+    }
 
     try {
-      console.log("🔌 Conectando WebSocket:", WEBSOCKET_URL);
+      updateState({ reconnecting: true });
 
       const socket = io(WEBSOCKET_URL + (namespace || ""), {
         transports: ["websocket", "polling"],
         upgrade: true,
-        timeout: 20000,
-        forceNew: false, // 🔧 FIX: No forzar nueva conexión
-        reconnection: reconnect,
-        reconnectionAttempts: maxRetries,
-        reconnectionDelay: retryDelay,
+        timeout,
+        forceNew,
+        reconnection: false, // 🔧 MANEJAMOS NOSOTROS LAS RECONEXIONES
         autoConnect: false,
       });
 
       socketRef.current = socket;
 
-      // Event listeners
+      // 🔧 EVENTOS DEL SISTEMA
       socket.on("connect", () => {
         if (!mountedRef.current) return;
-        console.log("✅ WebSocket conectado");
+        console.log("✅ WebSocket conectado exitosamente");
+        connectionAttemptsRef.current = 0; // Reset attempts en éxito
         updateState({
           isConnected: true,
           connectionError: null,
           retryCount: 0,
           lastConnected: new Date(),
+          reconnecting: false,
         });
       });
 
@@ -99,51 +117,57 @@ export const useWebSocket = (
         updateState({
           isConnected: false,
           connectionError: `Desconectado: ${reason}`,
+          reconnecting: false,
         });
+
+        // 🔧 AUTO-RECONEXIÓN INTELIGENTE
+        if (reconnect && reason !== "io client disconnect") {
+          scheduleReconnect();
+        }
       });
 
       socket.on("connect_error", (error) => {
         if (!mountedRef.current) return;
-        console.error("❌ Error WebSocket:", error);
+        console.error("❌ Error de conexión WebSocket:", error.message);
 
         setState((prev) => {
           const newRetryCount = prev.retryCount + 1;
 
-          // 🔧 FIX: Retry lógica mejorada
-          if (reconnect && newRetryCount <= maxRetries) {
-            reconnectTimeoutRef.current = setTimeout(() => {
-              if (mountedRef.current) {
-                console.log(`🔄 Reintento ${newRetryCount}/${maxRetries}`);
-                socket.connect();
-              }
-            }, retryDelay);
-          }
-
-          return {
-            ...prev,
+          updateState({
             isConnected: false,
             connectionError: error.message,
             retryCount: newRetryCount,
-          };
+            reconnecting: false,
+          });
+
+          // Programar reintento si no hemos excedido máximo
+          if (reconnect && newRetryCount < maxRetries) {
+            scheduleReconnect();
+          } else if (newRetryCount >= maxRetries) {
+            console.error(`❌ Máximo de reintentos alcanzado (${maxRetries})`);
+          }
+
+          return prev;
         });
       });
 
-      // 🔧 FIX: Aplicar listeners de manera estable
+      // 🔧 APLICAR LISTENERS PERSONALIZADOS
       if (listenersRef.current) {
         Object.entries(listenersRef.current).forEach(([event, handler]) => {
           socket.on(event, handler);
         });
       }
 
-      // Conectar si autoConnect está habilitado
+      // 🔧 CONECTAR SI AUTO-CONNECT HABILITADO
       if (autoConnect) {
         socket.connect();
       }
     } catch (error) {
-      console.error("❌ Error creando socket:", error);
+      console.error("❌ Error crítico creando socket:", error);
       if (mountedRef.current) {
         updateState({
           connectionError: (error as Error).message,
+          reconnecting: false,
         });
       }
     }
@@ -154,11 +178,38 @@ export const useWebSocket = (
     reconnect,
     maxRetries,
     retryDelay,
+    timeout,
+    forceNew,
     updateState,
   ]);
 
-  // 🔧 FIX: Disconnect function estable
+  // 🔧 FUNCIÓN DE RECONEXIÓN PROGRAMADA
+  const scheduleReconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+
+    const currentRetryCount = state.retryCount;
+    const delay = retryDelay * Math.pow(1.5, currentRetryCount); // Exponential backoff
+
+    console.log(
+      `🔄 Programando reconexión en ${delay}ms (intento ${
+        currentRetryCount + 1
+      }/${maxRetries})`
+    );
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      if (mountedRef.current && !socketRef.current?.connected) {
+        console.log(`🔄 Ejecutando reconexión...`);
+        connect();
+      }
+    }, delay);
+  }, [state.retryCount, retryDelay, maxRetries, connect]);
+
+  // 🔧 FUNCIÓN DE DESCONEXIÓN
   const disconnect = useCallback(() => {
+    console.log("🔌 Desconectando WebSocket...");
+
     // Limpiar timeout de reconexión
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -171,48 +222,72 @@ export const useWebSocket = (
       socketRef.current = null;
     }
 
-    // Actualizar estado solo si está montado
+    // Reset estado
     if (mountedRef.current) {
       updateState({
         isConnected: false,
         connectionError: null,
         retryCount: 0,
+        reconnecting: false,
       });
     }
+
+    connectionAttemptsRef.current = 0;
   }, [updateState]);
 
-  // 🔧 FIX: Emit function estable
+  // 🔧 FUNCIÓN EMIT MEJORADA
   const emit = useCallback((event: string, data?: any) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit(event, data);
       return true;
     } else {
-      console.warn("⚠️ No se puede emitir - Socket no conectado");
+      console.warn(
+        `⚠️ No se puede emitir evento '${event}' - Socket no conectado`
+      );
       return false;
     }
   }, []);
 
-  // 🔧 FIX: Force reconnect function estable
+  // 🔧 FUNCIÓN DE RECONEXIÓN FORZADA
   const forceReconnect = useCallback(() => {
+    console.log("🔄 Forzando reconexión...");
     disconnect();
-    setState((prev) => ({ ...prev, retryCount: 0 }));
+    updateState({ retryCount: 0 });
+
     setTimeout(() => {
       if (mountedRef.current) {
         connect();
       }
     }, 1000);
-  }, [disconnect, connect]);
+  }, [disconnect, connect, updateState]);
 
-  // 🔧 FIX: useEffect principal SIN dependencias problemáticas
+  // 🔧 FUNCIÓN PARA UNIRSE A ROOM
+  const joinRoom = useCallback(
+    (room: string) => {
+      return emit("join-room", room);
+    },
+    [emit]
+  );
+
+  // 🔧 FUNCIÓN PARA SALIR DE ROOM
+  const leaveRoom = useCallback(
+    (room: string) => {
+      return emit("leave-room", room);
+    },
+    [emit]
+  );
+
+  // 🔧 USEEFFECT PRINCIPAL - SOLO SE EJECUTA UNA VEZ
   useEffect(() => {
     mountedRef.current = true;
     connect();
 
-    // Cleanup function
+    // 🔧 CLEANUP AL DESMONTAR COMPONENTE
     return () => {
+      console.log("🧹 Limpiando WebSocket hook...");
       mountedRef.current = false;
 
-      // Limpiar timeout
+      // Limpiar timeouts
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -223,51 +298,56 @@ export const useWebSocket = (
         socketRef.current = null;
       }
     };
-  }, []); // 🔧 FIX: Array de dependencias VACÍO para evitar loops
+  }, []); // 🔧 FIX: DEPENDENCIAS VACÍAS PARA EVITAR LOOPS
 
-  // 🔧 FIX: useEffect separado para actualizar listeners sin reconectar
+  // 🔧 USEEFFECT SEPARADO PARA ACTUALIZAR LISTENERS SIN RECONECTAR
   useEffect(() => {
     const socket = socketRef.current;
     if (socket && listeners) {
-      // Remover listeners anteriores
-      socket.removeAllListeners();
-
-      // Agregar listeners del sistema
-      socket.on("connect", () => {
-        if (!mountedRef.current) return;
-        updateState({
-          isConnected: true,
-          connectionError: null,
-          retryCount: 0,
-          lastConnected: new Date(),
-        });
-      });
-
-      socket.on("disconnect", (reason) => {
-        if (!mountedRef.current) return;
-        updateState({
-          isConnected: false,
-          connectionError: `Desconectado: ${reason}`,
-        });
-      });
-
-      // Agregar listeners personalizados
+      // 🔧 ACTUALIZAR LISTENERS SIN REMOVER TODOS
       Object.entries(listeners).forEach(([event, handler]) => {
+        // Remover listener previo solo para este evento específico
+        socket.off(event);
+        // Agregar nuevo listener
         socket.on(event, handler);
       });
     }
-  }, [listeners, updateState]);
+  }, [listeners]);
 
+  // 🔧 FUNCIONES DE UTILIDAD ADICIONALES
+  const getConnectionStatus = useCallback(() => {
+    return {
+      connected: socketRef.current?.connected || false,
+      socket: socketRef.current,
+      attempts: connectionAttemptsRef.current,
+      ...state,
+    };
+  }, [state]);
+
+  // 🔧 RETURN INTERFACE COMPLETA
   return {
+    // Estado
     isConnected: state.isConnected,
     connectionError: state.connectionError,
     retryCount: state.retryCount,
     lastConnected: state.lastConnected,
+    reconnecting: state.reconnecting,
+
+    // Funciones de control
     connect,
     disconnect,
-    emit,
     forceReconnect,
-    // 🔧 NEW: Función para verificar si está realmente conectado
+
+    // Comunicación
+    emit,
+    joinRoom,
+    leaveRoom,
+
+    // Utilidades
+    getConnectionStatus,
     isReallyConnected: () => socketRef.current?.connected || false,
+
+    // Socket directo (para casos especiales)
+    socket: socketRef.current,
   };
 };

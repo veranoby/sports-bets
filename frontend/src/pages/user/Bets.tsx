@@ -13,7 +13,6 @@ import {
   Filter,
   ArrowLeft,
   Bell,
-  dices,
 } from "lucide-react";
 
 // ✅ SOLO IMPORTACIONES DE COMPONENTES EXISTENTES
