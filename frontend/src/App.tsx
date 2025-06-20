@@ -1,11 +1,11 @@
-// frontend/src/App.tsx
-// 🔧 CORRECCIÓN CRÍTICA: Order de Providers Corregido
+// frontend/src/App.tsx - MOVER COMPONENTES WEBSOCKET A NIVEL APP
+// ====================================================================
 
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserThemeProvider } from "./contexts/UserThemeContext";
-import { WebSocketProvider } from "./contexts/WebSocketContext"; // ✅ Import correcto
+import { WebSocketProvider } from "./contexts/WebSocketContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import OperatorDashboard from "./pages/operator/Dashboard";
@@ -19,6 +19,9 @@ import VenueDashboard from "./pages/venue/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import Navigation from "./components/user/Navigation";
+// ✅ IMPORTAR COMPONENTES WEBSOCKET A NIVEL APP
+import NotificationCenter from "./components/shared/NotificationCenter";
+import WebSocketDiagnostics from "./components/shared/WebSocketDiagnostics";
 import "./App.css";
 
 // Componente para manejar redirección basada en rol
@@ -40,7 +43,6 @@ const RoleBasedRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirigir según el rol del usuario
   switch (user.role) {
     case "admin":
       return <Navigate to="/admin" replace />;
@@ -54,7 +56,6 @@ const RoleBasedRedirect: React.FC = () => {
   }
 };
 
-// 🎨 Wrapper para rutas USER con tema unificado
 const UserRouteWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -78,8 +79,26 @@ const AppContent: React.FC = () => {
       "/live-event",
     ].some((path) => location.pathname.startsWith(path));
 
+  // Determinar si mostrar componentes WebSocket (solo para usuarios autenticados)
+  const showWebSocketComponents = isAuthenticated;
+
   return (
     <div className="app-container">
+      {/* ✅ COMPONENTES WEBSOCKET A NIVEL APP - NO SE RE-MONTAN */}
+      {showWebSocketComponents && (
+        <>
+          {/* NotificationCenter fijo a nivel App */}
+          <div className="fixed top-4 right-4 z-50">
+            <NotificationCenter />
+          </div>
+
+          {/* WebSocketDiagnostics solo en desarrollo */}
+          {process.env.NODE_ENV === "development" && (
+            <WebSocketDiagnostics showDetails={false} position="fixed" />
+          )}
+        </>
+      )}
+
       <Routes>
         {/* Ruta de login */}
         <Route
@@ -222,15 +241,13 @@ const AppContent: React.FC = () => {
   );
 };
 
-// 🔧 CORRECCIÓN PRINCIPAL: Orden correcto de providers
+// 🔧 ORDEN CORRECTO DE PROVIDERS
 function App() {
   return (
     <ErrorBoundary
       fallback={<div>An error occurred. Please refresh the page.</div>}
     >
-      {/* ✅ CORRECTO: AuthProvider PRIMERO */}
       <AuthProvider>
-        {/* ✅ CORRECTO: WebSocketProvider DESPUÉS de AuthProvider */}
         <WebSocketProvider>
           <AppContent />
         </WebSocketProvider>

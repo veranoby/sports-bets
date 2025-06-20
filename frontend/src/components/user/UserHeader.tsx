@@ -1,5 +1,5 @@
-// frontend/src/components/user/UserHeader.tsx
-// 🎨 HEADER ATRACTIVO - Con datos reales y diseño mejorado
+// frontend/src/components/user/UserHeader.tsx - CORREGIR MOUNTING CYCLES
+// =========================================================================
 
 import React, { useState, useEffect } from "react";
 import { LogOut, Wifi, WifiOff } from "lucide-react";
@@ -13,7 +13,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import NotificationBadge from "../shared/NotificationBadge";
 import { Wallet, Dices } from "lucide-react";
-import NotificationCenter from "../shared/NotificationCenter";
+// ❌ REMOVER ESTOS IMPORTS QUE CAUSAN RE-MOUNTING:
+// import NotificationCenter from "../shared/NotificationCenter";
+// import WebSocketDiagnostics from "../shared/WebSocketDiagnostics";
 import ProposalNotifications from "./ProposalNotifications";
 import BetCard from "./BetCard";
 
@@ -22,7 +24,6 @@ interface UserHeaderProps {
   customActions?: React.ReactNode;
 }
 
-// No WebSocket usage found (only connection status display)
 const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const { user, logout } = useAuth();
   const { wallet } = useWallet();
@@ -83,159 +84,126 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
     }
   };
 
-  const handleUserClick = () => navigate("/profile");
-  const handleLogout = () => logout();
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
-  // Componente dropdown de apuestas
-  const BetsDropdown = () => (
-    <div className="relative">
-      <button
-        onClick={() => setShowBetsMenu(!showBetsMenu)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2a325c] hover:bg-[#3a426c] transition-colors"
-      >
-        <Dices size={18} />
-        {activeBetsCount > 0 && (
-          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {activeBetsCount}
-          </span>
-        )}
-      </button>
-
-      {showBetsMenu && (
-        <div className="absolute right-0 mt-2 w-80 bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg z-50">
-          {/* Encabezado */}
-          <div className="p-3 border-b border-[#596c95]">
-            <h3 className="font-medium text-white">Mis Apuestas</h3>
-          </div>
-
-          {/* Acciones rápidas */}
-          <div className="p-2 border-b border-[#596c95]">
-            <button
-              onClick={() => {
-                navigate("/bets");
-                setShowBetsMenu(false);
-              }}
-              className="w-full text-left text-sm text-gray-300 hover:text-white p-2 rounded hover:bg-[#3a426c]"
-            >
-              Ver todas las apuestas →
-            </button>
-          </div>
-
-          {/* Propuestas PAGO pendientes */}
-          <div className="max-h-60 overflow-y-auto">
-            <ProposalNotifications />
-
-            {/* Apuestas activas recientes */}
-            {recentActiveBets.length > 0 && (
-              <div className="p-2">
-                <h4 className="text-xs text-gray-400 mb-2">
-                  ACTIVAS RECIENTES
-                </h4>
-                {recentActiveBets.map((bet) => (
-                  <div key={bet.id} className="mb-2 last:mb-0">
-                    <BetCard
-                      bet={bet}
-                      mode="compact"
-                      onClick={() => setShowBetsMenu(false)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const roleInfo = getRoleLabel();
 
   return (
     <header
-      className={`${theme.gradientHeader} border-b border-theme-primary sticky top-0 z-50 backdrop-blur-sm`}
+      className={`${theme.headerBackground} shadow-sm border-b border-gray-700`}
     >
       <div className="px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Left Side - Title & Greeting */}
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                {title}
-                {customActions}
-              </h1>
-              {title === "Dashboard" && (
-                <p className="text-bold text-gray-300">{getGreeting()}</p>
-              )}
+        {/* Fila superior - Información del usuario */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            {/* Avatar del usuario */}
+            <div className="relative">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">
+                  {user?.username?.charAt(0).toUpperCase() || "U"}
+                </span>
+              </div>
+              {/* Indicador de conexión WebSocket */}
+              <div className="absolute -bottom-1 -right-1">
+                {isConnected ? (
+                  <Wifi className="w-4 h-4 text-green-400" />
+                ) : (
+                  <WifiOff className="w-4 h-4 text-red-400" />
+                )}
+              </div>
             </div>
-            {/* User Chip - Mejorado */}
 
-            {title !== "Mi Perfil" && (
-              <button
-                onClick={handleUserClick}
-                className={`flex items-center gap-3 ${theme.gradientUserButton} px-4 py-2 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl`}
-              >
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-white text-sm font-bold">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-white text-sm font-medium leading-tight">
-                    {user?.username || "Usuario"}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    {/* Connection Status - Chip Mejorado */}
-
-                    <div
-                      className={`w-3 h-3 rounded-full  ${
-                        isConnected
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                    >
-                      {isConnected ? (
-                        <Wifi className="w-3 h-3" />
-                      ) : (
-                        <WifiOff className="w-3 h-3" />
-                      )}
-                    </div>
-
-                    <span className="text-white/80 text-xs">
-                      {getRoleLabel().label}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            )}
+            {/* Información del usuario */}
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-white font-medium">
+                  {user?.username || "Usuario"}
+                </span>
+                <span
+                  className={`${roleInfo.color} text-white text-xs px-2 py-0.5 rounded-full`}
+                >
+                  {roleInfo.label}
+                </span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                {getGreeting()}, {currentTime.toLocaleDateString("es-ES")}
+              </p>
+            </div>
           </div>
 
-          {/* Right Side - User Controls */}
-          <div className="flex items-center gap-3">
-            <BetsDropdown />
-
-            {/* Balance Quick View */}
+          {/* Acciones del usuario */}
+          <div className="flex items-center space-x-2">
+            {/* 🔔 BOTÓN SIMPLE SIN COMPONENTE INTERNO */}
             <button
-              onClick={() => navigate("/wallet")}
-              className="flex items-center gap-1 text-white hover:text-theme-primary p-2"
-              aria-label="Wallet"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 rounded-lg transition-colors hover:bg-gray-600"
+              title="Notificaciones"
             >
-              <Wallet className="w-6 h-6" />
-              <span className="font-medium text-sm hidden sm:inline">
-                ${Number(wallet?.balance || 0).toFixed(0)}
-              </span>
+              <span className="text-gray-300 text-sm">🔔</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </button>
 
-            {/* Notification Center */}
-            <NotificationCenter />
-
-            {/* Logout Button */}
+            {/* Botón de logout */}
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300"
+              className="p-2 rounded-lg transition-colors hover:bg-gray-600"
               title="Cerrar sesión"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-5 h-5 text-gray-300" />
             </button>
           </div>
         </div>
+
+        {/* Fila inferior - Título y acciones */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white">{title}</h1>
+          <div className="flex items-center space-x-4">
+            {/* Billetera */}
+            <button
+              onClick={() => navigate("/wallet")}
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-white" />
+              <span className="text-white font-medium">
+                ${wallet?.balance?.toFixed(2) || "0.00"}
+              </span>
+            </button>
+
+            {/* Mis Apuestas */}
+            <button
+              onClick={() => navigate("/bets")}
+              className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Dices className="w-4 h-4 text-white" />
+              <span className="text-white font-medium">{activeBetsCount}</span>
+            </button>
+
+            {customActions}
+          </div>
+        </div>
+
+        {/* Panel de notificaciones simple (sin componente complejo) */}
+        {showNotifications && (
+          <div className="absolute right-4 top-16 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Notificaciones
+              </h3>
+            </div>
+            <div className="max-h-64 overflow-y-auto p-4">
+              <p className="text-center text-gray-500">
+                Sistema de notificaciones básico
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
