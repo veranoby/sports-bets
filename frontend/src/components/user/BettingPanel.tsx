@@ -1,7 +1,7 @@
 //CONSOLIDAR BettingPanel.tsx
 // Archivo: frontend/src/components/user/BettingPanel.tsx (REEMPLAZAR COMPLETO)
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
@@ -25,35 +25,40 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
     useWebSocketContext();
 
+  // Memoizar callbacks para listeners
+  const handleNewBet = useCallback(() => {
+    fetchAvailableBets();
+  }, []);
+
+  const handleBetMatched = useCallback(() => {
+    if (onBetPlaced) onBetPlaced();
+  }, [onBetPlaced]);
+
+  const handleBettingWindowClosed = useCallback(() => {
+    fetchAvailableBets();
+  }, []);
+
   useEffect(() => {
     if (!isConnected || !fightId) return;
 
     joinRoom(fightId);
 
-    addListener("new_bet", fetchAvailableBets);
+    addListener("new_bet", handleNewBet);
+    addListener("betting_window_closed", handleBettingWindowClosed);
     if (onBetPlaced) {
-      addListener("bet_matched", onBetPlaced);
+      addListener("bet_matched", handleBetMatched);
     }
-    addListener("betting_window_closed", fetchAvailableBets);
 
     return () => {
       leaveRoom(fightId);
-      removeListener("new_bet", fetchAvailableBets);
+      removeListener("new_bet", handleNewBet);
+      removeListener("betting_window_closed", handleBettingWindowClosed);
       if (onBetPlaced) {
-        removeListener("bet_matched", onBetPlaced);
+        removeListener("bet_matched", handleBetMatched);
       }
-      removeListener("betting_window_closed", fetchAvailableBets);
     };
-  }, [
-    isConnected,
-    fightId,
-    addListener,
-    removeListener,
-    joinRoom,
-    leaveRoom,
-    fetchAvailableBets,
-    onBetPlaced,
-  ]);
+    // Solo depende de isConnected y fightId (callbacks son estables)
+  }, [isConnected, fightId]);
 
   const renderQuickMode = () => (
     <div className="space-y-3">

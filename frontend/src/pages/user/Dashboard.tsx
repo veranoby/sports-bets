@@ -1,7 +1,7 @@
 // frontend/src/pages/user/Dashboard.tsx
 // 📊 DASHBOARD USER OPTIMIZADO - TODAS LAS HERRAMIENTAS
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Calendar,
   Activity,
@@ -66,84 +66,110 @@ const Dashboard: React.FC = () => {
   });
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // ✅ Referencias para funciones fetch
+  const fetchEventsRef = useRef(fetchEvents);
+  const fetchMyBetsRef = useRef(fetchMyBets);
+  const fetchWalletRef = useRef(fetchWallet);
+
+  useEffect(() => {
+    fetchEventsRef.current = fetchEvents;
+  }, [fetchEvents]);
+  useEffect(() => {
+    fetchMyBetsRef.current = fetchMyBets;
+  }, [fetchMyBets]);
+  useEffect(() => {
+    fetchWalletRef.current = fetchWallet;
+  }, [fetchWallet]);
+
   // ✅ WebSocket consolidado
   const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
     useWebSocketContext();
 
   // Función para agregar notificaciones
-  const addNotification = (
-    message: string,
-    type: "info" | "success" | "error"
-  ) => {
-    const newNotification = {
-      id: Date.now(),
-      message,
-      type,
-      timestamp: new Date(),
-      read: false,
-    };
-    setNotifications((prev) => [newNotification, ...prev.slice(0, 4)]);
-  };
+  const addNotification = useCallback(
+    (message: string, type: "info" | "success" | "error") => {
+      const newNotification = {
+        id: Date.now(),
+        message,
+        type,
+        timestamp: new Date(),
+        read: false,
+      };
+      setNotifications((prev) => [newNotification, ...prev.slice(0, 4)]);
+    },
+    []
+  );
 
-  // ✅ Configurar listeners y room management
-  useEffect(() => {
-    if (!isConnected) return;
-
-    // Manejadores de eventos
-    const handleNewBet = (data: any) => {
+  // ✅ Memoizar todos los handlers
+  const handleNewBet = useCallback(
+    (data: any) => {
       console.log("🎯 Nueva apuesta disponible:", data);
-      fetchEvents();
-      fetchMyBets();
+      fetchEventsRef.current();
+      fetchMyBetsRef.current();
       addNotification("Nueva apuesta disponible", "info");
       setLastUpdated(new Date());
-    };
+    },
+    [addNotification]
+  );
 
-    const handleBetMatched = (data: any) => {
+  const handleBetMatched = useCallback(
+    (data: any) => {
       console.log("🤝 Apuesta emparejada:", data);
-      fetchMyBets();
+      fetchMyBetsRef.current();
       addNotification("¡Tu apuesta fue emparejada!", "success");
       setLastUpdated(new Date());
-    };
+    },
+    [addNotification]
+  );
 
-    const handleEventActivated = (data: any) => {
+  const handleEventActivated = useCallback(
+    (data: any) => {
       console.log("🔥 Evento activado:", data);
-      fetchEvents();
+      fetchEventsRef.current();
       addNotification(`Evento iniciado: ${data.eventName}`, "info");
-    };
+    },
+    [addNotification]
+  );
 
-    const handleFightUpdated = (data: any) => {
-      console.log("🥊 Pelea actualizada:", data);
-      fetchEvents();
-      setLastUpdated(new Date());
-    };
+  const handleFightUpdated = useCallback((data: any) => {
+    console.log("🥊 Pelea actualizada:", data);
+    fetchEventsRef.current();
+    setLastUpdated(new Date());
+  }, []);
 
-    const handleBetResult = (data: any) => {
+  const handleBetResult = useCallback(
+    (data: any) => {
       console.log("🏆 Resultado de apuesta:", data);
-      fetchMyBets();
-      fetchWallet();
+      fetchMyBetsRef.current();
+      fetchWalletRef.current();
       const isWin = data.result === "win";
       addNotification(
         isWin ? "¡Ganaste una apuesta!" : "Apuesta perdida",
         isWin ? "success" : "error"
       );
-    };
+    },
+    [addNotification]
+  );
 
-    // Unirse a room si hay evento activo
+  // Unirse a room si hay evento activo (solo cuando isConnected cambia)
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // Buscar evento activo solo una vez al conectar
     const activeEvent = events?.find((e) => e.status === "in-progress");
     if (activeEvent) {
       joinRoom(activeEvent.id);
     }
 
-    // Agregar listeners
+    // Listeners
     addListener("new_bet", handleNewBet);
     addListener("bet_matched", handleBetMatched);
     addListener("event_activated", handleEventActivated);
     addListener("fight_updated", handleFightUpdated);
     addListener("bet_result", handleBetResult);
-    addListener("wallet_updated", fetchWallet);
+    addListener("wallet_updated", fetchWalletRef.current);
     addListener("notification:new", addNotification);
 
-    // Limpiar al desmontar
     return () => {
       if (activeEvent) {
         leaveRoom(activeEvent.id);
@@ -153,19 +179,23 @@ const Dashboard: React.FC = () => {
       removeListener("event_activated", handleEventActivated);
       removeListener("fight_updated", handleFightUpdated);
       removeListener("bet_result", handleBetResult);
-      removeListener("wallet_updated", fetchWallet);
+      removeListener("wallet_updated", fetchWalletRef.current);
       removeListener("notification:new", addNotification);
     };
+    // Solo depende de isConnected y de los handlers memoizados
+    // eslint-disable-next-line
   }, [
     isConnected,
-    events,
+    handleNewBet,
+    handleBetMatched,
+    handleEventActivated,
+    handleFightUpdated,
+    handleBetResult,
+    addNotification,
     addListener,
     removeListener,
     joinRoom,
     leaveRoom,
-    fetchEvents,
-    fetchMyBets,
-    fetchWallet,
   ]);
 
   // Cargar datos iniciales

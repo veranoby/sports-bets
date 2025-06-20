@@ -1,5 +1,5 @@
 // frontend/src/components/shared/NotificationCenter.tsx - VERSIÓN CORREGIDA
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useUserTheme } from "../../contexts/UserThemeContext";
 import { Bell, X, Check, Archive } from "lucide-react";
 import { apiClient } from "../../config/api";
@@ -15,42 +15,43 @@ interface Notification {
   metadata?: any;
 }
 
-const NotificationCenter: React.FC = () => {
+const NotificationCenter: React.FC = React.memo(() => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors } = useUserTheme();
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // ✅ Manejadores de eventos WebSocket
-  const handleNewNotification = (notification: Notification) => {
+  // ✅ Memoizar callbacks
+  const handleNewNotification = useCallback((notification: Notification) => {
     setNotifications((prev) => [notification, ...prev]);
-  };
+  }, []);
 
-  const handleUpdateNotification = (updatedNotification: Notification) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === updatedNotification.id ? updatedNotification : n
-      )
-    );
-  };
+  const handleUpdateNotification = useCallback(
+    (updatedNotification: Notification) => {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === updatedNotification.id ? updatedNotification : n
+        )
+      );
+    },
+    []
+  );
 
   // ✅ Configurar listeners en mount y limpiar en unmount
   useEffect(() => {
     if (!isConnected) return;
 
-    // Agregar listeners
     addListener("notification:new", handleNewNotification);
     addListener("notification:update", handleUpdateNotification);
 
-    // Limpiar listeners al desmontar
     return () => {
       removeListener("notification:new", handleNewNotification);
       removeListener("notification:update", handleUpdateNotification);
     };
-  }, [isConnected, addListener, removeListener]);
+  }, [isConnected]); // Solo depende de isConnected
 
-  // ✅ Cargar notificaciones
+  // ✅ Cargar notificaciones solo cuando se abre el panel
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -183,6 +184,6 @@ const NotificationCenter: React.FC = () => {
       )}
     </div>
   );
-};
+});
 
 export default NotificationCenter;
