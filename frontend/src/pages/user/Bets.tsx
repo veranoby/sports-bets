@@ -37,7 +37,8 @@ const UserBets: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // API Hooks
-  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet } = useBets();
+  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet, setBets } =
+    useBets();
 
   const { wallet } = useWallet();
 
@@ -56,25 +57,42 @@ const UserBets: React.FC = () => {
   // WebSocket para actualizaciones
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // ✅ Handlers memoizados con useRef para fetchMyBets
-  const fetchMyBetsRef = useRef(fetchMyBets);
-  useEffect(() => {
-    fetchMyBetsRef.current = fetchMyBets;
-  }, [fetchMyBets]);
+  // ✅ Handlers estables sin dependencias externas
+  const handleBetMatched = useCallback(
+    (data: any) => {
+      setBets((prev) => {
+        // Actualizar apuesta emparejada
+        return prev.map((bet) =>
+          bet.id === data.betId ? { ...bet, status: "matched" } : bet
+        );
+      });
+    },
+    [setBets]
+  );
 
-  const handleBetMatched = useCallback(() => {
-    fetchMyBetsRef.current();
-  }, []);
+  const handleBetResult = useCallback(
+    (data: any) => {
+      setBets((prev) => {
+        // Actualizar resultado de apuesta
+        return prev.map((bet) =>
+          bet.id === data.betId ? { ...bet, result: data.result } : bet
+        );
+      });
+    },
+    [setBets]
+  );
 
-  const handleBetResult = useCallback(() => {
-    fetchMyBetsRef.current();
-  }, []);
+  const handlePagoProposed = useCallback(
+    (data: any) => {
+      setBets((prev) => {
+        // Agregar nueva propuesta PAGO
+        return [...prev, data.newBet];
+      });
+    },
+    [setBets]
+  );
 
-  const handlePagoProposed = useCallback(() => {
-    fetchMyBetsRef.current();
-  }, []);
-
-  // ✅ useEffect simplificado
+  // ✅ useEffect simplificado con dependencias mínimas
   useEffect(() => {
     if (!isConnected) return;
 
@@ -87,7 +105,7 @@ const UserBets: React.FC = () => {
       removeListener("bet_result", handleBetResult);
       removeListener("pago_proposed", handlePagoProposed);
     };
-  }, [isConnected]);
+  }, [isConnected, handleBetMatched, handleBetResult, handlePagoProposed]);
 
   // Cargar datos al montar
   useEffect(() => {

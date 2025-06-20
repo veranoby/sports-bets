@@ -1,121 +1,435 @@
-# Proyecto Apuestas de Galleros - Reglas específicas
+# GalloBets - Reglas de Desarrollo Optimizadas
 
-## Tecnologías y Frameworks
+## 🎯 ESPECIALIZACIÓN TÉCNICA
 
-- Dominio experto en: React, React Native, Node.js, Express, PostgreSQL, MongoDB, WebSockets, Streaming Media (Nginx-RTMP), BunnyCDN, OBS Studio, Kushki Payment Gateway
+**DOMINIO EXPERTO**: React, Node.js, Express, PostgreSQL, WebSockets (Socket.io), Streaming Media (Nginx-RTMP), Kushki Payment Gateway, Real-time P2P Betting Systems
 
-## Prioridades técnicas
+**ARQUITECTURA CORE**:
 
-- Optimización para transmisiones en vivo de larga duración (8+ horas)
-- Gestión eficiente de apuestas en tiempo real
-- Sistema de emparejamiento avanzado para hasta 2,000 apuestas/evento
-- Interfaz ultra-simplificada para operadores en gallera
-- Wallet virtual con transacciones seguras y transparentes
-- Tolerancia a fallos y recuperación automática ante problemas técnicos
+- Frontend: React 19 + TypeScript + Vite + Tailwind CSS + PWA
+- Backend: Node.js + Express + PostgreSQL (Neon.tech) + Socket.io
+- Streaming: Nginx-RTMP + BunnyCDN + OBS Studio integration
+- Payments: Kushki integration + virtual wallet + manual withdrawals
 
-## Media Streaming Expertise
+---
 
-- Configuración óptima de Nginx-RTMP para streams de larga duración
-- Implementación de HLS/DASH para streaming adaptativo
-- Optimización de bitrate y calidad de video (720p máximo)
-- Integración con BunnyCDN para distribución global eficiente
-- Manejo de reconexiones y recuperación de fallos en transmisión
-- Estrategias para minimizar costos de transferencia de datos
-- Configuración de OBS Studio para transmisiones estables
+## 🚨 WEBSOCKET DEVELOPMENT RULES - CRÍTICAS
 
-## Financial Systems Architecture
+### **❌ PATRONES PROHIBIDOS - CAUSAN MEMORY LEAKS**
 
-- Diseño de billetera virtual con saldos congelables para apuestas
-- Integración segura con Kushki para depósitos
-- Procesos de verificación para retiros manuales
-- Sistema de emparejamiento P2P para apuestas con términos variables
-- Transacciones atómicas para garantizar integridad financiera
-- Registro detallado de auditoría para todas las operaciones financieras
-- Detección de patrones sospechosos en apuestas
+```typescript
+// ❌ NUNCA: Dependencies inestables en useEffect WebSocket
+useEffect(() => {
+  addListener("event", handler);
+}, [addListener, removeListener, handler, fetchFunction]); // ❌ PROHIBIDO
 
-## Real-Time Systems Engineering
+// ❌ NUNCA: Handlers inline sin useCallback
+addListener("event", (data) => {
+  /* ... */
+}); // ❌ PROHIBIDO
 
-- Implementación eficiente de WebSockets con Socket.io
-- Arquitectura de salas y canales para notificaciones específicas
-- Estrategias de reconexión automática para clientes
-- Optimización de payload para reducir latencia
-- Manejo de concurrencia en operaciones de apuesta
-- Actualizaciones incrementales para minimizar tráfico
-- Sincronización entre múltiples instancias de servidor
+// ❌ NUNCA: Referencias a funciones que cambian
+const handler = () => fetchData(); // fetchData cambia → memory leak
+```
 
-## Frontend (React/React Native)
+### **✅ PATRONES OBLIGATORIOS - WEBSOCKET V9**
 
-- Componentes reutilizables entre web y móvil
-- Interfaces optimizadas para actualizaciones frecuentes en tiempo real
-- Diseño responsive con prioridad móvil para sistema de apuestas
-- Panel de operador con UI/UX simplificada para operación rápida
-- Reproductor de video optimizado para diferentes calidades (720p, 480p, 360p)
-- Estados de carga y error estéticamente integrados y útiles
-- Uso eficiente de estado global vs. local (Context API/Redux)
+```typescript
+// ✅ PATRÓN 1: Hook principal con listeners objeto
+const { isConnected } = useWebSocket(roomId, {
+  event_name: useCallback((data) => {
+    // Handler estable
+  }, []), // ✅ Sin dependencies o solo primitivos
+});
 
-## Backend (Node.js/Express)
+// ✅ PATRÓN 2: Hook especializado para listener único
+useWebSocketListener(
+  "event",
+  useCallback((data) => {
+    setState(data);
+  }, []),
+  [eventId]
+); // ✅ Dependencies solo para re-suscribir
 
-- APIs RESTful con autenticación robusta (JWT)
-- Implementación de WebSockets para actualizaciones en tiempo real
-- Arquitectura modular para manejo de diferentes componentes:
-  - Sistema de streaming y gestión de medios
-  - Sistema de apuestas y emparejamiento
-  - Gestión de usuarios y billetera virtual
-  - Integración con Kushki para pagos
-- Manejo avanzado de errores y logging centralizado
-- Endpoints optimizados para baja latencia
+// ✅ PATRÓN 3: Control granular con dependencies mínimas
+useEffect(() => {
+  if (!isConnected) return;
+  addListener("event", stableHandler);
+  return () => removeListener("event", stableHandler);
+}, [isConnected]); // ✅ SOLO isConnected
+```
 
-## Base de datos
+### **🛡️ REGLAS ANTI-THRASHING**
 
-- PostgreSQL (Neon.tech) para transacciones financieras y datos estructurados
-- Posible adición de MongoDB para eventos y métricas en fases posteriores
-- Índices optimizados para consultas de alto rendimiento
-- Esquemas relacionales bien definidos para integridad de datos
-- Estrategias de cache para consultas frecuentes
-- Transacciones atómicas para operaciones financieras
+1. **HANDLER STABILITY**: Todos los handlers WebSocket DEBEN usar useCallback con dependencies vacías o primitivas
+2. **EFFECT DEPENDENCIES**: useEffect WebSocket SOLO puede depender de [isConnected] y handlers estables
+3. **NO FUNCTION DEPS**: NUNCA incluir addListener, removeListener, o funciones API como dependencies
+4. **COMPONENT ID**: Cada componente que use WebSocket debe tener identificador único para debugging
+5. **ROOM MANAGEMENT**: Un componente = una room máximo, join/leave en useEffect separado
 
-## Seguridad
+---
 
-- Implementación de mejores prácticas para gestión de fondos
-- Protección contra fraudes y manipulación de resultados
-- Validación y sanitización estricta de todas las entradas
-- Auditoría de transacciones financieras
-- Protección contra ataques comunes (inyección, XSS, CSRF)
-- Registro detallado de actividades financieras y administrativas
+## 💰 SISTEMA FINANCIERO - REGLAS ESTRICTAS
 
-## Infraestructura y operaciones
+### **TRANSACCIONES ATÓMICAS OBLIGATORIAS**
 
-- Fly.io para backend API (escalable automáticamente)
-- Neon.tech para PostgreSQL (plan gratuito escalable)
-- DigitalOcean para servidor de streaming
-- BunnyCDN para distribución de contenido
-- Vercel para hosting de frontend
-- Estrategias de recuperación ante caídas durante transmisión
-- Monitoreo en tiempo real de salud del sistema
+```typescript
+// ✅ SIEMPRE usar transacciones para operaciones financieras
+const transaction = await sequelize.transaction();
+try {
+  await Wallet.update(
+    { balance: newBalance },
+    { where: { userId }, transaction }
+  );
+  await Transaction.create({ amount, type, userId }, { transaction });
+  await transaction.commit();
+} catch (error) {
+  await transaction.rollback();
+  throw error;
+}
+```
 
-## Interfaces principales
+### **VALIDACIONES FINANCIERAS CRÍTICAS**
 
-- Dashboard de usuario (apostador)
-- Panel de operador en gallera
-- Panel administrativo completo
-- Interfaz de billetera virtual y transacciones
-- Fixed button styling issue: Added both Tailwind classes and inline styles to ensure the button background is correctly displayed regardless of the global styles. Using both !border-0 to override borders and direct RGB styles for color control.
-- mproved TypeScript typing: Made imageUrl prop optional and added proper typing for the image error handler.
-- Added image fallback: Implemented both a default fallback for missing imageUrl and an onError handler for images that fail to load.
+1. **SALDO SUFICIENTE**: Verificar antes de congelar fondos
+2. **DOUBLE SPENDING**: Prevenir múltiples apuestas con mismos fondos
+3. **COMMISSION CALCULATION**: 5% comisión por apuesta ganada, calculada exacta
+4. **KUSHKI INTEGRATION**: Trasladar costos de transacción (3-5%) al usuario
+5. **AUDIT TRAIL**: Registrar TODA operación financiera con metadata completa
 
-## Enhanced visual elements:
+---
 
-- Added flex-shrink-0 to icons to prevent them from shrinking on smaller screens
-- Added a subtle background color to the image container while it loads
-- Improved accessibility with descriptive aria-label attributes
-- Added loading="lazy" for performance
+## 🎰 SISTEMA P2P APUESTAS - REGLAS ESPECÍFICAS
 
-## Mobile optimization:
+### **LÓGICA DOY/PAGO IMPLEMENTATION**
 
-- Improved text handling with proper overflow control
-- Used flexible layout patterns that adapt well to different screen sizes
-- Made the button click target larger and more accessible
-- Code quality improvements:
-- Added JSDoc comment at the top of the component
-- Added descriptive comments for key functions
-- Structured the component for better maintainability
+```typescript
+// ✅ Términos de apuesta estructura estándar
+interface BetTerms {
+  ratio: number;
+  isOffer: boolean;
+  pagoAmount?: number; // Para propuestas PAGO
+  doyAmount?: number; // Para apuestas DOY
+  proposedBy?: string; // Para tracking propuestas
+}
+
+// ✅ Validación de términos obligatoria
+if (betType === "doy" && !terms?.doyAmount) {
+  throw new Error("DOY bets require doyAmount");
+}
+```
+
+### **MATCHING ALGORITHM RULES**
+
+1. **ANTI-SELF-MATCH**: NUNCA permitir apostar contra sí mismo
+2. **COMPATIBLE SIDES**: Solo emparejar lados opuestos (red vs blue)
+3. **AMOUNT VALIDATION**: Verificar compatibilidad de montos
+4. **TIME WINDOW**: Apuestas solo durante ventana abierta
+5. **INSTANT FREEZE**: Congelar fondos inmediatamente al match
+
+---
+
+## 📺 STREAMING OPTIMIZATION - RULES
+
+### **NGINX-RTMP CONFIGURATION**
+
+```nginx
+# ✅ Configuración optimizada para 8+ horas
+worker_processes auto;
+rtmp {
+    server {
+        listen 1935;
+        chunk_size 4096;
+        application live {
+            live on;
+            hls on;
+            hls_path /tmp/hls;
+            hls_fragment 3s;
+            hls_playlist_length 20s;
+            # ✅ CRÍTICO: prevent memory leaks
+            drop_idle_publisher 10s;
+        }
+    }
+}
+```
+
+### **OBS STUDIO SETTINGS STANDARD**
+
+- **Resolution**: 720p máximo (cost optimization)
+- **Bitrate**: 2000-4000 kbps adaptativo
+- **Keyframe**: 2 segundos
+- **CPU Preset**: medium (balance calidad/performance)
+- **Profile**: main (compatibility)
+
+---
+
+## 🎨 FRONTEND DEVELOPMENT RULES
+
+### **COMPONENT PATTERNS OBLIGATORIOS**
+
+```typescript
+// ✅ Estructura estándar de componente
+interface ComponentProps {
+  // Props tipadas
+}
+
+const Component: React.FC<ComponentProps> = ({ ...props }) => {
+  // 1. Hooks en orden: useState, useEffect, custom hooks
+  // 2. Handlers con useCallback
+  // 3. WebSocket usando patrones V9
+  // 4. Return JSX limpio
+};
+
+export default Component;
+```
+
+### **PERFORMANCE RULES**
+
+1. **REACT.MEMO**: Usar para componentes que reciben props complejas
+2. **USECALLBACK**: Obligatorio para handlers pasados como props
+3. **USEMEMO**: Para cálculos costosos únicamente
+4. **LAZY LOADING**: Para componentes grandes no críticos
+5. **ERROR BOUNDARIES**: Wrapper obligatorio para páginas principales
+
+### **STATE MANAGEMENT PATTERNS**
+
+```typescript
+// ✅ Estados locales simples
+const [state, setState] = useState(initialValue);
+
+// ✅ Estados complejos con reducer
+const [state, dispatch] = useReducer(reducer, initialState);
+
+// ✅ Global state solo para: auth, theme, websocket
+// ❌ NO usar Context para datos temporales
+```
+
+---
+
+## 🗄️ BACKEND API STANDARDS
+
+### **ESTRUCTURA DE RESPUESTA OBLIGATORIA**
+
+```typescript
+// ✅ Response format estándar
+interface APIResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+  error?: string;
+  timestamp: string;
+}
+
+// ✅ Error handling estándar
+try {
+  const result = await operation();
+  res.json({
+    success: true,
+    data: result,
+    timestamp: new Date().toISOString(),
+  });
+} catch (error) {
+  logger.error("Operation failed:", error);
+  next(error); // Let errorHandler middleware handle it
+}
+```
+
+### **VALIDATION RULES**
+
+1. **EXPRESS-VALIDATOR**: Obligatorio en todos los endpoints
+2. **SANITIZATION**: Sanitizar TODAS las entradas
+3. **TYPE CHECKING**: TypeScript strict mode habilitado
+4. **AUTH MIDDLEWARE**: Verificar permisos en cada ruta protegida
+5. **RATE LIMITING**: Implementar en endpoints críticos
+
+---
+
+## 🔒 SECURITY & COMPLIANCE REQUIREMENTS
+
+### **JWT IMPLEMENTATION**
+
+```typescript
+// ✅ Token structure estándar
+const token = jwt.sign({ userId, role, sessionId }, process.env.JWT_SECRET, {
+  expiresIn: "7d",
+  issuer: "gallobets",
+});
+```
+
+### **DATA PROTECTION RULES**
+
+1. **PASSWORD HASHING**: bcrypt 12 rounds mínimo
+2. **SENSITIVE DATA**: NUNCA logear datos financieros
+3. **API KEYS**: Environment variables únicamente
+4. **CORS POLICY**: Restrictivo para dominios específicos
+5. **HTTPS ONLY**: Certificados SSL/TLS obligatorios en producción
+
+---
+
+## 📱 PWA REQUIREMENTS - PRÓXIMA FASE
+
+### **MANIFEST.JSON STRUCTURE**
+
+```json
+{
+  "name": "GalloBets - Apuestas Deportivas",
+  "short_name": "GalloBets",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1f37",
+  "theme_color": "#cd6263",
+  "icons": [
+    // Standard PWA icons
+  ]
+}
+```
+
+### **SERVICE WORKER STRATEGY**
+
+1. **CACHE FIRST**: Para assets estáticos
+2. **NETWORK FIRST**: Para API calls
+3. **NO CACHE**: Para operaciones financieras
+4. **OFFLINE FALLBACK**: Para páginas principales únicamente
+
+---
+
+## 🎨 UI/UX DESIGN SYSTEM
+
+### **COLOR PALETTE STANDARD**
+
+```css
+/* Theme colors obligatorios */
+--primary-bg: #1a1f37; /* Dark blue background */
+--secondary-bg: #2a325c; /* Medium blue */
+--accent-red: #cd6263; /* Red accent */
+--border-color: #596c95; /* Light blue borders */
+--success-green: #10b981; /* Success states */
+--warning-yellow: #f59e0b; /* Warning states */
+```
+
+### **RESPONSIVE BREAKPOINTS**
+
+```css
+/* Mobile first approach */
+@media (min-width: 640px) {
+  /* sm */
+}
+@media (min-width: 768px) {
+  /* md */
+}
+@media (min-width: 1024px) {
+  /* lg */
+}
+@media (min-width: 1280px) {
+  /* xl */
+}
+```
+
+---
+
+## 🧪 TESTING REQUIREMENTS
+
+### **TESTING HIERARCHY**
+
+1. **UNIT TESTS**: Funciones puras y utilities
+2. **INTEGRATION TESTS**: API endpoints y WebSocket events
+3. **E2E TESTS**: Flujos críticos (login, apuestas, pagos)
+4. **LOAD TESTS**: Sistema bajo 2000 usuarios concurrentes
+
+### **WEBSOCKET TESTING MANDATORY**
+
+```javascript
+// ✅ Test para cada componente WebSocket
+describe("WebSocket Component", () => {
+  it("should handle listeners without memory leaks", async () => {
+    const { unmount } = render(<Component />);
+    // Verify no thrashing messages
+    expect(console.warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("thrashing")
+    );
+    unmount();
+    // Verify cleanup
+  });
+});
+```
+
+---
+
+## 🚀 DEPLOYMENT & MONITORING
+
+### **ENVIRONMENT SETUP**
+
+```bash
+# Development
+NODE_ENV=development
+VITE_API_URL=http://localhost:3001/api
+VITE_WS_URL=http://localhost:3001
+
+# Production
+NODE_ENV=production
+DATABASE_URL=postgresql://...
+JWT_SECRET=... # 256-bit random
+KUSHKI_PUBLIC_KEY=...
+```
+
+### **MONITORING REQUIREMENTS**
+
+1. **WEBSOCKET METRICS**: Connection count, message rate, error rate
+2. **FINANCIAL METRICS**: Transaction volume, failed payments, commissions
+3. **PERFORMANCE METRICS**: Response time, memory usage, CPU usage
+4. **BUSINESS METRICS**: Active users, events, total bets
+
+---
+
+## ⚠️ CRITICAL DO NOT'S
+
+### **❌ NUNCA HACER**
+
+1. **NO** usar localStorage para datos financieros
+2. **NO** permitir apuestas sin verificar saldo
+3. **NO** hacer operaciones financieras sin transacciones
+4. **NO** usar WebSocket patterns V8 (causan memory leaks)
+5. **NO** deployar sin tests de carga
+6. **NO** exponer APIs sin autenticación
+7. **NO** hardcodear configuraciones sensibles
+8. **NO** usar resolution >720p para streaming
+9. **NO** permitir autoplay de video sin user interaction
+10. **NO** hacer commits directos a main branch
+
+### **🚨 CRITICAL ERROR INDICATORS**
+
+- Console messages: "🛡️ bloqueado para prevenir thrashing"
+- Memory usage increasing during navigation
+- Multiple WebSocket connections from same client
+- Financial transactions without audit logs
+- Streaming interruptions during events
+- Login without proper session management
+
+---
+
+## 📋 CODE REVIEW CHECKLIST
+
+### **ANTES DE CADA COMMIT**
+
+- [ ] ✅ WebSocket usage follows V9 patterns
+- [ ] ✅ No memory leaks in useEffect dependencies
+- [ ] ✅ Financial operations use transactions
+- [ ] ✅ All user inputs validated and sanitized
+- [ ] ✅ Error handling implemented properly
+- [ ] ✅ TypeScript errors resolved
+- [ ] ✅ Console warnings addressed
+- [ ] ✅ Performance impact evaluated
+- [ ] ✅ Security implications reviewed
+- [ ] ✅ Documentation updated if needed
+
+### **PULL REQUEST REQUIREMENTS**
+
+1. **DESCRIPTION**: Clear explanation of changes
+2. **TESTING**: Evidence of testing completed
+3. **PERFORMANCE**: No degradation in key metrics
+4. **SECURITY**: Security review if touching auth/payments
+5. **DOCUMENTATION**: Updated if API/behavior changes
+
+---
+
+**RECUERDA**: Este proyecto maneja dinero real y eventos en vivo. La calidad del código y la estabilidad del sistema son CRÍTICAS para el éxito del negocio y la confianza de los usuarios.

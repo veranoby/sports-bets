@@ -1,4 +1,5 @@
-// frontend/src/contexts/WebSocketContext.tsx V8 - CHEQUEAR ANTI-CICLO INFINITO Y TRASHING y DEPENDENCIES ESTABLES
+// frontend/src/contexts/WebSocketContext.tsx V9 - SOLUCIÓN DEFINITIVA ANTI-THRASHING
+// =====================================================================================
 
 import React, {
   createContext,
@@ -39,12 +40,106 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 🛡️ GUARDS ANTI-THRASHING - REFS SIMPLES (sin función inestable)
-  const operationInProgressRef = useRef(false);
-  const lastOperationTimeRef = useRef<number>(0);
-  const OPERATION_DEBOUNCE_MS = 200;
+  // 🛡️ NUEVO SISTEMA ANTI-THRASHING INTELIGENTE
+  const operationQueueRef = useRef<Array<() => void>>([]);
+  const isProcessingQueueRef = useRef(false);
+  const lastComponentMountTimeRef = useRef<number>(0);
+  const BATCH_DELAY_MS = 50; // Reducido drásticamente
+  const MOUNT_GRACE_PERIOD_MS = 100; // Período de gracia para montajes
 
-  // 🛡️ FUNCIONES ESTABLES CON GUARDS - SIN DEPENDENCIES VARIABLES
+  // 🚀 FUNCIÓN DE PROCESAMIENTO POR LOTES
+  const processOperationQueue = useCallback(() => {
+    if (
+      isProcessingQueueRef.current ||
+      operationQueueRef.current.length === 0
+    ) {
+      return;
+    }
+
+    isProcessingQueueRef.current = true;
+
+    // Procesar todas las operaciones en lote
+    const operations = [...operationQueueRef.current];
+    operationQueueRef.current = [];
+
+    // Ejecutar en el siguiente tick para evitar conflictos
+    setTimeout(() => {
+      operations.forEach((operation) => {
+        try {
+          operation();
+        } catch (error) {
+          console.error("Error ejecutando operación WebSocket:", error);
+        }
+      });
+
+      isProcessingQueueRef.current = false;
+
+      // Si hay más operaciones en cola, procesarlas
+      if (operationQueueRef.current.length > 0) {
+        processOperationQueue();
+      }
+    }, 0);
+  }, []);
+
+  // 🔄 FUNCIÓN DE CONEXIÓN SIMPLIFICADA
+  const createConnection = useCallback(async () => {
+    if (!isAuthenticated || !token) return null;
+
+    if (socketRef.current?.connected) {
+      return socketRef.current;
+    }
+
+    if (isConnecting) return null;
+
+    try {
+      setIsConnecting(true);
+      setConnectionError(null);
+
+      // Importación dinámica para evitar problemas de SSR
+      const { io } = await import("socket.io-client");
+
+      const WEBSOCKET_URL =
+        import.meta.env.VITE_WS_URL || "http://localhost:3001";
+
+      const newSocket = io(WEBSOCKET_URL, {
+        transports: ["websocket", "polling"],
+        timeout: 15000,
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 2000,
+        forceNew: false,
+        auth: { token },
+      });
+
+      // Configurar eventos del socket
+      newSocket.on("connect", () => {
+        setIsConnected(true);
+        setIsConnecting(false);
+        setConnectionError(null);
+        console.log("✅ WebSocket conectado");
+      });
+
+      newSocket.on("disconnect", (reason) => {
+        setIsConnected(false);
+        console.log("❌ WebSocket desconectado:", reason);
+      });
+
+      newSocket.on("connect_error", (error) => {
+        setConnectionError(error.message);
+        setIsConnecting(false);
+        console.error("❌ Error de conexión WebSocket:", error);
+      });
+
+      socketRef.current = newSocket;
+      return newSocket;
+    } catch (error: any) {
+      setConnectionError(error?.message || "Error desconocido");
+      setIsConnecting(false);
+      console.error("❌ Error creando conexión WebSocket:", error);
+    }
+  }, [isAuthenticated, token]);
+
+  // 📡 FUNCIONES DE COMUNICACIÓN ESTABLES
   const emit = useCallback((event: string, data?: any): boolean => {
     if (!socketRef.current?.connected) {
       if (process.env.NODE_ENV === "development") {
@@ -55,223 +150,107 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
     socketRef.current.emit(event, data);
     return true;
-  }, []); // 🔑 DEPENDENCIES VACÍAS
+  }, []);
 
   const joinRoom = useCallback((roomId: string) => {
-    if (!canPerformOperation()) return;
-
     if (socketRef.current?.connected) {
       socketRef.current.emit("join_room", roomId);
-      if (process.env.NODE_ENV === "development") {
-        console.log(`🚪 Uniéndose a sala: ${roomId}`);
-      }
+      console.log(`🚪 Uniéndose a sala: ${roomId}`);
     }
-  }, []); // 🔑 DEPENDENCIES VACÍAS
+  }, []);
 
   const leaveRoom = useCallback((roomId: string) => {
-    if (!canPerformOperation()) return;
-
     if (socketRef.current?.connected) {
       socketRef.current.emit("leave_room", roomId);
-      if (process.env.NODE_ENV === "development") {
-        console.log(`🚪 Saliendo de sala: ${roomId}`);
-      }
+      console.log(`🚪 Saliendo de sala: ${roomId}`);
     }
-  }, []); // 🔑 DEPENDENCIES VACÍAS
+  }, []);
 
-  // 🔧 REGISTRY DE LISTENERS - FUNCIONES ESTABLES SIN DEPENDENCIES
+  // 🎧 SISTEMA DE LISTENERS OPTIMIZADO POR LOTES
   const addListener = useCallback(
     (event: string, handler: (data: any) => void) => {
-      if (!socketRef.current) {
-        if (process.env.NODE_ENV === "development") {
+      const operation = () => {
+        if (!socketRef.current) {
           console.warn(`⚠️ Intento de agregar listener ${event} sin socket`);
-        }
-        return;
-      }
-
-      // Guard anti-thrashing usando ref directamente (sin dependency)
-      const now = Date.now();
-      const timeSinceLastOp = now - lastOperationTimeRef.current;
-
-      if (
-        operationInProgressRef.current ||
-        timeSinceLastOp < OPERATION_DEBOUNCE_MS
-      ) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("🛡️ addListener bloqueado para prevenir thrashing");
-        }
-        return;
-      }
-
-      operationInProgressRef.current = true;
-      lastOperationTimeRef.current = now;
-
-      // Verificar si ya está registrado
-      const eventListeners =
-        listenersRegistryRef.current.get(event) || new Set();
-
-      for (const existingHandler of eventListeners) {
-        if (existingHandler === handler) {
-          operationInProgressRef.current = false;
-          if (process.env.NODE_ENV === "development") {
-            console.warn(
-              `🔄 Listener duplicado detectado para: ${event} - IGNORADO`
-            );
-          }
           return;
         }
-      }
 
-      // Agregar al registry
-      eventListeners.add(handler);
-      listenersRegistryRef.current.set(event, eventListeners);
+        // Verificar si ya está registrado (evitar duplicados)
+        const eventListeners =
+          listenersRegistryRef.current.get(event) || new Set();
 
-      // Agregar al socket
-      socketRef.current.on(event, handler);
+        for (const existingHandler of eventListeners) {
+          if (existingHandler === handler) {
+            if (process.env.NODE_ENV === "development") {
+              console.warn(`🔄 Listener duplicado ignorado para: ${event}`);
+            }
+            return;
+          }
+        }
 
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🎧 Listener agregado para: ${event} (Total: ${eventListeners.size})`
-        );
-      }
+        // Agregar al registry
+        eventListeners.add(handler);
+        listenersRegistryRef.current.set(event, eventListeners);
 
-      // Liberar flag después del debounce
-      setTimeout(() => {
-        operationInProgressRef.current = false;
-      }, OPERATION_DEBOUNCE_MS);
+        // Agregar al socket
+        socketRef.current.on(event, handler);
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `🎧 Listener agregado: ${event} (Total: ${eventListeners.size})`
+          );
+        }
+      };
+
+      // Agregar a la cola de operaciones
+      operationQueueRef.current.push(operation);
+
+      // Procesar cola después de un breve delay
+      setTimeout(processOperationQueue, BATCH_DELAY_MS);
     },
-    []
-  ); // 🔑 NO DEPENDENCIES - FUNCIÓN COMPLETAMENTE ESTABLE
+    [processOperationQueue]
+  );
 
   const removeListener = useCallback(
     (event: string, handler: (data: any) => void) => {
-      if (!socketRef.current) return;
+      const operation = () => {
+        if (!socketRef.current) return;
 
-      // Guard anti-thrashing usando ref directamente (sin dependency)
-      const now = Date.now();
-      const timeSinceLastOp = now - lastOperationTimeRef.current;
+        // Remover del registry
+        const eventListeners = listenersRegistryRef.current.get(event);
+        if (eventListeners) {
+          eventListeners.delete(handler);
+          if (eventListeners.size === 0) {
+            listenersRegistryRef.current.delete(event);
+          }
+        }
 
-      if (
-        operationInProgressRef.current ||
-        timeSinceLastOp < OPERATION_DEBOUNCE_MS
-      ) {
+        // Remover del socket
+        socketRef.current.off(event, handler);
+
         if (process.env.NODE_ENV === "development") {
-          console.warn("🛡️ removeListener bloqueado para prevenir thrashing");
+          console.log(
+            `🎧 Listener removido: ${event} (Restantes: ${
+              eventListeners?.size || 0
+            })`
+          );
         }
-        return;
-      }
+      };
 
-      operationInProgressRef.current = true;
-      lastOperationTimeRef.current = now;
+      // Agregar a la cola de operaciones
+      operationQueueRef.current.push(operation);
 
-      // Remover del registry
-      const eventListeners = listenersRegistryRef.current.get(event);
-      if (eventListeners) {
-        eventListeners.delete(handler);
-        if (eventListeners.size === 0) {
-          listenersRegistryRef.current.delete(event);
-        }
-      }
-
-      // Remover del socket
-      socketRef.current.off(event, handler);
-
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🎧 Listener removido para: ${event} (Restantes: ${
-            eventListeners?.size || 0
-          })`
-        );
-      }
-
-      // Liberar flag después del debounce
-      setTimeout(() => {
-        operationInProgressRef.current = false;
-      }, OPERATION_DEBOUNCE_MS);
+      // Procesar cola inmediatamente para removals (mayor prioridad)
+      setTimeout(processOperationQueue, 10);
     },
-    []
-  ); // 🔑 NO DEPENDENCIES - FUNCIÓN COMPLETAMENTE ESTABLE
+    [processOperationQueue]
+  );
 
-  // 🔌 FUNCIÓN DE CONEXIÓN ESTABLE
-  const createConnection = useCallback(async () => {
-    if (!isAuthenticated || !token) {
-      return null;
-    }
-
-    // Guard para prevenir múltiples conexiones simultáneas
-    if (operationInProgressRef.current) {
-      console.warn("🛡️ Conexión en progreso, esperando...");
-      return null;
-    }
-
-    try {
-      setIsConnecting(true);
-      operationInProgressRef.current = true;
-
-      // Limpiar conexión anterior si existe
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-
-      // Limpiar registry de listeners
-      listenersRegistryRef.current.clear();
-
-      const { io } = await import("socket.io-client");
-      const WEBSOCKET_URL =
-        import.meta.env.VITE_WS_URL || "http://localhost:3001";
-
-      const newSocket = io(WEBSOCKET_URL, {
-        transports: ["websocket", "polling"],
-        timeout: 10000,
-        forceNew: true,
-        auth: { token },
-        query: { userId: token },
-      });
-
-      // Eventos de conexión
-      newSocket.on("connect", () => {
-        setIsConnected(true);
-        setConnectionError(null);
-        setIsConnecting(false);
-        if (process.env.NODE_ENV === "development") {
-          console.log(`✅ WebSocket conectado: ${newSocket.id}`);
-        }
-      });
-
-      newSocket.on("disconnect", (reason) => {
-        setIsConnected(false);
-        if (process.env.NODE_ENV === "development") {
-          console.log(`❌ WebSocket desconectado: ${reason}`);
-        }
-      });
-
-      newSocket.on("connect_error", (error) => {
-        setConnectionError(error.message);
-        setIsConnected(false);
-        setIsConnecting(false);
-        if (process.env.NODE_ENV === "development") {
-          console.error("❌ Error de conexión WebSocket:", error);
-        }
-      });
-
-      socketRef.current = newSocket;
-      return newSocket;
-    } catch (error: any) {
-      setConnectionError(error?.message || "Error desconocido");
-      setIsConnecting(false);
-    } finally {
-      operationInProgressRef.current = false;
-    }
-  }, [isAuthenticated, token]); // 🔑 SOLO AUTH DEPENDENCIES
-
-  // 🔄 EFFECT PRINCIPAL
+  // 🔄 EFFECT PRINCIPAL DE CONEXIÓN
   useEffect(() => {
     let mounted = true;
 
     if (isAuthenticated && token) {
-      setConnectionError(null);
-
       createConnection().then(() => {
         if (mounted) {
           setIsConnecting(false);
@@ -291,21 +270,29 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
     return () => {
       mounted = false;
-      operationInProgressRef.current = false;
 
+      // Limpiar timeout de reconexión
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+
+      // Limpiar cola de operaciones
+      operationQueueRef.current = [];
+      isProcessingQueueRef.current = false;
+
+      // Desconectar socket
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+
+      // Limpiar registry
       listenersRegistryRef.current.clear();
     };
-  }, [isAuthenticated, token]); // 🔑 SOLO AUTH DEPENDENCIES
+  }, [isAuthenticated, token, createConnection]);
 
-  // 📊 VALOR DEL CONTEXTO - FUNCIONES ESTABLES
-  const contextValue: WebSocketContextType = React.useMemo(
+  // 📊 VALOR DEL CONTEXTO CON FUNCIONES MEMOIZADAS
+  const contextValue = React.useMemo<WebSocketContextType>(
     () => ({
       isConnected,
       connectionError,

@@ -1,6 +1,6 @@
 // frontend/src/components/shared/WebSocketDiagnostics.tsx - MONITOR ANTI-THRASHING
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
   Wifi,
   WifiOff,
@@ -35,6 +35,8 @@ interface WebSocketDiagnosticsProps {
   onClose?: () => void;
 }
 
+// Monitoring component - no direct WebSocket usage
+// Propósito: Intercepta logs de WebSocketContext para diagnóstico.
 const WebSocketDiagnostics: React.FC<WebSocketDiagnosticsProps> = ({
   showDetails = false,
   position = "fixed",
@@ -336,4 +338,4 @@ const WebSocketDiagnostics: React.FC<WebSocketDiagnosticsProps> = ({
   );
 };
 
-export default WebSocketDiagnostics;
+export default memo(WebSocketDiagnostics);

@@ -67,21 +67,6 @@ const Dashboard: React.FC = () => {
   });
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // ✅ Referencias para funciones fetch
-  const fetchEventsRef = useRef(fetchEvents);
-  const fetchMyBetsRef = useRef(fetchMyBets);
-  const fetchWalletRef = useRef(fetchWallet);
-
-  useEffect(() => {
-    fetchEventsRef.current = fetchEvents;
-  }, [fetchEvents]);
-  useEffect(() => {
-    fetchMyBetsRef.current = fetchMyBets;
-  }, [fetchMyBets]);
-  useEffect(() => {
-    fetchWalletRef.current = fetchWallet;
-  }, [fetchWallet]);
-
   // ✅ WebSocket consolidado
   const {
     addListener,
@@ -92,7 +77,7 @@ const Dashboard: React.FC = () => {
     activeEvent,
   } = useWebSocketContext();
 
-  // Función para agregar notificaciones
+  // Función para agregar notificaciones (ya memoizada)
   const addNotification = useCallback(
     (message: string, type: "info" | "success" | "error") => {
       const newNotification = {
@@ -110,47 +95,47 @@ const Dashboard: React.FC = () => {
   // Handlers memoizados con dependencias mínimas
   const handleNewBet = useCallback(
     (data: any) => {
-      fetchEventsRef.current();
-      fetchMyBetsRef.current();
+      fetchEvents(); // Llamada directa sin ref
+      fetchMyBets(); // Llamada directa sin ref
       addNotification("Nueva apuesta disponible", "info");
       setLastUpdated(new Date());
     },
-    [addNotification]
+    [addNotification, fetchEvents, fetchMyBets] // Dependencias estables
   );
 
   const handleBetMatched = useCallback(
     (data: any) => {
-      fetchMyBetsRef.current();
+      fetchMyBets(); // Llamada directa sin ref
       addNotification("¡Tu apuesta fue emparejada!", "success");
       setLastUpdated(new Date());
     },
-    [addNotification]
+    [addNotification, fetchMyBets] // Dependencias estables
   );
 
   const handleEventActivated = useCallback(
     (data: any) => {
-      fetchEventsRef.current();
+      fetchEvents(); // Llamada directa sin ref
       addNotification(`Evento iniciado: ${data.eventName}`, "info");
     },
-    [addNotification]
+    [addNotification, fetchEvents] // Dependencias estables
   );
 
-  const handleFightUpdated = useCallback((data: any) => {
-    fetchEventsRef.current();
+  const handleFightUpdated = useCallback(() => {
+    fetchEvents(); // Llamada directa sin ref
     setLastUpdated(new Date());
-  }, []);
+  }, [fetchEvents]); // Dependencias estables
 
   const handleBetResult = useCallback(
     (data: any) => {
-      fetchMyBetsRef.current();
-      fetchWalletRef.current();
+      fetchMyBets(); // Llamada directa sin ref
+      fetchWallet(); // Llamada directa sin ref
       const isWin = data.result === "win";
       addNotification(
         isWin ? "¡Ganaste una apuesta!" : "Apuesta perdida",
         isWin ? "success" : "error"
       );
     },
-    [addNotification]
+    [addNotification, fetchMyBets, fetchWallet] // Dependencias estables
   );
 
   // Efecto para manejar rooms (solo depende de isConnected y activeEvent.id)
@@ -158,7 +143,7 @@ const Dashboard: React.FC = () => {
     if (!isConnected || !activeEvent?.id) return;
     joinRoom(activeEvent.id);
     return () => leaveRoom(activeEvent.id);
-  }, [isConnected, activeEvent?.id]);
+  }, [isConnected, activeEvent?.id, joinRoom, leaveRoom]);
 
   // Efecto principal para listeners (solo depende de isConnected y handlers memoizados)
   useEffect(() => {
@@ -169,7 +154,6 @@ const Dashboard: React.FC = () => {
     addListener("event_activated", handleEventActivated);
     addListener("fight_updated", handleFightUpdated);
     addListener("bet_result", handleBetResult);
-    addListener("wallet_updated", fetchWalletRef.current);
     addListener("notification:new", addNotification);
 
     return () => {
@@ -178,7 +162,6 @@ const Dashboard: React.FC = () => {
       removeListener("event_activated", handleEventActivated);
       removeListener("fight_updated", handleFightUpdated);
       removeListener("bet_result", handleBetResult);
-      removeListener("wallet_updated", fetchWalletRef.current);
       removeListener("notification:new", addNotification);
     };
   }, [
@@ -189,6 +172,8 @@ const Dashboard: React.FC = () => {
     handleFightUpdated,
     handleBetResult,
     addNotification,
+    addListener,
+    removeListener,
   ]);
 
   // Cargar datos iniciales

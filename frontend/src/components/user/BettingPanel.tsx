@@ -1,7 +1,7 @@
 //CONSOLIDAR BettingPanel.tsx
 // Archivo: frontend/src/components/user/BettingPanel.tsx (REEMPLAZAR COMPLETO)
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
@@ -25,20 +25,26 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
     useWebSocketContext();
 
-  // Handlers memoizados (estables)
+  // ✅ Referencia estable para fetchAvailableBets
+  const fetchAvailableBetsRef = useRef(fetchAvailableBets);
+  useEffect(() => {
+    fetchAvailableBetsRef.current = fetchAvailableBets;
+  }, [fetchAvailableBets]);
+
+  // ✅ Handlers memoizados sin dependencias externas
   const handleNewBet = useCallback(() => {
-    fetchAvailableBets();
+    fetchAvailableBetsRef.current();
   }, []);
 
   const handleBetMatched = useCallback(() => {
-    if (onBetPlaced) onBetPlaced();
-  }, [onBetPlaced]);
+    onBetPlaced?.();
+  }, []); // No depende de onBetPlaced directamente
 
   const handleBettingWindowClosed = useCallback(() => {
-    fetchAvailableBets();
+    fetchAvailableBetsRef.current();
   }, []);
 
-  // Efecto para manejar rooms (solo depende de isConnected y fightId)
+  // 🚀 Efecto para manejar rooms (solo depende de isConnected y fightId)
   useEffect(() => {
     if (!isConnected || !fightId) return;
 
@@ -48,7 +54,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     };
   }, [isConnected, fightId, joinRoom, leaveRoom]);
 
-  // Efecto para manejar listeners (solo depende de isConnected y handlers estables)
+  // 🚀 Efecto simplificado para listeners (solo depende de isConnected)
   useEffect(() => {
     if (!isConnected) return;
 
@@ -65,15 +71,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         removeListener("bet_matched", handleBetMatched);
       }
     };
-  }, [
-    isConnected,
-    handleNewBet,
-    handleBettingWindowClosed,
-    handleBetMatched,
-    onBetPlaced,
-    addListener,
-    removeListener,
-  ]);
+  }, [isConnected]); // ✅ Solo isConnected como dependencia
 
   const renderQuickMode = () => (
     <div className="space-y-3">

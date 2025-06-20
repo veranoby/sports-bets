@@ -1,11 +1,11 @@
 // Reemplazar TODO el contenido de frontend/src/pages/operator/Dashboard.tsx
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { GitPullRequest, Award, Activity, Bell } from "lucide-react";
 import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import { useEvents, useFights } from "../../hooks/useApi";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import { useWebSocket } from "../../hooks/useWebSocket";
 import FightsList from "../../components/operator/FightsList";
 import EventSelector from "../../components/operator/EventSelector";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -16,56 +16,33 @@ import StatusIndicator from "../../components/shared/StatusIndicator";
 import FightDetailModal from "../../components/operator/FightDetailModal";
 import SimplifiedPanel from "../../components/operator/SimplifiedPanel";
 
+const OPERATOR_ROOM_ID = "operator_control_room";
+
 const OperatorDashboard: React.FC = () => {
   const { events, loading: eventsLoading } = useEvents();
   const { fights, loading: fightsLoading, fetchFights, error } = useFights();
 
-  const { addListener, removeListener, isConnected, emit } =
-    useWebSocketContext();
-
-  const handleNewBet = useCallback((data: any) => {
-    console.log("Nueva apuesta creada:", data);
-  }, []);
-
-  const handleBetMatched = useCallback((data: any) => {
-    console.log("Apuesta emparejada:", data);
-  }, []);
-
-  const handleFightUpdated = useCallback((data: any) => {
-    console.log("Pelea actualizada:", data);
-  }, []);
-
-  const handleBettingOpened = useCallback((data: any) => {
-    console.log("Apuestas abiertas:", data);
-  }, []);
-
-  const handleBettingClosed = useCallback((data: any) => {
-    console.log("Apuestas cerradas:", data);
-  }, []);
-
-  const handleEventActivated = useCallback((data: any) => {
-    console.log("Evento activado:", data);
-  }, []);
-
-  useEffect(() => {
-    if (!isConnected) return;
-    addListener("new_bet", handleNewBet);
-    addListener("bet_matched", handleBetMatched);
-    addListener("fight_updated", handleFightUpdated);
-    addListener("betting_opened", handleBettingOpened);
-    addListener("betting_closed", handleBettingClosed);
-    addListener("event_activated", handleEventActivated);
-    console.log("Listener agregado OperatorDashboard");
-    return () => {
-      removeListener("new_bet", handleNewBet);
-      removeListener("bet_matched", handleBetMatched);
-      removeListener("fight_updated", handleFightUpdated);
-      removeListener("betting_opened", handleBettingOpened);
-      removeListener("betting_closed", handleBettingClosed);
-      removeListener("event_activated", handleEventActivated);
-      console.log("Listener removido OperatorDashboard");
-    };
-  }, [isConnected]);
+  // ✅ Hook especializado con listeners estables
+  const { isConnected } = useWebSocket(OPERATOR_ROOM_ID, {
+    new_bet: useCallback((data: any) => {
+      console.log("Nueva apuesta creada:", data);
+    }, []),
+    bet_matched: useCallback((data: any) => {
+      console.log("Apuesta emparejada:", data);
+    }, []),
+    fight_updated: useCallback((data: any) => {
+      console.log("Pelea actualizada:", data);
+    }, []),
+    betting_opened: useCallback((data: any) => {
+      console.log("Apuestas abiertas:", data);
+    }, []),
+    betting_closed: useCallback((data: any) => {
+      console.log("Apuestas cerradas:", data);
+    }, []),
+    event_activated: useCallback((data: any) => {
+      console.log("Evento activado:", data);
+    }, []),
+  });
 
   const [selectedFightId, setSelectedFightId] = useState<string | null>(null);
   const selectedFight = fights.find((f) => f.id === selectedFightId) || null;
@@ -74,15 +51,11 @@ const OperatorDashboard: React.FC = () => {
     () => localStorage.getItem("operatorSimplifiedMode") === "true"
   );
 
-  const toggleSimplifiedMode = () => {
+  const toggleSimplifiedMode = useCallback(() => {
     const newMode = !useSimplifiedMode;
     setUseSimplifiedMode(newMode);
     localStorage.setItem("operatorSimplifiedMode", newMode.toString());
-  };
-
-  useEffect(() => {
-    fetchFights();
-  }, []);
+  }, [useSimplifiedMode]);
 
   if (eventsLoading || fightsLoading) {
     return <LoadingSpinner text="Cargando panel de operador..." />;

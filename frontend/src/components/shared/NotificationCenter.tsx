@@ -33,61 +33,7 @@ const NotificationCenter: React.FC = React.memo(() => {
   const listenersRegisteredRef = useRef(false);
   const isMountedRef = useRef(true);
 
-  // ✅ CALLBACKS COMPLETAMENTE ESTABLES
-  const handleNewNotification = useCallback((notification: Notification) => {
-    if (!isMountedRef.current) return;
-
-    console.log("🔔 Nueva notificación recibida:", notification.id);
-    setNotifications((prev) => [notification, ...prev.slice(0, 49)]); // Limitar a 50
-  }, []);
-
-  const handleUpdateNotification = useCallback(
-    (updatedNotification: Notification) => {
-      if (!isMountedRef.current) return;
-
-      console.log("🔄 Notificación actualizada:", updatedNotification.id);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === updatedNotification.id ? updatedNotification : n
-        )
-      );
-    },
-    []
-  );
-
-  // 🔒 EFFECT ÚNICO PARA LISTENERS - SOLO SE EJECUTA UNA VEZ
-  useEffect(() => {
-    // Prevenir multiple registrations
-    if (!isConnected || listenersRegisteredRef.current) {
-      return;
-    }
-
-    console.log("🎧 NotificationCenter: Registrando listeners (único)");
-
-    addListener("notification:new", handleNewNotification);
-    addListener("notification:update", handleUpdateNotification);
-
-    listenersRegisteredRef.current = true;
-
-    return () => {
-      console.log("🧹 NotificationCenter: Limpiando listeners");
-      removeListener("notification:new", handleNewNotification);
-      removeListener("notification:update", handleUpdateNotification);
-      listenersRegisteredRef.current = false;
-    };
-  }, [isConnected]); // SOLO isConnected como dependency
-
-  // 🧹 CLEANUP EN UNMOUNT
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    return () => {
-      isMountedRef.current = false;
-      console.log("🗑️ NotificationCenter: Desmontado");
-    };
-  }, []);
-
-  // ✅ FETCH NOTIFICATIONS CON DEBOUNCING
+  // ✅ FETCH NOTIFICATIONS ESTABLE (sin dependencias inestables)
   const fetchNotifications = useCallback(async () => {
     if (!isMountedRef.current) return;
 
@@ -95,7 +41,7 @@ const NotificationCenter: React.FC = React.memo(() => {
       setLoading(true);
       const response = await apiClient.get("/notifications");
 
-      if (!isMountedRef.current) return; // Check again after async operation
+      if (!isMountedRef.current) return;
 
       setNotifications(
         response.data.map((n: any) => ({
@@ -113,6 +59,52 @@ const NotificationCenter: React.FC = React.memo(() => {
         setLoading(false);
       }
     }
+  }, []); // ✅ Sin dependencias
+
+  // ✅ CALLBACKS COMPLETAMENTE ESTABLES
+  const handleNewNotification = useCallback((notification: Notification) => {
+    if (!isMountedRef.current) return;
+    setNotifications((prev) => [notification, ...prev.slice(0, 49)]);
+  }, []);
+
+  const handleUpdateNotification = useCallback(
+    (updatedNotification: Notification) => {
+      if (!isMountedRef.current) return;
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === updatedNotification.id ? updatedNotification : n
+        )
+      );
+    },
+    []
+  );
+
+  // 🔒 EFFECT ÚNICO PARA LISTENERS - SIN DEPENDENCIAS INESTABLES
+  useEffect(() => {
+    if (!isConnected || listenersRegisteredRef.current) return;
+
+    console.log("🎧 Registrando listeners (estable)");
+    addListener("notification:new", handleNewNotification);
+    addListener("notification:update", handleUpdateNotification);
+    listenersRegisteredRef.current = true;
+
+    return () => {
+      if (listenersRegisteredRef.current) {
+        console.log("🧹 Limpiando listeners (estable)");
+        removeListener("notification:new", handleNewNotification);
+        removeListener("notification:update", handleUpdateNotification);
+        listenersRegisteredRef.current = false;
+      }
+    };
+  }, [isConnected]); // ✅ Solo isConnected como dependencia
+
+  // 🧹 CLEANUP EN UNMOUNT (robusto)
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      console.log("🗑️ Componente desmontado (cleanup completo)");
+    };
   }, []);
 
   // ✅ EFFECT PARA FETCH - SOLO CUANDO SE ABRE
@@ -120,7 +112,7 @@ const NotificationCenter: React.FC = React.memo(() => {
     if (isOpen) {
       fetchNotifications();
     }
-  }, [isOpen, fetchNotifications]);
+  }, [isOpen]); // ✅ fetchNotifications no es dependencia
 
   // ✅ MEMOIZAR FUNCIONES DE ACCIÓN
   const markAsRead = useCallback(async (id: string) => {

@@ -1,7 +1,7 @@
 // frontend/src/pages/user/Events.tsx
 // 📅 EVENTOS OPTIMIZADO - TEMA CONSISTENTE + STREAMING
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Search,
   Filter,
@@ -47,33 +47,30 @@ const EventsPage: React.FC = () => {
   );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
+  // ✅ Referencia estable para fetchEvents
+  const fetchEventsRef = useRef(fetchEvents);
+  useEffect(() => {
+    fetchEventsRef.current = fetchEvents;
+  }, [fetchEvents]);
+
   // WebSocket para actualizaciones en tiempo real
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // Handlers memoizados
-  const handleEventActivated = useCallback(
-    (data: any) => {
-      console.log("🔥 Evento activado:", data);
-      fetchEvents();
-    },
-    [fetchEvents]
-  );
+  // ✅ Handlers memoizados SIN dependencias inestables
+  const handleEventActivated = useCallback((data: any) => {
+    console.log("🔥 Evento activado:", data);
+    fetchEventsRef.current();
+  }, []);
 
-  const handleEventCompleted = useCallback(
-    (data: any) => {
-      console.log("✅ Evento completado:", data);
-      fetchEvents();
-    },
-    [fetchEvents]
-  );
+  const handleEventCompleted = useCallback((data: any) => {
+    console.log("✅ Evento completado:", data);
+    fetchEventsRef.current();
+  }, []);
 
-  const handleStreamStarted = useCallback(
-    (data: any) => {
-      console.log("📺 Stream iniciado:", data);
-      fetchEvents();
-    },
-    [fetchEvents]
-  );
+  const handleStreamStarted = useCallback((data: any) => {
+    console.log("📺 Stream iniciado:", data);
+    fetchEventsRef.current();
+  }, []);
 
   // WebSocket listeners (solo depende de isConnected)
   useEffect(() => {
@@ -88,7 +85,7 @@ const EventsPage: React.FC = () => {
       removeListener("event_completed", handleEventCompleted);
       removeListener("stream_started", handleStreamStarted);
     };
-  }, [isConnected]);
+  }, [isConnected]); // ✅ Solo isConnected como dependencia
 
   // Cargar eventos iniciales
   useEffect(() => {
