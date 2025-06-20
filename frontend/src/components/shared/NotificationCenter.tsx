@@ -1,9 +1,9 @@
 // frontend/src/components/shared/NotificationCenter.tsx - VERSIÓN CORREGIDA
 import React, { useState, useEffect } from "react";
-import { useWebSocket } from "../../hooks/useWebSocket";
 import { useUserTheme } from "../../contexts/UserThemeContext";
 import { Bell, X, Check, Archive } from "lucide-react";
-import { apiClient } from "../../config/api"; // ✅ IMPORTACIÓN CORRECTA
+import { apiClient } from "../../config/api";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 
 interface Notification {
   id: string;
@@ -20,29 +20,42 @@ const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors } = useUserTheme();
+  const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // WebSocket listeners
-  const listeners = {
-    "notification:new": (notification: Notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-    },
-    "notification:update": (updatedNotification: Notification) => {
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === updatedNotification.id ? updatedNotification : n
-        )
-      );
-    },
+  // ✅ Manejadores de eventos WebSocket
+  const handleNewNotification = (notification: Notification) => {
+    setNotifications((prev) => [notification, ...prev]);
   };
 
-  const { isConnected } = useWebSocket(undefined, listeners);
+  const handleUpdateNotification = (updatedNotification: Notification) => {
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === updatedNotification.id ? updatedNotification : n
+      )
+    );
+  };
 
-  // ✅ CARGAR NOTIFICACIONES - ENDPOINT CORRECTO
+  // ✅ Configurar listeners en mount y limpiar en unmount
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // Agregar listeners
+    addListener("notification:new", handleNewNotification);
+    addListener("notification:update", handleUpdateNotification);
+
+    // Limpiar listeners al desmontar
+    return () => {
+      removeListener("notification:new", handleNewNotification);
+      removeListener("notification:update", handleUpdateNotification);
+    };
+  }, [isConnected, addListener, removeListener]);
+
+  // ✅ Cargar notificaciones
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get("/notifications"); // ✅ ENDPOINT VÁLIDO
+        const response = await apiClient.get("/notifications");
         setNotifications(
           response.data.map((n: any) => ({
             ...n,

@@ -14,7 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import {
   getUserThemeClasses,
   useUserTheme,
@@ -66,44 +66,9 @@ const Dashboard: React.FC = () => {
   });
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // WebSocket para actualizaciones en tiempo real
-  const wsListeners = {
-    new_bet: (data: any) => {
-      console.log("🎯 Nueva apuesta disponible:", data);
-      fetchEvents();
-      fetchMyBets();
-      addNotification("Nueva apuesta disponible", "info");
-      setLastUpdated(new Date());
-    },
-    bet_matched: (data: any) => {
-      console.log("🤝 Apuesta emparejada:", data);
-      fetchMyBets();
-      addNotification("¡Tu apuesta fue emparejada!", "success");
-      setLastUpdated(new Date());
-    },
-    event_activated: (data: any) => {
-      console.log("🔥 Evento activado:", data);
-      fetchEvents();
-      addNotification(`Evento iniciado: ${data.eventName}`, "info");
-    },
-    fight_updated: (data: any) => {
-      console.log("🥊 Pelea actualizada:", data);
-      fetchEvents();
-      setLastUpdated(new Date());
-    },
-    bet_result: (data: any) => {
-      console.log("🏆 Resultado de apuesta:", data);
-      fetchMyBets();
-      fetchWallet();
-      const isWin = data.result === "win";
-      addNotification(
-        isWin ? "¡Ganaste una apuesta!" : "Apuesta perdida",
-        isWin ? "success" : "error"
-      );
-    },
-  };
-
-  const { isConnected, connectionError } = useWebSocket(undefined, wsListeners);
+  // ✅ WebSocket consolidado
+  const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
+    useWebSocketContext();
 
   // Función para agregar notificaciones
   const addNotification = (
@@ -120,13 +85,95 @@ const Dashboard: React.FC = () => {
     setNotifications((prev) => [newNotification, ...prev.slice(0, 4)]);
   };
 
+  // ✅ Configurar listeners y room management
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // Manejadores de eventos
+    const handleNewBet = (data: any) => {
+      console.log("🎯 Nueva apuesta disponible:", data);
+      fetchEvents();
+      fetchMyBets();
+      addNotification("Nueva apuesta disponible", "info");
+      setLastUpdated(new Date());
+    };
+
+    const handleBetMatched = (data: any) => {
+      console.log("🤝 Apuesta emparejada:", data);
+      fetchMyBets();
+      addNotification("¡Tu apuesta fue emparejada!", "success");
+      setLastUpdated(new Date());
+    };
+
+    const handleEventActivated = (data: any) => {
+      console.log("🔥 Evento activado:", data);
+      fetchEvents();
+      addNotification(`Evento iniciado: ${data.eventName}`, "info");
+    };
+
+    const handleFightUpdated = (data: any) => {
+      console.log("🥊 Pelea actualizada:", data);
+      fetchEvents();
+      setLastUpdated(new Date());
+    };
+
+    const handleBetResult = (data: any) => {
+      console.log("🏆 Resultado de apuesta:", data);
+      fetchMyBets();
+      fetchWallet();
+      const isWin = data.result === "win";
+      addNotification(
+        isWin ? "¡Ganaste una apuesta!" : "Apuesta perdida",
+        isWin ? "success" : "error"
+      );
+    };
+
+    // Unirse a room si hay evento activo
+    const activeEvent = events?.find((e) => e.status === "in-progress");
+    if (activeEvent) {
+      joinRoom(activeEvent.id);
+    }
+
+    // Agregar listeners
+    addListener("new_bet", handleNewBet);
+    addListener("bet_matched", handleBetMatched);
+    addListener("event_activated", handleEventActivated);
+    addListener("fight_updated", handleFightUpdated);
+    addListener("bet_result", handleBetResult);
+    addListener("wallet_updated", fetchWallet);
+    addListener("notification:new", addNotification);
+
+    // Limpiar al desmontar
+    return () => {
+      if (activeEvent) {
+        leaveRoom(activeEvent.id);
+      }
+      removeListener("new_bet", handleNewBet);
+      removeListener("bet_matched", handleBetMatched);
+      removeListener("event_activated", handleEventActivated);
+      removeListener("fight_updated", handleFightUpdated);
+      removeListener("bet_result", handleBetResult);
+      removeListener("wallet_updated", fetchWallet);
+      removeListener("notification:new", addNotification);
+    };
+  }, [
+    isConnected,
+    events,
+    addListener,
+    removeListener,
+    joinRoom,
+    leaveRoom,
+    fetchEvents,
+    fetchMyBets,
+    fetchWallet,
+  ]);
+
   // Cargar datos iniciales
   useEffect(() => {
-    // Solo cargar una vez
     fetchEvents({ status: "in-progress" });
     fetchMyBets({ status: "active" });
     fetchWallet();
-  }, []); // 🔧 FIX: Sin dependencias
+  }, []);
 
   // Función para manejar apuestas rápidas
   const handleBetPlaced = (bet: any) => {

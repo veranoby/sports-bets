@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useBets } from "../../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,32 +16,42 @@ const ProposalNotifications = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
   const { acceptProposal, rejectProposal, getPendingProposals } = useBets();
-  const { socket } = useWebSocket();
+  const { addListener, removeListener, isConnected } = useWebSocketContext();
+
+  const handleProposalReceived = (proposal: Proposal) => {
+    setProposals((prev) => [proposal, ...prev]);
+    setHasUnread(true);
+  };
+
+  const handleProposalAccepted = (proposalId: string) => {
+    setProposals((prev) => prev.filter((p) => p.id !== proposalId));
+  };
+
+  const handleProposalRejected = (proposalId: string) => {
+    setProposals((prev) => prev.filter((p) => p.id !== proposalId));
+  };
+
+  const handleBetProposalUpdate = (data: { proposalId: string }) => {
+    console.log("Actualización de propuesta:", data);
+  };
 
   useEffect(() => {
-    // Cargar propuestas pendientes
     getPendingProposals().then(setProposals);
 
-    // Escuchar eventos WebSocket
-    socket?.on("proposal_received", (proposal: Proposal) => {
-      setProposals((prev) => [proposal, ...prev]);
-      setHasUnread(true);
-    });
+    if (!isConnected) return;
 
-    socket?.on("proposal_accepted", (proposalId: string) => {
-      setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-    });
-
-    socket?.on("proposal_rejected", (proposalId: string) => {
-      setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-    });
+    addListener("proposal:received", handleProposalReceived);
+    addListener("proposal:accepted", handleProposalAccepted);
+    addListener("proposal:rejected", handleProposalRejected);
+    addListener("bet_proposal_update", handleBetProposalUpdate);
 
     return () => {
-      socket?.off("proposal_received");
-      socket?.off("proposal_accepted");
-      socket?.off("proposal_rejected");
+      removeListener("proposal:received", handleProposalReceived);
+      removeListener("proposal:accepted", handleProposalAccepted);
+      removeListener("proposal:rejected", handleProposalRejected);
+      removeListener("bet_proposal_update", handleBetProposalUpdate);
     };
-  }, [socket]);
+  }, [isConnected, addListener, removeListener, getPendingProposals]);
 
   const handleAccept = async (proposalId: string) => {
     await acceptProposal(proposalId);

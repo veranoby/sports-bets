@@ -1,9 +1,9 @@
 //CONSOLIDAR BettingPanel.tsx
 // Archivo: frontend/src/components/user/BettingPanel.tsx (REEMPLAZAR COMPLETO)
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useBets, useWallet } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
 
@@ -22,12 +22,38 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { bets, fetchAvailableBets } = useBets();
   const { wallet } = useWallet();
+  const { addListener, removeListener, joinRoom, leaveRoom, isConnected } =
+    useWebSocketContext();
 
-  // WebSocket para actualizaciones en tiempo real
-  const { isConnected } = useWebSocket(fightId, {
-    new_bet: fetchAvailableBets,
-    bet_matched: onBetPlaced,
-  });
+  useEffect(() => {
+    if (!isConnected || !fightId) return;
+
+    joinRoom(fightId);
+
+    addListener("new_bet", fetchAvailableBets);
+    if (onBetPlaced) {
+      addListener("bet_matched", onBetPlaced);
+    }
+    addListener("betting_window_closed", fetchAvailableBets);
+
+    return () => {
+      leaveRoom(fightId);
+      removeListener("new_bet", fetchAvailableBets);
+      if (onBetPlaced) {
+        removeListener("bet_matched", onBetPlaced);
+      }
+      removeListener("betting_window_closed", fetchAvailableBets);
+    };
+  }, [
+    isConnected,
+    fightId,
+    addListener,
+    removeListener,
+    joinRoom,
+    leaveRoom,
+    fetchAvailableBets,
+    onBetPlaced,
+  ]);
 
   const renderQuickMode = () => (
     <div className="space-y-3">

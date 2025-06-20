@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 // Hooks y contextos
 import { useEvents } from "../../hooks/useApi";
-import { useWebSocket } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 // Componentes
@@ -48,22 +48,40 @@ const EventsPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   // WebSocket para actualizaciones en tiempo real
-  const wsListeners = {
-    event_activated: (data: any) => {
-      console.log("🔥 Evento activado:", data);
-      fetchEvents();
-    },
-    event_completed: (data: any) => {
-      console.log("✅ Evento completado:", data);
-      fetchEvents();
-    },
-    stream_started: (data: any) => {
-      console.log("📺 Stream iniciado:", data);
-      fetchEvents();
-    },
+  const { addListener, removeListener, isConnected } = useWebSocketContext();
+
+  // Manejadores de eventos WebSocket
+  const handleEventActivated = (data: any) => {
+    console.log("🔥 Evento activado:", data);
+    fetchEvents();
   };
 
-  const { isConnected } = useWebSocket(undefined, wsListeners);
+  const handleEventCompleted = (data: any) => {
+    console.log("✅ Evento completado:", data);
+    fetchEvents();
+  };
+
+  const handleStreamStarted = (data: any) => {
+    console.log("📺 Stream iniciado:", data);
+    fetchEvents();
+  };
+
+  // Configurar listeners en mount y limpiar en unmount
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // Agregar listeners
+    addListener("event_activated", handleEventActivated);
+    addListener("event_completed", handleEventCompleted);
+    addListener("stream_started", handleStreamStarted);
+
+    // Limpiar listeners al desmontar
+    return () => {
+      removeListener("event_activated", handleEventActivated);
+      removeListener("event_completed", handleEventCompleted);
+      removeListener("stream_started", handleStreamStarted);
+    };
+  }, [isConnected, addListener, removeListener]);
 
   // Cargar eventos iniciales
   useEffect(() => {
