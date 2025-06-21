@@ -72,7 +72,8 @@ const WalletPage: React.FC = () => {
   // Debug: Verificar datos
   console.log("Wallet data:", wallet);
   console.log("Transactions:", recentTransactions);
-  console.log("Tipo de balance:", typeof wallet?.balance, wallet?.balance);
+  console.log("Loading state:", loading);
+  console.log("Error state:", error);
 
   // Estados locales
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -86,9 +87,9 @@ const WalletPage: React.FC = () => {
 
   // Datos calculados
   const balanceData = {
-    available: Number(wallet?.availableBalance || 0),
-    frozen: Number(wallet?.frozenAmount || 0),
-    total: Number(wallet?.balance || 0),
+    available: wallet?.availableBalance || 0,
+    frozen: wallet?.frozenAmount || 0,
+    total: wallet?.balance || 0,
   };
 
   // Filtrar transacciones
@@ -177,6 +178,7 @@ const WalletPage: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log("Fetching wallet data...");
         await Promise.all([fetchWallet(), fetchTransactions()]);
       } catch (err) {
         console.error("Error loading wallet data:", err);
@@ -184,7 +186,7 @@ const WalletPage: React.FC = () => {
     };
 
     loadData();
-  }, [fetchWallet, fetchTransactions]);
+  }, []); // ✅ Solo en mount
 
   // 🔧 NUEVO: Handler para refresh específico del balance
   const handleRefreshBalance = async () => {
@@ -268,10 +270,14 @@ const WalletPage: React.FC = () => {
           <ErrorMessage
             error={error}
             onRetry={() => {
+              console.log("Retrying wallet data fetch...");
               fetchWallet();
               fetchTransactions();
             }}
           />
+          <p className="text-red-400 text-sm mt-2">
+            Si el problema persiste, contacta al soporte técnico.
+          </p>
         </div>
       </div>
     );
