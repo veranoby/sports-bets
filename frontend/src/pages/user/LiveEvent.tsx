@@ -94,13 +94,6 @@ const LiveEvent = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
-      {/* Header simplificado */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
-        <h1 className="text-xl font-bold text-gray-800 text-center">
-          Evento #{eventId}
-        </h1>
-      </header>
-
       {/* Video Player */}
       <div className="aspect-video bg-black relative">
         <div className="absolute inset-0 flex items-center justify-center text-white">

@@ -123,7 +123,7 @@ const LoginPage: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white">
-            Sports<span className="text-[#cd6263]">Bets</span>
+            Gallo<span className="text-[#cd6263]">Bets</span>
           </h1>
           <h2 className="mt-6 text-2xl font-bold text-white">
             {isLoginMode ? "Iniciar Sesión" : "Crear Cuenta"}

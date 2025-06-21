@@ -1,246 +1,428 @@
 // frontend/src/components/user/UserHeader.tsx
-// 🎨 HEADER ATRACTIVO - Con datos reales y diseño mejorado
+// NUEVO COMPONENTE OPTIMIZADO DESDE CERO
 
-import React, { useState, useEffect } from "react";
-import { LogOut, Wifi, WifiOff } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
-import { useWallet, useBets } from "../../hooks/useApi";
+import React, { memo, useState, useCallback, useMemo, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  getUserThemeClasses,
-  useUserTheme,
-} from "../../contexts/UserThemeContext";
-import { useNavigate } from "react-router-dom";
-import NotificationBadge from "../shared/NotificationBadge";
-import { Wallet, Dices } from "lucide-react";
-import NotificationCenter from "../shared/NotificationCenter";
-import ProposalNotifications from "./ProposalNotifications";
-import BetCard from "./BetCard";
+  LogOut,
+  Wallet,
+  Trophy,
+  Bell,
+  X,
+  Check,
+  AlertCircle,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useHeaderData } from "../../hooks/useHeaderData";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { apiClient } from "../../config/api";
 
-interface UserHeaderProps {
+// Tipos locales
+interface HeaderNotification {
+  id: string;
+  type: "bet_win" | "bet_loss" | "wallet" | "news" | "system";
   title: string;
-  customActions?: React.ReactNode;
+  message: string;
+  timestamp: Date;
+  read: boolean;
 }
 
-const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
-  const { user, logout } = useAuth();
-  const { wallet } = useWallet();
-  const { bets } = useBets();
-  const { isConnected } = useWebSocketContext();
+interface ActiveBet {
+  id: string;
+  eventName: string;
+  fighters: { red: string; blue: string };
+  side: "red" | "blue";
+  amount: number;
+  status: "active" | "pending";
+  createdAt: string;
+}
+
+// Componente de Dropdown de Apuestas
+const BetsDropdown = memo<{
+  activeBets: ActiveBet[];
+  onClose: () => void;
+}>(({ activeBets, onClose }) => {
   const navigate = useNavigate();
-  const theme = getUserThemeClasses();
-  const { updateColors } = useUserTheme();
 
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [showProposals, setShowProposals] = useState(false);
-  const [showBetsMenu, setShowBetsMenu] = useState(false);
+  const handleNavigateToBets = useCallback(() => {
+    navigate("/bets");
+    onClose();
+  }, [navigate, onClose]);
 
-  // ✅ REAL DATA - Notificaciones basadas en apuestas activas
-  const unreadCount =
-    bets?.filter(
-      (bet) =>
-        bet.status === "active" ||
-        (bet.status === "settled" && bet.result === "win")
-    ).length || 0;
+  return (
+    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">Apuestas Activas</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </div>
 
-  // Datos para el dropdown
-  const activeBetsCount =
-    bets?.filter((bet) => bet.status === "active").length || 0;
-  const recentActiveBets =
-    bets
-      ?.filter((bet) => bet.status === "active")
-      ?.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      ?.slice(0, 3) || [];
-
-  // Actualizar hora cada minuto
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return "Buenos días";
-    if (hour < 18) return "Buenas tardes";
-    return "Buenas noches";
-  };
-
-  const getRoleLabel = () => {
-    switch (user?.role) {
-      case "admin":
-        return { label: "Administrador", color: "bg-purple-500" };
-      case "operator":
-        return { label: "Operador", color: "bg-blue-500" };
-      case "venue":
-        return { label: "Gallera", color: "bg-orange-500" };
-      default:
-        return { label: "Aficionado", color: "bg-green-500" };
-    }
-  };
-
-  const handleUserClick = () => navigate("/profile");
-  const handleLogout = () => logout();
-
-  // Componente dropdown de apuestas
-  const BetsDropdown = () => (
-    <div className="relative">
-      <button
-        onClick={() => setShowBetsMenu(!showBetsMenu)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2a325c] hover:bg-[#3a426c] transition-colors"
-      >
-        <Dices size={18} />
-        {activeBetsCount > 0 && (
-          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {activeBetsCount}
-          </span>
-        )}
-      </button>
-
-      {showBetsMenu && (
-        <div className="absolute right-0 mt-2 w-80 bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg z-50">
-          {/* Encabezado */}
-          <div className="p-3 border-b border-[#596c95]">
-            <h3 className="font-medium text-white">Mis Apuestas</h3>
+      <div className="max-h-64 overflow-y-auto">
+        {activeBets.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            No tienes apuestas activas
           </div>
-
-          {/* Acciones rápidas */}
-          <div className="p-2 border-b border-[#596c95]">
-            <button
-              onClick={() => {
-                navigate("/bets");
-                setShowBetsMenu(false);
-              }}
-              className="w-full text-left text-sm text-gray-300 hover:text-white p-2 rounded hover:bg-[#3a426c]"
-            >
-              Ver todas las apuestas →
-            </button>
-          </div>
-
-          {/* Propuestas PAGO pendientes */}
-          <div className="max-h-60 overflow-y-auto">
-            <ProposalNotifications />
-
-            {/* Apuestas activas recientes */}
-            {recentActiveBets.length > 0 && (
-              <div className="p-2">
-                <h4 className="text-xs text-gray-400 mb-2">
-                  ACTIVAS RECIENTES
-                </h4>
-                {recentActiveBets.map((bet) => (
-                  <div key={bet.id} className="mb-2 last:mb-0">
-                    <BetCard
-                      bet={bet}
-                      mode="compact"
-                      onClick={() => setShowBetsMenu(false)}
-                    />
+        ) : (
+          <div className="p-2">
+            {activeBets.slice(0, 5).map((bet) => (
+              <div
+                key={bet.id}
+                className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer mb-1"
+                onClick={handleNavigateToBets}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {bet.fighters.red} vs {bet.fighters.blue}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {bet.eventName}
+                    </p>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">
+                      ${bet.amount}
+                    </p>
+                    <p
+                      className={`text-xs ${
+                        bet.side === "red" ? "text-red-600" : "text-blue-600"
+                      }`}
+                    >
+                      {bet.side === "red" ? "Rojo" : "Azul"}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
+        )}
+      </div>
+
+      {activeBets.length > 0 && (
+        <div className="p-3 border-t border-gray-200">
+          <button
+            onClick={handleNavigateToBets}
+            className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Ver todas las apuestas →
+          </button>
         </div>
       )}
     </div>
   );
+});
 
-  // Debug: Verificar datos del wallet
-  console.log("Wallet data in UserHeader:", wallet);
+BetsDropdown.displayName = "BetsDropdown";
+
+// Componente de Panel de Notificaciones
+const NotificationsPanel = memo<{
+  notifications: HeaderNotification[];
+  onClose: () => void;
+  onMarkAsRead: (id: string) => void;
+}>(({ notifications, onClose, onMarkAsRead }) => {
+  const getNotificationIcon = (type: HeaderNotification["type"]) => {
+    switch (type) {
+      case "bet_win":
+        return <Trophy className="text-green-500" size={20} />;
+      case "bet_loss":
+        return <X className="text-red-500" size={20} />;
+      case "wallet":
+        return <Wallet className="text-blue-500" size={20} />;
+      case "news":
+        return <TrendingUp className="text-purple-500" size={20} />;
+      default:
+        return <AlertCircle className="text-gray-500" size={20} />;
+    }
+  };
 
   return (
-    <header
-      className={`${theme.gradientHeader} border-b border-theme-primary sticky top-0 z-50 backdrop-blur-sm`}
-    >
-      <div className="px-4 py-3">
+    <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+      <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          {/* Left Side - Title & Greeting */}
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                {title}
-                {customActions}
-              </h1>
-              {title === "Dashboard" && (
-                <p className="text-bold text-gray-300">{getGreeting()}</p>
-              )}
-            </div>
-            {/* User Chip - Mejorado */}
+          <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </div>
 
-            {title !== "Mi Perfil" && (
-              <button
-                onClick={handleUserClick}
-                className={`flex items-center gap-3 ${theme.gradientUserButton} px-4 py-2 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl`}
+      <div className="max-h-96 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            No hay notificaciones nuevas
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 hover:bg-gray-50 cursor-pointer ${
+                  !notification.read ? "bg-blue-50" : ""
+                }`}
+                onClick={() => onMarkAsRead(notification.id)}
               >
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-white text-sm font-bold">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-white text-sm font-medium leading-tight">
-                    {user?.username || "Usuario"}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    {/* Connection Status - Chip Mejorado */}
-
-                    <div
-                      className={`w-3 h-3 rounded-full  ${
-                        isConnected
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                    >
-                      {isConnected ? (
-                        <Wifi className="w-3 h-3" />
-                      ) : (
-                        <WifiOff className="w-3 h-3" />
-                      )}
-                    </div>
-
-                    <span className="text-white/80 text-xs">
-                      {getRoleLabel().label}
-                    </span>
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    {getNotificationIcon(notification.type)}
                   </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {notification.title}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      {formatDistanceToNow(notification.timestamp, {
+                        addSuffix: true,
+                        locale: es,
+                      })}
+                    </p>
+                  </div>
+                  {!notification.read && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                  )}
                 </div>
-              </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+NotificationsPanel.displayName = "NotificationsPanel";
+
+// COMPONENTE PRINCIPAL
+const UserHeader = memo(() => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  // Usar hook optimizado para datos
+  const {
+    walletBalance,
+    activeBets,
+    activeBetsCount,
+    notifications,
+    unreadNotificationsCount,
+    markNotificationAsRead,
+    loading,
+  } = useHeaderData();
+
+  // Estados locales solo para UI
+  const [showBets, setShowBets] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Título de página memoizado
+  const pageTitle = useMemo(() => {
+    const path = location.pathname;
+    const titles: Record<string, string> = {
+      "/": "Dashboard",
+      "/events": "Eventos",
+      "/wallet": "Billetera",
+      "/bets": "Mis Apuestas",
+      "/profile": "Mi Perfil",
+      "/venues": "Galleras",
+      "/news": "Noticias",
+    };
+    return titles[path] || "GalloBets";
+  }, [location.pathname]);
+
+  // Handlers optimizados
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  }, [logout, navigate]);
+
+  const handleWalletClick = useCallback(() => {
+    navigate("/wallet");
+  }, [navigate]);
+
+  const toggleBets = useCallback(() => {
+    setShowBets((prev) => !prev);
+    setShowNotifications(false);
+  }, []);
+
+  const toggleNotifications = useCallback(() => {
+    setShowNotifications((prev) => !prev);
+    setShowBets(false);
+  }, []);
+
+  const handleMarkAsRead = useCallback(
+    (id: string) => {
+      markNotificationAsRead(id);
+    },
+    [markNotificationAsRead]
+  );
+
+  // Datos mock para demostración (reemplazar con API real)
+  const mockActiveBets: ActiveBet[] = useMemo(
+    () => [
+      {
+        id: "1",
+        eventName: "Clásico de Verano",
+        fighters: { red: "Gallo Rojo", blue: "Gallo Azul" },
+        side: "red",
+        amount: 50,
+        status: "active",
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    []
+  );
+
+  // Fetch de datos con polling controlado (cada 30 segundos)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Aquí irían las llamadas reales a la API
+        // const walletResponse = await api.get('/wallets/my-wallet');
+        // setWalletBalance(walletResponse.data.balance);
+
+        // Mock data
+        setWalletBalance(500.5);
+        setActiveBetsCount(mockActiveBets.length);
+      } catch (error) {
+        console.error("Error fetching header data:", error);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+  }, [mockActiveBets.length]);
+
+  // Contar notificaciones no leídas
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications]
+  );
+
+  // Click outside para cerrar dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".dropdown-container")) {
+        setShowBets(false);
+        setShowNotifications(false);
+      }
+    };
+
+    if (showBets || showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showBets, showNotifications]);
+
+  if (!user) return null;
+
+  return (
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+      <div className="px-4 h-16 flex items-center justify-between">
+        {/* Lado izquierdo - Título y usuario */}
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold text-gray-900">{pageTitle}</h1>
+          <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
+            <span>Hola,</span>
+            <span className="font-medium">{user.username}</span>
+          </div>
+        </div>
+
+        {/* Lado derecho - Acciones */}
+        <div className="flex items-center gap-2">
+          {/* Apuestas */}
+          <div className="relative dropdown-container">
+            <button
+              onClick={toggleBets}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Mis Apuestas"
+            >
+              <Trophy className="w-5 h-5 text-gray-600" />
+              {activeBetsCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {activeBetsCount}
+                </span>
+              )}
+            </button>
+            {showBets && (
+              <BetsDropdown
+                activeBets={activeBets}
+                onClose={() => setShowBets(false)}
+              />
             )}
           </div>
 
-          {/* Right Side - User Controls */}
-          <div className="flex items-center gap-3">
-            <BetsDropdown />
+          {/* Billetera */}
+          <button
+            onClick={handleWalletClick}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            title="Mi Billetera"
+          >
+            <Wallet className="w-5 h-5 text-gray-600" />
+            <span className="font-medium text-gray-900">
+              ${loading ? "..." : walletBalance.toFixed(2)}
+            </span>
+          </button>
 
-            {/* Balance Quick View */}
+          {/* Notificaciones */}
+          <div className="relative dropdown-container">
             <button
-              onClick={() => navigate("/wallet")}
-              className="flex items-center gap-1 text-white hover:text-theme-primary p-2"
-              aria-label="Wallet"
+              onClick={toggleNotifications}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Notificaciones"
             >
-              <Wallet className="w-6 h-6" />
-              <span className="font-medium text-sm hidden sm:inline">
-                ${wallet ? Number(wallet.balance).toFixed(2) : "0.00"}
-              </span>
+              <Bell className="w-5 h-5 text-gray-600" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadNotificationsCount > 9
+                    ? "9+"
+                    : unreadNotificationsCount}
+                </span>
+              )}
             </button>
-
-            {/* Notification Center */}
-            <NotificationCenter />
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            {showNotifications && (
+              <NotificationsPanel
+                notifications={notifications}
+                onClose={() => setShowNotifications(false)}
+                onMarkAsRead={handleMarkAsRead}
+              />
+            )}
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors ml-2"
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
       </div>
     </header>
   );
-};
+});
+
+UserHeader.displayName = "UserHeader";
 
 export default UserHeader;

@@ -190,49 +190,33 @@ export const useWebSocketRoom = (roomId: string) => {
 export const useWebSocketListener = <T = any>(
   event: string,
   handler: (data: T) => void,
-  dependencies: React.DependencyList = []
+  dependencies: any[] = []
 ) => {
-  const { addListener, removeListener, isConnected } = useWebSocketContext();
-  const handlerRef = useRef(handler);
-  const listenerRegisteredRef = useRef(false);
+  const { isConnected, addListener } = useWebSocketContext();
   const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
-  // Mantener handler actualizado
-  useEffect(() => {
-    handlerRef.current = handler;
-  }, [handler]);
-
-  // Wrapper estable para el handler
-  const stableHandler = useCallback((data: T) => {
-    handlerRef.current(data);
-  }, []);
+  // Handler estable
+  const stableHandler = useCallback(handler, dependencies);
 
   useEffect(() => {
-    if (!isConnected || !event || listenerRegisteredRef.current) {
-      return;
-    }
+    if (!event || !isConnected) return;
 
     console.log(`🎧 ${componentIdRef.current} registrando listener: ${event}`);
-    addListener(event, stableHandler);
-    listenerRegisteredRef.current = true;
+
+    // Usar el cleanup retornado por addListener
+    cleanupRef.current = addListener(event, stableHandler);
 
     return () => {
-      if (listenerRegisteredRef.current) {
+      if (cleanupRef.current) {
         console.log(
           `🧹 ${componentIdRef.current} limpiando listener: ${event}`
         );
-        removeListener(event, stableHandler);
-        listenerRegisteredRef.current = false;
+        cleanupRef.current();
+        cleanupRef.current = null;
       }
     };
-  }, [
-    event,
-    isConnected,
-    stableHandler,
-    addListener,
-    removeListener,
-    ...dependencies,
-  ]);
+  }, [event, isConnected, stableHandler, addListener, ...dependencies]);
 
   return useMemo(() => ({ isConnected }), [isConnected]);
 };

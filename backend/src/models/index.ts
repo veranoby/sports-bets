@@ -123,6 +123,10 @@ Bet.belongsTo(Bet, {
   foreignKey: "matchedWith",
   as: "matchedBet",
 });
+Bet.belongsTo(Bet, {
+  foreignKey: "parentBetId",
+  as: "parentBet",
+});
 
 // User -> Subscriptions (One-to-Many)
 User.hasMany(Subscription, {

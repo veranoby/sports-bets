@@ -1,7 +1,7 @@
 // frontend/src/hooks/useApi.ts - CORRECCIÓN URLS DEFINITIVA
 // ====================================================================
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   eventsAPI,
   fightsAPI,
@@ -280,14 +280,25 @@ export function useBets() {
 
 // Hook para billetera - IMPLEMENTACIÓN ÚNICA Y OPTIMIZADA
 export function useWallet() {
-  const { data, loading, error, execute } = useAsyncOperation<{
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
     wallet: Wallet;
     recentTransactions: Transaction[];
   }>();
 
+  // Cache para evitar llamadas duplicadas
+  const lastFetchRef = useRef<number>(0);
+  const CACHE_DURATION = 5000; // 5 segundos
+
   const fetchWallet = useCallback(
-    () => execute(() => walletAPI.getWallet()),
-    [execute]
+    async (forceRefresh = false) => {
+      // Usar cache si no se fuerza refresh
+      if (!forceRefresh && Date.now() - lastFetchRef.current < CACHE_DURATION) {
+        return data;
+      }
+      lastFetchRef.current = Date.now();
+      return execute(() => walletAPI.getWallet());
+    },
+    [execute, data]
   );
 
   const fetchTransactions = useCallback(
@@ -301,31 +312,43 @@ export function useWallet() {
   );
 
   const processDeposit = useCallback(
-    (depositData: {
+    async (depositData: {
       amount: number;
       paymentMethod: "card" | "transfer";
       paymentData?: any;
-    }) => execute(() => walletAPI.deposit(depositData)),
-    [execute]
+    }) => {
+      const response = await execute(() => walletAPI.deposit(depositData));
+      await fetchWallet(true); // Force refresh
+      return response;
+    },
+    [execute, fetchWallet]
   );
 
   const processWithdraw = useCallback(
-    (withdrawData: {
+    async (withdrawData: {
       amount: number;
       accountNumber: string;
       accountType?: string;
       bankName?: string;
-    }) => execute(() => walletAPI.withdraw(withdrawData)),
-    [execute]
+    }) => {
+      const response = await execute(() => walletAPI.withdraw(withdrawData));
+      await fetchWallet(true); // Force refresh
+      return response;
+    },
+    [execute, fetchWallet]
   );
 
-  const getBalance = useCallback(
-    () => execute(() => walletAPI.getBalance()),
-    [execute]
-  );
+  // Fetch inicial con debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchWallet();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []); // Solo en mount
 
   return {
-    wallet: data?.wallet,
+    wallet: data?.wallet || null,
     transactions: data?.recentTransactions || [],
     loading,
     error,
@@ -333,7 +356,6 @@ export function useWallet() {
     fetchTransactions,
     processDeposit,
     processWithdraw,
-    getBalance,
   };
 }
 

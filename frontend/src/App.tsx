@@ -1,28 +1,44 @@
-// frontend/src/App.tsx - CORREGIR PROVIDERS Y CONTEXTOS
-// =========================================================
-
-import React, { useState } from "react";
+// frontend/src/App.tsx - ESTRUCTURA CON LAYOUTS PERSISTENTES
+import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserThemeProvider } from "./contexts/UserThemeContext";
-import {
-  WebSocketProvider,
-  useWebSocketContext,
-} from "./contexts/WebSocketContext";
+import { WebSocketProvider } from "./contexts/WebSocketContext";
+
+// Layouts por rol
+import UserLayout from "./components/layouts/UserLayout";
+import AdminLayout from "./components/layouts/AdminLayout";
+import OperatorLayout from "./components/layouts/OperatorLayout";
+import VenueLayout from "./components/layouts/VenueLayout";
+
+// Componentes comunes
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
-import OperatorDashboard from "./pages/operator/Dashboard";
+import ErrorBoundary from "./components/shared/ErrorBoundary";
+
+// Páginas de Usuario
 import UserDashboard from "./pages/user/Dashboard";
+import EventsPage from "./pages/user/Events";
 import LiveEvent from "./pages/user/LiveEvent";
 import Wallet from "./pages/user/Wallet";
 import Profile from "./pages/user/Profile";
-import EventsPage from "./pages/user/Events";
 import BetsPage from "./pages/user/Bets";
-import VenueDashboard from "./pages/venue/Dashboard";
+
+// Páginas de Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ErrorBoundary from "./components/shared/ErrorBoundary";
-import Navigation from "./components/user/Navigation";
-import "./App.css";
+import AdminUsers from "./pages/admin/Users";
+import AdminFinance from "./pages/admin/Finance";
+import AdminReports from "./pages/admin/Reports";
+
+// Páginas de Operador
+import OperatorDashboard from "./pages/operator/Dashboard";
+import OperatorEvents from "./pages/operator/Events";
+import OperatorStream from "./pages/operator/Stream";
+
+// Páginas de Venue
+import VenueDashboard from "./pages/venue/Dashboard";
+import VenueEvents from "./pages/venue/Events";
+import VenueProfile from "./pages/venue/Profile";
 
 // Componente para manejar redirección basada en rol
 const RoleBasedRedirect: React.FC = () => {
@@ -31,279 +47,127 @@ const RoleBasedRedirect: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  switch (user.role) {
-    case "admin":
-      return <Navigate to="/admin" replace />;
-    case "operator":
-      return <Navigate to="/operator" replace />;
-    case "venue":
-      return <Navigate to="/venue" replace />;
-    case "user":
-    default:
-      return <Navigate to="/dashboard" replace />;
-  }
+  // Redirigir según rol
+  const roleRoutes = {
+    admin: "/admin",
+    operator: "/operator",
+    venue: "/venue",
+    user: "/dashboard",
+  };
+
+  return <Navigate to={roleRoutes[user.role] || "/dashboard"} replace />;
 };
 
-// ✅ COMPONENTE SIMPLE PARA NOTIFICACIONES SIN DEPENDENCIAS DE TEMA
-const SimpleNotificationCenter: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount] = useState(0); // Simplificado por ahora
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
-        title="Notificaciones"
-      >
-        <span className="text-gray-600">🔔</span>
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Notificaciones
-            </h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="max-h-64 overflow-y-auto p-4">
-            <p className="text-center text-gray-500">No hay notificaciones</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ✅ COMPONENTE SIMPLE PARA WEBSOCKET DIAGNOSTICS
-const SimpleWebSocketDiagnostics: React.FC = () => {
-  const { isConnected } = useWebSocketContext();
-
-  if (process.env.NODE_ENV !== "development") return null;
-
-  return (
-    <div className="fixed bottom-4 right-4 z-40">
-      <div
-        className={`
-        px-3 py-2 rounded-lg text-sm font-medium
-        ${
-          isConnected
-            ? "bg-green-100 text-green-800"
-            : "bg-red-100 text-red-800"
-        }
-      `}
-      >
-        WebSocket: {isConnected ? "Conectado" : "Desconectado"}
-      </div>
-    </div>
-  );
-};
-
-const UserRouteWrapper: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  return <UserThemeProvider>{children}</UserThemeProvider>;
-};
-
-// Componente principal de la aplicación
+// COMPONENTE PRINCIPAL CON RUTAS
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const location = useLocation();
-
-  // Determinar si mostrar la navegación (solo para usuarios)
-  const showNavigation =
-    isAuthenticated &&
-    [
-      "/dashboard",
-      "/events",
-      "/bets",
-      "/profile",
-      "/wallet",
-      "/live-event",
-    ].some((path) => location.pathname.startsWith(path));
 
   return (
-    <div className="app-container">
-      {/* ✅ COMPONENTES WEBSOCKET SIMPLES A NIVEL APP */}
-      {isAuthenticated && (
-        <>
-          <div className="fixed top-4 right-4 z-50">
-            <SimpleNotificationCenter />
-          </div>
-          <SimpleWebSocketDiagnostics />
-        </>
-      )}
+    <Routes>
+      {/* Rutas públicas */}
+      <Route
+        path="/login"
+        element={!isAuthenticated ? <LoginPage /> : <RoleBasedRedirect />}
+      />
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? <RoleBasedRedirect /> : <Navigate to="/login" />
+        }
+      />
 
-      <Routes>
-        {/* Ruta de login */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <RoleBasedRedirect /> : <LoginPage />}
-        />
+      {/* RUTAS DE USUARIO con Layout persistente */}
+      <Route
+        element={
+          <ProtectedRoute requiredRole="user">
+            <UserThemeProvider>
+              <UserLayout />
+            </UserThemeProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/live-event/:eventId" element={<LiveEvent />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/bets" element={<BetsPage />} />
+      </Route>
 
-        {/* Ruta raíz */}
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <RoleBasedRedirect />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+      {/* RUTAS DE ADMIN con Layout persistente */}
+      <Route
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/finance" element={<AdminFinance />} />
+        <Route path="/admin/reports" element={<AdminReports />} />
+      </Route>
 
-        {/* Rutas de operador */}
-        <Route
-          path="/operator"
-          element={
-            <ProtectedRoute requiredRole="operator">
-              <OperatorDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* RUTAS DE OPERADOR con Layout persistente */}
+      <Route
+        element={
+          <ProtectedRoute requiredRole="operator">
+            <OperatorLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/operator" element={<OperatorDashboard />} />
+        <Route path="/operator/events" element={<OperatorEvents />} />
+        <Route path="/operator/stream/:eventId" element={<OperatorStream />} />
+      </Route>
 
-        {/* Rutas de administrador */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* RUTAS DE VENUE con Layout persistente */}
+      <Route
+        element={
+          <ProtectedRoute requiredRole="venue">
+            <VenueLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/venue" element={<VenueDashboard />} />
+        <Route path="/venue/events" element={<VenueEvents />} />
+        <Route path="/venue/profile" element={<VenueProfile />} />
+      </Route>
 
-        {/* Rutas de venue */}
-        <Route
-          path="/venue"
-          element={
-            <ProtectedRoute requiredRole="venue">
-              <VenueDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Rutas de usuario con tema unificado */}
-        <Route
-          path="/dashboard"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <UserDashboard />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        <Route
-          path="/events"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <EventsPage />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        <Route
-          path="/live-event/:eventId"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <LiveEvent />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        <Route
-          path="/wallet"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <Wallet />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <Profile />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        <Route
-          path="/bets"
-          element={
-            <UserRouteWrapper>
-              <ProtectedRoute requiredRole="user">
-                <BetsPage />
-              </ProtectedRoute>
-            </UserRouteWrapper>
-          }
-        />
-
-        {/* Ruta 404 */}
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-                <p className="text-gray-600 mb-4">Página no encontrada</p>
-                <button
-                  onClick={() => window.history.back()}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Volver
-                </button>
-              </div>
+      {/* Ruta 404 */}
+      <Route
+        path="*"
+        element={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+              <p className="text-gray-600 mb-4">Página no encontrada</p>
+              <button
+                onClick={() => window.history.back()}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Volver
+              </button>
             </div>
-          }
-        />
-      </Routes>
-
-      {/* Navigation component for user routes ONLY */}
-      {showNavigation && <Navigation currentPage="dashboard" />}
-    </div>
+          </div>
+        }
+      />
+    </Routes>
   );
 };
 
-// 🔧 ORDEN CORRECTO DE PROVIDERS
+// APP PRINCIPAL
 function App() {
   return (
     <ErrorBoundary
-      fallback={<div>An error occurred. Please refresh the page.</div>}
+      fallback={<div>Ha ocurrido un error. Por favor recarga la página.</div>}
     >
       <AuthProvider>
         <WebSocketProvider>

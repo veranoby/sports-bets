@@ -28,8 +28,6 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import StatusIndicator from "../../components/shared/StatusIndicator";
 import StatusChip from "../../components/shared/StatusChip";
-import Navigation from "../../components/user/Navigation";
-import UserHeader from "../../components/user/UserHeader";
 
 // Tipos
 import type { Event } from "../../types";
@@ -143,9 +141,6 @@ const EventsPage: React.FC = () => {
 
   return (
     <div className={`${theme.pageBackground} pb-24`}>
-      {/* Reemplazar header existente */}
-      <UserHeader title="Eventos" />
-
       {/* Search and Filters */}
       <div className="p-4 space-y-4">
         {/* Search Bar */}
@@ -275,9 +270,6 @@ const EventsPage: React.FC = () => {
           />
         </div>
       )}
-
-      {/* Navigation */}
-      <Navigation currentPage="events" />
     </div>
   );
 };

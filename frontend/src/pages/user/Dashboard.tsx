@@ -27,13 +27,11 @@ import {
 // Componentes optimizados
 import EventCard from "../../components/user/EventCard";
 //import WalletSummary from "../../components/user/WalletSummary";
-import Navigation from "../../components/user/Navigation";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import StreamingPanel from "../../components/user/StreamingPanel";
 
-import UserHeader from "../../components/user/UserHeader";
 import NewsBanner from "../../components/shared/NewsBanner";
 import WebSocketDiagnostics from "../../components/shared/WebSocketDiagnostics";
 
@@ -170,7 +168,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={theme.pageBackground}>
-      <UserHeader title="Dashboard" />
       <NewsBanner />
       {/* Main Content Grid */}
       <div className="p-4 grid grid-cols-1 ">
@@ -264,9 +261,6 @@ const Dashboard: React.FC = () => {
           </section>
         </div>
       </div>
-
-      {/* Navigation móvil */}
-      <Navigation currentPage="home" />
 
       {/* Monitor de WebSocket - Solo en desarrollo */}
       {process.env.NODE_ENV === "development" && (

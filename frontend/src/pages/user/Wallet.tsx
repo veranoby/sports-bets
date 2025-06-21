@@ -33,14 +33,12 @@ import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // Componentes
-import UserHeader from "../../components/user/UserHeader";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import TransactionHistory from "../../components/user/TransactionHistory";
 import DepositModal from "../../components/user/DepositModal";
 import WithdrawModal from "../../components/user/WithdrawModal";
 import Card from "../../components/shared/Card";
-import Navigation from "../../components/user/Navigation";
 
 // Tipos
 import type { Transaction } from "../../types";
@@ -265,7 +263,6 @@ const WalletPage: React.FC = () => {
   if (error) {
     return (
       <div className={theme.pageBackground}>
-        <UserHeader title="Mi Billetera" />
         <div className="p-4">
           <ErrorMessage
             error={error}
@@ -285,8 +282,6 @@ const WalletPage: React.FC = () => {
 
   return (
     <div className={`${theme.pageBackground} pb-24`}>
-      <UserHeader title="Mi Billetera" />
-
       <div className="p-4 space-y-6">
         {/* Balance Principal */}
         <Card className={`${theme.cardBackground} p-6`}>
@@ -495,9 +490,6 @@ const WalletPage: React.FC = () => {
           maxAmount={Math.min(balanceData.available, 5000)}
         />
       )}
-
-      {/* Navigation */}
-      <Navigation currentPage="wallet" />
     </div>
   );
 };

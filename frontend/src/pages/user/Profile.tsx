@@ -16,10 +16,8 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useBets, useWallet } from "../../hooks/useApi";
 import { getUserThemeClasses } from "../../contexts/UserThemeContext";
-import UserHeader from "../../components/user/UserHeader";
 import StatusChip from "../../components/shared/StatusChip";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import Navigation from "../../components/user/Navigation";
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -80,21 +78,6 @@ const Profile: React.FC = () => {
 
   return (
     <div className={`${theme.pageBackground} pb-24`}>
-      <UserHeader
-        title="Mi Perfil"
-        customActions={
-          !isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#596c95] text-white rounded-lg hover:bg-[#4a5b80] transition-colors text-sm"
-            >
-              <Edit3 className="w-4 h-4" />
-              Editar
-            </button>
-          ) : null
-        }
-      />
-
       <div className="px-4 py-6 max-w-2xl mx-auto">
         {/* Avatar y Info Principal - Rediseño responsivo */}
         <div className="bg-gradient-to-br from-[#2a325c] to-[#1a1f37] rounded-2xl p-6 mb-6 border border-[#596c95]/20">
@@ -106,6 +89,16 @@ const Profile: React.FC = () => {
                   <span className="text-2xl font-bold text-white">
                     {user?.username?.charAt(0).toUpperCase() || "U"}
                   </span>
+
+                  {!isEditing ? (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-[#596c95] text-white rounded-lg hover:bg-[#4a5b80] transition-colors text-sm"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      Editar
+                    </button>
+                  ) : null}
                 </div>
               </div>
               {isEditing && (
@@ -300,8 +293,6 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <Navigation currentPage="profile" />
     </div>
   );
 };

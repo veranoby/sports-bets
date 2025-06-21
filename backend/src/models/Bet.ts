@@ -49,6 +49,8 @@ export class Bet extends Model<
   declare setUser: BelongsToSetAssociationMixin<User, number>;
   declare getMatchedBet: BelongsToGetAssociationMixin<Bet>;
   declare setMatchedBet: BelongsToSetAssociationMixin<Bet, number>;
+  declare getParentBet: BelongsToGetAssociationMixin<Bet>;
+  declare setParentBet: BelongsToSetAssociationMixin<Bet, number>;
 
   // Métodos de instancia
   isPending(): boolean {

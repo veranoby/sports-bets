@@ -23,7 +23,6 @@ import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import UserHeader from "../../components/user/UserHeader";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // ✅ TIPOS LOCALES PARA EVITAR DEPENDENCIAS EXTERNAS
@@ -170,9 +169,6 @@ const UserBets: React.FC = () => {
 
   return (
     <div className="bg-[#1a1f37] min-h-screen pb-20">
-      {/* Header */}
-      <UserHeader title="Mis Apuestas" />
-
       {/* Estadísticas rápidas */}
       <div className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
