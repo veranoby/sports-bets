@@ -72,8 +72,8 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   // ✅ Debug: verificar datos del wallet
   console.log("Wallet data:", wallet);
 
-  // ✅ Fallback seguro para el balance
-  const displayBalance = wallet?.balance?.toFixed(2) ?? "0.00";
+  // ✅ Convertir balance a número antes de toFixed()
+  const displayBalance = Number(wallet?.balance || 0).toFixed(2);
 
   const getGreeting = () => {
     const hour = currentTime.getHours();

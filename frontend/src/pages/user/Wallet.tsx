@@ -72,6 +72,7 @@ const WalletPage: React.FC = () => {
   // Debug: Verificar datos
   console.log("Wallet data:", wallet);
   console.log("Transactions:", recentTransactions);
+  console.log("Tipo de balance:", typeof wallet?.balance, wallet?.balance);
 
   // Estados locales
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -85,9 +86,9 @@ const WalletPage: React.FC = () => {
 
   // Datos calculados
   const balanceData = {
-    available: wallet?.availableBalance || 0,
-    frozen: wallet?.frozenAmount || 0,
-    total: wallet?.balance || 0,
+    available: Number(wallet?.availableBalance || 0),
+    frozen: Number(wallet?.frozenAmount || 0),
+    total: Number(wallet?.balance || 0),
   };
 
   // Filtrar transacciones
