@@ -1,8 +1,8 @@
-// frontend/src/components/user/UserHeader.tsx - CORREGIR MOUNTING CYCLES
-// =========================================================================
+// frontend/src/components/user/UserHeader.tsx - RESTAURADO ATRACTIVO MOBILE-FIRST
+// ===============================================================================
 
 import React, { useState, useEffect } from "react";
-import { LogOut, Wifi, WifiOff } from "lucide-react";
+import { LogOut, Wifi, WifiOff, Bell, Menu, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useWallet, useBets } from "../../hooks/useApi";
@@ -11,13 +11,8 @@ import {
   useUserTheme,
 } from "../../contexts/UserThemeContext";
 import { useNavigate } from "react-router-dom";
-import NotificationBadge from "../shared/NotificationBadge";
-import { Wallet, Dices } from "lucide-react";
-// ❌ REMOVER ESTOS IMPORTS QUE CAUSAN RE-MOUNTING:
-// import NotificationCenter from "../shared/NotificationCenter";
-// import WebSocketDiagnostics from "../shared/WebSocketDiagnostics";
-import ProposalNotifications from "./ProposalNotifications";
-import BetCard from "./BetCard";
+import { Wallet, Dices, Calendar, User } from "lucide-react";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 interface UserHeaderProps {
   title: string;
@@ -33,12 +28,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const theme = getUserThemeClasses();
   const { updateColors } = useUserTheme();
 
-  const [showNotifications, setShowNotifications] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [showProposals, setShowProposals] = useState(false);
-  const [showBetsMenu, setShowBetsMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ✅ REAL DATA - Notificaciones basadas en apuestas activas
+  // ✅ REAL DATA calculado
   const unreadCount =
     bets?.filter(
       (bet) =>
@@ -46,34 +39,22 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
         (bet.status === "settled" && bet.result === "win")
     ).length || 0;
 
-  // Datos para el dropdown
   const activeBetsCount =
     bets?.filter((bet) => bet.status === "active").length || 0;
-  const recentActiveBets =
-    bets
-      ?.filter((bet) => bet.status === "active")
-      ?.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      ?.slice(0, 3) || [];
 
-  // Actualizar hora cada minuto
+  // Display balance con fallback seguro
+  const displayBalance = wallet?.balance ? wallet.balance.toFixed(2) : "0.00";
+
+  // Update time cada minuto
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // ✅ Llamar a fetchWallet al montar el componente
-  useEffect(() => {
+  // WebSocket listeners para updates
+  useWebSocketListener("wallet_updated", () => {
     fetchWallet();
-  }, [fetchWallet]);
-
-  // ✅ Debug: verificar datos del wallet
-  console.log("Wallet data:", wallet);
-
-  // ✅ Convertir balance a número antes de toFixed()
-  const displayBalance = Number(wallet?.balance || 0).toFixed(2);
+  });
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -82,16 +63,19 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
     return "Buenas noches";
   };
 
-  const getRoleLabel = () => {
+  const getRoleInfo = () => {
     switch (user?.role) {
       case "admin":
-        return { label: "Administrador", color: "bg-purple-500" };
+        return {
+          label: "Administrador",
+          color: "from-purple-500 to-indigo-600",
+        };
       case "operator":
-        return { label: "Operador", color: "bg-blue-500" };
+        return { label: "Operador", color: "from-blue-500 to-cyan-600" };
       case "venue":
-        return { label: "Gallera", color: "bg-orange-500" };
+        return { label: "Gallera", color: "from-orange-500 to-red-600" };
       default:
-        return { label: "Aficionado", color: "bg-green-500" };
+        return { label: "Aficionado", color: "from-green-500 to-emerald-600" };
     }
   };
 
@@ -100,121 +84,218 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
     navigate("/login");
   };
 
-  const roleInfo = getRoleLabel();
+  const handleNotificationClick = () => {
+    // Marcar notificaciones como leídas
+    console.log("Notificaciones marcadas como leídas");
+  };
+
+  const roleInfo = getRoleInfo();
 
   return (
-    <header
-      className={`${theme.headerBackground} shadow-sm border-b border-gray-700`}
-    >
-      <div className="px-4 py-3">
-        {/* Fila superior - Información del usuario */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-3">
-            {/* Avatar del usuario */}
-            <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">
-                  {user?.username?.charAt(0).toUpperCase() || "U"}
-                </span>
-              </div>
-              {/* Indicador de conexión WebSocket */}
-              <div className="absolute -bottom-1 -right-1">
-                {isConnected ? (
-                  <Wifi className="w-4 h-4 text-green-400" />
-                ) : (
-                  <WifiOff className="w-4 h-4 text-red-400" />
-                )}
-              </div>
-            </div>
-
-            {/* Información del usuario */}
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-white font-medium">
-                  {user?.username || "Usuario"}
-                </span>
-                <span
-                  className={`${roleInfo.color} text-white text-xs px-2 py-0.5 rounded-full`}
+    <>
+      {/* 🎨 HEADER PRINCIPAL - GRADIENTE ATRACTIVO */}
+      <header className="fixed bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 shadow-2xl border-b border-blue-800/50 sticky top-0 z-40 backdrop-blur-md">
+        <div className="px-4 py-3">
+          {/* 📱 FILA SUPERIOR - USER INFO + ACTIONS */}
+          <div className="flex items-center justify-between mb-3">
+            {/* 👤 USER AVATAR + INFO */}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                {/* Avatar con gradiente */}
+                <div
+                  className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${roleInfo.color} p-1 shadow-lg`}
                 >
-                  {roleInfo.label}
-                </span>
+                  <div className="w-full h-full rounded-xl bg-slate-800 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">
+                      {user?.username?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* WebSocket Status Badge */}
+                <div className="absolute -bottom-1 -right-1 p-1 bg-slate-800 rounded-full">
+                  {isConnected ? (
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                  ) : (
+                    <div className="w-3 h-3 bg-red-400 rounded-full" />
+                  )}
+                </div>
               </div>
-              <p className="text-gray-300 text-sm">
-                {getGreeting()}, {currentTime.toLocaleDateString("es-ES")}
-              </p>
+
+              {/* User Info */}
+              <div className="hidden sm:block">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-white font-semibold text-lg">
+                    {user?.username || "Usuario"}
+                  </span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${roleInfo.color} text-white font-medium`}
+                  >
+                    {roleInfo.label}
+                  </span>
+                </div>
+                <p className="text-blue-200 text-sm flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {getGreeting()}, {currentTime.toLocaleDateString("es-ES")}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* 🎯 ACTIONS - TODAS LAS PANTALLAS */}
+            <div className="flex items-center space-x-2">
+              {/* Notificaciones - siempre visible */}
+
+              {/* Logout - siempre visible */}
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 transition-all duration-200 backdrop-blur-sm group"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-5 h-5 text-red-300 group-hover:text-red-200" />
+              </button>
             </div>
           </div>
 
-          {/* Acciones del usuario */}
-          <div className="flex items-center space-x-2">
-            {/* 🔔 BOTÓN SIMPLE SIN COMPONENTE INTERNO */}
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg transition-colors hover:bg-gray-600"
-              title="Notificaciones"
-            >
-              <span className="text-gray-300 text-sm">🔔</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
+          {/* 🎯 FILA INFERIOR - TITLE + WALLET/BETS */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-white">{title}</h1>
+
+            {/* 💰 WALLET + BETS - SIEMPRE VISIBLES */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate("/wallet")}
+                className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-2 sm:px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Wallet className="w-4 h-4 text-white" />
+                <span className="text-white font-bold text-sm sm:text-base">
+                  ${displayBalance}
                 </span>
-              )}
-            </button>
+              </button>
 
-            {/* Botón de logout */}
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg transition-colors hover:bg-gray-600"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-5 h-5 text-gray-300" />
-            </button>
-          </div>
-        </div>
+              <button
+                onClick={() => navigate("/bets")}
+                className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 px-2 sm:px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Dices className="w-4 h-4 text-white" />
+                <span className="text-white font-bold text-sm sm:text-base">
+                  {activeBetsCount}
+                </span>
+              </button>
 
-        {/* Fila inferior - Título y acciones */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">{title}</h1>
-          <div className="flex items-center space-x-4">
-            {/* Billetera */}
-            <button
-              onClick={() => navigate("/wallet")}
-              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <Wallet className="w-4 h-4 text-white" />
-              <span className="text-white font-medium">${displayBalance}</span>
-            </button>
-
-            {/* Mis Apuestas */}
-            <button
-              onClick={() => navigate("/bets")}
-              className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <Dices className="w-4 h-4 text-white" />
-              <span className="text-white font-medium">{activeBetsCount}</span>
-            </button>
-
-            {customActions}
-          </div>
-        </div>
-
-        {/* Panel de notificaciones simple (sin componente complejo) */}
-        {showNotifications && (
-          <div className="absolute right-4 top-16 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Notificaciones
-              </h3>
-            </div>
-            <div className="max-h-64 overflow-y-auto p-4">
-              <p className="text-center text-gray-500">
-                Sistema de notificaciones básico
-              </p>
+              {customActions}
             </div>
           </div>
-        )}
-      </div>
-    </header>
+        </div>
+      </header>
+
+      {/* 📱 MOBILE MENU OVERLAY */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-b from-slate-900 to-blue-900 shadow-2xl">
+            <div className="p-6">
+              {/* Mobile User Info */}
+              <div className="flex items-center space-x-3 mb-6 pb-6 border-b border-blue-800/50">
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${roleInfo.color} p-1`}
+                >
+                  <div className="w-full h-full rounded-xl bg-slate-800 flex items-center justify-center">
+                    <span className="text-white font-bold text-xl">
+                      {user?.username?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-white font-semibold text-lg block">
+                    {user?.username || "Usuario"}
+                  </span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${roleInfo.color} text-white`}
+                  >
+                    {roleInfo.label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mobile Actions */}
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    navigate("/wallet");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Wallet className="w-6 h-6 text-white" />
+                    <span className="text-white font-semibold">
+                      Mi Billetera
+                    </span>
+                  </div>
+                  <span className="text-white font-bold text-lg">
+                    ${displayBalance}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/bets");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Dices className="w-6 h-6 text-white" />
+                    <span className="text-white font-semibold">
+                      Mis Apuestas
+                    </span>
+                  </div>
+                  <span className="text-white font-bold text-lg">
+                    {activeBetsCount}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleNotificationClick();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Bell className="w-6 h-6 text-white" />
+                    <span className="text-white font-semibold">
+                      Notificaciones
+                    </span>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white font-bold text-sm px-2 py-1 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center space-x-3 p-4 bg-red-500/20 hover:bg-red-500/30 rounded-2xl border border-red-500/30"
+                >
+                  <LogOut className="w-6 h-6 text-red-300" />
+                  <span className="text-red-300 font-semibold">
+                    Cerrar Sesión
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
