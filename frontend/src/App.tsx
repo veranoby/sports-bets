@@ -1,11 +1,14 @@
-// frontend/src/App.tsx - MOVER COMPONENTES WEBSOCKET A NIVEL APP
-// ====================================================================
+// frontend/src/App.tsx - CORREGIR PROVIDERS Y CONTEXTOS
+// =========================================================
 
-import React from "react";
+import React, { useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserThemeProvider } from "./contexts/UserThemeContext";
-import { WebSocketProvider } from "./contexts/WebSocketContext";
+import {
+  WebSocketProvider,
+  useWebSocketContext,
+} from "./contexts/WebSocketContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import OperatorDashboard from "./pages/operator/Dashboard";
@@ -19,9 +22,6 @@ import VenueDashboard from "./pages/venue/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import Navigation from "./components/user/Navigation";
-// ✅ IMPORTAR COMPONENTES WEBSOCKET A NIVEL APP
-import NotificationCenter from "./components/shared/NotificationCenter";
-import WebSocketDiagnostics from "./components/shared/WebSocketDiagnostics";
 import "./App.css";
 
 // Componente para manejar redirección basada en rol
@@ -56,6 +56,72 @@ const RoleBasedRedirect: React.FC = () => {
   }
 };
 
+// ✅ COMPONENTE SIMPLE PARA NOTIFICACIONES SIN DEPENDENCIAS DE TEMA
+const SimpleNotificationCenter: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [unreadCount] = useState(0); // Simplificado por ahora
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        title="Notificaciones"
+      >
+        <span className="text-gray-600">🔔</span>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Notificaciones
+            </h3>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="max-h-64 overflow-y-auto p-4">
+            <p className="text-center text-gray-500">No hay notificaciones</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ✅ COMPONENTE SIMPLE PARA WEBSOCKET DIAGNOSTICS
+const SimpleWebSocketDiagnostics: React.FC = () => {
+  const { isConnected } = useWebSocketContext();
+
+  if (process.env.NODE_ENV !== "development") return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-40">
+      <div
+        className={`
+        px-3 py-2 rounded-lg text-sm font-medium
+        ${
+          isConnected
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }
+      `}
+      >
+        WebSocket: {isConnected ? "Conectado" : "Desconectado"}
+      </div>
+    </div>
+  );
+};
+
 const UserRouteWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -79,23 +145,15 @@ const AppContent: React.FC = () => {
       "/live-event",
     ].some((path) => location.pathname.startsWith(path));
 
-  // Determinar si mostrar componentes WebSocket (solo para usuarios autenticados)
-  const showWebSocketComponents = isAuthenticated;
-
   return (
     <div className="app-container">
-      {/* ✅ COMPONENTES WEBSOCKET A NIVEL APP - NO SE RE-MONTAN */}
-      {showWebSocketComponents && (
+      {/* ✅ COMPONENTES WEBSOCKET SIMPLES A NIVEL APP */}
+      {isAuthenticated && (
         <>
-          {/* NotificationCenter fijo a nivel App */}
           <div className="fixed top-4 right-4 z-50">
-            <NotificationCenter />
+            <SimpleNotificationCenter />
           </div>
-
-          {/* WebSocketDiagnostics solo en desarrollo */}
-          {process.env.NODE_ENV === "development" && (
-            <WebSocketDiagnostics showDetails={false} position="fixed" />
-          )}
+          <SimpleWebSocketDiagnostics />
         </>
       )}
 

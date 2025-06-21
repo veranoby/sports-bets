@@ -26,7 +26,7 @@ interface UserHeaderProps {
 
 const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
   const { user, logout } = useAuth();
-  const { wallet } = useWallet();
+  const { wallet, fetchWallet } = useWallet();
   const { bets } = useBets();
   const { isConnected } = useWebSocketContext();
   const navigate = useNavigate();
@@ -63,6 +63,17 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // ✅ Llamar a fetchWallet al montar el componente
+  useEffect(() => {
+    fetchWallet();
+  }, [fetchWallet]);
+
+  // ✅ Debug: verificar datos del wallet
+  console.log("Wallet data:", wallet);
+
+  // ✅ Fallback seguro para el balance
+  const displayBalance = wallet?.balance?.toFixed(2) ?? "0.00";
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -171,9 +182,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title, customActions }) => {
               className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg transition-colors"
             >
               <Wallet className="w-4 h-4 text-white" />
-              <span className="text-white font-medium">
-                ${wallet?.balance?.toFixed(2) || "0.00"}
-              </span>
+              <span className="text-white font-medium">${displayBalance}</span>
             </button>
 
             {/* Mis Apuestas */}

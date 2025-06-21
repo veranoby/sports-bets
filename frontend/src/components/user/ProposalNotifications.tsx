@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useBets } from "../../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";

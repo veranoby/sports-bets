@@ -58,11 +58,9 @@ Chart.register(
 
 const WalletPage: React.FC = () => {
   const theme = getUserThemeClasses();
-
-  // API Hooks
   const {
     wallet,
-    recentTransactions,
+    transactions: recentTransactions,
     loading,
     error,
     fetchWallet,
@@ -70,6 +68,10 @@ const WalletPage: React.FC = () => {
     deposit,
     withdraw,
   } = useWallet();
+
+  // Debug: Verificar datos
+  console.log("Wallet data:", wallet);
+  console.log("Transactions:", recentTransactions);
 
   // Estados locales
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -170,11 +172,18 @@ const WalletPage: React.FC = () => {
     },
   };
 
-  // Cargar datos iniciales
+  // Cargar datos al montar el componente
   useEffect(() => {
-    fetchWallet();
-    fetchTransactions();
-  }, []);
+    const loadData = async () => {
+      try {
+        await Promise.all([fetchWallet(), fetchTransactions()]);
+      } catch (err) {
+        console.error("Error loading wallet data:", err);
+      }
+    };
+
+    loadData();
+  }, [fetchWallet, fetchTransactions]);
 
   // 🔧 NUEVO: Handler para refresh específico del balance
   const handleRefreshBalance = async () => {
@@ -255,7 +264,13 @@ const WalletPage: React.FC = () => {
       <div className={theme.pageBackground}>
         <UserHeader title="Mi Billetera" />
         <div className="p-4">
-          <ErrorMessage error={error} onRetry={handleRefreshBalance} />
+          <ErrorMessage
+            error={error}
+            onRetry={() => {
+              fetchWallet();
+              fetchTransactions();
+            }}
+          />
         </div>
       </div>
     );
@@ -278,7 +293,7 @@ const WalletPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <p className="text-3xl font-bold text-white">
                     {showBalance
-                      ? `$${Number(balanceData.total || 0).toFixed(2)}`
+                      ? `$${Number(wallet?.balance || 0).toFixed(2)}`
                       : "••••••"}
                   </p>
 

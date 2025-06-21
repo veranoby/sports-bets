@@ -278,7 +278,7 @@ export function useBets() {
   };
 }
 
-// Hook para billetera - MANTENER IGUAL
+// Hook para billetera - IMPLEMENTACIÓN ÚNICA Y OPTIMIZADA
 export function useWallet() {
   const { data, loading, error, execute } = useAsyncOperation<{
     wallet: Wallet;
