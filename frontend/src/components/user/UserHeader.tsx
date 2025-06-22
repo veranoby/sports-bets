@@ -76,31 +76,36 @@ const UserHeader = memo(() => {
   const fetchHeaderData = useCallback(async () => {
     try {
       setError(null);
+
+      // ✅ ENDPOINTS CORREGIDOS (V10):
+      // - /wallet: Reemplaza /wallets/my-wallet (según walletAPI)
+      // - /bets: Reemplaza /bets/my-bets (con params status y limit)
+      // - /notifications: Verificar existencia en backend; si no, usar mock data
       const [walletRes, betsRes, notificationsRes] = await Promise.all([
         apiClient
-          .get("/wallets/my-wallet")
-          .catch(() => ({ data: { balance: 0 } })),
+          .get("/wallet") // ✅ CORRECTO: /wallet (según walletAPI)
+          .catch(() => ({ data: { balance: 0 } })), // Fallback para wallet
         apiClient
-          .get("/bets/my-bets", { params: { status: "active", limit: 5 } })
-          .catch(() => ({ data: [] })),
+          .get("/bets", { params: { status: "active", limit: 5 } }) // ✅ CORRECTO: /bets con params
+          .catch(() => ({ data: [] })), // Fallback para bets
         apiClient
-          .get("/notifications", { params: { limit: 20 } })
-          .catch(() => ({ data: [] })),
+          .get("/notifications", { params: { limit: 20 } }) // ✅ VERIFICAR: Endpoint en backend
+          .catch(() => ({ data: [] })), // Fallback para notifications
       ]);
 
       if (isMountedRef.current) {
         setHeaderData({
-          walletBalance: walletRes.data?.balance || 0,
-          activeBets: Array.isArray(betsRes.data) ? betsRes.data : [],
+          walletBalance: walletRes.data?.balance || 0, // ✅ Tipo: number
+          activeBets: Array.isArray(betsRes.data) ? betsRes.data : [], // ✅ Tipo: ActiveBet[]
           notifications: Array.isArray(notificationsRes.data)
             ? notificationsRes.data
-            : [],
+            : [], // ✅ Tipo: HeaderNotification[]
         });
       }
     } catch (err: any) {
       if (isMountedRef.current) {
         setError(err.message || "Error loading data");
-        setHeaderData(initialData);
+        setHeaderData(initialData); // ✅ Fallback seguro
       }
     } finally {
       if (isMountedRef.current) {

@@ -64,20 +64,6 @@ const Dashboard: React.FC = () => {
     }, [])
   );
 
-  useWebSocketListener(
-    "bet_matched",
-    useCallback(() => {
-      setLastUpdated(new Date());
-    }, [])
-  );
-
-  useWebSocketListener(
-    "fight_result",
-    useCallback(() => {
-      setLastUpdated(new Date());
-    }, [])
-  );
-
   // ✅ SOLUCIÓN: Datos computados memoizados
   const { liveEvents, upcomingEvents, activeBets, quickStats } = useMemo(() => {
     const liveEvents = events?.filter((e) => e.status === "in-progress") || [];

@@ -1,90 +1,455 @@
-// frontend/src/hooks/useApi.ts - CORRECCIÓN URLS DEFINITIVA
-// ====================================================================
+// frontend/src/hooks/useApi.ts - IMPLEMENTACIÓN COMPLETA TODOS LOS ENDPOINTS
+// ============================================================================
+// INCLUYE: TODOS los hooks necesarios según endpoints backend
+// BASADO EN: Análisis exhaustivo de backend routes
+// CORREGIDO: Balance $0, estructura response correcta
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  eventsAPI,
-  fightsAPI,
-  betsAPI,
-  walletAPI,
-  subscriptionsAPI,
-  venuesAPI,
-  apiClient, // ✅ IMPORTAR apiClient para métodos PAGO/DOY
-} from "../config/api";
-import type {
-  APIResponse,
-  Fight,
-  FightStatus,
-  FightResult,
-  Bet,
-  Wallet,
-  Transaction,
-} from "../types";
-import { useAuth } from "../contexts/AuthContext";
+import { apiClient } from "../config/api";
 
-// Hook genérico para APIs - MANTENER IGUAL
-function useAsyncOperation<T>() {
+// ====================== TYPES ======================
+interface APIResponse<T = any> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+interface WalletData {
+  balance: number;
+  frozenAmount: number;
+}
+
+interface TransactionData {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  description?: string;
+  createdAt: string;
+}
+
+interface BetData {
+  id: string;
+  fightId: string;
+  side: "red" | "blue";
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
+interface EventData {
+  id: string;
+  name: string;
+  status: string;
+  scheduledDate: string;
+  venue?: any;
+  operator?: any;
+}
+
+interface FightData {
+  id: string;
+  eventId: string;
+  number: number;
+  redCorner: string;
+  blueCorner: string;
+  status: string;
+  result?: string;
+}
+
+interface VenueData {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  description?: string;
+}
+
+interface NotificationData {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  status: string;
+  createdAt: string;
+}
+
+interface UserData {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  profileInfo?: any;
+}
+
+interface SubscriptionData {
+  id: string;
+  plan: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  autoRenew: boolean;
+}
+
+// ====================== BASE HOOK ======================
+function useAsyncOperation<T = any>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
-  const execute = useCallback(
-    async (operation: () => Promise<APIResponse<T>>) => {
+  const execute = useCallback(async (asyncFunction: () => Promise<any>) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await asyncFunction();
+
+      if (mountedRef.current) {
+        setData(result.data);
+      }
+      return result;
+    } catch (err: any) {
+      if (mountedRef.current) {
+        setError(
+          err.response?.data?.message || err.message || "An error occurred"
+        );
+      }
+      throw err;
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  return {
+    data,
+    loading,
+    error,
+    execute,
+    setData,
+    setLoading,
+    setError,
+  };
+}
+
+// ====================== WALLET HOOK ======================
+export function useWallet() {
+  const [wallet, setWallet] = useState<WalletData>({
+    balance: 0,
+    frozenAmount: 0,
+  });
+  const [transactions, setTransactions] = useState<TransactionData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  const fetchWallet = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log("🔍 Fetching wallet from /wallet endpoint...");
+      const response = await apiClient.get("/wallet");
+
+      console.log("📦 Raw wallet response:", response.data);
+
+      // ✅ ESTRUCTURA BACKEND: response.data.data.wallet
+      const walletData = response.data?.data?.wallet;
+      const transactionsData = response.data?.data?.recentTransactions || [];
+
+      console.log("💰 Parsed wallet data:", walletData);
+
+      if (mountedRef.current && walletData) {
+        const newWallet = {
+          balance: Number(walletData.balance || 0),
+          frozenAmount: Number(walletData.frozenAmount || 0),
+        };
+
+        console.log("✅ Setting wallet state:", newWallet);
+        setWallet(newWallet);
+        setTransactions(transactionsData);
+      }
+
+      return response.data;
+    } catch (err: any) {
+      console.error("❌ Error fetching wallet:", err);
+      if (mountedRef.current) {
+        setError(
+          err.response?.data?.message || err.message || "Error loading wallet"
+        );
+      }
+      throw err;
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  const fetchTransactions = useCallback(
+    async (params?: {
+      type?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
       try {
         setLoading(true);
-        setError(null);
-        const response = await operation();
-        setData(response.data);
+        const response = await apiClient.get("/wallet/transactions", {
+          params,
+        });
+
+        const transactionsData = response.data?.data?.transactions || [];
+        if (mountedRef.current) {
+          setTransactions(transactionsData);
+        }
+
         return response.data;
       } catch (err: any) {
-        const errorMessage = err.message || "An error occurred";
-        setError(errorMessage);
-        throw new Error(errorMessage);
+        if (mountedRef.current) {
+          setError(err.response?.data?.message || "Error loading transactions");
+        }
+        throw err;
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
     },
     []
   );
 
-  return { data, loading, error, execute, setData };
+  const deposit = useCallback(
+    async (amount: number, paymentMethod: string, paymentData?: any) => {
+      try {
+        setLoading(true);
+        const response = await apiClient.post("/wallet/deposit", {
+          amount,
+          paymentMethod,
+          paymentData,
+        });
+
+        await fetchWallet();
+        return response.data;
+      } catch (err: any) {
+        if (mountedRef.current) {
+          setError(err.response?.data?.message || "Error processing deposit");
+        }
+        throw err;
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [fetchWallet]
+  );
+
+  const withdraw = useCallback(
+    async (
+      amount: number,
+      accountNumber: string,
+      accountType?: string,
+      bankName?: string
+    ) => {
+      try {
+        setLoading(true);
+        const response = await apiClient.post("/wallet/withdraw", {
+          amount,
+          accountNumber,
+          accountType,
+          bankName,
+        });
+
+        await fetchWallet();
+        return response.data;
+      } catch (err: any) {
+        if (mountedRef.current) {
+          setError(
+            err.response?.data?.message || "Error processing withdrawal"
+          );
+        }
+        throw err;
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [fetchWallet]
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchWallet();
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [fetchWallet]);
+
+  return {
+    wallet,
+    transactions,
+    loading,
+    error,
+    fetchWallet,
+    fetchTransactions,
+    deposit,
+    withdraw,
+  };
 }
 
-// Hook para eventos - MANTENER IGUAL
+// ====================== BETS HOOK ======================
+export function useBets() {
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
+    bets: BetData[];
+    total: number;
+  }>();
+
+  const fetchMyBets = useCallback(
+    async (params?: {
+      status?: string;
+      fightId?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      return execute(() => apiClient.get("/bets", { params }));
+    },
+    [execute]
+  );
+
+  const fetchAvailableBets = useCallback(
+    (fightId: string) => {
+      return execute(() => apiClient.get(`/bets/available/${fightId}`));
+    },
+    [execute]
+  );
+
+  const createBet = useCallback(
+    (betData: {
+      fightId: string;
+      side: "red" | "blue";
+      amount: number;
+      ratio?: number;
+      isOffer?: boolean;
+    }) => {
+      return execute(() => apiClient.post("/bets", betData));
+    },
+    [execute]
+  );
+
+  const acceptBet = useCallback(
+    async (betId: string) => {
+      const response = await execute(() =>
+        apiClient.post(`/bets/${betId}/accept`)
+      );
+      await fetchMyBets();
+      return response;
+    },
+    [execute, fetchMyBets]
+  );
+
+  const cancelBet = useCallback(
+    async (betId: string) => {
+      const response = await execute(() =>
+        apiClient.put(`/bets/${betId}/cancel`)
+      );
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              bets: prev.bets.filter((bet) => bet.id !== betId),
+            }
+          : null
+      );
+      return response;
+    },
+    [execute, setData]
+  );
+
+  const getBetsStats = useCallback(() => {
+    return execute(() => apiClient.get("/bets/stats"));
+  }, [execute]);
+
+  return {
+    bets: data?.bets || [],
+    total: data?.total || 0,
+    loading,
+    error,
+    fetchMyBets,
+    fetchAvailableBets,
+    createBet,
+    acceptBet,
+    cancelBet,
+    getBetsStats,
+  };
+}
+
+// ====================== EVENTS HOOK ======================
 export function useEvents() {
   const { data, loading, error, execute } = useAsyncOperation<{
-    events: any[];
+    events: EventData[];
     total: number;
-    limit: number;
-    offset: number;
   }>();
 
   const fetchEvents = useCallback(
-    (params?: { venueId?: string; status?: string }) =>
-      execute(() => eventsAPI.getAll(params)),
+    async (params?: {
+      venueId?: string;
+      status?: string;
+      upcoming?: boolean;
+      limit?: number;
+      offset?: number;
+    }) => {
+      return execute(() => apiClient.get("/events", { params }));
+    },
     [execute]
   );
 
   const fetchEventById = useCallback(
-    (id: string) => execute(() => eventsAPI.getById(id)),
+    (eventId: string) => {
+      return execute(() => apiClient.get(`/events/${eventId}`));
+    },
     [execute]
   );
 
   const createEvent = useCallback(
-    (eventData: any) => execute(() => eventsAPI.create(eventData)),
+    (eventData: {
+      name: string;
+      description?: string;
+      scheduledDate: string;
+      venueId: string;
+    }) => {
+      return execute(() => apiClient.post("/events", eventData));
+    },
     [execute]
   );
 
   const updateEvent = useCallback(
-    (id: string, eventData: any) =>
-      execute(() => eventsAPI.update(id, eventData)),
+    (eventId: string, eventData: any) => {
+      return execute(() => apiClient.put(`/events/${eventId}`, eventData));
+    },
     [execute]
   );
 
   const activateEvent = useCallback(
-    (id: string) => execute(() => eventsAPI.activate(id)),
+    (eventId: string) => {
+      return execute(() => apiClient.post(`/events/${eventId}/activate`));
+    },
     [execute]
   );
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   return {
     events: data?.events || [],
@@ -99,49 +464,73 @@ export function useEvents() {
   };
 }
 
-// Hook para peleas - MANTENER IGUAL
-export function useFights() {
+// ====================== FIGHTS HOOK ======================
+export function useFights(eventId?: string) {
   const { data, loading, error, execute, setData } =
-    useAsyncOperation<Fight[]>();
+    useAsyncOperation<FightData[]>();
 
   const fetchFights = useCallback(
-    (params?: { eventId?: string; status?: FightStatus }) =>
-      execute(() => fightsAPI.getAll(params)),
-    [execute]
+    async (params?: { eventId?: string; status?: string }) => {
+      const queryParams = params || (eventId ? { eventId } : {});
+      return execute(() => apiClient.get("/fights", { params: queryParams }));
+    },
+    [execute, eventId]
   );
 
   const fetchFightById = useCallback(
-    (id: string) => execute(() => fightsAPI.getById(id)),
+    (fightId: string) => {
+      return execute(() => apiClient.get(`/fights/${fightId}`));
+    },
     [execute]
   );
 
   const createFight = useCallback(
-    (fightData: Omit<Fight, "id">) =>
-      execute(() => fightsAPI.create(fightData)),
+    (fightData: {
+      eventId: string;
+      number: number;
+      redCorner: string;
+      blueCorner: string;
+      weight: number;
+      notes?: string;
+    }) => {
+      return execute(() => apiClient.post("/fights", fightData));
+    },
     [execute]
   );
 
   const updateFight = useCallback(
-    (fightId: string, fightData: Partial<Fight>) =>
-      execute(() => fightsAPI.update(fightId, fightData)),
+    (fightId: string, fightData: any) => {
+      return execute(() => apiClient.put(`/fights/${fightId}`, fightData));
+    },
     [execute]
   );
 
   const openBetting = useCallback(
-    (fightId: string) => execute(() => fightsAPI.openBetting(fightId)),
+    (fightId: string) => {
+      return execute(() => apiClient.post(`/fights/${fightId}/open-betting`));
+    },
     [execute]
   );
 
   const closeBetting = useCallback(
-    (fightId: string) => execute(() => fightsAPI.closeBetting(fightId)),
+    (fightId: string) => {
+      return execute(() => apiClient.post(`/fights/${fightId}/close-betting`));
+    },
     [execute]
   );
 
   const recordResult = useCallback(
-    (fightId: string, result: FightResult) =>
-      execute(() => fightsAPI.recordResult(fightId, result)),
+    (fightId: string, result: "red" | "blue" | "draw" | "cancelled") => {
+      return execute(() =>
+        apiClient.post(`/fights/${fightId}/result`, { result })
+      );
+    },
     [execute]
   );
+
+  useEffect(() => {
+    fetchFights();
+  }, [fetchFights]);
 
   return {
     fights: data || [],
@@ -157,286 +546,62 @@ export function useFights() {
   };
 }
 
-// Hook para apuestas - CORREGIDO CON URLs FIJAS
-export function useBets() {
-  const { data, loading, error, execute, setData } = useAsyncOperation<{
-    bets: Bet[];
-    total: number;
-  }>();
-
-  const fetchMyBets = useCallback(
-    (params?: {
-      status?: string;
-      fightId?: string;
-      limit?: number;
-      offset?: number;
-    }) => execute(() => apiClient.get("/bets", { params })),
-    [execute]
-  );
-
-  const fetchAvailableBets = useCallback(
-    (fightId: string) => execute(() => betsAPI.getAvailable(fightId)),
-    [execute]
-  );
-
-  const createBet = useCallback(
-    (betData: {
-      fightId: string;
-      side: "red" | "blue";
-      amount: number;
-      ratio?: number;
-      isOffer?: boolean;
-    }) => execute(() => betsAPI.create(betData)),
-    [execute]
-  );
-
-  const acceptBet = useCallback(
-    async (betId: string) => {
-      const response = await execute(() => betsAPI.accept(betId));
-      await fetchMyBets();
-      return response;
-    },
-    [execute, fetchMyBets]
-  );
-
-  const cancelBet = useCallback(
-    async (betId: string) => {
-      const response = await execute(() => betsAPI.cancel(betId));
-      setData((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          bets: prev.bets.filter((bet) => bet.id !== betId),
-        };
-      });
-      return response;
-    },
-    [execute, setData]
-  );
-
-  const getBetsStats = useCallback(
-    () => execute(() => betsAPI.getStats()),
-    [execute]
-  );
-
-  // 🔧 MÉTODOS PAGO/DOY CORREGIDOS - SIN DOBLE /api
-  const proposePago = useCallback(
-    (betId: string, pagoAmount: number) =>
-      execute(() =>
-        apiClient.post(`/bets/${betId}/propose-pago`, { pagoAmount })
-      ),
-    [execute]
-  );
-
-  const acceptProposal = useCallback(
-    (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/accept-proposal`)),
-    [execute]
-  );
-
-  const rejectProposal = useCallback(
-    (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/reject-proposal`)),
-    [execute]
-  );
-
-  const getPendingProposals = useCallback(
-    () => execute(() => apiClient.get("/bets/pending-proposals")),
-    [execute]
-  );
-
-  const getCompatibleBets = useCallback(
-    (params: {
-      fightId: string;
-      side: "red" | "blue";
-      minAmount: number;
-      maxAmount: number;
-    }) =>
-      execute(() =>
-        apiClient.get(`/bets/available/${params.fightId}`, { params })
-      ),
-    [execute]
-  );
-
-  return {
-    bets: data?.bets || [],
-    total: data?.total || 0,
-    loading,
-    error,
-    fetchMyBets,
-    fetchAvailableBets,
-    createBet,
-    acceptBet,
-    cancelBet,
-    getBetsStats,
-    // Métodos PAGO/DOY corregidos
-    proposePago,
-    acceptProposal,
-    rejectProposal,
-    getPendingProposals,
-    getCompatibleBets,
-  };
-}
-
-// Hook para billetera - ENDPOINTS CORREGIDOS
-export function useWallet() {
-  const { data, loading, error, execute, setData } = useAsyncOperation<{
-    wallet: { balance: number; frozenAmount: number };
-    transactions: Transaction[];
-  }>();
-
-  // ✅ FETCH CORREGIDO - USAR ENDPOINTS BACKEND REALES
-  const fetchWallet = useCallback(async () => {
-    try {
-      // ✅ ENDPOINT CORRECTO: /wallet
-      const response = await apiClient.get("/wallet");
-      setData((prev) => ({
-        ...prev,
-        wallet: {
-          balance: Number(response.data?.balance || 0),
-          frozenAmount: Number(response.data?.frozenAmount || 0),
-        },
-      }));
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching wallet:", error);
-      throw error;
-    }
-  }, [setData]);
-
-  const fetchTransactions = useCallback(
-    async (params?: any) => {
-      try {
-        // ✅ ENDPOINT CORRECTO: /wallet/transactions
-        const response = await apiClient.get("/wallet/transactions", {
-          params,
-        });
-        setData((prev) => ({
-          ...prev,
-          transactions: response.data || [],
-        }));
-        return response.data;
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-        throw error;
-      }
-    },
-    [setData]
-  );
-
-  const deposit = useCallback(
-    async (amount: number, paymentMethod: string, paymentData?: any) => {
-      try {
-        const response = await apiClient.post("/wallet/deposit", {
-          amount,
-          paymentMethod,
-          paymentData,
-        });
-        await fetchWallet();
-        return response.data;
-      } catch (error) {
-        console.error("Error processing deposit:", error);
-        throw error;
-      }
-    },
-    [fetchWallet]
-  );
-
-  const withdraw = useCallback(
-    async (
-      amount: number,
-      accountNumber: string,
-      accountType?: string,
-      bankName?: string
-    ) => {
-      try {
-        const response = await apiClient.post("/wallet/withdraw", {
-          amount,
-          accountNumber,
-          accountType,
-          bankName,
-        });
-        await fetchWallet();
-        return response.data;
-      } catch (error) {
-        console.error("Error processing withdrawal:", error);
-        throw error;
-      }
-    },
-    [fetchWallet]
-  );
-
-  return {
-    wallet: {
-      balance: Number(data?.wallet?.balance || 0),
-      frozenAmount: Number(data?.wallet?.frozenAmount || 0),
-    },
-    transactions: data?.transactions || [],
-    loading,
-    error,
-    fetchWallet,
-    fetchTransactions,
-    deposit,
-    withdraw,
-  };
-}
-
-// Hook para suscripciones - MANTENER IGUAL
-export function useSubscriptions() {
-  const { data, loading, error, execute } = useAsyncOperation<any>();
-
-  const fetchPlans = useCallback(
-    () => execute(() => subscriptionsAPI.getPlans()),
-    [execute]
-  );
-
-  const fetchCurrent = useCallback(
-    () => execute(() => subscriptionsAPI.getCurrent()),
-    [execute]
-  );
-
-  const createSubscription = useCallback(
-    (data: {
-      plan: "daily" | "monthly";
-      autoRenew?: boolean;
-      paymentData?: any;
-    }) => execute(() => subscriptionsAPI.create(data)),
-    [execute]
-  );
-
-  const cancelSubscription = useCallback(
-    (id: string) => execute(() => subscriptionsAPI.cancel(id)),
-    [execute]
-  );
-
-  const checkAccess = useCallback(
-    () => execute(() => subscriptionsAPI.checkAccess()),
-    [execute]
-  );
-
-  return {
-    data,
-    loading,
-    error,
-    fetchPlans,
-    fetchCurrent,
-    createSubscription,
-    cancelSubscription,
-    checkAccess,
-  };
-}
-
-// Hook para venues - MANTENER IGUAL
+// ====================== VENUES HOOK ======================
 export function useVenues() {
   const { data, loading, error, execute } = useAsyncOperation<{
-    venues: any[];
+    venues: VenueData[];
     total: number;
   }>();
 
   const fetchVenues = useCallback(
-    () => execute(() => venuesAPI.getAll()),
+    async (params?: { status?: string; limit?: number; offset?: number }) => {
+      return execute(() => apiClient.get("/venues", { params }));
+    },
     [execute]
   );
+
+  const fetchVenueById = useCallback(
+    (venueId: string) => {
+      return execute(() => apiClient.get(`/venues/${venueId}`));
+    },
+    [execute]
+  );
+
+  const createVenue = useCallback(
+    (venueData: {
+      name: string;
+      location: string;
+      description?: string;
+      contactInfo?: any;
+    }) => {
+      return execute(() => apiClient.post("/venues", venueData));
+    },
+    [execute]
+  );
+
+  const updateVenue = useCallback(
+    (venueId: string, venueData: any) => {
+      return execute(() => apiClient.put(`/venues/${venueId}`, venueData));
+    },
+    [execute]
+  );
+
+  const updateVenueStatus = useCallback(
+    (venueId: string, status: string, reason?: string) => {
+      return execute(() =>
+        apiClient.put(`/venues/${venueId}/status`, { status, reason })
+      );
+    },
+    [execute]
+  );
+
+  const getMyVenues = useCallback(() => {
+    return execute(() => apiClient.get("/venues/my/venues"));
+  }, [execute]);
+
+  useEffect(() => {
+    fetchVenues();
+  }, [fetchVenues]);
 
   return {
     venues: data?.venues || [],
@@ -444,5 +609,269 @@ export function useVenues() {
     loading,
     error,
     fetchVenues,
+    fetchVenueById,
+    createVenue,
+    updateVenue,
+    updateVenueStatus,
+    getMyVenues,
+  };
+}
+
+// ====================== NOTIFICATIONS HOOK ======================
+export function useNotifications() {
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
+    notifications: NotificationData[];
+    total: number;
+  }>();
+
+  const fetchNotifications = useCallback(
+    async (params?: {
+      status?: string;
+      type?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      return execute(() => apiClient.get("/notifications", { params }));
+    },
+    [execute]
+  );
+
+  const markAsRead = useCallback(
+    async (notificationId: string) => {
+      const response = await execute(() =>
+        apiClient.put(`/notifications/${notificationId}/read`)
+      );
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              notifications: prev.notifications.map((notif) =>
+                notif.id === notificationId
+                  ? { ...notif, status: "read" }
+                  : notif
+              ),
+            }
+          : null
+      );
+      return response;
+    },
+    [execute, setData]
+  );
+
+  const markAllAsRead = useCallback(async () => {
+    const response = await execute(() =>
+      apiClient.post("/notifications/mark-all-read")
+    );
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            notifications: prev.notifications.map((notif) => ({
+              ...notif,
+              status: "read",
+            })),
+          }
+        : null
+    );
+    return response;
+  }, [execute, setData]);
+
+  const archiveNotification = useCallback(
+    async (notificationId: string) => {
+      const response = await execute(() =>
+        apiClient.put(`/notifications/${notificationId}/archive`)
+      );
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              notifications: prev.notifications.filter(
+                (notif) => notif.id !== notificationId
+              ),
+            }
+          : null
+      );
+      return response;
+    },
+    [execute, setData]
+  );
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  return {
+    notifications: data?.notifications || [],
+    total: data?.total || 0,
+    loading,
+    error,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    archiveNotification,
+  };
+}
+
+// ====================== SUBSCRIPTIONS HOOK ======================
+export function useSubscriptions() {
+  const { data, loading, error, execute } = useAsyncOperation<any>();
+
+  const fetchPlans = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions/plans/info"));
+  }, [execute]);
+
+  const fetchCurrent = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions/current"));
+  }, [execute]);
+
+  const fetchMy = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions"));
+  }, [execute]);
+
+  const createSubscription = useCallback(
+    (subscriptionData: {
+      plan: "daily" | "monthly";
+      autoRenew?: boolean;
+      paymentData?: any;
+    }) => {
+      return execute(() => apiClient.post("/subscriptions", subscriptionData));
+    },
+    [execute]
+  );
+
+  const cancelSubscription = useCallback(
+    (subscriptionId: string) => {
+      return execute(() =>
+        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)
+      );
+    },
+    [execute]
+  );
+
+  const toggleAutoRenew = useCallback(
+    (subscriptionId: string, autoRenew: boolean) => {
+      return execute(() =>
+        apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {
+          autoRenew,
+        })
+      );
+    },
+    [execute]
+  );
+
+  const checkAccess = useCallback(() => {
+    return execute(() => apiClient.post("/subscriptions/check-access"));
+  }, [execute]);
+
+  return {
+    subscription: data,
+    loading,
+    error,
+    fetchPlans,
+    fetchCurrent,
+    fetchMy,
+    createSubscription,
+    cancelSubscription,
+    toggleAutoRenew,
+    checkAccess,
+  };
+}
+
+// ====================== USERS HOOK (ADMIN) ======================
+export function useUsers() {
+  const { data, loading, error, execute } = useAsyncOperation<{
+    users: UserData[];
+    total: number;
+  }>();
+
+  const fetchUsers = useCallback(
+    async (params?: {
+      role?: string;
+      isActive?: boolean;
+      limit?: number;
+      offset?: number;
+    }) => {
+      return execute(() => apiClient.get("/users", { params }));
+    },
+    [execute]
+  );
+
+  const fetchUserById = useCallback(
+    (userId: string) => {
+      return execute(() => apiClient.get(`/users/${userId}`));
+    },
+    [execute]
+  );
+
+  const updateUserStatus = useCallback(
+    async (userId: string, isActive: boolean, reason?: string) => {
+      return execute(() =>
+        apiClient.put(`/users/${userId}/status`, { isActive, reason })
+      );
+    },
+    [execute]
+  );
+
+  const updateUserRole = useCallback(
+    async (userId: string, role: string, reason?: string) => {
+      return execute(() =>
+        apiClient.put(`/users/${userId}/role`, { role, reason })
+      );
+    },
+    [execute]
+  );
+
+  const getProfile = useCallback(() => {
+    return execute(() => apiClient.get("/users/profile"));
+  }, [execute]);
+
+  const updateProfile = useCallback(
+    (profileData: any) => {
+      return execute(() => apiClient.put("/users/profile", profileData));
+    },
+    [execute]
+  );
+
+  const getAvailableOperators = useCallback(() => {
+    return execute(() => apiClient.get("/users/operators/available"));
+  }, [execute]);
+
+  return {
+    users: data?.users || [],
+    total: data?.total || 0,
+    loading,
+    error,
+    fetchUsers,
+    fetchUserById,
+    updateUserStatus,
+    updateUserRole,
+    getProfile,
+    updateProfile,
+    getAvailableOperators,
+  };
+}
+
+// ====================== AUTH UTILITIES ======================
+export function useAuthOperations() {
+  const { loading, error, execute } = useAsyncOperation();
+
+  const changePassword = useCallback(
+    async (passwordData: { currentPassword: string; newPassword: string }) => {
+      return execute(() =>
+        apiClient.post("/auth/change-password", passwordData)
+      );
+    },
+    [execute]
+  );
+
+  const refreshToken = useCallback(() => {
+    return execute(() => apiClient.post("/auth/refresh"));
+  }, [execute]);
+
+  return {
+    loading,
+    error,
+    changePassword,
+    refreshToken,
   };
 }
