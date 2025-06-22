@@ -1,30 +1,14 @@
-// frontend/src/hooks/useWebSocket.ts - HOOKS OPTIMIZADOS ANTI-THRASHING
-// ========================================================================
+// frontend/src/hooks/useWebSocket.ts - VERSIÓN SIMPLIFICADA
+// ==============================================================
 
 import { useEffect, useRef, useCallback, useMemo } from "react";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 
-interface UseWebSocketOptions {
-  shouldConnect?: boolean;
-  autoReconnect?: boolean;
-}
-
-interface UseWebSocketReturn {
-  isConnected: boolean;
-  connectionError: string | null;
-  isConnecting: boolean;
-  emit: (event: string, data?: any) => boolean;
-}
-
-// 🚀 HOOK PRINCIPAL SIMPLIFICADO Y OPTIMIZADO
+// 🎯 HOOK PRINCIPAL - SIMPLIFICADO Y OPTIMIZADO
 export const useWebSocket = (
   roomId?: string,
-  listeners?: Record<string, (data: any) => void>,
-  options: UseWebSocketOptions = {}
-): UseWebSocketReturn => {
-  const { shouldConnect = true } = options;
-
-  // Contexto WebSocket
+  listeners?: Record<string, (data: any) => void>
+) => {
   const {
     isConnected,
     connectionError,
@@ -36,194 +20,106 @@ export const useWebSocket = (
     removeListener,
   } = useWebSocketContext();
 
-  // 📝 REFERENCIAS ESTABLES (sin re-renders)
+  // Referencias estables para evitar re-renders
   const currentRoomRef = useRef<string | null>(null);
-  const listenersRefRef = useRef<Record<string, Function>>({});
-  const componentIdRef = useRef(`component-${Date.now()}-${Math.random()}`);
-  const isMountedRef = useRef(true);
-  const listenersRegisteredRef = useRef(false);
+  const listenersRef = useRef<Record<string, () => void>>({});
+  const componentIdRef = useRef(
+    `ws-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+  );
 
-  // 🏠 GESTIÓN DE ROOM SIMPLIFICADA
+  // 🏠 GESTIÓN DE ROOM - Simplificada
   useEffect(() => {
-    if (!shouldConnect || !isConnected || !roomId) return;
-
-    // Solo cambiar de room si es diferente
-    if (currentRoomRef.current !== roomId) {
-      // Salir de room anterior si existe
-      if (currentRoomRef.current) {
-        leaveRoom(currentRoomRef.current);
-      }
-
-      // Unirse a nueva room
-      joinRoom(roomId);
-      currentRoomRef.current = roomId;
-
-      console.log(`🏠 ${componentIdRef.current} cambió a room: ${roomId}`);
-    }
-
-    return () => {
-      // Cleanup de room en desmontaje
-      if (currentRoomRef.current) {
-        leaveRoom(currentRoomRef.current);
-        currentRoomRef.current = null;
-      }
-    };
-  }, [shouldConnect, isConnected, roomId, joinRoom, leaveRoom]);
-
-  // 🎧 GESTIÓN DE LISTENERS SIMPLIFICADA
-  useEffect(() => {
-    if (
-      !shouldConnect ||
-      !isConnected ||
-      !listeners ||
-      listenersRegisteredRef.current
-    ) {
+    if (!isConnected || !roomId || currentRoomRef.current === roomId) {
       return;
     }
 
-    console.log(`🎧 ${componentIdRef.current} configurando listeners...`);
-
-    // Registrar todos los listeners nuevos
-    const listenersToAdd = Object.entries(listeners);
-
-    listenersToAdd.forEach(([event, handler]) => {
-      addListener(event, handler);
-      listenersRefRef.current[event] = handler;
-    });
-
-    listenersRegisteredRef.current = true;
-
-    return () => {
-      if (listenersRegisteredRef.current) {
-        console.log(`🧹 ${componentIdRef.current} limpiando listeners...`);
-
-        Object.entries(listenersRefRef.current).forEach(([event, handler]) => {
-          removeListener(event, handler);
-        });
-
-        listenersRefRef.current = {};
-        listenersRegisteredRef.current = false;
-      }
-    };
-  }, [shouldConnect, isConnected, addListener, removeListener]); // ✅ listeners NO es dependencia
-
-  // 🧹 CLEANUP EN UNMOUNT
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    return () => {
-      isMountedRef.current = false;
-
-      // Cleanup forzado si aún hay listeners
-      if (listenersRegisteredRef.current) {
-        Object.entries(listenersRefRef.current).forEach(([event, handler]) => {
-          removeListener(event, handler);
-        });
-        listenersRefRef.current = {};
-        listenersRegisteredRef.current = false;
-      }
-    };
-  }, [removeListener]);
-
-  // ✅ MEMOIZAR RESULTADO PARA EVITAR RE-RENDERS
-  return useMemo(
-    () => ({
-      isConnected,
-      connectionError,
-      isConnecting,
-      emit,
-    }),
-    [isConnected, connectionError, isConnecting, emit]
-  );
-};
-
-// 🎯 HOOK ESPECIALIZADO PARA COMPONENTES QUE SOLO NECESITAN EMITIR
-export const useWebSocketEmit = () => {
-  const { emit, isConnected } = useWebSocketContext();
-
-  return useMemo(
-    () => ({
-      emit,
-      isConnected,
-    }),
-    [emit, isConnected]
-  );
-};
-
-// 🏠 HOOK ESPECIALIZADO PARA GESTIÓN DE ROOMS
-export const useWebSocketRoom = (roomId: string) => {
-  const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
-  const currentRoomRef = useRef<string | null>(null);
-  const componentIdRef = useRef(`room-${Date.now()}`);
-
-  useEffect(() => {
-    if (!isConnected || !roomId) return;
-
-    if (currentRoomRef.current !== roomId) {
-      if (currentRoomRef.current) {
-        leaveRoom(currentRoomRef.current);
-        console.log(
-          `🚪 ${componentIdRef.current} salió de room: ${currentRoomRef.current}`
-        );
-      }
-
-      joinRoom(roomId);
-      currentRoomRef.current = roomId;
-      console.log(`🏠 ${componentIdRef.current} se unió a room: ${roomId}`);
+    // Salir de room anterior
+    if (currentRoomRef.current) {
+      leaveRoom(currentRoomRef.current);
+      console.log(
+        `🚪 ${componentIdRef.current} salió de room: ${currentRoomRef.current}`
+      );
     }
 
+    // Entrar a nueva room
+    joinRoom(roomId);
+    currentRoomRef.current = roomId;
+    console.log(`🏠 ${componentIdRef.current} entró a room: ${roomId}`);
+
     return () => {
       if (currentRoomRef.current) {
         leaveRoom(currentRoomRef.current);
-        console.log(
-          `🧹 ${componentIdRef.current} cleanup room: ${currentRoomRef.current}`
-        );
         currentRoomRef.current = null;
       }
     };
   }, [isConnected, roomId, joinRoom, leaveRoom]);
 
-  return useMemo(() => ({ isConnected }), [isConnected]);
-};
-
-// 🎧 HOOK ESPECIALIZADO PARA LISTENERS ÚNICOS
-export const useWebSocketListener = <T = any>(
-  event: string,
-  handler: (data: T) => void,
-  dependencies: any[] = []
-) => {
-  const { isConnected, addListener } = useWebSocketContext();
-  const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Handler estable
-  const stableHandler = useCallback(handler, dependencies);
-
+  // 🎧 GESTIÓN DE LISTENERS - Simplificada
   useEffect(() => {
-    if (!event || !isConnected) return;
+    if (!isConnected || !listeners) {
+      return;
+    }
 
-    console.log(`🎧 ${componentIdRef.current} registrando listener: ${event}`);
+    console.log(
+      `🎧 ${componentIdRef.current} registrando listeners:`,
+      Object.keys(listeners)
+    );
 
-    // Usar el cleanup retornado por addListener
-    cleanupRef.current = addListener(event, stableHandler);
+    // Registrar todos los listeners
+    Object.entries(listeners).forEach(([event, handler]) => {
+      const cleanup = addListener(event, handler);
+      listenersRef.current[event] = cleanup;
+    });
 
     return () => {
-      if (cleanupRef.current) {
-        console.log(
-          `🧹 ${componentIdRef.current} limpiando listener: ${event}`
-        );
-        cleanupRef.current();
-        cleanupRef.current = null;
-      }
-    };
-  }, [event, isConnected, stableHandler, addListener, ...dependencies]);
+      console.log(`🧹 ${componentIdRef.current} limpiando listeners`);
 
-  return useMemo(() => ({ isConnected }), [isConnected]);
+      // Limpiar todos los listeners
+      Object.values(listenersRef.current).forEach((cleanup) => cleanup());
+      listenersRef.current = {};
+    };
+  }, [isConnected, addListener]); // ✅ listeners NO es dependencia para evitar re-registros
+
+  // 📤 FUNCIONES DE EMISIÓN - Memoizadas
+  const emitEvent = useCallback(
+    (event: string, data?: any) => {
+      if (!isConnected) {
+        console.warn(
+          `⚠️ ${componentIdRef.current} - Socket no conectado para emitir: ${event}`
+        );
+        return false;
+      }
+      return emit(event, data);
+    },
+    [isConnected, emit]
+  );
+
+  // ✅ RESULTADO MEMOIZADO para evitar re-renders
+  return useMemo(
+    () => ({
+      isConnected,
+      connectionError,
+      isConnecting,
+      emit: emitEvent,
+
+      // Estados de conexión
+      status: isConnecting
+        ? "connecting"
+        : isConnected
+        ? "connected"
+        : "disconnected",
+
+      // Metadata para debugging
+      componentId: componentIdRef.current,
+      currentRoom: currentRoomRef.current,
+    }),
+    [isConnected, connectionError, isConnecting, emitEvent]
+  );
 };
 
-// 🎪 HOOK ESPECIALIZADO PARA EVENTOS (sin listeners constantes)
-export const useWebSocketEvents = () => {
-  const { isConnected, emit } = useWebSocketContext();
+// 🎯 HOOK ESPECIALIZADO PARA COMPONENTES QUE SOLO EMITEN
+export const useWebSocketEmit = () => {
+  const { emit, isConnected } = useWebSocketContext();
 
   const emitBetCreated = useCallback(
     (betData: any) => {
@@ -271,7 +167,88 @@ export const useWebSocketEvents = () => {
   );
 };
 
-// 📊 HOOK PARA ESTADÍSTICAS DE WEBSOCKET (desarrollo)
+// 🎧 HOOK PARA LISTENER ÚNICO (más simple que el anterior)
+export const useWebSocketListener = <T = any>(
+  event: string,
+  handler: (data: T) => void,
+  dependencies: any[] = []
+) => {
+  const { isConnected, addListener } = useWebSocketContext();
+  const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Handler estable - memoizado con dependencias
+  const stableHandler = useCallback(handler, dependencies);
+
+  useEffect(() => {
+    if (!event || !isConnected) {
+      return;
+    }
+
+    console.log(
+      `🎧 ${componentIdRef.current} - Registrando listener: ${event}`
+    );
+
+    // Registrar listener y guardar cleanup
+    cleanupRef.current = addListener(event, stableHandler);
+
+    return () => {
+      if (cleanupRef.current) {
+        console.log(
+          `🧹 ${componentIdRef.current} - Limpiando listener: ${event}`
+        );
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, [event, isConnected, stableHandler, addListener]);
+
+  return useMemo(
+    () => ({
+      isConnected,
+      componentId: componentIdRef.current,
+    }),
+    [isConnected]
+  );
+};
+
+// 🏠 HOOK PARA GESTIÓN DE ROOMS (opcional, solo si necesitas control granular)
+export const useWebSocketRoom = (roomId: string) => {
+  const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
+  const currentRoomRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isConnected || !roomId) return;
+
+    if (currentRoomRef.current !== roomId) {
+      // Salir de room anterior
+      if (currentRoomRef.current) {
+        leaveRoom(currentRoomRef.current);
+      }
+
+      // Entrar a nueva room
+      joinRoom(roomId);
+      currentRoomRef.current = roomId;
+    }
+
+    return () => {
+      if (currentRoomRef.current) {
+        leaveRoom(currentRoomRef.current);
+        currentRoomRef.current = null;
+      }
+    };
+  }, [isConnected, roomId, joinRoom, leaveRoom]);
+
+  return useMemo(
+    () => ({
+      isConnected,
+      currentRoom: currentRoomRef.current,
+    }),
+    [isConnected]
+  );
+};
+
+// 📊 HOOK PARA ESTADÍSTICAS (desarrollo/debugging)
 export const useWebSocketStats = () => {
   const { isConnected, connectionError, isConnecting } = useWebSocketContext();
 
@@ -285,7 +262,44 @@ export const useWebSocketStats = () => {
         : isConnected
         ? "connected"
         : "disconnected",
+      timestamp: Date.now(),
     }),
     [isConnected, connectionError, isConnecting]
   );
+};
+
+// 🎯 HOOK PARA MÚLTIPLES LISTENERS (alternativa al objeto de listeners)
+export const useWebSocketListeners = (
+  listeners: Array<{
+    event: string;
+    handler: (data: any) => void;
+    dependencies?: any[];
+  }>
+) => {
+  const { isConnected, addListener } = useWebSocketContext();
+  const cleanupFunctionsRef = useRef<(() => void)[]>([]);
+
+  useEffect(() => {
+    if (!isConnected || !listeners.length) {
+      return;
+    }
+
+    console.log(`🎧 Registrando ${listeners.length} listeners múltiples`);
+
+    // Registrar todos los listeners
+    cleanupFunctionsRef.current = listeners.map(({ event, handler }) => {
+      return addListener(event, handler);
+    });
+
+    return () => {
+      console.log(
+        `🧹 Limpiando ${cleanupFunctionsRef.current.length} listeners múltiples`
+      );
+
+      cleanupFunctionsRef.current.forEach((cleanup) => cleanup());
+      cleanupFunctionsRef.current = [];
+    };
+  }, [isConnected, addListener]); // ✅ listeners NO es dependencia
+
+  return useMemo(() => ({ isConnected }), [isConnected]);
 };

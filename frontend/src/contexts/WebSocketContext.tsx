@@ -1,4 +1,6 @@
-// frontend/src/contexts/WebSocketContext.tsx
+// frontend/src/contexts/WebSocketContext.tsx - REGISTRY OPTIMIZADO
+// ==================================================================
+
 import React, {
   createContext,
   useContext,
@@ -19,9 +21,22 @@ interface WebSocketContextType {
   joinRoom: (roomId: string) => void;
   leaveRoom: (roomId: string) => void;
   addListener: (event: string, handler: (data: any) => void) => () => void;
+
+  // ✅ NUEVOS: Funciones de debugging/monitoreo
+  getListenerStats: () => {
+    totalEvents: number;
+    totalListeners: number;
+    events: Record<string, number>;
+  };
+  cleanupOrphanedListeners: () => number;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
+
+// 🏭 CONFIGURACIÓN
+const MAX_LISTENERS_PER_EVENT = 10;
+const MAX_TOTAL_EVENTS = 50;
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutos
 
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -33,29 +48,172 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
   // Referencias estables
   const socketRef = useRef<Socket | null>(null);
-  const listenersMapRef = useRef<Map<string, Map<Function, Function>>>(
-    new Map()
-  );
   const pendingRoomsRef = useRef<Set<string>>(new Set());
   const connectionPromiseRef = useRef<Promise<void> | null>(null);
-  const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
 
-  const removeListener = useCallback(
-    (event: string, handler: (data: any) => void) => {
-      if (!socketRef.current || !event || !handler) return;
-      socketRef.current.off(event, handler);
-      const eventListeners = listenersRegistryRef.current.get(event);
-      if (eventListeners) {
-        eventListeners.delete(handler);
-        if (eventListeners.size === 0) {
-          listenersRegistryRef.current.delete(event);
+  // ✅ REGISTRY OPTIMIZADO con límites y cleanup
+  const listenersRegistryRef = useRef<
+    Map<
+      string,
+      Map<
+        Function,
+        {
+          addedAt: number;
+          componentId?: string;
+        }
+      >
+    >
+  >(new Map());
+
+  // Cleanup automático cada 5 minutos
+  const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🧹 FUNCIÓN DE CLEANUP OPTIMIZADA
+  const cleanupOrphanedListeners = useCallback(() => {
+    let removedCount = 0;
+    const now = Date.now();
+    const STALE_THRESHOLD = 10 * 60 * 1000; // 10 minutos
+
+    for (const [
+      event,
+      listenersMap,
+    ] of listenersRegistryRef.current.entries()) {
+      const staleListeners: Function[] = [];
+
+      for (const [handler, metadata] of listenersMap.entries()) {
+        // Remover listeners antiguos sin actividad
+        if (now - metadata.addedAt > STALE_THRESHOLD) {
+          staleListeners.push(handler);
         }
       }
+
+      // Remover listeners huérfanos
+      staleListeners.forEach((handler) => {
+        if (socketRef.current) {
+          socketRef.current.off(event, handler);
+        }
+        listenersMap.delete(handler);
+        removedCount++;
+      });
+
+      // Remover eventos sin listeners
+      if (listenersMap.size === 0) {
+        listenersRegistryRef.current.delete(event);
+      }
+    }
+
+    if (removedCount > 0) {
+      console.log(
+        `🧹 WebSocket: Limpiados ${removedCount} listeners huérfanos`
+      );
+    }
+
+    return removedCount;
+  }, []);
+
+  // 📊 FUNCIÓN DE ESTADÍSTICAS
+  const getListenerStats = useCallback(() => {
+    const stats = {
+      totalEvents: listenersRegistryRef.current.size,
+      totalListeners: 0,
+      events: {} as Record<string, number>,
+    };
+
+    for (const [
+      event,
+      listenersMap,
+    ] of listenersRegistryRef.current.entries()) {
+      const count = listenersMap.size;
+      stats.events[event] = count;
+      stats.totalListeners += count;
+    }
+
+    return stats;
+  }, []);
+
+  // 🎧 FUNCIÓN OPTIMIZADA PARA AGREGAR LISTENERS
+  const addListener = useCallback(
+    (event: string, handler: (data: any) => void, componentId?: string) => {
+      if (!socketRef.current || !event || !handler) {
+        console.warn("⚠️ WebSocket: Parámetros inválidos para addListener");
+        return () => {};
+      }
+
+      // ✅ VERIFICAR LÍMITES
+      const currentStats = getListenerStats();
+
+      if (currentStats.totalEvents >= MAX_TOTAL_EVENTS) {
+        console.warn(
+          `⚠️ WebSocket: Demasiados eventos (${currentStats.totalEvents}), ejecutando cleanup`
+        );
+        cleanupOrphanedListeners();
+      }
+
+      if (!listenersRegistryRef.current.has(event)) {
+        listenersRegistryRef.current.set(event, new Map());
+      }
+
+      const eventListeners = listenersRegistryRef.current.get(event)!;
+
+      if (eventListeners.size >= MAX_LISTENERS_PER_EVENT) {
+        console.warn(
+          `⚠️ WebSocket: Demasiados listeners para evento '${event}' (${eventListeners.size})`
+        );
+
+        // Intentar cleanup antes de agregar
+        const oldestEntry = Array.from(eventListeners.entries()).sort(
+          (a, b) => a[1].addedAt - b[1].addedAt
+        )[0];
+
+        if (oldestEntry) {
+          const [oldHandler] = oldestEntry;
+          socketRef.current.off(event, oldHandler);
+          eventListeners.delete(oldHandler);
+          console.log(
+            `🧹 WebSocket: Removido listener más antiguo para '${event}'`
+          );
+        }
+      }
+
+      // Verificar si ya está registrado
+      if (eventListeners.has(handler)) {
+        console.warn(
+          `⚠️ WebSocket: Listener ya registrado para evento '${event}'`
+        );
+        return () => {};
+      }
+
+      // ✅ REGISTRAR LISTENER con metadata
+      eventListeners.set(handler, {
+        addedAt: Date.now(),
+        componentId,
+      });
+
+      socketRef.current.on(event, handler);
+
+      console.log(
+        `🎧 WebSocket: Listener agregado para '${event}' (total: ${eventListeners.size})`
+      );
+
+      // ✅ RETORNAR FUNCIÓN DE CLEANUP
+      return () => {
+        if (socketRef.current && eventListeners.has(handler)) {
+          socketRef.current.off(event, handler);
+          eventListeners.delete(handler);
+
+          // Limpiar evento si no tiene listeners
+          if (eventListeners.size === 0) {
+            listenersRegistryRef.current.delete(event);
+          }
+
+          console.log(`🧹 WebSocket: Listener removido para '${event}'`);
+        }
+      };
     },
-    []
+    [getListenerStats, cleanupOrphanedListeners]
   );
 
-  // Crear conexión con singleton pattern
+  // 🔗 CREAR CONEXIÓN (singleton pattern mantenido)
   const createConnection = useCallback(async () => {
     if (connectionPromiseRef.current) {
       return connectionPromiseRef.current;
@@ -118,7 +276,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     return connectionPromiseRef.current;
   }, [token]);
 
-  // Emit optimizado
+  // 📤 EMIT OPTIMIZADO
   const emit = useCallback((event: string, data?: any): boolean => {
     if (!socketRef.current?.connected) {
       console.warn("⚠️ Socket no conectado");
@@ -128,7 +286,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     return true;
   }, []);
 
-  // Room management
+  // 🏠 ROOM MANAGEMENT
   const joinRoom = useCallback((roomId: string) => {
     if (!roomId) return;
     pendingRoomsRef.current.add(roomId);
@@ -145,39 +303,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // Sistema de listeners mejorado con cleanup automático
-  const addListener = useCallback(
-    (event: string, handler: (data: any) => void) => {
-      if (!socketRef.current || !event || !handler) {
-        return () => {};
-      }
-
-      if (!listenersRegistryRef.current.has(event)) {
-        listenersRegistryRef.current.set(event, new Set());
-      }
-
-      const eventListeners = listenersRegistryRef.current.get(event)!;
-
-      if (eventListeners.has(handler)) {
-        console.warn(`⚠️ Listener ya registrado para evento: ${event}`);
-        return () => {};
-      }
-
-      eventListeners.add(handler);
-      socketRef.current.on(event, handler);
-
-      // Retornar cleanup
-      return () => {
-        removeListener(event, handler);
-      };
-    },
-    [removeListener]
-  );
-
-  // Efecto principal de conexión
+  // 🏗️ EFECTO PRINCIPAL DE CONEXIÓN
   useEffect(() => {
     let mounted = true;
-    const reconnectTimeout: NodeJS.Timeout | null = null;
 
     if (isAuthenticated && token) {
       createConnection().catch((error) => {
@@ -185,41 +313,60 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           console.error("Error conectando:", error);
         }
       });
+
+      // ✅ INICIALIZAR CLEANUP AUTOMÁTICO
+      cleanupIntervalRef.current = setInterval(() => {
+        cleanupOrphanedListeners();
+      }, CLEANUP_INTERVAL);
     } else if (socketRef.current) {
       // Desconectar si no está autenticado
       socketRef.current.disconnect();
       socketRef.current = null;
-      listenersMapRef.current.clear();
+      listenersRegistryRef.current.clear();
       pendingRoomsRef.current.clear();
       setIsConnected(false);
+
+      // Limpiar intervalo
+      if (cleanupIntervalRef.current) {
+        clearInterval(cleanupIntervalRef.current);
+        cleanupIntervalRef.current = null;
+      }
     }
 
     return () => {
       mounted = false;
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
+
+      if (cleanupIntervalRef.current) {
+        clearInterval(cleanupIntervalRef.current);
+        cleanupIntervalRef.current = null;
       }
+
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-      listenersMapRef.current.clear();
+
+      listenersRegistryRef.current.clear();
       pendingRoomsRef.current.clear();
     };
-  }, [isAuthenticated, token, createConnection]);
+  }, [isAuthenticated, token, createConnection, cleanupOrphanedListeners]);
 
-  // Cleanup al desmontar
+  // 🧹 CLEANUP AL DESMONTAR
   useEffect(() => {
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-      listenersMapRef.current.clear();
+      if (cleanupIntervalRef.current) {
+        clearInterval(cleanupIntervalRef.current);
+      }
+      listenersRegistryRef.current.clear();
       pendingRoomsRef.current.clear();
     };
   }, []);
 
+  // ✅ VALOR MEMOIZADO
   const value = React.useMemo<WebSocketContextType>(
     () => ({
       isConnected,
@@ -229,6 +376,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
       joinRoom,
       leaveRoom,
       addListener,
+      getListenerStats,
+      cleanupOrphanedListeners,
     }),
     [
       isConnected,
@@ -238,6 +387,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
       joinRoom,
       leaveRoom,
       addListener,
+      getListenerStats,
+      cleanupOrphanedListeners,
     ]
   );
 
