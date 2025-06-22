@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
     [navigate]
   );
 
-  // ✅ SOLUCIÓN: WebSocket listeners memoizados correctamente
+  // ✅ SOLUCIÓN: Solo listeners específicos del Dashboard
   useWebSocketListener(
     "new_bet",
     useCallback(() => {
@@ -73,13 +73,6 @@ const Dashboard: React.FC = () => {
 
   useWebSocketListener(
     "fight_result",
-    useCallback(() => {
-      setLastUpdated(new Date());
-    }, [])
-  );
-
-  useWebSocketListener(
-    "wallet_updated",
     useCallback(() => {
       setLastUpdated(new Date());
     }, [])

@@ -1,33 +1,42 @@
-// CREAR O REEMPLAZAR CONTENIDO
+// frontend/src/components/shared/StatusIndicator.tsx - FIXED V10
+// =================================================================
+// FIXED: Removed color prop requirement, auto-detect from status
+// FIXED: Proper TypeScript types and default behavior
+
 import React from "react";
 
 interface StatusIndicatorProps {
-  status: "connected" | "disconnected" | "connecting";
+  isConnected?: boolean;
+  status?: "connected" | "disconnected" | "connecting";
   label?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({
+  isConnected,
   status,
   label,
   size = "md",
   className = "",
 }) => {
+  // ✅ AUTO-DETERMINE STATUS from isConnected if status not provided
+  const finalStatus = status || (isConnected ? "connected" : "disconnected");
+
   const statusConfig = {
     connected: {
-      color: "bg-theme-success",
-      textColor: "text-theme-success",
+      color: "bg-green-500",
+      textColor: "text-green-400",
       pulse: false,
     },
     disconnected: {
-      color: "bg-theme-error",
-      textColor: "text-theme-error",
+      color: "bg-red-500",
+      textColor: "text-red-400",
       pulse: true,
     },
     connecting: {
-      color: "bg-theme-warning",
-      textColor: "text-theme-warning",
+      color: "bg-yellow-500",
+      textColor: "text-yellow-400",
       pulse: true,
     },
   };
@@ -38,7 +47,7 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
     lg: "w-4 h-4",
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[finalStatus];
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>

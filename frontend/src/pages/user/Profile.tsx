@@ -1,7 +1,7 @@
-// frontend/src/pages/user/Profile.tsx - MIGRADO V9
-// ===================================================
-// ELIMINADO: getUserThemeClasses() import y usage
-// APLICADO: Clases CSS estáticas directas
+// frontend/src/pages/user/Profile.tsx - FIXED V10
+// =====================================================
+// FIXED: Missing DollarSign import
+// FIXED: Missing icons and proper structure
 
 import React, { useState } from "react";
 import {
@@ -14,10 +14,10 @@ import {
   Calendar,
   Award,
   TrendingUp,
+  DollarSign, // ✅ FIXED: Missing import
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBets, useWallet } from "../../hooks/useApi";
-// ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import StatusChip from "../../components/shared/StatusChip";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
@@ -25,7 +25,6 @@ const Profile: React.FC = () => {
   const { user } = useAuth();
   const { bets } = useBets();
   const { wallet } = useWallet();
-  // ❌ ELIMINADO: const theme = getUserThemeClasses();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,9 +58,7 @@ const Profile: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // API call to update profile
       console.log("Saving profile:", formData);
-      // await updateProfile(formData);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -84,7 +81,6 @@ const Profile: React.FC = () => {
   }
 
   return (
-    /* ✅ MIGRADO: theme.pageBackground → page-background */
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
         {/* 👤 PERFIL PRINCIPAL */}
@@ -95,11 +91,9 @@ const Profile: React.FC = () => {
                 <User className="w-8 h-8 text-white" />
               </div>
               <div>
-                {/* ✅ MIGRADO: theme.primaryText → text-theme-primary */}
                 <h1 className="text-2xl font-bold text-theme-primary">
                   {user.username}
                 </h1>
-                {/* ✅ MIGRADO: theme.lightText → text-theme-light */}
                 <p className="text-theme-light flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   {user.email}
@@ -143,7 +137,6 @@ const Profile: React.FC = () => {
           {/* INFORMACIÓN DEL PERFIL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              {/* ✅ MIGRADO: theme.lightText → text-theme-light */}
               <label className="block text-sm font-medium text-theme-light mb-2">
                 Nombre Completo
               </label>
@@ -158,7 +151,6 @@ const Profile: React.FC = () => {
                   placeholder="Ingresa tu nombre completo"
                 />
               ) : (
-                /* ✅ MIGRADO: theme.primaryText → text-theme-primary */
                 <p className="text-theme-primary">
                   {formData.fullName || "No especificado"}
                 </p>
@@ -302,12 +294,6 @@ const Profile: React.FC = () => {
 
           <div className="space-y-3">
             <button className="btn-secondary w-full">Cambiar Contraseña</button>
-            <button className="btn-ghost w-full">
-              Configurar Autenticación 2FA
-            </button>
-            <button className="btn-ghost w-full text-red-400 border-red-400 hover:bg-red-500/10">
-              Desactivar Cuenta
-            </button>
           </div>
         </div>
       </div>

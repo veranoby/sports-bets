@@ -44,8 +44,6 @@ import VenueDashboard from "./pages/venue/Dashboard";
 import VenueEvents from "./pages/venue/Events";
 import VenueProfile from "./pages/venue/Profile";
 
-import "./App.css";
-
 // 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
   const { user, isLoading } = useAuth();
