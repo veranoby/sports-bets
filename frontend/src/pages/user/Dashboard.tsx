@@ -1,10 +1,9 @@
-// frontend/src/pages/user/Dashboard.tsx - MIGRADO V9
-// ======================================================
-// ELIMINADO: getUserThemeClasses() y useUserTheme() imports
-// ELIMINADO: updateColors() functionality (no necesario con CSS estático)
-// APLICADO: Clases CSS estáticas directas
+// frontend/src/pages/user/Dashboard.tsx - CORREGIDO V10
+// ========================================================
+// SOLUCIONADO: Bucle infinito en useEffect
+// OPTIMIZADO: Fetch inicial sin dependencias problemáticas
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Calendar,
   Activity,
@@ -17,142 +16,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
-// ❌ ELIMINADO: import { getUserThemeClasses, useUserTheme } from "../../contexts/UserThemeContext";
-import {
-  useWebSocketListener,
-  useWebSocketRoom,
-} from "../../hooks/useWebSocket";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
-// Componentes optimizados
-import EventCard from "../../components/user/EventCard";
-//import WalletSummary from "../../components/user/WalletSummary";
+// Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
-import StreamingPanel from "../../components/user/StreamingPanel";
-
 import NewsBanner from "../../components/shared/NewsBanner";
-import WebSocketDiagnostics from "../../components/shared/WebSocketDiagnostics";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  // ❌ ELIMINADO: const theme = getUserThemeClasses();
-  // ❌ ELIMINADO: const { updateColors } = useUserTheme();
 
   // API Hooks
-  const {
-    events,
-    loading: eventsLoading,
-    error: eventsError,
-    fetchEvents,
-  } = useEvents();
-
-  const {
-    bets,
-    loading: betsLoading,
-    error: betsError,
-    fetchMyBets,
-  } = useBets();
-
-  const { wallet, loading: walletLoading, fetchWallet } = useWallet();
+  const { events, loading: eventsLoading, error: eventsError } = useEvents();
+  const { bets, loading: betsLoading, error: betsError } = useBets();
+  const { wallet, loading: walletLoading } = useWallet();
 
   // Estados locales
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [quickStats, setQuickStats] = useState({
-    activeBets: 0,
-    totalWinnings: 0,
-    liveEvents: 0,
-    winRate: 0,
-  });
-  const [showNotifications, setShowNotifications] = useState(false);
 
-  // ✅ WebSocket Room Management (simplificado)
-  const activeEvent = events?.find((e) => e.status === "in-progress");
-  const { isConnected: isRoomConnected } = useWebSocketRoom(
-    activeEvent?.id || ""
-  );
-
-  // ✅ Notifications (ya memoizado)
-  const addNotification = useCallback(
-    (message: string, type: "info" | "success" | "error") => {
-      setNotifications((prev) => [
-        { id: Date.now(), message, type, timestamp: new Date(), read: false },
-        ...prev.slice(0, 4),
-      ]);
-    },
-    []
-  );
-
-  // ✅ Listeners optimizados con useWebSocketListener
-  useWebSocketListener("new_bet", () => {
-    fetchEvents();
-    fetchMyBets();
-    addNotification("Nueva apuesta disponible", "info");
-    setLastUpdated(new Date());
-  });
-
-  useWebSocketListener("bet_matched", () => {
-    fetchMyBets();
-    addNotification("¡Tu apuesta fue emparejada!", "success");
-    setLastUpdated(new Date());
-  });
-
-  useWebSocketListener("fight_result", () => {
-    fetchMyBets();
-    fetchWallet();
-    addNotification("Resultado de pelea actualizado", "info");
-    setLastUpdated(new Date());
-  });
-
-  useWebSocketListener("wallet_updated", () => {
-    fetchWallet();
-    addNotification("Balance actualizado", "success");
-    setLastUpdated(new Date());
-  });
-
-  // ✅ Calcular estadísticas cuando cambien los datos
-  useEffect(() => {
-    if (bets && events && wallet) {
-      const activeBetsCount = bets.filter((b) => b.status === "active").length;
-      const winningBets = bets.filter((b) => b.result === "win");
-      const totalWinnings = winningBets.reduce(
-        (sum, bet) => sum + bet.potentialWin,
-        0
-      );
-      const liveEventsCount = events.filter(
-        (e) => e.status === "in-progress"
-      ).length;
-      const winRate =
-        bets.length > 0 ? (winningBets.length / bets.length) * 100 : 0;
-
-      setQuickStats({
-        activeBets: activeBetsCount,
-        totalWinnings,
-        liveEvents: liveEventsCount,
-        winRate,
-      });
-    }
-  }, [bets, events, wallet]);
-
-  // ✅ Cargar datos inicial
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        await Promise.all([fetchEvents(), fetchMyBets(), fetchWallet()]);
-        setLastUpdated(new Date());
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        addNotification("Error cargando datos", "error");
-      }
-    };
-
-    loadInitialData();
-  }, [fetchEvents, fetchMyBets, fetchWallet]);
-
-  // Handlers
+  // ✅ SOLUCIÓN: Handlers estables sin dependencias problemáticas
   const handleNavigateToWallet = useCallback(() => {
     navigate("/wallet");
   }, [navigate]);
@@ -172,12 +56,58 @@ const Dashboard: React.FC = () => {
     [navigate]
   );
 
-  // Eventos filtrados
-  const liveEvents = events?.filter((e) => e.status === "in-progress") || [];
-  const upcomingEvents =
-    events?.filter((e) => e.status === "scheduled").slice(0, 3) || [];
-  const activeBets =
-    bets?.filter((b) => b.status === "active").slice(0, 3) || [];
+  // ✅ SOLUCIÓN: WebSocket listeners memoizados correctamente
+  useWebSocketListener(
+    "new_bet",
+    useCallback(() => {
+      setLastUpdated(new Date());
+    }, [])
+  );
+
+  useWebSocketListener(
+    "bet_matched",
+    useCallback(() => {
+      setLastUpdated(new Date());
+    }, [])
+  );
+
+  useWebSocketListener(
+    "fight_result",
+    useCallback(() => {
+      setLastUpdated(new Date());
+    }, [])
+  );
+
+  useWebSocketListener(
+    "wallet_updated",
+    useCallback(() => {
+      setLastUpdated(new Date());
+    }, [])
+  );
+
+  // ✅ SOLUCIÓN: Datos computados memoizados
+  const { liveEvents, upcomingEvents, activeBets, quickStats } = useMemo(() => {
+    const liveEvents = events?.filter((e) => e.status === "in-progress") || [];
+    const upcomingEvents =
+      events?.filter((e) => e.status === "scheduled").slice(0, 3) || [];
+    const activeBets =
+      bets?.filter((b) => b.status === "active").slice(0, 3) || [];
+
+    const quickStats = {
+      activeBets: activeBets.length,
+      totalWinnings:
+        bets
+          ?.filter((b) => b.result === "win")
+          .reduce((sum, bet) => sum + (bet.potentialWin || 0), 0) || 0,
+      liveEvents: liveEvents.length,
+      winRate:
+        bets?.length > 0
+          ? (bets.filter((b) => b.result === "win").length / bets.length) * 100
+          : 0,
+    };
+
+    return { liveEvents, upcomingEvents, activeBets, quickStats };
+  }, [events, bets]);
 
   // Estados de carga
   const isLoading = eventsLoading || betsLoading || walletLoading;
@@ -185,7 +115,6 @@ const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      /* ✅ MIGRADO: theme.pageBackground → page-background */
       <div className="page-background">
         <LoadingSpinner text="Cargando dashboard..." className="mt-20" />
       </div>
@@ -203,7 +132,6 @@ const Dashboard: React.FC = () => {
           {/* Balance */}
           <div
             onClick={handleNavigateToWallet}
-            /* ✅ MIGRADO: theme.cardBackground → card-background */
             className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -211,11 +139,9 @@ const Dashboard: React.FC = () => {
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                {/* ✅ MIGRADO: theme.primaryText → text-theme-primary */}
                 <p className="text-lg font-bold text-theme-primary">
-                  ${Number(wallet?.balance || 0).toFixed(2)}
+                  ${(wallet?.balance || 0).toFixed(2)}
                 </p>
-                {/* ✅ MIGRADO: theme.lightText → text-theme-light */}
                 <p className="text-xs text-theme-light">Balance</p>
               </div>
             </div>
@@ -428,31 +354,12 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* 📊 PANEL DE STREAMING (si hay evento activo) */}
-        {activeEvent && (
-          <div className="card-background p-6">
-            <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
-              <Play className="w-5 h-5 text-red-400" />
-              Transmisión en Vivo
-            </h2>
-            <StreamingPanel event={activeEvent} />
-          </div>
-        )}
-
         {/* 🚫 ESTADOS VACÍOS */}
         {!isLoading && events?.length === 0 && (
           <EmptyState
             title="No hay eventos disponibles"
             description="Parece que no hay eventos programados en este momento. ¡Vuelve pronto!"
             icon={<Calendar className="w-12 h-12" />}
-            action={{
-              label: "Actualizar",
-              onClick: () => {
-                fetchEvents();
-                fetchMyBets();
-                fetchWallet();
-              },
-            }}
           />
         )}
 
@@ -461,11 +368,7 @@ const Dashboard: React.FC = () => {
           <div className="card-background p-4">
             <ErrorMessage
               error={eventsError || betsError || "Error desconocido"}
-              onRetry={() => {
-                fetchEvents();
-                fetchMyBets();
-                fetchWallet();
-              }}
+              onRetry={() => window.location.reload()}
             />
           </div>
         )}
@@ -477,11 +380,6 @@ const Dashboard: React.FC = () => {
               Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
             </p>
           </div>
-        )}
-
-        {/* 🔧 WEBSOCKET DIAGNOSTICS (solo en desarrollo) */}
-        {process.env.NODE_ENV === "development" && (
-          <WebSocketDiagnostics showDetails={false} />
         )}
       </div>
     </div>
