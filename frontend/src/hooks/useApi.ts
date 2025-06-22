@@ -170,7 +170,7 @@ export function useBets() {
       fightId?: string;
       limit?: number;
       offset?: number;
-    }) => execute(() => betsAPI.getMyBets(params)),
+    }) => execute(() => apiClient.get("/bets", { params })),
     [execute]
   );
 
@@ -278,84 +278,106 @@ export function useBets() {
   };
 }
 
-// Hook para billetera - IMPLEMENTACIÓN ÚNICA Y OPTIMIZADA
+// Hook para billetera - ENDPOINTS CORREGIDOS
 export function useWallet() {
   const { data, loading, error, execute, setData } = useAsyncOperation<{
-    wallet: Wallet;
-    recentTransactions: Transaction[];
+    wallet: { balance: number; frozenAmount: number };
+    transactions: Transaction[];
   }>();
 
-  // Cache para evitar llamadas duplicadas
-  const lastFetchRef = useRef<number>(0);
-  const CACHE_DURATION = 5000; // 5 segundos
-
-  const fetchWallet = useCallback(
-    async (forceRefresh = false) => {
-      // Usar cache si no se fuerza refresh
-      if (!forceRefresh && Date.now() - lastFetchRef.current < CACHE_DURATION) {
-        return data;
-      }
-      lastFetchRef.current = Date.now();
-      return execute(() => walletAPI.getWallet());
-    },
-    [execute, data]
-  );
+  // ✅ FETCH CORREGIDO - USAR ENDPOINTS BACKEND REALES
+  const fetchWallet = useCallback(async () => {
+    try {
+      // ✅ ENDPOINT CORRECTO: /wallet
+      const response = await apiClient.get("/wallet");
+      setData((prev) => ({
+        ...prev,
+        wallet: {
+          balance: Number(response.data?.balance || 0),
+          frozenAmount: Number(response.data?.frozenAmount || 0),
+        },
+      }));
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching wallet:", error);
+      throw error;
+    }
+  }, [setData]);
 
   const fetchTransactions = useCallback(
-    (params?: {
-      type?: string;
-      status?: string;
-      limit?: number;
-      offset?: number;
-    }) => execute(() => walletAPI.getTransactions(params)),
-    [execute]
-  );
-
-  const processDeposit = useCallback(
-    async (depositData: {
-      amount: number;
-      paymentMethod: "card" | "transfer";
-      paymentData?: any;
-    }) => {
-      const response = await execute(() => walletAPI.deposit(depositData));
-      await fetchWallet(true); // Force refresh
-      return response;
+    async (params?: any) => {
+      try {
+        // ✅ ENDPOINT CORRECTO: /wallet/transactions
+        const response = await apiClient.get("/wallet/transactions", {
+          params,
+        });
+        setData((prev) => ({
+          ...prev,
+          transactions: response.data || [],
+        }));
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+        throw error;
+      }
     },
-    [execute, fetchWallet]
+    [setData]
   );
 
-  const processWithdraw = useCallback(
-    async (withdrawData: {
-      amount: number;
-      accountNumber: string;
-      accountType?: string;
-      bankName?: string;
-    }) => {
-      const response = await execute(() => walletAPI.withdraw(withdrawData));
-      await fetchWallet(true); // Force refresh
-      return response;
+  const deposit = useCallback(
+    async (amount: number, paymentMethod: string, paymentData?: any) => {
+      try {
+        const response = await apiClient.post("/wallet/deposit", {
+          amount,
+          paymentMethod,
+          paymentData,
+        });
+        await fetchWallet();
+        return response.data;
+      } catch (error) {
+        console.error("Error processing deposit:", error);
+        throw error;
+      }
     },
-    [execute, fetchWallet]
+    [fetchWallet]
   );
 
-  // Fetch inicial con debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchWallet();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []); // Solo en mount
+  const withdraw = useCallback(
+    async (
+      amount: number,
+      accountNumber: string,
+      accountType?: string,
+      bankName?: string
+    ) => {
+      try {
+        const response = await apiClient.post("/wallet/withdraw", {
+          amount,
+          accountNumber,
+          accountType,
+          bankName,
+        });
+        await fetchWallet();
+        return response.data;
+      } catch (error) {
+        console.error("Error processing withdrawal:", error);
+        throw error;
+      }
+    },
+    [fetchWallet]
+  );
 
   return {
-    wallet: data?.wallet || null,
-    transactions: data?.recentTransactions || [],
+    wallet: {
+      balance: Number(data?.wallet?.balance || 0),
+      frozenAmount: Number(data?.wallet?.frozenAmount || 0),
+    },
+    transactions: data?.transactions || [],
     loading,
     error,
     fetchWallet,
     fetchTransactions,
-    processDeposit,
-    processWithdraw,
+    deposit,
+    withdraw,
   };
 }
 

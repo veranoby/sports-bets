@@ -274,8 +274,8 @@ const UserHeader = memo(() => {
       setError(null);
 
       const [walletRes, betsRes, notificationsRes] = await Promise.all([
-        apiClient.get("/wallets/my-wallet"),
-        apiClient.get("/bets/my-bets", {
+        apiClient.get("/wallet"),
+        apiClient.get("/bets", {
           params: { status: "active", limit: 5 },
         }),
         apiClient.get("/notifications", {
@@ -285,9 +285,9 @@ const UserHeader = memo(() => {
 
       if (isMountedRef.current) {
         setHeaderData({
-          walletBalance: walletRes.data.data?.balance || 0,
-          activeBets: betsRes.data.data || [],
-          notifications: notificationsRes.data.data || [],
+          walletBalance: walletRes.data?.balance || 0,
+          activeBets: betsRes.data || [],
+          notifications: notificationsRes.data || [],
         });
         lastFetchRef.current = Date.now();
       }

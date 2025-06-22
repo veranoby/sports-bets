@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
               <div>
                 {/* ✅ MIGRADO: theme.primaryText → text-theme-primary */}
                 <p className="text-lg font-bold text-theme-primary">
-                  ${(wallet?.balance || 0).toFixed(2)}
+                  ${Number(wallet?.balance || 0).toFixed(2)}
                 </p>
                 {/* ✅ MIGRADO: theme.lightText → text-theme-light */}
                 <p className="text-xs text-theme-light">Balance</p>
