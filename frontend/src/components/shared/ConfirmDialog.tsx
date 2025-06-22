@@ -13,7 +13,6 @@ import {
   Zap,
   X,
 } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -72,7 +71,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   autoClose = true,
   onBeforeConfirm,
 }) => {
-  const theme = getUserThemeClasses();
+  const theme = {
+    input: "input-theme",
+    primaryButton: "btn-primary",
+    ghostButton: "btn-ghost",
+  };
 
   // Estados internos
   const [confirmInput, setConfirmInput] = useState("");

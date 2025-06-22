@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import StatusIndicator from "../shared/StatusIndicator";
 import Card from "../shared/Card";
 import type { StreamQuality, StreamStatus } from "../../types";
@@ -24,8 +23,6 @@ export const StreamingPanel: React.FC<StreamingPanelProps> = ({
   const [viewers, setViewers] = useState<number>(0);
   const [duration, setDuration] = useState<string>("00:00:00");
   const [bitrate, setBitrate] = useState<string>("0 kbps");
-
-  const theme = getUserThemeClasses();
 
   useEffect(() => {
     // Simular conexión al stream
@@ -82,7 +79,12 @@ export const StreamingPanel: React.FC<StreamingPanelProps> = ({
 
   if (compactMode) {
     return (
-      <Card title="Stream en vivo" variant="stat" size="sm" className="p-4">
+      <Card
+        title="Stream en vivo"
+        variant="stat"
+        size="sm"
+        className="p-4 bg-theme-card text-theme-primary"
+      >
         <div className="flex items-center justify-between">
           <StatusIndicator status={streamStatus} />
           {renderStats()}
@@ -92,7 +94,12 @@ export const StreamingPanel: React.FC<StreamingPanelProps> = ({
   }
 
   return (
-    <Card title="Stream en vivo" variant="stat" size="lg" className="p-6">
+    <Card
+      title="Stream en vivo"
+      variant="stat"
+      size="lg"
+      className="p-6 bg-theme-card text-theme-primary"
+    >
       <div className="flex flex-col gap-4">
         <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
           {streamStatus === "connected" ? (

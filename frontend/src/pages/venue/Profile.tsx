@@ -10,13 +10,11 @@ import {
   Award,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import Card from "../../components/shared/Card";
 
 const VenueProfile: React.FC = () => {
   const { user } = useAuth();
-  const theme = getUserThemeClasses();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,7 +36,7 @@ const VenueProfile: React.FC = () => {
   };
 
   return (
-    <div className={`${theme.pageBackground} min-h-screen pb-24`}>
+    <div className="bg-theme-main text-theme-primary min-h-screen pb-24">
       <div className="p-4 max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#2a325c] to-[#1a1f37] rounded-2xl p-6 mb-6 border border-[#596c95]/20">

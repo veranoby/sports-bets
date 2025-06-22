@@ -9,7 +9,6 @@ import React, {
   useRef,
   memo,
 } from "react";
-import { useUserTheme } from "../../contexts/UserThemeContext";
 import { Bell, X, Check, Archive } from "lucide-react";
 import { apiClient } from "../../config/api";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
@@ -28,7 +27,6 @@ const NotificationCenter: React.FC = memo(() => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { colors } = useUserTheme();
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
   // 🛡️ REFERENCIAS ESTABLES PARA PREVENIR RE-RENDERS

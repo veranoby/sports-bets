@@ -1,6 +1,5 @@
 // CREAR ARCHIVO NUEVO
 import React from "react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface NotificationBadgeProps {
   count: number;
@@ -15,21 +14,17 @@ const NotificationBadge: React.FC<NotificationBadgeProps> = ({
   size = "md",
   className = "",
 }) => {
-  const theme = getUserThemeClasses();
-
-  if (count <= 0) return null;
-
   const sizeClasses = {
-    sm: "text-xs min-w-4 h-4 px-1",
-    md: "text-xs min-w-5 h-5 px-1.5",
-    lg: "text-sm min-w-6 h-6 px-2",
+    sm: "w-4 h-4 text-[10px]",
+    md: "w-5 h-5 text-xs",
+    lg: "w-6 h-6 text-sm",
   };
 
   const displayCount = count > max ? `${max}+` : count.toString();
 
   return (
     <span
-      className={`${theme.secondaryButton} ${sizeClasses[size]} rounded-full flex items-center justify-center font-medium ${className}`}
+      className={`${sizeClasses[size]} flex items-center justify-center rounded-full bg-theme-error text-theme-primary ${className}`}
     >
       {displayCount}
     </span>

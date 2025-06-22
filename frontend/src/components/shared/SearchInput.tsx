@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Search, X, Filter } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -36,7 +35,6 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onFilter,
   maxLength = 100,
 }) => {
-  const theme = getUserThemeClasses();
   const [internalValue, setInternalValue] = useState(controlledValue || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
@@ -62,11 +60,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const getVariantClasses = () => {
     switch (variant) {
       case "filled":
-        return `${theme.cardBackground} border-0`;
+        return "border-0";
       case "bordered":
         return "bg-transparent border-2 border-[#596c95]";
       default:
-        return `${theme.input}`;
+        return "input-theme";
     }
   };
 

@@ -1,7 +1,6 @@
 // CREAR O REEMPLAZAR CONTENIDO
 import React from "react";
 import { Loader2 } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface LoadingSpinnerProps {
   text?: string;
@@ -14,8 +13,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
   className = "",
 }) => {
-  const theme = getUserThemeClasses();
-
   const sizeClasses = {
     sm: "w-4 h-4",
     md: "w-8 h-8",
@@ -29,7 +26,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       <Loader2
         className={`${sizeClasses[size]} animate-spin text-theme-primary mb-4`}
       />
-      <p className={theme.secondaryText}>{text}</p>
+      <p className="text-theme-secondary">{text}</p>
     </div>
   );
 };

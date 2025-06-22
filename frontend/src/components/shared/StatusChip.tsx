@@ -1,6 +1,5 @@
 // REEMPLAZAR TODO EL CONTENIDO
 import React from "react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface StatusChipProps {
   status: string;
@@ -15,8 +14,6 @@ const StatusChip: React.FC<StatusChipProps> = ({
   variant = "default",
   className = "",
 }) => {
-  const theme = getUserThemeClasses();
-
   const statusConfig = {
     // Estados positivos
     active: "bg-theme-success/20 text-theme-success",

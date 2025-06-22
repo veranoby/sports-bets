@@ -1,24 +1,401 @@
+/* frontend/src/index.css - CSS VARIABLES ESTÁTICAS V9 */
+/* ================================================================= */
+/* REEMPLAZA: UserThemeContext.tsx que causaba re-renders */
+/* OPTIMIZADO: Variables CSS estáticas, sin manipulación DOM en JS */
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🎨 CSS VARIABLES GLOBALES - TEMA GALLOBETS */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* ✅ COLORES PRINCIPALES */
+  --color-primary: #596c95;
+  --color-secondary: #cd6263;
+  --color-accent: #4a5b80;
+
+  /* ✅ BACKGROUNDS */
+  --color-bg-main: #1a1f37e3;
+  --color-bg-card: #2a325c;
+  --color-bg-header: #2a325c;
+
+  /* ✅ TEXT COLORS */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e2e8f0;
+  --color-text-light: #94a3b8;
+
+  /* ✅ STATUS COLORS */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ✅ GRADIENTS */
+  --gradient-header: linear-gradient(
+    135deg,
+    var(--color-bg-header) 0%,
+    #1e293b 100%
+  );
+  --gradient-nav: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-accent) 100%
+  );
+  --gradient-user-button: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-accent) 100%
+  );
+  --gradient-user-button-hover: linear-gradient(
+    135deg,
+    var(--color-accent) 0%,
+    var(--color-primary) 100%
+  );
+
+  /* ✅ SPACING */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* ✅ BORDER RADIUS */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
 }
 
-a {
-  text-decoration: inherit;
+/* 📱 RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+  :root {
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+  }
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
+/* 🎨 UTILITY CLASSES USANDO VARIABLES CSS */
+
+/* Backgrounds */
+.bg-theme-main {
+  background-color: var(--color-bg-main);
+}
+
+.bg-theme-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-primary);
+}
+
+.bg-theme-header {
+  background: var(--gradient-header);
+  border-bottom: 1px solid var(--color-primary);
+}
+
+.bg-gradient-theme-header {
+  background: var(--gradient-header);
+}
+
+.bg-gradient-theme-nav {
+  background: var(--gradient-nav);
+}
+
+.bg-gradient-theme-user-button {
+  background: var(--gradient-user-button);
+}
+
+.bg-gradient-theme-user-button:hover {
+  background: var(--gradient-user-button-hover);
+}
+
+/* Text Colors */
+.text-theme-primary {
+  color: var(--color-text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-theme-light {
+  color: var(--color-text-light);
+}
+
+.text-theme-success {
+  color: var(--color-success);
+}
+
+.text-theme-warning {
+  color: var(--color-warning);
+}
+
+.text-theme-error {
+  color: var(--color-error);
+}
+
+.text-theme-info {
+  color: var(--color-info);
+}
+
+/* Border Colors */
+.border-theme-primary {
+  border-color: var(--color-primary);
+}
+
+.border-theme-secondary {
+  border-color: var(--color-secondary);
+}
+
+.border-theme-accent {
+  border-color: var(--color-accent);
+}
+
+/* ✅ COMPONENTES BASE - REEMPLAZA getUserThemeClasses() */
+
+/* Page Layouts */
+.page-background {
   min-height: 100vh;
-  background-color: #f9fafb; /* Color de fondo claro similar a bg-gray-50 de Tailwind */
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-main);
 }
 
-/* Eliminamos los estilos globales de botones para evitar conflictos con Tailwind */
+.card-background {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+}
+
+.header-background {
+  background: var(--gradient-header);
+  border-bottom: 1px solid var(--color-primary);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+/* Inputs */
+.input-theme {
+  background-color: var(--color-bg-main);
+  border: 1px solid var(--color-primary);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) calc(var(--spacing-sm) + var(--spacing-xs));
+  transition: all 0.2s ease;
+}
+
+.input-theme::placeholder {
+  color: var(--color-text-light);
+}
+
+.input-theme:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary);
+  border-color: transparent;
+}
+
+/* Status Chips */
+.chip-active {
+  background-color: rgba(16, 185, 129, 0.2); /* success/20 */
+  color: var(--color-success);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.chip-pending {
+  background-color: rgba(245, 158, 11, 0.2); /* warning/20 */
+  color: var(--color-warning);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.chip-error {
+  background-color: rgba(239, 68, 68, 0.2); /* error/20 */
+  color: var(--color-error);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.chip-info {
+  background-color: rgba(59, 130, 246, 0.2); /* info/20 */
+  color: var(--color-info);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ✅ LAYOUTS ESPECÍFICOS */
+
+/* User Layout */
+.user-layout {
+  min-height: 100vh;
+  background-color: #f9fafb; /* gray-50 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Admin Layout */
+.admin-layout {
+  min-height: 100vh;
+  background-color: #f3f4f6; /* gray-100 */
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 256px;
+  background: var(--gradient-nav);
+  border-right: 1px solid var(--color-primary);
+}
+
+.admin-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Operator Layout */
+.operator-layout {
+  min-height: 100vh;
+  background-color: #1f2937; /* gray-800 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Venue Layout */
+.venue-layout {
+  min-height: 100vh;
+  background-color: #f9fafb; /* gray-50 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ ANIMACIONES OPTIMIZADAS */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+.button-press:active {
+  transform: scale(0.98);
+}
+
+/* ✅ RESPONSIVE UTILITIES */
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+  }
+
+  .card-background {
+    margin: var(--spacing-sm);
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ✅ DARK MODE SUPPORT (FUTURO) */
+@media (prefers-color-scheme: dark) {
+  /* Variables ya están optimizadas para dark theme */
+}
+
+/* ✅ HIGH CONTRAST MODE */
+@media (prefers-contrast: high) {
+  :root {
+    --color-primary: #4a5b80;
+    --color-secondary: #dc6263;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #f1f5f9;
+  }
+}

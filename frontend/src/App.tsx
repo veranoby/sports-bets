@@ -1,8 +1,12 @@
-// frontend/src/App.tsx - ESTRUCTURA CON LAYOUTS PERSISTENTES
+// frontend/src/App.tsx - OPTIMIZADO V9 - SIN UserThemeProvider
+// ================================================================
+// ELIMINADO: UserThemeProvider que causaba re-renders
+// OPTIMIZADO: Layouts directos, CSS variables estáticas
+
 import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { UserThemeProvider } from "./contexts/UserThemeContext";
+// ❌ ELIMINADO: import { UserThemeProvider } from "./contexts/UserThemeContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 
 // Layouts por rol
@@ -40,7 +44,9 @@ import VenueDashboard from "./pages/venue/Dashboard";
 import VenueEvents from "./pages/venue/Events";
 import VenueProfile from "./pages/venue/Profile";
 
-// Componente para manejar redirección basada en rol
+import "./App.css";
+
+// 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
   const { user, isLoading } = useAuth();
 
@@ -65,13 +71,13 @@ const RoleBasedRedirect: React.FC = () => {
   return <Navigate to={roleRoutes[user.role] || "/dashboard"} replace />;
 };
 
-// COMPONENTE PRINCIPAL CON RUTAS
+// 🏗️ COMPONENTE PRINCIPAL CON RUTAS OPTIMIZADAS
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
     <Routes>
-      {/* Rutas públicas */}
+      {/* 🔓 RUTAS PÚBLICAS */}
       <Route
         path="/login"
         element={!isAuthenticated ? <LoginPage /> : <RoleBasedRedirect />}
@@ -83,13 +89,13 @@ const AppContent: React.FC = () => {
         }
       />
 
-      {/* RUTAS DE USUARIO con Layout persistente */}
+      {/* 👤 RUTAS DE USUARIO - Layout persistente SIN UserThemeProvider */}
       <Route
         element={
           <ProtectedRoute requiredRole="user">
-            <UserThemeProvider>
-              <UserLayout />
-            </UserThemeProvider>
+            {/* ❌ ELIMINADO: <UserThemeProvider> wrapper */}
+            <UserLayout />
+            {/* ❌ ELIMINADO: </UserThemeProvider> */}
           </ProtectedRoute>
         }
       >
@@ -101,7 +107,7 @@ const AppContent: React.FC = () => {
         <Route path="/bets" element={<BetsPage />} />
       </Route>
 
-      {/* RUTAS DE ADMIN con Layout persistente */}
+      {/* 🔧 RUTAS DE ADMIN - Layout persistente */}
       <Route
         element={
           <ProtectedRoute requiredRole="admin">
@@ -115,7 +121,7 @@ const AppContent: React.FC = () => {
         <Route path="/admin/reports" element={<AdminReports />} />
       </Route>
 
-      {/* RUTAS DE OPERADOR con Layout persistente */}
+      {/* 🎥 RUTAS DE OPERADOR - Layout persistente */}
       <Route
         element={
           <ProtectedRoute requiredRole="operator">
@@ -128,7 +134,7 @@ const AppContent: React.FC = () => {
         <Route path="/operator/stream/:eventId" element={<OperatorStream />} />
       </Route>
 
-      {/* RUTAS DE VENUE con Layout persistente */}
+      {/* 🏛️ RUTAS DE VENUE - Layout persistente */}
       <Route
         element={
           <ProtectedRoute requiredRole="venue">
@@ -141,7 +147,7 @@ const AppContent: React.FC = () => {
         <Route path="/venue/profile" element={<VenueProfile />} />
       </Route>
 
-      {/* Ruta 404 */}
+      {/* 🚫 RUTA 404 */}
       <Route
         path="*"
         element={
@@ -163,11 +169,28 @@ const AppContent: React.FC = () => {
   );
 };
 
-// APP PRINCIPAL
+// 🚀 APP PRINCIPAL - ESTRUCTURA OPTIMIZADA
 function App() {
   return (
     <ErrorBoundary
-      fallback={<div>Ha ocurrido un error. Por favor recarga la página.</div>}
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Ha ocurrido un error
+            </h1>
+            <p className="text-gray-600 mb-4">
+              La aplicación encontró un problema inesperado.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Recargar página
+            </button>
+          </div>
+        </div>
+      }
     >
       <AuthProvider>
         <WebSocketProvider>

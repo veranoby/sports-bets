@@ -1,11 +1,8 @@
 import React from "react";
 import { Calendar, Clock, MapPin, Users } from "lucide-react";
 import Card from "../../components/shared/Card";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 const VenueEvents: React.FC = () => {
-  const theme = getUserThemeClasses();
-
   // Datos de ejemplo para eventos del local
   const events = [
     {
@@ -27,7 +24,7 @@ const VenueEvents: React.FC = () => {
   ];
 
   return (
-    <div className={`${theme.pageBackground} min-h-screen p-4`}>
+    <div className="bg-theme-card text-theme-secondary min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-6">Eventos del Local</h1>
 
       <div className="space-y-4">

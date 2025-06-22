@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Filter, ChevronDown, X } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import SearchInput from "./SearchInput";
 
 interface FilterOption {
@@ -34,7 +33,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   compact = false,
   showFilterCount = true,
 }) => {
-  const theme = getUserThemeClasses();
+  const theme = {
+    input: "input-theme",
+    primaryButton: "btn-primary",
+    cardBackground: "card-background",
+  };
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
 

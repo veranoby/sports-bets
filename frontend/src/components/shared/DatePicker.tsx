@@ -3,7 +3,6 @@
 
 import React, { useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface DatePickerProps {
   value?: Date;
@@ -26,7 +25,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
   className = "",
   format = "short",
 }) => {
-  const theme = getUserThemeClasses();
+  const theme = {
+    input: "input-theme",
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(value || new Date());
 

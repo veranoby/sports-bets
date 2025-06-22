@@ -1,71 +1,177 @@
-# GalloBets - Reglas de Desarrollo Optimizadas
+# GalloBets - Reglas de Desarrollo Optimizadas V9
+
+## Arquitectura Moderna React + Anti Memory Leaks
 
 ## 🎯 ESPECIALIZACIÓN TÉCNICA
 
-**DOMINIO EXPERTO**: React, Node.js, Express, PostgreSQL, WebSockets (Socket.io), Streaming Media (Nginx-RTMP), Kushki Payment Gateway, Real-time P2P Betting Systems
+**DOMINIO EXPERTO**: React 19, Node.js, Express, PostgreSQL, WebSockets (Socket.io), Streaming Media (Nginx-RTMP), Kushki Payment Gateway, Real-time P2P Betting Systems
 
-**ARQUITECTURA CORE**:
+**ARQUITECTURA V9**:
 
-- Frontend: React 19 + TypeScript + Vite + Tailwind CSS + PWA
-- Backend: Node.js + Express + PostgreSQL (Neon.tech) + Socket.io
-- Streaming: Nginx-RTMP + BunnyCDN + OBS Studio integration
+- Frontend: React 19 + TypeScript + Vite + Tailwind CSS + Layouts Persistentes
+- Styling: CSS Variables Estáticas (NO Context thrashing)
+- Backend: Node.js + Express + PostgreSQL (Neon.tech) + Socket.io Singleton
+- Streaming: Nginx-RTMP + CDN optimizado + OBS Studio integration
 - Payments: Kushki integration + virtual wallet + manual withdrawals
 
 ---
 
-## 🚨 WEBSOCKET DEVELOPMENT RULES - CRÍTICAS
+## 🚨 ARQUITECTURA LAYOUTS PERSISTENTES - OBLIGATORIA
+
+### **✅ ESTRUCTURA CORRECTA - SIEMPRE USAR**
+
+```typescript
+// ✅ App.tsx estructura con layouts persistentes
+<Route
+  element={
+    <ProtectedRoute>
+      <UserLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route path="/dashboard" element={<UserDashboard />} />
+  <Route path="/wallet" element={<Wallet />} />
+  // Headers NUNCA se desmontan entre navegaciones
+</Route>;
+
+// ✅ Layout componente estructura
+const UserLayout = memo(() => (
+  <div className="min-h-screen flex flex-col">
+    <UserHeader /> {/* ⭐ PERSISTENTE - monta UNA VEZ */}
+    <main className="flex-1">
+      <Outlet /> {/* Solo esto cambia */}
+    </main>
+    <Navigation /> {/* ⭐ PERSISTENTE */}
+  </div>
+));
+```
+
+### **❌ PATRONES PROHIBIDOS - CAUSAN RE-MOUNTING**
+
+```typescript
+// ❌ NUNCA: Header en cada página individual
+const Dashboard = () => (
+  <div>
+    <UserHeader /> {/* ❌ Se desmonta/monta en cada navegación */}
+    <div>Dashboard content</div>
+  </div>
+);
+
+// ❌ NUNCA: Contextos que manipulan DOM
+const ThemeProvider = ({ children }) => {
+  useEffect(() => {
+    document.documentElement.style.setProperty(...); // ❌ PROHIBIDO
+  }, [theme]);
+};
+```
+
+### **🎨 STYLING RULES - ANTI CONTEXT THRASHING**
+
+```css
+/* ✅ SIEMPRE: CSS Variables estáticas en index.css */
+:root {
+  --color-primary: #596c95;
+  --color-bg-main: #1a1f37e3;
+  /* etc... */
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+}
+```
+
+```typescript
+// ❌ NUNCA: Context para themes dinámicos
+const ThemeContext = createContext(); // ❌ PROHIBIDO
+
+// ✅ SIEMPRE: Clases CSS directas
+className = "btn-primary text-theme-primary"; // ✅ CORRECTO
+```
+
+---
+
+## 🚨 WEBSOCKET DEVELOPMENT RULES V9 - CRÍTICAS
 
 ### **❌ PATRONES PROHIBIDOS - CAUSAN MEMORY LEAKS**
 
 ```typescript
+// ❌ NUNCA: Polling redundante con WebSocket
+const useHeaderData = (pollingInterval = 30000) => {
+  useEffect(() => {
+    const interval = setInterval(fetchData, pollingInterval); // ❌ PROHIBIDO
+  }, []);
+};
+
 // ❌ NUNCA: Dependencies inestables en useEffect WebSocket
 useEffect(() => {
   addListener("event", handler);
 }, [addListener, removeListener, handler, fetchFunction]); // ❌ PROHIBIDO
 
 // ❌ NUNCA: Handlers inline sin useCallback
-addListener("event", (data) => {
-  /* ... */
-}); // ❌ PROHIBIDO
+addListener("event", (data) => { /* ... */ }); // ❌ PROHIBIDO
 
-// ❌ NUNCA: Referencias a funciones que cambian
-const handler = () => fetchData(); // fetchData cambia → memory leak
+// ❌ NUNCA: Context que re-renderiza por DOM manipulation
+useEffect(() => {
+  document.documentElement.style.setProperty(...); // ❌ PROHIBIDO
+}, [theme]);
 ```
 
 ### **✅ PATRONES OBLIGATORIOS - WEBSOCKET V9**
 
 ```typescript
-// ✅ PATRÓN 1: Hook principal con listeners objeto
-const { isConnected } = useWebSocket(roomId, {
-  event_name: useCallback((data) => {
-    // Handler estable
-  }, []), // ✅ Sin dependencies o solo primitivos
+// ✅ PATRÓN 1: Singleton WebSocket Context
+const WebSocketProvider = ({ children }) => {
+  const socketRef = useRef<Socket | null>(null); // ✅ Una sola instancia
+  const listenersRegistryRef = useRef<Map<string, Set<Function>>>(new Map());
+
+  // ✅ Cleanup automático con límites
+  const addListener = useCallback((event: string, handler: Function) => {
+    if (eventListeners.size >= MAX_LISTENERS_PER_EVENT) {
+      console.warn(`⚠️ Demasiados listeners para '${event}'`);
+      return () => {};
+    }
+    // ... registro con cleanup
+  }, []);
+};
+
+// ✅ PATRÓN 2: Header datos con WebSocket directo (NO polling)
+const UserHeader = memo(() => {
+  const [headerData, setHeaderData] = useState(initialData);
+
+  // ✅ Fetch inicial ÚNICO
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  // ✅ WebSocket listeners para updates
+  useWebSocketListener(
+    "wallet_updated",
+    useCallback((data) => {
+      setHeaderData((prev) => ({ ...prev, walletBalance: data.balance }));
+    }, [])
+  );
 });
 
-// ✅ PATRÓN 2: Hook especializado para listener único
+// ✅ PATRÓN 3: Hook especializado anti-thrashing
 useWebSocketListener(
   "event",
   useCallback((data) => {
     setState(data);
-  }, []),
-  [eventId]
-); // ✅ Dependencies solo para re-suscribir
-
-// ✅ PATRÓN 3: Control granular con dependencies mínimas
-useEffect(() => {
-  if (!isConnected) return;
-  addListener("event", stableHandler);
-  return () => removeListener("event", stableHandler);
-}, [isConnected]); // ✅ SOLO isConnected
+  }, []), // ✅ SOLO dependencies primitivas
+  [eventId] // ✅ Re-suscribir solo si eventId cambia
+);
 ```
 
-### **🛡️ REGLAS ANTI-THRASHING**
+### **🛡️ REGLAS ANTI-THRASHING OBLIGATORIAS**
 
-1. **HANDLER STABILITY**: Todos los handlers WebSocket DEBEN usar useCallback con dependencies vacías o primitivas
-2. **EFFECT DEPENDENCIES**: useEffect WebSocket SOLO puede depender de [isConnected] y handlers estables
-3. **NO FUNCTION DEPS**: NUNCA incluir addListener, removeListener, o funciones API como dependencies
-4. **COMPONENT ID**: Cada componente que use WebSocket debe tener identificador único para debugging
-5. **ROOM MANAGEMENT**: Un componente = una room máximo, join/leave en useEffect separado
+1. **HANDLER STABILITY**: Todos los handlers WebSocket DEBEN usar useCallback con dependencies vacías []
+2. **NO POLLING**: ELIMINAR setInterval para datos que vienen por WebSocket
+3. **SINGLETON SOCKET**: Una sola conexión Socket.io global por aplicación
+4. **EFFECT DEPENDENCIES**: useEffect WebSocket SOLO [isConnected] y handlers estables
+5. **NO FUNCTION DEPS**: NUNCA incluir addListener, removeListener como dependencies
+6. **COMPONENT ID**: Cada componente que use WebSocket debe tener ID único para debugging
+7. **CLEANUP FORZADO**: Cleanup en useEffect return + componentWillUnmount
+8. **REGISTRY LIMITS**: Máximo 10 listeners por evento, limpieza automática cada 5 min
 
 ---
 
@@ -129,6 +235,92 @@ if (betType === "doy" && !terms?.doyAmount) {
 
 ---
 
+## 🎨 FRONTEND DEVELOPMENT RULES V9
+
+### **COMPONENT PATTERNS OBLIGATORIOS**
+
+```typescript
+// ✅ Estructura estándar de componente V9
+interface ComponentProps {
+  // Props tipadas exactas
+}
+
+const Component: React.FC<ComponentProps> = memo(({ ...props }) => {
+  // 1. Estados locales con useState
+  const [state, setState] = useState(initialValue);
+
+  // 2. Referencias estables
+  const isMountedRef = useRef(true);
+
+  // 3. Handlers con useCallback Y dependencies estables
+  const handleAction = useCallback((data) => {
+    if (!isMountedRef.current) return;
+    setState(data);
+  }, []); // ✅ Dependencies vacías o primitivas
+
+  // 4. WebSocket listeners V9
+  useWebSocketListener("event", handleAction);
+
+  // 5. Cleanup en useEffect
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // 6. Return JSX con clases CSS estáticas
+  return (
+    <div className="btn-primary text-theme-primary">
+      {/* NO usar theme context */}
+    </div>
+  );
+});
+
+Component.displayName = "Component";
+export default Component;
+```
+
+### **PERFORMANCE RULES V9**
+
+1. **REACT.MEMO**: OBLIGATORIO para componentes que reciben props complejas
+2. **USECALLBACK**: OBLIGATORIO para handlers pasados como props O WebSocket
+3. **USEMEMO**: Solo para cálculos costosos, NO para objetos simples
+4. **LAYOUTS PERSISTENTES**: Headers/Navigation en Layout, NO en páginas
+5. **CSS VARIABLES**: Usar var(--color-primary), NO Context dinámico
+6. **ERROR BOUNDARIES**: Wrapper obligatorio para páginas principales
+7. **ISNMOUNTED REF**: Para prevenir setState en componentes desmontados
+
+### **STATE MANAGEMENT PATTERNS V9**
+
+```typescript
+// ✅ Estados locales simples
+const [state, setState] = useState(initialValue);
+
+// ✅ Estados complejos con reducer
+const [state, dispatch] = useReducer(reducer, initialState);
+
+// ✅ Global state SOLO para: auth, websocket connection
+// ❌ NO usar Context para: themes, data temporal, UI state
+
+// ✅ Datos de header con WebSocket directo
+const useHeaderDataOptimized = () => {
+  const [data, setData] = useState(initialData);
+
+  useEffect(() => {
+    fetchInitialData(); // ✅ Una sola vez
+  }, []);
+
+  useWebSocketListener(
+    "wallet_updated",
+    useCallback((data) => {
+      setData((prev) => ({ ...prev, walletBalance: data.balance }));
+    }, [])
+  ); // ✅ No polling
+};
+```
+
+---
+
 ## 📺 STREAMING OPTIMIZATION - RULES
 
 ### **NGINX-RTMP CONFIGURATION**
@@ -163,49 +355,6 @@ rtmp {
 
 ---
 
-## 🎨 FRONTEND DEVELOPMENT RULES
-
-### **COMPONENT PATTERNS OBLIGATORIOS**
-
-```typescript
-// ✅ Estructura estándar de componente
-interface ComponentProps {
-  // Props tipadas
-}
-
-const Component: React.FC<ComponentProps> = ({ ...props }) => {
-  // 1. Hooks en orden: useState, useEffect, custom hooks
-  // 2. Handlers con useCallback
-  // 3. WebSocket usando patrones V9
-  // 4. Return JSX limpio
-};
-
-export default Component;
-```
-
-### **PERFORMANCE RULES**
-
-1. **REACT.MEMO**: Usar para componentes que reciben props complejas
-2. **USECALLBACK**: Obligatorio para handlers pasados como props
-3. **USEMEMO**: Para cálculos costosos únicamente
-4. **LAZY LOADING**: Para componentes grandes no críticos
-5. **ERROR BOUNDARIES**: Wrapper obligatorio para páginas principales
-
-### **STATE MANAGEMENT PATTERNS**
-
-```typescript
-// ✅ Estados locales simples
-const [state, setState] = useState(initialValue);
-
-// ✅ Estados complejos con reducer
-const [state, dispatch] = useReducer(reducer, initialState);
-
-// ✅ Global state solo para: auth, theme, websocket
-// ❌ NO usar Context para datos temporales
-```
-
----
-
 ## 🗄️ BACKEND API STANDARDS
 
 ### **ESTRUCTURA DE RESPUESTA OBLIGATORIA**
@@ -234,14 +383,6 @@ try {
 }
 ```
 
-### **VALIDATION RULES**
-
-1. **EXPRESS-VALIDATOR**: Obligatorio en todos los endpoints
-2. **SANITIZATION**: Sanitizar TODAS las entradas
-3. **TYPE CHECKING**: TypeScript strict mode habilitado
-4. **AUTH MIDDLEWARE**: Verificar permisos en cada ruta protegida
-5. **RATE LIMITING**: Implementar en endpoints críticos
-
 ---
 
 ## 🔒 SECURITY & COMPLIANCE REQUIREMENTS
@@ -266,170 +407,88 @@ const token = jwt.sign({ userId, role, sessionId }, process.env.JWT_SECRET, {
 
 ---
 
-## 📱 PWA REQUIREMENTS - PRÓXIMA FASE
+## ⚠️ CRITICAL DO NOT'S V9
 
-### **MANIFEST.JSON STRUCTURE**
+### **❌ NUNCA HACER - CAUSA MEMORY LEAKS**
 
-```json
-{
-  "name": "GalloBets - Apuestas Deportivas",
-  "short_name": "GalloBets",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1a1f37",
-  "theme_color": "#cd6263",
-  "icons": [
-    // Standard PWA icons
-  ]
-}
-```
+1. **NO** usar polling (setInterval) para datos que vienen por WebSocket
+2. **NO** crear Context para themes que manipulen DOM
+3. **NO** poner Headers/Navigation en páginas individuales
+4. **NO** usar localStorage para datos financieros
+5. **NO** permitir apuestas sin verificar saldo
+6. **NO** hacer operaciones financieras sin transacciones
+7. **NO** usar WebSocket patterns anteriores a V9
+8. **NO** incluir funciones como dependencies en useEffect WebSocket
+9. **NO** usar handlers inline en WebSocket sin useCallback
+10. **NO** deployar sin tests de memory leaks
 
-### **SERVICE WORKER STRATEGY**
+### **🚨 CRITICAL ERROR INDICATORS V9**
 
-1. **CACHE FIRST**: Para assets estáticos
-2. **NETWORK FIRST**: Para API calls
-3. **NO CACHE**: Para operaciones financieras
-4. **OFFLINE FALLBACK**: Para páginas principales únicamente
-
----
-
-## 🎨 UI/UX DESIGN SYSTEM
-
-### **COLOR PALETTE STANDARD**
-
-```css
-/* Theme colors obligatorios */
---primary-bg: #1a1f37; /* Dark blue background */
---secondary-bg: #2a325c; /* Medium blue */
---accent-red: #cd6263; /* Red accent */
---border-color: #596c95; /* Light blue borders */
---success-green: #10b981; /* Success states */
---warning-yellow: #f59e0b; /* Warning states */
-```
-
-### **RESPONSIVE BREAKPOINTS**
-
-```css
-/* Mobile first approach */
-@media (min-width: 640px) {
-  /* sm */
-}
-@media (min-width: 768px) {
-  /* md */
-}
-@media (min-width: 1024px) {
-  /* lg */
-}
-@media (min-width: 1280px) {
-  /* xl */
-}
-```
+- Console messages: "⚠️ Demasiados listeners para evento"
+- Console warnings sobre WebSocket "thrashing"
+- Memory usage increasing durante navigation
+- Multiple WebSocket connections del mismo cliente
+- Headers que se desmontan/montan en navegación
+- Context re-renders por manipulación DOM
+- setInterval corriendo junto con WebSocket para mismos datos
 
 ---
 
-## 🧪 TESTING REQUIREMENTS
+## 📋 CODE REVIEW CHECKLIST V9
 
-### **TESTING HIERARCHY**
+### **ANTES DE CADA COMMIT - ANTI MEMORY LEAKS**
 
-1. **UNIT TESTS**: Funciones puras y utilities
-2. **INTEGRATION TESTS**: API endpoints y WebSocket events
-3. **E2E TESTS**: Flujos críticos (login, apuestas, pagos)
-4. **LOAD TESTS**: Sistema bajo 2000 usuarios concurrentes
+- [ ] ✅ Headers están en Layout, NO en páginas individuales
+- [ ] ✅ WebSocket usage sigue patrones V9 (useCallback + deps estables)
+- [ ] ✅ NO hay polling para datos que vienen por WebSocket
+- [ ] ✅ Context NO manipula DOM (usa CSS variables estáticas)
+- [ ] ✅ Handlers WebSocket usan useCallback con deps vacías []
+- [ ] ✅ useEffect WebSocket solo depende de [isConnected]
+- [ ] ✅ Financial operations use transactions
+- [ ] ✅ All user inputs validated and sanitized
+- [ ] ✅ TypeScript errors resolved
+- [ ] ✅ No console warnings sobre memory leaks
+- [ ] ✅ Performance impact evaluated
+- [ ] ✅ isMountedRef usado para prevenir setState después de unmount
 
-### **WEBSOCKET TESTING MANDATORY**
+### **TESTING WEBSOCKET MEMORY LEAKS**
 
 ```javascript
-// ✅ Test para cada componente WebSocket
-describe("WebSocket Component", () => {
+// ✅ Test obligatorio para cada componente WebSocket
+describe("WebSocket Component V9", () => {
   it("should handle listeners without memory leaks", async () => {
     const { unmount } = render(<Component />);
-    // Verify no thrashing messages
+
+    // Verificar no hay thrashing messages
     expect(console.warn).not.toHaveBeenCalledWith(
-      expect.stringContaining("thrashing")
+      expect.stringContaining("Demasiados listeners")
     );
+
+    // Simular navegación
     unmount();
-    // Verify cleanup
+
+    // Verificar cleanup correcto
+    // WebSocket connections should remain stable
+  });
+
+  it("should not poll when WebSocket provides data", () => {
+    render(<Component />);
+
+    // Verificar NO hay setInterval activos
+    expect(setInterval).not.toHaveBeenCalled();
   });
 });
 ```
 
 ---
 
-## 🚀 DEPLOYMENT & MONITORING
+**RECUERDA V9**: Este proyecto maneja dinero real y eventos en vivo. Los memory leaks y re-renders innecesarios causan pérdida de conexiones WebSocket, datos financieros inconsistentes, y experiencia de usuario degradada. La arquitectura V9 con layouts persistentes y WebSocket optimizado es CRÍTICA para estabilidad.
 
-### **ENVIRONMENT SETUP**
+## 🎯 ARQUITECTURA V9 SUMMARY
 
-```bash
-# Development
-NODE_ENV=development
-VITE_API_URL=http://localhost:3001/api
-VITE_WS_URL=http://localhost:3001
-
-# Production
-NODE_ENV=production
-DATABASE_URL=postgresql://...
-JWT_SECRET=... # 256-bit random
-KUSHKI_PUBLIC_KEY=...
-```
-
-### **MONITORING REQUIREMENTS**
-
-1. **WEBSOCKET METRICS**: Connection count, message rate, error rate
-2. **FINANCIAL METRICS**: Transaction volume, failed payments, commissions
-3. **PERFORMANCE METRICS**: Response time, memory usage, CPU usage
-4. **BUSINESS METRICS**: Active users, events, total bets
-
----
-
-## ⚠️ CRITICAL DO NOT'S
-
-### **❌ NUNCA HACER**
-
-1. **NO** usar localStorage para datos financieros
-2. **NO** permitir apuestas sin verificar saldo
-3. **NO** hacer operaciones financieras sin transacciones
-4. **NO** usar WebSocket patterns V8 (causan memory leaks)
-5. **NO** deployar sin tests de carga
-6. **NO** exponer APIs sin autenticación
-7. **NO** hardcodear configuraciones sensibles
-8. **NO** usar resolution >720p para streaming
-9. **NO** permitir autoplay de video sin user interaction
-10. **NO** hacer commits directos a main branch
-
-### **🚨 CRITICAL ERROR INDICATORS**
-
-- Console messages: "🛡️ bloqueado para prevenir thrashing"
-- Memory usage increasing during navigation
-- Multiple WebSocket connections from same client
-- Financial transactions without audit logs
-- Streaming interruptions during events
-- Login without proper session management
-
----
-
-## 📋 CODE REVIEW CHECKLIST
-
-### **ANTES DE CADA COMMIT**
-
-- [ ] ✅ WebSocket usage follows V9 patterns
-- [ ] ✅ No memory leaks in useEffect dependencies
-- [ ] ✅ Financial operations use transactions
-- [ ] ✅ All user inputs validated and sanitized
-- [ ] ✅ Error handling implemented properly
-- [ ] ✅ TypeScript errors resolved
-- [ ] ✅ Console warnings addressed
-- [ ] ✅ Performance impact evaluated
-- [ ] ✅ Security implications reviewed
-- [ ] ✅ Documentation updated if needed
-
-### **PULL REQUEST REQUIREMENTS**
-
-1. **DESCRIPTION**: Clear explanation of changes
-2. **TESTING**: Evidence of testing completed
-3. **PERFORMANCE**: No degradation in key metrics
-4. **SECURITY**: Security review if touching auth/payments
-5. **DOCUMENTATION**: Updated if API/behavior changes
-
----
-
-**RECUERDA**: Este proyecto maneja dinero real y eventos en vivo. La calidad del código y la estabilidad del sistema son CRÍTICAS para el éxito del negocio y la confianza de los usuarios.
+- **LAYOUTS**: Persistentes, Headers montan UNA VEZ
+- **STYLING**: CSS variables estáticas, NO Context DOM manipulation
+- **WEBSOCKET**: Singleton + useCallback handlers + deps estables
+- **DATA**: WebSocket real-time, NO polling redundante
+- **PERFORMANCE**: React.memo + useCallback + persistent layouts
+- **MEMORY**: Zero leaks, automated cleanup, registry limits

@@ -1,6 +1,5 @@
 // CREAR O REEMPLAZAR CONTENIDO
 import React from "react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface StatusIndicatorProps {
   status: "connected" | "disconnected" | "connecting";
@@ -15,22 +14,20 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   size = "md",
   className = "",
 }) => {
-  const theme = getUserThemeClasses();
-
   const statusConfig = {
     connected: {
       color: "bg-theme-success",
-      textColor: theme.successText,
+      textColor: "text-theme-success",
       pulse: false,
     },
     disconnected: {
       color: "bg-theme-error",
-      textColor: theme.errorText,
+      textColor: "text-theme-error",
       pulse: true,
     },
     connecting: {
       color: "bg-theme-warning",
-      textColor: theme.warningText,
+      textColor: "text-theme-warning",
       pulse: true,
     },
   };

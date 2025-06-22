@@ -3,7 +3,6 @@
 
 import React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 
 interface TrendData {
   value: number;
@@ -57,8 +56,6 @@ const Card: React.FC<CardProps> = ({
   disabled = false,
   highlighted = false,
 }) => {
-  const theme = getUserThemeClasses();
-
   // Determinar si es una DataCard o Card normal
   const isDataCard = value !== undefined || icon !== undefined;
 
@@ -68,7 +65,7 @@ const Card: React.FC<CardProps> = ({
 
     switch (variant) {
       case "stat":
-        return `${baseClasses} ${theme.cardBackground} border border-[#596c95]`;
+        return `${baseClasses} bg-theme-card border border-[#596c95]`;
       case "info":
         return `${baseClasses} bg-blue-50 border border-blue-200 text-blue-900`;
       case "success":
@@ -78,7 +75,7 @@ const Card: React.FC<CardProps> = ({
       case "error":
         return `${baseClasses} bg-red-50 border border-red-200 text-red-900`;
       default:
-        return `${baseClasses} ${theme.cardBackground} border border-[#596c95]`;
+        return `${baseClasses} bg-theme-card border border-[#596c95]`;
     }
   };
 

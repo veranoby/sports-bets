@@ -16,11 +16,11 @@ const Badge: React.FC<BadgeProps> = ({
   className,
 }) => {
   const variantColors = {
-    primary: "#596c95",
-    secondary: "#6b7280",
-    success: "#10b981",
-    warning: "#f59e0b",
-    error: "#cd6263",
+    primary: "var(--color-primary)",
+    secondary: "var(--color-secondary)",
+    success: "var(--color-success)",
+    warning: "var(--color-warning)",
+    error: "var(--color-error)",
   };
 
   const sizeClasses = {
