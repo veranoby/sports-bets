@@ -92,38 +92,12 @@ const UserBets: React.FC = () => {
     setBetsRef.current((prev) => [...prev, data.newBet]);
   }, []);
 
-  // ✅ SOLO LISTENERS P2P
+  // ✅ MANTENER ESTOS (correctos):
   useWebSocketListener("proposal:received", handleProposalReceived);
   useWebSocketListener("proposal:accepted", handleProposalAccepted);
   useWebSocketListener("proposal:rejected", handleProposalRejected);
   useWebSocketListener("bet_proposal_update", handleBetProposalUpdate);
   useWebSocketListener("pago_proposed", handlePagoProposed);
-
-  // ✅ useEffect simplificado - solo listeners P2P
-  useEffect(() => {
-    if (!isConnected) return;
-
-    addListener("proposal:received", handleProposalReceived);
-    addListener("proposal:accepted", handleProposalAccepted);
-    addListener("proposal:rejected", handleProposalRejected);
-    addListener("bet_proposal_update", handleBetProposalUpdate);
-    addListener("pago_proposed", handlePagoProposed);
-
-    return () => {
-      removeListener("proposal:received", handleProposalReceived);
-      removeListener("proposal:accepted", handleProposalAccepted);
-      removeListener("proposal:rejected", handleProposalRejected);
-      removeListener("bet_proposal_update", handleBetProposalUpdate);
-      removeListener("pago_proposed", handlePagoProposed);
-    };
-  }, [
-    isConnected,
-    handleProposalReceived,
-    handleProposalAccepted,
-    handleProposalRejected,
-    handleBetProposalUpdate,
-    handlePagoProposed,
-  ]);
 
   // Cargar datos al montar
   useEffect(() => {

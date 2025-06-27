@@ -172,10 +172,7 @@ const UserHeader = memo(() => {
           {/* ACTIVE BETS */}
           <div className="relative dropdown-container">
             <button
-              onClick={() => {
-                setShowBets(false);
-                navigate("/bets");
-              }}
+              onClick={() => setShowBets(!showBets)}
               className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors"
             >
               <Trophy className="w-4 h-4 text-theme-info" />
@@ -208,39 +205,40 @@ const UserHeader = memo(() => {
                       <p className="text-sm">No tienes apuestas activas</p>
                     </div>
                   ) : (
-                    <div className="p-2">
-                      {activeBets.slice(0, 5).map((bet) => (
-                        <div
-                          key={bet.id}
-                          className="p-3 hover:bg-theme-accent rounded-lg transition-colors"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium text-theme-text-primary text-sm">
-                                ${bet.amount} -{" "}
-                                {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                    <div className="flex flex-col">
+                      <div className="p-2 flex-1 overflow-y-auto">
+                        {activeBets.slice(0, 5).map((bet) => (
+                          <div
+                            key={bet.id}
+                            className="p-3 hover:bg-theme-accent rounded-lg transition-colors"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <div className="font-medium text-theme-text-primary text-sm">
+                                  ${bet.amount} -{" "}
+                                  {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                                </div>
+                                <div className="text-xs text-theme-text-secondary">
+                                  {bet.status}
+                                </div>
                               </div>
                               <div className="text-xs text-theme-text-secondary">
-                                {bet.status}
+                                {new Date(bet.createdAt).toLocaleDateString()}
                               </div>
                             </div>
-                            <div className="text-xs text-theme-text-secondary">
-                              {new Date(bet.createdAt).toLocaleDateString()}
-                            </div>
                           </div>
-                        </div>
-                      ))}
-
-                      {activeBets.length > 5 && (
-                        <button
-                          onClick={() => navigate("/bets")}
-                          className="w-full p-2 text-center text-theme-primary hover:bg-theme-accent rounded-lg transition-colors text-sm"
-                        >
-                          Ver todas las apuestas ({activeBets.length})
-                        </button>
-                      )}
+                        ))}
+                      </div>
                     </div>
                   )}
+                  <div className="sticky bottom-0   p-2">
+                    <button
+                      onClick={() => navigate("/bets")}
+                      className="w-full p-2 text-center text-theme-primary hover:bg-theme-primary bg-theme-accent rounded-lg transition-colors text-sm"
+                    >
+                      Ver todas las apuestas ({activeBets.length})
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
