@@ -219,6 +219,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
       return connectionPromiseRef.current;
     }
 
+    // ✅ VERIFICAR ESTADO ANTES DE CONECTAR:
     if (socketRef.current?.connected) {
       return Promise.resolve();
     }
@@ -231,45 +232,62 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         const WEBSOCKET_URL =
           import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
+        // ✅ LIMPIAR SOCKET ANTERIOR SOLO SI EXISTE Y ESTÁ DESCONECTADO:
+        if (socketRef.current && !socketRef.current.connected) {
+          socketRef.current.removeAllListeners();
+          socketRef.current = null;
+        }
+
         const socket = io(WEBSOCKET_URL, {
           auth: { token },
-          transports: ["websocket"],
-          timeout: 20000,
+          transports: ["websocket", "polling"],
+          timeout: 20000, // ✅ AUMENTAR TIMEOUT
           reconnection: true,
-          reconnectionAttempts: 3,
+          reconnectionAttempts: 5,
           reconnectionDelay: 1000,
         });
 
+        // ✅ AGREGAR HANDLER PARA onclose:
         socket.on("connect", () => {
-          console.log("✅ WebSocket conectado");
+          console.log("🟢 WebSocket conectado exitosamente");
           setIsConnected(true);
+          setIsConnecting(false);
           setConnectionError(null);
-
+          socketRef.current = socket;
           // Reconectar a rooms pendientes
           pendingRoomsRef.current.forEach((roomId) => {
             socket.emit("join_room", roomId);
           });
-
           resolve();
         });
 
         socket.on("disconnect", (reason) => {
-          console.log("❌ WebSocket desconectado:", reason);
+          console.log("🔴 WebSocket desconectado:", reason);
           setIsConnected(false);
+          // ✅ NO limpiar socket en disconnect automático
+          if (reason !== "client namespace disconnect") {
+            setConnectionError(`Disconnected: ${reason}`);
+          }
+        });
+
+        // Opcional: handler para cierre bajo nivel
+        socket.io.engine.on("close", () => {
+          console.warn(
+            "⚠️ WebSocket engine closed before connection established"
+          );
         });
 
         socket.on("connect_error", (error) => {
           console.error("🚨 Error de conexión:", error.message);
           setConnectionError(error.message);
+          setIsConnecting(false);
           reject(error);
         });
-
-        socketRef.current = socket;
-      } catch (error) {
-        reject(error);
-      } finally {
+      } catch (error: any) {
+        console.error("❌ Error creando WebSocket:", error);
+        setConnectionError(error.message);
         setIsConnecting(false);
-        connectionPromiseRef.current = null;
+        reject(error);
       }
     });
 

@@ -172,7 +172,10 @@ const UserHeader = memo(() => {
           {/* ACTIVE BETS */}
           <div className="relative dropdown-container">
             <button
-              onClick={() => setShowBets(!showBets)}
+              onClick={() => {
+                setShowBets(false);
+                navigate("/bets");
+              }}
               className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors"
             >
               <Trophy className="w-4 h-4 text-theme-info" />

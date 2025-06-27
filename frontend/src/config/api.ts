@@ -174,7 +174,7 @@ export const betsAPI = {
   rejectProposal: (betId: string) =>
     apiClient.put(`/bets/${betId}/reject-proposal`),
 
-  getPendingProposals: () => apiClient.get("/bets/pending-proposals"),
+  getPendingProposals: () => apiClient.get("/bets/proposals/pending"),
 
   getCompatibleBets: (params: {
     fightId: string;

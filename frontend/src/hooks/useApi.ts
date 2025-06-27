@@ -5,7 +5,7 @@
 // SOLUCIONADO: Balance $0 con estructura backend real
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { apiClient } from "../config/api";
+import { apiClient, betsAPI } from "../config/api";
 
 // ====================== TYPES ======================
 interface WalletData {
@@ -309,10 +309,11 @@ export function useWallet() {
 
 // ====================== BETS HOOK ======================
 export function useBets() {
-  const { data, loading, error, execute, setData } = useAsyncOperation<{
-    bets: BetData[];
-    total: number;
-  }>();
+  const { data, loading, error, execute, setData, setLoading, setError } =
+    useAsyncOperation<{
+      bets: BetData[];
+      total: number;
+    }>();
 
   const fetchMyBets = useCallback(
     async (params?: {
@@ -379,6 +380,19 @@ export function useBets() {
     return execute(() => apiClient.get("/bets/stats"));
   }, [execute]);
 
+  const getPendingProposals = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await betsAPI.getPendingProposals();
+      return response.data?.proposals || [];
+    } catch (err) {
+      setError((err as Error).message || "Error loading proposals");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
   return {
     bets: data?.bets || [],
     total: data?.total || 0,
@@ -390,6 +404,7 @@ export function useBets() {
     acceptBet,
     cancelBet,
     getBetsStats,
+    getPendingProposals,
   };
 }
 

@@ -136,19 +136,14 @@ const WalletPage: React.FC = () => {
     },
   };
 
-  // Cargar datos al montar el componente
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        console.log("Fetching wallet data...");
-        await Promise.all([fetchWallet(), fetchTransactions()]);
-      } catch (err) {
-        console.error("Error loading wallet data:", err);
-      }
-    };
-
-    loadData();
-  }, []); // ✅ Solo en mount
+    // Solo verificar si wallet está cargado, NO hacer fetch
+    if (!wallet && !loading) {
+      console.log(
+        "💰 Wallet data not available, UserHeader should handle this"
+      );
+    }
+  }, [wallet, loading]);
 
   // 🔧 NUEVO: Handler para refresh específico del balance
   const handleRefreshBalance = async () => {
