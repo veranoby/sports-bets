@@ -1,22 +1,17 @@
-// frontend/src/hooks/useApi.ts - IMPLEMENTACIÓN COMPLETA TODOS LOS ENDPOINTS
-// ============================================================================
-// INCLUYE: TODOS los hooks necesarios según endpoints backend
-// BASADO EN: Análisis exhaustivo de backend routes
-// CORREGIDO: Balance $0, estructura response correcta
+// frontend/src/hooks/useApi.ts - IMPLEMENTACIÓN DEFINITIVA V4
+// ============================================================
+// CORREGIDO: Estructura parsing wallet response.data.wallet
+// ELIMINADO: Implementaciones duplicadas/fragmentadas
+// SOLUCIONADO: Balance $0 con estructura backend real
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { apiClient } from "../config/api";
 
 // ====================== TYPES ======================
-interface APIResponse<T = any> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
 interface WalletData {
   balance: number;
   frozenAmount: number;
+  availableBalance?: number;
 }
 
 interface TransactionData {
@@ -140,7 +135,7 @@ function useAsyncOperation<T = any>() {
   };
 }
 
-// ====================== WALLET HOOK ======================
+// ====================== WALLET HOOK - CORREGIDO ======================
 export function useWallet() {
   const [wallet, setWallet] = useState<WalletData>({
     balance: 0,
@@ -161,9 +156,9 @@ export function useWallet() {
 
       console.log("📦 Raw wallet response:", response.data);
 
-      // ✅ ESTRUCTURA BACKEND: response.data.data.wallet
-      const walletData = response.data?.data?.wallet;
-      const transactionsData = response.data?.data?.recentTransactions || [];
+      // ✅ ESTRUCTURA REAL BACKEND: response.data.wallet (NO response.data.data.wallet)
+      const walletData = response.data?.wallet;
+      const transactionsData = response.data?.recentTransactions || [];
 
       console.log("💰 Parsed wallet data:", walletData);
 
@@ -171,6 +166,9 @@ export function useWallet() {
         const newWallet = {
           balance: Number(walletData.balance || 0),
           frozenAmount: Number(walletData.frozenAmount || 0),
+          availableBalance: Number(
+            walletData.availableBalance || walletData.balance || 0
+          ),
         };
 
         console.log("✅ Setting wallet state:", newWallet);
@@ -207,6 +205,7 @@ export function useWallet() {
           params,
         });
 
+        // ✅ ESTRUCTURA: response.data.data.transactions (para este endpoint específico)
         const transactionsData = response.data?.data?.transactions || [];
         if (mountedRef.current) {
           setTransactions(transactionsData);
@@ -466,8 +465,7 @@ export function useEvents() {
 
 // ====================== FIGHTS HOOK ======================
 export function useFights(eventId?: string) {
-  const { data, loading, error, execute, setData } =
-    useAsyncOperation<FightData[]>();
+  const { data, loading, error, execute } = useAsyncOperation<FightData[]>();
 
   const fetchFights = useCallback(
     async (params?: { eventId?: string; status?: string }) => {

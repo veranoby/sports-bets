@@ -6,6 +6,7 @@ import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 type Fight = {
   id: string;
@@ -42,40 +43,53 @@ const LiveEvent = () => {
     }
   }, [isConnected, eventId, joinRoom, leaveRoom]);
 
-  // ✅ 2. Listeners para actualizaciones en tiempo real
-  useEffect(() => {
-    if (!isConnected || !eventId) return;
+  // ✅ 2. Listeners ESPECÍFICOS de pelea en vivo
+  useWebSocketListener(
+    "fight_started",
+    useCallback(
+      (data: { fightId: string }) => {
+        console.log("Pelea iniciada:", data.fightId);
+        fetchFights({ eventId });
+      },
+      [eventId, fetchFights]
+    )
+  );
 
-    const handleStreamUpdate = (data: { status: string }) => {
-      console.log("Stream actualizado:", data.status);
-    };
+  useWebSocketListener(
+    "fight_ended",
+    useCallback(
+      (data: { fightId: string; result: string }) => {
+        console.log("Pelea finalizada:", data);
+        fetchFights({ eventId });
+        // Lógica adicional para manejar resultados si es necesario
+      },
+      [eventId, fetchFights]
+    )
+  );
 
-    const handleFightUpdate = (data: { fightId: string; status: string }) => {
-      console.log("Pelea actualizada:", data);
-      fetchFights({ eventId });
-    };
+  useWebSocketListener(
+    "betting_opened",
+    useCallback((data: { fightId: string }) => {
+      console.log("Apuestas abiertas para pelea:", data.fightId);
+      // Lógica para habilitar interfaz de apuestas
+    }, [])
+  );
 
-    const handleNewBet = () => {
-      fetchBets();
-    };
+  useWebSocketListener(
+    "betting_closed",
+    useCallback((data: { fightId: string }) => {
+      console.log("Apuestas cerradas para pelea:", data.fightId);
+      // Lógica para deshabilitar interfaz de apuestas
+    }, [])
+  );
 
-    addListener("stream:status", handleStreamUpdate);
-    addListener("fight:updated", handleFightUpdate);
-    addListener("bet:new", handleNewBet);
-
-    return () => {
-      removeListener("stream:status", handleStreamUpdate);
-      removeListener("fight:updated", handleFightUpdate);
-      removeListener("bet:new", handleNewBet);
-    };
-  }, [
-    isConnected,
-    eventId,
-    addListener,
-    removeListener,
-    fetchFights,
-    fetchBets,
-  ]);
+  useWebSocketListener(
+    "stream_status_changed",
+    useCallback((data: { status: string; quality?: string }) => {
+      console.log("Estado del stream:", data.status);
+      // Lógica para actualizar UI según estado del stream
+    }, [])
+  );
 
   // ✅ 3. Cargar datos iniciales
   useEffect(() => {

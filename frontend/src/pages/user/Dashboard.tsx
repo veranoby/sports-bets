@@ -9,7 +9,8 @@ import {
   Activity,
   Wallet,
   Play,
-  Clock,
+  Trophy,
+  Webcam,
   Zap,
   Dices,
 } from "lucide-react";
@@ -28,68 +29,47 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // API Hooks
-  const { events, loading: eventsLoading, error: eventsError } = useEvents();
+  // API Hooks - Simplificado
+  const {
+    events,
+    loading: eventsLoading,
+    error: eventsError,
+    fetchEvents,
+  } = useEvents();
   const { bets, loading: betsLoading, error: betsError } = useBets();
-  const { wallet, loading: walletLoading } = useWallet();
 
-  // Estados locales
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  // ✅ SOLUCIÓN: Handlers estables sin dependencias problemáticas
-  const handleNavigateToWallet = useCallback(() => {
-    navigate("/wallet");
-  }, [navigate]);
-
-  const handleNavigateToBets = useCallback(() => {
-    navigate("/bets");
-  }, [navigate]);
-
-  const handleNavigateToEvents = useCallback(() => {
-    navigate("/events");
-  }, [navigate]);
-
-  const handleJoinEvent = useCallback(
-    (eventId: string) => {
-      navigate(`/live-event/${eventId}`);
-    },
-    [navigate]
-  );
-
-  // ✅ SOLUCIÓN: Solo listeners específicos del Dashboard
+  // ✅ LISTENERS ESPECÍFICOS DE EVENTOS
   useWebSocketListener(
-    "new_bet",
+    "new_event",
     useCallback(() => {
-      setLastUpdated(new Date());
-    }, [])
+      fetchEvents();
+    }, [fetchEvents])
   );
 
-  // ✅ SOLUCIÓN: Datos computados memoizados
-  const { liveEvents, upcomingEvents, activeBets, quickStats } = useMemo(() => {
+  useWebSocketListener(
+    "event_started",
+    useCallback(() => {
+      fetchEvents();
+    }, [fetchEvents])
+  );
+
+  useWebSocketListener(
+    "event_ended",
+    useCallback(() => {
+      fetchEvents();
+    }, [fetchEvents])
+  );
+
+  // ✅ Datos computados simplificados (solo eventos)
+  const { liveEvents, upcomingEvents } = useMemo(() => {
     const liveEvents = events?.filter((e) => e.status === "in-progress") || [];
     const upcomingEvents =
       events?.filter((e) => e.status === "scheduled").slice(0, 3) || [];
-    const activeBets =
-      bets?.filter((b) => b.status === "active").slice(0, 3) || [];
-
-    const quickStats = {
-      activeBets: activeBets.length,
-      totalWinnings:
-        bets
-          ?.filter((b) => b.result === "win")
-          .reduce((sum, bet) => sum + (bet.potentialWin || 0), 0) || 0,
-      liveEvents: liveEvents.length,
-      winRate:
-        bets?.length > 0
-          ? (bets.filter((b) => b.result === "win").length / bets.length) * 100
-          : 0,
-    };
-
-    return { liveEvents, upcomingEvents, activeBets, quickStats };
-  }, [events, bets]);
+    return { liveEvents, upcomingEvents };
+  }, [events]);
 
   // Estados de carga
-  const isLoading = eventsLoading || betsLoading || walletLoading;
+  const isLoading = eventsLoading || betsLoading;
   const hasErrors = eventsError || betsError;
 
   if (isLoading) {
@@ -106,78 +86,6 @@ const Dashboard: React.FC = () => {
         {/* 📰 BANNER DE NOTICIAS */}
         <NewsBanner />
 
-        {/* 📊 ESTADÍSTICAS RÁPIDAS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Balance */}
-          <div
-            onClick={handleNavigateToWallet}
-            className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center">
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-theme-primary">
-                  ${(wallet?.balance || 0).toFixed(2)}
-                </p>
-                <p className="text-xs text-theme-light">Balance</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Apuestas Activas */}
-          <div
-            onClick={handleNavigateToBets}
-            className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center">
-                <Activity className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-theme-primary">
-                  {quickStats.activeBets}
-                </p>
-                <p className="text-xs text-theme-light">Apuestas</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Eventos en Vivo */}
-          <div
-            onClick={handleNavigateToEvents}
-            className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-theme-primary">
-                  {quickStats.liveEvents}
-                </p>
-                <p className="text-xs text-theme-light">En Vivo</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tasa de Acierto */}
-          <div className="card-background p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center">
-                <Dices className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-theme-primary">
-                  {quickStats.winRate.toFixed(1)}%
-                </p>
-                <p className="text-xs text-theme-light">Aciertos</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ⚡ EVENTOS EN VIVO */}
         {liveEvents.length > 0 && (
           <div className="card-background p-6">
@@ -187,7 +95,7 @@ const Dashboard: React.FC = () => {
                 Eventos en Vivo
               </h2>
               <button
-                onClick={handleNavigateToEvents}
+                onClick={() => navigate("/events")}
                 className="btn-ghost text-sm"
               >
                 Ver todos
@@ -198,7 +106,7 @@ const Dashboard: React.FC = () => {
               {liveEvents.map((event) => (
                 <div
                   key={event.id}
-                  onClick={() => handleJoinEvent(event.id)}
+                  onClick={() => navigate(`/live-event/${event.id}`)}
                   className="bg-[#1a1f37]/50 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-[#1a1f37]/70 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -241,7 +149,7 @@ const Dashboard: React.FC = () => {
                 Próximos Eventos
               </h2>
               <button
-                onClick={handleNavigateToEvents}
+                onClick={() => navigate("/events")}
                 className="btn-ghost text-sm"
               >
                 Ver todos
@@ -288,53 +196,15 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* 🎯 APUESTAS ACTIVAS */}
-        {activeBets.length > 0 && (
-          <div className="card-background p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
-                <Activity className="w-5 h-5 text-green-400" />
-                Mis Apuestas Activas
-              </h2>
-              <button
-                onClick={handleNavigateToBets}
-                className="btn-ghost text-sm"
-              >
-                Ver todas
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {activeBets.map((bet) => (
-                <div
-                  key={bet.id}
-                  className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg"
-                >
-                  <div>
-                    <h3 className="font-medium text-theme-primary">
-                      {bet.eventName || "Evento TBD"}
-                    </h3>
-                    <p className="text-sm text-theme-light">
-                      {bet.side === "red" ? "Gallo Rojo" : "Gallo Azul"} - $
-                      {bet.amount}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-green-400">
-                      Pot. ${bet.potentialWin?.toFixed(2) || "0.00"}
-                    </p>
-                    <span className="chip-active">
-                      {bet.status === "active" ? "Activa" : "Pendiente"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* 🚫 ESTADOS VACÍOS */}
-        {!isLoading && events?.length === 0 && (
+        {!isLoading && liveEvents?.length === 0 && (
+          <EmptyState
+            title="No hay Eventos en Vivo"
+            description="Parece que no hay eventos en vivo en este momento. ¡Vuelve pronto!"
+            icon={<Webcam className="w-12 h-12" />}
+          />
+        )}
+        {!isLoading && upcomingEvents?.length === 0 && (
           <EmptyState
             title="No hay eventos disponibles"
             description="Parece que no hay eventos programados en este momento. ¡Vuelve pronto!"
@@ -343,21 +213,12 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* ⚠️ MANEJO DE ERRORES */}
-        {hasErrors && (
+        {eventsError && (
           <div className="card-background p-4">
             <ErrorMessage
-              error={eventsError || betsError || "Error desconocido"}
+              error={eventsError}
               onRetry={() => window.location.reload()}
             />
-          </div>
-        )}
-
-        {/* 🕒 ÚLTIMA ACTUALIZACIÓN */}
-        {lastUpdated && (
-          <div className="text-center">
-            <p className="text-xs text-theme-light">
-              Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
-            </p>
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus, Loader2, Info } from "lucide-react";
 import ErrorMessage from "../components/shared/ErrorMessage";
-import LoadingSpinner from "../components/shared/LoadingSpinner";
+//import LoadingSpinner from "../components/shared/LoadingSpinner";
 
 const LoginPage: React.FC = () => {
   const { login, register, isLoading } = useAuth();
@@ -122,9 +122,16 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2a325c] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white">
-            Gallo<span className="text-[#cd6263]">Bets</span>
-          </h1>
+          <div className="flex justify-center items-center gap-2">
+            <img
+              src="/src/assets/logo.png"
+              alt="Logo GalloBets"
+              className="h-12 w-12 object-contain"
+            />
+            <h1 className="text-4xl font-bold text-white">
+              Gallo<span className="text-[#cd6263]">Bets</span>
+            </h1>
+          </div>
           <h2 className="mt-6 text-2xl font-bold text-white">
             {isLoginMode ? "Iniciar Sesión" : "Crear Cuenta"}
           </h2>

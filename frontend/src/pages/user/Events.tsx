@@ -66,25 +66,6 @@ const EventsPage: React.FC = () => {
     []
   );
 
-  // ✅ Listeners para eventos en tiempo real
-  useWebSocketListener("event_started", (data: any) => {
-    console.log("Evento iniciado:", data);
-    fetchEventsRef.current();
-    addNotification(`Evento ${data.eventName} ha comenzado!`, "info");
-  });
-
-  useWebSocketListener("event_ended", (data: any) => {
-    console.log("Evento finalizado:", data);
-    fetchEventsRef.current();
-    addNotification(`Evento ${data.eventName} ha terminado`, "info");
-  });
-
-  useWebSocketListener("new_event", (data: any) => {
-    console.log("Nuevo evento disponible:", data);
-    fetchEventsRef.current();
-    addNotification("Nuevo evento disponible!", "success");
-  });
-
   // Cargar eventos al montar
   useEffect(() => {
     fetchEvents();

@@ -1,9 +1,10 @@
-// frontend/src/pages/user/Profile.tsx - FIXED V10
-// =====================================================
-// FIXED: Missing DollarSign import
-// FIXED: Missing icons and proper structure
+// frontend/src/pages/user/Profile.tsx - REDISEÑO COMPLETO V5
+// ================================================================
+// REDISEÑADO: Layout centrado, chips para stats, avatar con lógica
+// ELIMINADO: Balance total (UserHeader lo maneja)
+// MEJORADO: UI/UX moderno con mejores prácticas Tailwind
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   User,
   Edit3,
@@ -12,22 +13,36 @@ import {
   Mail,
   Shield,
   Calendar,
-  Award,
-  TrendingUp,
-  DollarSign, // ✅ FIXED: Missing import
+  Camera,
+  CheckCircle,
+  XCircle,
+  Lock,
+  Key,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useBets, useWallet } from "../../hooks/useApi";
-import StatusChip from "../../components/shared/StatusChip";
+import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
   const { bets } = useBets();
-  const { wallet } = useWallet();
+  const { updateProfile } = useUsers();
+  const { changePassword } = useAuthOperations();
 
+  // Estados
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  );
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const [formData, setFormData] = useState({
     fullName: user?.profileInfo?.fullName || "",
@@ -35,7 +50,7 @@ const Profile: React.FC = () => {
     address: user?.profileInfo?.address || "",
   });
 
-  // ✅ REAL DATA (no mock)
+  // ✅ ESTADÍSTICAS REALES (sin balance)
   const userStats = {
     totalBets: bets?.length || 0,
     winRate:
@@ -45,257 +60,458 @@ const Profile: React.FC = () => {
             100
           ).toFixed(1)
         : "0.0",
-    totalBalance: Number(wallet?.balance || 0),
     memberSince: user?.createdAt
-      ? new Date(user.createdAt).getFullYear()
-      : new Date().getFullYear(),
+      ? new Date(user.createdAt).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+        })
+      : "Reciente",
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  // Handlers
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const handleSave = async () => {
-    setLoading(true);
+  const handleSave = useCallback(async () => {
     try {
-      console.log("Saving profile:", formData);
+      setLoading(true);
+      setSaveStatus("idle");
+
+      // ✅ LLAMADA REAL A API
+      await updateProfile({
+        profileInfo: formData,
+      });
+
+      setSaveStatus("success");
       setIsEditing(false);
+
+      // Auto-hide success message
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error saving profile:", error);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, updateProfile]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setFormData({
       fullName: user?.profileInfo?.fullName || "",
       phoneNumber: user?.profileInfo?.phoneNumber || "",
       address: user?.profileInfo?.address || "",
     });
     setIsEditing(false);
-  };
+    setSaveStatus("idle");
+  }, [user]);
+
+  const handleAvatarChange = useCallback(() => {
+    // TODO: Implementar lógica de upload de avatar
+    console.log("Avatar change logic - TODO: Implement file upload");
+    setShowAvatarModal(false);
+  }, []);
+
+  const handleChangePassword = useCallback(async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      await changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      setShowPasswordModal(false);
+      alert("Contraseña actualizada correctamente");
+    } catch (error) {
+      alert("Error al cambiar contraseña. Verifica tu contraseña actual.");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }, [passwordData, changePassword]);
 
   if (!user) {
-    return <LoadingSpinner text="Cargando perfil..." />;
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="page-background pb-24">
-      <div className="p-4 space-y-6">
-        {/* 👤 PERFIL PRINCIPAL */}
-        <div className="card-background p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#596c95] to-[#4a5b80] rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-white" />
+    <div className="page-background min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Header Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+          <div className="flex flex-col items-center text-center">
+            {/* Avatar con botón de cambio */}
+            <div className="relative group mb-6">
+              <div className="w-28 h-28 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                {user.username?.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-theme-primary">
-                  {user.username}
-                </h1>
-                <p className="text-theme-light flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  {user.email}
-                </p>
+              <button
+                onClick={() => setShowAvatarModal(true)}
+                className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-all duration-200 hover:scale-110 border border-gray-200"
+                title="Cambiar avatar"
+              >
+                <Camera className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Nombre principal */}
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {formData.fullName || user.username}
+            </h1>
+
+            {/* Info chips */}
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {user.username}
+              </div>
+              <div className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                {user.role}
               </div>
             </div>
 
-            {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Edit3 className="w-4 h-4" />
-                Editar
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Guardar
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="btn-ghost flex items-center gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Cancelar
-                </button>
+            {/* Stats chips */}
+            <div className="flex flex-wrap justify-center gap-2">
+              <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+                🎯 {userStats.totalBets} apuestas
               </div>
-            )}
+              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                📊 {userStats.winRate}% efectividad
+              </div>
+              <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {userStats.memberSince}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Información Personal */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Información Personal
+            </h2>
+
+            {/* Botón editar/guardar/cancelar */}
+            <div className="flex gap-2">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-200 text-blue-600 rounded-lg hover:bg-blue-300 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Editar
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleCancel}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-200 text-gray-600 rounded-lg hover:bg-red-300 transition-colors"
+                    disabled={loading}
+                  >
+                    <X className="w-4 h-4" />
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-200 text-green-600 rounded-lg hover:bg-green-300 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    Guardar
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* INFORMACIÓN DEL PERFIL */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Status message */}
+          {saveStatus !== "idle" && (
+            <div
+              className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
+                saveStatus === "success"
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : "bg-red-50 text-red-700 border border-red-200"
+              }`}
+            >
+              {saveStatus === "success" ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <XCircle className="w-5 h-5" />
+              )}
+              <span className="text-sm font-medium">
+                {saveStatus === "success"
+                  ? "Perfil actualizado correctamente"
+                  : "Error al guardar el perfil. Inténtalo de nuevo."}
+              </span>
+            </div>
+          )}
+
+          {/* Formulario */}
+          <div className="space-y-4">
+            {/* Nombre completo */}
             <div>
-              <label className="block text-sm font-medium text-theme-light mb-2">
-                Nombre Completo
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nombre completo
               </label>
               {isEditing ? (
                 <input
                   type="text"
-                  value={formData.fullName}
+                  value={
+                    formData.fullName !== undefined
+                      ? formData.fullName
+                      : user.profileInfo?.fullName || user.username || ""
+                  }
                   onChange={(e) =>
                     handleInputChange("fullName", e.target.value)
                   }
-                  className="input-theme w-full"
+                  className="w-full px-3 text-sm font-medium text-gray-700 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Ingresa tu nombre completo"
                 />
               ) : (
-                <p className="text-theme-primary">
-                  {formData.fullName || "No especificado"}
-                </p>
+                <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {formData.fullName ||
+                    user.profileInfo?.fullName ||
+                    user.username ||
+                    "No especificado"}
+                </div>
               )}
             </div>
 
+            {/* Teléfono */}
             <div>
-              <label className="block text-sm font-medium text-theme-light mb-2">
-                Teléfono
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Número de teléfono
               </label>
               {isEditing ? (
                 <input
                   type="tel"
-                  value={formData.phoneNumber}
+                  value={
+                    formData.phoneNumber !== undefined
+                      ? formData.phoneNumber
+                      : user.profileInfo?.phoneNumber || ""
+                  }
                   onChange={(e) =>
                     handleInputChange("phoneNumber", e.target.value)
                   }
-                  className="input-theme w-full"
-                  placeholder="Ingresa tu teléfono"
+                  className="text-sm font-medium text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Ingresa tu número de teléfono"
                 />
               ) : (
-                <p className="text-theme-primary">
-                  {formData.phoneNumber || "No especificado"}
-                </p>
+                <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {formData.phoneNumber ||
+                    user.profileInfo?.phoneNumber ||
+                    "No especificado"}
+                </div>
               )}
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-theme-light mb-2">
+            {/* Dirección */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Dirección
               </label>
               {isEditing ? (
                 <textarea
-                  value={formData.address}
+                  value={
+                    formData.address !== undefined
+                      ? formData.address
+                      : user.profileInfo?.address || ""
+                  }
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  className="input-theme w-full"
                   rows={3}
+                  className="text-sm font-medium text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                   placeholder="Ingresa tu dirección"
                 />
               ) : (
-                <p className="text-theme-primary">
-                  {formData.address || "No especificado"}
-                </p>
+                <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900 min-h-[76px]">
+                  {formData.address ||
+                    user.profileInfo?.address ||
+                    "No especificado"}
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* 📊 ESTADÍSTICAS DEL USUARIO */}
-        <div className="card-background p-6">
-          <h2 className="text-xl font-bold text-theme-primary mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5" />
-            Estadísticas
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-2">
-                <TrendingUp className="w-6 h-6" />
+        {/* 🔒 SEGURIDAD Y CONTRASEÑA */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Seguridad</h2>{" "}
+            <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+              <Mail className="w-3 h-3" />
+              {user.email}
+            </div>{" "}
+            {/* Email verification chip - CONDICIONAL */}
+            {user.emailVerified ? (
+              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                Verificado
               </div>
-              <p className="text-2xl font-bold text-theme-primary">
-                {userStats.totalBets}
-              </p>
-              <p className="text-sm text-theme-light">Apuestas Total</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Award className="w-6 h-6" />
+            ) : (
+              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <XCircle className="w-3 h-3" />
+                Verificacion Pendiente
               </div>
-              <p className="text-2xl font-bold text-theme-primary">
-                {userStats.winRate}%
-              </p>
-              <p className="text-sm text-theme-light">Tasa de Acierto</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-2">
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <p className="text-2xl font-bold text-theme-primary">
-                ${userStats.totalBalance.toFixed(2)}
-              </p>
-              <p className="text-sm text-theme-light">Balance Actual</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Calendar className="w-6 h-6" />
-              </div>
-              <p className="text-2xl font-bold text-theme-primary">
-                {userStats.memberSince}
-              </p>
-              <p className="text-sm text-theme-light">Miembro Desde</p>
-            </div>
+            )}
           </div>
-        </div>
-
-        {/* 🔐 INFORMACIÓN DE CUENTA */}
-        <div className="card-background p-6">
-          <h2 className="text-xl font-bold text-theme-primary mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Información de Cuenta
-          </h2>
-
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-theme-light">Estado de la cuenta:</span>
-              <StatusChip status="active" text="Activa" />
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-theme-light">Rol:</span>
-              <span className="text-theme-primary capitalize">{user.role}</span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-theme-light">Email verificado:</span>
-              <StatusChip
-                status={user.emailVerified ? "verified" : "pending"}
-                text={user.emailVerified ? "Verificado" : "Pendiente"}
-              />
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-theme-light">Fecha de registro:</span>
-              <span className="text-theme-primary">
-                {user.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString("es-ES")
-                  : "No disponible"}
-              </span>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-theme-main rounded-lg border border-theme-primary">
+                <div className="flex items-center gap-3">
+                  <Lock className="w-5 h-5 text-theme-text-secondary" />
+                  <div>
+                    <p className="font-medium text-theme-text-primary">
+                      Contraseña
+                    </p>
+                    <p className="text-sm text-theme-text-secondary">
+                      Última actualización:{" "}
+                      {user.passwordUpdatedAt
+                        ? new Date(user.passwordUpdatedAt).toLocaleDateString(
+                            "es-ES"
+                          )
+                        : "No disponible"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPasswordModal(true)}
+                  className="bg-red-300 text-gray-600 rounded-lg hover:bg-red-400 transition-colors text-gray-700 px-4 py-2 rounded-lg  duration-200 flex items-center gap-2"
+                >
+                  <Key className="w-4 h-4" />
+                  Cambiar
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 🔒 ACCIONES DE SEGURIDAD */}
-        <div className="card-background p-6">
-          <h2 className="text-xl font-bold text-theme-primary mb-4">
-            Seguridad
-          </h2>
+        {/* MODAL CAMBIO CONTRASEÑA */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-theme-card border border-theme-primary rounded-xl p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold text-theme-text-primary mb-4">
+                Cambiar Contraseña
+              </h3>
 
-          <div className="space-y-3">
-            <button className="btn-secondary w-full">Cambiar Contraseña</button>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-theme-text-secondary text-sm font-medium mb-2">
+                    Contraseña Actual
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        currentPassword: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-theme-main border border-theme-primary rounded-lg text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-theme-accent"
+                    placeholder="Contraseña actual"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-theme-text-secondary text-sm font-medium mb-2">
+                    Nueva Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        newPassword: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-theme-main border border-theme-primary rounded-lg text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-theme-accent"
+                    placeholder="Nueva contraseña"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-theme-text-secondary text-sm font-medium mb-2">
+                    Confirmar Nueva Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        confirmPassword: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-theme-main border border-theme-primary rounded-lg text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-theme-accent"
+                    placeholder="Confirmar contraseña"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={passwordLoading}
+                  className="flex-1 bg-gradient-to-r from-theme-primary to-theme-accent text-white py-2 rounded-lg hover:scale-105 transition-all duration-200 disabled:opacity-50"
+                >
+                  {passwordLoading ? "Cambiando..." : "Cambiar Contraseña"}
+                </button>
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:scale-105 transition-all duration-200"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Modal Avatar (placeholder) */}
+        {showAvatarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Cambiar Avatar</h3>
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="text-center">
+                <div className="mb-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto">
+                    {user.username?.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm mb-4">
+                  La funcionalidad de cambio de avatar estará disponible
+                  próximamente.
+                </p>
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

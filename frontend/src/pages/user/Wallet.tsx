@@ -192,19 +192,7 @@ const WalletPage: React.FC = () => {
     }
   };
 
-  // ✅ 1. Listener para actualizaciones de billetera
-  useWebSocketListener<{ balance: number; frozenAmount: number }>(
-    "wallet_updated",
-    (data) => {
-      if (data) {
-        // Actualizar balance sin necesidad de refresh manual
-        fetchWallet();
-        console.log("Balance actualizado via WebSocket:", data.balance);
-      }
-    }
-  );
-
-  // ✅ 2. Listener para transacciones completadas
+  // ✅ LISTENER ESPECÍFICO DE WALLET (solo transaction_completed)
   useWebSocketListener<Transaction>("transaction_completed", (transaction) => {
     if (transaction) {
       fetchTransactions();

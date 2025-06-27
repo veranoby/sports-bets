@@ -1,17 +1,10 @@
-// frontend/src/components/user/UserHeader.tsx - FIXED V10
-// ===============================================================
-// FIXED: Remove WebSocket listeners (let Dashboard handle them)
-// FIXED: Add default values for arrays to prevent .map errors
-// OPTIMIZED: Simplified data fetching without polling
+// frontend/src/components/user/UserHeader.tsx - OPTIMIZADO V5
+// ================================================================
+// ELIMINADO: Botón refresh, mock data, fetchHeaderData custom
+// IMPLEMENTADO: useWallet(), useNotifications(), useBets() hooks
+// MEJORADO: Variables CSS globales, degradado elegante, GalloBets logo
 
-import React, {
-  memo,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-} from "react";
+import React, { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LogOut,
@@ -20,116 +13,72 @@ import {
   Bell,
   X,
   AlertCircle,
-  RefreshCw,
+  User,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { apiClient } from "../../config/api";
-
-// Tipos locales
-interface HeaderNotification {
-  id: string;
-  type: "bet_win" | "bet_loss" | "wallet" | "news" | "system";
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-}
-
-interface ActiveBet {
-  id: string;
-  eventName: string;
-  fighters: { red: string; blue: string };
-  side: "red" | "blue";
-  amount: number;
-  status: "active" | "pending";
-  createdAt: string;
-}
-
-interface HeaderData {
-  walletBalance: number;
-  activeBets: ActiveBet[];
-  notifications: HeaderNotification[];
-}
-
-// ✅ FIXED: Add default values to prevent array errors
-const initialData: HeaderData = {
-  walletBalance: 0,
-  activeBets: [],
-  notifications: [],
-};
+import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
+import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 const UserHeader = memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  // ✅ FIXED: Use state with proper defaults
-  const [headerData, setHeaderData] = useState<HeaderData>(initialData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ✅ HOOKS REALES (No mock data)
+  const { wallet, loading: walletLoading, fetchWallet } = useWallet();
+  const {
+    notifications,
+    loading: notificationsLoading,
+    fetchNotifications,
+  } = useNotifications();
+  const { bets, loading: betsLoading, fetchMyBets } = useBets();
+
+  // Estados UI
   const [showBets, setShowBets] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const isMountedRef = useRef(true);
+  // ✅ DATOS COMPUTADOS CON HOOKS REALES
+  const activeBets = bets?.filter((bet) => bet.status === "active") || [];
+  const unreadNotifications =
+    notifications?.filter((notif) => notif.status === "unread") || [];
 
-  // ✅ SIMPLIFIED: Single fetch function with error handling
-  const fetchHeaderData = useCallback(async () => {
-    try {
-      setError(null);
+  const activeBetsCount = activeBets.length;
+  const unreadNotificationsCount = unreadNotifications.length;
+  const walletBalance = Number(wallet?.balance || 0);
 
-      // ✅ ENDPOINTS CORREGIDOS (V10):
-      // - /wallet: Reemplaza /wallets/my-wallet (según walletAPI)
-      // - /bets: Reemplaza /bets/my-bets (con params status y limit)
-      // - /notifications: Verificar existencia en backend; si no, usar mock data
-      const [walletRes, betsRes, notificationsRes] = await Promise.all([
-        apiClient
-          .get("/wallet") // ✅ CORRECTO: /wallet (según walletAPI)
-          .catch(() => ({ data: { balance: 0 } })), // Fallback para wallet
-        apiClient
-          .get("/bets", { params: { status: "active", limit: 5 } }) // ✅ CORRECTO: /bets con params
-          .catch(() => ({ data: [] })), // Fallback para bets
-        apiClient
-          .get("/notifications", { params: { limit: 20 } }) // ✅ VERIFICAR: Endpoint en backend
-          .catch(() => ({ data: [] })), // Fallback para notifications
-      ]);
+  // 🔔 WALLET UPDATES - Para balance en header
+  useWebSocketListener(
+    "wallet_updated",
+    useCallback(() => {
+      fetchWallet();
+    }, [fetchWallet])
+  );
 
-      if (isMountedRef.current) {
-        setHeaderData({
-          walletBalance: walletRes.data?.balance || 0, // ✅ Tipo: number
-          activeBets: Array.isArray(betsRes.data) ? betsRes.data : [], // ✅ Tipo: ActiveBet[]
-          notifications: Array.isArray(notificationsRes.data)
-            ? notificationsRes.data
-            : [], // ✅ Tipo: HeaderNotification[]
-        });
-      }
-    } catch (err: any) {
-      if (isMountedRef.current) {
-        setError(err.message || "Error loading data");
-        setHeaderData(initialData); // ✅ Fallback seguro
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
+  // 🎯 BET UPDATES - Para contador apuestas en header
+  useWebSocketListener(
+    "bet_matched",
+    useCallback(() => {
+      fetchMyBets();
+    }, [fetchMyBets])
+  );
 
-  // ✅ INITIALIZATION: Only initial fetch
-  useEffect(() => {
-    isMountedRef.current = true;
-    fetchHeaderData();
+  useWebSocketListener(
+    "bet_result",
+    useCallback(() => {
+      fetchMyBets();
+    }, [fetchMyBets])
+  );
 
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [fetchHeaderData]);
+  // 🔔 NOTIFICATIONS - Para contador notificaciones en header
+  useWebSocketListener(
+    "new_notification",
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications])
+  );
 
-  // ✅ SAFE: Computed values with fallbacks
-  const activeBetsCount = headerData.activeBets?.length || 0;
-  const unreadNotificationsCount =
-    headerData.notifications?.filter((n) => !n.read)?.length || 0;
-
-  const getPageTitle = useMemo(() => {
+  // Page title mapping
+  const getPageTitle = useCallback(() => {
     const pathToTitle: Record<string, string> = {
       "/dashboard": "Inicio",
       "/events": "Eventos",
@@ -137,9 +86,10 @@ const UserHeader = memo(() => {
       "/profile": "Perfil",
       "/bets": "Apuestas",
     };
-    return pathToTitle[location.pathname] || "GalloBets";
+    return pathToTitle[location.pathname] || "Dashboard";
   }, [location.pathname]);
 
+  // Handlers
   const handleLogout = useCallback(async () => {
     try {
       await logout();
@@ -149,7 +99,7 @@ const UserHeader = memo(() => {
     }
   }, [logout, navigate]);
 
-  // ✅ CLICK OUTSIDE HANDLER
+  // Click outside handler para cerrar dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -168,43 +118,54 @@ const UserHeader = memo(() => {
 
   if (!user) return null;
 
-  if (loading) {
-    return (
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 h-16 flex items-center justify-center">
-          <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
-        </div>
-      </header>
-    );
-  }
+  const isLoading = walletLoading || notificationsLoading || betsLoading;
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-40 bg-theme-header shadow-lg text-theme-primary">
       <div className="px-4 h-16 flex items-center justify-between">
-        {/* LEFT SIDE - TITLE */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-gray-900">
-            {getPageTitle}
-          </h1>
-          <button
-            onClick={fetchHeaderData}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
-            title="Actualizar datos"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+        {/* LEFT SIDE - LOGO Y TITLE */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <img
+              src="/src/assets/logo.png"
+              alt="Logo GalloBets"
+              className="h-10 w-10 object-contain"
+            />
+            <h1 className="text-xl font-bold">
+              <span className="text-red-400">Gallo</span>
+              <span>Bets</span>
+            </h1>
+            <div className="w-px h-6 bg-theme-primary opacity-30"></div>
+            <span className="hidden md:text-lg font-medium">
+              {getPageTitle()}
+            </span>
+          </div>
+        </div>
+
+        {/* CENTER - USER GREETING */}
+        <div className="hidden md:flex items-center gap-2 text-theme-text-secondary">
+          <User className="w-4 h-4" />
+          <span className="text-sm">
+            Hola,{" "}
+            <span className="font-medium text-theme-text-primary">
+              {user.username}
+            </span>
+          </span>
+          <span className="text-xs px-2 py-1 bg-theme-accent rounded-full text-theme-text-primary">
+            {user.role}
+          </span>
         </div>
 
         {/* RIGHT SIDE - ACTIONS */}
-        <div className="flex items-center gap-4">
-          {/* WALLET */}
+        <div className="flex items-center gap-3">
+          {/* WALLET BALANCE */}
           <button
             onClick={() => navigate("/wallet")}
-            className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 h-10 btn-ghost hover:bg-theme-accent group"
           >
-            <Wallet className="w-4 h-4" />
-            <span className="font-medium text-sm">
-              ${headerData.walletBalance.toFixed(2)}
+            <Wallet className="w-4 h-4 text-theme-success" />
+            <span className="text-sm font-semibold">
+              {isLoading ? "..." : `$${walletBalance.toFixed(2)}`}
             </span>
           </button>
 
@@ -212,23 +173,25 @@ const UserHeader = memo(() => {
           <div className="relative dropdown-container">
             <button
               onClick={() => setShowBets(!showBets)}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors"
             >
-              <Trophy className="w-4 h-4" />
-              <span className="font-medium text-sm">{activeBetsCount}</span>
+              <Trophy className="w-4 h-4 text-theme-info" />
+              <span className="text-sm font-semibold">
+                {isLoading ? "..." : activeBetsCount}
+              </span>
             </button>
 
-            {/* ✅ FIXED: Safe array rendering */}
+            {/* ACTIVE BETS DROPDOWN */}
             {showBets && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
+              <div className="absolute right-0 top-full mt-2 w-80 card-background shadow-xl z-50 overflow-hidden">
+                <div className="p-4 bg-theme-header border-b border-theme-primary">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-theme-text-primary">
                       Apuestas Activas
                     </h3>
                     <button
                       onClick={() => setShowBets(false)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-theme-text-secondary hover:text-theme-text-primary transition-colors"
                     >
                       <X size={18} />
                     </button>
@@ -236,43 +199,45 @@ const UserHeader = memo(() => {
                 </div>
 
                 <div className="max-h-64 overflow-y-auto">
-                  {headerData.activeBets?.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                      No tienes apuestas activas
+                  {activeBets.length === 0 ? (
+                    <div className="p-4 text-center text-theme-text-secondary">
+                      <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No tienes apuestas activas</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100">
-                      {(headerData.activeBets || []).map((bet) => (
-                        <div key={bet.id} className="p-4 hover:bg-gray-50">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900 text-sm">
-                                {bet.eventName}
-                              </p>
-                              <p className="text-gray-600 text-xs mt-1">
-                                {bet.fighters?.red} vs {bet.fighters?.blue}
-                              </p>
+                    <div className="p-2">
+                      {activeBets.slice(0, 5).map((bet) => (
+                        <div
+                          key={bet.id}
+                          className="p-3 hover:bg-theme-accent rounded-lg transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium text-theme-text-primary text-sm">
+                                ${bet.amount} -{" "}
+                                {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                              </div>
+                              <div className="text-xs text-theme-text-secondary">
+                                {bet.status}
+                              </div>
                             </div>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                              ${bet.amount}
-                            </span>
+                            <div className="text-xs text-theme-text-secondary">
+                              {new Date(bet.createdAt).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
                       ))}
+
+                      {activeBets.length > 5 && (
+                        <button
+                          onClick={() => navigate("/bets")}
+                          className="w-full p-2 text-center text-theme-primary hover:bg-theme-accent rounded-lg transition-colors text-sm"
+                        >
+                          Ver todas las apuestas ({activeBets.length})
+                        </button>
+                      )}
                     </div>
                   )}
-                </div>
-
-                <div className="p-4 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      navigate("/bets");
-                      setShowBets(false);
-                    }}
-                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                  >
-                    Ver Todas las Apuestas
-                  </button>
                 </div>
               </div>
             )}
@@ -282,28 +247,22 @@ const UserHeader = memo(() => {
           <div className="relative dropdown-container">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center justify-center p-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors relative"
             >
-              <Bell className="w-5 h-5" />
-              {unreadNotificationsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadNotificationsCount > 9
-                    ? "9+"
-                    : unreadNotificationsCount}
-                </span>
-              )}
+              <Bell className="w-4 h-4 text-theme-warning" />
             </button>
 
+            {/* NOTIFICATIONS DROPDOWN */}
             {showNotifications && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
+              <div className="absolute right-0 top-full mt-2 w-80 card-background shadow-xl z-50 overflow-hidden">
+                <div className="p-4 bg-theme-header border-b border-theme-primary">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-theme-text-primary">
                       Notificaciones
                     </h3>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-theme-text-secondary hover:text-theme-text-primary transition-colors"
                     >
                       <X size={18} />
                     </button>
@@ -311,26 +270,50 @@ const UserHeader = memo(() => {
                 </div>
 
                 <div className="max-h-64 overflow-y-auto">
-                  {!headerData.notifications ||
-                  headerData.notifications.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                      No hay notificaciones nuevas
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-theme-text-secondary">
+                      <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay notificaciones</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100">
-                      {headerData.notifications.map((notification) => (
+                    <div className="p-2">
+                      {notifications.slice(0, 5).map((notification) => (
                         <div
                           key={notification.id}
-                          className="p-4 hover:bg-gray-50"
+                          className={`p-3 hover:bg-theme-accent rounded-lg transition-colors border-l-2 
+                                     ${
+                                       notification.status === "unread"
+                                         ? "border-theme-info bg-theme-info bg-opacity-10"
+                                         : "border-transparent"
+                                     }`}
                         >
-                          <p className="text-sm font-medium text-gray-900">
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {notification.message}
-                          </p>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="font-medium text-theme-text-primary text-sm">
+                                {notification.title}
+                              </div>
+                              <div className="text-xs text-theme-text-secondary mt-1">
+                                {notification.message}
+                              </div>
+                            </div>
+                            {notification.status === "unread" && (
+                              <div className="w-2 h-2 bg-theme-info rounded-full ml-2 mt-1"></div>
+                            )}
+                          </div>
+                          <div className="text-xs text-theme-text-light mt-2">
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </div>
                         </div>
                       ))}
+
+                      {notifications.length > 5 && (
+                        <button
+                          onClick={() => navigate("/notifications")}
+                          className="w-full p-2 text-center text-theme-primary hover:bg-theme-accent rounded-lg transition-colors text-sm"
+                        >
+                          Ver todas las notificaciones
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -338,36 +321,21 @@ const UserHeader = memo(() => {
             )}
           </div>
 
-          {/* PROFILE + LOGOUT */}
-          <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-            <span className="text-sm text-gray-600">
-              Hola,{" "}
-              <span className="font-medium text-gray-900">{user.username}</span>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+          {/* LOGOUT */}
+          <button
+            onClick={handleLogout}
+            className="p-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-error hover:border-theme-error transition-colors"
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* ERROR BANNER */}
-      {error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2">
-          <div className="flex items-center gap-2 text-red-700 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            <span>Error cargando datos: {error}</span>
-            <button
-              onClick={fetchHeaderData}
-              className="ml-auto text-red-600 hover:text-red-800 underline"
-            >
-              Reintentar
-            </button>
-          </div>
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-theme-primary bg-opacity-20">
+          <div className="h-full bg-theme-primary animate-pulse"></div>
         </div>
       )}
     </header>

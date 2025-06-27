@@ -61,19 +61,29 @@ const UserBets: React.FC = () => {
   // WebSocket para actualizaciones
   const { addListener, removeListener, isConnected } = useWebSocketContext();
 
-  // WebSocket Listeners optimizados
-  const handleBetMatched = useCallback((data: any) => {
+  // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
+  const handleProposalReceived = useCallback((data: any) => {
+    setBetsRef.current((prev) => [...prev, data.newProposal]);
+  }, []);
+
+  const handleProposalAccepted = useCallback((data: any) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.betId ? { ...bet, status: "matched" } : bet
+        bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet
       )
     );
   }, []);
 
-  const handleBetResult = useCallback((data: any) => {
+  const handleProposalRejected = useCallback((data: any) => {
+    setBetsRef.current((prev) =>
+      prev.filter((bet) => bet.id !== data.proposalId)
+    );
+  }, []);
+
+  const handleBetProposalUpdate = useCallback((data: any) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.betId ? { ...bet, result: data.result } : bet
+        bet.id === data.proposalId ? { ...bet, ...data.updates } : bet
       )
     );
   }, []);
@@ -82,24 +92,38 @@ const UserBets: React.FC = () => {
     setBetsRef.current((prev) => [...prev, data.newBet]);
   }, []);
 
-  useWebSocketListener("bet_matched", handleBetMatched);
-  useWebSocketListener("bet_result", handleBetResult);
+  // ✅ SOLO LISTENERS P2P
+  useWebSocketListener("proposal:received", handleProposalReceived);
+  useWebSocketListener("proposal:accepted", handleProposalAccepted);
+  useWebSocketListener("proposal:rejected", handleProposalRejected);
+  useWebSocketListener("bet_proposal_update", handleBetProposalUpdate);
   useWebSocketListener("pago_proposed", handlePagoProposed);
 
-  // ✅ useEffect simplificado con dependencias mínimas
+  // ✅ useEffect simplificado - solo listeners P2P
   useEffect(() => {
     if (!isConnected) return;
 
-    addListener("bet_matched", handleBetMatched);
-    addListener("bet_result", handleBetResult);
+    addListener("proposal:received", handleProposalReceived);
+    addListener("proposal:accepted", handleProposalAccepted);
+    addListener("proposal:rejected", handleProposalRejected);
+    addListener("bet_proposal_update", handleBetProposalUpdate);
     addListener("pago_proposed", handlePagoProposed);
 
     return () => {
-      removeListener("bet_matched", handleBetMatched);
-      removeListener("bet_result", handleBetResult);
+      removeListener("proposal:received", handleProposalReceived);
+      removeListener("proposal:accepted", handleProposalAccepted);
+      removeListener("proposal:rejected", handleProposalRejected);
+      removeListener("bet_proposal_update", handleBetProposalUpdate);
       removeListener("pago_proposed", handlePagoProposed);
     };
-  }, [isConnected, handleBetMatched, handleBetResult, handlePagoProposed]);
+  }, [
+    isConnected,
+    handleProposalReceived,
+    handleProposalAccepted,
+    handleProposalRejected,
+    handleBetProposalUpdate,
+    handlePagoProposed,
+  ]);
 
   // Cargar datos al montar
   useEffect(() => {
