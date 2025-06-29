@@ -172,3 +172,30 @@ export type FightResult = "red" | "blue" | "draw" | "no_contest";
 // 5. STREAMING TYPES (agregar si faltan)
 export type StreamQuality = "720p" | "480p" | "360p";
 export type StreamStatus = "connected" | "disconnected" | "retrying";
+
+// Tipos para StatsGrid
+export interface StatCard {
+  id: string;
+  title: string;
+  value: string | number;
+  change?: {
+    value: number;
+    direction: "up" | "down" | "neutral";
+    period: string;
+  };
+  icon?: React.ReactNode;
+  color?: "blue" | "green" | "red" | "yellow" | "purple";
+  format?: "currency" | "percentage" | "number";
+  description?: string;
+}
+
+export interface ChartDataset {
+  id: string;
+  labels: string[];
+  dataset: {
+    label: string;
+    data: number[];
+    backgroundColor?: string | string[];
+    borderColor?: string;
+  };
+}

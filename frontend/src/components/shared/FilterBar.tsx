@@ -7,7 +7,14 @@ import SearchInput from "./SearchInput";
 interface FilterOption {
   key: string;
   label: string;
-  type: "select" | "multiselect" | "date" | "range";
+  type:
+    | "select"
+    | "multiselect"
+    | "date"
+    | "range"
+    | "number"
+    | "text"
+    | "daterange";
   options?: { value: string; label: string }[];
   placeholder?: string;
 }
@@ -21,6 +28,9 @@ interface FilterBarProps {
   className?: string;
   compact?: boolean;
   showFilterCount?: boolean;
+  exportable?: boolean;
+  exportOptions?: string[];
+  onExport?: (format: string) => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -32,6 +42,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
   className = "",
   compact = false,
   showFilterCount = true,
+  exportable = false,
+  exportOptions,
+  onExport,
 }) => {
   const theme = {
     input: "input-theme",
@@ -130,6 +143,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         );
 
+      case "number":
+        return (
+          <input
+            type="number"
+            value={activeFilters[filter.key] || ""}
+            onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+            placeholder={filter.placeholder}
+          />
+        );
+
       default:
         return null;
     }
@@ -138,12 +161,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Barra principal */}
-      <div
-        className={`flex gap-3 ${
-          compact ? "flex-col" : "flex-row items-center"
-        }`}
-      >
-        {/* Search Input */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search (izquierda) */}
         {onSearch && (
           <div className="flex-1">
             <SearchInput
@@ -159,23 +178,33 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         )}
 
-        {/* Botón de filtros */}
-        {filters.length > 0 && (
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`${theme.primaryButton} flex items-center gap-2 ${
-              compact ? "self-start" : ""
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filtros
-            {showFilterCount && activeFilterCount > 0 && (
-              <span className="bg-[#cd6263] text-white px-2 py-1 rounded-full text-xs">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-        )}
+        {/* Filtros (centro) */}
+        <div className="flex-1 flex flex-wrap gap-2">
+          {filters.map((filter) => (
+            <div key={filter.key}>
+              <label className="block text-sm font-medium mb-1">
+                {filter.label}
+              </label>
+              {renderFilter(filter)}
+            </div>
+          ))}
+        </div>
+
+        {/* Export/Actions (derecha) */}
+        <div className="flex gap-2">
+          {exportable && (
+            <>
+              {exportOptions?.includes("pdf") && (
+                <button onClick={() => onExport?.("pdf")}>Exportar PDF</button>
+              )}
+              {exportOptions?.includes("excel") && (
+                <button onClick={() => onExport?.("excel")}>
+                  Exportar Excel
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Panel de filtros */}
@@ -208,6 +237,25 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
             ))}
           </div>
+
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(activeFilters).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1 text-sm"
+                >
+                  <span>{`${key}: ${value}`}</span>
+                  <button
+                    onClick={() => handleFilterChange(key, null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

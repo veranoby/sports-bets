@@ -264,14 +264,19 @@ const Card: React.FC<CardProps> = ({
             )}
           </div>
 
-          {icon && (
-            <div className={`ml-4 p-2 rounded-lg ${colors.bg}`}>
-              {renderIcon()}
+          {/* Añadir espacio para el mini-chart si viene en children */}
+          {children ? (
+            <div className="w-1/3 h-full flex items-center justify-center">
+              {children}
             </div>
+          ) : (
+            icon && (
+              <div className={`ml-4 p-2 rounded-lg ${colors.bg}`}>
+                {renderIcon()}
+              </div>
+            )
           )}
         </div>
-
-        {children}
       </div>
     );
   }
