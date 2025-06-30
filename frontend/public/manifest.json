@@ -1,5 +1,5 @@
 {
-  "name": "GalloBets - Encuentros de Gallos",
+  "name": "GalloBets - Peleas de Gallos",
   "short_name": "GalloBets",
   "description": "Plataforma de Transmision de peleas de gallos en vivo",
   "start_url": "/",
@@ -9,56 +9,14 @@
   "theme_color": "#cd6263",
   "lang": "es-EC",
   "scope": "/",
-  "categories": ["sports", "entertainment", "games"],
+  "categories": ["sports", "entertainment"],
 
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ],
 
@@ -67,74 +25,13 @@
       "name": "Mis Apuestas",
       "short_name": "Apuestas",
       "description": "Ver mis apuestas activas",
-      "url": "/bets",
-      "icons": [{ "src": "/icons/shortcut-bets.png", "sizes": "96x96" }]
+      "url": "/bets"
     },
     {
       "name": "Eventos en Vivo",
       "short_name": "En Vivo",
       "description": "Ver eventos en transmisión",
-      "url": "/events",
-      "icons": [{ "src": "/icons/shortcut-live.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Mi Billetera",
-      "short_name": "Billetera",
-      "description": "Gestionar mi billetera",
-      "url": "/wallet",
-      "icons": [{ "src": "/icons/shortcut-wallet.png", "sizes": "96x96" }]
+      "url": "/events"
     }
-  ],
-
-  "screenshots": [
-    {
-      "src": "/screenshots/mobile-dashboard.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Dashboard principal de apuestas"
-    },
-    {
-      "src": "/screenshots/mobile-betting.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Panel de apuestas P2P"
-    },
-    {
-      "src": "/screenshots/desktop-overview.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Vista general en desktop"
-    }
-  ],
-
-  "related_applications": [],
-  "prefer_related_applications": false,
-
-  "protocol_handlers": [
-    {
-      "protocol": "web+gallobets",
-      "url": "/share?bet=%s"
-    }
-  ],
-
-  "share_target": {
-    "action": "/share",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
-
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  }
+  ]
 }
