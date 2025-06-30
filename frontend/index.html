@@ -1,13 +1,396 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+
+    <!-- ✅ PWA META TAGS -->
+    <meta name="application-name" content="GalloBets" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="GalloBets" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#1a1f37" />
+    <meta name="theme-color" content="#cd6263" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- SEO -->
+    <meta
+      name="description"
+      content="Plataforma de apuestas P2P en peleas de gallos en vivo"
+    />
+    <meta
+      name="keywords"
+      content="apuestas, gallos, Ecuador, deportes, streaming"
+    />
+    <meta name="author" content="GalloBets Team" />
+
+    <!-- ✅ PWA MANIFEST -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- ✅ APPLE TOUCH ICONS -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/apple-touch-icon.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/icons/apple-touch-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="/icons/apple-touch-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="/icons/apple-touch-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="/icons/apple-touch-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="/icons/apple-touch-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="/icons/apple-touch-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="/icons/apple-touch-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="/icons/apple-touch-icon-57x57.png"
+    />
+
+    <!-- ✅ STANDARD FAVICONS -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/icons/favicon-16x16.png"
+    />
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    <!-- ✅ MICROSOFT TILES -->
+    <meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png" />
+    <meta
+      name="msapplication-square70x70logo"
+      content="/icons/ms-icon-70x70.png"
+    />
+    <meta
+      name="msapplication-square150x150logo"
+      content="/icons/ms-icon-150x150.png"
+    />
+    <meta
+      name="msapplication-wide310x150logo"
+      content="/icons/ms-icon-310x150.png"
+    />
+    <meta
+      name="msapplication-square310x310logo"
+      content="/icons/ms-icon-310x310.png"
+    />
+
+    <!-- ✅ APPLE SPLASH SCREENS (principales dispositivos) -->
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+      href="/splash/iphone14promax-portrait.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+      href="/splash/iphone14pro-portrait.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+      href="/splash/iphone14-portrait.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+      href="/splash/iphonex-portrait.png"
+    />
+
+    <title>GalloBets - Apuestas de Gallos</title>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- ✅ PWA INSTALL PROMPT (se muestra solo en móvil) -->
+    <div
+      id="pwa-install-prompt"
+      class="hidden fixed bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 md:hidden"
+    >
+      <div class="flex items-center space-x-3">
+        <img
+          src="/icons/icon-72x72.png"
+          alt="GalloBets"
+          class="w-12 h-12 rounded-lg"
+        />
+        <div class="flex-1">
+          <h3 class="font-semibold text-gray-900">Instalar GalloBets</h3>
+          <p class="text-sm text-gray-600">
+            Acceso rápido desde tu pantalla de inicio
+          </p>
+        </div>
+        <div class="flex space-x-2">
+          <button
+            id="pwa-install-dismiss"
+            class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            Ahora no
+          </button>
+          <button
+            id="pwa-install-btn"
+            class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+          >
+            Instalar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ OFFLINE INDICATOR -->
+    <div
+      id="offline-indicator"
+      class="hidden fixed top-0 left-0 right-0 bg-orange-500 text-white text-center py-2 text-sm z-50"
+    >
+      🚫 Sin conexión - Funcionalidad limitada
+    </div>
+
+    <!-- ✅ UPDATE NOTIFICATION -->
+    <div
+      id="update-notification"
+      class="hidden fixed bottom-4 left-4 right-4 bg-blue-600 text-white rounded-lg p-4 z-50 md:max-w-md md:left-auto"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <p class="font-medium">Nueva versión disponible</p>
+          <p class="text-sm text-blue-100">Toca para actualizar</p>
+        </div>
+        <button
+          id="update-btn"
+          class="ml-4 px-4 py-2 bg-white text-blue-600 rounded font-medium text-sm"
+        >
+          Actualizar
+        </button>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- ✅ PWA SERVICE WORKER REGISTRATION -->
+    <script>
+      // Verificar soporte PWA
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+          try {
+            console.log("🔄 Registrando Service Worker...");
+
+            const registration = await navigator.serviceWorker.register(
+              "/sw.js",
+              {
+                scope: "/",
+                updateViaCache: "none",
+              }
+            );
+
+            console.log("✅ Service Worker registrado:", registration.scope);
+
+            // Verificar actualizaciones
+            registration.addEventListener("updatefound", () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    showUpdateNotification();
+                  }
+                });
+              }
+            });
+          } catch (error) {
+            console.error("❌ Error registrando Service Worker:", error);
+          }
+        });
+      }
+
+      // ✅ PWA INSTALL PROMPT
+      let deferredPrompt;
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log("📱 PWA: Install prompt disponible");
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Solo mostrar en móviles USER/VENUE
+        const isMobile = window.innerWidth <= 768;
+        const currentPath = window.location.pathname;
+        const showForRoles = [
+          "/dashboard",
+          "/events",
+          "/wallet",
+          "/bets",
+          "/venue",
+        ].some((path) => currentPath.startsWith(path) || currentPath === "/");
+
+        if (isMobile && showForRoles) {
+          setTimeout(() => showInstallPrompt(), 2000); // Delay para mejor UX
+        }
+      });
+
+      function showInstallPrompt() {
+        const prompt = document.getElementById("pwa-install-prompt");
+        if (prompt && deferredPrompt) {
+          prompt.classList.remove("hidden");
+
+          // Track install prompt shown
+          if (typeof gtag !== "undefined") {
+            gtag("event", "pwa_install_prompt_shown");
+          }
+        }
+      }
+
+      // Install button click
+      document.addEventListener("click", async (e) => {
+        if (e.target.id === "pwa-install-btn" && deferredPrompt) {
+          const prompt = document.getElementById("pwa-install-prompt");
+          prompt.classList.add("hidden");
+
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+
+          console.log("📱 PWA Install outcome:", outcome);
+
+          // Track install result
+          if (typeof gtag !== "undefined") {
+            gtag("event", "pwa_install_" + outcome);
+          }
+
+          deferredPrompt = null;
+        }
+
+        if (e.target.id === "pwa-install-dismiss") {
+          document.getElementById("pwa-install-prompt").classList.add("hidden");
+          deferredPrompt = null;
+
+          // Track dismiss
+          if (typeof gtag !== "undefined") {
+            gtag("event", "pwa_install_dismissed");
+          }
+        }
+      });
+
+      // ✅ OFFLINE/ONLINE DETECTION
+      function updateOnlineStatus() {
+        const indicator = document.getElementById("offline-indicator");
+        if (navigator.onLine) {
+          indicator.classList.add("hidden");
+        } else {
+          indicator.classList.remove("hidden");
+        }
+      }
+
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
+      updateOnlineStatus(); // Check initial status
+
+      // ✅ UPDATE NOTIFICATION
+      function showUpdateNotification() {
+        const notification = document.getElementById("update-notification");
+        notification.classList.remove("hidden");
+
+        document.getElementById("update-btn").addEventListener("click", () => {
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              command: "skipWaiting",
+            });
+          }
+          window.location.reload();
+        });
+      }
+
+      // ✅ ENHANCED MOBILE EXPERIENCE
+      if (
+        window.navigator.standalone ||
+        window.matchMedia("(display-mode: standalone)").matches
+      ) {
+        console.log("📱 Ejecutándose como PWA");
+        document.body.classList.add("pwa-mode");
+
+        // Track PWA usage
+        if (typeof gtag !== "undefined") {
+          gtag("event", "pwa_launch");
+        }
+      }
+
+      // ✅ DISABLE ZOOM ON INPUTS (mejor UX móvil)
+      const meta = document.querySelector('meta[name="viewport"]');
+      const inputs = ["input", "select", "textarea"];
+
+      inputs.forEach((selector) => {
+        document.addEventListener("focusin", (e) => {
+          if (e.target.matches(selector)) {
+            meta.setAttribute(
+              "content",
+              "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+            );
+          }
+        });
+
+        document.addEventListener("focusout", (e) => {
+          if (e.target.matches(selector)) {
+            meta.setAttribute(
+              "content",
+              "width=device-width, initial-scale=1.0, viewport-fit=cover"
+            );
+          }
+        });
+      });
+    </script>
+
+    <!-- ✅ ANALYTICS & PERFORMANCE -->
+    <script>
+      // Measure PWA performance
+      window.addEventListener("load", () => {
+        if ("performance" in window) {
+          setTimeout(() => {
+            const perfData = performance.getEntriesByType("navigation")[0];
+            console.log("⚡ Performance:", {
+              loadTime: perfData.loadEventEnd - perfData.fetchStart,
+              domReady: perfData.domContentLoadedEventEnd - perfData.fetchStart,
+            });
+          }, 0);
+        }
+      });
+    </script>
   </body>
 </html>

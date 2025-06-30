@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sin conexión - GalloBets</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1f37 0%, #2a325c 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .offline-container {
+      max-width: 400px;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      background: #cd6263;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+    
+    p {
+      font-size: 16px;
+      color: #b3b8d4;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    
+    .features {
+      background: rgba(89, 108, 149, 0.1);
+      border: 1px solid #596c95;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: left;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #b3b8d4;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      color: #cd6263;
+    }
+    
+    .retry-btn {
+      background: #cd6263;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 20px;
+    }
+    
+    .retry-btn:hover {
+      background: #b85557;
+      transform: translateY(-1px);
+    }
+    
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+    
+    .status {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+    }
+    
+    .status.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .status.online {
+      background: rgba(16, 185, 129, 0.9);
+    }
+    
+    .cached-data {
+      margin-top: 30px;
+      padding: 15px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      font-size: 14px;
+      color: #10b981;
+    }
+    
+    @media (max-width: 480px) {
+      .offline-container {
+        max-width: 320px;
+      }
+      
+      .icon {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      p {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="status" class="status"></div>
+  
+  <div class="offline-container">
+    <div class="icon">🔌</div>
+    
+    <h1>Sin conexión a internet</h1>
+    <p>No tienes conexión a internet en este momento. Algunas funciones están disponibles sin conexión.</p>
+    
+    <div class="features">
+      <div class="feature-item">
+        <span class="feature-icon">✓</span>
+        <span>Ver eventos guardados</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">✓</span>
+        <span>Revisar historial de apuestas</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">✗</span>
+        <span>Crear nuevas apuestas</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">✗</span>
+        <span>Operaciones de billetera</span>
+      </div>
+    </div>
+    
+    <button class="retry-btn" onclick="checkConnection()">Reintentar conexión</button>
+    
+    <div id="cached-data" class="cached-data" style="display: none;">
+      📱 Algunos datos están disponibles desde la última visita
+    </div>
+  </div>
+  
+  <script>
+    let retryAttempts = 0;
+    const maxRetries = 3;
+    
+    // Verificar conexión inicial
+    checkConnection();
+    
+    // Listeners para cambios de conectividad
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    function checkConnection() {
+      const status = document.getElementById('status');
+      
+      if (navigator.onLine) {
+        showStatus('🟢 Conexión restaurada - Redirigiendo...', 'online');
+        
+        // Verificar conectividad real (no solo estado del navegador)
+        fetch('/api/health', { 
+          method: 'HEAD',
+          cache: 'no-store'
+        })
+        .then(response => {
+          if (response.ok) {
+            // Conexión real disponible
+            setTimeout(() => {
+              window.location.href = getRedirectUrl();
+            }, 1000);
+          } else {
+            handleConnectionError();
+          }
+        })
+        .catch(() => {
+          handleConnectionError();
+        });
+      } else {
+        showStatus('🔴 Sin conexión a internet');
+        checkCachedData();
+      }
+    }
+    
+    function handleOnline() {
+      retryAttempts = 0;
+      checkConnection();
+    }
+    
+    function handleOffline() {
+      showStatus('🔴 Conexión perdida');
+      checkCachedData();
+    }
+    
+    function handleConnectionError() {
+      retryAttempts++;
+      
+      if (retryAttempts < maxRetries) {
+        showStatus(`⚠️ Error de conexión - Reintento ${retryAttempts}/${maxRetries}`);
+        setTimeout(checkConnection, 2000);
+      } else {
+        showStatus('❌ No se pudo conectar al servidor');
+      }
+    }
+    
+    function showStatus(message, type = '') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status show ${type}`;
+      
+      setTimeout(() => {
+        status.classList.remove('show');
+      }, 3000);
+    }
+    
+    function getRedirectUrl() {
+      // Intentar volver a la página anterior o ir al dashboard
+      const referrer = document.referrer;
+      const currentDomain = window.location.origin;
+      
+      if (referrer && referrer.startsWith(currentDomain)) {
+        return referrer;
+      }
+      
+      // Redirigir según el tipo de usuario (si está disponible en localStorage)
+      const userRole = localStorage.getItem('userRole');
+      
+      switch (userRole) {
+        case 'admin':
+          return '/admin';
+        case 'operator':
+          return '/operator';
+        case 'venue':
+          return '/venue';
+        default:
+          return '/dashboard';
+      }
+    }
+    
+    function checkCachedData() {
+      // Verificar si hay datos en cache para mostrar mensaje optimista
+      if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+          const hasCache = cacheNames.some(name => name.includes('gallobets'));
+          
+          if (hasCache) {
+            const cachedDataDiv = document.getElementById('cached-data');
+            cachedDataDiv.style.display = 'block';
+          }
+        });
+      }
+    }
+    
+    // Intentar reconectar automáticamente cada 30 segundos
+    setInterval(() => {
+      if (!navigator.onLine) {
+        checkConnection();
+      }
+    }, 30000);
+    
+    // Mostrar información adicional basada en localStorage
+    window.addEventListener('load', () => {
+      const userName = localStorage.getItem('userName');
+      if (userName) {
+        const userInfo = document.createElement('p');
+        userInfo.textContent = `Hola ${userName}, estarás conectado pronto`;
+        userInfo.style.fontSize = '14px';
+        userInfo.style.color = '#b3b8d4';
+        userInfo.style.marginTop = '10px';
+        
+        document.querySelector('.offline-container').appendChild(userInfo);
+      }
+    });
+  </script>
+</body>
+</html>
