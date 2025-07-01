@@ -28,6 +28,9 @@ import Wallet from "./pages/user/Wallet";
 import Profile from "./pages/user/Profile";
 import BetsPage from "./pages/user/Bets";
 import SubscriptionsPage from "./pages/user/Subscriptions";
+import NewsPage from "./pages/user/News";
+import VenuesPage from "./pages/user/Venues";
+import ArticlePage from "./components/user/ArticlePage";
 
 // Páginas de Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -105,6 +108,10 @@ const AppContent: React.FC = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/bets" element={<BetsPage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/venues" element={<VenuesPage />} />
+        <Route path="/venues/:venueId" element={<VenuesPage />} />
+        <Route path="/article/:articleId" element={<ArticlePage />} />
       </Route>
 
       {/* 🔧 RUTAS DE ADMIN - Layout persistente */}

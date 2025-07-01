@@ -54,7 +54,7 @@ export class Article
       published_at: this.published_at,
       created_at: this.created_at,
       updated_at: this.updated_at,
-      author_name: this.author?.profile_info?.fullName || "Autor",
+      author_name: this.author?.profileInfo?.fullName || "Autor",
       venue_name: this.venue?.name,
     };
   }

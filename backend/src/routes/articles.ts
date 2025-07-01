@@ -122,7 +122,7 @@ router.get(
 router.post(
   "/",
   authenticate,
-  authorize(["admin", "operator", "venue"]),
+  authorize("admin", "operator", "venue"),
   [
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
@@ -141,10 +141,10 @@ router.post(
     // Venues solo pueden crear artículos para sus propias galleras
     if (req.user!.role === "venue" && venue_id) {
       const venue = await Venue.findOne({
-        where: { id: venue_id, owner_id: req.user!.id },
+        where: { id: venue_id, ownerId: req.user!.id },
       });
       if (!venue) {
-        throw errors.forbidden("Can only create articles for your own venues");
+        throw new Error("Can only create articles for your own venues");
       }
     }
 
@@ -170,7 +170,7 @@ router.post(
 router.put(
   "/:id/status",
   authenticate,
-  authorize(["admin", "operator"]),
+  authorize("admin", "operator"),
   [body("status").isIn(["published", "archived", "pending"])],
   asyncHandler(async (req, res) => {
     const { status } = req.body;
