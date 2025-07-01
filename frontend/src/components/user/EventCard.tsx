@@ -4,6 +4,7 @@ import React from "react";
 import { Clock, Users, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusChip from "../shared/StatusChip";
+import clsx from "clsx";
 
 /**
  * EventCard component for displaying event information
@@ -12,23 +13,30 @@ import StatusChip from "../shared/StatusChip";
 interface EventCardProps {
   id: string;
   venueName: string;
-  isLive: boolean;
+  isLive?: boolean; // Made optional for backward compatibility
   dateTime: string;
   activeBettors: number;
   imageUrl?: string;
   onSelect: (eventId: string) => void;
+  variant?: "default" | "live" | "upcoming" | "archived" | "compact";
+  showLiveBadge?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
   id,
   venueName,
-  isLive,
+  isLive: propsIsLive,
   dateTime,
   activeBettors,
   imageUrl,
   onSelect,
+  variant = "default",
+  showLiveBadge = true,
 }) => {
   const navigate = useNavigate();
+
+  // Determine isLive based on props and variant for backward compatibility
+  const isLive = propsIsLive ?? variant === "live";
 
   // Format date for display
   const formattedDate = new Date(dateTime).toLocaleDateString("es-ES", {
@@ -51,7 +59,14 @@ const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <div
-      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md cursor-pointer"
+      className={clsx(
+        "bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md cursor-pointer",
+        {
+          "border-red-100": isLive,
+          "border-gray-100": !isLive,
+          "h-full": variant === "compact",
+        }
+      )}
       onClick={() => onSelect(id)}
     >
       <div className="relative">
@@ -65,7 +80,7 @@ const EventCard: React.FC<EventCardProps> = ({
           />
         </div>
 
-        {isLive && (
+        {isLive && showLiveBadge && (
           <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-md">
             <span className="animate-pulse mr-1.5 h-2 w-2 rounded-full bg-white"></span>
             <StatusChip status="live" size="sm" />
@@ -73,10 +88,17 @@ const EventCard: React.FC<EventCardProps> = ({
         )}
       </div>
 
-      <div className="p-4">
+      <div className={clsx("p-4", { "p-3": variant === "compact" })}>
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-gray-900 text-lg">{venueName}</h3>
-          {!isLive && (
+          <h3
+            className={clsx("font-bold text-gray-900", {
+              "text-lg": variant !== "compact",
+              "text-base": variant === "compact",
+            })}
+          >
+            {venueName}
+          </h3>
+          {!isLive && variant !== "compact" && (
             <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
               Próximo
             </span>
@@ -90,26 +112,27 @@ const EventCard: React.FC<EventCardProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center text-gray-500 text-sm mb-4">
-          <Users className="w-4 h-4 mr-1.5 flex-shrink-0" />
-          <span>{activeBettors} apostadores activos</span>
-        </div>
+        {variant !== "compact" && (
+          <div className="flex items-center text-gray-500 text-sm mb-4">
+            <Users className="w-4 h-4 mr-1.5 flex-shrink-0" />
+            <span>{activeBettors} apostadores activos</span>
+          </div>
+        )}
 
         <button
           onClick={() => navigate(`/live-event/${id}`)}
-          className={`w-full flex items-center justify-center font-medium py-2.5 px-4 rounded-lg transition-colors ${
-            isLive
-              ? "bg-red-500 hover:bg-red-600 text-white !border-0"
-              : "bg-gray-100 hover:bg-gray-200 text-gray-700 !border-0"
-          }`}
+          className={clsx(
+            "w-full flex items-center justify-center font-medium py-2.5 px-4 rounded-lg transition-colors",
+            {
+              "bg-red-500 hover:bg-red-600 text-white": isLive,
+              "bg-gray-100 hover:bg-gray-200 text-gray-700": !isLive,
+              "py-2 px-3 text-sm": variant === "compact",
+            }
+          )}
           aria-label={
             isLive ? "Entrar al evento en vivo" : "Ver detalles del evento"
           }
           type="button"
-          style={{
-            backgroundColor: isLive ? "rgb(239 68 68)" : "rgb(243 244 246)",
-            color: isLive ? "white" : "rgb(55 65 81)",
-          }}
         >
           {isLive ? "Entrar ahora" : "Ver detalles"}
           <ArrowRight className="w-4 h-4 ml-1.5" />

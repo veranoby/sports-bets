@@ -4,7 +4,18 @@
 // OPTIMIZADO: WebSocket singleton, CSS estático, Memory leak free
 
 import { useState, useEffect, useCallback, memo } from "react";
-import { Plus, Clock, Scale, Users, Info, ArrowLeft } from "lucide-react";
+import {
+  Plus,
+  Clock,
+  Scale,
+  Users,
+  Info,
+  ArrowLeft,
+  Crown,
+  Activity,
+  Calendar,
+  ChevronRight,
+} from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 
 // ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
@@ -314,8 +325,58 @@ const LiveEvent = () => {
     fights?.filter((fight) => fight.status === "scheduled") || [];
 
   return (
-    <SubscriptionGuard>
+    <SubscriptionGuard
+      feature="streaming en vivo"
+      showUpgradePrompt={true}
+      fallback={
+        <div className="card-background p-8 text-center">
+          <Crown className="w-16 h-16 mx-auto mb-4 text-yellow-400" />
+          <h2 className="text-xl font-bold text-theme-primary mb-2">
+            Streaming Premium
+          </h2>
+          <p className="text-theme-light mb-6">
+            Actualiza tu plan para disfrutar de transmisiones en vivo y apostar
+            en tiempo real.
+          </p>
+
+          {/* Información del evento visible sin suscripción */}
+          <div className="bg-[#1a1f37]/50 p-4 rounded-lg mb-6">
+            <h3 className="font-semibold text-theme-primary mb-1">
+              {currentEvent?.name}
+            </h3>
+            <p className="text-sm text-theme-light">
+              {currentEvent?.venue?.name}
+            </p>
+            <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+              <div className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                <span>{currentEvent?.currentViewers || 0} espectadores</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Activity className="w-3 h-3" />
+                <span>{fights?.length || 0} peleas programadas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
       <div className="min-h-screen page-background pb-20">
+        {/* ✅ Added breadcrumbs */}
+        <nav className="flex items-center space-x-1 text-xs text-theme-light mb-4 px-4 pt-2">
+          <button
+            onClick={() => navigate("/events")}
+            className="flex items-center hover:text-theme-primary transition-colors"
+          >
+            <Calendar className="w-3 h-3 mr-1" />
+            Eventos
+          </button>
+          <ChevronRight className="w-3 h-3 text-gray-500" />
+          <span className="text-theme-primary font-medium truncate max-w-32">
+            {currentEvent?.name}
+          </span>
+        </nav>
+
         {/* ✅ Header con navegación */}
         <header className="sticky top-0 z-10 card-background shadow-sm">
           <div className="flex items-center justify-between p-4">

@@ -16,6 +16,8 @@ import {
   Star,
   ChevronRight,
   Lock,
+  Eye,
+  Archive,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,96 +39,110 @@ import StatusChip from "../../components/shared/StatusChip";
 import type { Event } from "../../types";
 
 // Memoizar EventCard para evitar re-renders innecesarios
-const EventCard = React.memo(({ event }: { event: Event }) => {
-  const isLive = event.status === "in-progress";
-  const isUpcoming = event.status === "scheduled";
+const EventCard = React.memo(
+  ({
+    event,
+    variant = "upcoming",
+  }: {
+    event: Event;
+    variant?: "upcoming" | "archived";
+  }) => {
+    const isLive = event.status === "in-progress";
+    const isUpcoming = event.status === "scheduled";
 
-  return (
-    <div className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {isLive && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-400 text-xs font-medium">EN VIVO</span>
+    return (
+      <div
+        className={`card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02] ${
+          variant === "archived" ? "opacity-80 hover:opacity-100" : ""
+        }`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-400 text-xs font-medium">
+                  EN VIVO
+                </span>
+              </div>
+            )}
+            <StatusChip
+              status={event.status}
+              text={
+                isLive ? "En Vivo" : isUpcoming ? "Próximamente" : "Finalizado"
+              }
+            />
+          </div>
+          <ChevronRight className="w-4 h-4 text-theme-light" />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="font-semibold text-theme-primary truncate">
+            {event.name}
+          </h3>
+
+          <div className="flex items-center gap-2 text-sm text-theme-light">
+            <MapPin className="w-4 h-4" />
+            <span>{event.venue?.name || "Venue TBD"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-theme-light">
+            <Calendar className="w-4 h-4" />
+            <span>
+              {new Date(event.scheduledDate).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+
+          {event.currentViewers && (
+            <div className="flex items-center gap-2 text-sm text-theme-light">
+              <Users className="w-4 h-4" />
+              <span>{event.currentViewers} espectadores</span>
             </div>
           )}
-          <StatusChip
-            status={event.status}
-            text={
-              isLive ? "En Vivo" : isUpcoming ? "Próximamente" : "Finalizado"
-            }
-          />
-        </div>
-        <ChevronRight className="w-4 h-4 text-theme-light" />
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="font-semibold text-theme-primary truncate">
-          {event.name}
-        </h3>
-
-        <div className="flex items-center gap-2 text-sm text-theme-light">
-          <MapPin className="w-4 h-4" />
-          <span>{event.venue?.name || "Venue TBD"}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-theme-light">
-          <Calendar className="w-4 h-4" />
-          <span>
-            {new Date(event.scheduledDate).toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
-
-        {event.currentViewers && (
-          <div className="flex items-center gap-2 text-sm text-theme-light">
-            <Users className="w-4 h-4" />
-            <span>{event.currentViewers} espectadores</span>
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
+          <div className="flex items-center gap-2">
+            {event.activeBets && event.activeBets > 0 && (
+              <span className="text-xs text-green-400">
+                {event.activeBets} apuestas activas
+              </span>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
-        <div className="flex items-center gap-2">
-          {event.activeBets && event.activeBets > 0 && (
-            <span className="text-xs text-green-400">
-              {event.activeBets} apuestas activas
-            </span>
+          {isLive && (
+            <SubscriptionGuard
+              feature="streaming"
+              showUpgradePrompt={false}
+              fallback={
+                <div className="flex items-center text-gray-500">
+                  <Lock className="w-4 h-4 mr-1" />
+                  <span className="text-sm">Premium</span>
+                </div>
+              }
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/live-event/${event.id}`);
+                }}
+                className="btn-primary text-xs px-3 py-1 flex items-center gap-1"
+              >
+                <Play className="w-3 h-3" />
+                Unirse
+              </button>
+            </SubscriptionGuard>
           )}
         </div>
-
-        {isLive && (
-          <SubscriptionGuard
-            feature="streaming"
-            showUpgradePrompt={false}
-            fallback={
-              <div className="flex items-center text-gray-500">
-                <Lock className="w-4 h-4 mr-1" />
-                <span className="text-sm">Premium</span>
-              </div>
-            }
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/live-event/${event.id}`);
-              }}
-              className="btn-primary text-xs px-3 py-1 flex items-center gap-1"
-            >
-              <Play className="w-3 h-3" />
-              Unirse
-            </button>
-          </SubscriptionGuard>
-        )}
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -141,6 +157,9 @@ const EventsPage: React.FC = () => {
     "all"
   );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [activeTab, setActiveTab] = useState<"upcoming" | "archived">(
+    "upcoming"
+  );
 
   // ✅ Referencia estable para fetchEvents
   const fetchEventsRef = useRef(fetchEvents);
@@ -166,17 +185,27 @@ const EventsPage: React.FC = () => {
   }, [fetchEvents]);
 
   // Filtrar eventos
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch = event.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "live" && event.status === "in-progress") ||
-      (statusFilter === "upcoming" && event.status === "scheduled");
+  const upcomingEvents =
+    events?.filter((event) => {
+      const matchesSearch = event.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || statusFilter === "upcoming";
+      const isUpcoming = event.status === "scheduled";
+      return matchesSearch && matchesStatus && isUpcoming;
+    }) || [];
 
-    return matchesSearch && matchesStatus;
-  });
+  const archivedEvents =
+    events?.filter((event) => {
+      const matchesSearch = event.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || statusFilter === "archived";
+      const isCompleted = event.status === "completed";
+      return matchesSearch && matchesStatus && isCompleted;
+    }) || [];
 
   // Handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,6 +223,9 @@ const EventsPage: React.FC = () => {
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);
   };
+
+  // ✅ Detectar evento en vivo (agregar al inicio del componente)
+  const liveEvent = events?.find((e) => e.status === "in-progress");
 
   if (loading) {
     return (
@@ -280,7 +312,7 @@ const EventsPage: React.FC = () => {
         </div>
 
         {/* Lista de eventos */}
-        {filteredEvents.length === 0 ? (
+        {upcomingEvents.length === 0 && archivedEvents.length === 0 ? (
           <EmptyState
             title="No hay eventos disponibles"
             description={
@@ -305,60 +337,65 @@ const EventsPage: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {/* Eventos en vivo (prioridad) */}
-            {filteredEvents.filter((e) => e.status === "in-progress").length >
-              0 && (
+            {upcomingEvents.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-red-400" />
                   Eventos en Vivo
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredEvents
-                    .filter((e) => e.status === "in-progress")
-                    .map((event) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
+                  {upcomingEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      variant="upcoming"
+                    />
+                  ))}
                 </div>
               </div>
             )}
 
             {/* Eventos próximos */}
-            {filteredEvents.filter((e) => e.status === "scheduled").length >
-              0 && (
+            {upcomingEvents.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-blue-400" />
                   Próximos Eventos
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredEvents
-                    .filter((e) => e.status === "scheduled")
+                  {upcomingEvents
                     .sort(
                       (a, b) =>
                         new Date(a.scheduledDate).getTime() -
                         new Date(b.scheduledDate).getTime()
                     )
                     .map((event) => (
-                      <EventCard key={event.id} event={event} />
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        variant="upcoming"
+                      />
                     ))}
                 </div>
               </div>
             )}
 
             {/* Eventos finalizados */}
-            {filteredEvents.filter((e) => e.status === "completed").length >
-              0 && (
+            {archivedEvents.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-400" />
                   Eventos Pasados
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredEvents
-                    .filter((e) => e.status === "completed")
+                  {archivedEvents
                     .slice(0, 6) // Mostrar solo los últimos 6
                     .map((event) => (
-                      <EventCard key={event.id} event={event} />
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        variant="archived"
+                      />
                     ))}
                 </div>
               </div>
@@ -369,6 +406,75 @@ const EventsPage: React.FC = () => {
         {/* Estado de conexión WebSocket */}
         <div className="fixed bottom-20 right-4 z-30">
           <StatusIndicator isConnected={isConnected} label="Tiempo Real" />
+        </div>
+
+        {/* Evento en vivo (agregar al inicio del componente) */}
+        {liveEvent && (
+          <div
+            onClick={() => navigate(`/live-event/${liveEvent.id}`)}
+            className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-red-300 flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    ¡Evento en Vivo Ahora!
+                  </h3>
+                  <p className="text-sm text-theme-light">{liveEvent.name}</p>
+                  <p className="text-xs text-theme-light">
+                    {liveEvent.venue?.name}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-right">
+                {liveEvent.currentViewers && (
+                  <div className="flex items-center gap-1 text-green-400 text-sm mb-2">
+                    <Eye className="w-4 h-4" />
+                    <span>{liveEvent.currentViewers} viendo</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 text-red-300 font-medium">
+                  <Play className="w-5 h-5" />
+                  <span>Ver Evento</span>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex bg-[#1a1f37]/30 rounded-lg p-1 mx-4 mb-4">
+          <button
+            onClick={() => setActiveTab("upcoming")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "upcoming"
+                ? "bg-[#1a1f37] text-theme-primary"
+                : "text-theme-light hover:text-theme-primary"
+            }`}
+          >
+            <Calendar className="w-4 h-4 inline mr-2" />
+            Próximos ({upcomingEvents.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("archived")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "archived"
+                ? "bg-[#1a1f37] text-theme-primary"
+                : "text-theme-light hover:text-theme-primary"
+            }`}
+          >
+            <Archive className="w-4 h-4 inline mr-2" />
+            Anteriores ({archivedEvents.length})
+          </button>
         </div>
       </div>
 

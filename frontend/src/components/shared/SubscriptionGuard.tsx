@@ -1,13 +1,12 @@
-// frontend/src/components/shared/SubscriptionGuard.tsx
-// Protege componentes usando useSubscriptions existente de useApi.ts
+// frontend/src/components/shared/SubscriptionGuard.tsx - SIMPLIFICADO V2
+// ================================================================
+// OPTIMIZADO: Diseño más limpio, menos componentes dependientes
+// MEJORAS: UI minimalista, mejor UX, menos código
 
 import React, { useState, useEffect } from "react";
-import { Lock, Crown, Clock, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Crown } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
 import SubscriptionModal from "./SubscriptionModal";
-import Card from "./Card";
-import StatusChip from "./StatusChip";
-import LoadingSpinner from "./LoadingSpinner";
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
@@ -27,7 +26,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   const [hasAccess, setHasAccess] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // Check inicial de acceso
+  // ✅ Verificación de acceso simplificada
   useEffect(() => {
     const verifyAccess = async () => {
       try {
@@ -38,55 +37,77 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
       }
     };
 
-    verifyAccess();
-  }, [checkAccess]);
+    if (!loading) {
+      verifyAccess();
+      fetchCurrent();
+    }
+  }, [checkAccess, fetchCurrent, loading]);
 
-  // Obtener suscripción actual
-  useEffect(() => {
-    fetchCurrent();
-  }, [fetchCurrent]);
-
+  // ✅ Estados de carga y error simplificados
   if (loading) {
-    return <LoadingSpinner text="Verificando suscripción..." />;
+    return (
+      <div className="flex items-center justify-center p-4 text-theme-light">
+        <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+        Verificando...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <Card variant="warning" className="m-4">
-        <div className="flex items-center">
-          <AlertTriangle className="w-5 h-5 mr-2" />
-          <span>Error verificando suscripción: {error}</span>
-        </div>
-      </Card>
+      <div className="flex items-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+        <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
+        <span className="text-sm">Error verificando suscripción</span>
+      </div>
     );
   }
 
+  // ✅ Si tiene acceso, mostrar contenido
   if (hasAccess) {
     return <>{children}</>;
   }
 
+  // ✅ Si hay fallback personalizado, usarlo
   if (fallback) {
     return <>{fallback}</>;
   }
 
+  // ✅ UI de bloqueo elegante y minimalista
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-        <Lock className="w-5 h-5 text-gray-400" />
+    <>
+      <div className="p-6 bg-gradient-to-br from-gray-800/10 to-gray-900/20 border border-gray-600/20 rounded-xl text-center backdrop-blur-sm">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-full flex items-center justify-center border border-yellow-500/30">
+          <Crown className="w-8 h-8 text-yellow-400" />
+        </div>
+
+        <h3 className="text-lg font-semibold text-theme-primary mb-2">
+          Contenido Premium
+        </h3>
+
+        <p className="text-sm text-theme-light mb-6 max-w-sm mx-auto">
+          Desbloquea {feature} y muchas más funciones exclusivas con tu
+          suscripción premium.
+        </p>
+
+        {showUpgradePrompt && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center gap-2 mx-auto shadow-lg"
+          >
+            <Crown className="w-5 h-5" />
+            Actualizar a Premium
+          </button>
+        )}
       </div>
-      <h3 className="font-medium text-gray-700 mb-1">Suscripción Requerida</h3>
-      <p className="text-sm text-gray-500 mb-4">
-        Necesitas una suscripción para acceder a {feature}.
-      </p>
-      {showUpgradePrompt && (
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary text-sm px-4 py-2"
-        >
-          Ver Planes
-        </button>
+
+      {/* Modal de suscripción */}
+      {showModal && (
+        <SubscriptionModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+        />
       )}
-    </div>
+    </>
   );
 };
 
