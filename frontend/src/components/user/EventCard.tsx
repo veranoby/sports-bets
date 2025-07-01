@@ -4,7 +4,6 @@ import React from "react";
 import { Clock, Users, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusChip from "../shared/StatusChip";
-import clsx from "clsx";
 
 /**
  * EventCard component for displaying event information
@@ -59,14 +58,12 @@ const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <div
-      className={clsx(
-        "bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all hover:shadow-md cursor-pointer",
-        {
-          "border-red-100": isLive,
-          "border-gray-100": !isLive,
-          "h-full": variant === "compact",
-        }
-      )}
+      className={`
+        bg-white rounded-xl overflow-hidden shadow-sm border
+        ${isLive ? "border-red-100" : "border-gray-100"}
+        transition-all hover:shadow-md cursor-pointer
+        ${variant === "compact" ? "h-full" : ""}
+      `}
       onClick={() => onSelect(id)}
     >
       <div className="relative">
@@ -88,13 +85,13 @@ const EventCard: React.FC<EventCardProps> = ({
         )}
       </div>
 
-      <div className={clsx("p-4", { "p-3": variant === "compact" })}>
+      <div className={`p-4 ${variant === "compact" ? "p-3" : ""}`}>
         <div className="flex justify-between items-start mb-2">
           <h3
-            className={clsx("font-bold text-gray-900", {
-              "text-lg": variant !== "compact",
-              "text-base": variant === "compact",
-            })}
+            className={`
+            font-bold text-gray-900
+            ${variant === "compact" ? "text-base" : "text-lg"}
+          `}
           >
             {venueName}
           </h3>
@@ -121,18 +118,18 @@ const EventCard: React.FC<EventCardProps> = ({
 
         <button
           onClick={() => navigate(`/live-event/${id}`)}
-          className={clsx(
-            "w-full flex items-center justify-center font-medium py-2.5 px-4 rounded-lg transition-colors",
-            {
-              "bg-red-500 hover:bg-red-600 text-white": isLive,
-              "bg-gray-100 hover:bg-gray-200 text-gray-700": !isLive,
-              "py-2 px-3 text-sm": variant === "compact",
+          className={`
+            w-full flex items-center justify-center font-medium rounded-lg transition-colors
+            ${
+              isLive
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }
-          )}
+            ${variant === "compact" ? "py-2 px-3 text-sm" : "py-2.5 px-4"}
+          `}
           aria-label={
             isLive ? "Entrar al evento en vivo" : "Ver detalles del evento"
           }
-          type="button"
         >
           {isLive ? "Entrar ahora" : "Ver detalles"}
           <ArrowRight className="w-4 h-4 ml-1.5" />

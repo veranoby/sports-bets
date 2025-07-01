@@ -27,6 +27,7 @@ import LiveEvent from "./pages/user/LiveEvent";
 import Wallet from "./pages/user/Wallet";
 import Profile from "./pages/user/Profile";
 import BetsPage from "./pages/user/Bets";
+import SubscriptionsPage from "./pages/user/Subscriptions";
 
 // Páginas de Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -103,6 +104,7 @@ const AppContent: React.FC = () => {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/bets" element={<BetsPage />} />
+        <Route path="/subscriptions" element={<SubscriptionsPage />} />
       </Route>
 
       {/* 🔧 RUTAS DE ADMIN - Layout persistente */}

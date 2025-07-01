@@ -15,6 +15,7 @@ import {
   Dices,
   Crown,
   Lock,
+  TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -27,33 +28,11 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import NewsBanner from "../../components/shared/NewsBanner";
+import Card from "../../components/shared/Card";
 
 // Componentes del usuario
-import WalletSummary from "../../components/user/WalletSummary";
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
-
-// Componentes memoizados para features premium
-const AdvancedStats = memo(() => (
-  <div className="card-background p-4">
-    <h3 className="font-semibold">Estadísticas Avanzadas</h3>
-    {/* Contenido del componente */}
-  </div>
-));
-
-const ProfitAnalytics = memo(() => (
-  <div className="card-background p-4">
-    <h3 className="font-semibold">Análisis de Ganancias</h3>
-    {/* Contenido del componente */}
-  </div>
-));
-
-const BettingTrends = memo(() => (
-  <div className="card-background p-4">
-    <h3 className="font-semibold">Tendencias de Apuestas</h3>
-    {/* Contenido del componente */}
-  </div>
-));
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -129,9 +108,33 @@ const Dashboard: React.FC = () => {
         >
           <div className="premium-content">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <AdvancedStats />
-              <ProfitAnalytics />
-              <BettingTrends />
+              <Card
+                variant="stat"
+                title="Estadísticas Avanzadas"
+                value="+12%"
+                icon={<Activity className="w-5 h-5" />}
+                trend={{ value: 12, direction: "up" }}
+                description="Rendimiento mensual"
+                color="blue"
+              />
+              <Card
+                variant="stat"
+                title="Análisis de Ganancias"
+                value="$1,240"
+                icon={<TrendingUp className="w-5 h-5" />}
+                trend={{ value: 8, direction: "up" }}
+                description="Últimos 7 días"
+                color="green"
+              />
+              <Card
+                variant="stat"
+                title="Tendencias de Apuestas"
+                value="3.2x"
+                icon={<Dices className="w-5 h-5" />}
+                trend={{ value: 3.2, direction: "neutral" }}
+                description="Ratio de apuestas"
+                color="purple"
+              />
             </div>
           </div>
         </SubscriptionGuard>

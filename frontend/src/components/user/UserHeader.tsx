@@ -14,6 +14,7 @@ import {
   X,
   AlertCircle,
   User,
+  Crown,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
@@ -151,8 +152,11 @@ const UserHeader = memo(() => {
               {user.username}
             </span>
           </span>
-          <span className="text-xs px-2 py-1 bg-theme-accent rounded-full text-theme-text-primary">
-            {user.role}
+          <span
+            onClick={() => navigate("/profile")}
+            className="text-xs px-2 py-1 bg-theme-accent rounded-full text-theme-text-primary"
+          >
+            {user.role} - PREMIUM
           </span>
         </div>
 

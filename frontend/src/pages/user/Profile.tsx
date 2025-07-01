@@ -18,16 +18,19 @@ import {
   XCircle,
   Lock,
   Key,
+  Crown,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
   const { bets } = useBets();
   const { updateProfile } = useUsers();
   const { changePassword } = useAuthOperations();
+  const navigate = useNavigate();
 
   // Estados
   const [isEditing, setIsEditing] = useState(false);
@@ -345,7 +348,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* 🔒 SEGURIDAD Y CONTRASEÑA */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Seguridad</h2>{" "}
             <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
@@ -392,6 +395,27 @@ const Profile: React.FC = () => {
                   Cambiar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ✅ ADDED: SUBSCRIPTION SECTION */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Suscripción</h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-theme-main rounded-lg border border-theme-primary">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-[#596c95]" />
+                <span className="text-theme-text-primary">Plan actual</span>
+              </div>
+              <button
+                onClick={() => navigate("/subscriptions")}
+                className="bg-yellow-200 text-gray-600 rounded-lg hover:bg-yellow-400 transition-colors text-gray-700 px-4 py-2 rounded-lg  duration-200 flex items-center gap-2"
+              >
+                Gestionar Plan
+              </button>
             </div>
           </div>
         </div>
