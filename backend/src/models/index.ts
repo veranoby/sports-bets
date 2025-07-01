@@ -11,6 +11,7 @@ import { Subscription } from "./Subscription";
 import { connectDatabase } from "../config/database";
 // ✅ AGREGAR IMPORT (al inicio del archivo)
 import Notification from "./Notification";
+import { Article } from "./Article";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -138,6 +139,18 @@ Subscription.belongsTo(User, {
   as: "user",
 });
 
+// ===================
+// ASOCIACIONES NUEVAS
+// ===================
+
+// User -> Article (One-to-Many)
+User.hasMany(Article, { foreignKey: "author_id", as: "articles" });
+Article.belongsTo(User, { foreignKey: "author_id", as: "author" });
+
+// Venue -> Article (One-to-Many)
+Venue.hasMany(Article, { foreignKey: "venue_id", as: "articles" });
+Article.belongsTo(Venue, { foreignKey: "venue_id", as: "venue" });
+
 console.log("✅ Asociaciones configuradas correctamente");
 
 // ========================================
@@ -153,7 +166,8 @@ export {
   Wallet,
   Transaction,
   Subscription,
-  Notification, // ← AGREGAR ESTA LÍNEA
+  Notification,
+  Article,
   connectDatabase,
 };
 
@@ -189,6 +203,9 @@ export const syncModels = async (force: boolean = false): Promise<void> => {
 
     await Notification.sync({ force });
     console.log("✅ Notification");
+
+    await Article.sync({ force });
+    console.log("✅ Article");
 
     console.log("✅ All models synchronized successfully");
   } catch (error) {
@@ -251,6 +268,8 @@ export default {
   Wallet,
   Transaction,
   Subscription,
+  Notification,
+  Article,
   syncModels,
   checkAssociations,
   ModelUtils,

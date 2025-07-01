@@ -19,6 +19,7 @@ import walletRoutes from "./routes/wallet";
 import venueRoutes from "./routes/venues";
 import subscriptionRoutes from "./routes/subscriptions";
 import notificationRoutes from "./routes/notifications";
+import articleRoutes from "./routes/articles";
 
 // Cargar variables de entorno
 config();
@@ -112,6 +113,7 @@ class Server {
     this.app.use("/api/venues", venueRoutes);
     this.app.use("/api/subscriptions", subscriptionRoutes);
     this.app.use("/api/notifications", notificationRoutes);
+    this.app.use("/api/articles", articleRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));
