@@ -1,6 +1,5 @@
 // frontend/src/pages/user/ArticlePage.tsx - Ver artículo específico
 // ================================================================
-// Reutiliza useAsyncOperation + Card existentes
 
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";

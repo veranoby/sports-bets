@@ -1,12 +1,10 @@
 // frontend/src/pages/user/News.tsx - EFICIENTE Y REUTILIZADA
 // ================================================================
-// Reutiliza NewsBanner existente + useAsyncOperation pattern
 // Server-side filtering para eficiencia de costos
 
 import React, { useState, useEffect } from "react";
 import { Search, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAsyncOperation } from "../../hooks/useApi";
 import { apiClient } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
@@ -28,30 +26,40 @@ const NewsPage: React.FC = () => {
   const [venueFilter, setVenueFilter] = useState("");
   const [page, setPage] = useState(1);
 
-  // Reutilizar patrón existente useAsyncOperation
-  const { data, loading, error, execute } = useAsyncOperation<{
-    articles: Article[];
-    total: number;
-    totalPages: number;
-  }>();
+  // ✅ Estados locales para artículos y paginación
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Server-side filtering para eficiencia
+  // ✅ Fetch optimizado
   const fetchArticles = async () => {
-    return execute(() =>
-      apiClient.get("/articles", {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.get("/articles", {
         params: {
           search,
           venueId: venueFilter,
           page,
-          limit: 10, // Paginación real
+          limit: 10,
           status: "published",
         },
-      })
-    );
+      });
+      setArticles(response.data.articles || []);
+      setTotal(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (err: any) {
+      setError(err?.message || "Error al cargar noticias");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, venueFilter, page]);
 
   if (loading) return <LoadingSpinner text="Cargando noticias..." />;
@@ -80,14 +88,14 @@ const NewsPage: React.FC = () => {
       {/* Lista optimizada */}
       {error ? (
         <Card variant="error">{error}</Card>
-      ) : !data?.articles?.length ? (
+      ) : !articles.length ? (
         <EmptyState
           title="No hay noticias"
           icon={<Calendar className="w-12 h-12" />}
         />
       ) : (
         <div className="space-y-3">
-          {data.articles.map((article) => (
+          {articles.map((article) => (
             <Card
               key={article.id}
               onClick={() => navigate(`/news/${article.id}`)}
@@ -107,7 +115,7 @@ const NewsPage: React.FC = () => {
       )}
 
       {/* Paginación simple */}
-      {data && data.totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="flex justify-center gap-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -117,8 +125,8 @@ const NewsPage: React.FC = () => {
             Anterior
           </button>
           <button
-            onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-            disabled={page === data.totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
             className="px-3 py-1 bg-[#1a1f37]/50 rounded text-sm disabled:opacity-50"
           >
             Siguiente

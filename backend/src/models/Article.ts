@@ -1,6 +1,6 @@
 // 1. backend/src/models/Article.ts
 import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../config/database";
+import sequelize from "../config/database";
 import { User } from "./User";
 import { Venue } from "./Venue";
 
