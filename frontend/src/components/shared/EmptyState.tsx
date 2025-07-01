@@ -11,10 +11,7 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   icon?: React.ReactNode;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  action?: React.ReactNode;
   className?: string;
 }
 
@@ -41,11 +38,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         </p>
       )}
 
-      {action && (
-        <button onClick={action.onClick} className="btn-primary">
-          {action.label}
-        </button>
-      )}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 };
