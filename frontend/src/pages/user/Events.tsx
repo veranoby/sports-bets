@@ -15,6 +15,7 @@ import {
   Zap,
   Star,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +24,7 @@ import { useEvents } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 // ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 
 // Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -33,6 +35,98 @@ import StatusChip from "../../components/shared/StatusChip";
 
 // Tipos
 import type { Event } from "../../types";
+
+// Memoizar EventCard para evitar re-renders innecesarios
+const EventCard = React.memo(({ event }: { event: Event }) => {
+  const isLive = event.status === "in-progress";
+  const isUpcoming = event.status === "scheduled";
+
+  return (
+    <div className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {isLive && (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-red-400 text-xs font-medium">EN VIVO</span>
+            </div>
+          )}
+          <StatusChip
+            status={event.status}
+            text={
+              isLive ? "En Vivo" : isUpcoming ? "Próximamente" : "Finalizado"
+            }
+          />
+        </div>
+        <ChevronRight className="w-4 h-4 text-theme-light" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="font-semibold text-theme-primary truncate">
+          {event.name}
+        </h3>
+
+        <div className="flex items-center gap-2 text-sm text-theme-light">
+          <MapPin className="w-4 h-4" />
+          <span>{event.venue?.name || "Venue TBD"}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-theme-light">
+          <Calendar className="w-4 h-4" />
+          <span>
+            {new Date(event.scheduledDate).toLocaleDateString("es-ES", {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        </div>
+
+        {event.currentViewers && (
+          <div className="flex items-center gap-2 text-sm text-theme-light">
+            <Users className="w-4 h-4" />
+            <span>{event.currentViewers} espectadores</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
+        <div className="flex items-center gap-2">
+          {event.activeBets && event.activeBets > 0 && (
+            <span className="text-xs text-green-400">
+              {event.activeBets} apuestas activas
+            </span>
+          )}
+        </div>
+
+        {isLive && (
+          <SubscriptionGuard
+            feature="streaming"
+            showUpgradePrompt={false}
+            fallback={
+              <div className="flex items-center text-gray-500">
+                <Lock className="w-4 h-4 mr-1" />
+                <span className="text-sm">Premium</span>
+              </div>
+            }
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/live-event/${event.id}`);
+              }}
+              className="btn-primary text-xs px-3 py-1 flex items-center gap-1"
+            >
+              <Play className="w-3 h-3" />
+              Unirse
+            </button>
+          </SubscriptionGuard>
+        )}
+      </div>
+    </div>
+  );
+});
 
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -99,99 +193,6 @@ const EventsPage: React.FC = () => {
 
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);
-  };
-
-  // Componente de tarjeta de evento
-  const EventCard: React.FC<{ event: Event }> = ({ event }) => {
-    const isLive = event.status === "in-progress";
-    const isUpcoming = event.status === "scheduled";
-
-    return (
-      /* ✅ MIGRADO: theme.cardBackground → card-background */
-      <div
-        onClick={() => handleEventClick(event)}
-        className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]"
-      >
-        {/* Header de la tarjeta */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            {isLive && (
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-red-400 text-xs font-medium">
-                  EN VIVO
-                </span>
-              </div>
-            )}
-            <StatusChip
-              status={event.status}
-              text={
-                isLive ? "En Vivo" : isUpcoming ? "Próximamente" : "Finalizado"
-              }
-            />
-          </div>
-          <ChevronRight className="w-4 h-4 text-theme-light" />
-        </div>
-
-        {/* Información del evento */}
-        <div className="space-y-2">
-          {/* ✅ MIGRADO: theme.primaryText → text-theme-primary */}
-          <h3 className="font-semibold text-theme-primary truncate">
-            {event.name}
-          </h3>
-
-          {/* ✅ MIGRADO: theme.lightText → text-theme-light */}
-          <div className="flex items-center gap-2 text-sm text-theme-light">
-            <MapPin className="w-4 h-4" />
-            <span>{event.venue?.name || "Venue TBD"}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-theme-light">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {new Date(event.scheduledDate).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
-
-          {event.currentViewers && (
-            <div className="flex items-center gap-2 text-sm text-theme-light">
-              <Users className="w-4 h-4" />
-              <span>{event.currentViewers} espectadores</span>
-            </div>
-          )}
-        </div>
-
-        {/* Footer de la tarjeta */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
-          <div className="flex items-center gap-2">
-            {event.activeBets && event.activeBets > 0 && (
-              <span className="text-xs text-green-400">
-                {event.activeBets} apuestas activas
-              </span>
-            )}
-          </div>
-
-          {isLive && (
-            /* ✅ MIGRADO: theme.primaryButton → btn-primary */
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleJoinEvent(event.id);
-              }}
-              className="btn-primary text-xs px-3 py-1 flex items-center gap-1"
-            >
-              <Play className="w-3 h-3" />
-              Unirse
-            </button>
-          )}
-        </div>
-      </div>
-    );
   };
 
   if (loading) {

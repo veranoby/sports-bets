@@ -3,7 +3,7 @@
 // SOLUCIONADO: Bucle infinito en useEffect
 // OPTIMIZADO: Fetch inicial sin dependencias problemáticas
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
 import {
   Calendar,
   Activity,
@@ -13,17 +13,44 @@ import {
   Webcam,
   Zap,
   Dices,
+  Crown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 
 // Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import NewsBanner from "../../components/shared/NewsBanner";
+import WalletSummary from "../../components/user/WalletSummary";
+import MyActiveBets from "../../components/user/MyActiveBets";
+import RecentTransactions from "../../components/user/RecentTransactions";
+
+// Componentes memoizados para features premium
+const AdvancedStats = memo(() => (
+  <div className="card-background p-4">
+    <h3 className="font-semibold">Estadísticas Avanzadas</h3>
+    {/* Contenido del componente */}
+  </div>
+));
+
+const ProfitAnalytics = memo(() => (
+  <div className="card-background p-4">
+    <h3 className="font-semibold">Análisis de Ganancias</h3>
+    {/* Contenido del componente */}
+  </div>
+));
+
+const BettingTrends = memo(() => (
+  <div className="card-background p-4">
+    <h3 className="font-semibold">Tendencias de Apuestas</h3>
+    {/* Contenido del componente */}
+  </div>
+));
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -83,6 +110,45 @@ const Dashboard: React.FC = () => {
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
+        {/* Contenido básico (siempre visible) */}
+        <div className="basic-content mb-6">
+          <WalletSummary />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <MyActiveBets />
+            <RecentTransactions />
+          </div>
+        </div>
+
+        {/* Features premium (protegidos) */}
+        <SubscriptionGuard
+          feature="estadísticas avanzadas"
+          showUpgradePrompt={true}
+          fallback={
+            <div className="premium-features-locked p-6 bg-gray-100 rounded-lg text-center">
+              <Crown className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Funciones Premium
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Desbloquea estadísticas avanzadas, análisis de ganancias y más
+              </p>
+            </div>
+          }
+        >
+          <div className="premium-content">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <AdvancedStats />
+              <ProfitAnalytics />
+              <BettingTrends />
+            </div>
+          </div>
+        </SubscriptionGuard>
+
+        {/* Eventos en vivo (protegidos) */}
+        <SubscriptionGuard feature="eventos en vivo" showUpgradePrompt={false}>
+          <LiveEventsWidget />
+        </SubscriptionGuard>
+
         {/* 📰 BANNER DE NOTICIAS */}
         <NewsBanner />
 

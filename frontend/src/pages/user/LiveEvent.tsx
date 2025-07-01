@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Plus, Clock, Scale, Users, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { useFights, useBets } from "../../hooks/useApi";
+import { useEvent, useFights, useBets } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
+import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 type Fight = {
@@ -25,10 +26,35 @@ type Bet = {
   createdAt: string;
 };
 
+// Componentes memoizados para evitar re-renders
+const VideoPlayer = memo(
+  ({ streamUrl, eventId }: { streamUrl: string; eventId: string }) => (
+    <div className="aspect-video bg-black relative">
+      <div className="absolute inset-0 flex items-center justify-center text-white">
+        <p>Streaming: {eventId}</p>
+      </div>
+    </div>
+  )
+);
+
+const ChatComponent = memo(({ eventId }: { eventId: string }) => (
+  <div className="p-4 bg-gray-50">
+    <p>Chat del evento: {eventId}</p>
+  </div>
+));
+
+const BettingPanel = memo(({ eventId }: { eventId: string }) => (
+  <div className="space-y-3">
+    <h3 className="font-semibold">Apuestas Disponibles</h3>
+    {/* Contenido del panel de apuestas */}
+  </div>
+));
+
 const LiveEvent = () => {
   const { id: eventId } = useParams<{ id: string }>();
-  const { fights, fetchFights, loading, error } = useFights();
-  const { bets, fetchBets, loadingBets, errorBets } = useBets();
+  const { event, loading, error } = useEvent(eventId);
+  const { fights, fetchFights } = useFights();
+  const { bets, fetchBets } = useBets();
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
@@ -105,17 +131,32 @@ const LiveEvent = () => {
 
   if (loading) return <LoadingSpinner text="Cargando evento..." />;
   if (error) return <ErrorMessage message={error.message} />;
+  if (!event) return <EmptyState message="Evento no encontrado" />;
 
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
-      {/* Video Player */}
-      <div className="aspect-video bg-black relative">
-        <div className="absolute inset-0 flex items-center justify-center text-white">
-          <div className="text-center">
-            <p className="text-lg">Transmisión en vivo simulada</p>
-            <p className="text-sm text-gray-300 mt-2">Calidad: 720p</p>
-          </div>
+      {/* Información del evento (siempre visible) */}
+      <div className="bg-white p-4 shadow-sm">
+        <h1 className="text-2xl font-bold">{event.name}</h1>
+        <p className="text-gray-600">{event.venue}</p>
+        <p className="text-sm text-gray-500">
+          {new Date(event.dateTime).toLocaleString()}
+        </p>
+      </div>
+
+      {/* Streaming y chat (protegidos por suscripción) */}
+      <SubscriptionGuard feature="streaming en vivo" showUpgradePrompt={true}>
+        <div className="space-y-4">
+          {event.isStreamActive && (
+            <VideoPlayer streamUrl={event.streamUrl} eventId={event.id} />
+          )}
+          <ChatComponent eventId={event.id} />
         </div>
+      </SubscriptionGuard>
+
+      {/* Panel de apuestas (siempre visible) */}
+      <div className="p-4 bg-white mt-4">
+        <BettingPanel eventId={event.id} />
       </div>
 
       {/* Fight Info */}

@@ -5,12 +5,16 @@ import React, { memo } from "react";
 import { Outlet } from "react-router-dom";
 import UserHeader from "../user/UserHeader";
 import Navigation from "../user/Navigation";
+import SubscriptionStatusBar from "../shared/SubscriptionStatusBar";
 
 const UserLayout = memo(() => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header persistente - NO se desmonta entre navegaciones */}
       <UserHeader />
+
+      {/* Barra de estado de suscripción (solo visible si hay suscripción activa) */}
+      <SubscriptionStatusBar />
 
       {/* Contenido de la página actual */}
       <main className="flex-1 pb-16">
