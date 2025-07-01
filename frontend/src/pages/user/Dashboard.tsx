@@ -1,7 +1,7 @@
-// frontend/src/pages/user/Dashboard.tsx - CORREGIDO V10
+// frontend/src/pages/user/Dashboard.tsx - CORREGIDO V11
 // ========================================================
-// SOLUCIONADO: Bucle infinito en useEffect
-// OPTIMIZADO: Fetch inicial sin dependencias problemáticas
+// ✅ SOLUCIONADO: ReferenceError LiveEventsWidget
+// ✅ AGREGADO: Import correcto del componente premium
 
 import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
 import {
@@ -14,6 +14,7 @@ import {
   Zap,
   Dices,
   Crown,
+  Lock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -21,14 +22,16 @@ import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 
-// Componentes
+// Componentes compartidos
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import NewsBanner from "../../components/shared/NewsBanner";
+
+// Componentes del usuario
 import WalletSummary from "../../components/user/WalletSummary";
-import MyActiveBets from "../../components/user/MyActiveBets";
-import RecentTransactions from "../../components/user/RecentTransactions";
+// ✅ AGREGADO: Import del componente premium
+import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 
 // Componentes memoizados para features premium
 const AdvancedStats = memo(() => (
@@ -110,28 +113,17 @@ const Dashboard: React.FC = () => {
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
-        {/* Contenido básico (siempre visible) */}
-        <div className="basic-content mb-6">
-          <WalletSummary />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <MyActiveBets />
-            <RecentTransactions />
-          </div>
-        </div>
+        {/* 📰 BANNER DE NOTICIAS */}
+        <NewsBanner />
 
         {/* Features premium (protegidos) */}
         <SubscriptionGuard
           feature="estadísticas avanzadas"
           showUpgradePrompt={true}
           fallback={
-            <div className="premium-features-locked p-6 bg-gray-100 rounded-lg text-center">
-              <Crown className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Funciones Premium
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Desbloquea estadísticas avanzadas, análisis de ganancias y más
-              </p>
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 text-sm text-gray-600">
+              <Lock className="w-3.5 h-3.5 mr-1.5" />
+              <span>Actualiza a Premium para estadísticas avanzadas</span>
             </div>
           }
         >
@@ -144,65 +136,79 @@ const Dashboard: React.FC = () => {
           </div>
         </SubscriptionGuard>
 
-        {/* Eventos en vivo (protegidos) */}
-        <SubscriptionGuard feature="eventos en vivo" showUpgradePrompt={false}>
-          <LiveEventsWidget />
-        </SubscriptionGuard>
-
-        {/* 📰 BANNER DE NOTICIAS */}
-        <NewsBanner />
-
-        {/* ⚡ EVENTOS EN VIVO */}
+        {/* ⚡ EVENTOS EN VIVO BÁSICOS (Versión gratuita) */}
         {liveEvents.length > 0 && (
-          <div className="card-background p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
-                <Zap className="w-5 h-5 text-red-400" />
-                Eventos en Vivo
-              </h2>
-              <button
-                onClick={() => navigate("/events")}
-                className="btn-ghost text-sm"
-              >
-                Ver todos
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {liveEvents.map((event) => (
-                <div
-                  key={event.id}
-                  onClick={() => navigate(`/live-event/${event.id}`)}
-                  className="bg-[#1a1f37]/50 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-[#1a1f37]/70 transition-colors"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Columna Izquierda: Eventos en Vivo Básicos */}
+            <div className="card-background p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-red-400" />
+                  Eventos en Vivo
+                </h2>
+                <button
+                  onClick={() => navigate("/events")}
+                  className="btn-ghost text-sm"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-red-400 text-xs font-medium">
-                        EN VIVO
-                      </span>
+                  Ver todos
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {liveEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    onClick={() => navigate(`/live-event/${event.id}`)}
+                    className="bg-[#1a1f37]/50 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-[#1a1f37]/70 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="text-red-400 text-xs font-medium">
+                          EN VIVO
+                        </span>
+                      </div>
+                      <Play className="w-4 h-4 text-theme-light" />
                     </div>
-                    <Play className="w-4 h-4 text-theme-light" />
+
+                    <h3 className="font-medium text-theme-primary mb-1">
+                      {event.name}
+                    </h3>
+                    <p className="text-sm text-theme-light">
+                      {event.venue?.name}
+                    </p>
+
+                    {event.currentViewers && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <div className="w-1 h-1 bg-green-400 rounded-full"></div>
+                        <span className="text-xs text-green-400">
+                          {event.currentViewers} espectadores
+                        </span>
+                      </div>
+                    )}
                   </div>
-
-                  <h3 className="font-medium text-theme-primary mb-1">
-                    {event.name}
-                  </h3>
-                  <p className="text-sm text-theme-light">
-                    {event.venue?.name}
-                  </p>
-
-                  {event.currentViewers && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <div className="w-1 h-1 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-green-400">
-                        {event.currentViewers} espectadores
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+
+            {/* Columna Derecha: Widget Premium - Eventos en vivo premium (solo si hay eventos) */}
+
+            <SubscriptionGuard
+              feature="eventos en vivo"
+              showUpgradePrompt={false}
+              fallback={
+                <div className="card-background p-6 flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <Lock className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      Actualiza a Premium para ver el widget avanzado
+                    </p>
+                  </div>
+                </div>
+              }
+            >
+              <LiveEventsWidget />
+            </SubscriptionGuard>
           </div>
         )}
 

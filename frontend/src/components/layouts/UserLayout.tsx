@@ -6,6 +6,7 @@ import { Outlet } from "react-router-dom";
 import UserHeader from "../user/UserHeader";
 import Navigation from "../user/Navigation";
 import SubscriptionStatusBar from "../shared/SubscriptionStatusBar";
+import PWAInstallPrompt from "../shared/PWAInstallPrompt";
 
 const UserLayout = memo(() => {
   return (
@@ -23,6 +24,9 @@ const UserLayout = memo(() => {
 
       {/* Navigation persistente en la parte inferior */}
       <Navigation />
+
+      {/* Prompt de instalación PWA para usuarios */}
+      <PWAInstallPrompt showFor={["user"]} />
     </div>
   );
 });

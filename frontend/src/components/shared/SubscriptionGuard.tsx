@@ -18,7 +18,7 @@ interface SubscriptionGuardProps {
 
 const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   children,
-  feature = "streaming",
+  feature = "contenido premium",
   fallback,
   showUpgradePrompt = true,
 }) => {
@@ -62,20 +62,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   }
 
   if (hasAccess) {
-    return (
-      <>
-        {children}
-        {subscription && (
-          <div className="fixed bottom-4 right-4 z-50">
-            <StatusChip
-              status="active"
-              label="Suscripción activa"
-              icon={<Clock className="w-4 h-4" />}
-            />
-          </div>
-        )}
-      </>
-    );
+    return <>{children}</>;
   }
 
   if (fallback) {
@@ -83,52 +70,21 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   }
 
   return (
-    <div className="p-8">
-      <Card variant="info" className="max-w-md mx-auto text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Crown className="w-8 h-8 text-red-600" />
-        </div>
-
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
-          Suscripción Requerida
-        </h3>
-
-        <p className="text-gray-600 mb-6">
-          Necesitas una suscripción activa para acceder a {feature}.
-        </p>
-
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card variant="default" size="sm" className="text-center">
-            <div className="text-lg font-bold text-gray-900">$2.99</div>
-            <div className="text-sm text-gray-500">24 horas</div>
-          </Card>
-          <Card variant="stat" size="sm" className="text-center" highlighted>
-            <div className="text-lg font-bold text-red-600">$9.99</div>
-            <div className="text-sm text-gray-500">30 días</div>
-            <div className="text-xs text-red-600 font-medium">Recomendado</div>
-          </Card>
-        </div>
-
-        {showUpgradePrompt && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors"
-          >
-            Ver Planes de Suscripción
-          </button>
-        )}
-
-        <div className="mt-4 text-sm text-gray-500">
-          <Lock className="w-4 h-4 inline mr-1" />
-          Acceso seguro y renovación automática opcional
-        </div>
-      </Card>
-
-      {showModal && (
-        <SubscriptionModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-        />
+    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+        <Lock className="w-5 h-5 text-gray-400" />
+      </div>
+      <h3 className="font-medium text-gray-700 mb-1">Suscripción Requerida</h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Necesitas una suscripción para acceder a {feature}.
+      </p>
+      {showUpgradePrompt && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="btn-primary text-sm px-4 py-2"
+        >
+          Ver Planes
+        </button>
       )}
     </div>
   );

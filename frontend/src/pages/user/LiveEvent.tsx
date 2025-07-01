@@ -1,7 +1,14 @@
+// frontend/src/pages/user/LiveEvent.tsx - VERSIÓN CORREGIDA V2
+// ===============================================================
+// FIX CRÍTICO: Cambio useEvent → useEvents + fetchEventById
+// OPTIMIZADO: WebSocket singleton, CSS estático, Memory leak free
+
 import { useState, useEffect, useCallback, memo } from "react";
-import { Plus, Clock, Scale, Users, Info } from "lucide-react";
-import { useParams } from "react-router-dom";
-import { useEvent, useFights, useBets } from "../../hooks/useApi";
+import { Plus, Clock, Scale, Users, Info, ArrowLeft } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+
+// ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
+import { useEvents, useFights, useBets } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
@@ -9,59 +16,193 @@ import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
+// Tipos TypeScript
 type Fight = {
   id: string;
-  breeder1: string;
-  breeder2: string;
+  redCorner: string;
+  blueCorner: string;
   weight: number;
-  status: "preliminar" | "en_curso" | "finalizado";
+  status: "scheduled" | "betting" | "live" | "completed";
+  number: number;
+  eventId: string;
 };
 
 type Bet = {
   id: string;
   amount: number;
   odds: number;
-  breeder: string;
+  choice: string;
   createdBy: string;
   createdAt: string;
+  status: "active" | "matched" | "won" | "lost";
 };
 
-// Componentes memoizados para evitar re-renders
+type EventData = {
+  id: string;
+  name: string;
+  description?: string;
+  status: "scheduled" | "in-progress" | "completed" | "cancelled";
+  scheduledDate: string;
+  venue?: {
+    id: string;
+    name: string;
+    location: string;
+  };
+  streamUrl?: string;
+  currentViewers?: number;
+  totalFights: number;
+  completedFights: number;
+};
+
+// ✅ Componentes memoizados para prevenir re-renders
 const VideoPlayer = memo(
-  ({ streamUrl, eventId }: { streamUrl: string; eventId: string }) => (
-    <div className="aspect-video bg-black relative">
+  ({ streamUrl, eventId }: { streamUrl?: string; eventId: string }) => (
+    <div className="aspect-video bg-black relative rounded-lg overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center text-white">
-        <p>Streaming: {eventId}</p>
+        {streamUrl ? (
+          <video src={streamUrl} controls className="w-full h-full" autoPlay />
+        ) : (
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+              <div className="w-6 h-6 bg-white rounded-full animate-pulse"></div>
+            </div>
+            <p className="text-lg font-medium">Transmisión en Vivo</p>
+            <p className="text-sm text-gray-300">Evento #{eventId}</p>
+          </div>
+        )}
       </div>
     </div>
   )
 );
 
 const ChatComponent = memo(({ eventId }: { eventId: string }) => (
-  <div className="p-4 bg-gray-50">
-    <p>Chat del evento: {eventId}</p>
+  <div className="bg-[#1a1f37]/50 rounded-lg p-4">
+    <h3 className="text-theme-primary font-semibold mb-3">Chat en Vivo</h3>
+    <div className="space-y-2 max-h-40 overflow-y-auto">
+      <div className="text-sm">
+        <span className="text-blue-400 font-medium">Usuario123:</span>
+        <span className="text-theme-light ml-2">¡Vamos El Campeón!</span>
+      </div>
+      <div className="text-sm">
+        <span className="text-green-400 font-medium">Apostador456:</span>
+        <span className="text-theme-light ml-2">Gran pelea 🔥</span>
+      </div>
+    </div>
+    <div className="mt-3 flex gap-2">
+      <input
+        type="text"
+        placeholder="Escribe un mensaje..."
+        className="flex-1 bg-[#2a325c] text-theme-light px-3 py-2 rounded text-sm"
+      />
+      <button className="btn-primary px-4 py-2 text-sm">Enviar</button>
+    </div>
   </div>
 ));
 
-const BettingPanel = memo(({ eventId }: { eventId: string }) => (
-  <div className="space-y-3">
-    <h3 className="font-semibold">Apuestas Disponibles</h3>
-    {/* Contenido del panel de apuestas */}
-  </div>
-));
+const BettingPanel = memo(
+  ({
+    availableBets,
+    onAcceptBet,
+  }: {
+    availableBets: Bet[];
+    onAcceptBet: (betId: string) => void;
+  }) => (
+    <div className="space-y-3">
+      <h3 className="font-semibold text-theme-primary">Apuestas Disponibles</h3>
+      {availableBets.length === 0 ? (
+        <EmptyState
+          message="No hay apuestas disponibles"
+          description="Sé el primero en crear una apuesta"
+        />
+      ) : (
+        <div className="space-y-2">
+          {availableBets.map((bet) => (
+            <div
+              key={bet.id}
+              className="card-background p-3 rounded-lg border border-[#596c95]/20"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="font-medium text-theme-primary">{bet.choice}</p>
+                  <p className="text-sm text-theme-light">Cuota: {bet.odds}x</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-green-400">${bet.amount}</p>
+                  <p className="text-xs text-theme-light">{bet.createdBy}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => onAcceptBet(bet.id)}
+                className="w-full btn-primary py-2 text-sm"
+              >
+                Aceptar Apuesta
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+);
 
+// ✅ COMPONENTE PRINCIPAL CORREGIDO
 const LiveEvent = () => {
   const { id: eventId } = useParams<{ id: string }>();
-  const { event, loading, error } = useEvent(eventId);
-  const { fights, fetchFights } = useFights();
-  const { bets, fetchBets } = useBets();
+  const navigate = useNavigate();
+
+  // ✅ FIX: Usar useEvents + fetchEventById en lugar de useEvent
+  const {
+    events,
+    fetchEventById,
+    loading: eventLoading,
+    error: eventError,
+  } = useEvents();
+
+  const { fights, fetchFights, loading: fightsLoading } = useFights();
+
+  const {
+    bets,
+    fetchAvailableBets,
+    acceptBet,
+    loading: betsLoading,
+  } = useBets();
+
+  // Estados locales
+  const [currentEvent, setCurrentEvent] = useState<EventData | null>(null);
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
     "available"
   );
-  const { isConnected, joinRoom, leaveRoom, addListener, removeListener } =
-    useWebSocketContext();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ 1. Room Management: Unirse a la room del evento
+  // WebSocket context
+  const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
+
+  // ✅ Fetch inicial del evento específico
+  const loadEventData = useCallback(async () => {
+    if (!eventId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch evento específico por ID
+      const eventData = await fetchEventById(eventId);
+      setCurrentEvent(eventData);
+
+      // Fetch relacionados
+      await Promise.all([
+        fetchFights({ eventId }),
+        fetchAvailableBets({ eventId }),
+      ]);
+    } catch (err: any) {
+      setError(err.message || "Error cargando evento");
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, fetchEventById, fetchFights, fetchAvailableBets]);
+
+  // ✅ WebSocket room management
   useEffect(() => {
     if (isConnected && eventId) {
       joinRoom(eventId);
@@ -69,248 +210,399 @@ const LiveEvent = () => {
     }
   }, [isConnected, eventId, joinRoom, leaveRoom]);
 
-  // ✅ 2. Listeners ESPECÍFICOS de pelea en vivo
+  // ✅ WebSocket listeners para updates en tiempo real
   useWebSocketListener(
-    "fight_started",
+    "fight_updated",
     useCallback(
-      (data: { fightId: string }) => {
-        console.log("Pelea iniciada:", data.fightId);
-        fetchFights({ eventId });
+      (data: any) => {
+        console.log("🥊 Fight actualizada:", data);
+        if (data.eventId === eventId) {
+          fetchFights({ eventId });
+        }
       },
       [eventId, fetchFights]
     )
   );
 
   useWebSocketListener(
-    "fight_ended",
+    "bet_created",
     useCallback(
-      (data: { fightId: string; result: string }) => {
-        console.log("Pelea finalizada:", data);
-        fetchFights({ eventId });
-        // Lógica adicional para manejar resultados si es necesario
+      (data: any) => {
+        console.log("💰 Nueva apuesta:", data);
+        if (data.eventId === eventId) {
+          fetchAvailableBets({ eventId });
+        }
       },
-      [eventId, fetchFights]
+      [eventId, fetchAvailableBets]
     )
   );
 
   useWebSocketListener(
-    "betting_opened",
-    useCallback((data: { fightId: string }) => {
-      console.log("Apuestas abiertas para pelea:", data.fightId);
-      // Lógica para habilitar interfaz de apuestas
-    }, [])
+    "event_updated",
+    useCallback(
+      (data: any) => {
+        console.log("📺 Evento actualizado:", data);
+        if (data.id === eventId) {
+          setCurrentEvent((prev) => (prev ? { ...prev, ...data } : null));
+        }
+      },
+      [eventId]
+    )
   );
 
-  useWebSocketListener(
-    "betting_closed",
-    useCallback((data: { fightId: string }) => {
-      console.log("Apuestas cerradas para pelea:", data.fightId);
-      // Lógica para deshabilitar interfaz de apuestas
-    }, [])
-  );
-
-  useWebSocketListener(
-    "stream_status_changed",
-    useCallback((data: { status: string; quality?: string }) => {
-      console.log("Estado del stream:", data.status);
-      // Lógica para actualizar UI según estado del stream
-    }, [])
-  );
-
-  // ✅ 3. Cargar datos iniciales
+  // ✅ Load data on mount
   useEffect(() => {
-    if (eventId) {
-      fetchFights({ eventId });
-      fetchBets();
-    }
-  }, [eventId]);
+    loadEventData();
+  }, [loadEventData]);
 
-  const handleAcceptBet = useCallback((betId: string) => {
-    console.log("Aceptando apuesta:", betId);
+  // ✅ Handlers
+  const handleAcceptBet = useCallback(
+    async (betId: string) => {
+      try {
+        await acceptBet(betId);
+        // Refresh bets después de aceptar
+        await fetchAvailableBets({ eventId });
+      } catch (err: any) {
+        setError(err.message || "Error aceptando apuesta");
+      }
+    },
+    [acceptBet, fetchAvailableBets, eventId]
+  );
+
+  const handleCreateBet = useCallback(() => {
+    // TODO: Abrir modal de crear apuesta
+    console.log("🎯 Crear nueva apuesta");
   }, []);
 
-  if (loading) return <LoadingSpinner text="Cargando evento..." />;
-  if (error) return <ErrorMessage message={error.message} />;
-  if (!event) return <EmptyState message="Evento no encontrado" />;
+  // ✅ Loading y error states
+  if (loading || eventLoading) {
+    return (
+      <div className="min-h-screen page-background flex items-center justify-center">
+        <LoadingSpinner text="Cargando evento en vivo..." />
+      </div>
+    );
+  }
+
+  if (error || eventError) {
+    return (
+      <div className="min-h-screen page-background flex items-center justify-center p-4">
+        <ErrorMessage
+          error={error || eventError || "Error desconocido"}
+          onRetry={loadEventData}
+        />
+      </div>
+    );
+  }
+
+  if (!currentEvent) {
+    return (
+      <div className="min-h-screen page-background flex items-center justify-center p-4">
+        <EmptyState
+          message="Evento no encontrado"
+          description="El evento que buscas no existe o ha sido eliminado"
+        />
+      </div>
+    );
+  }
+
+  // ✅ Data para las tabs
+  const availableBets = bets?.filter((bet) => bet.status === "active") || [];
+  const myBets =
+    bets?.filter((bet) => bet.createdBy === "current-user-id") || [];
+  const currentFight = fights?.find((fight) => fight.status === "live");
+  const upcomingFights =
+    fights?.filter((fight) => fight.status === "scheduled") || [];
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-20">
-      {/* Información del evento (siempre visible) */}
-      <div className="bg-white p-4 shadow-sm">
-        <h1 className="text-2xl font-bold">{event.name}</h1>
-        <p className="text-gray-600">{event.venue}</p>
-        <p className="text-sm text-gray-500">
-          {new Date(event.dateTime).toLocaleString()}
-        </p>
-      </div>
+    <SubscriptionGuard>
+      <div className="min-h-screen page-background pb-20">
+        {/* ✅ Header con navegación */}
+        <header className="sticky top-0 z-10 card-background shadow-sm">
+          <div className="flex items-center justify-between p-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-[#2a325c]/50 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-theme-light" />
+            </button>
 
-      {/* Streaming y chat (protegidos por suscripción) */}
-      <SubscriptionGuard feature="streaming en vivo" showUpgradePrompt={true}>
-        <div className="space-y-4">
-          {event.isStreamActive && (
-            <VideoPlayer streamUrl={event.streamUrl} eventId={event.id} />
+            <div className="text-center flex-1">
+              <h1 className="text-lg font-bold text-theme-primary">
+                {currentEvent.name}
+              </h1>
+              {currentEvent.status === "in-progress" && (
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-red-400 text-xs font-medium">
+                    EN VIVO
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="w-9"> {/* Spacer para centrar título */}</div>
+          </div>
+        </header>
+
+        {/* ✅ Video Player */}
+        <div className="p-4">
+          <VideoPlayer
+            streamUrl={currentEvent.streamUrl}
+            eventId={currentEvent.id}
+          />
+        </div>
+
+        {/* ✅ Current Fight Info */}
+        {currentFight && (
+          <div className="mx-4 mb-4 card-background p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-theme-primary">Pelea Actual</h3>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-sm">En curso</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">
+                  {currentFight.redCorner}
+                </p>
+                <p className="text-sm text-theme-light">Esquina Roja</p>
+              </div>
+
+              <div className="text-center px-4">
+                <Scale className="w-6 h-6 text-theme-light mx-auto mb-1" />
+                <p className="text-sm text-theme-light">
+                  {currentFight.weight}kg
+                </p>
+              </div>
+
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">
+                  {currentFight.blueCorner}
+                </p>
+                <p className="text-sm text-theme-light">Esquina Azul</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ Stats rápidas */}
+        <div className="mx-4 mb-4 grid grid-cols-3 gap-3">
+          <div className="card-background p-3 rounded-lg text-center">
+            <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+            <p className="text-sm text-theme-light">Peleas</p>
+            <p className="font-bold text-theme-primary">
+              {currentEvent.completedFights}/{currentEvent.totalFights}
+            </p>
+          </div>
+
+          <div className="card-background p-3 rounded-lg text-center">
+            <Users className="w-5 h-5 text-green-400 mx-auto mb-1" />
+            <p className="text-sm text-theme-light">Espectadores</p>
+            <p className="font-bold text-theme-primary">
+              {currentEvent.currentViewers || 0}
+            </p>
+          </div>
+
+          <div className="card-background p-3 rounded-lg text-center">
+            <Scale className="w-5 h-5 text-purple-400 mx-auto mb-1" />
+            <p className="text-sm text-theme-light">Apuestas</p>
+            <p className="font-bold text-theme-primary">
+              {availableBets.length}
+            </p>
+          </div>
+        </div>
+
+        {/* ✅ Tabs Navigation */}
+        <div className="mx-4 mb-4">
+          <div className="flex bg-[#1a1f37]/30 rounded-lg p-1">
+            {[
+              {
+                key: "available",
+                label: "Disponibles",
+                count: availableBets.length,
+              },
+              { key: "my_bets", label: "Mis Apuestas", count: myBets.length },
+              { key: "info", label: "Info", count: null },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? "bg-[#596c95] text-white"
+                    : "text-theme-light hover:text-theme-primary"
+                }`}
+              >
+                {tab.label}
+                {tab.count !== null && (
+                  <span className="ml-1 text-xs">({tab.count})</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ✅ Tab Content */}
+        <div className="mx-4">
+          {activeTab === "available" && (
+            <BettingPanel
+              availableBets={availableBets}
+              onAcceptBet={handleAcceptBet}
+            />
           )}
-          <ChatComponent eventId={event.id} />
-        </div>
-      </SubscriptionGuard>
 
-      {/* Panel de apuestas (siempre visible) */}
-      <div className="p-4 bg-white mt-4">
-        <BettingPanel eventId={event.id} />
-      </div>
-
-      {/* Fight Info */}
-      <div className="bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold mb-2">Pelea Actual</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="font-medium">{fights[0]?.breeder1}</p>
-            <p className="text-gray-600">vs</p>
-            <p className="font-medium">{fights[0]?.breeder2}</p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center text-gray-700">
-              <Scale className="mr-2" size={16} />
-              <span>{fights[0]?.weight} kg</span>
-            </div>
-            <div className="flex items-center text-gray-700">
-              <Clock className="mr-2" size={16} />
-              <span>
-                {fights[0]?.status === "en_curso"
-                  ? "En curso"
-                  : fights[0]?.status === "preliminar"
-                  ? "Preliminar"
-                  : "Finalizado"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b bg-white">
-        <button
-          onClick={() => setActiveTab("available")}
-          className={`flex-1 py-3 font-medium flex items-center justify-center gap-2 ${
-            activeTab === "available"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-600"
-          }`}
-        >
-          <Users size={16} />
-          <span>Disponibles</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("my_bets")}
-          className={`flex-1 py-3 font-medium flex items-center justify-center gap-2 ${
-            activeTab === "my_bets"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-600"
-          }`}
-        >
-          <Clock size={16} />
-          <span>Mis Apuestas</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("info")}
-          className={`flex-1 py-3 font-medium flex items-center justify-center gap-2 ${
-            activeTab === "info"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-600"
-          }`}
-        >
-          <Info size={16} />
-          <span>Info</span>
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      <div className="p-4">
-        {activeTab === "available" && (
-          <div>
-            <h3 className="font-semibold mb-3">Apuestas Disponibles</h3>
+          {activeTab === "my_bets" && (
             <div className="space-y-3">
-              {bets.map((bet) => (
-                <div key={bet.id} className="bg-white p-3 rounded-lg shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">{bet.breeder}</p>
-                      <p className="text-sm text-gray-600">
-                        Monto: ${bet.amount}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Cuota: {bet.odds}x
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleAcceptBet(bet.id)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+              <h3 className="font-semibold text-theme-primary">Mis Apuestas</h3>
+              {myBets.length === 0 ? (
+                <EmptyState
+                  message="No tienes apuestas activas"
+                  description="Crea tu primera apuesta o acepta una existente"
+                />
+              ) : (
+                <div className="space-y-2">
+                  {myBets.map((bet) => (
+                    <div
+                      key={bet.id}
+                      className="card-background p-3 rounded-lg border border-[#596c95]/20"
                     >
-                      Aceptar
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Creada por {bet.createdBy}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-theme-primary">
+                            {bet.choice}
+                          </p>
+                          <p className="text-sm text-theme-light">
+                            Cuota: {bet.odds}x • ${bet.amount}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            bet.status === "active"
+                              ? "bg-blue-500/20 text-blue-400"
+                              : bet.status === "won"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-red-500/20 text-red-400"
+                          }`}
+                        >
+                          {bet.status === "active"
+                            ? "Activa"
+                            : bet.status === "won"
+                            ? "Ganada"
+                            : "Perdida"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "info" && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-theme-primary">
+                Información del Evento
+              </h3>
+
+              <div className="card-background p-4 rounded-lg space-y-3">
+                <div>
+                  <p className="text-theme-light text-sm">Evento</p>
+                  <p className="text-theme-primary font-medium">
+                    {currentEvent.name}
                   </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {activeTab === "my_bets" && (
-          <div>
-            <h3 className="font-semibold mb-3">Mis Apuestas</h3>
-            {bets.length === 0 ? (
-              <EmptyState message="No tienes apuestas activas" />
-            ) : (
-              <div className="space-y-3">
-                {bets.map((bet) => (
-                  <div
-                    key={bet.id}
-                    className="bg-white p-3 rounded-lg shadow-sm"
-                  >
-                    <p className="font-medium">{bet.breeder}</p>
-                    <p className="text-sm text-gray-600">
-                      Monto: ${bet.amount}
+                {currentEvent.venue && (
+                  <div>
+                    <p className="text-theme-light text-sm">Ubicación</p>
+                    <p className="text-theme-primary font-medium">
+                      {currentEvent.venue.name}
                     </p>
-                    <p className="text-sm text-gray-600">Cuota: {bet.odds}x</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Creada el {new Date(bet.createdAt).toLocaleString()}
+                    <p className="text-theme-light text-sm">
+                      {currentEvent.venue.location}
                     </p>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                )}
 
-        {activeTab === "info" && (
-          <div>
-            <h3 className="font-semibold mb-3">Información del Evento</h3>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <p className="text-gray-700">
-                Evento: Gran Campeonato Nacional de Gallos 2023
-              </p>
-              <p className="text-gray-700 mt-2">
-                Ubicación: Arena Gallística Central
-              </p>
-              <p className="text-gray-700 mt-2">Hora: 15:00 - 22:00</p>
-              <p className="text-gray-700 mt-2">
-                Organizador: Asociación Nacional de Criadores
-              </p>
+                <div>
+                  <p className="text-theme-light text-sm">Fecha y Hora</p>
+                  <p className="text-theme-primary font-medium">
+                    {new Date(currentEvent.scheduledDate).toLocaleString(
+                      "es-ES",
+                      {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </p>
+                </div>
+
+                {currentEvent.description && (
+                  <div>
+                    <p className="text-theme-light text-sm">Descripción</p>
+                    <p className="text-theme-primary">
+                      {currentEvent.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Próximas peleas */}
+              {upcomingFights.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-theme-primary mb-2">
+                    Próximas Peleas
+                  </h4>
+                  <div className="space-y-2">
+                    {upcomingFights.slice(0, 3).map((fight) => (
+                      <div
+                        key={fight.id}
+                        className="card-background p-3 rounded-lg"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="text-theme-primary font-medium">
+                            Pelea #{fight.number}
+                          </span>
+                          <span className="text-theme-light text-sm">
+                            {fight.weight}kg
+                          </span>
+                        </div>
+                        <p className="text-sm text-theme-light mt-1">
+                          {fight.redCorner} vs {fight.blueCorner}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+        </div>
+
+        {/* ✅ Chat Component (solo en eventos en vivo) */}
+        {currentEvent.status === "in-progress" && (
+          <div className="mx-4 mt-6">
+            <ChatComponent eventId={currentEvent.id} />
           </div>
         )}
       </div>
 
-      {/* Create New Bet Button */}
-      <div className="fixed bottom-20 right-6">
-        <button className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
-          <Plus size={24} />
+      {/* ✅ Floating Create Bet Button */}
+      <div className="fixed bottom-24 right-6">
+        <button
+          onClick={handleCreateBet}
+          className="bg-gradient-to-r from-[#596c95] to-[#cd6263] text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110"
+        >
+          <Plus className="w-6 h-6" />
         </button>
       </div>
-    </div>
+    </SubscriptionGuard>
   );
 };
 
