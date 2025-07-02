@@ -4,7 +4,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Calendar, User, MapPin } from "lucide-react";
-import { useAsyncOperation } from "../../hooks/useApi";
 import { apiClient } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import Card from "../../components/shared/Card";
@@ -26,16 +25,25 @@ const ArticlePage: React.FC = () => {
   const navigate = useNavigate();
 
   // Reutilizar patrón existente
-  const {
-    data: article,
-    loading,
-    error,
-    execute,
-  } = useAsyncOperation<Article>();
+  const [article, setArticle] = useState<Article | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (articleId) {
-      execute(() => apiClient.get(`/articles/${articleId}`));
+      const fetchArticle = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const response = await apiClient.get(`/articles/${articleId}`);
+          setArticle(response.data);
+        } catch (err: any) {
+          setError(err.message || "Error al cargar artículo");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchArticle();
     }
   }, [articleId, execute]);
 
