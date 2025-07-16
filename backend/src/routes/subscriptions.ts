@@ -5,7 +5,11 @@ import { Subscription, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
 import { Op } from "sequelize";
-import { cacheGet, cacheSet, cacheDel } from "../config/redis";
+import {
+  getCache as cacheGet,
+  setCache as cacheSet,
+  delCache as cacheDel,
+} from "../config/redis";
 
 const router = Router();
 
@@ -276,9 +280,7 @@ router.post(
     const cached = await cacheGet(cacheKey);
 
     if (cached) {
-      const cachedString =
-        typeof cached === "string" ? cached : cached.toString("utf8");
-      return res.json(JSON.parse(cachedString));
+      return res.json(JSON.parse(cached)); // Simplificado
     }
 
     const activeSubscription = await Subscription.findOne({

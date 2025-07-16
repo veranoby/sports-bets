@@ -5,7 +5,7 @@
  */
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import {
   ChevronRight,
   Clock,
@@ -118,4 +118,12 @@ const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
   );
 };
 
-export default BetCard;
+export default memo(BetCard, (prevProps, nextProps) => {
+  return (
+    prevProps.bet.id === nextProps.bet.id &&
+    prevProps.bet.status === nextProps.bet.status &&
+    prevProps.bet.result === nextProps.bet.result &&
+    prevProps.className === nextProps.className &&
+    prevProps.onSelect.toString() === nextProps.onSelect.toString()
+  );
+});

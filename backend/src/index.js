@@ -35,6 +35,8 @@ const notifications_1 = __importDefault(require("./routes/notifications"));
 const articles_1 = __importDefault(require("./routes/articles"));
 // Cargar variables de entorno
 (0, dotenv_1.config)();
+// Importar Redis
+const redis_1 = require("./config/redis");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -45,6 +47,10 @@ class Server {
                 origin: process.env.FRONTEND_URL || "http://localhost:5173",
                 methods: ["GET", "POST"],
             },
+        });
+        // Inicializar Redis (no bloqueante)
+        (0, redis_1.initRedis)().catch((err) => {
+            logger_1.logger.error("Redis initialization error:", err);
         });
         this.initializeMiddlewares();
         this.initializeRoutes();

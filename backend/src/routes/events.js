@@ -423,7 +423,7 @@ router.delete("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, e
 })));
 // Invalidar cache en cambios de estado
 const invalidateEventCache = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, redis_1.cacheDel)("events:in-progress");
+    yield (0, redis_1.delCache)("events:in-progress");
 });
 // Añadir en endpoints que cambian estado (activate, complete, etc.)
 function init() {

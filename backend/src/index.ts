@@ -24,6 +24,9 @@ import articleRoutes from "./routes/articles";
 // Cargar variables de entorno
 config();
 
+// Importar Redis
+import { initRedis } from "./config/redis";
+
 class Server {
   private app: express.Application;
   private httpServer: any;
@@ -39,6 +42,11 @@ class Server {
         origin: process.env.FRONTEND_URL || "http://localhost:5173",
         methods: ["GET", "POST"],
       },
+    });
+
+    // Inicializar Redis (no bloqueante)
+    initRedis().catch((err) => {
+      logger.error("Redis initialization error:", err);
     });
 
     this.initializeMiddlewares();

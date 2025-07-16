@@ -221,10 +221,9 @@ router.get("/plans/info", (0, errorHandler_1.asyncHandler)((req, res) => __await
 // POST /api/subscriptions/check-access - Verificar acceso a contenido premium
 router.post("/check-access", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const cacheKey = `subscription:${req.user.id}`;
-    const cached = yield (0, redis_1.cacheGet)(cacheKey);
+    const cached = yield (0, redis_1.getCache)(cacheKey);
     if (cached) {
-        const cachedString = typeof cached === "string" ? cached : cached.toString("utf8");
-        return res.json(JSON.parse(cachedString));
+        return res.json(JSON.parse(cached)); // Simplificado
     }
     const activeSubscription = yield models_1.Subscription.findOne({
         where: {
@@ -244,7 +243,7 @@ router.post("/check-access", auth_1.authenticate, (0, errorHandler_1.asyncHandle
             expiresAt: hasAccess ? activeSubscription.endDate : null,
         },
     };
-    yield (0, redis_1.cacheSet)(cacheKey, JSON.stringify(response), 300); // TTL 5 minutos
+    yield (0, redis_1.setCache)(cacheKey, JSON.stringify(response), 300); // TTL 5 minutos
     res.json(response);
 })));
 // PUT /api/subscriptions/:id/extend - Extender suscripción (solo admin o para renovaciones automáticas)

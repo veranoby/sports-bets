@@ -9,46 +9,60 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cacheDel = exports.cacheSet = exports.cacheGet = void 0;
+exports.redisAvailable = exports.redisClient = exports.delCache = exports.setCache = exports.getCache = exports.initRedis = void 0;
 const redis_1 = require("redis");
 const logger_1 = require("./logger");
-const redisClient = (0, redis_1.createClient)({
-    url: process.env.REDIS_URL || "redis://localhost:6379",
-});
-// Conexión y manejo de errores
-redisClient.on("error", (err) => {
-    logger_1.logger.warn(`Redis error: ${err.message} - Falling back to database`);
-});
-// Conectar al iniciar
-(() => __awaiter(void 0, void 0, void 0, function* () {
+let redisClient = null;
+exports.redisClient = redisClient;
+let redisAvailable = false;
+exports.redisAvailable = redisAvailable;
+const initRedis = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!process.env.REDIS_URL) {
+            logger_1.logger.info("Redis URL not configured, running without cache");
+            return;
+        }
+        exports.redisClient = redisClient = (0, redis_1.createClient)({ url: process.env.REDIS_URL });
+        redisClient.on("error", (err) => {
+            logger_1.logger.warn(`Redis error: ${err.message} - Falling back to database`);
+            exports.redisAvailable = redisAvailable = false;
+        });
         yield redisClient.connect();
-        logger_1.logger.info("✅ Redis connected");
+        exports.redisAvailable = redisAvailable = true;
+        logger_1.logger.info("✅ Redis connected successfully");
     }
-    catch (err) {
-        logger_1.logger.error("❌ Redis connection failed - Using database fallback");
+    catch (error) {
+        logger_1.logger.warn("Redis connection failed, falling back to database");
+        exports.redisAvailable = redisAvailable = false;
     }
-}))();
-// Helper functions
-const cacheGet = (key) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.initRedis = initRedis;
+const getCache = (key) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!redisAvailable || !redisClient)
+        return null;
     try {
-        return yield redisClient.get(key);
+        const value = yield redisClient.get(key);
+        return (value === null || value === void 0 ? void 0 : value.toString()) || null; // Convertir Buffer a string si es necesario
     }
     catch (_a) {
         return null;
     }
 });
-exports.cacheGet = cacheGet;
-const cacheSet = (key, value, ttl) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getCache = getCache;
+const setCache = (key_1, value_1, ...args_1) => __awaiter(void 0, [key_1, value_1, ...args_1], void 0, function* (key, value, ttl = 300) {
+    if (!redisAvailable || !redisClient)
+        return;
     try {
-        yield redisClient.set(key, value, { EX: ttl });
+        yield redisClient.setEx(key, ttl, value);
     }
     catch (_a) {
         // Silently fail
     }
 });
-exports.cacheSet = cacheSet;
-const cacheDel = (key) => __awaiter(void 0, void 0, void 0, function* () {
+exports.setCache = setCache;
+const delCache = (key) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!redisAvailable || !redisClient)
+        return;
     try {
         yield redisClient.del(key);
     }
@@ -56,5 +70,4 @@ const cacheDel = (key) => __awaiter(void 0, void 0, void 0, function* () {
         // Silently fail
     }
 });
-exports.cacheDel = cacheDel;
-exports.default = redisClient;
+exports.delCache = delCache;

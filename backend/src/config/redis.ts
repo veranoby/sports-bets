@@ -1,43 +1,57 @@
 import { createClient } from "redis";
 import { logger } from "./logger";
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
-});
+let redisClient: ReturnType<typeof createClient> | null = null;
+let redisAvailable = false;
 
-// Conexión y manejo de errores
-redisClient.on("error", (err) => {
-  logger.warn(`Redis error: ${err.message} - Falling back to database`);
-});
-
-// Conectar al iniciar
-(async () => {
+export const initRedis = async (): Promise<void> => {
   try {
+    if (!process.env.REDIS_URL) {
+      logger.info("Redis URL not configured, running without cache");
+      return;
+    }
+
+    redisClient = createClient({ url: process.env.REDIS_URL });
+
+    redisClient.on("error", (err: Error) => {
+      logger.warn(`Redis error: ${err.message} - Falling back to database`);
+      redisAvailable = false;
+    });
+
     await redisClient.connect();
-    logger.info("✅ Redis connected");
-  } catch (err) {
-    logger.error("❌ Redis connection failed - Using database fallback");
+    redisAvailable = true;
+    logger.info("✅ Redis connected successfully");
+  } catch (error) {
+    logger.warn("Redis connection failed, falling back to database");
+    redisAvailable = false;
   }
-})();
+};
 
-// Helper functions
-export const cacheGet = async (key: string) => {
+export const getCache = async (key: string): Promise<string | null> => {
+  if (!redisAvailable || !redisClient) return null;
   try {
-    return await redisClient.get(key);
+    const value = await redisClient.get(key);
+    return value?.toString() || null; // Convertir Buffer a string si es necesario
   } catch {
     return null;
   }
 };
 
-export const cacheSet = async (key: string, value: string, ttl?: number) => {
+export const setCache = async (
+  key: string,
+  value: string,
+  ttl: number = 300
+): Promise<void> => {
+  if (!redisAvailable || !redisClient) return;
   try {
-    await redisClient.set(key, value, { EX: ttl });
+    await redisClient.setEx(key, ttl, value);
   } catch {
     // Silently fail
   }
 };
 
-export const cacheDel = async (key: string) => {
+export const delCache = async (key: string): Promise<void> => {
+  if (!redisAvailable || !redisClient) return;
   try {
     await redisClient.del(key);
   } catch {
@@ -45,4 +59,4 @@ export const cacheDel = async (key: string) => {
   }
 };
 
-export default redisClient;
+export { redisClient, redisAvailable };
