@@ -204,7 +204,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           disabled={disabled}
           maxLength={maxLength}
           className={`
-            w-full pl-10 pr-12 rounded-lg
+            w-full pl-12 pr-12 rounded-lg  // Ajuste: pl-12 para más espacio
             focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:border-transparent
             transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed

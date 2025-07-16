@@ -40,7 +40,7 @@ const VenuesPage: React.FC = () => {
       );
 
     return (
-      <div className="space-y-4 p-4">
+      <div className="page-background space-y-4 p-4">
         <button
           onClick={() => navigate("/venues")}
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary"
@@ -49,7 +49,7 @@ const VenuesPage: React.FC = () => {
           Volver
         </button>
 
-        <Card className="p-6">
+        <div className="p-6">
           <h1 className="text-2xl font-bold text-theme-primary mb-2">
             {venue.name}
           </h1>
@@ -58,7 +58,7 @@ const VenuesPage: React.FC = () => {
             <span>{venue.location}</span>
           </div>
           <p className="text-theme-light">{venue.description}</p>
-        </Card>
+        </div>
 
         {/* Placeholder para artículos del venue */}
         <Card className="p-6">
@@ -77,9 +77,7 @@ const VenuesPage: React.FC = () => {
 
   // Vista lista (optimizada)
   return (
-    <div className="space-y-4 p-4">
-      <h1 className="text-xl font-bold text-theme-primary">Galleras</h1>
-
+    <div className="page-background space-y-4 p-4">
       {/* Búsqueda simple */}
       <Card className="p-4">
         <div className="relative">
@@ -103,7 +101,7 @@ const VenuesPage: React.FC = () => {
           icon={<Users className="w-12 h-12" />}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {filteredVenues.map((venue) => (
             <Card
               key={venue.id}

@@ -6,6 +6,9 @@ interface BadgeProps {
   size?: "sm" | "md" | "lg";
   dot?: boolean; // For notification dots
   className?: string;
+  children?: React.ReactNode; // Añadir soporte para children
+  icon?: React.ReactNode; // Nueva prop para iconos
+  iconPosition?: "left" | "right"; // Posición del icono
 }
 
 const Badge: React.FC<BadgeProps> = ({
@@ -14,6 +17,9 @@ const Badge: React.FC<BadgeProps> = ({
   size = "md",
   dot,
   className,
+  children,
+  icon,
+  iconPosition = "left", // Default: icono a la izquierda
 }) => {
   const variantColors = {
     primary: "var(--color-primary)",
@@ -30,12 +36,19 @@ const Badge: React.FC<BadgeProps> = ({
   };
 
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded-full text-white ${sizeClasses[size]} ${className}`}
+    <div
+      className={`inline-flex items-center justify-center rounded-lg ${sizeClasses[size]} ${className}`}
       style={{ backgroundColor: dot ? "transparent" : variantColors[variant] }}
     >
-      {dot ? <span className="w-2 h-2 rounded-full bg-current" /> : value}
-    </span>
+      {icon && iconPosition === "left" && <span className="mr-1">{icon}</span>}
+      <span className="text-white font-bold">{value}</span>
+      {children && (
+        <span className="!font-bold text-xs [text-shadow:0_1px_2px_rgba(0,0,0,0.8)] uppercase">
+          {typeof children === "string" ? children.toUpperCase() : children}
+        </span>
+      )}
+      {icon && iconPosition === "right" && <span className="ml-1">{icon}</span>}
+    </div>
   );
 };
 

@@ -145,7 +145,7 @@ const Profile: React.FC = () => {
     <div className="page-background min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
         {/* Header Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+        <div className="bg-indigo-300 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex flex-col items-center text-center">
             {/* Avatar con botón de cambio */}
             <div className="relative group mb-6">
@@ -195,7 +195,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Información Personal */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+        <div className="bg-indigo-300  rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Información Personal
@@ -348,7 +348,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* 🔒 SEGURIDAD Y CONTRASEÑA */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-indigo-300 rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Seguridad</h2>{" "}
             <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
@@ -400,7 +400,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* ✅ ADDED: SUBSCRIPTION SECTION */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-indigo-300 rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Suscripción</h2>
           </div>

@@ -34,6 +34,8 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import StatusIndicator from "../../components/shared/StatusIndicator";
 import StatusChip from "../../components/shared/StatusChip";
+import Badge from "../../components/shared/Badge";
+import SearchInput from "../../components/shared/SearchInput";
 
 // Tipos
 import type { Event } from "../../types";
@@ -252,16 +254,43 @@ const EventsPage: React.FC = () => {
         {/* Header con búsqueda y filtros */}
         <div className="card-background p-4">
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Estadísticas rápidas */}
+            <div className="flex justify-center gap-4">
+              <Badge
+                value={events.filter((e) => e.status === "in-progress").length}
+                variant="success"
+                size="lg"
+                className="flex-col items-center gap-1"
+              >
+                <span className="text-xs text-theme-light">En Vivo</span>
+              </Badge>
+              <Badge
+                value={events.filter((e) => e.status === "scheduled").length}
+                variant="warning"
+                size="lg"
+                className="flex-col items-center gap-1"
+              >
+                <span className="text-xs text-theme-light">Próximos</span>
+              </Badge>
+              <Badge
+                value={events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
+                variant="primary"
+                size="lg"
+                className="flex-col items-center gap-1"
+              >
+                <span className="text-xs text-theme-light">Apuestas</span>
+              </Badge>
+            </div>
+
             {/* Barra de búsqueda */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-light" />
-              {/* ✅ MIGRADO: theme.input → input-theme */}
-              <input
-                type="text"
-                placeholder="Buscar eventos..."
+              <SearchInput
+                placeholder="  Buscar eventos..."
+                onSearch={handleSearchChange}
                 value={searchTerm}
-                onChange={handleSearchChange}
-                className="input-theme w-full pl-10"
+                showClearButton
+                debounceMs={300}
+                className="w-full"
               />
             </div>
 
@@ -285,28 +314,6 @@ const EventsPage: React.FC = () => {
                   {label}
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Estadísticas rápidas */}
-          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-[#596c95]/20">
-            <div className="text-center">
-              <p className="text-lg font-bold text-theme-primary">
-                {events.filter((e) => e.status === "in-progress").length}
-              </p>
-              <p className="text-xs text-theme-light">En Vivo</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-theme-primary">
-                {events.filter((e) => e.status === "scheduled").length}
-              </p>
-              <p className="text-xs text-theme-light">Próximos</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-theme-primary">
-                {events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
-              </p>
-              <p className="text-xs text-theme-light">Apuestas</p>
             </div>
           </div>
         </div>
@@ -337,20 +344,47 @@ const EventsPage: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {/* Eventos en vivo (prioridad) */}
-            {upcomingEvents.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-red-400" />
-                  Eventos en Vivo
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {upcomingEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      variant="upcoming"
-                    />
-                  ))}
+            {/* Evento en vivo (agregar al inicio del componente) */}
+            {liveEvent && (
+              <div
+                onClick={() => navigate(`/live-event/${liveEvent.id}`)}
+                className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                      <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-red-300 flex items-center gap-2">
+                        <Zap className="w-5 h-5" />
+                        ¡Evento en Vivo Ahora!
+                      </h3>
+                      <p className="text-sm text-theme-light">
+                        {liveEvent.name}
+                      </p>
+                      <p className="text-xs text-theme-light">
+                        {liveEvent.venue?.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    {liveEvent.currentViewers && (
+                      <div className="flex items-center gap-1 text-green-400 text-sm mb-2">
+                        <Eye className="w-4 h-4" />
+                        <span>{liveEvent.currentViewers} viendo</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-red-300 font-medium">
+                      <Play className="w-5 h-5" />
+                      <span>Ver Evento</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -362,7 +396,7 @@ const EventsPage: React.FC = () => {
                   <Clock className="w-5 h-5 text-blue-400" />
                   Próximos Eventos
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {upcomingEvents
                     .sort(
                       (a, b) =>
@@ -387,7 +421,7 @@ const EventsPage: React.FC = () => {
                   <Star className="w-5 h-5 text-yellow-400" />
                   Eventos Pasados
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {archivedEvents
                     .slice(0, 6) // Mostrar solo los últimos 6
                     .map((event) => (
@@ -406,75 +440,6 @@ const EventsPage: React.FC = () => {
         {/* Estado de conexión WebSocket */}
         <div className="fixed bottom-20 right-4 z-30">
           <StatusIndicator isConnected={isConnected} label="Tiempo Real" />
-        </div>
-
-        {/* Evento en vivo (agregar al inicio del componente) */}
-        {liveEvent && (
-          <div
-            onClick={() => navigate(`/live-event/${liveEvent.id}`)}
-            className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                  <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-red-300 flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    ¡Evento en Vivo Ahora!
-                  </h3>
-                  <p className="text-sm text-theme-light">{liveEvent.name}</p>
-                  <p className="text-xs text-theme-light">
-                    {liveEvent.venue?.name}
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right">
-                {liveEvent.currentViewers && (
-                  <div className="flex items-center gap-1 text-green-400 text-sm mb-2">
-                    <Eye className="w-4 h-4" />
-                    <span>{liveEvent.currentViewers} viendo</span>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 text-red-300 font-medium">
-                  <Play className="w-5 h-5" />
-                  <span>Ver Evento</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex bg-[#1a1f37]/30 rounded-lg p-1 mx-4 mb-4">
-          <button
-            onClick={() => setActiveTab("upcoming")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "upcoming"
-                ? "bg-[#1a1f37] text-theme-primary"
-                : "text-theme-light hover:text-theme-primary"
-            }`}
-          >
-            <Calendar className="w-4 h-4 inline mr-2" />
-            Próximos ({upcomingEvents.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab("archived")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "archived"
-                ? "bg-[#1a1f37] text-theme-primary"
-                : "text-theme-light hover:text-theme-primary"
-            }`}
-          >
-            <Archive className="w-4 h-4 inline mr-2" />
-            Anteriores ({archivedEvents.length})
-          </button>
         </div>
       </div>
 

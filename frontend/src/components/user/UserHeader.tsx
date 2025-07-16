@@ -122,7 +122,7 @@ const UserHeader = memo(() => {
   const isLoading = walletLoading || notificationsLoading || betsLoading;
 
   return (
-    <header className="sticky top-0 z-40 bg-theme-header shadow-lg text-theme-primary">
+    <header className="sticky top-0 z-40 bg-[#1a1f37]/95 backdrop-blur-lg shadow-lg text-theme-primary">
       <div className="px-4 h-16 flex items-center justify-between">
         {/* LEFT SIDE - LOGO Y TITLE */}
         <div className="flex items-center gap-4">
@@ -130,9 +130,9 @@ const UserHeader = memo(() => {
             <img
               src="/src/assets/logo.png"
               alt="Logo GalloBets"
-              className="h-10 w-10 object-contain"
+              className="h-10 w-10 object-contain hidden md:block" // Oculta en móvil, muestra en desktop
             />
-            <h1 className="text-xl font-bold">
+            <h1 className="text-xl md:text-2xl font-bold">
               <span className="text-red-400">Gallo</span>
               <span>Bets</span>
             </h1>
@@ -146,7 +146,7 @@ const UserHeader = memo(() => {
         {/* CENTER - USER GREETING */}
         <div className="hidden md:flex items-center gap-2 text-theme-text-secondary">
           <User className="w-4 h-4" />
-          <span className="text-sm">
+          <span className="text-md">
             Hola,{" "}
             <span className="font-medium text-theme-text-primary">
               {user.username}
@@ -165,7 +165,7 @@ const UserHeader = memo(() => {
           {/* WALLET BALANCE */}
           <button
             onClick={() => navigate("/wallet")}
-            className="flex items-center gap-2 px-3 py-2 h-10 btn-ghost hover:bg-theme-accent group"
+            className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card   hover:bg-theme-accent group border border-theme-primary rounded-lg"
           >
             <Wallet className="w-4 h-4 text-theme-success" />
             <span className="text-sm font-semibold">

@@ -133,7 +133,7 @@ const Card: React.FC<CardProps> = ({
   const getInteractionClasses = () => {
     if (disabled) return "opacity-50 cursor-not-allowed";
     if (onClick || href)
-      return "cursor-pointer hover:shadow-lg hover:scale-105";
+      return "cursor-pointer hover:bg-opacity-20 hover:shadow-lg hover:scale-101";
     return "";
   };
 

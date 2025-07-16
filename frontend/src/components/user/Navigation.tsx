@@ -20,6 +20,8 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
     if (location.pathname.startsWith("/bets")) return "bets";
     if (location.pathname.startsWith("/wallet")) return "wallet";
     if (location.pathname.startsWith("/profile")) return "profile";
+    if (location.pathname.startsWith("/news")) return "news";
+    if (location.pathname.startsWith("/venues")) return "venues";
     return "home";
   };
 

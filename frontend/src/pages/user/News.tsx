@@ -65,7 +65,7 @@ const NewsPage: React.FC = () => {
   if (loading) return <LoadingSpinner text="Cargando noticias..." />;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="page-background space-y-4 p-4">
       {/* Reutilizar NewsBanner existente */}
       <NewsBanner />
 

@@ -1,9 +1,8 @@
-// frontend/src/components/shared/SubscriptionGuard.tsx - SIMPLIFICADO V2
+// frontend/src/components/shared/SubscriptionGuard.tsx - FIX CRÍTICO
 // ================================================================
-// OPTIMIZADO: Diseño más limpio, menos componentes dependientes
-// MEJORAS: UI minimalista, mejor UX, menos código
+// FIX: Eliminar loop infinito que causa timeout masivo
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { AlertTriangle, Crown } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
 import SubscriptionModal from "./SubscriptionModal";
@@ -26,24 +25,40 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   const [hasAccess, setHasAccess] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ Verificación de acceso simplificada
+  // ✅ FIX: Referencias estables para evitar loop infinito
+  const isInitialized = useRef(false);
+  const checkAccessRef = useRef(checkAccess);
+  const fetchCurrentRef = useRef(fetchCurrent);
+
+  // Actualizar referencias sin causar re-renders
+  checkAccessRef.current = checkAccess;
+  fetchCurrentRef.current = fetchCurrent;
+
+  // ✅ FIX: useEffect SIN dependencias problemáticas
   useEffect(() => {
+    // Solo ejecutar una vez al montar
+    if (isInitialized.current || loading) return;
+
     const verifyAccess = async () => {
       try {
-        const result = await checkAccess();
-        setHasAccess(result.hasAccess);
+        isInitialized.current = true;
+
+        // Ejecutar en paralelo para mayor eficiencia
+        const [accessResult] = await Promise.all([
+          checkAccessRef.current(),
+          fetchCurrentRef.current(),
+        ]);
+
+        setHasAccess(accessResult?.data?.hasAccess || false);
       } catch (err) {
+        console.error("Error verificando acceso:", err);
         setHasAccess(false);
       }
     };
 
-    if (!loading) {
-      verifyAccess();
-      fetchCurrent();
-    }
-  }, [checkAccess, fetchCurrent, loading]);
+    verifyAccess();
+  }, []); // ✅ Array vacío - solo ejecutar al montar
 
-  // ✅ Estados de carga y error simplificados
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4 text-theme-light">
@@ -62,17 +77,14 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
     );
   }
 
-  // ✅ Si tiene acceso, mostrar contenido
   if (hasAccess) {
     return <>{children}</>;
   }
 
-  // ✅ Si hay fallback personalizado, usarlo
   if (fallback) {
     return <>{fallback}</>;
   }
 
-  // ✅ UI de bloqueo elegante y minimalista
   return (
     <>
       <div className="p-6 bg-gradient-to-br from-gray-800/10 to-gray-900/20 border border-gray-600/20 rounded-xl text-center backdrop-blur-sm">
@@ -100,7 +112,6 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
         )}
       </div>
 
-      {/* Modal de suscripción */}
       {showModal && (
         <SubscriptionModal
           isOpen={showModal}
