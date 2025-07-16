@@ -5,6 +5,7 @@ import { Subscription, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
 import { Op } from "sequelize";
+import { cacheGet, cacheSet, cacheDel } from "../config/redis";
 
 const router = Router();
 
@@ -271,6 +272,15 @@ router.post(
   "/check-access",
   authenticate,
   asyncHandler(async (req, res) => {
+    const cacheKey = `subscription:${req.user!.id}`;
+    const cached = await cacheGet(cacheKey);
+
+    if (cached) {
+      const cachedString =
+        typeof cached === "string" ? cached : cached.toString("utf8");
+      return res.json(JSON.parse(cachedString));
+    }
+
     const activeSubscription = await Subscription.findOne({
       where: {
         userId: req.user!.id,
@@ -283,14 +293,18 @@ router.post(
 
     const hasAccess = !!activeSubscription;
 
-    res.json({
+    const response = {
       success: true,
       data: {
         hasAccess,
         subscription: hasAccess ? activeSubscription!.toPublicJSON() : null,
         expiresAt: hasAccess ? activeSubscription!.endDate : null,
       },
-    });
+    };
+
+    await cacheSet(cacheKey, JSON.stringify(response), 300); // TTL 5 minutos
+
+    res.json(response);
   })
 );
 

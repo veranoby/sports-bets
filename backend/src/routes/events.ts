@@ -13,6 +13,7 @@ import {
   stopStreaming as stopStreamService,
 } from "../services/streamingService";
 import { checkStreamServerHealth } from "../services/streamHealthCheck";
+import { cacheGet, cacheSet, cacheDel } from "../config/redis";
 
 const router = Router();
 
@@ -539,5 +540,16 @@ router.delete(
     });
   })
 );
+
+// Invalidar cache en cambios de estado
+const invalidateEventCache = async () => {
+  await cacheDel("events:in-progress");
+};
+
+// Añadir en endpoints que cambian estado (activate, complete, etc.)
+async function init() {
+  await invalidateEventCache();
+}
+init();
 
 export default router;

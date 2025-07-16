@@ -4,7 +4,15 @@ config(); // ← CRÍTICO: DEBE IR AQUÍ
 import { Sequelize } from "sequelize";
 import { logger } from "./logger";
 
-// Configuración de la base de datos
+// Configuración optimizada para Neon.tech
+const poolSettings = {
+  max: 10, // Máximo conexiones (Neon free tier)
+  min: 2, // Mínimo conexiones activas
+  acquire: 30000, // 30s máximo para obtener conexión
+  idle: 10000, // 10s antes de cerrar conexión inactiva
+  evict: 5000, // Intervalo de validación (5s)
+};
+
 const sequelize = process.env.DATABASE_URL
   ? new Sequelize(process.env.DATABASE_URL, {
       dialect: "postgres",
@@ -13,50 +21,49 @@ const sequelize = process.env.DATABASE_URL
           require: true,
           rejectUnauthorized: false,
         },
+        // Neon-specific optimizations
+        connectionTimeoutMillis: 5000,
+        idle_in_transaction_session_timeout: 10000,
       },
-      logging:
-        process.env.NODE_ENV === "development"
-          ? (msg) => logger.debug(msg)
-          : false,
+      logging: (msg) => {
+        if (msg.startsWith("Executing") || msg.startsWith("Pool")) {
+          logger.debug(msg); // Log queries y pool activity
+        }
+      },
       define: {
         timestamps: true,
         underscored: true,
         freezeTableName: true,
       },
       timezone: "America/Guayaquil",
-      pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
-      },
+      pool: poolSettings, // Configuración optimizada aquí
+      benchmark: true, // Para monitoreo de performance
     })
   : new Sequelize({
       dialect: "postgres",
       host: process.env.DB_HOST || "localhost",
-      port: parseInt(process.env.DB_PORT || "5432"),
+      port: parseInt(process.env.DB_PASSWORD || "5432"),
       database: process.env.DB_NAME || "sports_bets",
       username: process.env.DB_USER || "postgres",
       password: process.env.DB_PASSWORD || "password",
-      pool: {
-        max: 20,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
+      pool: poolSettings, // Misma configuración para desarrollo
+      dialectOptions: {
+        ...(process.env.NODE_ENV === "production" && {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false,
+          },
+          // Neon optimizations
+          connectionTimeoutMillis: 5000,
+        }),
       },
-      dialectOptions:
-        process.env.NODE_ENV === "production"
-          ? {
-              ssl: {
-                require: true,
-                rejectUnauthorized: false,
-              },
-            }
-          : {},
-      logging:
-        process.env.NODE_ENV === "development"
-          ? (msg) => logger.debug(msg)
-          : false,
+      logging: (msg) => {
+        if (process.env.NODE_ENV === "development") {
+          logger.debug(msg);
+        } else if (msg.includes("ERROR") || msg.startsWith("Pool")) {
+          logger.warn(msg); // Solo logs importantes en producción
+        }
+      },
       define: {
         timestamps: true,
         underscored: true,
@@ -65,19 +72,43 @@ const sequelize = process.env.DATABASE_URL
       timezone: "America/Guayaquil",
     });
 
-// Función para conectar a la base de datos
+// Función mejorada para monitoreo del pool
+export const getPoolStats = () => {
+  const pool = (sequelize as any).pool; // Usamos 'as any' temporalmente para evitar errores de tipo
+  return {
+    using: pool?._inUseObjects?.length || 0,
+    free: pool?._availableObjects?.length || 0,
+    queue: pool?._waitingClientsQueue?.length || 0,
+  };
+};
+
+// Función de conexión con monitoreo mejorado
 export const connectDatabase = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
-    logger.info("✅ Database connection established successfully");
+    logger.info("✅ Database connection established", {
+      poolStats: getPoolStats(),
+      config: {
+        dialect: sequelize.getDialect(),
+        database: sequelize.getDatabaseName(),
+      },
+    });
 
-    // En desarrollo, sincronizar modelos
     if (process.env.NODE_ENV === "development") {
       await sequelize.sync({ alter: true });
       logger.info("✅ Database models synchronized");
     }
+
+    // Log periódico del estado del pool
+    setInterval(() => {
+      logger.debug("Database Pool Status", getPoolStats());
+    }, 30000); // Cada 30 segundos
   } catch (error) {
-    logger.error("❌ Unable to connect to the database:", error);
+    logger.error("❌ Database connection failed", {
+      error: error.message,
+      stack: error.stack,
+      poolStats: getPoolStats(),
+    });
     throw error;
   }
 };

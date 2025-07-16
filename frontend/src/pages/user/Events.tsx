@@ -210,8 +210,11 @@ const EventsPage: React.FC = () => {
     }) || [];
 
   // Handlers
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  const handleSearchChange = (
+    value: string | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const searchValue = typeof value === "string" ? value : value.target.value;
+    setSearchTerm(searchValue);
   };
 
   const handleEventClick = (event: Event) => {
@@ -333,12 +336,14 @@ const EventsPage: React.FC = () => {
             }
             icon={<Calendar className="w-12 h-12" />}
             action={
-              searchTerm
-                ? {
-                    label: "Limpiar búsqueda",
-                    onClick: () => setSearchTerm(""),
-                  }
-                : undefined
+              searchTerm ? (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="btn-ghost text-sm"
+                >
+                  Limpiar búsqueda
+                </button>
+              ) : undefined
             }
           />
         ) : (

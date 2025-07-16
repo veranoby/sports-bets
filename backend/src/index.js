@@ -32,6 +32,7 @@ const wallet_1 = __importDefault(require("./routes/wallet"));
 const venues_1 = __importDefault(require("./routes/venues"));
 const subscriptions_1 = __importDefault(require("./routes/subscriptions"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
+const articles_1 = __importDefault(require("./routes/articles"));
 // Cargar variables de entorno
 (0, dotenv_1.config)();
 class Server {
@@ -108,6 +109,7 @@ class Server {
         this.app.use("/api/venues", venues_1.default);
         this.app.use("/api/subscriptions", subscriptions_1.default);
         this.app.use("/api/notifications", notifications_1.default);
+        this.app.use("/api/articles", articles_1.default);
         // Ruta para servir archivos estáticos si es necesario
         this.app.use("/uploads", express_1.default.static("uploads"));
         // Ruta 404

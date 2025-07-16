@@ -3,7 +3,8 @@
 // ELIMINADO: UserThemeProvider que causaba re-renders
 // OPTIMIZADO: Layouts directos, CSS variables estáticas
 
-import React from "react";
+import React, { lazy, Suspense } from "react";
+import LoadingSpinner from "./components/shared/LoadingSpinner";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 // ❌ ELIMINADO: import { UserThemeProvider } from "./contexts/UserThemeContext";
@@ -32,21 +33,19 @@ import NewsPage from "./pages/user/News";
 import VenuesPage from "./pages/user/Venues";
 import ArticlePage from "./components/user/ArticlePage";
 
-// Páginas de Admin
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/Users";
-import AdminFinance from "./pages/admin/Finance";
-import AdminReports from "./pages/admin/Reports";
+// Lazy imports para rutas no críticas
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminFinance = lazy(() => import("./pages/admin/Finance"));
+const AdminReports = lazy(() => import("./pages/admin/Reports"));
 
-// Páginas de Operador
-import OperatorDashboard from "./pages/operator/Dashboard";
-import OperatorEvents from "./pages/operator/Events";
-import OperatorStream from "./pages/operator/Stream";
+const OperatorDashboard = lazy(() => import("./pages/operator/Dashboard"));
+const OperatorEvents = lazy(() => import("./pages/operator/Events"));
+const OperatorStream = lazy(() => import("./pages/operator/Stream"));
 
-// Páginas de Venue
-import VenueDashboard from "./pages/venue/Dashboard";
-import VenueEvents from "./pages/venue/Events";
-import VenueProfile from "./pages/venue/Profile";
+const VenueDashboard = lazy(() => import("./pages/venue/Dashboard"));
+const VenueEvents = lazy(() => import("./pages/venue/Events"));
+const VenueProfile = lazy(() => import("./pages/venue/Profile"));
 
 // 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
@@ -91,16 +90,15 @@ const AppContent: React.FC = () => {
         }
       />
 
-      {/* 👤 RUTAS DE USUARIO - Layout persistente SIN UserThemeProvider */}
+      {/* �� RUTAS DE USUARIO - Mantener carga inmediata */}
       <Route
         element={
           <ProtectedRoute requiredRole="user">
-            {/* ❌ ELIMINADO: <UserThemeProvider> wrapper */}
             <UserLayout />
-            {/* ❌ ELIMINADO: </UserThemeProvider> */}
           </ProtectedRoute>
         }
       >
+        {/* Rutas user permanecen igual (sin lazy) */}
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/live-event/:eventId" element={<LiveEvent />} />
@@ -114,7 +112,7 @@ const AppContent: React.FC = () => {
         <Route path="/article/:articleId" element={<ArticlePage />} />
       </Route>
 
-      {/* 🔧 RUTAS DE ADMIN - Layout persistente */}
+      {/* 🔧 RUTAS DE ADMIN - Con lazy loading */}
       <Route
         element={
           <ProtectedRoute requiredRole="admin">
@@ -122,13 +120,41 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/finance" element={<AdminFinance />} />
-        <Route path="/admin/reports" element={<AdminReports />} />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminUsers />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/finance"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminFinance />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminReports />
+            </Suspense>
+          }
+        />
       </Route>
 
-      {/* 🎥 RUTAS DE OPERADOR - Layout persistente */}
+      {/* 🎥 RUTAS DE OPERADOR - Con lazy loading */}
       <Route
         element={
           <ProtectedRoute requiredRole="operator">
@@ -136,12 +162,33 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/operator" element={<OperatorDashboard />} />
-        <Route path="/operator/events" element={<OperatorEvents />} />
-        <Route path="/operator/stream/:eventId" element={<OperatorStream />} />
+        <Route
+          path="/operator"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <OperatorDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/operator/events"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <OperatorEvents />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/operator/stream/:eventId"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <OperatorStream />
+            </Suspense>
+          }
+        />
       </Route>
 
-      {/* 🏛️ RUTAS DE VENUE - Layout persistente */}
+      {/* 🏛️ RUTAS DE VENUE - Con lazy loading */}
       <Route
         element={
           <ProtectedRoute requiredRole="venue">
@@ -149,9 +196,30 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/venue" element={<VenueDashboard />} />
-        <Route path="/venue/events" element={<VenueEvents />} />
-        <Route path="/venue/profile" element={<VenueProfile />} />
+        <Route
+          path="/venue"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <VenueDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/venue/events"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <VenueEvents />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/venue/profile"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <VenueProfile />
+            </Suspense>
+          }
+        />
       </Route>
 
       {/* 🚫 RUTA 404 */}

@@ -225,7 +225,7 @@ const Dashboard: React.FC = () => {
                       </h2>
 
                       {liveEvents.map((event) => (
-                        <div>
+                        <div key={event.id}>
                           <h3 className="font-medium text-theme-primary mb-1 flex items-center gap-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                             {event.name}

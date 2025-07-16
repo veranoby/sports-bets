@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModelUtils = exports.checkAssociations = exports.syncModels = exports.connectDatabase = exports.Notification = exports.Subscription = exports.Transaction = exports.Wallet = exports.Bet = exports.Fight = exports.Event = exports.Venue = exports.User = void 0;
+exports.ModelUtils = exports.checkAssociations = exports.syncModels = exports.connectDatabase = exports.Article = exports.Notification = exports.Subscription = exports.Transaction = exports.Wallet = exports.Bet = exports.Fight = exports.Event = exports.Venue = exports.User = void 0;
 const User_1 = require("./User");
 Object.defineProperty(exports, "User", { enumerable: true, get: function () { return User_1.User; } });
 const Venue_1 = require("./Venue");
@@ -35,6 +35,8 @@ Object.defineProperty(exports, "connectDatabase", { enumerable: true, get: funct
 // ✅ AGREGAR IMPORT (al inicio del archivo)
 const Notification_1 = __importDefault(require("./Notification"));
 exports.Notification = Notification_1.default;
+const Article_1 = require("./Article");
+Object.defineProperty(exports, "Article", { enumerable: true, get: function () { return Article_1.Article; } });
 console.log("📦 Configurando modelos y asociaciones...");
 // ========================================
 // ASOCIACIONES PRINCIPALES - SIN DUPLICADOS
@@ -147,6 +149,15 @@ Subscription_1.Subscription.belongsTo(User_1.User, {
     foreignKey: "userId",
     as: "user",
 });
+// ===================
+// ASOCIACIONES NUEVAS
+// ===================
+// User -> Article (One-to-Many)
+User_1.User.hasMany(Article_1.Article, { foreignKey: "author_id", as: "articles" });
+Article_1.Article.belongsTo(User_1.User, { foreignKey: "author_id", as: "author" });
+// Venue -> Article (One-to-Many)
+Venue_1.Venue.hasMany(Article_1.Article, { foreignKey: "venue_id", as: "articles" });
+Article_1.Article.belongsTo(Venue_1.Venue, { foreignKey: "venue_id", as: "venue" });
 console.log("✅ Asociaciones configuradas correctamente");
 // Función para sincronizar modelos
 const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (force = false) {
@@ -171,6 +182,8 @@ const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, functio
         console.log("✅ Transaction");
         yield Notification_1.default.sync({ force });
         console.log("✅ Notification");
+        yield Article_1.Article.sync({ force });
+        console.log("✅ Article");
         console.log("✅ All models synchronized successfully");
     }
     catch (error) {
@@ -233,6 +246,8 @@ exports.default = {
     Wallet: Wallet_1.Wallet,
     Transaction: Wallet_1.Transaction,
     Subscription: Subscription_1.Subscription,
+    Notification: Notification_1.default,
+    Article: Article_1.Article,
     syncModels: exports.syncModels,
     checkAssociations: exports.checkAssociations,
     ModelUtils: exports.ModelUtils,

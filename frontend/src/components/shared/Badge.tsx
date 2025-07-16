@@ -36,7 +36,7 @@ const Badge: React.FC<BadgeProps> = ({
   };
 
   return (
-    <div
+    <span
       className={`inline-flex items-center justify-center rounded-lg ${sizeClasses[size]} ${className}`}
       style={{ backgroundColor: dot ? "transparent" : variantColors[variant] }}
     >
@@ -48,7 +48,7 @@ const Badge: React.FC<BadgeProps> = ({
         </span>
       )}
       {icon && iconPosition === "right" && <span className="ml-1">{icon}</span>}
-    </div>
+    </span>
   );
 };
 

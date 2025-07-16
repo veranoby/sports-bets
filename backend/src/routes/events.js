@@ -15,6 +15,7 @@ const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
+const redis_1 = require("../config/redis");
 const router = (0, express_1.Router)();
 // GET /api/events - Listar eventos con filtros
 router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -420,4 +421,15 @@ router.delete("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, e
         message: "Event cancelled successfully",
     });
 })));
+// Invalidar cache en cambios de estado
+const invalidateEventCache = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, redis_1.cacheDel)("events:in-progress");
+});
+// Añadir en endpoints que cambian estado (activate, complete, etc.)
+function init() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield invalidateEventCache();
+    });
+}
+init();
 exports.default = router;

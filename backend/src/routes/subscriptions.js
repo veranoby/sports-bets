@@ -16,6 +16,7 @@ const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const database_1 = require("../config/database");
 const sequelize_1 = require("sequelize");
+const redis_1 = require("../config/redis");
 const router = (0, express_1.Router)();
 // GET /api/subscriptions - Obtener suscripciones del usuario
 router.get("/", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -219,6 +220,12 @@ router.get("/plans/info", (0, errorHandler_1.asyncHandler)((req, res) => __await
 })));
 // POST /api/subscriptions/check-access - Verificar acceso a contenido premium
 router.post("/check-access", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const cacheKey = `subscription:${req.user.id}`;
+    const cached = yield (0, redis_1.cacheGet)(cacheKey);
+    if (cached) {
+        const cachedString = typeof cached === "string" ? cached : cached.toString("utf8");
+        return res.json(JSON.parse(cachedString));
+    }
     const activeSubscription = yield models_1.Subscription.findOne({
         where: {
             userId: req.user.id,
@@ -229,14 +236,16 @@ router.post("/check-access", auth_1.authenticate, (0, errorHandler_1.asyncHandle
         },
     });
     const hasAccess = !!activeSubscription;
-    res.json({
+    const response = {
         success: true,
         data: {
             hasAccess,
             subscription: hasAccess ? activeSubscription.toPublicJSON() : null,
             expiresAt: hasAccess ? activeSubscription.endDate : null,
         },
-    });
+    };
+    yield (0, redis_1.cacheSet)(cacheKey, JSON.stringify(response), 300); // TTL 5 minutos
+    res.json(response);
 })));
 // PUT /api/subscriptions/:id/extend - Extender suscripción (solo admin o para renovaciones automáticas)
 router.put("/:id/extend", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

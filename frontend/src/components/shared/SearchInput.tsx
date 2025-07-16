@@ -108,7 +108,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
     const newValue = e.target.value.slice(0, maxLength);
 
     if (isControlled) {
-      onSearch(newValue); // En modo controlado, notificar inmediatamente
+      onSearch(e); // En modo controlado, notificar inmediatamente
     } else {
       setInternalValue(newValue);
     }
