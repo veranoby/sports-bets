@@ -7,9 +7,9 @@ import { logger } from "./logger";
 // Configuración optimizada para Neon.tech
 const poolSettings = {
   max: 10, // Máximo conexiones (Neon free tier)
-  min: 2, // Mínimo conexiones activas
-  acquire: 30000, // 30s máximo para obtener conexión
-  idle: 10000, // 10s antes de cerrar conexión inactiva
+  min: 0, // Mínimo conexiones activas
+  acquire: 60000, // 30s máximo para obtener conexión
+  idle: 30000, // 10s antes de cerrar conexión inactiva
   evict: 5000, // Intervalo de validación (5s)
 };
 

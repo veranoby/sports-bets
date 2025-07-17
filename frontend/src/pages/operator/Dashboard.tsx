@@ -6,6 +6,7 @@ import LiveStats from "../../components/operator/LiveStats";
 import StreamControls from "../../components/operator/StreamControls";
 import { useEvents, useFights } from "../../hooks/useApi";
 import { useWebSocketEmit } from "../../hooks/useWebSocket";
+import { useWebSocketRoom } from "../../hooks/useWebSocket";
 
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 
@@ -26,7 +27,8 @@ const OperatorDashboard: React.FC = () => {
   const { fights, loading: fightsLoading, fetchFights, error } = useFights();
 
   // ✅ WebSocket optimizado para operador
-  const { isConnected } = useWebSocketContext();
+  const { joinRoom, leaveRoom, isConnected } =
+    useWebSocketRoom(OPERATOR_ROOM_ID);
   const { emit } = useWebSocketEmit();
 
   // Listeners específicos para operador

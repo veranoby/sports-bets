@@ -1,14 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { Play, Square, Video } from "lucide-react";
 import StatusIndicator from "../shared/StatusIndicator";
 
 const StreamControls: React.FC = () => {
+  const [isStreaming, setIsStreaming] = useState(false);
+
   const startStream = async (eventId: string) => {
-    await fetch(`/api/events/${eventId}/stream/start`, { method: "POST" });
+    try {
+      await fetch(`/api/events/${eventId}/stream/start`, { method: "POST" });
+      setIsStreaming(true); // Actualizar estado si la llamada es exitosa
+    } catch (error) {
+      console.error("Error al iniciar la transmisión:", error);
+    }
   };
 
   const stopStream = async (eventId: string) => {
-    await fetch(`/api/events/${eventId}/stream/stop`, { method: "POST" });
+    try {
+      await fetch(`/api/events/${eventId}/stream/stop`, { method: "POST" });
+      setIsStreaming(false); // Actualizar estado si la llamada es exitosa
+    } catch (error) {
+      console.error("Error al detener la transmisión:", error);
+    }
   };
 
   return (
