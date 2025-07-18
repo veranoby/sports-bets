@@ -1,5 +1,7 @@
 // frontend/src/components/admin/AdminSidebar.tsx
 import React, { memo } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -7,9 +9,12 @@ import {
   DollarSign,
   FileText,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 const AdminSidebar = memo(() => {
+  const { user, logout } = useAuth();
+
   const navItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/admin/users", icon: Users, label: "Usuarios" },
@@ -40,6 +45,9 @@ const AdminSidebar = memo(() => {
             </NavLink>
           ))}
         </nav>
+        <button onClick={logout} className="p-2 hover:bg-gray-100 rounded-lg">
+          <LogOut className="w-5 h-5 text-gray-600" />
+        </button>
       </div>
     </aside>
   );

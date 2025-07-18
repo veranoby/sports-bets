@@ -122,7 +122,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen page-background p-6">
       {/* Alertas superiores */}
       {metrics.liveEventsNow > 0 && (
         <div className="mb-6 p-4 bg-red-100 border border-red-400 rounded-lg flex items-center gap-3">
@@ -250,30 +250,6 @@ const AdminDashboard: React.FC = () => {
 
       {/* Acciones rápidas adicionales */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Acciones Rápidas</h3>
-          <div className="space-y-2">
-            <button
-              onClick={() => navigateToSection("/admin/users/create")}
-              className="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 rounded"
-            >
-              + Crear Usuario
-            </button>
-            <button
-              onClick={() => navigateToSection("/admin/events/create")}
-              className="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 rounded"
-            >
-              + Crear Evento
-            </button>
-            <button
-              onClick={() => navigateToSection("/admin/reports")}
-              className="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 rounded"
-            >
-              📊 Ver Reportes
-            </button>
-          </div>
-        </Card>
-
         <Card className="p-4">
           <h3 className="font-semibold text-gray-900 mb-3">
             Estado del Sistema
