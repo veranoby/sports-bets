@@ -1,29 +1,16 @@
-// sw.js - Service Worker para GalloBets PWA (SPA Optimizado)
-// ========================================================
+// sw.js - Service Worker Optimizado
+// ================================
 
 const CACHE_NAME = "gallobets-v1.2.0";
 const SW_VERSION = "1.2.0";
 
-// Recursos físicos reales para cache (solo archivos existentes)
-const CORE_CACHE = ["/", "/offline.html"];
+// Recursos físicos reales para cache
+const CORE_CACHE = ["/", "/offline.html"]; // ✅ Eliminado /login
 
 // Recursos estáticos
 const STATIC_CACHE = ["/assets/index.css", "/assets/index.js"];
 
-// Rutas de la SPA (manejadas por React Router)
-const SPA_ROUTES = [
-  "/dashboard",
-  "/events",
-  "/wallet",
-  "/bets",
-  "/profile",
-  "/venue",
-  "/admin",
-  "/operator",
-  "/login",
-];
-
-// APIs que NUNCA se cachean (críticas financieramente + WebSocket)
+// APIs que NUNCA se cachean
 const NEVER_CACHE = [
   "/api/wallet/",
   "/api/bets/",
@@ -36,174 +23,131 @@ const NEVER_CACHE = [
   "wss://",
 ];
 
-// ✅ INSTALACIÓN - Cache inicial
+// ✅ INSTALACIÓN
 self.addEventListener("install", (event) => {
-  console.log("📦 SW: Instalando versión", SW_VERSION);
-
-  event.waitUntil(
-    Promise.all([
-      // Cache core - solo archivos físicos
-      caches.open(CACHE_NAME + "-core").then((cache) => {
-        return cache.addAll(CORE_CACHE);
-      }),
-
-      // Cache estáticos - assets del build
-      caches.open(CACHE_NAME + "-static").then((cache) => {
-        return cache.addAll(STATIC_CACHE);
-      }),
-    ]).then(() => {
-      console.log("✅ SW: Cache inicial completado");
-      self.skipWaiting(); // Activar inmediatamente
-    })
-  );
-});
-
-// ✅ ACTIVACIÓN - Limpiar caches antiguos
-self.addEventListener("activate", (event) => {
-  console.log("🔄 SW: Activando versión", SW_VERSION);
-
   event.waitUntil(
     caches
-      .keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            // Eliminar caches de versiones anteriores
-            if (
-              cacheName.startsWith("gallobets-") &&
-              !cacheName.includes("v1.2.0")
-            ) {
-              console.log("🗑️ SW: Eliminando cache antiguo", cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log("✅ SW: Activación completada");
-        return self.clients.claim(); // Controlar todas las pestañas
-      })
+      .open(CACHE_NAME + "-core")
+      .then((cache) => cache.addAll(CORE_CACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
-// ✅ FETCH - Estrategia de cache inteligente para SPA
+// ✅ FETCH - Con filtros mejorados
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // ❌ NUNCA interceptar WebSocket o APIs críticas
-  if (
-    NEVER_CACHE.some(
-      (path) => url.pathname.includes(path) || url.href.includes(path)
-    )
-  ) {
+  // ❌ NO interceptar extensiones del navegador
+  if (isBrowserExtension(url)) {
     return;
   }
 
-  // ❌ NO interceptar WebSocket connections
-  if (event.request.headers.get("upgrade") === "websocket") {
+  // ❌ NO interceptar WebSocket/APIs críticas
+  if (shouldNeverCache(request)) {
     return;
   }
 
-  // 🔄 API calls - Network First (datos en tiempo real)
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirstStrategy(event.request));
-    return;
-  }
-
-  // 🏠 SPA Navigation - Servir index.html para rutas de la aplicación
+  // 🏠 Manejar rutas SPA
   if (isSPARoute(url.pathname)) {
-    event.respondWith(handleSPANavigation(event.request));
+    event.respondWith(handleSPANavigation(request));
     return;
   }
 
-  // 🎨 Assets estáticos - Cache First
-  if (url.pathname.includes("/assets/") || url.pathname.includes("/icons/")) {
-    event.respondWith(cacheFirstStrategy(event.request));
+  // 🔄 API calls
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(networkFirstStrategy(request));
     return;
   }
 
-  // 🌐 Default - Network First con fallback
-  event.respondWith(networkFirstStrategy(event.request));
+  // 🎨 Assets estáticos
+  if (isStaticAsset(url.pathname)) {
+    event.respondWith(cacheFirstStrategy(request));
+    return;
+  }
+
+  // 🌐 Default
+  event.respondWith(networkFirstStrategy(request));
 });
 
-// Función para detectar rutas SPA
+// ===== FUNCIONES AUXILIARES =====
+
+function isBrowserExtension(url) {
+  return ["chrome-extension:", "moz-extension:", "safari-extension:"].some(
+    (proto) => url.protocol === proto
+  );
+}
+
+function shouldNeverCache(request) {
+  return NEVER_CACHE.some(
+    (path) =>
+      request.url.pathname.includes(path) ||
+      request.url.href.includes(path) ||
+      request.headers.get("upgrade") === "websocket"
+  );
+}
+
 function isSPARoute(pathname) {
   return (
-    SPA_ROUTES.some((route) => pathname.startsWith(route)) ||
     pathname === "/" ||
-    pathname === "/login"
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/dashboard")
   );
 }
 
-// Estrategia para manejar navegación SPA
+function isStaticAsset(pathname) {
+  return pathname.includes("/assets/") || pathname.includes("/icons/");
+}
+
 async function handleSPANavigation(request) {
   try {
-    // Intentar red desde la red primero
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) return networkResponse;
-  } catch (error) {
-    console.log("🌐 SW: Fallback a cache para SPA route", request.url);
+    const netResponse = await fetch(request);
+    if (netResponse.ok) return netResponse;
+  } catch (e) {
+    console.log("🌐 SW: Fallback a cache para", request.url);
   }
 
-  // Fallback: servir index.html desde cache
-  const cachedResponse = await caches.match("/");
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-  // Último recurso: offline.html
-  return caches.match("/offline.html");
+  const cached = await caches.match("/");
+  return cached || caches.match("/offline.html");
 }
 
-// ESTRATEGIA: Network First para APIs
 async function networkFirstStrategy(request) {
   try {
-    const networkResponse = await fetch(request);
+    const netResponse = await fetch(request);
 
-    if (networkResponse.ok && !request.url.includes("/api/wallet/")) {
+    // ✅ Solo cachear URLs HTTP/HTTPS válidas
+    if (
+      netResponse.ok &&
+      request.url.startsWith("http") &&
+      !shouldNeverCache(request)
+    ) {
       const cache = await caches.open(CACHE_NAME + "-api");
-      cache.put(request, networkResponse.clone());
+      cache.put(request, netResponse.clone());
     }
 
-    return networkResponse;
-  } catch (error) {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-
-    if (request.url.includes("/api/events")) {
-      return new Response(
-        JSON.stringify({
-          data: [],
-          message: "Sin conexión - eventos no disponibles",
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    throw error;
+    return netResponse;
+  } catch (e) {
+    const cached = await caches.match(request);
+    return cached || Response.error();
   }
 }
 
-// ESTRATEGIA: Cache First para assets
 async function cacheFirstStrategy(request) {
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
+  const cached = await caches.match(request);
+  if (cached) return cached;
 
   try {
-    const networkResponse = await fetch(request);
-    const cache = await caches.open(CACHE_NAME + "-static");
-    cache.put(request, networkResponse.clone());
-    return networkResponse;
-  } catch (error) {
-    console.log("❌ SW: Error cargando asset", request.url);
-    throw error;
+    const netResponse = await fetch(request);
+
+    // ✅ Solo cachear URLs HTTP/HTTPS válidas
+    if (request.url.startsWith("http")) {
+      const cache = await caches.open(CACHE_NAME + "-static");
+      cache.put(request, netResponse.clone());
+    }
+
+    return netResponse;
+  } catch (e) {
+    throw e;
   }
 }
 
