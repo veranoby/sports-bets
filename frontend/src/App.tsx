@@ -37,7 +37,11 @@ import ArticlePage from "./components/user/ArticlePage";
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminFinance = lazy(() => import("./pages/admin/Finance"));
-const AdminReports = lazy(() => import("./pages/admin/Reports"));
+const AdminEvents = lazy(() => import("./pages/admin/Events"));
+const AdminArticles = lazy(() => import("./pages/admin/Articles"));
+const AdminVenues = lazy(() => import("./pages/admin/Venues"));
+const AdminRequests = lazy(() => import("./pages/admin/Requests"));
+const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 
 const OperatorDashboard = lazy(() => import("./pages/operator/Dashboard"));
 const OperatorEvents = lazy(() => import("./pages/operator/Events"));
@@ -120,6 +124,7 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
+        {/* Dashboard */}
         <Route
           path="/admin"
           element={
@@ -128,6 +133,8 @@ const AppContent: React.FC = () => {
             </Suspense>
           }
         />
+
+        {/* Usuarios */}
         <Route
           path="/admin/users"
           element={
@@ -136,6 +143,8 @@ const AppContent: React.FC = () => {
             </Suspense>
           }
         />
+
+        {/* Finanzas */}
         <Route
           path="/admin/finance"
           element={
@@ -144,11 +153,53 @@ const AppContent: React.FC = () => {
             </Suspense>
           }
         />
+
+        {/* Eventos */}
         <Route
-          path="/admin/reports"
+          path="/admin/events"
           element={
             <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminReports />
+              <AdminEvents />
+            </Suspense>
+          }
+        />
+
+        {/* Artículos */}
+        <Route
+          path="/admin/articles"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminArticles />
+            </Suspense>
+          }
+        />
+
+        {/* Venues */}
+        <Route
+          path="/admin/venues"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminVenues />
+            </Suspense>
+          }
+        />
+
+        {/* Solicitudes */}
+        <Route
+          path="/admin/requests"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminRequests />
+            </Suspense>
+          }
+        />
+
+        {/* Monitoreo */}
+        <Route
+          path="/admin/monitoring"
+          element={
+            <Suspense fallback={<LoadingSpinner fullPage />}>
+              <AdminMonitoring />
             </Suspense>
           }
         />
@@ -221,7 +272,6 @@ const AppContent: React.FC = () => {
           }
         />
       </Route>
-
       {/* 🚫 RUTA 404 */}
       <Route
         path="*"

@@ -299,6 +299,46 @@ export const usersAPI = {
   getAvailableOperators: () => apiClient.get("/users/operators/available"),
 };
 
+export const articlesAPI = {
+  getAll: (params?: {
+    search?: string;
+    venueId?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+    includeAuthor?: boolean;
+    includeVenue?: boolean;
+    author_id?: string;
+    venue_id?: string;
+  }) => apiClient.get("/articles", { params }),
+
+  getById: (id: string) => apiClient.get(`/articles/${id}`),
+
+  create: (data: {
+    title: string;
+    content: string;
+    summary: string;
+    venue_id?: string;
+    featured_image_url?: string;
+  }) => apiClient.post("/articles", data),
+
+  update: (
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      summary?: string;
+      venue_id?: string;
+      featured_image_url?: string;
+    }
+  ) => apiClient.put(`/articles/${id}`, data),
+
+  updateStatus: (id: string, status: "published" | "archived" | "pending") =>
+    apiClient.put(`/articles/${id}/status`, { status }),
+
+  delete: (id: string) => apiClient.delete(`/articles/${id}`),
+};
+
 // WebSocket configuration
 export const WEBSOCKET_URL =
   import.meta.env.VITE_WS_URL || "http://localhost:3001";

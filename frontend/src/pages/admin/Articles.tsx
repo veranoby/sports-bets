@@ -28,6 +28,7 @@ import {
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
+import StatusChip from "../../components/shared/StatusChip";
 
 // APIs
 import { articlesAPI, venuesAPI } from "../../config/api";
@@ -334,25 +335,6 @@ const AdminArticlesPage: React.FC = () => {
   }, [fetchData]);
 
   // Componentes auxiliares
-  const StatusBadge = ({ status }: { status: string }) => {
-    const colors = {
-      published: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      draft: "bg-gray-100 text-gray-800",
-      archived: "bg-red-100 text-red-800",
-    };
-
-    return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          colors[status as keyof typeof colors] || colors.draft
-        }`}
-      >
-        {status}
-      </span>
-    );
-  };
-
   const truncateText = (text: string, maxLength: number = 100) => {
     return text.length > maxLength
       ? text.substring(0, maxLength) + "..."
@@ -673,7 +655,7 @@ const AdminArticlesPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
-                      <StatusBadge status={article.status} />
+                      <StatusChip status={article.status} size="sm" />
 
                       {/* Acciones */}
                       <div className="flex gap-1">
@@ -806,7 +788,7 @@ const AdminArticlesPage: React.FC = () => {
                     {new Date(previewArticle.created_at).toLocaleDateString()}
                   </span>
                 </div>
-                <StatusBadge status={previewArticle.status} />
+                <StatusChip status={previewArticle.status} size="sm" />
               </div>
 
               <p className="text-lg text-gray-700 mb-4 font-medium">
