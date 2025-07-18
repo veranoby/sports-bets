@@ -1,14 +1,27 @@
-// sw.js - Service Worker para GalloBets PWA
-// ============================================
+// sw.js - Service Worker para GalloBets PWA (SPA Optimizado)
+// ========================================================
 
 const CACHE_NAME = "gallobets-v1.2.0";
 const SW_VERSION = "1.2.0";
 
-// Recursos críticos para cache - SOLO EXISTENTES
-const CORE_CACHE = ["/", "/login", "/offline.html"];
+// Recursos físicos reales para cache (solo archivos existentes)
+const CORE_CACHE = ["/", "/offline.html"];
 
 // Recursos estáticos
 const STATIC_CACHE = ["/assets/index.css", "/assets/index.js"];
+
+// Rutas de la SPA (manejadas por React Router)
+const SPA_ROUTES = [
+  "/dashboard",
+  "/events",
+  "/wallet",
+  "/bets",
+  "/profile",
+  "/venue",
+  "/admin",
+  "/operator",
+  "/login",
+];
 
 // APIs que NUNCA se cachean (críticas financieramente + WebSocket)
 const NEVER_CACHE = [
@@ -29,7 +42,7 @@ self.addEventListener("install", (event) => {
 
   event.waitUntil(
     Promise.all([
-      // Cache core - crítico para funcionamiento offline
+      // Cache core - solo archivos físicos
       caches.open(CACHE_NAME + "-core").then((cache) => {
         return cache.addAll(CORE_CACHE);
       }),
@@ -73,7 +86,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// ✅ FETCH - Estrategia de cache inteligente
+// ✅ FETCH - Estrategia de cache inteligente para SPA
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
@@ -83,7 +96,6 @@ self.addEventListener("fetch", (event) => {
       (path) => url.pathname.includes(path) || url.href.includes(path)
     )
   ) {
-    // Pasar directo al network sin interceptar
     return;
   }
 
@@ -98,9 +110,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 📱 Navegación - Cache First para USER/VENUE móvil
-  if (event.request.mode === "navigate") {
-    event.respondWith(navigationStrategy(event.request));
+  // 🏠 SPA Navigation - Servir index.html para rutas de la aplicación
+  if (isSPARoute(url.pathname)) {
+    event.respondWith(handleSPANavigation(event.request));
     return;
   }
 
@@ -114,12 +126,40 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(networkFirstStrategy(event.request));
 });
 
+// Función para detectar rutas SPA
+function isSPARoute(pathname) {
+  return (
+    SPA_ROUTES.some((route) => pathname.startsWith(route)) ||
+    pathname === "/" ||
+    pathname === "/login"
+  );
+}
+
+// Estrategia para manejar navegación SPA
+async function handleSPANavigation(request) {
+  try {
+    // Intentar red desde la red primero
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) return networkResponse;
+  } catch (error) {
+    console.log("🌐 SW: Fallback a cache para SPA route", request.url);
+  }
+
+  // Fallback: servir index.html desde cache
+  const cachedResponse = await caches.match("/");
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  // Último recurso: offline.html
+  return caches.match("/offline.html");
+}
+
 // ESTRATEGIA: Network First para APIs
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
 
-    // Solo cachear respuestas exitosas de APIs no críticas
     if (networkResponse.ok && !request.url.includes("/api/wallet/")) {
       const cache = await caches.open(CACHE_NAME + "-api");
       cache.put(request, networkResponse.clone());
@@ -127,13 +167,11 @@ async function networkFirstStrategy(request) {
 
     return networkResponse;
   } catch (error) {
-    // Fallback a cache para APIs no críticas
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
 
-    // Error específico por tipo de API
     if (request.url.includes("/api/events")) {
       return new Response(
         JSON.stringify({
@@ -166,53 +204,6 @@ async function cacheFirstStrategy(request) {
   } catch (error) {
     console.log("❌ SW: Error cargando asset", request.url);
     throw error;
-  }
-}
-
-// ESTRATEGIA: Navegación - Cache con fallback a offline
-async function navigationStrategy(request) {
-  try {
-    const networkResponse = await fetch(request);
-    return networkResponse;
-  } catch (error) {
-    // Fallback para rutas específicas de USER/VENUE
-    const url = new URL(request.url);
-    const pathname = url.pathname;
-
-    // Rutas USER - cachear para acceso offline
-    if (
-      ["/dashboard", "/events", "/bets", "/wallet", "/profile"].includes(
-        pathname
-      )
-    ) {
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return caches.match("/offline.html");
-    }
-
-    // Rutas VENUE - cachear dashboard básico
-    if (pathname.startsWith("/venue/")) {
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return caches.match("/offline.html");
-    }
-
-    // ADMIN/OPERATOR - NO offline (requieren conectividad)
-    if (pathname.startsWith("/admin/") || pathname.startsWith("/operator/")) {
-      return new Response(
-        "<h1>Sin conexión</h1><p>El panel administrativo requiere conexión a internet.</p>",
-        {
-          status: 503,
-          headers: { "Content-Type": "text/html" },
-        }
-      );
-    }
-
-    return caches.match("/offline.html");
   }
 }
 

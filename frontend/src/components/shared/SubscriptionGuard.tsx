@@ -1,6 +1,5 @@
-// frontend/src/components/shared/SubscriptionGuard.tsx - FIX CRÍTICO
+// frontend/src/components/shared/SubscriptionGuard.tsx - FIXED VERSION
 // ================================================================
-// FIX: Eliminar loop infinito que causa timeout masivo
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { AlertTriangle, Crown } from "lucide-react";
@@ -24,40 +23,57 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
     useSubscriptions();
   const [hasAccess, setHasAccess] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const mounted = useRef(true);
 
-  // ✅ FIX: Referencias estables para evitar loop infinito
-  const isInitialized = useRef(false);
-  const checkAccessRef = useRef(checkAccess);
-  const fetchCurrentRef = useRef(fetchCurrent);
+  // ✅ Memoizar las funciones para evitar recreación en cada render
+  const stableCheckAccess = useCallback(async () => {
+    try {
+      const result = await checkAccess();
+      return result;
+    } catch (err) {
+      console.error("Error in checkAccess:", err);
+      throw err;
+    }
+  }, [checkAccess]);
 
-  // Actualizar referencias sin causar re-renders
-  checkAccessRef.current = checkAccess;
-  fetchCurrentRef.current = fetchCurrent;
+  const stableFetchCurrent = useCallback(async () => {
+    try {
+      const result = await fetchCurrent();
+      return result;
+    } catch (err) {
+      console.error("Error in fetchCurrent:", err);
+      throw err;
+    }
+  }, [fetchCurrent]);
 
-  // ✅ FIX: useEffect SIN dependencias problemáticas
+  // ✅ Efecto con dependencias controladas
   useEffect(() => {
-    // Solo ejecutar una vez al montar
-    if (isInitialized.current || loading) return;
+    if (loading || !mounted.current) return;
 
     const verifyAccess = async () => {
       try {
-        isInitialized.current = true;
-
-        // Ejecutar en paralelo para mayor eficiencia
         const [accessResult] = await Promise.all([
-          checkAccessRef.current(),
-          fetchCurrentRef.current(),
+          stableCheckAccess(),
+          stableFetchCurrent(),
         ]);
 
-        setHasAccess(accessResult?.data?.hasAccess || false);
+        if (mounted.current) {
+          setHasAccess(accessResult?.data?.hasAccess || false);
+        }
       } catch (err) {
-        console.error("Error verificando acceso:", err);
-        setHasAccess(false);
+        if (mounted.current) {
+          console.error("Error verificando acceso:", err);
+          setHasAccess(false);
+        }
       }
     };
 
     verifyAccess();
-  }, []); // ✅ Array vacío - solo ejecutar al montar
+
+    return () => {
+      mounted.current = false;
+    };
+  }, [loading, stableCheckAccess, stableFetchCurrent]);
 
   if (loading) {
     return (
