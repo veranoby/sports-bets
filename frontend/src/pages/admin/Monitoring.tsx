@@ -103,22 +103,15 @@ const AdminMonitoringPage: React.FC = () => {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Fetch datos de monitoreo
+  // Fetch datos de monitoreo (sin mock)
   const fetchMonitoringData = useCallback(async () => {
     try {
       setError(null);
-
       const [servicesRes, metricsRes, alertsRes, statsRes] = await Promise.all([
-        systemAPI
-          .getServicesStatus()
-          .catch(() => ({ data: generateMockServices() })),
-        systemAPI
-          .getSystemMetrics()
-          .catch(() => ({ data: generateMockMetrics() })),
-        systemAPI.getAlerts().catch(() => ({ data: generateMockAlerts() })),
-        systemAPI
-          .getLiveStats()
-          .catch(() => ({ data: generateMockLiveStats() })),
+        systemAPI.getServicesStatus(),
+        systemAPI.getSystemMetrics(),
+        systemAPI.getAlerts(),
+        systemAPI.getLiveStats(),
       ]);
 
       setServices(servicesRes.data);
@@ -127,112 +120,15 @@ const AdminMonitoringPage: React.FC = () => {
       setLiveStats(statsRes.data);
       setLastUpdate(new Date());
     } catch (err) {
-      console.warn("Using mock data for monitoring:", err);
-      setServices(generateMockServices());
-      setSystemMetrics(generateMockMetrics());
-      setAlerts(generateMockAlerts());
-      setLiveStats(generateMockLiveStats());
+      setError("Error al cargar datos de monitoreo");
+      setServices([]);
+      setSystemMetrics(null);
+      setAlerts([]);
+      setLiveStats(null);
     } finally {
       setLoading(false);
     }
   }, []);
-
-  // Mock data generators
-  const generateMockServices = (): ServiceStatus[] => [
-    {
-      service: "API Backend",
-      status: "healthy",
-      uptime: 99.98,
-      responseTime: 125,
-      lastCheck: new Date().toISOString(),
-      details: { version: "1.0.0", port: 3001 },
-    },
-    {
-      service: "PostgreSQL",
-      status: "healthy",
-      uptime: 99.95,
-      responseTime: 8,
-      lastCheck: new Date().toISOString(),
-      details: { connections: 42, queryTime: "8ms" },
-    },
-    {
-      service: "Redis Cache",
-      status: "healthy",
-      uptime: 99.99,
-      responseTime: 2,
-      lastCheck: new Date().toISOString(),
-      details: { hitRate: "92.7%", size: "256MB" },
-    },
-    {
-      service: "Streaming Server",
-      status: "degraded",
-      uptime: 98.2,
-      responseTime: 450,
-      lastCheck: new Date().toISOString(),
-      details: { activeStreams: 3, errors: 2 },
-    },
-    {
-      service: "WebSocket",
-      status: "healthy",
-      uptime: 99.7,
-      responseTime: 50,
-      lastCheck: new Date().toISOString(),
-      details: { connections: 247, rooms: 12 },
-    },
-  ];
-
-  const generateMockMetrics = (): SystemMetrics => ({
-    cpu: {
-      usage: 45.2,
-      cores: 4,
-      loadAverage: [1.2, 1.5, 1.8],
-    },
-    memory: {
-      total: 8192,
-      used: 3580,
-      available: 4612,
-      usage: 43.7,
-    },
-    disk: {
-      total: 100,
-      used: 68,
-      available: 32,
-      usage: 68.0,
-    },
-    network: {
-      incoming: 1250,
-      outgoing: 980,
-      connections: 42,
-    },
-  });
-
-  const generateMockAlerts = (): AlertItem[] => [
-    {
-      id: "alert-1",
-      level: "warning",
-      service: "Streaming Server",
-      message: "High latency detected (>400ms)",
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-      resolved: false,
-    },
-    {
-      id: "alert-2",
-      level: "info",
-      service: "Database",
-      message: "Query optimization completed",
-      timestamp: new Date(Date.now() - 1800000).toISOString(),
-      resolved: true,
-    },
-  ];
-
-  const generateMockLiveStats = (): LiveStats => ({
-    activeUsers: 1247,
-    liveEvents: 3,
-    activeBets: 156,
-    connectionCount: 247,
-    requestsPerMinute: 3240,
-    errorRate: 0.12,
-  });
 
   // Auto refresh
   useEffect(() => {

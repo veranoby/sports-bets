@@ -211,6 +211,35 @@ export const walletAPI = {
   getBalance: () => apiClient.get("/wallet/balance"),
 
   getStats: () => apiClient.get("/wallet/stats"),
+
+  // ✅ Funciones nuevas para retiros y métricas financieras
+  getWithdrawalRequests: (params?: {
+    status?: string;
+    includeUser?: boolean;
+    limit?: number;
+  }) => apiClient.get("/wallet/withdrawal-requests", { params }),
+
+  processWithdrawalRequest: (
+    id: string,
+    data: {
+      status: string;
+      rejectionReason?: string;
+      transferProof?: string;
+      processNotes?: string;
+    }
+  ) => apiClient.put(`/wallet/withdrawal-requests/${id}`, data),
+
+  getFinancialMetrics: (params?: {
+    period?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) => apiClient.get("/wallet/financial-metrics", { params }),
+
+  getRevenueBySource: (params?: any) =>
+    apiClient.get("/wallet/revenue-by-source", { params }),
+
+  getRevenueTrends: (params?: any) =>
+    apiClient.get("/wallet/revenue-trends", { params }),
 };
 
 export const subscriptionsAPI = {

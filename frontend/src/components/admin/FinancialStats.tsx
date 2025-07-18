@@ -32,7 +32,7 @@ const FinancialStats: React.FC = () => {
     "month"
   );
 
-  // Cargar datos financieros
+  // Cargar datos financieros (sin mock)
   const loadFinancialData = async (): Promise<void> => {
     try {
       setIsLoading(true);
@@ -42,6 +42,7 @@ const FinancialStats: React.FC = () => {
       setFinancialData(data.data);
     } catch (err: any) {
       setError(err.message || "Error al cargar datos financieros");
+      setFinancialData(null); // Limpiar datos en caso de error
     } finally {
       setIsLoading(false);
     }
@@ -61,15 +62,17 @@ const FinancialStats: React.FC = () => {
   // Solo usar datos reales de la API
   const data = financialData;
 
+  // Renderizado condicional
   if (isLoading) return <LoadingSpinner text="Cargando datos financieros..." />;
   if (error) return <ErrorMessage error={error} onRetry={loadFinancialData} />;
-  if (!data)
+  if (!financialData) {
     return (
       <EmptyState
         title="Sin datos"
         description="No hay datos financieros disponibles."
       />
     );
+  }
 
   return (
     <div className="space-y-6">

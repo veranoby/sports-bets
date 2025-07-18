@@ -82,7 +82,8 @@ const SystemMonitoring: React.FC = () => {
       setSystemStatus(response.data); // Asume que la API devuelve { data: SystemStatus }
       setLastRefreshed(new Date());
     } catch (err: any) {
-      setError(err.message || "Error al cargar estado del sistema");
+      setError("Sistema de monitoreo no disponible");
+      setSystemStatus(null);
     } finally {
       setIsLoading(false);
     }

@@ -118,93 +118,20 @@ const AdminFinancePage: React.FC = () => {
           walletAPI.getRevenueTrends(params),
         ]);
 
-      setMetrics(metricsRes.data || generateMockMetrics());
-      setTransactions(
-        transactionsRes.data?.transactions || generateMockTransactions()
-      );
-      setRevenueBySource(revenueRes.data || generateMockRevenueBySource());
-      setTrendData(trendsRes.data || generateMockTrendData());
+      setMetrics(metricsRes.data || null);
+      setTransactions(transactionsRes.data?.transactions || []);
+      setRevenueBySource(revenueRes.data || null);
+      setTrendData(trendsRes.data || []);
     } catch (err) {
-      console.warn("Using mock data - API not available:", err);
-      // Usar datos mock para desarrollo
-      setMetrics(generateMockMetrics());
-      setTransactions(generateMockTransactions());
-      setRevenueBySource(generateMockRevenueBySource());
-      setTrendData(generateMockTrendData());
+      setError("Error al cargar datos financieros");
+      setMetrics(null);
+      setTransactions([]);
+      setRevenueBySource(null);
+      setTrendData([]);
     } finally {
       setLoading(false);
     }
   }, [timePeriod, dateFrom, dateTo]);
-
-  // Datos mock para desarrollo
-  const generateMockMetrics = (): FinancialMetrics => ({
-    totalRevenue: 45750,
-    commissionsRevenue: 38200,
-    subscriptionsRevenue: 7550,
-    totalDeposits: 125000,
-    totalWithdrawals: 98500,
-    totalBetsVolume: 764000,
-    activeUsers: 1247,
-    premiumUsers: 189,
-    netIncome: 26500,
-    previousPeriodRevenue: 41200,
-  });
-
-  const generateMockTransactions = (): Transaction[] => [
-    {
-      id: "tx-1",
-      type: "commission",
-      amount: 127.5,
-      userId: "user-1",
-      username: "carlos_gamer",
-      status: "completed",
-      createdAt: new Date().toISOString(),
-      description: "Comisión 5% apuesta ganada",
-    },
-    {
-      id: "tx-2",
-      type: "subscription",
-      amount: 29.99,
-      userId: "user-2",
-      username: "maria_apostadora",
-      status: "completed",
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      description: "Suscripción Premium mensual",
-    },
-    {
-      id: "tx-3",
-      type: "commission",
-      amount: 85.0,
-      userId: "user-3",
-      username: "pedro_gallero",
-      status: "completed",
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      description: "Comisión 5% apuesta ganada",
-    },
-  ];
-
-  const generateMockRevenueBySource = (): RevenueBySource => ({
-    commissions: 38200,
-    subscriptions: 7550,
-    other: 0,
-  });
-
-  const generateMockTrendData = (): TrendData[] => {
-    const data = [];
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      data.push({
-        date: date.toISOString().split("T")[0],
-        revenue: Math.random() * 2000 + 1000,
-        commissions: Math.random() * 1500 + 800,
-        subscriptions: Math.random() * 500 + 200,
-        deposits: Math.random() * 5000 + 3000,
-        withdrawals: Math.random() * 4000 + 2000,
-      });
-    }
-    return data;
-  };
 
   // Cálculos derivados
   const calculatedMetrics = useMemo(() => {
@@ -280,6 +207,18 @@ const AdminFinancePage: React.FC = () => {
 
   if (loading) {
     return <LoadingSpinner text="Cargando datos financieros..." />;
+  }
+
+  if (error) {
+    return <ErrorMessage error={error} onRetry={fetchFinancialData} />;
+  }
+
+  if (!metrics) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 text-center text-gray-500">
+        <p>No hay datos financieros disponibles.</p>
+      </div>
+    );
   }
 
   return (
@@ -363,14 +302,6 @@ const AdminFinancePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {error && (
-        <ErrorMessage
-          error={error}
-          onRetry={fetchFinancialData}
-          className="mb-6"
-        />
-      )}
 
       {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
