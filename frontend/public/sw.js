@@ -44,7 +44,11 @@ self.addEventListener("fetch", (event) => {
   }
 
   // ❌ NO interceptar WebSocket/APIs críticas
-  if (shouldNeverCache(request)) {
+  if (
+    NEVER_CACHE.some((path) => url.pathname.includes(path)) ||
+    request.headers.get("Upgrade") === "websocket"
+  ) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
