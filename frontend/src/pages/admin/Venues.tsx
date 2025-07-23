@@ -317,7 +317,7 @@ const AdminVenuesPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-white p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestión de Venues</h1>
@@ -475,7 +475,7 @@ const AdminVenuesPage: React.FC = () => {
       </Card>
 
       {/* Sección 4: Lista Principal */}
-      <Card className="p-6">
+      <Card color="white" className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             Lista de Venues ({filteredVenues.length})
@@ -496,9 +496,9 @@ const AdminVenuesPage: React.FC = () => {
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto ">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Venue
@@ -520,7 +520,7 @@ const AdminVenuesPage: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className=" divide-y divide-gray-200">
               {filteredVenues.length === 0 ? (
                 <tr>
                   <td

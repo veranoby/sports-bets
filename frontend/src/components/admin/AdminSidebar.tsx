@@ -31,7 +31,7 @@ const AdminSidebar = memo(() => {
   ];
 
   return (
-    <aside className="w-64 bg-gray-800 min-h-screen flex flex-col">
+    <aside className="w-64 bg-theme-header min-h-screen flex flex-col">
       <div className="p-4 flex-1">
         <h2 className="text-white text-lg font-bold mb-6">GalloBets Admin</h2>
         <nav className="space-y-2">

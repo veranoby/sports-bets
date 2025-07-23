@@ -27,7 +27,7 @@ interface CardProps {
   size?: "sm" | "md" | "lg";
 
   // Color themes
-  color?: "blue" | "red" | "green" | "yellow" | "gray" | "purple";
+  color?: "blue" | "red" | "green" | "yellow" | "gray" | "purple" | "white";
 
   // Interactions
   onClick?: () => void;
@@ -75,7 +75,7 @@ const Card: React.FC<CardProps> = ({
       case "error":
         return `${baseClasses} bg-red-50 border border-red-200 text-red-900`;
       default:
-        return `${baseClasses} bg-theme-card border border-[#596c95]`;
+        return `${baseClasses}  border border-[#596c95]`;
     }
   };
 
@@ -123,6 +123,11 @@ const Card: React.FC<CardProps> = ({
         icon: "text-purple-400",
         bg: "bg-purple-400/10",
         accent: "text-purple-400",
+      },
+      white: {
+        icon: "text-gray-800",
+        bg: "bg-white",
+        accent: "text-gray-800",
       },
     };
 

@@ -1,5 +1,6 @@
-// frontend/src/contexts/WebSocketContext.tsx - REGISTRY OPTIMIZADO
+// frontend/src/contexts/WebSocketContext.tsx - CORRECCIÓN MÍNIMA
 // ==================================================================
+// SOLO MODIFICAMOS LO NECESARIO PARA EVITAR EL BUCLE DE RECONEXIÓN
 
 import React, {
   createContext,
@@ -21,8 +22,6 @@ interface WebSocketContextType {
   joinRoom: (roomId: string) => void;
   leaveRoom: (roomId: string) => void;
   addListener: (event: string, handler: (data: any) => void) => () => void;
-
-  // ✅ NUEVOS: Funciones de debugging/monitoreo
   getListenerStats: () => {
     totalEvents: number;
     totalListeners: number;
@@ -50,8 +49,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   const socketRef = useRef<Socket | null>(null);
   const pendingRoomsRef = useRef<Set<string>>(new Set());
   const connectionPromiseRef = useRef<Promise<void> | null>(null);
+  const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ✅ REGISTRY OPTIMIZADO con límites y cleanup
+  // ✅ REGISTRY OPTIMIZADO
   const listenersRegistryRef = useRef<
     Map<
       string,
@@ -65,96 +65,79 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     >
   >(new Map());
 
-  // Cleanup automático cada 5 minutos
-  const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 🧹 FUNCIÓN DE CLEANUP OPTIMIZADA
+  // 🧹 FUNCIÓN DE LIMPIEZA DE LISTENERS HUÉRFANOS
   const cleanupOrphanedListeners = useCallback(() => {
-    let removedCount = 0;
-    const now = Date.now();
-    const STALE_THRESHOLD = 10 * 60 * 1000; // 10 minutos
+    if (!socketRef.current) return 0;
 
-    for (const [
-      event,
-      listenersMap,
-    ] of listenersRegistryRef.current.entries()) {
-      const staleListeners: Function[] = [];
+    const cutoffTime = Date.now() - 10 * 60 * 1000; // 10 minutos
+    let cleanedCount = 0;
 
-      for (const [handler, metadata] of listenersMap.entries()) {
-        // Remover listeners antiguos sin actividad
-        if (now - metadata.addedAt > STALE_THRESHOLD) {
-          staleListeners.push(handler);
+    listenersRegistryRef.current.forEach((eventListeners, event) => {
+      const listenersToRemove: Function[] = [];
+
+      eventListeners.forEach((metadata, handler) => {
+        if (metadata.addedAt < cutoffTime) {
+          listenersToRemove.push(handler);
+          cleanedCount++;
         }
-      }
-
-      // Remover listeners huérfanos
-      staleListeners.forEach((handler) => {
-        if (socketRef.current) {
-          socketRef.current.off(event, handler);
-        }
-        listenersMap.delete(handler);
-        removedCount++;
       });
 
-      // Remover eventos sin listeners
-      if (listenersMap.size === 0) {
+      listenersToRemove.forEach((handler) => {
+        socketRef.current?.off(event, handler);
+        eventListeners.delete(handler);
+      });
+
+      if (eventListeners.size === 0) {
         listenersRegistryRef.current.delete(event);
       }
+    });
+
+    if (cleanedCount > 0) {
+      console.log(`🧹 WebSocket: Limpiados ${cleanedCount} listeners huérfanos`);
     }
 
-    if (removedCount > 0) {
-      console.log(
-        `🧹 WebSocket: Limpiados ${removedCount} listeners huérfanos`
-      );
-    }
-
-    return removedCount;
+    return cleanedCount;
   }, []);
 
-  // 📊 FUNCIÓN DE ESTADÍSTICAS
+  // 📊 ESTADÍSTICAS DE LISTENERS
   const getListenerStats = useCallback(() => {
-    const stats = {
+    const events: Record<string, number> = {};
+    let totalListeners = 0;
+
+    listenersRegistryRef.current.forEach((eventListeners, event) => {
+      events[event] = eventListeners.size;
+      totalListeners += eventListeners.size;
+    });
+
+    return {
       totalEvents: listenersRegistryRef.current.size,
-      totalListeners: 0,
-      events: {} as Record<string, number>,
+      totalListeners,
+      events,
     };
-
-    for (const [
-      event,
-      listenersMap,
-    ] of listenersRegistryRef.current.entries()) {
-      const count = listenersMap.size;
-      stats.events[event] = count;
-      stats.totalListeners += count;
-    }
-
-    return stats;
   }, []);
 
-  // 🎧 FUNCIÓN OPTIMIZADA PARA AGREGAR LISTENERS
+  // 🎧 AGREGAR LISTENER CON LÍMITES
   const addListener = useCallback(
     (event: string, handler: (data: any) => void, componentId?: string) => {
-      if (!socketRef.current || !event || !handler) {
-        console.warn("⚠️ WebSocket: Parámetros inválidos para addListener");
+      if (!socketRef.current) {
+        console.warn("⚠️ WebSocket: No hay conexión activa");
         return () => {};
       }
 
-      // ✅ VERIFICAR LÍMITES
-      const currentStats = getListenerStats();
-
-      if (currentStats.totalEvents >= MAX_TOTAL_EVENTS) {
-        console.warn(
-          `⚠️ WebSocket: Demasiados eventos (${currentStats.totalEvents}), ejecutando cleanup`
-        );
+      // Verificar límite total de eventos
+      if (listenersRegistryRef.current.size >= MAX_TOTAL_EVENTS) {
+        console.warn(`⚠️ WebSocket: Demasiados eventos registrados`);
         cleanupOrphanedListeners();
       }
 
-      if (!listenersRegistryRef.current.has(event)) {
-        listenersRegistryRef.current.set(event, new Map());
+      // Obtener o crear lista de listeners para el evento
+      let eventListeners = listenersRegistryRef.current.get(event);
+      if (!eventListeners) {
+        eventListeners = new Map();
+        listenersRegistryRef.current.set(event, eventListeners);
       }
 
-      const eventListeners = listenersRegistryRef.current.get(event)!;
-
+      // Verificar límite por evento
       if (eventListeners.size >= MAX_LISTENERS_PER_EVENT) {
         console.warn(
           `⚠️ WebSocket: Demasiados listeners para evento '${event}' (${eventListeners.size})`
@@ -169,17 +152,13 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           const [oldHandler] = oldestEntry;
           socketRef.current.off(event, oldHandler);
           eventListeners.delete(oldHandler);
-          console.log(
-            `🧹 WebSocket: Removido listener más antiguo para '${event}'`
-          );
+          console.log(`🧹 WebSocket: Removido listener más antiguo para '${event}'`);
         }
       }
 
       // Verificar si ya está registrado
       if (eventListeners.has(handler)) {
-        console.warn(
-          `⚠️ WebSocket: Listener ya registrado para evento '${event}'`
-        );
+        console.warn(`⚠️ WebSocket: Listener ya registrado para evento '${event}'`);
         return () => {};
       }
 
@@ -213,13 +192,13 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     [getListenerStats, cleanupOrphanedListeners]
   );
 
-  // 🔗 CREAR CONEXIÓN (singleton pattern mantenido)
+  // 🔗 CREAR CONEXIÓN - CORREGIDO
   const createConnection = useCallback(async () => {
     if (connectionPromiseRef.current) {
       return connectionPromiseRef.current;
     }
 
-    // ✅ VERIFICAR ESTADO ANTES DE CONECTAR:
+    // ✅ VERIFICAR ESTADO ANTES DE CONECTAR
     if (socketRef.current?.connected) {
       return Promise.resolve();
     }
@@ -229,10 +208,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         setIsConnecting(true);
         setConnectionError(null);
 
-        const WEBSOCKET_URL =
-          import.meta.env.VITE_WS_URL || "http://localhost:3001";
+        const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
-        // ✅ LIMPIAR SOCKET ANTERIOR SOLO SI EXISTE Y ESTÁ DESCONECTADO:
+        // ✅ LIMPIAR SOCKET ANTERIOR SOLO SI EXISTE Y ESTÁ DESCONECTADO
         if (socketRef.current && !socketRef.current.connected) {
           socketRef.current.removeAllListeners();
           socketRef.current = null;
@@ -241,40 +219,35 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         const socket = io(WEBSOCKET_URL, {
           auth: { token },
           transports: ["websocket", "polling"],
-          timeout: 20000, // ✅ AUMENTAR TIMEOUT
+          timeout: 20000,
           reconnection: true,
           reconnectionAttempts: 5,
           reconnectionDelay: 1000,
         });
 
-        // ✅ AGREGAR HANDLER PARA onclose:
         socket.on("connect", () => {
           console.log("🟢 WebSocket conectado exitosamente");
           setIsConnected(true);
           setIsConnecting(false);
           setConnectionError(null);
           socketRef.current = socket;
+          
           // Reconectar a rooms pendientes
           pendingRoomsRef.current.forEach((roomId) => {
             socket.emit("join_room", roomId);
           });
+          
           resolve();
         });
 
         socket.on("disconnect", (reason) => {
           console.log("🔴 WebSocket desconectado:", reason);
           setIsConnected(false);
+          
           // ✅ NO limpiar socket en disconnect automático
-          if (reason !== "client namespace disconnect") {
+          if (reason !== "io client disconnect") {
             setConnectionError(`Disconnected: ${reason}`);
           }
-        });
-
-        // Opcional: handler para cierre bajo nivel
-        socket.io.engine.on("close", () => {
-          console.warn(
-            "⚠️ WebSocket engine closed before connection established"
-          );
         });
 
         socket.on("connect_error", (error) => {
@@ -292,7 +265,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     return connectionPromiseRef.current;
-  }, [token]);
+  }, [token]); // ✅ Solo token como dependencia
 
   // 📤 EMIT OPTIMIZADO
   const emit = useCallback((event: string, data?: any): boolean => {
@@ -321,21 +294,29 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // 🏗️ EFECTO PRINCIPAL DE CONEXIÓN
+  // 🏗️ EFECTO PRINCIPAL DE CONEXIÓN - CORREGIDO
   useEffect(() => {
     let mounted = true;
+    let connectTimer: NodeJS.Timeout;
 
     if (isAuthenticated && token) {
-      createConnection().catch((error) => {
-        if (mounted) {
-          console.error("Error conectando:", error);
+      // Pequeño delay para evitar reconexiones rápidas
+      connectTimer = setTimeout(() => {
+        if (mounted && !socketRef.current?.connected && !isConnecting) {
+          createConnection().catch((error) => {
+            if (mounted) {
+              console.error("Error conectando:", error);
+            }
+          });
         }
-      });
+      }, 100);
 
       // ✅ INICIALIZAR CLEANUP AUTOMÁTICO
-      cleanupIntervalRef.current = setInterval(() => {
-        cleanupOrphanedListeners();
-      }, CLEANUP_INTERVAL);
+      if (!cleanupIntervalRef.current) {
+        cleanupIntervalRef.current = setInterval(() => {
+          cleanupOrphanedListeners();
+        }, CLEANUP_INTERVAL);
+      }
     } else if (socketRef.current) {
       // Desconectar si no está autenticado
       socketRef.current.disconnect();
@@ -353,21 +334,11 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
     return () => {
       mounted = false;
-
-      if (cleanupIntervalRef.current) {
-        clearInterval(cleanupIntervalRef.current);
-        cleanupIntervalRef.current = null;
+      if (connectTimer) {
+        clearTimeout(connectTimer);
       }
-
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-
-      listenersRegistryRef.current.clear();
-      pendingRoomsRef.current.clear();
     };
-  }, [isAuthenticated, token, createConnection, cleanupOrphanedListeners]);
+  }, [isAuthenticated, token, isConnecting, cleanupOrphanedListeners]); // ✅ Dependencias corregidas
 
   // 🧹 CLEANUP AL DESMONTAR
   useEffect(() => {

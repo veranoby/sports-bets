@@ -386,7 +386,7 @@ const AdminEventsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-theme-card p-6">
       {/* Header con Acciones */}
       <div className="mb-6">
         <div className="flex items-center justify-between">

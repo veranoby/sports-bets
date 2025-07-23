@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth";
+import { authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
@@ -424,6 +425,46 @@ router.post(
         message: "Payment processed successfully",
       });
     });
+  })
+);
+
+// GET /api/wallet/withdrawal-requests
+router.get(
+  "/withdrawal-requests",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const transactions = await Transaction.findAll({
+      where: { type: "withdrawal" },
+      include: [{ model: User, as: "user" }],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json({
+      success: true,
+      data: { requests: transactions },
+    });
+  })
+);
+
+// GET /api/wallet/financial-metrics
+router.get(
+  "/financial-metrics",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    // Calcular métricas reales desde el modelo Transaction
+    const metrics = {
+      totalDeposits: await Transaction.sum("amount", {
+        where: { type: "deposit" },
+      }),
+      totalWithdrawals: await Transaction.sum("amount", {
+        where: { type: "withdrawal" },
+      }),
+      // Agregar más métricas según sea necesario
+    };
+
+    res.json({ success: true, data: metrics });
   })
 );
 

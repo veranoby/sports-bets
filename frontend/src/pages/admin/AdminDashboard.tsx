@@ -70,7 +70,11 @@ const AdminDashboard: React.FC = () => {
         usersAPI.getAll({ status: "pending", limit: 1 }),
         usersAPI.getAll({ role: "venue", status: "pending", limit: 1 }),
         articlesAPI.getAll({ status: "pending", limit: 1 }),
-        walletAPI.getWithdrawalRequests({ status: "new" }),
+        walletAPI.getTransactions({
+          type: "withdrawal",
+          status: "pending",
+          limit: 1000, // Para obtener todas las solicitudes pendientes
+        }),
         walletAPI.getStats({ period: "today" }),
       ]);
 
