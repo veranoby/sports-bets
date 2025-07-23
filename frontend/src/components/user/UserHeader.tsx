@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
+//import { useWebSocketListener } from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 const UserHeader = memo(() => {
   const location = useLocation();
