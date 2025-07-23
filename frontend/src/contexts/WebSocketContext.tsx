@@ -1,6 +1,5 @@
-// frontend/src/contexts/WebSocketContext.tsx - CORRECCIÓN MÍNIMA
+// frontend/src/contexts/WebSocketContext.tsx - VERSIÓN COMPLETA CORREGIDA
 // ==================================================================
-// SOLO MODIFICAMOS LO NECESARIO PARA EVITAR EL BUCLE DE RECONEXIÓN
 
 import React, {
   createContext,
@@ -10,6 +9,7 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
@@ -21,7 +21,11 @@ interface WebSocketContextType {
   emit: (event: string, data?: any) => boolean;
   joinRoom: (roomId: string) => void;
   leaveRoom: (roomId: string) => void;
-  addListener: (event: string, handler: (data: any) => void) => () => void;
+  addListener: (
+    event: string,
+    handler: (data: any) => void,
+    componentId?: string
+  ) => () => void;
   getListenerStats: () => {
     totalEvents: number;
     totalListeners: number;
@@ -93,7 +97,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     if (cleanedCount > 0) {
-      console.log(`🧹 WebSocket: Limpiados ${cleanedCount} listeners huérfanos`);
+      console.log(
+        `🧹 WebSocket: Limpiados ${cleanedCount} listeners huérfanos`
+      );
     }
 
     return cleanedCount;
@@ -152,13 +158,17 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           const [oldHandler] = oldestEntry;
           socketRef.current.off(event, oldHandler);
           eventListeners.delete(oldHandler);
-          console.log(`🧹 WebSocket: Removido listener más antiguo para '${event}'`);
+          console.log(
+            `🧹 WebSocket: Removido listener más antiguo para '${event}'`
+          );
         }
       }
 
       // Verificar si ya está registrado
       if (eventListeners.has(handler)) {
-        console.warn(`⚠️ WebSocket: Listener ya registrado para evento '${event}'`);
+        console.warn(
+          `⚠️ WebSocket: Listener ya registrado para evento '${event}'`
+        );
         return () => {};
       }
 
@@ -189,7 +199,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         }
       };
     },
-    [getListenerStats, cleanupOrphanedListeners]
+    [cleanupOrphanedListeners]
   );
 
   // 🔗 CREAR CONEXIÓN - CORREGIDO
@@ -208,7 +218,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         setIsConnecting(true);
         setConnectionError(null);
 
-        const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
+        const WEBSOCKET_URL =
+          import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
         // ✅ LIMPIAR SOCKET ANTERIOR SOLO SI EXISTE Y ESTÁ DESCONECTADO
         if (socketRef.current && !socketRef.current.connected) {
@@ -231,19 +242,20 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           setIsConnecting(false);
           setConnectionError(null);
           socketRef.current = socket;
-          
+          connectionPromiseRef.current = null;
+
           // Reconectar a rooms pendientes
           pendingRoomsRef.current.forEach((roomId) => {
             socket.emit("join_room", roomId);
           });
-          
+
           resolve();
         });
 
         socket.on("disconnect", (reason) => {
           console.log("🔴 WebSocket desconectado:", reason);
           setIsConnected(false);
-          
+
           // ✅ NO limpiar socket en disconnect automático
           if (reason !== "io client disconnect") {
             setConnectionError(`Disconnected: ${reason}`);
@@ -254,12 +266,14 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           console.error("🚨 Error de conexión:", error.message);
           setConnectionError(error.message);
           setIsConnecting(false);
+          connectionPromiseRef.current = null;
           reject(error);
         });
       } catch (error: any) {
         console.error("❌ Error creando WebSocket:", error);
         setConnectionError(error.message);
         setIsConnecting(false);
+        connectionPromiseRef.current = null;
         reject(error);
       }
     });
@@ -356,7 +370,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   // ✅ VALOR MEMOIZADO
-  const value = React.useMemo<WebSocketContextType>(
+  const value = useMemo<WebSocketContextType>(
     () => ({
       isConnected,
       connectionError,
@@ -388,6 +402,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   );
 };
 
+// ✅ HOOK BASE
 export const useWebSocketContext = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
@@ -396,4 +411,74 @@ export const useWebSocketContext = () => {
     );
   }
   return context;
+};
+
+// 🎯 HOOK PARA SOLO EMITIR (sin listeners)
+export const useWebSocketEmit = () => {
+  const { emit, isConnected } = useWebSocketContext();
+
+  return useMemo(
+    () => ({
+      isConnected,
+      emit,
+      emitBetCreated: (betData: any) => emit("bet_created", betData),
+      emitBetAccepted: (betId: string) => emit("bet_accepted", { betId }),
+      emitJoinFight: (fightId: string) => emit("join_fight", { fightId }),
+      emitLeaveFight: (fightId: string) => emit("leave_fight", { fightId }),
+    }),
+    [isConnected, emit]
+  );
+};
+
+// 🎧 HOOK PARA UN SOLO LISTENER
+export const useWebSocketListener = <T = any,>(
+  event: string,
+  handler: (data: T) => void,
+  dependencies: any[] = []
+) => {
+  const { isConnected, addListener } = useWebSocketContext();
+  const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  const stableHandler = useCallback(handler, dependencies);
+
+  useEffect(() => {
+    if (!event || !isConnected) return;
+
+    if (cleanupRef.current) {
+      cleanupRef.current();
+    }
+
+    cleanupRef.current = addListener(
+      event,
+      stableHandler,
+      componentIdRef.current
+    );
+
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, [event, isConnected, stableHandler, addListener]);
+
+  return { isConnected };
+};
+
+// 🏠 HOOK PARA GESTIÓN DE ROOMS
+export const useWebSocketRoom = (roomId: string) => {
+  const { joinRoom, leaveRoom, isConnected } = useWebSocketContext();
+
+  useEffect(() => {
+    if (!roomId || !isConnected) return;
+
+    joinRoom(roomId);
+
+    return () => {
+      leaveRoom(roomId);
+    };
+  }, [roomId, isConnected, joinRoom, leaveRoom]);
+
+  return { isConnected, roomId };
 };
