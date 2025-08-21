@@ -54,10 +54,11 @@ class User extends sequelize_1.Model {
     canPerformRole(role) {
         var _b;
         const roleHierarchy = {
-            admin: ["admin", "operator", "venue", "user"],
+            admin: ["admin", "operator", "venue", "user", "gallera"],
             operator: ["operator"],
             venue: ["venue"],
             user: ["user"],
+            gallera: ["gallera"],
         };
         return ((_b = roleHierarchy[this.role]) === null || _b === void 0 ? void 0 : _b.includes(role)) || false;
     }
@@ -118,7 +119,7 @@ User.init({
         },
     },
     role: {
-        type: sequelize_1.DataTypes.ENUM("admin", "operator", "venue", "user"),
+        type: sequelize_1.DataTypes.ENUM("admin", "operator", "venue", "user", "gallera"),
         allowNull: false,
         defaultValue: "user",
     },

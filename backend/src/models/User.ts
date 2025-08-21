@@ -38,7 +38,7 @@ export class User extends Model<
   declare username: string;
   declare email: string;
   declare passwordHash: string;
-  declare role: "admin" | "operator" | "venue" | "user";
+  declare role: "admin" | "operator" | "venue" | "user" | "gallera";
   declare isActive: CreationOptional<boolean>;
   declare profileInfo: CreationOptional<UserProfile>;
   declare lastLogin: CreationOptional<Date>;
@@ -65,10 +65,11 @@ export class User extends Model<
   // Método para verificar si el usuario puede realizar determinadas acciones
   canPerformRole(role: string): boolean {
     const roleHierarchy = {
-      admin: ["admin", "operator", "venue", "user"],
+      admin: ["admin", "operator", "venue", "user", "gallera"],
       operator: ["operator"],
       venue: ["venue"],
       user: ["user"],
+      gallera: ["gallera"],
     };
 
     return roleHierarchy[this.role]?.includes(role) || false;
@@ -136,7 +137,7 @@ User.init(
       },
     },
     role: {
-      type: DataTypes.ENUM("admin", "operator", "venue", "user"),
+      type: DataTypes.ENUM("admin", "operator", "venue", "user", "gallera"),
       allowNull: false,
       defaultValue: "user",
     },

@@ -91,7 +91,7 @@ export const validateStreamToken = async (
 
     // Verify event is still live
     const event = await Event.findByPk(decoded.eventId);
-    if (!event || event.status !== 'live') {
+    if (!event || event.status !== 'in-progress') {
       return res.status(403).json({
         success: false,
         message: 'Event is not currently live',

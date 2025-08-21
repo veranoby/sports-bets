@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
+const auth_2 = require("../middleware/auth");
 const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
@@ -337,5 +338,31 @@ router.post("/process-payment",
             message: "Payment processed successfully",
         });
     }));
+})));
+// GET /api/wallet/withdrawal-requests
+router.get("/withdrawal-requests", auth_1.authenticate, (0, auth_2.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const transactions = yield models_1.Transaction.findAll({
+        where: { type: "withdrawal" },
+        include: [{ model: models_1.User, as: "user" }],
+        order: [["createdAt", "DESC"]],
+    });
+    res.json({
+        success: true,
+        data: { requests: transactions },
+    });
+})));
+// GET /api/wallet/financial-metrics
+router.get("/financial-metrics", auth_1.authenticate, (0, auth_2.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Calcular métricas reales desde el modelo Transaction
+    const metrics = {
+        totalDeposits: yield models_1.Transaction.sum("amount", {
+            where: { type: "deposit" },
+        }),
+        totalWithdrawals: yield models_1.Transaction.sum("amount", {
+            where: { type: "withdrawal" },
+        }),
+        // Agregar más métricas según sea necesario
+    };
+    res.json({ success: true, data: metrics });
 })));
 exports.default = router;

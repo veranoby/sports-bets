@@ -141,7 +141,7 @@ router.post(
     const { title, content, summary, venue_id, featured_image_url } = req.body;
 
     // Galleras can only create articles in draft status
-    let articleStatus = "published";
+    let articleStatus: "draft" | "pending" | "published" | "archived" = "published";
     let publishedAt = new Date();
     
     if (req.user!.role === "gallera") {

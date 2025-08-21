@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
 const errorHandler_1 = require("../middleware/errorHandler");
+const sanitization_1 = require("../middleware/sanitization");
 const Article_1 = require("../models/Article");
 const User_1 = require("../models/User");
 const Venue_1 = require("../models/Venue");
@@ -103,27 +104,25 @@ router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void
         data: article.toPublicJSON(),
     });
 })));
-// POST /api/articles - Crear artículo (solo admin/operator/venue)
-router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator", "venue"), [
+// POST /api/articles - Crear artículo (solo admin/gallera)
+router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"), [
     (0, express_validator_1.body)("title").isString().isLength({ min: 5, max: 255 }),
     (0, express_validator_1.body)("content").isString().isLength({ min: 10 }),
     (0, express_validator_1.body)("summary").isString().isLength({ min: 10, max: 500 }),
     (0, express_validator_1.body)("venue_id").optional().isUUID(),
     (0, express_validator_1.body)("featured_image_url").optional().isURL(),
-], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+], sanitization_1.sanitizeArticleContent, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         throw new Error("Validation failed");
     }
     const { title, content, summary, venue_id, featured_image_url } = req.body;
-    // Venues solo pueden crear artículos para sus propias galleras
-    if (req.user.role === "venue" && venue_id) {
-        const venue = yield Venue_1.Venue.findOne({
-            where: { id: venue_id, ownerId: req.user.id },
-        });
-        if (!venue) {
-            throw new Error("Can only create articles for your own venues");
-        }
+    // Galleras can only create articles in draft status
+    let articleStatus = "published";
+    let publishedAt = new Date();
+    if (req.user.role === "gallera") {
+        articleStatus = "pending";
+        publishedAt = undefined;
     }
     const article = yield Article_1.Article.create({
         title,
@@ -132,8 +131,8 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator",
         author_id: req.user.id,
         venue_id,
         featured_image_url,
-        status: req.user.role === "venue" ? "pending" : "published",
-        published_at: req.user.role === "venue" ? undefined : new Date(),
+        status: articleStatus,
+        published_at: publishedAt,
     });
     res.status(201).json({
         success: true,
@@ -149,6 +148,22 @@ router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin", "o
     }
     article.status = status;
     if (status === "published" && !article.published_at) {
+        article.published_at = new Date();
+    }
+    yield article.save();
+    res.json({
+        success: true,
+        data: article.toPublicJSON(),
+    });
+})));
+// PUT /api/articles/:id/publish - Publish article (admin only)
+router.put("/:id/publish", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const article = yield Article_1.Article.findByPk(req.params.id);
+    if (!article) {
+        throw errorHandler_1.errors.notFound("Article not found");
+    }
+    article.status = "published";
+    if (!article.published_at) {
         article.published_at = new Date();
     }
     yield article.save();

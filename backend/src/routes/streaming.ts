@@ -62,10 +62,13 @@ router.get(
     // Check if event exists and is live
     const event = await Event.findByPk(eventId);
     if (!event) {
-      throw errors.notFound("Event not found");
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
     }
 
-    if (event.status !== 'live') {
+    if (event.status !== 'in-progress') {
       return res.status(403).json({
         success: false,
         message: "Event is not currently live"
@@ -129,8 +132,8 @@ router.get(
         streamUrl: event.streamUrl,
         token: token,
         expiresAt: new Date(tokenData.exp * 1000).toISOString(),
-        quality: event.maxQuality || '720p',
-        availableQualities: event.availableQualities || ['720p', '480p', '360p']
+        quality: '720p',
+        availableQualities: ['720p', '480p', '360p']
       }
     });
   })
@@ -201,11 +204,11 @@ router.post(
 
       // Update event status
       await event.update({
-        status: 'live',
+        status: 'in-progress',
         streamUrl: streamResult.hlsUrl,
-        streamKey: streamKey,
-        streamStartedAt: new Date(),
-        streamOperatorId: operatorId
+        streamKey: streamKey
+        // streamStartedAt: new Date(), // Field not in Event model
+        // streamOperatorId: operatorId  // Field not in Event model
       });
 
       res.status(201).json({
@@ -286,10 +289,10 @@ router.post(
         const event = await Event.findByPk(targetStream.eventId);
         if (event) {
           await event.update({
-            status: 'ended',
+            status: 'completed',
             streamUrl: null,
-            streamKey: null,
-            streamEndedAt: new Date()
+            streamKey: null
+            // streamEndedAt: new Date() // Field not in Event model
           });
         }
       }

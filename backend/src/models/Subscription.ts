@@ -1,123 +1,228 @@
-import {
-  Model,
-  DataTypes,
-  CreationOptional,
-  InferAttributes,
-  InferCreationAttributes,
-  ForeignKey,
-  BelongsToCreateAssociationMixin,
-  BelongsToGetAssociationMixin,
-  BelongsToSetAssociationMixin,
-} from "sequelize";
-import sequelize from "../config/database";
-import { User } from "./User";
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
 
-// Definición del modelo Subscription
-export class Subscription extends Model<
-  InferAttributes<Subscription>,
-  InferCreationAttributes<Subscription>
-> {
-  declare id: CreationOptional<string>;
-  declare userId: ForeignKey<User["id"]>;
-  declare plan: "daily" | "monthly";
-  declare startDate: Date;
-  declare endDate: Date;
-  declare status: CreationOptional<"active" | "expired" | "cancelled">;
-  declare autoRenew: CreationOptional<boolean>;
-  declare paymentId: CreationOptional<string>;
-  declare amount: CreationOptional<number>;
-  declare metadata: CreationOptional<any>;
-  declare createdAt: CreationOptional<Date>;
-  declare updatedAt: CreationOptional<Date>;
+// Subscription attributes interface
+export interface SubscriptionAttributes {
+  id: string;
+  userId: string;
+  type: 'daily' | 'monthly';
+  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  kushkiSubscriptionId?: string;
+  paymentMethod: 'card' | 'cash' | 'transfer';
+  autoRenew: boolean;
+  amount: number; // Amount in cents
+  currency: string;
+  expiresAt: Date;
+  nextBillingDate?: Date;
+  cancelledAt?: Date;
+  cancelReason?: string;
+  retryCount: number;
+  maxRetries: number;
+  features: string[];
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-  // Asociaciones
-  declare getUser: BelongsToGetAssociationMixin<User>;
-  declare setUser: BelongsToSetAssociationMixin<User, number>;
+// Optional attributes for creation
+export interface SubscriptionCreationAttributes 
+  extends Optional<SubscriptionAttributes, 'id' | 'createdAt' | 'updatedAt' | 'retryCount' | 'maxRetries'> {}
 
-  // Métodos de instancia
-  isActive(): boolean {
-    return this.status === "active" && new Date() <= this.endDate;
+// Subscription model class
+export class Subscription extends Model<SubscriptionAttributes, SubscriptionCreationAttributes> 
+  implements SubscriptionAttributes {
+  
+  public id!: string;
+  public userId!: string;
+  public type!: 'daily' | 'monthly';
+  public status!: 'active' | 'cancelled' | 'expired' | 'pending';
+  public kushkiSubscriptionId?: string;
+  public paymentMethod!: 'card' | 'cash' | 'transfer';
+  public autoRenew!: boolean;
+  public amount!: number;
+  public currency!: string;
+  public expiresAt!: Date;
+  public nextBillingDate?: Date;
+  public cancelledAt?: Date;
+  public cancelReason?: string;
+  public retryCount!: number;
+  public maxRetries!: number;
+  public features!: string[];
+  public metadata?: Record<string, any>;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+
+  // Instance methods
+  public isActive(): boolean {
+    return this.status === 'active' && new Date(this.expiresAt) > new Date();
   }
 
-  isExpired(): boolean {
-    return this.status === "expired" || new Date() > this.endDate;
+  public isExpired(): boolean {
+    return this.status === 'expired' || new Date(this.expiresAt) <= new Date();
   }
 
-  isCancelled(): boolean {
-    return this.status === "cancelled";
+  public isCancelled(): boolean {
+    return this.status === 'cancelled';
   }
 
-  canRenew(): boolean {
-    return this.autoRenew && this.status === "active";
-  }
-
-  daysRemaining(): number {
+  public getRemainingDays(): number {
     if (this.isExpired()) return 0;
     const now = new Date();
-    const diff = this.endDate.getTime() - now.getTime();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    const diffTime = this.expiresAt.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
   }
 
-  getPlanDuration(): number {
-    switch (this.plan) {
-      case "daily":
-        return 24; // 24 horas en lugar de 1 día
-      case "monthly":
-        return 30 * 24; // 30 días en horas
-      default:
-        return 24;
-    }
+  public canRetry(): boolean {
+    return this.retryCount < this.maxRetries;
   }
 
-  getPlanDurationUnit(): string {
-    switch (this.plan) {
-      case "daily":
-        return "hours"; // horas para precisión exacta
-      case "monthly":
-        return "hours"; // también en horas para consistencia
-      default:
-        return "hours";
-    }
+  public hasFeature(feature: string): boolean {
+    return this.features.includes(feature);
   }
 
-  getPlanPrice(): number {
-    const prices = {
-      daily: 2.99,
-      monthly: 29.99,
-    };
-    return prices[this.plan];
+  public async markAsExpired(): Promise<void> {
+    await this.update({
+      status: 'expired',
+      autoRenew: false,
+      nextBillingDate: null
+    });
   }
 
-  async extend(): Promise<void> {
-    const duration = this.getPlanDuration();
-    this.endDate = new Date(
-      this.endDate.getTime() + duration * 24 * 60 * 60 * 1000
-    );
-    await this.save();
+  public async incrementRetryCount(): Promise<void> {
+    await this.update({
+      retryCount: this.retryCount + 1
+    });
   }
 
-  async cancel(): Promise<void> {
-    this.status = "cancelled";
-    this.autoRenew = false;
-    await this.save();
+  public async resetRetryCount(): Promise<void> {
+    await this.update({
+      retryCount: 0
+    });
   }
 
-  toPublicJSON() {
+  public getFormattedAmount(): string {
+    const amount = this.amount / 100; // Convert cents to dollars
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: this.currency
+    }).format(amount);
+  }
+
+  // Static methods
+  static async findActiveByUserId(userId: string): Promise<Subscription | null> {
+    return await Subscription.findOne({
+      where: {
+        userId,
+        status: 'active',
+        expiresAt: {
+          [require('sequelize').Op.gt]: new Date()
+        }
+      },
+      order: [['createdAt', 'DESC']]
+    });
+  }
+
+  static async findByKushkiSubscriptionId(kushkiSubscriptionId: string): Promise<Subscription | null> {
+    return await Subscription.findOne({
+      where: { kushkiSubscriptionId }
+    });
+  }
+
+  static async findExpiredSubscriptions(): Promise<Subscription[]> {
+    return await Subscription.findAll({
+      where: {
+        status: 'active',
+        expiresAt: {
+          [require('sequelize').Op.lte]: new Date()
+        }
+      }
+    });
+  }
+
+  static async findRetryableSubscriptions(): Promise<Subscription[]> {
+    return await Subscription.findAll({
+      where: {
+        status: 'active',
+        retryCount: {
+          [require('sequelize').Op.lt]: require('sequelize').col('maxRetries')
+        },
+        expiresAt: {
+          [require('sequelize').Op.lte]: new Date()
+        }
+      }
+    });
+  }
+
+  static async getSubscriptionStats(userId?: string): Promise<{
+    total: number;
+    active: number;
+    cancelled: number;
+    expired: number;
+  }> {
+    const whereClause = userId ? { userId } : {};
+    
+    const [total, active, cancelled, expired] = await Promise.all([
+      Subscription.count({ where: whereClause }),
+      Subscription.count({ where: { ...whereClause, status: 'active' } }),
+      Subscription.count({ where: { ...whereClause, status: 'cancelled' } }),
+      Subscription.count({ where: { ...whereClause, status: 'expired' } })
+    ]);
+
+    return { total, active, cancelled, expired };
+  }
+
+  // Legacy methods for compatibility with old code
+  public getPlanPrice(): number {
+    return this.amount / 100; // Convert cents to dollars
+  }
+
+  public daysRemaining(): number {
+    return this.getRemainingDays();
+  }
+
+  public async extend(): Promise<void> {
+    const extensionTime = this.type === 'daily' 
+      ? 24 * 60 * 60 * 1000 // 24 hours
+      : 30 * 24 * 60 * 60 * 1000; // 30 days
+    
+    await this.update({
+      expiresAt: new Date(this.expiresAt.getTime() + extensionTime)
+    });
+  }
+
+  public async cancel(): Promise<void> {
+    await this.update({
+      status: 'cancelled',
+      cancelledAt: new Date(),
+      autoRenew: false,
+      nextBillingDate: null
+    });
+  }
+
+  public toPublicJSON() {
     return {
       id: this.id,
-      plan: this.plan,
-      startDate: this.startDate,
-      endDate: this.endDate,
+      type: this.type,
+      plan: this.type, // Legacy compatibility
       status: this.status,
+      expiresAt: this.expiresAt,
+      endDate: this.expiresAt, // Legacy compatibility
       autoRenew: this.autoRenew,
       amount: this.amount,
-      daysRemaining: this.daysRemaining(),
+      formattedAmount: this.getFormattedAmount(),
+      currency: this.currency,
+      features: this.features,
+      remainingDays: this.getRemainingDays(),
+      daysRemaining: this.getRemainingDays(), // Legacy compatibility
       isActive: this.isActive(),
+      nextBillingDate: this.nextBillingDate,
+      createdAt: this.createdAt
     };
   }
 }
 
-// Inicialización del modelo
+// Define the model
 Subscription.init(
   {
     id: {
@@ -129,110 +234,158 @@ Subscription.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: User,
-        key: "id",
+        model: 'users',
+        key: 'id'
       },
+      onDelete: 'CASCADE'
     },
-    plan: {
-      type: DataTypes.ENUM("daily", "monthly"),
-      allowNull: false,
-    },
-    startDate: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    endDate: {
-      type: DataTypes.DATE,
+    type: {
+      type: DataTypes.ENUM('daily', 'monthly'),
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("active", "expired", "cancelled"),
+      type: DataTypes.ENUM('active', 'cancelled', 'expired', 'pending'),
       allowNull: false,
-      defaultValue: "active",
+      defaultValue: 'pending'
+    },
+    kushkiSubscriptionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true
+    },
+    paymentMethod: {
+      type: DataTypes.ENUM('card', 'cash', 'transfer'),
+      allowNull: false,
+      defaultValue: 'card'
     },
     autoRenew: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
-    },
-    paymentId: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
+      defaultValue: false
     },
     amount: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.INTEGER, // Amount in cents
+      allowNull: false,
+      validate: {
+        min: 0
+      }
+    },
+    currency: {
+      type: DataTypes.STRING(3),
+      allowNull: false,
+      defaultValue: 'USD'
+    },
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    nextBillingDate: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
+    cancelledAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    cancelReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    retryCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: {
+        min: 0
+      }
+    },
+    maxRetries: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 3,
+      validate: {
+        min: 0
+      }
+    },
+    features: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: () => {
+        // Default features based on subscription type
+        return ['Live streaming', 'HD quality', 'Chat access'];
+      }
+    },
     metadata: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
     sequelize,
-    modelName: "Subscription",
-    tableName: "subscriptions",
+    tableName: 'subscriptions',
+    modelName: 'Subscription',
     timestamps: true,
     indexes: [
       {
-        fields: ["user_id"],
+        fields: ['userId']
       },
       {
-        fields: ["status"],
+        fields: ['status']
       },
       {
-        fields: ["end_date"],
+        fields: ['type']
       },
       {
-        fields: ["auto_renew"],
+        fields: ['expiresAt']
       },
+      {
+        fields: ['kushkiSubscriptionId'],
+        unique: true,
+        where: {
+          kushkiSubscriptionId: {
+            [require('sequelize').Op.ne]: null
+          }
+        }
+      },
+      {
+        fields: ['status', 'expiresAt']
+      },
+      {
+        fields: ['retryCount', 'maxRetries']
+      }
     ],
     hooks: {
       beforeCreate: (subscription: Subscription) => {
-        // Configurar fecha de fin basada en el plan
-        if (!subscription.endDate) {
-          const duration = subscription.getPlanDuration();
-          const unit = subscription.getPlanDurationUnit();
-
-          if (unit === "hours") {
-            // Para planes diarios: 24 horas exactas desde el momento de pago
-            subscription.endDate = new Date(
-              subscription.startDate.getTime() + duration * 60 * 60 * 1000
-            );
-          } else {
-            // Para otros planes: días completos
-            subscription.endDate = new Date(
-              subscription.startDate.getTime() + duration * 24 * 60 * 60 * 1000
-            );
+        // Set default features based on subscription type
+        if (!subscription.features || subscription.features.length === 0) {
+          subscription.features = subscription.type === 'daily'
+            ? ['Live streaming', 'HD quality', 'Chat access']
+            : ['Live streaming', '720p quality', 'Chat access', 'Ad-free', 'Exclusive content'];
+        }
+      },
+      
+      beforeUpdate: (subscription: Subscription) => {
+        // Auto-expire subscriptions that have passed their expiry date
+        if (subscription.changed('expiresAt') || subscription.changed('status')) {
+          if (subscription.status === 'active' && subscription.isExpired()) {
+            subscription.status = 'expired';
+            subscription.autoRenew = false;
+            subscription.nextBillingDate = null;
           }
         }
-
-        // Configurar precio si no está establecido
-        if (!subscription.amount) {
-          subscription.amount = subscription.getPlanPrice();
-        }
-      },
-      beforeUpdate: (subscription: Subscription) => {
-        // Actualizar estado si la suscripción expiró
-        if (
-          subscription.status === "active" &&
-          new Date() > subscription.endDate
-        ) {
-          subscription.status = "expired";
-        }
-      },
-    },
+      }
+    }
   }
 );
-
-// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export default Subscription;

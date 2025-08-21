@@ -8,93 +8,177 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subscription = void 0;
 const sequelize_1 = require("sequelize");
-const database_1 = __importDefault(require("../config/database"));
-const User_1 = require("./User");
-// Definición del modelo Subscription
+const database_1 = require("../config/database");
+// Subscription model class
 class Subscription extends sequelize_1.Model {
-    // Métodos de instancia
+    // Instance methods
     isActive() {
-        return this.status === "active" && new Date() <= this.endDate;
+        return this.status === 'active' && new Date(this.expiresAt) > new Date();
     }
     isExpired() {
-        return this.status === "expired" || new Date() > this.endDate;
+        return this.status === 'expired' || new Date(this.expiresAt) <= new Date();
     }
     isCancelled() {
-        return this.status === "cancelled";
+        return this.status === 'cancelled';
     }
-    canRenew() {
-        return this.autoRenew && this.status === "active";
-    }
-    daysRemaining() {
+    getRemainingDays() {
         if (this.isExpired())
             return 0;
         const now = new Date();
-        const diff = this.endDate.getTime() - now.getTime();
-        return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+        const diffTime = this.expiresAt.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(0, diffDays);
     }
-    getPlanDuration() {
-        switch (this.plan) {
-            case "daily":
-                return 24; // 24 horas en lugar de 1 día
-            case "monthly":
-                return 30 * 24; // 30 días en horas
-            default:
-                return 24;
-        }
+    canRetry() {
+        return this.retryCount < this.maxRetries;
     }
-    getPlanDurationUnit() {
-        switch (this.plan) {
-            case "daily":
-                return "hours"; // horas para precisión exacta
-            case "monthly":
-                return "hours"; // también en horas para consistencia
-            default:
-                return "hours";
-        }
+    hasFeature(feature) {
+        return this.features.includes(feature);
     }
+    markAsExpired() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.update({
+                status: 'expired',
+                autoRenew: false,
+                nextBillingDate: null
+            });
+        });
+    }
+    incrementRetryCount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.update({
+                retryCount: this.retryCount + 1
+            });
+        });
+    }
+    resetRetryCount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.update({
+                retryCount: 0
+            });
+        });
+    }
+    getFormattedAmount() {
+        const amount = this.amount / 100; // Convert cents to dollars
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: this.currency
+        }).format(amount);
+    }
+    // Static methods
+    static findActiveByUserId(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Subscription.findOne({
+                where: {
+                    userId,
+                    status: 'active',
+                    expiresAt: {
+                        [require('sequelize').Op.gt]: new Date()
+                    }
+                },
+                order: [['createdAt', 'DESC']]
+            });
+        });
+    }
+    static findByKushkiSubscriptionId(kushkiSubscriptionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Subscription.findOne({
+                where: { kushkiSubscriptionId }
+            });
+        });
+    }
+    static findExpiredSubscriptions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Subscription.findAll({
+                where: {
+                    status: 'active',
+                    expiresAt: {
+                        [require('sequelize').Op.lte]: new Date()
+                    }
+                }
+            });
+        });
+    }
+    static findRetryableSubscriptions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Subscription.findAll({
+                where: {
+                    status: 'active',
+                    retryCount: {
+                        [require('sequelize').Op.lt]: require('sequelize').col('maxRetries')
+                    },
+                    expiresAt: {
+                        [require('sequelize').Op.lte]: new Date()
+                    }
+                }
+            });
+        });
+    }
+    static getSubscriptionStats(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const whereClause = userId ? { userId } : {};
+            const [total, active, cancelled, expired] = yield Promise.all([
+                Subscription.count({ where: whereClause }),
+                Subscription.count({ where: Object.assign(Object.assign({}, whereClause), { status: 'active' }) }),
+                Subscription.count({ where: Object.assign(Object.assign({}, whereClause), { status: 'cancelled' }) }),
+                Subscription.count({ where: Object.assign(Object.assign({}, whereClause), { status: 'expired' }) })
+            ]);
+            return { total, active, cancelled, expired };
+        });
+    }
+    // Legacy methods for compatibility with old code
     getPlanPrice() {
-        const prices = {
-            daily: 2.99,
-            monthly: 29.99,
-        };
-        return prices[this.plan];
+        return this.amount / 100; // Convert cents to dollars
+    }
+    daysRemaining() {
+        return this.getRemainingDays();
     }
     extend() {
         return __awaiter(this, void 0, void 0, function* () {
-            const duration = this.getPlanDuration();
-            this.endDate = new Date(this.endDate.getTime() + duration * 24 * 60 * 60 * 1000);
-            yield this.save();
+            const extensionTime = this.type === 'daily'
+                ? 24 * 60 * 60 * 1000 // 24 hours
+                : 30 * 24 * 60 * 60 * 1000; // 30 days
+            yield this.update({
+                expiresAt: new Date(this.expiresAt.getTime() + extensionTime)
+            });
         });
     }
     cancel() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.status = "cancelled";
-            this.autoRenew = false;
-            yield this.save();
+            yield this.update({
+                status: 'cancelled',
+                cancelledAt: new Date(),
+                autoRenew: false,
+                nextBillingDate: null
+            });
         });
     }
     toPublicJSON() {
         return {
             id: this.id,
-            plan: this.plan,
-            startDate: this.startDate,
-            endDate: this.endDate,
+            type: this.type,
+            plan: this.type, // Legacy compatibility
             status: this.status,
+            expiresAt: this.expiresAt,
+            endDate: this.expiresAt, // Legacy compatibility
             autoRenew: this.autoRenew,
             amount: this.amount,
-            daysRemaining: this.daysRemaining(),
+            formattedAmount: this.getFormattedAmount(),
+            currency: this.currency,
+            features: this.features,
+            remainingDays: this.getRemainingDays(),
+            daysRemaining: this.getRemainingDays(), // Legacy compatibility
             isActive: this.isActive(),
+            nextBillingDate: this.nextBillingDate,
+            createdAt: this.createdAt
         };
     }
 }
 exports.Subscription = Subscription;
-// Inicialización del modelo
+// Define the model
 Subscription.init({
     id: {
         type: sequelize_1.DataTypes.UUID,
@@ -105,99 +189,154 @@ Subscription.init({
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
         references: {
-            model: User_1.User,
-            key: "id",
+            model: 'users',
+            key: 'id'
         },
+        onDelete: 'CASCADE'
     },
-    plan: {
-        type: sequelize_1.DataTypes.ENUM("daily", "monthly"),
-        allowNull: false,
-    },
-    startDate: {
-        type: sequelize_1.DataTypes.DATE,
-        allowNull: false,
-    },
-    endDate: {
-        type: sequelize_1.DataTypes.DATE,
+    type: {
+        type: sequelize_1.DataTypes.ENUM('daily', 'monthly'),
         allowNull: false,
     },
     status: {
-        type: sequelize_1.DataTypes.ENUM("active", "expired", "cancelled"),
+        type: sequelize_1.DataTypes.ENUM('active', 'cancelled', 'expired', 'pending'),
         allowNull: false,
-        defaultValue: "active",
+        defaultValue: 'pending'
+    },
+    kushkiSubscriptionId: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+        unique: true
+    },
+    paymentMethod: {
+        type: sequelize_1.DataTypes.ENUM('card', 'cash', 'transfer'),
+        allowNull: false,
+        defaultValue: 'card'
     },
     autoRenew: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false,
-    },
-    paymentId: {
-        type: sequelize_1.DataTypes.STRING(255),
-        allowNull: true,
+        defaultValue: false
     },
     amount: {
-        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        type: sequelize_1.DataTypes.INTEGER, // Amount in cents
+        allowNull: false,
+        validate: {
+            min: 0
+        }
+    },
+    currency: {
+        type: sequelize_1.DataTypes.STRING(3),
+        allowNull: false,
+        defaultValue: 'USD'
+    },
+    expiresAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false,
+    },
+    nextBillingDate: {
+        type: sequelize_1.DataTypes.DATE,
         allowNull: true,
     },
+    cancelledAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+    },
+    cancelReason: {
+        type: sequelize_1.DataTypes.TEXT,
+        allowNull: true,
+    },
+    retryCount: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0
+        }
+    },
+    maxRetries: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 3,
+        validate: {
+            min: 0
+        }
+    },
+    features: {
+        type: sequelize_1.DataTypes.JSON,
+        allowNull: false,
+        defaultValue: () => {
+            // Default features based on subscription type
+            return ['Live streaming', 'HD quality', 'Chat access'];
+        }
+    },
     metadata: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
     },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
 }, {
-    sequelize: database_1.default,
-    modelName: "Subscription",
-    tableName: "subscriptions",
+    sequelize: database_1.sequelize,
+    tableName: 'subscriptions',
+    modelName: 'Subscription',
     timestamps: true,
     indexes: [
         {
-            fields: ["user_id"],
+            fields: ['userId']
         },
         {
-            fields: ["status"],
+            fields: ['status']
         },
         {
-            fields: ["end_date"],
+            fields: ['type']
         },
         {
-            fields: ["auto_renew"],
+            fields: ['expiresAt']
         },
+        {
+            fields: ['kushkiSubscriptionId'],
+            unique: true,
+            where: {
+                kushkiSubscriptionId: {
+                    [require('sequelize').Op.ne]: null
+                }
+            }
+        },
+        {
+            fields: ['status', 'expiresAt']
+        },
+        {
+            fields: ['retryCount', 'maxRetries']
+        }
     ],
     hooks: {
         beforeCreate: (subscription) => {
-            // Configurar fecha de fin basada en el plan
-            if (!subscription.endDate) {
-                const duration = subscription.getPlanDuration();
-                const unit = subscription.getPlanDurationUnit();
-                if (unit === "hours") {
-                    // Para planes diarios: 24 horas exactas desde el momento de pago
-                    subscription.endDate = new Date(subscription.startDate.getTime() + duration * 60 * 60 * 1000);
-                }
-                else {
-                    // Para otros planes: días completos
-                    subscription.endDate = new Date(subscription.startDate.getTime() + duration * 24 * 60 * 60 * 1000);
-                }
-            }
-            // Configurar precio si no está establecido
-            if (!subscription.amount) {
-                subscription.amount = subscription.getPlanPrice();
+            // Set default features based on subscription type
+            if (!subscription.features || subscription.features.length === 0) {
+                subscription.features = subscription.type === 'daily'
+                    ? ['Live streaming', 'HD quality', 'Chat access']
+                    : ['Live streaming', '720p quality', 'Chat access', 'Ad-free', 'Exclusive content'];
             }
         },
         beforeUpdate: (subscription) => {
-            // Actualizar estado si la suscripción expiró
-            if (subscription.status === "active" &&
-                new Date() > subscription.endDate) {
-                subscription.status = "expired";
+            // Auto-expire subscriptions that have passed their expiry date
+            if (subscription.changed('expiresAt') || subscription.changed('status')) {
+                if (subscription.status === 'active' && subscription.isExpired()) {
+                    subscription.status = 'expired';
+                    subscription.autoRenew = false;
+                    subscription.nextBillingDate = null;
+                }
             }
-        },
-    },
+        }
+    }
 });
-// NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 exports.default = Subscription;
