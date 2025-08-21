@@ -1,0 +1,471 @@
+{
+  "project_config": {
+    "name": "GalloBets Streaming Platform",
+    "version": "2.0.0",
+    "description": "P2P streaming platform with subscription system and content management",
+    "agent_type": "primary",
+    "execution_mode": "sequential_phases",
+    "tech_stack": {
+      "frontend": "React 19 + TypeScript + Vite + Tailwind CSS",
+      "backend": "Node.js + Express + PostgreSQL + Socket.IO",
+      "database": "PostgreSQL 15+ with Sequelize ORM",
+      "deployment": "Vercel (frontend) + Railway (backend) + Neon.tech (DB)"
+    }
+  },
+  "agent_instructions": {
+    "reasoning_framework": [
+      "1. READ requirements and acceptance criteria thoroughly",
+      "2. WRITE comprehensive tests before implementation", 
+      "3. IMPLEMENT code to pass all tests",
+      "4. VALIDATE against architecture constraints",
+      "5. DOCUMENT changes and integration points"
+    ],
+    "code_conventions": {
+      "typescript": "Strict mode enabled, explicit types required",
+      "react": "Functional components with hooks, no class components",
+      "naming": "camelCase for variables, PascalCase for components",
+      "files": "kebab-case for files, index.ts for barrel exports",
+      "testing": "Jest + Testing Library, 80%+ coverage required"
+    },
+    "architecture_constraints": [
+      "WebSocket: Single connection per client (Singleton pattern)",
+      "Database: All financial operations in atomic transactions",
+      "Frontend: Persistent layouts, no re-mounting between routes",
+      "Error handling: Graceful degradation, user-friendly messages",
+      "Security: JWT authentication, role-based authorization"
+    ]
+  },
+  "development_phases": [
+    {
+      "phase": 1,
+      "name": "Feature Flags & Multi-Role Infrastructure",
+      "duration": "1 day",
+      "purpose": "Prepare platform for streaming-first launch while building complete role infrastructure",
+      "requirements": {
+        "functional": [
+          "Feature flags to hide betting/wallet modules",
+          "Complete role-based routing for all 5 user types",
+          "Article management system for Admin/Gallera roles",
+          "Basic advertising space framework"
+        ],
+        "non_functional": [
+          "No visual traces of betting in UI",
+          "Role-specific layouts load correctly",
+          "Feature flags toggle without code changes"
+        ]
+      },
+      "inputs": {
+        "environment_variables": [
+          "VITE_FEATURES_BETTING=false",
+          "VITE_FEATURES_WALLET=false", 
+          "VITE_FEATURES_ARTICLES=true",
+          "VITE_FEATURES_ADS=true"
+        ],
+        "user_roles": ["admin", "operator", "venue", "user", "gallera"],
+        "existing_codebase": "React app with auth context and WebSocket singleton"
+      },
+      "outputs": {
+        "files_created": [
+          "frontend/src/hooks/useFeatureFlags.ts",
+          "frontend/src/layouts/AdminLayout.tsx",
+          "frontend/src/layouts/OperatorLayout.tsx", 
+          "frontend/src/layouts/VenueLayout.tsx",
+          "frontend/src/layouts/GalleraLayout.tsx",
+          "frontend/src/pages/admin/Articles.tsx",
+          "frontend/src/pages/gallera/MyArticles.tsx",
+          "frontend/src/components/ads/AdSpace.tsx",
+          "backend/src/middleware/featureFlags.ts"
+        ],
+        "api_endpoints": [
+          "GET /api/articles - List published articles",
+          "POST /api/articles - Create article (admin/gallera)",
+          "PUT /api/articles/:id/publish - Publish article",
+          "GET /api/ads/spaces - Get advertising spaces"
+        ]
+      },
+      "restrictions": [
+        "No betting-related components visible in UI",
+        "All role routes must be protected by authentication",
+        "Article content must be sanitized before storage",
+        "Ad spaces limited to predefined locations"
+      ],
+      "external_apis": [],
+      "milestones": [
+        "Feature flags operational",
+        "All 5 role layouts functional", 
+        "Article CRUD operations working",
+        "Ad framework in place"
+      ],
+      "tests_required": [
+        {
+          "type": "unit",
+          "description": "useFeatureFlags hook returns correct boolean values",
+          "file": "frontend/src/hooks/__tests__/useFeatureFlags.test.ts"
+        },
+        {
+          "type": "integration", 
+          "description": "Role-based routing redirects correctly",
+          "file": "frontend/src/__tests__/role-routing.test.ts"
+        },
+        {
+          "type": "api",
+          "description": "Article endpoints require proper authorization",
+          "file": "backend/src/__tests__/articles.test.ts"
+        },
+        {
+          "type": "e2e",
+          "description": "Admin can create and publish articles",
+          "file": "cypress/e2e/admin-articles.cy.ts"
+        }
+      ],
+      "implementation_steps": [
+        {
+          "step": 1,
+          "task": "Create comprehensive test suite",
+          "details": "Write all tests listed in tests_required before any implementation"
+        },
+        {
+          "step": 2, 
+          "task": "Implement useFeatureFlags hook",
+          "details": "Read environment variables, memoize results, provide TypeScript types"
+        },
+        {
+          "step": 3,
+          "task": "Create role-specific layouts",
+          "details": "Persistent layouts with role-appropriate navigation and permissions"
+        },
+        {
+          "step": 4,
+          "task": "Build article management system", 
+          "details": "CRUD operations with role validation and content sanitization"
+        },
+        {
+          "step": 5,
+          "task": "Implement ad space framework",
+          "details": "Placeholder components in strategic UI locations"
+        },
+        {
+          "step": 6,
+          "task": "Apply feature flags to hide betting",
+          "details": "Conditional rendering in all relevant components"
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Video Streaming & RTMP Integration", 
+      "duration": "4-5 days",
+      "purpose": "Implement complete video streaming solution with subscription validation",
+      "requirements": {
+        "functional": [
+          "HLS video player with subscription gate",
+          "RTMP server integration for OBS Studio",
+          "Stream access validation with JWT tokens",
+          "Multi-quality streaming (720p max)",
+          "Real-time viewer analytics"
+        ],
+        "non_functional": [
+          "Stream latency under 10 seconds",
+          "Support 2000+ concurrent viewers", 
+          "Graceful handling of stream interruptions",
+          "Cross-browser compatibility"
+        ]
+      },
+      "inputs": {
+        "streaming_config": {
+          "rtmp_endpoint": "rtmp://stream.gallobets.com/live",
+          "hls_base_url": "https://stream.gallobets.com/hls",
+          "max_quality": "720p",
+          "segment_duration": 4
+        },
+        "subscription_plans": [
+          {"type": "daily", "price": 2.50, "duration": "24h"},
+          {"type": "monthly", "price": 10.00, "duration": "30d"}
+        ]
+      },
+      "outputs": {
+        "files_created": [
+          "frontend/src/components/streaming/VideoPlayer.tsx",
+          "frontend/src/components/streaming/SubscriptionGuard.tsx",
+          "frontend/src/components/streaming/StreamControls.tsx",
+          "frontend/src/services/streamingService.ts",
+          "backend/src/routes/streaming.ts",
+          "backend/src/services/rtmpService.ts",
+          "backend/src/middleware/streamAuth.ts"
+        ],
+        "api_endpoints": [
+          "GET /api/events/:id/stream-access - Get signed stream URL",
+          "POST /api/streaming/start - Start RTMP stream",
+          "POST /api/streaming/stop - Stop RTMP stream", 
+          "GET /api/streaming/status - Check stream health",
+          "GET /api/streaming/analytics - Real-time viewer data"
+        ]
+      },
+      "restrictions": [
+        "Only authenticated users with valid subscriptions can view streams",
+        "Stream URLs expire after 30 minutes",
+        "Maximum quality limited to 720p for cost control",
+        "No download or recording functionality exposed"
+      ],
+      "external_apis": [
+        {
+          "name": "RTMP Server",
+          "purpose": "Stream ingestion from OBS",
+          "endpoints": ["rtmp://stream.gallobets.com/live/{streamKey}"]
+        },
+        {
+          "name": "CDN Service", 
+          "purpose": "HLS stream distribution",
+          "provider": "BunnyCDN or CloudFront"
+        }
+      ],
+      "milestones": [
+        "Video.js player functional with HLS",
+        "Subscription validation working",
+        "RTMP ingestion operational",
+        "Stream analytics collecting data"
+      ],
+      "tests_required": [
+        {
+          "type": "unit",
+          "description": "VideoPlayer component handles stream errors gracefully",
+          "file": "frontend/src/components/streaming/__tests__/VideoPlayer.test.tsx"
+        },
+        {
+          "type": "integration",
+          "description": "SubscriptionGuard blocks unauthorized access", 
+          "file": "frontend/src/components/streaming/__tests__/SubscriptionGuard.test.tsx"
+        },
+        {
+          "type": "api",
+          "description": "Stream access endpoint validates subscription",
+          "file": "backend/src/__tests__/streaming.test.ts"
+        },
+        {
+          "type": "e2e",
+          "description": "Complete streaming flow from OBS to user",
+          "file": "cypress/e2e/streaming-flow.cy.ts"
+        }
+      ],
+      "implementation_steps": [
+        {
+          "step": 1,
+          "task": "Write comprehensive streaming test suite",
+          "details": "Cover all streaming scenarios including error cases"
+        },
+        {
+          "step": 2,
+          "task": "Implement VideoPlayer with Video.js",
+          "details": "HLS support, quality selection, fullscreen, accessibility"
+        },
+        {
+          "step": 3, 
+          "task": "Create SubscriptionGuard component",
+          "details": "Check subscription status, show upgrade prompts"
+        },
+        {
+          "step": 4,
+          "task": "Build stream access validation API",
+          "details": "JWT tokens, expiration handling, rate limiting"
+        },
+        {
+          "step": 5,
+          "task": "Integrate RTMP server configuration",
+          "details": "Stream key generation, health monitoring"
+        },
+        {
+          "step": 6,
+          "task": "Implement real-time analytics",
+          "details": "Viewer count, engagement metrics, performance monitoring"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Kushki Payment Integration",
+      "duration": "3-5 days", 
+      "purpose": "Implement automated subscription billing with Kushki payment gateway",
+      "requirements": {
+        "functional": [
+          "Kushki SDK integration for card tokenization",
+          "Recurring subscription billing",
+          "Webhook handling for payment events",
+          "Payment failure retry logic",
+          "Subscription management interface"
+        ],
+        "non_functional": [
+          "PCI compliance for card data handling",
+          "Webhook response time under 5 seconds",
+          "99.9% payment processing reliability",
+          "Audit trail for all transactions"
+        ]
+      },
+      "inputs": {
+        "kushki_config": {
+          "public_key": "ENV:KUSHKI_PUBLIC_KEY",
+          "private_key": "ENV:KUSHKI_PRIVATE_KEY", 
+          "environment": "test",
+          "webhook_secret": "ENV:KUSHKI_WEBHOOK_SECRET"
+        },
+        "subscription_plans": [
+          {"id": "daily", "amount": 250, "currency": "USD", "interval": "day"},
+          {"id": "monthly", "amount": 1000, "currency": "USD", "interval": "month"}
+        ]
+      },
+      "outputs": {
+        "files_created": [
+          "frontend/src/components/subscriptions/SubscriptionPlans.tsx",
+          "frontend/src/components/subscriptions/PaymentForm.tsx",
+          "frontend/src/components/subscriptions/SubscriptionManager.tsx",
+          "frontend/src/services/kushkiService.ts",
+          "backend/src/routes/subscriptions.ts",
+          "backend/src/routes/webhooks.ts",
+          "backend/src/services/paymentService.ts",
+          "backend/src/models/Subscription.ts"
+        ],
+        "api_endpoints": [
+          "POST /api/subscriptions/create - Create new subscription",
+          "POST /api/subscriptions/cancel - Cancel subscription",
+          "GET /api/subscriptions/current - Get active subscription",
+          "POST /api/webhooks/kushki - Handle payment webhooks",
+          "GET /api/subscriptions/history - Payment history"
+        ]
+      },
+      "restrictions": [
+        "Card data never stored locally (tokenization only)",
+        "All payment amounts in cents to avoid decimal issues",
+        "Webhook endpoints must validate HMAC signatures",
+        "Failed payments trigger max 3 retry attempts"
+      ],
+      "external_apis": [
+        {
+          "name": "Kushki Payments API",
+          "purpose": "Card tokenization and subscription management",
+          "endpoints": [
+            "POST /tokens - Tokenize card",
+            "POST /subscriptions - Create recurring billing",
+            "DELETE /subscriptions/{id} - Cancel subscription"
+          ]
+        },
+        {
+          "name": "Kushki Webhooks",
+          "purpose": "Payment event notifications", 
+          "events": ["payment.success", "payment.failed", "subscription.cancelled"]
+        }
+      ],
+      "milestones": [
+        "Card tokenization working",
+        "Subscription creation functional",
+        "Webhook processing operational",
+        "Payment retry logic implemented"
+      ],
+      "tests_required": [
+        {
+          "type": "unit",
+          "description": "PaymentForm validates card inputs correctly",
+          "file": "frontend/src/components/subscriptions/__tests__/PaymentForm.test.tsx"
+        },
+        {
+          "type": "integration",
+          "description": "Subscription creation flow end-to-end",
+          "file": "backend/src/__tests__/subscription-flow.test.ts"
+        },
+        {
+          "type": "api", 
+          "description": "Webhook handler validates signatures",
+          "file": "backend/src/__tests__/kushki-webhook.test.ts"
+        },
+        {
+          "type": "e2e",
+          "description": "Complete payment flow with test cards",
+          "file": "cypress/e2e/payment-flow.cy.ts"
+        }
+      ],
+      "implementation_steps": [
+        {
+          "step": 1,
+          "task": "Create payment and subscription test suite",
+          "details": "Include test card scenarios and webhook mocking"
+        },
+        {
+          "step": 2,
+          "task": "Implement Kushki SDK integration",
+          "details": "Card tokenization, error handling, security compliance"
+        },
+        {
+          "step": 3,
+          "task": "Build subscription management API",
+          "details": "Create, cancel, modify subscriptions with proper validation"
+        },
+        {
+          "step": 4,
+          "task": "Create webhook handler",
+          "details": "HMAC validation, event processing, idempotency"
+        },
+        {
+          "step": 5,
+          "task": "Implement payment UI components", 
+          "details": "Form validation, loading states, error handling"
+        },
+        {
+          "step": 6,
+          "task": "Add subscription management interface",
+          "details": "View current plan, payment history, cancel/upgrade options"
+        }
+      ]
+    }
+  ],
+  "context_knowledge": {
+    "existing_architecture": {
+      "websocket_singleton": "Single WebSocket connection per client using Context pattern",
+      "authentication": "JWT tokens with refresh mechanism in AuthContext",
+      "database": "PostgreSQL with Sequelize ORM, all models defined",
+      "api_structure": "Express.js with middleware for auth, validation, logging"
+    },
+    "code_style_guide": {
+      "typescript": "Strict mode, explicit return types, no any types",
+      "react": "Functional components, custom hooks, memo for optimization",
+      "css": "Tailwind utility classes, CSS variables for themes",
+      "naming": "Descriptive names, avoid abbreviations, consistent patterns"
+    },
+    "performance_requirements": {
+      "frontend": "First Contentful Paint < 1.5s, Time to Interactive < 3s",
+      "backend": "API response time < 200ms, WebSocket latency < 50ms", 
+      "database": "Query optimization, proper indexing, connection pooling"
+    }
+  },
+  "validation_criteria": {
+    "phase_1_success": [
+      "Feature flags toggle correctly without code changes",
+      "All 5 user roles have functional layouts and navigation",
+      "Article management works for admin and gallera roles",
+      "No betting elements visible in any UI"
+    ],
+    "phase_2_success": [
+      "Video streams play correctly for subscribed users",
+      "Non-subscribed users see subscription prompt",
+      "RTMP ingestion works with OBS Studio",
+      "Stream access URLs expire properly"
+    ],
+    "phase_3_success": [
+      "Credit card payments process successfully",
+      "Recurring billing activates automatically", 
+      "Webhooks update subscription status correctly",
+      "Payment failures trigger appropriate retries"
+    ]
+  },
+  "final_deliverables": {
+    "documentation": [
+      "API documentation with all endpoints",
+      "Deployment guide for production",
+      "Testing strategy and coverage report",
+      "Performance benchmarks and monitoring"
+    ],
+    "code_quality": [
+      "80%+ test coverage across all modules",
+      "TypeScript strict mode with no errors",
+      "ESLint and Prettier configuration enforced",
+      "No console.log statements in production build"
+    ]
+  }
+}

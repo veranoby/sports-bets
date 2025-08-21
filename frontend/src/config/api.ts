@@ -242,28 +242,42 @@ export const walletAPI = {
     apiClient.get("/wallet/revenue-trends", { params }),
 };
 
-export const subscriptionsAPI = {
-  getMy: () => apiClient.get("/subscriptions"),
+export const subscriptionAPI = {
+  // Get current active subscription
+  getCurrentSubscription: () => apiClient.get("/subscriptions/current"),
 
-  getCurrent: () => apiClient.get("/subscriptions/current"),
-
-  create: (data: {
-    plan: "daily" | "monthly";
+  // Create new subscription with payment
+  createSubscription: (data: {
+    planType: "daily" | "monthly";
+    paymentToken: string;
     autoRenew?: boolean;
-    paymentData?: any;
-  }) => apiClient.post("/subscriptions", data),
+  }) => apiClient.post("/subscriptions/create", data),
 
-  cancel: (id: string) => apiClient.put(`/subscriptions/${id}/cancel`),
+  // Cancel active subscription
+  cancelSubscription: (data?: { reason?: string }) => 
+    apiClient.post("/subscriptions/cancel", data),
 
-  toggleAutoRenew: (id: string, autoRenew: boolean) =>
-    apiClient.put(`/subscriptions/${id}/auto-renew`, { autoRenew }),
+  // Get payment history
+  getPaymentHistory: (params?: {
+    limit?: number;
+    offset?: number;
+    status?: "completed" | "failed" | "refunded";
+  }) => apiClient.get("/subscriptions/history", { params }),
 
-  getPlans: () => apiClient.get("/subscriptions/plans/info"),
+  // Check subscription access
+  checkAccess: (data?: { feature?: string }) => 
+    apiClient.post("/subscriptions/check-access", data),
 
-  checkAccess: () => apiClient.post("/subscriptions/check-access"),
+  // Get available subscription plans
+  getPlans: () => apiClient.get("/subscriptions/plans"),
 
-  extend: (id: string) => apiClient.put(`/subscriptions/${id}/extend`),
+  // Toggle auto-renew setting
+  updateAutoRenew: (id: string, data: { autoRenew: boolean }) =>
+    apiClient.put(`/subscriptions/${id}/auto-renew`, data),
 };
+
+// Legacy alias for compatibility
+export const subscriptionsAPI = subscriptionAPI;
 
 export const venuesAPI = {
   getAll: (params?: { status?: string; limit?: number; offset?: number }) =>
@@ -296,6 +310,57 @@ export const venuesAPI = {
   delete: (id: string) => apiClient.delete(`/venues/${id}`),
 
   getMyVenues: () => apiClient.get("/venues/my/venues"),
+};
+
+export const streamingAPI = {
+  // Stream access
+  getStreamAccess: (eventId: string) =>
+    apiClient.get(`/streaming/events/${eventId}/stream-access`),
+
+  validateToken: (token: string) =>
+    apiClient.post("/streaming/validate-token", { token }),
+
+  // Stream control
+  startStream: (config: {
+    eventId: string;
+    title: string;
+    description?: string;
+    quality: "360p" | "480p" | "720p";
+    bitrate: number;
+    fps: number;
+  }) => apiClient.post("/streaming/start", config),
+
+  stopStream: (data: { streamId?: string; eventId?: string }) =>
+    apiClient.post("/streaming/stop", data),
+
+  // System status and analytics
+  getSystemStatus: () => apiClient.get("/streaming/status"),
+
+  getStreamAnalytics: (streamId?: string, params?: {
+    timeRange?: "1h" | "24h" | "7d" | "30d";
+    metrics?: string;
+  }) => apiClient.get(`/streaming/analytics/${streamId || ''}`, { params }),
+
+  // Stream keys and RTMP
+  generateStreamKey: (data: { eventId: string }) =>
+    apiClient.post("/streaming/keys/generate", data),
+
+  revokeStreamKey: (streamKey: string) =>
+    apiClient.delete(`/streaming/keys/${streamKey}`),
+
+  getOBSConfig: (streamKey: string) =>
+    apiClient.get(`/streaming/obs-config/${streamKey}`),
+
+  // System health
+  getSystemHealth: () => apiClient.get("/streaming/health"),
+
+  // Analytics events
+  trackViewerEvent: (data: {
+    eventId: string;
+    event: string;
+    data?: any;
+    timestamp: string;
+  }) => apiClient.post("/streaming/analytics/event", data),
 };
 
 export const usersAPI = {

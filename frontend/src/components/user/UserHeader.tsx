@@ -19,6 +19,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
 const UserHeader = memo(() => {
   const location = useLocation();
@@ -33,6 +34,8 @@ const UserHeader = memo(() => {
     fetchNotifications,
   } = useNotifications();
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
+
+  const { isWalletEnabled, isBettingEnabled } = useFeatureFlags();
 
   // Estados UI
   const [showBets, setShowBets] = useState(false);
@@ -161,92 +164,96 @@ const UserHeader = memo(() => {
         </div>
 
         {/* RIGHT SIDE - ACTIONS */}
+        {/* WALLET BALANCE */}
         <div className="flex items-center gap-3">
-          {/* WALLET BALANCE */}
-          <button
-            onClick={() => navigate("/wallet")}
-            className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card   hover:bg-theme-accent group border border-theme-primary rounded-lg"
-          >
-            <Wallet className="w-4 h-4 text-theme-success" />
-            <span className="text-sm font-semibold">
-              {isLoading ? "..." : `$${walletBalance.toFixed(2)}`}
-            </span>
-          </button>
-
-          {/* ACTIVE BETS */}
-          <div className="relative dropdown-container">
+          {isWalletEnabled && (
             <button
-              onClick={() => setShowBets(!showBets)}
-              className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors"
+              onClick={() => navigate("/wallet")}
+              className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card   hover:bg-theme-accent group border border-theme-primary rounded-lg"
             >
-              <Trophy className="w-4 h-4 text-theme-info" />
+              <Wallet className="w-4 h-4 text-theme-success" />
               <span className="text-sm font-semibold">
-                {isLoading ? "..." : activeBetsCount}
+                {isLoading ? "..." : `$${walletBalance.toFixed(2)}`}
               </span>
             </button>
+          )}
 
-            {/* ACTIVE BETS DROPDOWN */}
-            {showBets && (
-              <div className="absolute right-0 top-full mt-2 w-80 card-background shadow-xl z-50 overflow-hidden">
-                <div className="p-4 bg-theme-header border-b border-theme-primary">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-theme-text-primary">
-                      Apuestas Activas
-                    </h3>
-                    <button
-                      onClick={() => setShowBets(false)}
-                      className="text-theme-text-secondary hover:text-theme-text-primary transition-colors"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                </div>
+          {/* ACTIVE BETS */}
+          {isBettingEnabled && (
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setShowBets(!showBets)}
+                className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg hover:bg-theme-accent transition-colors"
+              >
+                <Trophy className="w-4 h-4 text-theme-info" />
+                <span className="text-sm font-semibold">
+                  {isLoading ? "..." : activeBetsCount}
+                </span>
+              </button>
 
-                <div className="max-h-64 overflow-y-auto">
-                  {activeBets.length === 0 ? (
-                    <div className="p-4 text-center text-theme-text-secondary">
-                      <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No tienes apuestas activas</p>
+              {/* ACTIVE BETS DROPDOWN */}
+              {showBets && (
+                <div className="absolute right-0 top-full mt-2 w-80 card-background shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 bg-theme-header border-b border-theme-primary">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-theme-text-primary">
+                        Apuestas Activas
+                      </h3>
+                      <button
+                        onClick={() => setShowBets(false)}
+                        className="text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
                     </div>
-                  ) : (
-                    <div className="flex flex-col">
-                      <div className="p-2 flex-1 overflow-y-auto">
-                        {activeBets.slice(0, 5).map((bet) => (
-                          <div
-                            key={bet.id}
-                            className="p-3 hover:bg-theme-accent rounded-lg transition-colors"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <div className="font-medium text-theme-text-primary text-sm">
-                                  ${bet.amount} -{" "}
-                                  {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                  </div>
+
+                  <div className="max-h-64 overflow-y-auto">
+                    {activeBets.length === 0 ? (
+                      <div className="p-4 text-center text-theme-text-secondary">
+                        <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No tienes apuestas activas</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        <div className="p-2 flex-1 overflow-y-auto">
+                          {activeBets.slice(0, 5).map((bet) => (
+                            <div
+                              key={bet.id}
+                              className="p-3 hover:bg-theme-accent rounded-lg transition-colors"
+                            >
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-medium text-theme-text-primary text-sm">
+                                    ${bet.amount} -{" "}
+                                    {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                                  </div>
+                                  <div className="text-xs text-theme-text-secondary">
+                                    {bet.status}
+                                  </div>
                                 </div>
                                 <div className="text-xs text-theme-text-secondary">
-                                  {bet.status}
+                                  {new Date(bet.createdAt).toLocaleDateString()}
                                 </div>
                               </div>
-                              <div className="text-xs text-theme-text-secondary">
-                                {new Date(bet.createdAt).toLocaleDateString()}
-                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
+                    )}
+                    <div className="sticky bottom-0   p-2">
+                      <button
+                        onClick={() => navigate("/bets")}
+                        className="w-full p-2 text-center text-theme-primary hover:bg-theme-primary bg-theme-accent rounded-lg transition-colors text-sm"
+                      >
+                        Ver todas las apuestas ({activeBets.length})
+                      </button>
                     </div>
-                  )}
-                  <div className="sticky bottom-0   p-2">
-                    <button
-                      onClick={() => navigate("/bets")}
-                      className="w-full p-2 text-center text-theme-primary hover:bg-theme-primary bg-theme-accent rounded-lg transition-colors text-sm"
-                    >
-                      Ver todas las apuestas ({activeBets.length})
-                    </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* NOTIFICATIONS */}
           <div className="relative dropdown-container">

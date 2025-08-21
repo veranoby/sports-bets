@@ -44,7 +44,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutos
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, user } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -313,7 +313,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     let mounted = true;
     let connectTimer: NodeJS.Timeout;
 
-    if (isAuthenticated && token) {
+    if (isAuthenticated && token && user?.hasActiveSubscription) {
       // Pequeño delay para evitar reconexiones rápidas
       connectTimer = setTimeout(() => {
         if (mounted && !socketRef.current?.connected && !isConnecting) {
@@ -325,14 +325,14 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         }
       }, 100);
 
-      // ✅ INICIALIZAR CLEANUP AUTOMÁTICO
+      // Inicializar cleanup automático
       if (!cleanupIntervalRef.current) {
         cleanupIntervalRef.current = setInterval(() => {
           cleanupOrphanedListeners();
         }, CLEANUP_INTERVAL);
       }
     } else if (socketRef.current) {
-      // Desconectar si no está autenticado
+      // Desconectar si no cumple los requisitos
       socketRef.current.disconnect();
       socketRef.current = null;
       listenersRegistryRef.current.clear();
@@ -352,7 +352,14 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         clearTimeout(connectTimer);
       }
     };
-  }, [isAuthenticated, token, isConnecting, cleanupOrphanedListeners]); // ✅ Dependencias corregidas
+  }, [
+    isAuthenticated,
+    token,
+    user?.hasActiveSubscription,
+    isConnecting,
+    cleanupOrphanedListeners,
+    createConnection,
+  ]); // ✅ Dependencias corregidas
 
   // 🧹 CLEANUP AL DESMONTAR
   useEffect(() => {

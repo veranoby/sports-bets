@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
+import { sanitizeArticleContent } from "../middleware/sanitization";
 import { Article } from "../models/Article";
 import { User } from "../models/User";
 import { Venue } from "../models/Venue";
@@ -118,11 +119,11 @@ router.get(
   })
 );
 
-// POST /api/articles - Crear artículo (solo admin/operator/venue)
+// POST /api/articles - Crear artículo (solo admin/gallera)
 router.post(
   "/",
   authenticate,
-  authorize("admin", "operator", "venue"),
+  authorize("admin", "gallera"),
   [
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
@@ -130,6 +131,7 @@ router.post(
     body("venue_id").optional().isUUID(),
     body("featured_image_url").optional().isURL(),
   ],
+  sanitizeArticleContent,
   asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -138,14 +140,13 @@ router.post(
 
     const { title, content, summary, venue_id, featured_image_url } = req.body;
 
-    // Venues solo pueden crear artículos para sus propias galleras
-    if (req.user!.role === "venue" && venue_id) {
-      const venue = await Venue.findOne({
-        where: { id: venue_id, ownerId: req.user!.id },
-      });
-      if (!venue) {
-        throw new Error("Can only create articles for your own venues");
-      }
+    // Galleras can only create articles in draft status
+    let articleStatus = "published";
+    let publishedAt = new Date();
+    
+    if (req.user!.role === "gallera") {
+      articleStatus = "pending";
+      publishedAt = undefined as any;
     }
 
     const article = await Article.create({
@@ -155,8 +156,8 @@ router.post(
       author_id: req.user!.id,
       venue_id,
       featured_image_url,
-      status: req.user!.role === "venue" ? "pending" : "published",
-      published_at: req.user!.role === "venue" ? undefined : new Date(),
+      status: articleStatus,
+      published_at: publishedAt,
     });
 
     res.status(201).json({
@@ -182,6 +183,31 @@ router.put(
 
     article.status = status;
     if (status === "published" && !article.published_at) {
+      article.published_at = new Date();
+    }
+
+    await article.save();
+
+    res.json({
+      success: true,
+      data: article.toPublicJSON(),
+    });
+  })
+);
+
+// PUT /api/articles/:id/publish - Publish article (admin only)
+router.put(
+  "/:id/publish",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      throw errors.notFound("Article not found");
+    }
+
+    article.status = "published";
+    if (!article.published_at) {
       article.published_at = new Date();
     }
 

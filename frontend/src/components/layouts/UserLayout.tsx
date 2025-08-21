@@ -7,6 +7,7 @@ import UserHeader from "../user/UserHeader";
 import Navigation from "../user/Navigation";
 import SubscriptionStatusBar from "../shared/SubscriptionStatusBar";
 import PWAInstallPrompt from "../shared/PWAInstallPrompt";
+import AdSpace from "../ads/AdSpace";
 
 const UserLayout = memo(() => {
   return (
@@ -16,6 +17,9 @@ const UserLayout = memo(() => {
 
       {/* Barra de estado de suscripción (solo visible si hay suscripción activa) */}
       <SubscriptionStatusBar />
+
+      {/* Header Ad Space */}
+      <AdSpace location="header" size="banner" className="mx-4" />
 
       {/* Contenido de la página actual */}
       <main className="flex-1 pb-16">

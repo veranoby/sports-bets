@@ -18,6 +18,7 @@ import betRoutes from "./routes/bets";
 import walletRoutes from "./routes/wallet";
 import venueRoutes from "./routes/venues";
 import subscriptionRoutes from "./routes/subscriptions";
+import webhookRoutes from "./routes/webhooks";
 import notificationRoutes from "./routes/notifications";
 import articleRoutes from "./routes/articles";
 
@@ -120,6 +121,7 @@ class Server {
     this.app.use("/api/wallet", walletRoutes);
     this.app.use("/api/venues", venueRoutes);
     this.app.use("/api/subscriptions", subscriptionRoutes);
+    this.app.use("/api/webhooks", webhookRoutes);
     this.app.use("/api/notifications", notificationRoutes);
     this.app.use("/api/articles", articleRoutes);
 

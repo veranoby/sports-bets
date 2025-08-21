@@ -5,12 +5,14 @@ import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'operator' | 'venue' | 'user';
+  allowedRoles?: Array<'admin' | 'operator' | 'venue' | 'user' | 'gallera'>;
+  requiredRole?: 'admin' | 'operator' | 'venue' | 'user' | 'gallera'; // Keep for backward compatibility
   redirectTo?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
+  allowedRoles,
   requiredRole,
   redirectTo = '/login' 
 }) => {
@@ -35,16 +37,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Verificar rol si se especifica
-  if (requiredRole && user?.role !== requiredRole) {
+  const roles = allowedRoles || (requiredRole ? [requiredRole] : []);
+  
+  if (roles.length > 0 && user?.role && !roles.includes(user.role as any)) {
     // Redirigir según el rol del usuario
     const roleRedirects = {
-      admin: '/operator', // Admin puede usar panel de operador
+      admin: '/admin',
       operator: '/operator',
       venue: '/venue',
-      user: '/dashboard',
+      user: '/user',
+      gallera: '/gallera',
     };
 
-    const userRedirect = roleRedirects[user?.role as keyof typeof roleRedirects] || '/dashboard';
+    const userRedirect = roleRedirects[user.role as keyof typeof roleRedirects] || '/user';
     
     return <Navigate to={userRedirect} replace />;
   }

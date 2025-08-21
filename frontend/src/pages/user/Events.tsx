@@ -27,6 +27,7 @@ import { useWebSocketContext } from "../../contexts/WebSocketContext";
 // ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
 // Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -51,6 +52,7 @@ const EventCard = React.memo(
   }) => {
     const isLive = event.status === "in-progress";
     const isUpcoming = event.status === "scheduled";
+    const { isBettingEnabled } = useFeatureFlags();
 
     return (
       <div
@@ -110,7 +112,7 @@ const EventCard = React.memo(
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
           <div className="flex items-center gap-2">
-            {event.activeBets && event.activeBets > 0 && (
+            {isBettingEnabled && event.activeBets > 0 && (
               <span className="text-xs text-green-400">
                 {event.activeBets} apuestas activas
               </span>

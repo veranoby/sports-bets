@@ -1,343 +1,615 @@
-import { Router } from "express";
-import { authenticate } from "../middleware/auth";
-import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Subscription, User } from "../models";
-import { body, validationResult } from "express-validator";
-import { transaction } from "../config/database";
-import { Op } from "sequelize";
-import {
-  getCache as cacheGet,
-  setCache as cacheSet,
-  delCache as cacheDel,
-} from "../config/redis";
+import { Router } from 'express';
+import { body, param, query, validationResult } from 'express-validator';
+import rateLimit from 'express-rate-limit';
+import { authenticate } from '../middleware/auth';
+import { asyncHandler, errors } from '../middleware/errorHandler';
+import { Subscription } from '../models/Subscription';
+import { PaymentTransaction } from '../models/PaymentTransaction';
+import { User } from '../models/User';
+import { paymentService } from '../services/paymentService';
+import { Op } from 'sequelize';
 
 const router = Router();
 
-// GET /api/subscriptions - Obtener suscripciones del usuario
-router.get(
-  "/",
-  authenticate,
-  asyncHandler(async (req, res) => {
-    const subscriptions = await Subscription.findAll({
-      where: { userId: req.user!.id },
-      order: [["createdAt", "DESC"]],
-    });
+// Rate limiting for subscription operations
+const subscriptionRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit to 5 subscription operations per window
+  message: {
+    success: false,
+    message: 'Too many subscription requests, please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
-    res.json({
-      success: true,
-      data: subscriptions.map((sub) => sub.toPublicJSON()),
-    });
-  })
-);
+// Rate limiting for subscription creation (more restrictive)
+const createSubscriptionRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // Limit to 3 subscription creations per hour
+  message: {
+    success: false,
+    message: 'Too many subscription creation attempts, please try again in an hour'
+  }
+});
 
-// GET /api/subscriptions/current - Obtener suscripción activa actual
-router.get(
-  "/current",
-  authenticate,
-  asyncHandler(async (req, res) => {
-    const activeSubscription = await Subscription.findOne({
-      where: {
-        userId: req.user!.id,
-        status: "active",
-        endDate: {
-          [Op.gt]: new Date(),
-        },
-      },
-      order: [["endDate", "DESC"]],
-    });
-
-    res.json({
-      success: true,
-      data: activeSubscription ? activeSubscription.toPublicJSON() : null,
-    });
-  })
-);
-
-// POST /api/subscriptions - Crear nueva suscripción
+/**
+ * POST /api/subscriptions/create
+ * Create new subscription with payment
+ */
 router.post(
-  "/",
+  '/create',
+  createSubscriptionRateLimit,
   authenticate,
   [
-    body("plan")
-      .isIn(["daily", "monthly"])
-      .withMessage("Invalid plan specified"),
-    body("autoRenew")
+    body('planType')
+      .isIn(['daily', 'monthly'])
+      .withMessage('Plan type must be daily or monthly'),
+    body('paymentToken')
+      .isString()
+      .isLength({ min: 10 })
+      .withMessage('Valid payment token is required'),
+    body('autoRenew')
       .optional()
       .isBoolean()
-      .withMessage("Auto renew must be a boolean"),
-    body("paymentData")
-      .optional()
-      .isObject()
-      .withMessage("Payment data must be an object"),
+      .withMessage('Auto renew must be boolean')
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      throw errors.badRequest(
-        "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
-      );
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors.array()
+      });
     }
 
-    const { plan, autoRenew, paymentData } = req.body;
+    const { planType, paymentToken, autoRenew = true } = req.body;
+    const userId = req.user!.id;
 
-    // Calcular startDate y endDate
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    if (plan === "daily") {
-      endDate.setHours(endDate.getHours() + 24);
-    } else if (plan === "monthly") {
-      endDate.setDate(endDate.getDate() + 30);
-    }
+    try {
+      // Check for existing active subscription
+      const existingSubscription = await Subscription.findOne({
+        where: {
+          userId,
+          status: 'active',
+          expiresAt: {
+            [Op.gt]: new Date()
+          }
+        }
+      });
 
-    // Verificar si ya tiene una suscripción activa
-    const existingSubscription = await Subscription.findOne({
-      where: {
-        userId: req.user!.id,
-        status: "active",
-        endDate: {
-          [Op.gt]: new Date(),
-        },
-      },
-    });
-
-    if (existingSubscription) {
-      throw errors.conflict("You already have an active subscription");
-    }
-
-    await transaction(async (t) => {
-      // Crear suscripción
-      const subscription = await Subscription.create(
-        {
-          userId: req.user!.id,
-          plan,
-          startDate,
-          endDate,
-          autoRenew,
-          metadata: {
-            paymentData,
-          },
-        },
-        { transaction: t }
-      );
-
-      // En un caso real, aquí integraríamos con el sistema de pagos (Kushki)
-      // Por ahora, simularemos el procesamiento
-
-      if (process.env.NODE_ENV === "development") {
-        // En desarrollo, activar inmediatamente
-        subscription.paymentId = `DEV_SUB_${Date.now()}`;
-        await subscription.save({ transaction: t });
-
-        res.status(201).json({
-          success: true,
-          message: "Subscription created successfully (development mode)",
-          data: subscription.toPublicJSON(),
-        });
-      } else {
-        // En producción, devolver URL de pago
-        res.status(201).json({
-          success: true,
-          message: "Subscription created, please complete payment",
-          data: {
-            subscription: subscription.toPublicJSON(),
-            paymentUrl: `${process.env.FRONTEND_URL}/payment/subscription/${subscription.id}`,
-          },
+      if (existingSubscription) {
+        return res.status(409).json({
+          success: false,
+          message: 'You already have an active subscription. Cancel it first to create a new one.',
+          code: 'SUBSCRIPTION_EXISTS'
         });
       }
-    });
+
+      // Get user details
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw errors.notFound('User not found');
+      }
+
+      // Get plan configuration
+      const planConfig = paymentService.getSubscriptionPlans()
+        .find(plan => plan.id === planType);
+      
+      if (!planConfig) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid subscription plan'
+        });
+      }
+
+      // Create subscription with Kushki
+      const kushkiResponse = await paymentService.createSubscription({
+        token: paymentToken,
+        planType,
+        userId,
+        userEmail: user.email
+      });
+
+      // Calculate expiry date
+      const now = new Date();
+      const expiresAt = planType === 'daily'
+        ? new Date(now.getTime() + 24 * 60 * 60 * 1000)
+        : new Date(now.setMonth(now.getMonth() + 1));
+
+      // Create subscription record
+      const subscription = await Subscription.create({
+        userId,
+        type: planType,
+        status: 'active',
+        kushkiSubscriptionId: kushkiResponse.subscriptionId,
+        paymentMethod: 'card',
+        autoRenew,
+        amount: planConfig.price * 100, // Convert to cents
+        currency: planConfig.currency,
+        expiresAt,
+        nextBillingDate: autoRenew ? kushkiResponse.nextPaymentDate : null,
+        metadata: {
+          planName: planConfig.name,
+          createdVia: 'web'
+        }
+      });
+
+      // Create initial payment transaction
+      await PaymentTransaction.create({
+        subscriptionId: subscription.id,
+        type: 'subscription_payment',
+        status: 'completed',
+        amount: planConfig.price * 100,
+        currency: planConfig.currency,
+        paymentMethod: 'card',
+        processedAt: new Date(),
+        metadata: {
+          planType,
+          initialPayment: true
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Subscription created successfully',
+        data: {
+          id: subscription.id,
+          type: subscription.type,
+          status: subscription.status,
+          expiresAt: subscription.expiresAt,
+          autoRenew: subscription.autoRenew,
+          features: subscription.features,
+          amount: subscription.amount,
+          currency: subscription.currency,
+          nextBillingDate: subscription.nextBillingDate,
+          createdAt: subscription.createdAt
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Subscription creation failed:', error);
+      
+      // Handle specific payment errors
+      if (error.message.includes('declined') || error.message.includes('insufficient')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Your payment was declined. Please check your card details and try again.',
+          code: 'PAYMENT_DECLINED'
+        });
+      }
+      
+      if (error.message.includes('token')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid payment token. Please try again.',
+          code: 'INVALID_TOKEN'
+        });
+      }
+
+      throw errors.internal(`Failed to create subscription: ${error.message}`);
+    }
   })
 );
 
-// PUT /api/subscriptions/:id/cancel - Cancelar suscripción
-router.put(
-  "/:id/cancel",
+/**
+ * POST /api/subscriptions/cancel
+ * Cancel active subscription
+ */
+router.post(
+  '/cancel',
+  subscriptionRateLimit,
+  authenticate,
+  [
+    body('reason')
+      .optional()
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage('Cancel reason must be a string under 500 characters')
+  ],
+  asyncHandler(async (req, res) => {
+    const { reason = 'User requested cancellation' } = req.body;
+    const userId = req.user!.id;
+
+    try {
+      // Find active subscription
+      const subscription = await Subscription.findOne({
+        where: {
+          userId,
+          status: 'active',
+          expiresAt: {
+            [Op.gt]: new Date()
+          }
+        }
+      });
+
+      if (!subscription) {
+        return res.status(404).json({
+          success: false,
+          message: 'No active subscription found',
+          code: 'NO_ACTIVE_SUBSCRIPTION'
+        });
+      }
+
+      // Cancel with Kushki if it has a Kushki subscription ID
+      if (subscription.kushkiSubscriptionId) {
+        try {
+          await paymentService.cancelSubscription(subscription.kushkiSubscriptionId);
+        } catch (kushkiError) {
+          console.warn('Kushki cancellation failed:', kushkiError);
+          // Continue with local cancellation even if Kushki fails
+        }
+      }
+
+      // Update subscription status
+      await subscription.update({
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        cancelReason: reason,
+        autoRenew: false,
+        nextBillingDate: null
+      });
+
+      res.json({
+        success: true,
+        message: 'Subscription cancelled successfully',
+        data: {
+          id: subscription.id,
+          status: subscription.status,
+          cancelledAt: subscription.cancelledAt,
+          expiresAt: subscription.expiresAt, // Subscription remains active until expiry
+          refund: null // No immediate refund, service continues until expiry
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Subscription cancellation failed:', error);
+      throw errors.internal(`Failed to cancel subscription: ${error.message}`);
+    }
+  })
+);
+
+/**
+ * GET /api/subscriptions/current
+ * Get current active subscription
+ */
+router.get(
+  '/current',
   authenticate,
   asyncHandler(async (req, res) => {
-    const subscription = await Subscription.findOne({
-      where: {
-        id: req.params.id,
-        userId: req.user!.id,
-      },
-    });
+    const userId = req.user!.id;
 
-    if (!subscription) {
-      throw errors.notFound("Subscription not found");
+    try {
+      const subscription = await Subscription.findOne({
+        where: {
+          userId,
+          status: 'active',
+          expiresAt: {
+            [Op.gt]: new Date()
+          }
+        },
+        order: [['createdAt', 'DESC']]
+      });
+
+      if (!subscription) {
+        return res.json({
+          success: true,
+          data: null
+        });
+      }
+
+      // Check if subscription is actually expired
+      if (subscription.isExpired()) {
+        await subscription.markAsExpired();
+        return res.json({
+          success: true,
+          data: null
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          id: subscription.id,
+          type: subscription.type,
+          status: subscription.status,
+          expiresAt: subscription.expiresAt,
+          remainingDays: subscription.getRemainingDays(),
+          autoRenew: subscription.autoRenew,
+          features: subscription.features,
+          amount: subscription.amount,
+          currency: subscription.currency,
+          nextBillingDate: subscription.nextBillingDate,
+          createdAt: subscription.createdAt
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Failed to get current subscription:', error);
+      throw errors.internal('Failed to retrieve subscription information');
     }
-
-    if (subscription.status !== "active") {
-      throw errors.badRequest("Only active subscriptions can be cancelled");
-    }
-
-    await subscription.cancel();
-
-    res.json({
-      success: true,
-      message: "Subscription cancelled successfully",
-      data: subscription.toPublicJSON(),
-    });
   })
 );
 
-// PUT /api/subscriptions/:id/auto-renew - Cambiar configuración de renovación automática
-router.put(
-  "/:id/auto-renew",
+/**
+ * GET /api/subscriptions/history
+ * Get payment history
+ */
+router.get(
+  '/history',
   authenticate,
-  [body("autoRenew").isBoolean().withMessage("autoRenew must be a boolean")],
+  [
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('offset')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Offset must be non-negative'),
+    query('status')
+      .optional()
+      .isIn(['completed', 'failed', 'refunded'])
+      .withMessage('Invalid status filter')
+  ],
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+    const { limit = 20, offset = 0, status } = req.query;
+
+    try {
+      // Get user's subscriptions
+      const userSubscriptions = await Subscription.findAll({
+        where: { userId },
+        attributes: ['id']
+      });
+
+      const subscriptionIds = userSubscriptions.map(sub => sub.id);
+
+      if (subscriptionIds.length === 0) {
+        return res.json({
+          success: true,
+          data: [],
+          pagination: {
+            total: 0,
+            limit: Number(limit),
+            offset: Number(offset)
+          }
+        });
+      }
+
+      // Build where clause
+      const whereClause: any = {
+        subscriptionId: subscriptionIds
+      };
+
+      if (status) {
+        whereClause.status = status;
+      }
+
+      // Get transactions with pagination
+      const { rows: transactions, count: total } = await PaymentTransaction.findAndCountAll({
+        where: whereClause,
+        order: [['createdAt', 'DESC']],
+        limit: Number(limit),
+        offset: Number(offset)
+      });
+
+      const formattedTransactions = transactions.map(transaction => ({
+        id: transaction.id,
+        type: transaction.type,
+        status: transaction.status,
+        amount: transaction.amount,
+        formattedAmount: transaction.getFormattedAmount(),
+        currency: transaction.currency,
+        paymentMethod: transaction.paymentMethod,
+        cardLast4: transaction.cardLast4,
+        cardBrand: transaction.cardBrand,
+        processedAt: transaction.processedAt,
+        failedAt: transaction.failedAt,
+        errorMessage: transaction.errorMessage,
+        createdAt: transaction.createdAt
+      }));
+
+      res.json({
+        success: true,
+        data: formattedTransactions,
+        pagination: {
+          total,
+          limit: Number(limit),
+          offset: Number(offset),
+          hasMore: Number(offset) + Number(limit) < total
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Failed to get payment history:', error);
+      throw errors.internal('Failed to retrieve payment history');
+    }
+  })
+);
+
+/**
+ * POST /api/subscriptions/check-access
+ * Check if user has access to specific features
+ */
+router.post(
+  '/check-access',
+  authenticate,
+  [
+    body('feature')
+      .optional()
+      .isString()
+      .withMessage('Feature must be a string')
+  ],
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+    const { feature } = req.body;
+
+    try {
+      const subscription = await Subscription.findOne({
+        where: {
+          userId,
+          status: 'active',
+          expiresAt: {
+            [Op.gt]: new Date()
+          }
+        }
+      });
+
+      let hasAccess = false;
+      let accessDetails: any = {
+        hasSubscription: false,
+        isActive: false,
+        isExpired: false,
+        features: []
+      };
+
+      if (subscription) {
+        accessDetails.hasSubscription = true;
+        accessDetails.isActive = subscription.status === 'active';
+        accessDetails.isExpired = subscription.isExpired();
+        accessDetails.features = subscription.features;
+        accessDetails.expiresAt = subscription.expiresAt;
+        accessDetails.remainingDays = subscription.getRemainingDays();
+
+        // Check specific feature access
+        if (feature) {
+          hasAccess = subscription.isActive() && subscription.hasFeature(feature);
+        } else {
+          // General access check
+          hasAccess = subscription.isActive();
+        }
+
+        // Mark as expired if needed
+        if (subscription.isExpired() && subscription.status === 'active') {
+          await subscription.markAsExpired();
+          accessDetails.isActive = false;
+          hasAccess = false;
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          hasAccess,
+          ...accessDetails
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Access check failed:', error);
+      throw errors.internal('Failed to check subscription access');
+    }
+  })
+);
+
+/**
+ * GET /api/subscriptions/plans
+ * Get available subscription plans (kept for compatibility)
+ */
+router.get(
+  '/plans/info',
+  asyncHandler(async (req, res) => {
+    try {
+      const plans = paymentService.getSubscriptionPlans();
+      
+      res.json({
+        success: true,
+        data: plans
+      });
+    } catch (error: any) {
+      console.error('Failed to get subscription plans:', error);
+      throw errors.internal('Failed to retrieve subscription plans');
+    }
+  })
+);
+
+/**
+ * GET /api/subscriptions/plans
+ * Get available subscription plans (new endpoint)
+ */
+router.get(
+  '/plans',
+  asyncHandler(async (req, res) => {
+    try {
+      const plans = paymentService.getSubscriptionPlans();
+      
+      res.json({
+        success: true,
+        data: plans
+      });
+    } catch (error: any) {
+      console.error('Failed to get subscription plans:', error);
+      throw errors.internal('Failed to retrieve subscription plans');
+    }
+  })
+);
+
+/**
+ * PUT /api/subscriptions/:id/auto-renew
+ * Toggle auto-renew setting
+ */
+router.put(
+  '/:id/auto-renew',
+  subscriptionRateLimit,
+  authenticate,
+  [
+    param('id').isUUID().withMessage('Invalid subscription ID'),
+    body('autoRenew').isBoolean().withMessage('Auto renew must be boolean')
+  ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      throw errors.badRequest(
-        "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
-      );
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors.array()
+      });
     }
 
+    const { id: subscriptionId } = req.params;
     const { autoRenew } = req.body;
+    const userId = req.user!.id;
 
-    const subscription = await Subscription.findOne({
-      where: {
-        id: req.params.id,
-        userId: req.user!.id,
-        status: "active",
-      },
-    });
+    try {
+      const subscription = await Subscription.findOne({
+        where: {
+          id: subscriptionId,
+          userId
+        }
+      });
 
-    if (!subscription) {
-      throw errors.notFound("Active subscription not found");
+      if (!subscription) {
+        throw errors.notFound('Subscription not found');
+      }
+
+      if (subscription.status !== 'active') {
+        return res.status(400).json({
+          success: false,
+          message: 'Can only modify active subscriptions'
+        });
+      }
+
+      await subscription.update({
+        autoRenew,
+        nextBillingDate: autoRenew ? subscription.expiresAt : null
+      });
+
+      res.json({
+        success: true,
+        message: `Auto-renew ${autoRenew ? 'enabled' : 'disabled'} successfully`,
+        data: {
+          id: subscription.id,
+          autoRenew: subscription.autoRenew,
+          nextBillingDate: subscription.nextBillingDate
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Auto-renew toggle failed:', error);
+      throw errors.internal('Failed to update auto-renew setting');
     }
-
-    subscription.autoRenew = autoRenew;
-    await subscription.save();
-
-    res.json({
-      success: true,
-      message: `Auto-renewal ${
-        autoRenew ? "enabled" : "disabled"
-      } successfully`,
-      data: subscription.toPublicJSON(),
-    });
-  })
-);
-
-// GET /api/subscriptions/plans - Obtener información de planes disponibles
-router.get(
-  "/plans/info",
-  asyncHandler(async (req, res) => {
-    const plans = [
-      {
-        id: "daily",
-        name: "Plan Diario",
-        price: parseFloat(process.env.SUBSCRIPTION_DAILY_PRICE || "2.99"),
-        duration: 24, // 24 horas exactas
-        durationUnit: "hours",
-        description: "Acceso por 24 horas exactas desde el momento del pago",
-        features: [
-          "Acceso a transmisiones en vivo por 24 horas",
-          "Participación en apuestas",
-          "Soporte básico",
-          "Se activa inmediatamente al pagar",
-        ],
-      },
-      {
-        id: "monthly",
-        name: "Plan Mensual",
-        price: parseFloat(process.env.SUBSCRIPTION_MONTHLY_PRICE || "29.99"),
-        duration: 30,
-        durationUnit: "days",
-        description: "Acceso por 30 días completos",
-        features: [
-          "Acceso ilimitado a transmisiones",
-          "Participación en apuestas",
-          "Estadísticas avanzadas",
-          "Historial completo",
-          "Soporte premium",
-          "Descuentos especiales",
-        ],
-        recommended: true,
-      },
-    ];
-
-    res.json({
-      success: true,
-      data: plans,
-    });
-  })
-);
-
-// POST /api/subscriptions/check-access - Verificar acceso a contenido premium
-router.post(
-  "/check-access",
-  authenticate,
-  asyncHandler(async (req, res) => {
-    const cacheKey = `subscription:${req.user!.id}`;
-    const cached = await cacheGet(cacheKey);
-
-    if (cached) {
-      return res.json(JSON.parse(cached)); // Simplificado
-    }
-
-    const activeSubscription = await Subscription.findOne({
-      where: {
-        userId: req.user!.id,
-        status: "active",
-        endDate: {
-          [Op.gt]: new Date(),
-        },
-      },
-    });
-
-    const hasAccess = !!activeSubscription;
-
-    const response = {
-      success: true,
-      data: {
-        hasAccess,
-        subscription: hasAccess ? activeSubscription!.toPublicJSON() : null,
-        expiresAt: hasAccess ? activeSubscription!.endDate : null,
-      },
-    };
-
-    await cacheSet(cacheKey, JSON.stringify(response), 300); // TTL 5 minutos
-
-    res.json(response);
-  })
-);
-
-// PUT /api/subscriptions/:id/extend - Extender suscripción (solo admin o para renovaciones automáticas)
-router.put(
-  "/:id/extend",
-  authenticate,
-  asyncHandler(async (req, res) => {
-    const subscription = await Subscription.findByPk(req.params.id);
-    if (!subscription) {
-      throw errors.notFound("Subscription not found");
-    }
-
-    // Solo admin puede extender manualmente, o sistema para auto-renovación
-    if (req.user!.role !== "admin" && subscription.userId !== req.user!.id) {
-      throw errors.forbidden(
-        "You do not have permission to extend this subscription"
-      );
-    }
-
-    if (subscription.status !== "active") {
-      throw errors.badRequest("Only active subscriptions can be extended");
-    }
-
-    await subscription.extend();
-
-    res.json({
-      success: true,
-      message: "Subscription extended successfully",
-      data: subscription.toPublicJSON(),
-    });
   })
 );
 

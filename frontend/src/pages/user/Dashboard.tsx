@@ -22,6 +22,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
 // Componentes compartidos
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -38,6 +39,7 @@ import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isBettingEnabled } = useFeatureFlags();
 
   // API Hooks - Simplificado
   const {
