@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { asyncHandler, errors } from '../middleware/errorHandler';
 import { paymentService } from '../services/paymentService';
 import { PaymentTransaction } from '../models/PaymentTransaction';
@@ -18,9 +18,10 @@ const webhookRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    // Use IP and webhook signature for rate limiting
-    const signature = req.headers['x-kushki-signature'] || req.ip;
-    return `webhook_${signature}`;
+    // Use IP and webhook signature for rate limiting with IPv6 support
+    const signature = req.headers['x-kushki-signature'] as string;
+    const ipKey = ipKeyGenerator(req.ip);
+    return signature ? `webhook_sig_${signature.substring(0, 10)}` : `webhook_ip_${ipKey}`;
   }
 });
 

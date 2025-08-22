@@ -41,13 +41,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importStar(require("express"));
 const express_validator_1 = require("express-validator");
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const express_rate_limit_1 = __importStar(require("express-rate-limit"));
 const errorHandler_1 = require("../middleware/errorHandler");
 const paymentService_1 = require("../services/paymentService");
 const PaymentTransaction_1 = require("../models/PaymentTransaction");
@@ -63,9 +60,10 @@ const webhookRateLimit = (0, express_rate_limit_1.default)({
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {
-        // Use IP and webhook signature for rate limiting
-        const signature = req.headers['x-kushki-signature'] || req.ip;
-        return `webhook_${signature}`;
+        // Use IP and webhook signature for rate limiting with IPv6 support
+        const signature = req.headers['x-kushki-signature'];
+        const ipKey = (0, express_rate_limit_1.ipKeyGenerator)(req.ip);
+        return signature ? `webhook_sig_${signature.substring(0, 10)}` : `webhook_ip_${ipKey}`;
     }
 });
 // Store processed webhook IDs to prevent duplicate processing

@@ -5,7 +5,7 @@ import { sequelize } from '../config/database';
 export interface SubscriptionAttributes {
   id: string;
   userId: string;
-  type: 'daily' | 'monthly';
+  type: 'daily' | 'monthly' | null; // Temporarily allow null for migration
   status: 'active' | 'cancelled' | 'expired' | 'pending';
   kushkiSubscriptionId?: string;
   paymentMethod: 'card' | 'cash' | 'transfer';
@@ -34,7 +34,7 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   
   public id!: string;
   public userId!: string;
-  public type!: 'daily' | 'monthly';
+  public type!: 'daily' | 'monthly' | null;
   public status!: 'active' | 'cancelled' | 'expired' | 'pending';
   public kushkiSubscriptionId?: string;
   public paymentMethod!: 'card' | 'cash' | 'transfer';
@@ -182,7 +182,7 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   }
 
   public async extend(): Promise<void> {
-    const extensionTime = this.type === 'daily' 
+    const extensionTime = (this.type === 'daily' || this.type === null)
       ? 24 * 60 * 60 * 1000 // 24 hours
       : 30 * 24 * 60 * 60 * 1000; // 30 days
     
@@ -241,7 +241,8 @@ Subscription.init(
     },
     type: {
       type: DataTypes.ENUM('daily', 'monthly'),
-      allowNull: false,
+      allowNull: true, // Temporarily allow null for migration
+      defaultValue: 'daily'
     },
     status: {
       type: DataTypes.ENUM('active', 'cancelled', 'expired', 'pending'),
@@ -368,9 +369,14 @@ Subscription.init(
       beforeCreate: (subscription: Subscription) => {
         // Set default features based on subscription type
         if (!subscription.features || subscription.features.length === 0) {
-          subscription.features = subscription.type === 'daily'
+          subscription.features = (subscription.type === 'daily' || subscription.type === null)
             ? ['Live streaming', 'HD quality', 'Chat access']
             : ['Live streaming', '720p quality', 'Chat access', 'Ad-free', 'Exclusive content'];
+        }
+        
+        // Set default type if null
+        if (!subscription.type) {
+          subscription.type = 'daily';
         }
       },
       
