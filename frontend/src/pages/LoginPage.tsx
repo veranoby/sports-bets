@@ -334,28 +334,19 @@ const LoginPage: React.FC = () => {
                     Credenciales de prueba:
                   </p>
                   <p>
-                    <strong>Email:</strong> admin@sportsbets.com
+                    <strong>Admin:</strong> admin_test / Test123456
                   </p>
                   <p>
-                    <strong>Contraseña:</strong> admin123
+                    <strong>Usuario:</strong> user_test / Test123456
                   </p>
                   <p>
-                    <strong>Usuario:</strong> testuser1
+                    <strong>Operador:</strong> operator_test / Test123456
                   </p>
                   <p>
-                    <strong>Contraseña:</strong> Test123456
+                    <strong>Gallera:</strong> gallera_test / Test123456
                   </p>
                   <p>
-                    <strong>Operador:</strong> operator1
-                  </p>
-                  <p>
-                    <strong>Contraseña:</strong> Operator123
-                  </p>
-                  <p>
-                    <strong>Venue Owner:</strong> venueowner
-                  </p>
-                  <p>
-                    <strong>Contraseña:</strong> Venue123
+                    <strong>Venue:</strong> venue_test / Test123456
                   </p>
                 </div>
               </div>

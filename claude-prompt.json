@@ -1,279 +1,193 @@
 {
-  "task": "Complete Database Architecture Rebuild - From Chaos to Production-Ready",
-  "description": "Rebuild entire database architecture with proper migrations, eliminate Sequelize sync issues, and implement production-grade database management.",
+  "task": "Fix Critical Login Authentication and Frontend Error Handling",
+  "description": "Resolve 401 errors, blank page crashes, and implement proper error messaging for failed authentication attempts.",
 
   "context": {
-    "current_problem": "524 constraints + 444 indexes due to uncontrolled Sequelize sync",
-    "root_cause": "sync: {alter: true} + multiple server restarts = duplicate constraints",
-    "solution_approach": "Complete rebuild with controlled migrations",
-    "database_provider": "Neon.tech PostgreSQL 15+",
-    "project_type": "Sports betting platform with real-time features",
-    "database_analysis_source": "Read from backend/database-analysis/ folder: current_tables.json, current_constraints.json, current_foreign_keys-json, current_enums.json, current_indexes.json, database_stats.json"
+    "root_cause": "Multiple issues: backend 401 errors + frontend error handling failure causing blank pages",
+    "specific_hash": "$2b$12$LQv3c1yqBwPFcT7qTm.DfOuLgNzUqwckQRONJQEOj.xQtF5wq5OsK",
+    "test_credentials": "admin_test/Test123456 from backend/database-analysis/credenciales.json",
+    "backend_logs": "Consistent 401 Invalid credentials errors",
+    "frontend_issue": "Blank page instead of error message"
   },
 
-  "database_architecture_principles": {
-    "migration_strategy": "Manual migrations ONLY - zero auto-sync",
-    "constraint_management": "Single constraint per logical rule",
-    "index_strategy": "Composite indexes for query patterns",
-    "nomenclature": "Database snake_case, TypeScript camelCase with mapping",
-    "transaction_safety": "All schema changes in transactions with rollback",
-    "performance_first": "Index-driven query optimization"
-  },
-
-  "critical_fixes_required": [
-    "ELIMINATE Sequelize sync completely",
-    "IMPLEMENT proper migration system",
-    "CONFIGURE underscored mapping correctly",
-    "CREATE production-safe database config",
-    "VALIDATE all schema changes before execution"
-  ],
-
-  "plan": {
-    "phase_1": "Database configuration hardening",
-    "phase_2": "Migration system implementation",
-    "phase_3": "Model definitions with proper mapping",
-    "phase_4": "Testing and validation framework",
-    "phase_5": "Production deployment procedures"
-  },
-
-  "requirements": {
-    "zero_tolerance": [
-      "NO Sequelize sync in any environment",
-      "NO auto-generated constraints",
-      "NO duplicate indexes",
-      "NO schema changes without migrations"
+  "required_files_structure": {
+    "read_from": [
+      "backend/database-analysis/credenciales.json",
+      "backend/database-analysis/CURRENT_TABLES.json"
     ],
-    "must_implement": [
-      "Controlled migration runner",
-      "Pre-migration validation",
-      "Rollback procedures",
-      "Performance monitoring"
+    "modify": [
+      "backend/src/models/User.ts",
+      "backend/src/routes/auth.ts",
+      "frontend/src/pages/Login.tsx",
+      "frontend/src/config/api.ts",
+      "frontend/vite.config.ts"
+    ],
+    "create": [
+      "backend/src/scripts/fix-test-users.ts",
+      "backend/src/scripts/debug-auth.ts"
     ]
-  },
-
-  "inputs_outputs": {
-    "inputs": {
-      "corrupted_db": "Current Neon database with 524 constraints",
-      "existing_models": "backend/src/models/*.ts",
-      "config_files": "backend/src/config/database.ts"
-    },
-    "outputs": {
-      "clean_database": "Fresh Neon database with optimal schema",
-      "migration_system": "Robust migration framework",
-      "production_config": "Zero-sync database configuration"
-    }
   },
 
   "tasks": [
     {
-      "task_id": "T1_database_analysis",
-      "title": "Analyze Current Database State from Project Knowledge",
-      "priority": "CRITICAL",
-      "files_to_create": ["backend/src/scripts/analyze-db-state.ts"],
-      "implementation_steps": [
-        "READ tables.json, constraints.json, foreign_keys.json, enums.json, indexes.json from project knowledge",
-        "ANALYZE duplicate constraints (524 total found)",
-        "IDENTIFY problematic indexes (444 total found)",
-        "GENERATE report of required fixes",
-        "VALIDATE current Sequelize models against actual DB schema"
-      ],
-      "success_criteria": "Complete understanding of DB corruption scope"
+      "task_id": "T1_debug_auth_flow",
+      "title": "Create Authentication Debug Script",
+      "files_to_create": ["backend/src/scripts/debug-auth.ts"],
+      "exact_implementation": {
+        "file": "backend/src/scripts/debug-auth.ts",
+        "content_requirements": [
+          "Import User model and bcrypt",
+          "Query SELECT * FROM users WHERE username='admin_test'",
+          "Test bcrypt.compare('Test123456', hash) with actual DB hash",
+          "Log exact SQL queries being executed",
+          "Test User.findOne with both email and username queries",
+          "Export results showing exactly where auth fails"
+        ],
+        "success_criteria": "Identifies exact failure point in auth chain"
+      }
     },
     {
-      "task_id": "T2_database_config_hardening",
-      "title": "Harden Database Configuration",
-      "priority": "CRITICAL",
+      "task_id": "T2_fix_user_model",
+      "title": "Fix User Model Password Validation",
+      "files_to_modify": ["backend/src/models/User.ts"],
+      "exact_changes": [
+        {
+          "location": "comparePassword method",
+          "change": "Add debug logging before and after bcrypt.compare",
+          "specific_code": "console.log('Comparing password:', password, 'with hash:', this.passwordHash); const result = await bcrypt.compare(password, this.passwordHash); console.log('Comparison result:', result); return result;"
+        },
+        {
+          "location": "User.init() define section",
+          "change": "Ensure passwordHash field maps correctly to password_hash",
+          "specific_code": "passwordHash: { type: DataTypes.STRING(255), allowNull: false, field: 'password_hash' }"
+        }
+      ],
+      "success_criteria": "comparePassword method works with existing DB hash"
+    },
+    {
+      "task_id": "T3_fix_auth_route",
+      "title": "Fix Auth Route Query Logic",
+      "files_to_modify": ["backend/src/routes/auth.ts"],
+      "exact_changes": [
+        {
+          "location": "/login route - user query",
+          "change": "Add extensive logging around user query",
+          "specific_code": "console.log('Login attempt for:', login); const user = await User.findOne({ where: { [Op.or]: [{ email: login }, { username: login }] } }); console.log('User found:', user ? 'YES' : 'NO', user?.toJSON());"
+        },
+        {
+          "location": "/login route - password check",
+          "change": "Add logging around password validation",
+          "specific_code": "console.log('Checking password...'); const isPasswordValid = await user.comparePassword(password); console.log('Password valid:', isPasswordValid);"
+        }
+      ],
+      "success_criteria": "Auth route logs show exact failure point"
+    },
+    {
+      "task_id": "T4_fix_frontend_error_handling",
+      "title": "Fix Frontend Login Error Handling",
+      "files_to_modify": ["frontend/src/pages/Login.tsx"],
+      "exact_changes": [
+        {
+          "location": "handleSubmit function",
+          "change": "Add proper error handling for 401 responses",
+          "specific_code": "try { const response = await authAPI.login({ login: email, password }); // success handling } catch (error) { console.error('Login error:', error); setError(error.message || 'Invalid credentials'); setLoading(false); }"
+        },
+        {
+          "location": "useState declarations",
+          "change": "Add error state if missing",
+          "specific_code": "const [error, setError] = useState<string>('');"
+        },
+        {
+          "location": "JSX render",
+          "change": "Display error message prominently",
+          "specific_code": "{error && <div className=\"bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4\">{error}</div>}"
+        }
+      ],
+      "success_criteria": "Login shows error message instead of blank page"
+    },
+    {
+      "task_id": "T5_fix_api_config",
+      "title": "Fix API Configuration and Ports",
       "files_to_modify": [
-        "backend/src/config/database.ts",
-        "backend/.env.example"
+        "frontend/src/config/api.ts",
+        "frontend/vite.config.ts"
       ],
-      "implementation_steps": [
-        "REMOVE all sync configurations",
-        "ADD underscored: true for snake_case mapping",
-        "CONFIGURE proper connection pooling",
-        "SET environment-specific settings",
-        "ADD connection validation"
+      "exact_changes": [
+        {
+          "file": "frontend/src/config/api.ts",
+          "location": "API_BASE_URL definition",
+          "change": "Ensure correct port 3001",
+          "specific_code": "export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';"
+        },
+        {
+          "file": "frontend/vite.config.ts",
+          "location": "server config",
+          "change": "Set frontend port to 5173",
+          "specific_code": "server: { port: 5173, open: true }"
+        }
       ],
-      "success_criteria": "Zero Sequelize sync capability"
+      "success_criteria": "Frontend runs on 5173, API calls go to 3001"
     },
     {
-      "task_id": "T2_migration_system",
-      "title": "Implement Production Migration System",
-      "priority": "CRITICAL",
-      "files_to_create": [
-        "backend/src/migrations/",
-        "backend/src/utils/migration-runner.ts",
-        "backend/src/scripts/migrate.ts",
-        "backend/src/scripts/rollback.ts"
-      ],
-      "implementation_steps": [
-        "CREATE migration file structure",
-        "IMPLEMENT migration runner with transactions",
-        "ADD pre-migration validation hooks",
-        "CREATE rollback mechanism",
-        "ADD migration history tracking"
-      ],
-      "success_criteria": "Migrations run safely with rollback capability"
-    },
-    {
-      "task_id": "T3_model_definitions",
-      "title": "Rebuild All Model Definitions",
-      "priority": "HIGH",
-      "files_to_modify": [
-        "backend/src/models/User.ts",
-        "backend/src/models/Event.ts",
-        "backend/src/models/Fight.ts",
-        "backend/src/models/Bet.ts",
-        "backend/src/models/Wallet.ts",
-        "backend/src/models/Transaction.ts",
-        "backend/src/models/Venue.ts",
-        "backend/src/models/index.ts"
-      ],
-      "implementation_steps": [
-        "CONFIGURE all models with underscored: true",
-        "REMOVE any sync configurations",
-        "ADD proper field mappings",
-        "CONFIGURE relationships correctly",
-        "ADD validation at model level"
-      ],
-      "success_criteria": "Models map correctly to snake_case DB"
-    },
-    {
-      "task_id": "T4_initial_migration",
-      "title": "Create Initial Database Migration",
-      "priority": "HIGH",
-      "files_to_create": ["backend/src/migrations/001_initial_schema.ts"],
-      "implementation_steps": [
-        "CREATE complete schema definition",
-        "ADD all necessary indexes",
-        "CONFIGURE proper constraints",
-        "ADD enum definitions",
-        "INCLUDE rollback procedures"
-      ],
-      "success_criteria": "Clean database creation from scratch"
-    },
-    {
-      "task_id": "T6_environment_validation",
-      "title": "Validate Environment Configuration",
-      "priority": "HIGH",
-      "files_to_modify": [
-        "backend/src/config/database.ts",
-        "backend/src/scripts/validate-env.ts"
-      ],
-      "implementation_steps": [
-        "CREATE environment validation script",
-        "VERIFY DATABASE_URL format and connectivity",
-        "VALIDATE all required environment variables",
-        "CHECK production vs development settings",
-        "ENSURE no sync capabilities in any environment"
-      ],
-      "success_criteria": "All environments validated, no sync possible"
-    },
-    {
-      "task_id": "T7_testing_framework",
-      "title": "Implement Database Testing",
-      "priority": "MEDIUM",
-      "files_to_create": [
-        "backend/tests/database/connection.test.ts",
-        "backend/tests/database/migrations.test.ts",
-        "backend/tests/database/models.test.ts",
-        "backend/tests/database/performance.test.ts"
-      ],
-      "implementation_steps": [
-        "CREATE database test containers",
-        "TEST migration up/down cycles",
-        "VALIDATE model-database mapping",
-        "TEST performance with realistic data",
-        "VERIFY query plans use indexes not seq scans"
-      ],
-      "success_criteria": "All database operations tested, performance validated"
+      "task_id": "T6_regenerate_test_users",
+      "title": "Create Script to Fix Test User Passwords",
+      "files_to_create": ["backend/src/scripts/fix-test-users.ts"],
+      "exact_implementation": {
+        "purpose": "Regenerate test users with properly hashed passwords",
+        "specific_code_blocks": [
+          "Import User, bcrypt from correct paths",
+          "Hash 'Test123456' using User.hashPassword method",
+          "UPDATE users SET password_hash = $hashedPassword WHERE username IN ('admin_test', 'operator_test', 'venue_test', 'gallera_test', 'user_test')",
+          "Verify each user can authenticate with bcrypt.compare",
+          "Log results for each user role"
+        ],
+        "execution_command": "npm run fix-users"
+      },
+      "success_criteria": "All test users have working password hashes"
     }
   ],
 
-  "pre_implementation_validation": [
-    "VERIFY Neon database is accessible",
-    "CONFIRM backup procedures work",
-    "TEST migration runner in isolation",
-    "VALIDATE all model definitions",
-    "CHECK environment variables"
-  ],
-
-  "required_tests": [
+  "validation_tests": [
     {
-      "test_name": "zero_sync_test",
-      "description": "Verify Sequelize cannot auto-sync",
-      "success_criteria": "Sequelize.sync() throws error or is disabled"
+      "test": "curl -X POST http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"login\":\"admin_test\",\"password\":\"Test123456\"}'",
+      "expected": "200 response with JWT token"
     },
     {
-      "test_name": "migration_safety_test",
-      "description": "Test migration with rollback",
-      "success_criteria": "Migration applies and rolls back cleanly"
+      "test": "Frontend login form with admin_test/Test123456",
+      "expected": "Successful login or clear error message (no blank page)"
     },
     {
-      "test_name": "nomenclature_mapping_test",
-      "description": "Verify camelCase to snake_case mapping",
-      "success_criteria": "TypeScript camelCase maps to DB snake_case"
-    },
-    {
-      "test_name": "constraint_uniqueness_test",
-      "description": "Ensure no duplicate constraints",
-      "success_criteria": "Each logical constraint exists exactly once"
-    },
-    {
-      "test_name": "query_performance_test",
-      "description": "Validate optimized query performance",
-      "success_criteria": "Critical queries use indexes, not seq scans"
+      "test": "Frontend login form with wrong password",
+      "expected": "Error message displayed, page remains functional"
     }
   ],
 
-  "environment_configuration": {
-    "development": {
-      "SEQUELIZE_SYNC": "false",
-      "MIGRATION_MODE": "auto",
-      "LOG_LEVEL": "debug"
-    },
-    "staging": {
-      "SEQUELIZE_SYNC": "false",
-      "MIGRATION_MODE": "manual",
-      "LOG_LEVEL": "info"
-    },
-    "production": {
-      "SEQUELIZE_SYNC": "false",
-      "MIGRATION_MODE": "manual",
-      "LOG_LEVEL": "error"
+  "package_json_scripts": {
+    "add_to_backend": {
+      "debug-auth": "ts-node src/scripts/debug-auth.ts",
+      "fix-users": "ts-node src/scripts/fix-test-users.ts"
     }
   },
 
-  "critical_safety_measures": [
-    "NEVER enable Sequelize sync in any environment",
-    "ALWAYS run migrations in transactions",
-    "ALWAYS test migrations on staging first",
-    "ALWAYS have rollback procedure ready",
-    "MONITOR database performance post-migration"
+  "environment_requirements": {
+    "backend_env_vars": ["DATABASE_URL", "JWT_SECRET", "BCRYPT_ROUNDS=12"],
+    "ports": { "frontend": 5173, "backend": 3001 }
+  },
+
+  "step_by_step_execution": [
+    "1. Create debug-auth.ts and run to identify exact auth failure",
+    "2. Modify User.ts with debug logging in comparePassword",
+    "3. Modify auth.ts with comprehensive request logging",
+    "4. Test backend auth with curl commands",
+    "5. Fix frontend Login.tsx error handling",
+    "6. Fix API config and ports",
+    "7. Create and run fix-test-users.ts if needed",
+    "8. Test complete login flow frontend to backend"
   ],
 
-  "deployment_checklist": [
-    "✅ Database config hardened (no sync)",
-    "✅ Migration system implemented",
-    "✅ All models configured correctly",
-    "✅ Initial migration tested",
-    "✅ Performance validated",
-    "✅ Rollback procedures tested",
-    "✅ Documentation updated"
-  ],
-
-  "success_metrics": [
-    "Database constraints: <30 total",
-    "Database indexes: <20 total",
-    "Query performance: Index scans not seq scans",
-    "Migration time: <30 seconds for schema",
-    "Zero duplicate constraints/indexes"
-  ],
-
-  "disaster_recovery": {
-    "backup_before": "Create full database backup before any changes",
-    "rollback_procedure": "Automated rollback for failed migrations",
-    "monitoring": "Real-time monitoring during deployment",
-    "emergency_contacts": "Database team notification procedures"
+  "success_criteria": {
+    "backend": "Returns 200 with JWT for correct credentials, 401 with clear error for wrong ones",
+    "frontend": "Shows success page for correct login, error message for failures",
+    "no_blank_pages": "Frontend never crashes to blank page on any auth error"
   }
 }

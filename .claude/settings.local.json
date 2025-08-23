@@ -11,7 +11,11 @@
       "Bash(rm:*)",
       "Bash(npm run dev:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(timeout 20 npm run dev)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

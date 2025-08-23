@@ -53,7 +53,10 @@ export class User extends Model<
 
   // Método de instancia para verificar contraseña
   async comparePassword(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this.passwordHash);
+    console.log('🔍 Comparing password:', password, 'with hash:', this.passwordHash);
+    const result = await bcrypt.compare(password, this.passwordHash);
+    console.log('🔍 Comparison result:', result);
+    return result;
   }
 
   // Método para obtener datos públicos del usuario
@@ -132,6 +135,7 @@ User.init(
     passwordHash: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      field: 'password_hash', // Explicit field mapping for snake_case DB column
       validate: {
         len: [6, 255],
       },

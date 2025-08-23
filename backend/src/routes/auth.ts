@@ -142,6 +142,8 @@ router.post(
 
     const { login, password } = req.body;
 
+    console.log('🔍 Login attempt for:', login);
+    
     // Buscar usuario por email o username
     const user = await User.findOne({
       where: {
@@ -149,18 +151,26 @@ router.post(
       },
     });
 
+    console.log('🔍 User found:', user ? 'YES' : 'NO', user?.toJSON());
+
     if (!user) {
+      console.log('❌ Login failed: User not found for:', login);
       throw errors.unauthorized("Invalid credentials");
     }
 
     // Verificar si el usuario está activo
     if (!user.isActive) {
+      console.log('❌ Login failed: User inactive:', login);
       throw errors.forbidden("Account is disabled");
     }
 
     // Verificar contraseña
+    console.log('🔍 Checking password...');
     const isPasswordValid = await user.comparePassword(password);
+    console.log('🔍 Password valid:', isPasswordValid);
+    
     if (!isPasswordValid) {
+      console.log('❌ Login failed: Invalid password for:', login);
       throw errors.unauthorized("Invalid credentials");
     }
 
@@ -171,6 +181,7 @@ router.post(
     // Generar token
     const token = generateToken(user.id);
 
+    console.log('✅ Login successful for:', user.username, '(', user.email, ')');
     logger.info(`User logged in: ${user.username} (${user.email})`);
 
     // Respuesta
