@@ -28,25 +28,26 @@ export interface SubscriptionAttributes {
 export interface SubscriptionCreationAttributes 
   extends Optional<SubscriptionAttributes, 'id' | 'createdAt' | 'updatedAt' | 'retryCount' | 'maxRetries'> {}
 
-// Subscription model class
+// Subscription model class with proper camelCase → snake_case mapping
 export class Subscription extends Model<SubscriptionAttributes, SubscriptionCreationAttributes> 
   implements SubscriptionAttributes {
   
+  // TypeScript properties (camelCase) - automatically mapped to snake_case in DB
   public id!: string;
-  public userId!: string;
+  public userId!: string; // → user_id
   public type!: 'daily' | 'monthly' | null;
   public status!: 'active' | 'cancelled' | 'expired' | 'pending';
-  public kushkiSubscriptionId?: string;
-  public paymentMethod!: 'card' | 'cash' | 'transfer';
-  public autoRenew!: boolean;
+  public kushkiSubscriptionId?: string; // → kushki_subscription_id
+  public paymentMethod!: 'card' | 'cash' | 'transfer'; // → payment_method
+  public autoRenew!: boolean; // → auto_renew
   public amount!: number;
   public currency!: string;
-  public expiresAt!: Date;
-  public nextBillingDate?: Date;
-  public cancelledAt?: Date;
-  public cancelReason?: string;
-  public retryCount!: number;
-  public maxRetries!: number;
+  public expiresAt!: Date; // → expires_at
+  public nextBillingDate?: Date; // → next_billing_date
+  public cancelledAt?: Date; // → cancelled_at
+  public cancelReason?: string; // → cancel_reason
+  public retryCount!: number; // → retry_count
+  public maxRetries!: number; // → max_retries
   public features!: string[];
   public metadata?: Record<string, any>;
   public createdAt!: Date;
@@ -336,33 +337,41 @@ Subscription.init(
     tableName: 'subscriptions',
     modelName: 'Subscription',
     timestamps: true,
+    underscored: true, // Enable snake_case mapping
     indexes: [
       {
-        fields: ['userId']
+        name: 'idx_subscriptions_user_id',
+        fields: ['user_id']
       },
       {
+        name: 'idx_subscriptions_status',
         fields: ['status']
       },
       {
+        name: 'idx_subscriptions_type',
         fields: ['type']
       },
       {
-        fields: ['expiresAt']
+        name: 'idx_subscriptions_expires_at',
+        fields: ['expires_at']
       },
       {
-        fields: ['kushkiSubscriptionId'],
+        name: 'subscriptions_kushki_subscription_id_unique',
+        fields: ['kushki_subscription_id'],
         unique: true,
         where: {
-          kushkiSubscriptionId: {
+          kushki_subscription_id: {
             [require('sequelize').Op.ne]: null
           }
         }
       },
       {
-        fields: ['status', 'expiresAt']
+        name: 'idx_subscriptions_status_expires',
+        fields: ['status', 'expires_at']
       },
       {
-        fields: ['retryCount', 'maxRetries']
+        name: 'idx_subscriptions_retry',
+        fields: ['retry_count', 'max_retries']
       }
     ],
     hooks: {

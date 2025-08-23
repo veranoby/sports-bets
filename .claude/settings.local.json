@@ -3,7 +3,14 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(npm run build:*)",
-      "Bash(timeout 10 npm run dev)"
+      "Bash(timeout 10 npm run dev)",
+      "Bash(npx ts-node:*)",
+      "Bash(npm run migrate:init:*)",
+      "Bash(npm run migrate:up:*)",
+      "Bash(npm run migrate:status:*)",
+      "Bash(rm:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

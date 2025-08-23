@@ -33,17 +33,17 @@ export class User extends Model<
   InferAttributes<User>,
   InferCreationAttributes<User>
 > {
-  // Propiedades del modelo
+  // TypeScript properties (camelCase) - automatically mapped to snake_case in DB
   declare id: CreationOptional<string>;
   declare username: string;
   declare email: string;
-  declare passwordHash: string;
+  declare passwordHash: string; // → password_hash
   declare role: "admin" | "operator" | "venue" | "user" | "gallera";
-  declare isActive: CreationOptional<boolean>;
-  declare profileInfo: CreationOptional<UserProfile>;
-  declare lastLogin: CreationOptional<Date>;
-  declare createdAt: CreationOptional<Date>;
-  declare updatedAt: CreationOptional<Date>;
+  declare isActive: CreationOptional<boolean>; // → is_active
+  declare profileInfo: CreationOptional<UserProfile>; // → profile_info
+  declare lastLogin: CreationOptional<Date>; // → last_login
+  declare createdAt: CreationOptional<Date>; // → created_at
+  declare updatedAt: CreationOptional<Date>; // → updated_at
 
   // Métodos estáticos para autenticación
   static async hashPassword(password: string): Promise<string> {
@@ -171,20 +171,25 @@ User.init(
     modelName: "User",
     tableName: "users",
     timestamps: true,
+    underscored: true, // Enable snake_case mapping
     indexes: [
       {
+        name: "users_email_unique",
         fields: ["email"],
         unique: true,
       },
       {
+        name: "users_username_unique", 
         fields: ["username"],
         unique: true,
       },
       {
-        fields: ["role"],
+        name: "idx_users_role_active",
+        fields: ["role", "is_active"],
       },
       {
-        fields: ["is_active"],
+        name: "idx_users_email_active",
+        fields: ["email", "is_active"],
       },
     ],
     hooks: {

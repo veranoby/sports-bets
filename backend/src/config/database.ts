@@ -94,9 +94,16 @@ export const connectDatabase = async (): Promise<void> => {
       },
     });
 
-    if (process.env.NODE_ENV === "development") {
+    // 🚫 SYNC DISABLED - MIGRATION-ONLY ARCHITECTURE
+    // Never use sync in production or any environment - causes constraint bloat
+    // All schema changes MUST go through controlled migrations
+    if (process.env.ENABLE_DANGEROUS_SYNC === "true") {
+      logger.warn("⚠️  DANGEROUS: Sequelize sync enabled via ENABLE_DANGEROUS_SYNC");
+      logger.warn("🚫 This should NEVER be used in production");
       await sequelize.sync({ alter: true });
-      logger.info("✅ Database models synchronized");
+      logger.info("⚠️  Database models synchronized (DANGEROUS MODE)");
+    } else {
+      logger.info("✅ Database sync DISABLED - using migration-only architecture");
     }
 
     // Log periódico del estado del pool
