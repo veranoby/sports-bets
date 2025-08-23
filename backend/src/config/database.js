@@ -102,9 +102,17 @@ const connectDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
                 database: sequelize.getDatabaseName(),
             },
         });
-        if (process.env.NODE_ENV === "development") {
+        // 🚫 SYNC DISABLED - MIGRATION-ONLY ARCHITECTURE
+        // Never use sync in production or any environment - causes constraint bloat
+        // All schema changes MUST go through controlled migrations
+        if (process.env.ENABLE_DANGEROUS_SYNC === "true") {
+            logger_1.logger.warn("⚠️  DANGEROUS: Sequelize sync enabled via ENABLE_DANGEROUS_SYNC");
+            logger_1.logger.warn("🚫 This should NEVER be used in production");
             yield sequelize.sync({ alter: true });
-            logger_1.logger.info("✅ Database models synchronized");
+            logger_1.logger.info("⚠️  Database models synchronized (DANGEROUS MODE)");
+        }
+        else {
+            logger_1.logger.info("✅ Database sync DISABLED - using migration-only architecture");
         }
         // Log periódico del estado del pool
         setInterval(() => {

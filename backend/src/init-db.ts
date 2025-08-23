@@ -7,7 +7,8 @@
 
 import { config } from "dotenv";
 import { connectDatabase } from "./config/database";
-import { syncModels, checkAssociations, User, Wallet } from "./models";
+import { checkAssociations, User, Wallet } from "./models";
+import { MigrationRunner } from "./migrations/MigrationRunner";
 import { logger } from "./config/logger";
 
 // Cargar variables de entorno ANTES de cualquier importación de modelos
@@ -23,13 +24,15 @@ async function initializeDatabase() {
     // Verificar asociaciones
     checkAssociations();
 
-    // Sincronizar modelos
+    // Run migrations instead of sync
     const force = process.argv.includes("--force");
     if (force) {
-      logger.warn("⚠️  Force mode enabled - all tables will be recreated!");
+      logger.warn("⚠️  Force mode is no longer supported - use migrations: npm run migrate down");
+      logger.warn("⚠️  Continuing with migration-based initialization...");
     }
 
-    await syncModels(force);
+    const migrationRunner = new MigrationRunner();
+    await migrationRunner.migrate();
 
     // Crear usuario administrador por defecto si no existe
     await createDefaultAdmin();

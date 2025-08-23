@@ -159,37 +159,9 @@ Article_1.Article.belongsTo(User_1.User, { foreignKey: "author_id", as: "author"
 Venue_1.Venue.hasMany(Article_1.Article, { foreignKey: "venue_id", as: "articles" });
 Article_1.Article.belongsTo(Venue_1.Venue, { foreignKey: "venue_id", as: "venue" });
 console.log("✅ Asociaciones configuradas correctamente");
-// Función para sincronizar modelos
+// ❌ SYNC DISABLED - Migration-only architecture
 const syncModels = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (force = false) {
-    try {
-        console.log("🔄 Synchronizing models...");
-        // Orden respetando dependencias
-        yield User_1.User.sync({ force });
-        console.log("✅ User");
-        yield Venue_1.Venue.sync({ force });
-        console.log("✅ Venue");
-        yield Wallet_1.Wallet.sync({ force });
-        console.log("✅ Wallet");
-        yield Subscription_1.Subscription.sync({ force });
-        console.log("✅ Subscription");
-        yield Event_1.Event.sync({ force });
-        console.log("✅ Event");
-        yield Fight_1.Fight.sync({ force });
-        console.log("✅ Fight");
-        yield Bet_1.Bet.sync({ force });
-        console.log("✅ Bet");
-        yield Wallet_1.Transaction.sync({ force });
-        console.log("✅ Transaction");
-        yield Notification_1.default.sync({ force });
-        console.log("✅ Notification");
-        yield Article_1.Article.sync({ force });
-        console.log("✅ Article");
-        console.log("✅ All models synchronized successfully");
-    }
-    catch (error) {
-        console.error("❌ Error synchronizing models:", error);
-        throw error;
-    }
+    throw new Error('🚫 Sequelize sync is disabled. Use migrations instead: npm run migrate up');
 });
 exports.syncModels = syncModels;
 // Función para verificar asociaciones

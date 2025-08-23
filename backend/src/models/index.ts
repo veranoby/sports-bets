@@ -171,47 +171,9 @@ export {
   connectDatabase,
 };
 
-// Función para sincronizar modelos
+// ❌ SYNC DISABLED - Migration-only architecture
 export const syncModels = async (force: boolean = false): Promise<void> => {
-  try {
-    console.log("🔄 Synchronizing models...");
-
-    // Orden respetando dependencias
-    await User.sync({ force });
-    console.log("✅ User");
-
-    await Venue.sync({ force });
-    console.log("✅ Venue");
-
-    await Wallet.sync({ force });
-    console.log("✅ Wallet");
-
-    await Subscription.sync({ force });
-    console.log("✅ Subscription");
-
-    await Event.sync({ force });
-    console.log("✅ Event");
-
-    await Fight.sync({ force });
-    console.log("✅ Fight");
-
-    await Bet.sync({ force });
-    console.log("✅ Bet");
-
-    await Transaction.sync({ force });
-    console.log("✅ Transaction");
-
-    await Notification.sync({ force });
-    console.log("✅ Notification");
-
-    await Article.sync({ force });
-    console.log("✅ Article");
-
-    console.log("✅ All models synchronized successfully");
-  } catch (error) {
-    console.error("❌ Error synchronizing models:", error);
-    throw error;
-  }
+  throw new Error('🚫 Sequelize sync is disabled. Use migrations instead: npm run migrate up');
 };
 
 // Función para verificar asociaciones

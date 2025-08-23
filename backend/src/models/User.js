@@ -152,20 +152,25 @@ User.init({
     modelName: "User",
     tableName: "users",
     timestamps: true,
+    underscored: true, // Enable snake_case mapping
     indexes: [
         {
+            name: "users_email_unique",
             fields: ["email"],
             unique: true,
         },
         {
+            name: "users_username_unique",
             fields: ["username"],
             unique: true,
         },
         {
-            fields: ["role"],
+            name: "idx_users_role_active",
+            fields: ["role", "is_active"],
         },
         {
-            fields: ["is_active"],
+            name: "idx_users_email_active",
+            fields: ["email", "is_active"],
         },
     ],
     hooks: {

@@ -19,6 +19,7 @@ exports.createDefaultAdmin = createDefaultAdmin;
 const dotenv_1 = require("dotenv");
 const database_1 = require("./config/database");
 const models_1 = require("./models");
+const MigrationRunner_1 = require("./migrations/MigrationRunner");
 const logger_1 = require("./config/logger");
 // Cargar variables de entorno ANTES de cualquier importación de modelos
 (0, dotenv_1.config)();
@@ -30,12 +31,14 @@ function initializeDatabase() {
             yield (0, database_1.connectDatabase)();
             // Verificar asociaciones
             (0, models_1.checkAssociations)();
-            // Sincronizar modelos
+            // Run migrations instead of sync
             const force = process.argv.includes("--force");
             if (force) {
-                logger_1.logger.warn("⚠️  Force mode enabled - all tables will be recreated!");
+                logger_1.logger.warn("⚠️  Force mode is no longer supported - use migrations: npm run migrate down");
+                logger_1.logger.warn("⚠️  Continuing with migration-based initialization...");
             }
-            yield (0, models_1.syncModels)(force);
+            const migrationRunner = new MigrationRunner_1.MigrationRunner();
+            yield migrationRunner.migrate();
             // Crear usuario administrador por defecto si no existe
             yield createDefaultAdmin();
             logger_1.logger.info("✅ Database initialization completed successfully!");

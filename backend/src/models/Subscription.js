@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subscription = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
-// Subscription model class
+// Subscription model class with proper camelCase → snake_case mapping
 class Subscription extends sequelize_1.Model {
     // Instance methods
     isActive() {
@@ -138,7 +138,7 @@ class Subscription extends sequelize_1.Model {
     }
     extend() {
         return __awaiter(this, void 0, void 0, function* () {
-            const extensionTime = this.type === 'daily'
+            const extensionTime = (this.type === 'daily' || this.type === null)
                 ? 24 * 60 * 60 * 1000 // 24 hours
                 : 30 * 24 * 60 * 60 * 1000; // 30 days
             yield this.update({
@@ -196,7 +196,8 @@ Subscription.init({
     },
     type: {
         type: sequelize_1.DataTypes.ENUM('daily', 'monthly'),
-        allowNull: false,
+        allowNull: true, // Temporarily allow null for migration
+        defaultValue: 'daily'
     },
     status: {
         type: sequelize_1.DataTypes.ENUM('active', 'cancelled', 'expired', 'pending'),
@@ -289,42 +290,54 @@ Subscription.init({
     tableName: 'subscriptions',
     modelName: 'Subscription',
     timestamps: true,
+    underscored: true, // Enable snake_case mapping
     indexes: [
         {
-            fields: ['userId']
+            name: 'idx_subscriptions_user_id',
+            fields: ['user_id']
         },
         {
+            name: 'idx_subscriptions_status',
             fields: ['status']
         },
         {
+            name: 'idx_subscriptions_type',
             fields: ['type']
         },
         {
-            fields: ['expiresAt']
+            name: 'idx_subscriptions_expires_at',
+            fields: ['expires_at']
         },
         {
-            fields: ['kushkiSubscriptionId'],
+            name: 'subscriptions_kushki_subscription_id_unique',
+            fields: ['kushki_subscription_id'],
             unique: true,
             where: {
-                kushkiSubscriptionId: {
+                kushki_subscription_id: {
                     [require('sequelize').Op.ne]: null
                 }
             }
         },
         {
-            fields: ['status', 'expiresAt']
+            name: 'idx_subscriptions_status_expires',
+            fields: ['status', 'expires_at']
         },
         {
-            fields: ['retryCount', 'maxRetries']
+            name: 'idx_subscriptions_retry',
+            fields: ['retry_count', 'max_retries']
         }
     ],
     hooks: {
         beforeCreate: (subscription) => {
             // Set default features based on subscription type
             if (!subscription.features || subscription.features.length === 0) {
-                subscription.features = subscription.type === 'daily'
+                subscription.features = (subscription.type === 'daily' || subscription.type === null)
                     ? ['Live streaming', 'HD quality', 'Chat access']
                     : ['Live streaming', '720p quality', 'Chat access', 'Ad-free', 'Exclusive content'];
+            }
+            // Set default type if null
+            if (!subscription.type) {
+                subscription.type = 'daily';
             }
         },
         beforeUpdate: (subscription) => {

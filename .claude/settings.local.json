@@ -10,7 +10,8 @@
       "Bash(npm run migrate:status:*)",
       "Bash(rm:*)",
       "Bash(npm run dev:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
