@@ -1,0 +1,31 @@
+[{
+  "info": "Test Credentials",
+  "username": "admin_test",
+  "email": "admin@sportsbets.com",
+  "role": "admin",
+  "password_note": "Password: Test123456"
+}, {
+  "info": "Test Credentials",
+  "username": "operator_test",
+  "email": "operator1@sportsbets.com",
+  "role": "operator",
+  "password_note": "Password: Test123456"
+}, {
+  "info": "Test Credentials",
+  "username": "venue_test",
+  "email": "venueowner1@sportsbets.com",
+  "role": "venue",
+  "password_note": "Password: Test123456"
+}, {
+  "info": "Test Credentials",
+  "username": "gallera_test",
+  "email": "gallera1@sportsbets.com",
+  "role": "gallera",
+  "password_note": "Password: Test123456"
+}, {
+  "info": "Test Credentials",
+  "username": "user_test",
+  "email": "testuser1@sportsbets.com",
+  "role": "user",
+  "password_note": "Password: Test123456"
+}]
