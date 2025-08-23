@@ -26,6 +26,10 @@ const RoleSwitcher = lazy(() => import("./components/debug/RoleSwitcher"));
 const DebugPanel = lazy(() => import("./components/debug/DebugPanel"));
 const DebugTestPage = lazy(() => import("./pages/DebugTestPage"));
 
+// Toast System
+import ToastContainer from "./components/shared/ToastContainer";
+import { useToast } from "./hooks/useToast";
+
 // Páginas de Usuario
 import UserDashboard from "./pages/user/Dashboard";
 import EventsPage from "./pages/user/Events";
@@ -85,6 +89,7 @@ const RoleBasedRedirect: React.FC = () => {
 // 🏗️ COMPONENTE PRINCIPAL CON RUTAS OPTIMIZADAS
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { toasts, removeToast } = useToast();
 
   return (
     <>
@@ -319,6 +324,9 @@ const AppContent: React.FC = () => {
           }
         />
       </Routes>
+      {/* Toast System - Notificaciones globales */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      
       {/* Debug Tools - Solo visible en desarrollo */}
       <Suspense fallback={null}>
         <RoleSwitcher />

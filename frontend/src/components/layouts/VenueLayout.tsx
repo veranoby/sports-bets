@@ -5,12 +5,14 @@ import VenueHeader from "../venue/VenueHeader";
 import VenueNavigation from "../venue/VenueNavigation";
 import SubscriptionStatusBar from "../shared/SubscriptionStatusBar";
 import PWAInstallPrompt from "../shared/PWAInstallPrompt";
+import Breadcrumbs from "../shared/Breadcrumbs";
 
 const VenueLayout = memo(() => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <VenueHeader />
       <SubscriptionStatusBar />
+      <Breadcrumbs />
       <main className="flex-1 pb-16">
         <Outlet />
       </main>

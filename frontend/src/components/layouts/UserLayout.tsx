@@ -8,6 +8,7 @@ import Navigation from "../user/Navigation";
 import SubscriptionStatusBar from "../shared/SubscriptionStatusBar";
 import PWAInstallPrompt from "../shared/PWAInstallPrompt";
 import AdSpace from "../ads/AdSpace";
+import Breadcrumbs from "../shared/Breadcrumbs";
 
 const UserLayout = memo(() => {
   return (
@@ -20,6 +21,9 @@ const UserLayout = memo(() => {
 
       {/* Header Ad Space */}
       <AdSpace location="header" size="banner" className="mx-4" />
+      
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
 
       {/* Contenido de la página actual */}
       <main className="flex-1 pb-16">
