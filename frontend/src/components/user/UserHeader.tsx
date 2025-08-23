@@ -20,6 +20,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
+import { useSubscription } from "../../hooks/useSubscription";
 
 const UserHeader = memo(() => {
   const location = useLocation();
@@ -34,6 +35,7 @@ const UserHeader = memo(() => {
     fetchNotifications,
   } = useNotifications();
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
+  const { isPremium, hasAccess } = useSubscription();
 
   const { isWalletEnabled, isBettingEnabled } = useFeatureFlags();
 
@@ -157,9 +159,15 @@ const UserHeader = memo(() => {
           </span>
           <span
             onClick={() => navigate("/profile")}
-            className="text-xs px-2 py-1 bg-theme-accent rounded-full text-theme-text-primary"
+            className="text-xs px-2 py-1 bg-theme-accent rounded-full text-theme-text-primary flex items-center gap-1"
           >
-            {user.role} - PREMIUM
+            {user.role}
+            {isPremium && (
+              <>
+                <Crown className="w-3 h-3" />
+                <span>PREMIUM</span>
+              </>
+            )}
           </span>
         </div>
 

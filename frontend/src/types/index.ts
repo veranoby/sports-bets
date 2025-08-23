@@ -10,7 +10,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  role: "admin" | "operator" | "venue" | "user";
+  role: "admin" | "operator" | "venue" | "user" | "gallera";
   isActive: boolean;
   profileInfo?: {
     fullName?: string;

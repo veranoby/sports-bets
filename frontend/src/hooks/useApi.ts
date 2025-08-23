@@ -730,7 +730,7 @@ export function useSubscriptions() {
   const { data, loading, error, execute } = useAsyncOperation<any>();
 
   const fetchPlans = useCallback(() => {
-    return execute(() => apiClient.get("/subscriptions/plans/info"));
+    return execute(() => apiClient.get("/subscriptions/plans"));
   }, [execute]);
 
   const fetchCurrent = useCallback(() => {
@@ -747,7 +747,7 @@ export function useSubscriptions() {
       autoRenew?: boolean;
       paymentData?: any;
     }) => {
-      return execute(() => apiClient.post("/subscriptions", subscriptionData));
+      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));
     },
     [execute]
   );

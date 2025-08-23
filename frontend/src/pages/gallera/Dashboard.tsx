@@ -4,6 +4,7 @@ import { FileText, TrendingUp, Users, Eye, Clock, CheckCircle } from "lucide-rea
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import StatusChip from "../../components/shared/StatusChip";
+import EmptyState from "../../components/shared/EmptyState";
 import { articlesAPI } from "../../config/api";
 import { Link } from "react-router-dom";
 
@@ -197,18 +198,20 @@ const GalleraDashboard: React.FC = () => {
           </div>
 
           {articles.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No articles yet</h3>
-              <p className="text-gray-600 mb-6">Start creating your first article to share with the community.</p>
-              <Link
-                to="/gallera/articles"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <FileText className="w-4 h-4" />
-                Create Article
-              </Link>
-            </div>
+            <EmptyState
+              title="No articles yet"
+              description="Start creating your first article to share with the community."
+              icon={<FileText className="w-12 h-12" />}
+              action={
+                <Link
+                  to="/gallera/articles"
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  Create Article
+                </Link>
+              }
+            />
           ) : (
             <div className="space-y-4">
               {articles.slice(0, 5).map((article) => (

@@ -37,6 +37,7 @@ import {
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
+import EmptyState from "../../components/shared/EmptyState";
 
 // APIs
 import {
@@ -609,9 +610,20 @@ const AdminEventsPage: React.FC = () => {
 
         <div className="space-y-3">
           {filteredEvents.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No hay eventos con los filtros aplicados
-            </div>
+            <EmptyState
+              title="No hay eventos disponibles"
+              description="No se encontraron eventos con los filtros aplicados. Prueba cambiar los filtros o crear un nuevo evento."
+              icon={<Calendar className="w-12 h-12" />}
+              action={
+                <button
+                  onClick={() => navigate("/admin/events/create")}
+                  className="btn-primary"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Primer Evento
+                </button>
+              }
+            />
           ) : (
             filteredEvents.map((event) => (
               <div
@@ -817,9 +829,22 @@ const AdminEventsPage: React.FC = () => {
 
                       <div className="space-y-4">
                         {eventDetailData.fights.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            No hay peleas programadas para este evento
-                          </div>
+                          <EmptyState
+                            title="Sin peleas programadas"
+                            description="Este evento aún no tiene peleas asignadas. Agrega peleas para comenzar con las apuestas."
+                            icon={<Target className="w-12 h-12" />}
+                            action={
+                              <button
+                                onClick={() => {
+                                  /* TODO: Crear nueva pelea */
+                                }}
+                                className="btn-primary"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Agregar Primera Pelea
+                              </button>
+                            }
+                          />
                         ) : (
                           eventDetailData.fights.map((fight) => (
                             <div
@@ -1002,13 +1027,11 @@ const AdminEventsPage: React.FC = () => {
                         <h3 className="text-lg font-medium text-gray-900 mb-4">
                           Monitor de Apuestas
                         </h3>
-                        <div className="text-center py-8 text-gray-500">
-                          <BarChart3 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p>Monitor de apuestas en tiempo real</p>
-                          <p className="text-sm mt-2">
-                            Funcionalidad en desarrollo
-                          </p>
-                        </div>
+                        <EmptyState
+                          title="Monitor de apuestas en tiempo real"
+                          description="Las apuestas aparecerán aquí cuando el evento esté activo. Esta funcionalidad está en desarrollo."
+                          icon={<BarChart3 className="w-12 h-12" />}
+                        />
                       </div>
                     </div>
                   )}
@@ -1151,20 +1174,28 @@ const AdminEventsPage: React.FC = () => {
                         </button>
                       </div>
 
-                      <div className="text-center py-8 text-gray-500">
-                        <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p>No hay incidencias reportadas</p>
-                        <p className="text-sm mt-2">
-                          Sistema de logging de problemas en desarrollo
-                        </p>
-                      </div>
+                      <EmptyState
+                        title="Sin incidencias reportadas"
+                        description="Todo funciona correctamente. El sistema de logging de problemas está en desarrollo."
+                        icon={<CheckCircle className="w-12 h-12" />}
+                      />
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Error al cargar los datos del evento
-                </div>
+                <EmptyState
+                  title="Error al cargar el evento"
+                  description="No se pudieron cargar los datos del evento. Verifica la conexión e inténtalo nuevamente."
+                  icon={<XCircle className="w-12 h-12" />}
+                  action={
+                    <button
+                      onClick={() => fetchEventDetail(selectedEventId!)}
+                      className="btn-primary"
+                    >
+                      Reintentar
+                    </button>
+                  }
+                />
               )}
             </div>
           </div>

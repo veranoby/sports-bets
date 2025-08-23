@@ -1,193 +1,244 @@
 {
-  "task": "Fix Critical Login Authentication and Frontend Error Handling",
-  "description": "Resolve 401 errors, blank page crashes, and implement proper error messaging for failed authentication attempts.",
+  "task": "Fix All Role Environment Issues and UX Problems",
+  "description": "Resolve OperatorDashboard hoisting error, subscription display inconsistencies, remove unnecessary banners, fix empty states, and ensure proper registration flow.",
 
   "context": {
-    "root_cause": "Multiple issues: backend 401 errors + frontend error handling failure causing blank pages",
-    "specific_hash": "$2b$12$LQv3c1yqBwPFcT7qTm.DfOuLgNzUqwckQRONJQEOj.xQtF5wq5OsK",
-    "test_credentials": "admin_test/Test123456 from backend/database-analysis/credenciales.json",
-    "backend_logs": "Consistent 401 Invalid credentials errors",
-    "frontend_issue": "Blank page instead of error message"
+    "critical_error": "OperatorDashboard: 'Cannot access handleFightUpdated before initialization' at Dashboard.tsx:24",
+    "ux_issues": "User shows premium in header but isn't, unnecessary banner, missing empty state messages",
+    "registration_check": "Verify user self-registration works properly",
+    "subscription_check": "Verify premium upgrade flow works correctly"
   },
 
-  "required_files_structure": {
-    "read_from": [
-      "backend/database-analysis/credenciales.json",
-      "backend/database-analysis/CURRENT_TABLES.json"
-    ],
-    "modify": [
-      "backend/src/models/User.ts",
-      "backend/src/routes/auth.ts",
-      "frontend/src/pages/Login.tsx",
-      "frontend/src/config/api.ts",
-      "frontend/vite.config.ts"
-    ],
-    "create": [
-      "backend/src/scripts/fix-test-users.ts",
-      "backend/src/scripts/debug-auth.ts"
-    ]
+  "required_files_analysis": {
+    "operator_dashboard": "frontend/src/pages/operator/Dashboard.tsx - hoisting error line 24",
+    "user_dashboard": "frontend/src/pages/user/Dashboard.tsx - banner removal needed",
+    "subscription_system": "frontend/src/components/streaming/SubscriptionGuard.tsx",
+    "auth_system": "backend/src/routes/auth.ts - registration endpoint"
   },
 
   "tasks": [
     {
-      "task_id": "T1_debug_auth_flow",
-      "title": "Create Authentication Debug Script",
-      "files_to_create": ["backend/src/scripts/debug-auth.ts"],
-      "exact_implementation": {
-        "file": "backend/src/scripts/debug-auth.ts",
-        "content_requirements": [
-          "Import User model and bcrypt",
-          "Query SELECT * FROM users WHERE username='admin_test'",
-          "Test bcrypt.compare('Test123456', hash) with actual DB hash",
-          "Log exact SQL queries being executed",
-          "Test User.findOne with both email and username queries",
-          "Export results showing exactly where auth fails"
-        ],
-        "success_criteria": "Identifies exact failure point in auth chain"
-      }
-    },
-    {
-      "task_id": "T2_fix_user_model",
-      "title": "Fix User Model Password Validation",
-      "files_to_modify": ["backend/src/models/User.ts"],
-      "exact_changes": [
-        {
-          "location": "comparePassword method",
-          "change": "Add debug logging before and after bcrypt.compare",
-          "specific_code": "console.log('Comparing password:', password, 'with hash:', this.passwordHash); const result = await bcrypt.compare(password, this.passwordHash); console.log('Comparison result:', result); return result;"
-        },
-        {
-          "location": "User.init() define section",
-          "change": "Ensure passwordHash field maps correctly to password_hash",
-          "specific_code": "passwordHash: { type: DataTypes.STRING(255), allowNull: false, field: 'password_hash' }"
-        }
-      ],
-      "success_criteria": "comparePassword method works with existing DB hash"
-    },
-    {
-      "task_id": "T3_fix_auth_route",
-      "title": "Fix Auth Route Query Logic",
-      "files_to_modify": ["backend/src/routes/auth.ts"],
-      "exact_changes": [
-        {
-          "location": "/login route - user query",
-          "change": "Add extensive logging around user query",
-          "specific_code": "console.log('Login attempt for:', login); const user = await User.findOne({ where: { [Op.or]: [{ email: login }, { username: login }] } }); console.log('User found:', user ? 'YES' : 'NO', user?.toJSON());"
-        },
-        {
-          "location": "/login route - password check",
-          "change": "Add logging around password validation",
-          "specific_code": "console.log('Checking password...'); const isPasswordValid = await user.comparePassword(password); console.log('Password valid:', isPasswordValid);"
-        }
-      ],
-      "success_criteria": "Auth route logs show exact failure point"
-    },
-    {
-      "task_id": "T4_fix_frontend_error_handling",
-      "title": "Fix Frontend Login Error Handling",
-      "files_to_modify": ["frontend/src/pages/Login.tsx"],
-      "exact_changes": [
-        {
-          "location": "handleSubmit function",
-          "change": "Add proper error handling for 401 responses",
-          "specific_code": "try { const response = await authAPI.login({ login: email, password }); // success handling } catch (error) { console.error('Login error:', error); setError(error.message || 'Invalid credentials'); setLoading(false); }"
-        },
-        {
-          "location": "useState declarations",
-          "change": "Add error state if missing",
-          "specific_code": "const [error, setError] = useState<string>('');"
-        },
-        {
-          "location": "JSX render",
-          "change": "Display error message prominently",
-          "specific_code": "{error && <div className=\"bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4\">{error}</div>}"
-        }
-      ],
-      "success_criteria": "Login shows error message instead of blank page"
-    },
-    {
-      "task_id": "T5_fix_api_config",
-      "title": "Fix API Configuration and Ports",
-      "files_to_modify": [
-        "frontend/src/config/api.ts",
-        "frontend/vite.config.ts"
-      ],
-      "exact_changes": [
-        {
-          "file": "frontend/src/config/api.ts",
-          "location": "API_BASE_URL definition",
-          "change": "Ensure correct port 3001",
-          "specific_code": "export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';"
-        },
-        {
-          "file": "frontend/vite.config.ts",
-          "location": "server config",
-          "change": "Set frontend port to 5173",
-          "specific_code": "server: { port: 5173, open: true }"
-        }
-      ],
-      "success_criteria": "Frontend runs on 5173, API calls go to 3001"
-    },
-    {
-      "task_id": "T6_regenerate_test_users",
-      "title": "Create Script to Fix Test User Passwords",
-      "files_to_create": ["backend/src/scripts/fix-test-users.ts"],
-      "exact_implementation": {
-        "purpose": "Regenerate test users with properly hashed passwords",
-        "specific_code_blocks": [
-          "Import User, bcrypt from correct paths",
-          "Hash 'Test123456' using User.hashPassword method",
-          "UPDATE users SET password_hash = $hashedPassword WHERE username IN ('admin_test', 'operator_test', 'venue_test', 'gallera_test', 'user_test')",
-          "Verify each user can authenticate with bcrypt.compare",
-          "Log results for each user role"
-        ],
-        "execution_command": "npm run fix-users"
+      "task_id": "T1_fix_operator_dashboard",
+      "title": "Fix OperatorDashboard Hoisting Error",
+      "priority": "CRITICAL",
+      "files_to_modify": ["frontend/src/pages/operator/Dashboard.tsx"],
+      "exact_fix": {
+        "problem": "handleFightUpdated used before declaration at line 24",
+        "solution": "Move all useCallback declarations before useWebSocket hook",
+        "specific_changes": [
+          {
+            "location": "Before useWebSocket call",
+            "change": "Move all handlers (handleFightUpdated, handleBettingOpened, handleBettingClosed) before useWebSocket",
+            "code_structure": "const handleFightUpdated = useCallback(...); const handleBettingOpened = useCallback(...); const handleBettingClosed = useCallback(...); const { isConnected } = useWebSocket(ROOM_ID, { fight_updated: handleFightUpdated, ...});"
+          }
+        ]
       },
-      "success_criteria": "All test users have working password hashes"
-    }
-  ],
-
-  "validation_tests": [
-    {
-      "test": "curl -X POST http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"login\":\"admin_test\",\"password\":\"Test123456\"}'",
-      "expected": "200 response with JWT token"
+      "validation": "OperatorDashboard loads without React errors"
     },
     {
-      "test": "Frontend login form with admin_test/Test123456",
-      "expected": "Successful login or clear error message (no blank page)"
+      "task_id": "T2_verify_registration",
+      "title": "Verify and Fix User Registration",
+      "priority": "HIGH",
+      "files_to_check": [
+        "backend/src/routes/auth.ts",
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "validation_steps": [
+        "Check POST /api/auth/register endpoint exists and works",
+        "Verify frontend registration form exists and submits correctly",
+        "Test complete registration flow: form → backend → auto-login",
+        "Ensure new users get wallet created automatically",
+        "Test validation errors display properly"
+      ],
+      "success_criteria": "New users can register, get wallet, and login automatically"
     },
     {
-      "test": "Frontend login form with wrong password",
-      "expected": "Error message displayed, page remains functional"
+      "task_id": "T3_fix_subscription_display",
+      "title": "Fix Subscription Status Display Inconsistencies",
+      "priority": "HIGH",
+      "files_to_modify": [
+        "frontend/src/components/layouts/UserLayout.tsx",
+        "frontend/src/components/streaming/SubscriptionGuard.tsx",
+        "frontend/src/hooks/useSubscription.tsx"
+      ],
+      "exact_changes": [
+        {
+          "file": "UserLayout.tsx",
+          "location": "Header premium indicator",
+          "fix": "Use actual subscription status from useSubscription hook, not hardcoded",
+          "code": "const { subscription, hasAccess } = useSubscription(); // Show premium badge only if hasAccess === true"
+        },
+        {
+          "file": "SubscriptionGuard.tsx",
+          "location": "Premium status check",
+          "fix": "Ensure hasAccess() function correctly checks subscription.status === 'active' AND expiresAt > now",
+          "code": "const hasAccess = subscription?.status === 'active' && new Date(subscription.expiresAt) > new Date()"
+        }
+      ],
+      "success_criteria": "Users show premium status only when actually subscribed and active"
+    },
+    {
+      "task_id": "T4_remove_banner_use_news",
+      "title": "Remove User Banner, Use News System",
+      "priority": "MEDIUM",
+      "files_to_modify": ["frontend/src/pages/user/Dashboard.tsx"],
+      "exact_changes": [
+        {
+          "location": "Banner component in Dashboard",
+          "change": "Remove hardcoded banner/advertisement section",
+          "replacement": "Fetch news/articles marked as 'featured' or 'advertisement' from backend",
+          "api_integration": "Use articlesAPI.getFeatured() to get promotional content from admin-created news"
+        }
+      ],
+      "success_criteria": "No hardcoded banners, promotional content comes from news system"
+    },
+    {
+      "task_id": "T5_fix_empty_states",
+      "title": "Fix Empty State Messages Across All Roles",
+      "priority": "HIGH",
+      "files_to_modify": [
+        "frontend/src/pages/user/Dashboard.tsx",
+        "frontend/src/pages/admin/Events.tsx",
+        "frontend/src/pages/operator/Dashboard.tsx",
+        "frontend/src/pages/venue/Dashboard.tsx"
+      ],
+      "empty_state_patterns": [
+        {
+          "condition": "No events available",
+          "message": "No hay eventos disponibles en este momento",
+          "action": "Vuelve más tarde o explora otros contenidos"
+        },
+        {
+          "condition": "No fights in event",
+          "message": "Este evento aún no tiene peleas programadas",
+          "action": "Las peleas se anunciarán pronto"
+        },
+        {
+          "condition": "No bets placed",
+          "message": "No tienes apuestas activas",
+          "action": "Explora eventos en vivo para apostar"
+        },
+        {
+          "condition": "Database connection error",
+          "message": "Error al cargar información",
+          "action": "Intenta refrescar la página"
+        }
+      ],
+      "implementation": "Replace loading states and error states with proper EmptyState component",
+      "success_criteria": "No blank pages or error messages, always show helpful empty states"
+    },
+    {
+      "task_id": "T6_verify_premium_upgrade",
+      "title": "Verify and Fix Premium Upgrade Flow",
+      "priority": "HIGH",
+      "files_to_check": [
+        "backend/src/routes/subscriptions.ts",
+        "frontend/src/components/streaming/SubscriptionModal.tsx",
+        "backend/src/services/paymentService.ts"
+      ],
+      "validation_steps": [
+        "Test subscription plans endpoint: GET /api/subscriptions/plans",
+        "Test subscription creation: POST /api/subscriptions",
+        "Test payment flow integration (mock payment if needed)",
+        "Test subscription status check: POST /api/subscriptions/check-access",
+        "Verify subscription expiration handling"
+      ],
+      "success_criteria": "Users can successfully upgrade to premium and access premium features"
+    },
+    {
+      "task_id": "T7_comprehensive_role_audit",
+      "title": "Comprehensive Role Dashboard Audit",
+      "priority": "HIGH",
+      "files_to_audit": [
+        "frontend/src/pages/admin/AdminDashboard.tsx",
+        "frontend/src/pages/operator/Dashboard.tsx",
+        "frontend/src/pages/venue/Dashboard.tsx",
+        "frontend/src/pages/user/Dashboard.tsx"
+      ],
+      "audit_checklist": [
+        "All components load without React errors",
+        "API calls have proper error handling",
+        "Empty states show helpful messages",
+        "Loading states work correctly",
+        "Role-specific features are accessible",
+        "Navigation works properly",
+        "WebSocket connections (if any) work",
+        "Data displays correctly when available"
+      ],
+      "fixes_required": [
+        "Add try-catch blocks around all API calls",
+        "Replace raw error messages with user-friendly ones",
+        "Add LoadingSpinner components for async operations",
+        "Ensure all buttons/links work properly"
+      ],
+      "success_criteria": "All role dashboards work perfectly without errors"
+    },
+    {
+      "task_id": "T8_create_debug_tools",
+      "title": "Create Debug Tools for Role Testing",
+      "priority": "MEDIUM",
+      "files_to_create": [
+        "frontend/src/utils/roleDebugger.ts",
+        "backend/src/scripts/create-test-data.ts"
+      ],
+      "debug_tools": [
+        {
+          "file": "roleDebugger.ts",
+          "purpose": "Log user role, permissions, and available features",
+          "usage": "Import in each dashboard to debug role issues"
+        },
+        {
+          "file": "create-test-data.ts",
+          "purpose": "Generate test data (events, fights, bets) for each role",
+          "usage": "npm run create-test-data to populate database"
+        }
+      ],
+      "success_criteria": "Easy debugging and testing of all role environments"
     }
   ],
 
-  "package_json_scripts": {
-    "add_to_backend": {
-      "debug-auth": "ts-node src/scripts/debug-auth.ts",
-      "fix-users": "ts-node src/scripts/fix-test-users.ts"
-    }
-  },
-
-  "environment_requirements": {
-    "backend_env_vars": ["DATABASE_URL", "JWT_SECRET", "BCRYPT_ROUNDS=12"],
-    "ports": { "frontend": 5173, "backend": 3001 }
-  },
-
-  "step_by_step_execution": [
-    "1. Create debug-auth.ts and run to identify exact auth failure",
-    "2. Modify User.ts with debug logging in comparePassword",
-    "3. Modify auth.ts with comprehensive request logging",
-    "4. Test backend auth with curl commands",
-    "5. Fix frontend Login.tsx error handling",
-    "6. Fix API config and ports",
-    "7. Create and run fix-test-users.ts if needed",
-    "8. Test complete login flow frontend to backend"
+  "validation_commands": [
+    "npm run type-check # Verify no TypeScript errors",
+    "npm run build # Verify build succeeds",
+    "curl -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"username\":\"newuser\",\"email\":\"new@test.com\",\"password\":\"Test123456\"}'",
+    "curl -X GET http://localhost:3001/api/subscriptions/plans",
+    "Test each role login and dashboard functionality manually"
   ],
+
+  "environment_specific_fixes": {
+    "admin_role": [
+      "Verify user management works",
+      "Test event creation/editing",
+      "Check admin statistics display"
+    ],
+    "operator_role": [
+      "Fix handleFightUpdated error",
+      "Test fight management",
+      "Verify streaming controls work"
+    ],
+    "venue_role": [
+      "Test venue event creation",
+      "Verify venue statistics",
+      "Check venue settings"
+    ],
+    "user_role": [
+      "Remove banner, use news",
+      "Fix premium display",
+      "Test betting interface"
+    ]
+  },
 
   "success_criteria": {
-    "backend": "Returns 200 with JWT for correct credentials, 401 with clear error for wrong ones",
-    "frontend": "Shows success page for correct login, error message for failures",
-    "no_blank_pages": "Frontend never crashes to blank page on any auth error"
+    "no_errors": "All role dashboards load without React/JavaScript errors",
+    "proper_ux": "Users see helpful messages instead of blank pages or raw errors",
+    "consistent_subscription": "Premium status shows correctly across all components",
+    "working_registration": "New users can register and use the platform immediately",
+    "working_upgrade": "Users can upgrade to premium successfully"
+  },
+
+  "rollback_plan": {
+    "if_operator_breaks": "Revert Dashboard.tsx to previous working version",
+    "if_subscription_breaks": "Revert SubscriptionGuard changes",
+    "if_registration_breaks": "Check auth route and frontend form"
   }
 }

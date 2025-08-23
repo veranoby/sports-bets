@@ -19,17 +19,7 @@ const OperatorDashboard: React.FC = () => {
   const { events, loading: eventsLoading } = useEvents();
   const { fights, loading: fightsLoading, fetchFights, error } = useFights();
 
-  // ✅ FIX: Usar useWebSocket principal con listeners
-  const { isConnected } = useWebSocket(OPERATOR_ROOM_ID, {
-    fight_updated: handleFightUpdated,
-    betting_opened: handleBettingOpened,
-    betting_closed: handleBettingClosed,
-  });
-
-  // ✅ Hook para emisión de eventos
-  const { emit } = useWebSocketEmit();
-
-  // Listeners específicos para operador
+  // ✅ FIX: Move all callback declarations BEFORE useWebSocket to avoid hoisting errors
   const handleFightUpdated = useCallback(
     (data: { fightId: string }) => {
       console.log("Pelea actualizada:", data.fightId);
@@ -45,6 +35,16 @@ const OperatorDashboard: React.FC = () => {
   const handleBettingClosed = useCallback((data: { fightId: string }) => {
     console.log("Apuestas cerradas para pelea:", data.fightId);
   }, []);
+
+  // ✅ Now useWebSocket can safely reference the handlers
+  const { isConnected } = useWebSocket(OPERATOR_ROOM_ID, {
+    fight_updated: handleFightUpdated,
+    betting_opened: handleBettingOpened,
+    betting_closed: handleBettingClosed,
+  });
+
+  // ✅ Hook para emisión de eventos
+  const { emit } = useWebSocketEmit();
 
   // ✅ Acciones del operador
   const openBetting = useCallback(

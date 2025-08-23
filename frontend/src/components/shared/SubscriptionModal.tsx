@@ -60,7 +60,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const handleSubscribe = async () => {
     try {
       await createSubscription({
-        plan: selectedPlan,
+        plan: selectedPlan as "daily" | "monthly",
         autoRenew: true,
       });
       onClose();

@@ -406,6 +406,18 @@ export const articlesAPI = {
     venue_id?: string;
   }) => apiClient.get("/articles", { params }),
 
+  getFeatured: (params?: {
+    limit?: number;
+    type?: 'banner' | 'featured' | 'promotion';
+  }) => apiClient.get("/articles", { 
+    params: { 
+      status: 'published',
+      featured: true,
+      limit: params?.limit || 5,
+      ...params
+    } 
+  }),
+
   getById: (id: string) => apiClient.get(`/articles/${id}`),
 
   create: (data: {

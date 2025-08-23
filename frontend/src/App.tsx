@@ -21,6 +21,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 
+// Debug Tools (solo en desarrollo)
+const RoleSwitcher = lazy(() => import("./components/debug/RoleSwitcher"));
+const DebugPanel = lazy(() => import("./components/debug/DebugPanel"));
+const DebugTestPage = lazy(() => import("./pages/DebugTestPage"));
+
 // Páginas de Usuario
 import UserDashboard from "./pages/user/Dashboard";
 import EventsPage from "./pages/user/Events";
@@ -82,226 +87,244 @@ const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
-      {/* 🔓 RUTAS PÚBLICAS */}
-      <Route
-        path="/login"
-        element={!isAuthenticated ? <LoginPage /> : <RoleBasedRedirect />}
-      />
-      <Route
-        path="/"
-        element={
-          isAuthenticated ? <RoleBasedRedirect /> : <Navigate to="/login" />
-        }
-      />
-
-      {/* �� RUTAS DE USUARIO - Mantener carga inmediata */}
-      <Route
-        element={
-          <ProtectedRoute requiredRole="user">
-            <UserLayout />
-          </ProtectedRoute>
-        }
-      >
-        {/* Rutas user permanecen igual (sin lazy) */}
-        <Route path="/dashboard" element={<UserDashboard />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/live-event/:eventId" element={<LiveEvent />} />
-        <Route path="/wallet" element={<Wallet />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/bets" element={<BetsPage />} />
-        <Route path="/subscriptions" element={<SubscriptionsPage />} />
-        <Route path="/news" element={<NewsPage />} />
-        <Route path="/venues" element={<VenuesPage />} />
-        <Route path="/venues/:venueId" element={<VenuesPage />} />
-        <Route path="/article/:articleId" element={<ArticlePage />} />
-      </Route>
-
-      {/* 🔧 RUTAS DE ADMIN - Con lazy loading */}
-      <Route
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        {/* Dashboard */}
+    <>
+      <Routes>
+        {/* 🔓 RUTAS PÚBLICAS */}
         <Route
-          path="/admin"
+          path="/login"
+          element={!isAuthenticated ? <LoginPage /> : <RoleBasedRedirect />}
+        />
+        <Route
+          path="/"
           element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminDashboard />
-            </Suspense>
+            isAuthenticated ? <RoleBasedRedirect /> : <Navigate to="/login" />
           }
         />
 
-        {/* Usuarios */}
+        {/* 🎯 RUTAS DE USUARIO - Mantener carga inmediata */}
         <Route
-          path="/admin/users"
           element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminUsers />
+            <ProtectedRoute requiredRole="user">
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Rutas user permanecen igual (sin lazy) */}
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/live-event/:eventId" element={<LiveEvent />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/bets" element={<BetsPage />} />
+          <Route path="/subscriptions" element={<SubscriptionsPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/venues" element={<VenuesPage />} />
+          <Route path="/venues/:venueId" element={<VenuesPage />} />
+          <Route path="/article/:articleId" element={<ArticlePage />} />
+        </Route>
+
+        {/* 🔧 RUTAS DE ADMIN - Con lazy loading */}
+        <Route
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Dashboard */}
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminDashboard />
+              </Suspense>
+            }
+          />
+
+          {/* Usuarios */}
+          <Route
+            path="/admin/users"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminUsers />
+              </Suspense>
+            }
+          />
+
+          {/* Operadores */}
+          <Route
+            path="/admin/operators"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminOperators />
+              </Suspense>
+            }
+          />
+
+          {/* Finanzas */}
+          <Route
+            path="/admin/finance"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminFinance />
+              </Suspense>
+            }
+          />
+
+          {/* Eventos */}
+          <Route
+            path="/admin/events"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminEvents />
+              </Suspense>
+            }
+          />
+
+          {/* Artículos */}
+          <Route
+            path="/admin/articles"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminArticles />
+              </Suspense>
+            }
+          />
+
+          {/* Venues */}
+          <Route
+            path="/admin/venues"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminVenues />
+              </Suspense>
+            }
+          />
+
+          {/* Solicitudes */}
+          <Route
+            path="/admin/requests"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminRequests />
+              </Suspense>
+            }
+          />
+
+          {/* Monitoreo */}
+          <Route
+            path="/admin/monitoring"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminMonitoring />
+              </Suspense>
+            }
+          />
+        </Route>
+
+        {/* 🎥 RUTAS DE OPERADOR - Con lazy loading */}
+        <Route
+          element={
+            <ProtectedRoute requiredRole="operator">
+              <OperatorLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="/operator"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <OperatorDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/operator/events"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <OperatorEvents />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/operator/stream/:eventId"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <OperatorStream />
+              </Suspense>
+            }
+          />
+        </Route>
+
+        {/* 🏛️ RUTAS DE VENUE - Con lazy loading */}
+        <Route
+          element={
+            <ProtectedRoute requiredRole="venue">
+              <VenueLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="/venue"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <VenueDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/venue/events"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <VenueEvents />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/venue/profile"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <VenueProfile />
+              </Suspense>
+            }
+          />
+        </Route>
+
+        {/* 🛠️ DEBUG TESTING PAGE (solo desarrollo) */}
+        <Route
+          path="/debug"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <DebugTestPage />
             </Suspense>
           }
         />
 
-        {/* Operadores */}
+        {/* 🚫 RUTA 404 */}
         <Route
-          path="/admin/operators"
+          path="*"
           element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminOperators />
-            </Suspense>
-          }
-        />
-
-        {/* Finanzas */}
-        <Route
-          path="/admin/finance"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminFinance />
-            </Suspense>
-          }
-        />
-
-        {/* Eventos */}
-        <Route
-          path="/admin/events"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminEvents />
-            </Suspense>
-          }
-        />
-
-        {/* Artículos */}
-        <Route
-          path="/admin/articles"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminArticles />
-            </Suspense>
-          }
-        />
-
-        {/* Venues */}
-        <Route
-          path="/admin/venues"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminVenues />
-            </Suspense>
-          }
-        />
-
-        {/* Solicitudes */}
-        <Route
-          path="/admin/requests"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminRequests />
-            </Suspense>
-          }
-        />
-
-        {/* Monitoreo */}
-        <Route
-          path="/admin/monitoring"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <AdminMonitoring />
-            </Suspense>
-          }
-        />
-      </Route>
-
-      {/* 🎥 RUTAS DE OPERADOR - Con lazy loading */}
-      <Route
-        element={
-          <ProtectedRoute requiredRole="operator">
-            <OperatorLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route
-          path="/operator"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <OperatorDashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/operator/events"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <OperatorEvents />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/operator/stream/:eventId"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <OperatorStream />
-            </Suspense>
-          }
-        />
-      </Route>
-
-      {/* 🏛️ RUTAS DE VENUE - Con lazy loading */}
-      <Route
-        element={
-          <ProtectedRoute requiredRole="venue">
-            <VenueLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route
-          path="/venue"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <VenueDashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/venue/events"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <VenueEvents />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/venue/profile"
-          element={
-            <Suspense fallback={<LoadingSpinner fullPage />}>
-              <VenueProfile />
-            </Suspense>
-          }
-        />
-      </Route>
-      {/* 🚫 RUTA 404 */}
-      <Route
-        path="*"
-        element={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-gray-600 mb-4">Página no encontrada</p>
-              <button
-                onClick={() => window.history.back()}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                Volver
-              </button>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                <p className="text-gray-600 mb-4">Página no encontrada</p>
+                <button
+                  onClick={() => window.history.back()}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Volver
+                </button>
+              </div>
             </div>
-          </div>
-        }
-      />
-    </Routes>
+          }
+        />
+      </Routes>
+      {/* Debug Tools - Solo visible en desarrollo */}
+      <Suspense fallback={null}>
+        <RoleSwitcher />
+        <DebugPanel />
+      </Suspense>
+    </>
   );
 };
 

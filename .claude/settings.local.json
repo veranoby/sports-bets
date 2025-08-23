@@ -15,7 +15,8 @@
       "Bash(taskkill:*)",
       "Bash(powershell:*)",
       "Bash(timeout 20 npm run dev)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(rg:*)"
     ],
     "deny": [],
     "ask": []
