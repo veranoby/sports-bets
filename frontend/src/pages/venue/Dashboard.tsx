@@ -12,7 +12,9 @@ import Modal from "../../components/shared/Modal";
 import { FormField } from "../../components/shared/FormField";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
+import PageContainer from "../../components/shared/PageContainer";
 import { venuesAPI, eventsAPI } from "../../config/api";
+// Fixed: Added missing PageContainer import
 import type { Event } from "../../types";
 
 const VenueDashboard: React.FC = () => {
