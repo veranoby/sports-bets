@@ -1,5 +1,4 @@
 /* Import modular styles - DEBEN IR PRIMERO */
-@import "./styles/theme.css";
 @import "./styles/gradients.css";
 @import "./styles/animations.css";
 @import "./styles/components.css";

@@ -6,51 +6,63 @@
 /* ✅ TAILWIND CSS IMPORTS */
 @import "tailwindcss";
 
-/* ✅ CSS VARIABLES GLOBALES - GALLOBETS THEME */
+/* ✅ CSS VARIABLES GLOBALES - GALLOBETS LIGHT THEME */
 :root {
   /* Primary Colors */
-  --color-primary: #677d87;
-  --color-secondary: #cd6263;
-  --color-accent: #4a5b80;
+  --color-primary: #6B9BD1;
+  --color-primary-dark: #5A89BF;
+  --color-primary-light: #8FB4DD;
+  --color-secondary: #7FC29B;
+  --color-secondary-dark: #6DAF87;
+  --color-secondary-light: #99D1B3;
+  --color-accent: #F0F9FF;
 
   /* Backgrounds */
-  --color-bg-main: #1a2637;
-  --color-bg-card: #313e5681;
-  --color-bg-header: #2a325c;
+  --color-bg-main: #FFFFFF;
+  --color-bg-card: #F8FAFC;
+  --color-bg-header: #FFFFFF;
+  --color-bg-hover: #F1F5F9;
 
-  /* borders */
-  --color-border-primary: #677d8732;
+  /* Borders */
+  --color-border-primary: #E5E7EB;
+  --color-border-secondary: #D1D5DB;
 
   /* Text Colors */
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #94a3b8;
-  --color-text-light: #ffffff9c;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-light: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
 
   /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-success: #22C55E;
+  --color-warning: #FACC15;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   /* Gradients */
   --gradient-header: linear-gradient(
     135deg,
     var(--color-bg-header) 0%,
-    #1e293b 100%
+    var(--color-bg-hover) 100%
   );
   --gradient-nav: linear-gradient(
     90deg,
     var(--color-primary) 0%,
-    var(--color-accent) 100%
+    var(--color-primary-light) 100%
   );
   --gradient-user-button: linear-gradient(
     135deg,
     var(--color-primary) 0%,
-    var(--color-accent) 100%
+    var(--color-primary-light) 100%
   );
   --gradient-user-button-hover: linear-gradient(
     135deg,
-    var(--color-accent) 0%,
+    var(--color-primary-dark) 0%,
     var(--color-primary) 100%
   );
 
@@ -94,8 +106,9 @@ body {
 }
 
 .bg-theme-header {
-  background: var(--gradient-header);
-  border-bottom: 1px solid var(--color-primary);
+  background-color: var(--color-bg-header);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .bg-theme-primary {
@@ -175,33 +188,36 @@ body {
 
 .card-background {
   background-color: var(--color-bg-card);
-  border: 2px solid var(--color-border-primary) !important;
+  border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-background {
-  background: var(--gradient-header);
-  border-bottom: 1px solid var(--color-primary);
+  background-color: var(--color-bg-header);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 /* Specific Layouts */
 .user-layout {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-main);
   display: flex;
   flex-direction: column;
 }
 
 .admin-layout {
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: var(--color-bg-main);
   display: flex;
 }
 
 .admin-sidebar {
   width: 256px;
-  background: var(--gradient-nav);
-  border-right: 1px solid var(--color-primary);
+  background-color: var(--color-bg-card);
+  border-right: 1px solid var(--color-border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-content {
@@ -212,14 +228,14 @@ body {
 
 .operator-layout {
   min-height: 100vh;
-  background-color: #1f2937;
+  background-color: var(--color-bg-main);
   display: flex;
   flex-direction: column;
 }
 
 .venue-layout {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-main);
   display: flex;
   flex-direction: column;
 }
@@ -357,9 +373,10 @@ body {
 
 /* Mobile Navigation */
 .mobile-nav {
-  background: rgba(255, 255, 255, 0.95);
+  background-color: var(--color-bg-header);
   backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--color-border-primary);
+  box-shadow: var(--shadow-md);
 }
 
 /* Connection Indicator */

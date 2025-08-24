@@ -119,7 +119,7 @@ const LoginPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2a325c] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
           <div className="flex justify-center items-center gap-2">
@@ -128,14 +128,14 @@ const LoginPage: React.FC = () => {
               alt="Logo GalloBets"
               className="h-12 w-12 object-contain"
             />
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-theme-primary">
               Gallo<span className="text-[#cd6263]">Bets</span>
             </h1>
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-white">
+          <h2 className="mt-6 text-2xl font-bold text-theme-primary">
             {isLoginMode ? "Iniciar Sesión" : "Crear Cuenta"}
           </h2>
-          <p className="mt-2 text-sm text-gray-300">
+          <p className="mt-2 text-sm text-theme-secondary">
             {isLoginMode
               ? "Accede a tu cuenta para disfrutar de las transmisiones"
               : "Crea tu cuenta para empezar a apostar"}

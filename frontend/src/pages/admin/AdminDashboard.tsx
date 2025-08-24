@@ -147,10 +147,10 @@ const AdminDashboard: React.FC = () => {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-theme-primary">
           Panel de Administración
         </h1>
-        <p className="text-gray-600">
+        <p className="text-theme-secondary">
           Última actualización: {lastRefresh.toLocaleTimeString()}
           <button
             onClick={fetchDashboardMetrics}
@@ -255,7 +255,7 @@ const AdminDashboard: React.FC = () => {
       {/* Acciones rápidas adicionales */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">
+          <h3 className="font-semibold text-theme-primary mb-3">
             Estado del Sistema
           </h3>
           <div className="space-y-2 text-sm">
@@ -269,7 +269,7 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span>Última sincronización:</span>
-              <span className="text-gray-600">
+              <span className="text-theme-secondary">
                 {lastRefresh.toLocaleTimeString()}
               </span>
             </div>

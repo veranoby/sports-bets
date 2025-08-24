@@ -127,7 +127,7 @@ const UserHeader = memo(() => {
   const isLoading = walletLoading || notificationsLoading || betsLoading;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#1a1f37]/95 backdrop-blur-lg shadow-lg text-theme-primary">
+    <header className="sticky top-0 z-40 bg-theme-header backdrop-blur-lg shadow-lg text-theme-primary">
       <div className="px-4 h-16 flex items-center justify-between">
         {/* LEFT SIDE - LOGO Y TITLE */}
         <div className="flex items-center gap-4">

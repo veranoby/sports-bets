@@ -72,7 +72,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb">
       {/* Backdrop Blur */}
-      <div className="absolute inset-0 bg-[#1a1f37]/95 backdrop-blur-lg border-t border-[#596c95]/30"></div>
+      <div className="absolute inset-0 bg-theme-header backdrop-blur-lg border-t border-theme-border-primary"></div>
 
       {/* Content */}
       <div className="relative px-4 py-2 safe-area-pb">
@@ -103,12 +103,12 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
                   className={`relative p-2 rounded-lg transition-all duration-300 ${
                     isActive
                       ? `bg-gradient-to-br ${item.gradient} shadow-lg`
-                      : "bg-[#2a325c]/50 hover:bg-[#596c95]/30"
+                      : "bg-theme-accent hover:bg-theme-bg-hover"
                   }`}
                 >
                   <Icon
                     className={`w-5 h-5 transition-colors duration-300 ${
-                      isActive ? "text-white" : "text-gray-400 hover:text-white"
+                      isActive ? "text-white" : "text-theme-secondary hover:text-theme-primary"
                     }`}
                   />
                 </div>
@@ -116,7 +116,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
                 {/* Label */}
                 <span
                   className={`text-xs mt-1 font-medium transition-colors duration-300 ${
-                    isActive ? "text-white" : "text-gray-400"
+                    isActive ? "text-theme-primary" : "text-theme-secondary"
                   }`}
                 >
                   {item.label}

@@ -24,16 +24,16 @@ const VenueEvents: React.FC = () => {
   ];
 
   return (
-    <div className="bg-theme-card text-theme-secondary min-h-screen p-4">
+    <div className="bg-theme-main text-theme-primary min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-6">Eventos del Local</h1>
 
       <div className="space-y-4">
         {events.map((event) => (
-          <Card key={event.id} className={`${theme.cardBackground} p-4`}>
+          <Card key={event.id} className="bg-theme-card p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-lg">{event.name}</h3>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                <div className="flex items-center gap-4 mt-2 text-sm text-theme-secondary">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     <span>{event.date}</span>
@@ -48,7 +48,7 @@ const VenueEvents: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button className="px-4 py-2 bg-[#596c95] text-white rounded-lg hover:bg-[#4a5b80] transition-colors text-sm">
+              <button className="px-4 py-2 bg-theme-primary text-white rounded-lg hover:bg-theme-primary-dark transition-colors text-sm">
                 Gestionar
               </button>
             </div>

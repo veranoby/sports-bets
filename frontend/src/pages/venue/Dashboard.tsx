@@ -147,7 +147,7 @@ const VenueDashboard: React.FC = () => {
       actions={
         <button
           onClick={logout}
-          className="px-3 py-1.5 text-sm text-[#cd6263] hover:bg-[#cd6263]/10 rounded-lg"
+          className="px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 rounded-lg"
         >
           Cerrar sesión
         </button>

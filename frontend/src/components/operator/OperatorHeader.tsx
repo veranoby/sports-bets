@@ -9,13 +9,13 @@ const OperatorHeader = memo(() => {
   const { isConnected } = useWebSocketContext();
 
   return (
-    <header className="bg-gray-900 text-white px-6 py-4">
+    <header className="bg-theme-header px-6 py-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">Panel de Operador</h1>
+          <h1 className="text-xl font-bold text-theme-primary">Panel de Operador</h1>
           <div
             className={`flex items-center gap-2 text-sm ${
-              isConnected ? "text-green-400" : "text-red-400"
+              isConnected ? "text-green-600" : "text-red-600"
             }`}
           >
             {isConnected ? (
@@ -27,9 +27,14 @@ const OperatorHeader = memo(() => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm">{user?.username}</span>
-          <button onClick={logout} className="p-2 hover:bg-gray-800 rounded-lg">
+          <span className="text-sm text-theme-secondary">{user?.username}</span>
+          <button 
+            onClick={logout} 
+            className="flex items-center gap-2 px-3 py-2 text-theme-secondary hover:text-theme-primary hover:bg-theme-accent rounded-lg transition-colors"
+            aria-label="Cerrar sesión"
+          >
             <LogOut className="w-5 h-5" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>

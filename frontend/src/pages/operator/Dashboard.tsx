@@ -92,7 +92,7 @@ const OperatorDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1f37] text-white p-4">
+    <div className="min-h-screen bg-theme-main text-theme-primary p-4">
       {/* Selector de eventos */}
       <EventSelector
         events={filteredEvents}

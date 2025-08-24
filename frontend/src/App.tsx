@@ -15,6 +15,7 @@ import UserLayout from "./components/layouts/UserLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import OperatorLayout from "./components/layouts/OperatorLayout";
 import VenueLayout from "./components/layouts/VenueLayout";
+import GalleraLayout from "./components/layouts/GalleraLayout";
 
 // Componentes comunes
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,6 +62,9 @@ const VenueDashboard = lazy(() => import("./pages/venue/Dashboard"));
 const VenueEvents = lazy(() => import("./pages/venue/Events"));
 const VenueProfile = lazy(() => import("./pages/venue/Profile"));
 
+const GalleraDashboard = lazy(() => import("./pages/gallera/Dashboard"));
+const GalleraArticles = lazy(() => import("./pages/gallera/MyArticles"));
+
 // 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -81,6 +85,7 @@ const RoleBasedRedirect: React.FC = () => {
     operator: "/operator",
     venue: "/venue",
     user: "/dashboard",
+    gallera: "/gallera",
   };
 
   return <Navigate to={roleRoutes[user.role] || "/dashboard"} replace />;
@@ -290,6 +295,32 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <VenueProfile />
+              </Suspense>
+            }
+          />
+        </Route>
+
+        {/* 🐓 RUTAS DE GALLERA - Con lazy loading */}
+        <Route
+          element={
+            <ProtectedRoute requiredRole="gallera">
+              <GalleraLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="/gallera"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <GalleraDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/gallera/articles"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <GalleraArticles />
               </Suspense>
             }
           />

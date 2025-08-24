@@ -39,13 +39,13 @@ const VenueProfile: React.FC = () => {
     <div className="bg-theme-main text-theme-primary min-h-screen pb-24">
       <div className="p-4 max-w-2xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-br from-[#2a325c] to-[#1a1f37] rounded-2xl p-6 mb-6 border border-[#596c95]/20">
+        <div className="bg-gradient-to-br from-theme-primary to-theme-accent rounded-2xl p-6 mb-6 border border-theme-border-primary">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-[#596c95] flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-theme-primary flex items-center justify-center">
               <User className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-theme-inverse">
                 {formData.venueName || "Mi Local"}
               </h2>
               <div className="flex items-center gap-2 mt-1">
@@ -64,14 +64,14 @@ const VenueProfile: React.FC = () => {
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded text-sm"
+                  className="flex items-center gap-1 px-3 py-1 bg-green-600 text-theme-primary rounded text-sm"
                 >
                   {loading ? <LoadingSpinner size="sm" /> : <Save size={14} />}
                   Guardar
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="flex items-center gap-1 px-3 py-1 bg-gray-600 text-white rounded text-sm"
+                  className="flex items-center gap-1 px-3 py-1 bg-gray-600 text-theme-primary rounded text-sm"
                 >
                   <X size={14} />
                   Cancelar
@@ -80,7 +80,7 @@ const VenueProfile: React.FC = () => {
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1 px-3 py-1 bg-[#596c95] text-white rounded text-sm"
+                className="flex items-center gap-1 px-3 py-1 bg-theme-primary text-white rounded text-sm"
               >
                 <Edit3 size={14} />
                 Editar
@@ -100,10 +100,10 @@ const VenueProfile: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, venueName: e.target.value })
                   }
-                  className="w-full bg-[#1a1f37] border border-[#596c95] text-white rounded px-3 py-2"
+                  className="w-full bg-theme-card border border-theme-border-primary text-theme-primary rounded px-3 py-2"
                 />
               ) : (
-                <div className="bg-[#1a1f37] rounded px-3 py-2">
+                <div className="bg-theme-card rounded px-3 py-2">
                   {formData.venueName || "No especificado"}
                 </div>
               )}
@@ -120,10 +120,10 @@ const VenueProfile: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
-                  className="w-full bg-[#1a1f37] border border-[#596c95] text-white rounded px-3 py-2"
+                  className="w-full bg-theme-card border border-theme-border-primary text-theme-primary rounded px-3 py-2"
                 />
               ) : (
-                <div className="bg-[#1a1f37] rounded px-3 py-2">
+                <div className="bg-theme-card rounded px-3 py-2">
                   {formData.address || "No especificado"}
                 </div>
               )}
@@ -140,10 +140,10 @@ const VenueProfile: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="w-full bg-[#1a1f37] border border-[#596c95] text-white rounded px-3 py-2"
+                  className="w-full bg-theme-card border border-theme-border-primary text-theme-primary rounded px-3 py-2"
                 />
               ) : (
-                <div className="bg-[#1a1f37] rounded px-3 py-2">
+                <div className="bg-theme-card rounded px-3 py-2">
                   {formData.phone || "No especificado"}
                 </div>
               )}
@@ -159,10 +159,10 @@ const VenueProfile: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full bg-[#1a1f37] border border-[#596c95] text-white rounded px-3 py-2 min-h-[100px]"
+                  className="w-full bg-theme-card border border-theme-border-primary text-theme-primary rounded px-3 py-2 min-h-[100px]"
                 />
               ) : (
-                <div className="bg-[#1a1f37] rounded px-3 py-2 min-h-[100px]">
+                <div className="bg-theme-card rounded px-3 py-2 min-h-[100px]">
                   {formData.description || "No especificado"}
                 </div>
               )}
@@ -174,14 +174,14 @@ const VenueProfile: React.FC = () => {
         <Card>
           <h3 className="text-lg font-bold mb-4">Configuración de Cuenta</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-[#1a1f37] rounded">
+            <div className="flex items-center justify-between p-3 bg-theme-card rounded">
               <div className="flex items-center gap-2">
                 <Mail className="w-5 h-5 text-[#596c95]" />
                 <span>Correo electrónico</span>
               </div>
               <span className="text-gray-400">{user?.email}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-[#1a1f37] rounded">
+            <div className="flex items-center justify-between p-3 bg-theme-card rounded">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-[#596c95]" />
                 <span>Seguridad</span>
