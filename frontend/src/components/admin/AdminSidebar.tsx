@@ -20,9 +20,8 @@ const AdminSidebar = memo(() => {
 
   const navItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/admin/users", icon: Users, label: "Usuarios Regulares" },
-    { path: "/admin/venues", icon: Building2, label: "Usuarios Venues" },
-    { path: "/admin/operators", icon: Settings, label: "Usuarios Operadores" },
+    { path: "/admin/users", icon: Users, label: "Usuarios" },
+    { path: "/admin/venues", icon: Building2, label: "Galleras" },
     { path: "/admin/articles", icon: FileText, label: "Noticias" },
     { path: "/admin/events", icon: Calendar, label: "Eventos ⭐" },
     { path: "/admin/requests", icon: DollarSign, label: "Solicitudes" },

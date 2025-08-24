@@ -43,6 +43,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // 💡 NUEVA REGLA: Ignorar peticiones de desarrollo de Vite y assets locales.
+  // Esto previene los errores `net::ERR_FAILED` en la consola que ocurren
+  // cuando el Service Worker intercepta incorrectamente las peticiones
+  // del cliente de Vite HMR (Hot Module Replacement) o de los módulos fuente.
+  if (
+    url.hostname === self.location.hostname &&
+    (url.pathname.startsWith("/@vite/") ||
+      url.pathname.startsWith("/src/") ||
+      url.pathname.startsWith("/@react-refresh"))
+  ) {
+    return; // Dejar que el navegador las maneje directamente, sin interceptar.
+  }
+
   // ❌ NO interceptar WebSocket/APIs críticas
   if (
     NEVER_CACHE.some((path) => url.pathname.includes(path)) ||

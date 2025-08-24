@@ -672,6 +672,7 @@ const AdminUsersPage: React.FC = () => {
               <div className="flex">
                 {[
                   { id: "general", label: "Información General" },
+                  { id: "edit", label: "Editar Perfil" },
                   { id: "wallet", label: "Billetera" },
                   { id: "bets", label: "Apuestas" },
                   { id: "subscription", label: "Suscripción" },
@@ -775,6 +776,146 @@ const AdminUsersPage: React.FC = () => {
                               </p>
                             </div>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab Editar Perfil */}
+                  {activeDetailTab === "edit" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Editar Información Personal */}
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Editar Información Personal
+                          </h3>
+                          <form className="space-y-4" onSubmit={(e) => {
+                            e.preventDefault();
+                            // Handle profile update
+                          }}>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre de Usuario
+                              </label>
+                              <input
+                                type="text"
+                                defaultValue={userDetailData.user.username}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Email
+                              </label>
+                              <input
+                                type="email"
+                                defaultValue={userDetailData.user.email}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre Completo
+                              </label>
+                              <input
+                                type="text"
+                                defaultValue={userDetailData.user.profileInfo?.fullName || ""}
+                                placeholder="Nombre completo"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Rol
+                              </label>
+                              <select 
+                                defaultValue={userDetailData.user.role}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="user">Usuario</option>
+                                <option value="gallera">Gallera</option>
+                                <option value="venue">Venue</option>
+                                <option value="operator">Operador</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                            </div>
+                            <button
+                              type="submit"
+                              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              Guardar Cambios
+                            </button>
+                          </form>
+                        </div>
+
+                        {/* Cambiar Contraseña */}
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Cambiar Contraseña
+                          </h3>
+                          <form className="space-y-4" onSubmit={(e) => {
+                            e.preventDefault();
+                            // Handle password change
+                          }}>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Nueva Contraseña
+                              </label>
+                              <input
+                                type="password"
+                                placeholder="Mínimo 6 caracteres"
+                                minLength={6}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Confirmar Contraseña
+                              </label>
+                              <input
+                                type="password"
+                                placeholder="Confirmar nueva contraseña"
+                                minLength={6}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+                            >
+                              Cambiar Contraseña
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+
+                      {/* Acciones Administrativas */}
+                      <div className="border-t pt-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">
+                          Acciones Administrativas
+                        </h3>
+                        <div className="flex gap-4">
+                          <button 
+                            onClick={() => {
+                              // Handle status toggle
+                            }}
+                            className={`px-4 py-2 rounded-md transition-colors ${
+                              userDetailData.user.status === 'active' 
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            }`}
+                          >
+                            {userDetailData.user.status === 'active' ? 'Desactivar Usuario' : 'Activar Usuario'}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              // Handle force logout
+                            }}
+                            className="px-4 py-2 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors"
+                          >
+                            Cerrar Sesión Forzada
+                          </button>
                         </div>
                       </div>
                     </div>

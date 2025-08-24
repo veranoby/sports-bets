@@ -1,267 +1,259 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { usersAPI } from '../../config/api';
-import { User, Shield, Building2, FileText } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { usersAPI } from "../../config/api";
+import { useToast } from "../../hooks/useToast";
+import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
+import Card from "../../components/shared/Card";
+import ErrorMessage from "../../components/shared/ErrorMessage";
 
-const CreateUser = () => {
+const CreateUser: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    role: 'user',
+    username: "",
+    email: "",
+    password: "",
+    role: "user",
     profileInfo: {
-      fullName: '',
-      phoneNumber: '',
-      address: '',
-      identificationNumber: ''
-    }
+      fullName: "",
+      phoneNumber: "",
+    },
   });
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
-  const roles = [
-    { value: 'admin', label: 'Administrador', icon: Shield },
-    { value: 'operator', label: 'Operador', icon: User },
-    { value: 'venue', label: 'Venue', icon: Building2 },
-    { value: 'user', label: 'Usuario', icon: User },
-    { value: 'gallera', label: 'Gallera', icon: FileText }
-  ];
+  const roles = ["admin", "operator", "venue", "user", "gallera"];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await usersAPI.create({
-        ...formData,
-        profileInfo: formData.profileInfo.fullName ? formData.profileInfo : undefined
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/admin/users');
-      }, 2000);
-    } catch (error: any) {
-      setError(error.message || 'Error al crear usuario');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    if (field.startsWith('profileInfo.')) {
-      const profileField = field.split('.')[1];
-      setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "fullName" || name === "phoneNumber") {
+      setFormData((prev) => ({
         ...prev,
         profileInfo: {
           ...prev.profileInfo,
-          [profileField]: value
-        }
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [field]: value
+        [name]: value,
       }));
     }
   };
 
-  if (success) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <div className="text-green-600 text-5xl mb-4">✓</div>
-          <h3 className="text-lg font-semibold text-green-800 mb-2">
-            Usuario creado exitosamente
-          </h3>
-          <p className="text-green-600">
-            Redirigiendo a la lista de usuarios...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await usersAPI.create(formData);
+      addToast({
+        type: "success",
+        title: "Usuario Creado",
+        message: `El usuario ${formData.username} ha sido creado exitosamente.`,
+      });
+      navigate("/admin/users");
+    } catch (err: any) {
+      const errorMessage =
+        err.message || "Ocurrió un error al crear el usuario.";
+      setError(errorMessage);
+      addToast({
+        type: "error",
+        title: "Error al Crear",
+        message: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Usuario</h2>
-          <p className="text-gray-500 mt-1">
-            Complete los siguientes campos para crear un nuevo usuario en el sistema
-          </p>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-6 flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Crear Nuevo Usuario
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Completa el formulario para añadir un nuevo miembro al sistema.
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-6 p-6">
+            {error && (
+              <ErrorMessage error={error} onClose={() => setError(null)} />
+            )}
 
-          {/* Información básica */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre de usuario *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ingrese nombre de usuario"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ingrese email"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña *
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => handleInputChange('password', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Ingrese contraseña (mínimo 6 caracteres)"
-              minLength={6}
-            />
-          </div>
-
-          {/* Rol */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Rol del usuario *
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {roles.map((role) => {
-                const IconComponent = role.icon;
-                return (
-                  <div
-                    key={role.value}
-                    className={`relative cursor-pointer rounded-lg border p-4 text-center transition-colors ${
-                      formData.role === role.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                    onClick={() => handleInputChange('role', role.value)}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role.value}
-                      checked={formData.role === role.value}
-                      onChange={(e) => handleInputChange('role', e.target.value)}
-                      className="sr-only"
-                    />
-                    <IconComponent className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-900">
-                      {role.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Información del perfil */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Información del Perfil (Opcional)
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Username */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre completo
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Nombre de Usuario
                 </label>
                 <input
                   type="text"
-                  value={formData.profileInfo.fullName}
-                  onChange={(e) => handleInputChange('profileInfo.fullName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nombre completo"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Teléfono
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Contraseña
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+
+            {/* Role */}
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Rol
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                {roles.map((role) => (
+                  <option key={role} value={role} className="capitalize">
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <hr className="dark:border-gray-700" />
+
+            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+              Información de Perfil (Opcional)
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Full Name */}
+              <div>
+                <label
+                  htmlFor="fullName"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.profileInfo.fullName}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Número de Teléfono
                 </label>
                 <input
                   type="tel"
+                  id="phoneNumber"
+                  name="phoneNumber"
                   value={formData.profileInfo.phoneNumber}
-                  onChange={(e) => handleInputChange('profileInfo.phoneNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Número de teléfono"
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
             </div>
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dirección
-              </label>
-              <textarea
-                value={formData.profileInfo.address}
-                onChange={(e) => handleInputChange('profileInfo.address', e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Dirección completa"
-              />
+            <div className="flex justify-end pt-4">
+              <button
+                type="button"
+                onClick={() => navigate("/admin/users")}
+                className="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={isLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="ml-3 inline-flex justify-center items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creando...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Crear Usuario
+                  </>
+                )}
+              </button>
             </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número de identificación
-              </label>
-              <input
-                type="text"
-                value={formData.profileInfo.identificationNumber}
-                onChange={(e) => handleInputChange('profileInfo.identificationNumber', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Cédula o número de identificación"
-              />
-            </div>
-          </div>
-
-          {/* Botones */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/users')}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? 'Creando...' : 'Crear Usuario'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </Card>
       </div>
     </div>
   );
