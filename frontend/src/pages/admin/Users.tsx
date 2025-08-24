@@ -40,7 +40,7 @@ interface User {
   id: string;
   username: string;
   email: string;
-  role: "admin" | "operator" | "venue" | "regular_user";
+  role: "admin" | "operator" | "venue" | "user" | "gallera";
   status: "active" | "inactive" | "pending";
   createdAt: string;
   lastLogin?: string;
@@ -454,7 +454,8 @@ const AdminUsersPage: React.FC = () => {
                 <option value="admin">Administradores</option>
                 <option value="operator">Operadores</option>
                 <option value="venue">Venues</option>
-                <option value="regular_user">Usuarios</option>
+                <option value="user">Usuarios</option>
+                <option value="gallera">Galleras</option>
               </select>
 
               <select

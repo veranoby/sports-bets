@@ -1,416 +1,451 @@
 {
-  "project": "GalloBets UI/UX Improvement Plan V4",
-  "version": "4.0.0",
+  "project": "GalloBets Critical Bug Fixes & Role Implementation V5",
+  "version": "5.1.0",
   "date": "2025-08-23",
+  "focus": "Admin and User environments with complete role support",
+
   "mcp_requirements": {
-    "required": ["context7", "filesystem", "git"],
-    "context7_config": {
-      "description": "CRITICAL: Context7 must be enabled for proper context management",
-      "settings": {
-        "max_tokens": 8000,
-        "auto_context": true,
-        "smart_selection": true
+    "required": ["context7", "filesystem", "git", "database"],
+    "context7": "MANDATORY for multi-file management",
+    "note": "Ensure all MCPs are enabled before starting"
+  },
+
+  "critical_context": {
+    "roles_matrix": {
+      "super_admin": {
+        "description": "Control total sobre la plataforma",
+        "key_permissions": [
+          "edit_any_user",
+          "change_any_password",
+          "manage_finances",
+          "approve_withdrawals"
+        ]
+      },
+      "operator": {
+        "description": "Personal técnico asignado a gallera",
+        "key_permissions": [
+          "create_events",
+          "manage_stream",
+          "create_fights",
+          "record_results"
+        ],
+        "workflow": "Pre-Event → During Event → Post-Event (see phase_9)"
+      },
+      "venue": {
+        "description": "Representante de Gallera",
+        "key_permissions": [
+          "manage_own_gallera",
+          "request_events",
+          "view_stats"
+        ]
+      },
+      "user": {
+        "description": "Cliente final apostador",
+        "key_permissions": [
+          "manage_wallet",
+          "create_accept_bets",
+          "view_streams"
+        ]
+      },
+      "gallera": {
+        "description": "Usuario + escritor de artículos",
+        "key_permissions": [
+          "all_user_permissions",
+          "create_edit_articles",
+          "moderate_content"
+        ]
       }
     }
   },
 
-  "phase_1_theme_migration": {
-    "purpose": "Migrar de tema oscuro a tema claro con colores pastel",
+  "phase_1_database_critical": {
     "priority": "CRITICAL",
     "estimated_time": "30 minutes",
-
-    "requirements": {
-      "visual": [
-        "Fondo principal: blanco (#ffffff)",
-        "Color primario: azul pastel (#6B9BD1 o similar)",
-        "Color secundario: verde pastel (#7FC29B o similar)",
-        "Texto principal: gris oscuro (#1F2937)",
-        "Texto secundario: gris medio (#6B7280)",
-        "Bordes: gris claro (#E5E7EB)",
-        "Sombras: sutiles con opacidad baja"
-      ],
-      "technical": [
-        "Mantener variables CSS para fácil mantenimiento",
-        "Garantizar contraste WCAG AA mínimo 4.5:1",
-        "Preservar modo responsive actual"
-      ]
-    },
+    "purpose": "Fix database schema breaking errors",
 
     "tasks": [
       {
         "id": "1.1",
-        "title": "Limpiar archivos CSS redundantes",
-        "description": "Eliminar archivos CSS no utilizados y consolidar estilos",
-        "files_to_delete": [
-          "frontend/src/styles/theme.css",
-          "frontend/src/App.css"
-        ],
-        "files_to_update": [
-          {
-            "path": "frontend/src/main.tsx",
-            "action": "Remove import './App.css' if present"
-          }
-        ],
-        "validation": "npm run build debe compilar sin errores"
+        "title": "Add venue_id to articles table",
+        "sql": "ALTER TABLE articles ADD COLUMN venue_id UUID REFERENCES venues(id) ON DELETE SET NULL",
+        "model_update": "backend/src/models/Article.ts",
+        "add": "venueId: { type: DataTypes.UUID, allowNull: true }",
+        "association": "Article.belongsTo(models.Venue, { foreignKey: 'venueId', as: 'venue' })"
       },
-
       {
         "id": "1.2",
-        "title": "Actualizar variables CSS en index.css",
-        "description": "Reemplazar colores oscuros con tema claro pastel",
-        "file": "frontend/src/index.css",
-        "changes": {
-          "css_variables": {
-            "/* Primary Colors */": {
-              "--color-primary": "#6B9BD1",
-              "--color-primary-dark": "#5A89BF",
-              "--color-primary-light": "#8FB4DD",
-              "--color-secondary": "#7FC29B",
-              "--color-secondary-dark": "#6DAF87",
-              "--color-secondary-light": "#99D1B3",
-              "--color-accent": "#F0F9FF"
-            },
-            "/* Backgrounds */": {
-              "--color-bg-main": "#FFFFFF",
-              "--color-bg-card": "#F8FAFC",
-              "--color-bg-header": "#FFFFFF",
-              "--color-bg-hover": "#F1F5F9"
-            },
-            "/* Borders */": {
-              "--color-border-primary": "#E5E7EB",
-              "--color-border-secondary": "#D1D5DB"
-            },
-            "/* Text Colors */": {
-              "--color-text-primary": "#1F2937",
-              "--color-text-secondary": "#6B7280",
-              "--color-text-light": "#9CA3AF",
-              "--color-text-inverse": "#FFFFFF"
-            },
-            "/* Status Colors */": {
-              "--color-success": "#22C55E",
-              "--color-warning": "#FACC15",
-              "--color-error": "#EF4444",
-              "--color-info": "#3B82F6"
-            },
-            "/* Shadows */": {
-              "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-              "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-              "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
-            }
-          }
-        },
-        "test": "Visual regression test: backgrounds should be white/light"
+        "title": "Add status to notifications table",
+        "sql": "ALTER TABLE notifications ADD COLUMN status VARCHAR(10) DEFAULT 'unread' CHECK (status IN ('unread', 'read'))",
+        "model_update": "backend/src/models/Notification.ts",
+        "add": "status: { type: DataTypes.ENUM('unread', 'read'), defaultValue: 'unread' }"
       },
-
       {
         "id": "1.3",
-        "title": "Actualizar clases de utilidad CSS",
-        "description": "Ajustar clases theme para nuevo esquema de colores",
-        "file": "frontend/src/index.css",
-        "updates": [
-          "Reemplazar bg-theme-main con background-color: var(--color-bg-main)",
-          "Actualizar hover states para usar colores más claros",
-          "Ajustar card backgrounds para usar sombras en lugar de bordes oscuros",
-          "Eliminar gradientes oscuros, usar colores sólidos o gradientes sutiles"
-        ]
+        "title": "Ensure gallera role in users enum",
+        "check": "SELECT * FROM pg_enum WHERE enumlabel = 'gallera'",
+        "if_missing": "ALTER TYPE enum_users_role ADD VALUE 'gallera'",
+        "model": "Ensure User model includes 'gallera' in role enum"
+      },
+      {
+        "id": "1.4",
+        "title": "Fix Transaction-User association",
+        "model": "backend/src/models/index.ts",
+        "verify": "Transaction.belongsTo(User, { foreignKey: 'userId', as: 'user' })",
+        "add_if_missing": true
       }
     ],
 
-    "validation_tests": [
-      {
-        "test": "Color Contrast Test",
-        "description": "Verificar que texto sobre fondo cumple WCAG AA",
-        "expected": "Contrast ratio >= 4.5:1 for normal text, >= 3:1 for large text"
-      },
-      {
-        "test": "Component Visibility Test",
-        "description": "Todos los componentes deben ser visibles y legibles",
-        "check_components": [
-          "Headers",
-          "Navigation",
-          "Buttons",
-          "Forms",
-          "Cards"
-        ]
-      }
-    ]
+    "migration_script": "Create and run migrations/fix-schema-v5.js"
   },
 
-  "phase_2_logout_consistency": {
-    "purpose": "Asegurar logout consistente en todos los roles",
+  "phase_2_api_implementations": {
     "priority": "HIGH",
-    "estimated_time": "15 minutes",
+    "estimated_time": "40 minutes",
+    "purpose": "Implement missing API endpoints",
 
     "tasks": [
       {
         "id": "2.1",
-        "title": "Agregar logout a OperatorHeader",
-        "file": "frontend/src/components/operator/OperatorHeader.tsx",
-        "code_to_add": {
-          "imports": "import { LogOut } from 'lucide-react';",
-          "jsx_in_header": `
-            <button 
-              onClick={logout} 
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>`
-        }
+        "title": "Add wallet revenue endpoints",
+        "file": "backend/src/routes/wallet.ts",
+        "endpoints": [
+          {
+            "route": "GET /revenue-by-source",
+            "implementation": "Aggregate transactions by type, return totals"
+          },
+          {
+            "route": "GET /revenue-trends",
+            "implementation": "Daily/monthly aggregation with date ranges"
+          }
+        ]
       },
-
       {
         "id": "2.2",
-        "title": "Crear componente BaseHeader compartido",
-        "file": "frontend/src/components/shared/BaseHeader.tsx",
-        "create_new": true,
-        "template": {
-          "description": "Header base reutilizable con slots para personalización",
-          "props": ["title", "icon", "user", "actions", "showLogout"],
-          "features": [
-            "Logout button consistente",
-            "User info display",
-            "Responsive design"
-          ]
+        "title": "Fix frontend API methods",
+        "file": "frontend/src/config/api.ts",
+        "add_methods": {
+          "walletAPI.getUserWallet": "(userId: string) => axios.get(`/api/wallet/user/${userId}`)",
+          "usersAPI.getOperators": "() => axios.get('/api/users?role=operator&isActive=true')",
+          "systemAPI": "{ getMetrics: () => axios.get('/api/system/metrics'), getHealth: () => axios.get('/api/system/health') }"
         }
+      },
+      {
+        "id": "2.3",
+        "title": "Fix transaction type enum",
+        "issue": "invalid enum value 'admin'",
+        "fix": "Change query from type=admin to proper enum values (deposit, withdrawal, bet_payout)",
+        "file": "frontend/src/pages/admin/Finance.tsx"
       }
-    ],
-
-    "test": {
-      "description": "Verificar presencia de logout en todos los layouts",
-      "command": "grep -r 'logout\\|LogOut' frontend/src/components/*/Header.tsx",
-      "expected": "5 matches (one per role)"
-    }
+    ]
   },
 
-  "phase_3_navigation_improvements": {
-    "purpose": "Mejorar navegación y breadcrumbs para mejor UX",
-    "priority": "MEDIUM",
-    "estimated_time": "20 minutes",
+  "phase_3_user_management_fixes": {
+    "priority": "HIGH",
+    "estimated_time": "45 minutes",
+    "purpose": "Fix user management and add gallera support",
 
     "tasks": [
       {
         "id": "3.1",
-        "title": "Hacer breadcrumbs responsive",
-        "file": "frontend/src/components/shared/Breadcrumbs.tsx",
-        "improvements": [
-          "Colapsar breadcrumbs intermedios en móvil (mostrar solo home y current)",
-          "Usar ellipsis (...) para rutas largas",
-          "Agregar tooltip con ruta completa en hover"
-        ],
-        "code_pattern": "Use media queries or useMediaQuery hook for responsive behavior"
+        "title": "Fix user status toggle",
+        "backend": "backend/src/routes/users.ts",
+        "change": "Accept 'status' boolean instead of 'isActive'",
+        "validation": "body('status').isBoolean()",
+        "update": "user.isActive = status"
       },
-
       {
         "id": "3.2",
-        "title": "Mejorar NavigationItem con feedback visual",
-        "file": "frontend/src/components/shared/NavigationItem.tsx",
-        "additions": [
-          "Ripple effect on click",
-          "Loading state mientras navega",
-          "Micro-animación en badge updates"
+        "title": "Add gallera to role filters",
+        "file": "frontend/src/pages/admin/Users.tsx",
+        "filter_options": ["admin", "operator", "venue", "user", "gallera"],
+        "fix_filter_logic": "Ensure 'user' maps correctly (not 'usuario')"
+      },
+      {
+        "id": "3.3",
+        "title": "Update role change to include gallera",
+        "files": [
+          "backend/src/routes/users.ts",
+          "frontend/src/components/admin/UserManagementTable.tsx"
+        ],
+        "validation": ".isIn(['admin', 'operator', 'venue', 'user', 'gallera'])"
+      },
+      {
+        "id": "3.4",
+        "title": "Create user creation page",
+        "file": "frontend/src/pages/admin/CreateUser.tsx",
+        "features": [
+          "Role dropdown with all 5 roles",
+          "Username, email, password fields",
+          "Profile info (optional)",
+          "isActive toggle (default true)",
+          "Form validation",
+          "Success redirect to users list"
+        ]
+      },
+      {
+        "id": "3.5",
+        "title": "Add user edit modal",
+        "file": "frontend/src/pages/admin/Users.tsx",
+        "modal_features": [
+          "Edit any user profile fields",
+          "Change password button (admin power)",
+          "Update profile info",
+          "Save changes with validation"
+        ],
+        "admin_override": "Admin can edit ANY user regardless of role"
+      },
+      {
+        "id": "3.6",
+        "title": "Simplify admin sidebar",
+        "file": "frontend/src/components/admin/AdminSidebar.tsx",
+        "changes": [
+          "Rename 'Usuarios Regulares' → 'Usuarios'",
+          "Remove 'Usuarios Venue' item",
+          "Remove 'Usuarios Operadores' item"
         ]
       }
     ]
   },
 
-  "phase_4_accessibility_enhancements": {
-    "purpose": "Cumplir estándares WCAG AA completos",
-    "priority": "HIGH",
-    "estimated_time": "25 minutes",
+  "phase_4_login_error_handling": {
+    "priority": "CRITICAL",
+    "estimated_time": "15 minutes",
+    "purpose": "Prevent login crashes",
 
     "tasks": [
       {
         "id": "4.1",
-        "title": "Implementar Skip Navigation",
-        "description": "Agregar link oculto para saltar al contenido principal",
-        "files": ["All layout components"],
-        "code": `
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded">
-            Saltar al contenido principal
-          </a>
-          <main id="main-content">...</main>`
+        "title": "Add comprehensive error handling",
+        "file": "frontend/src/pages/LoginPage.tsx",
+        "implementation": {
+          "wrap_in_try_catch": true,
+          "error_cases": {
+            "401": "Credenciales inválidas",
+            "404": "Usuario no encontrado",
+            "500": "Error del servidor",
+            "network": "Error de conexión"
+          },
+          "never_throw": "Always catch and display error message"
+        }
       },
-
       {
         "id": "4.2",
-        "title": "Agregar ARIA labels completos",
-        "files_to_update": [
-          "All interactive components",
-          "Navigation items",
-          "Form inputs",
-          "Modals and dialogs"
-        ],
-        "guidelines": [
-          "aria-label for icon-only buttons",
-          "aria-describedby for form errors",
-          "role='navigation' for nav components",
-          "aria-live regions for dynamic content"
-        ]
-      },
-
-      {
-        "id": "4.3",
-        "title": "Focus Management",
-        "description": "Implementar focus trap en modales y gestión de focus",
-        "package_to_install": "focus-trap-react",
-        "implementation": "Wrap modals with FocusTrap component"
+        "title": "Add error state UI",
+        "add": "const [error, setError] = useState<string | null>(null)",
+        "display": "Red alert box below form",
+        "clear": "Clear on input change"
       }
-    ],
-
-    "validation": {
-      "tool": "axe-devtools or lighthouse",
-      "expected_score": ">= 90/100 accessibility"
-    }
+    ]
   },
 
-  "phase_5_component_updates": {
-    "purpose": "Actualizar componentes específicos para nuevo tema",
+  "phase_5_article_system": {
     "priority": "MEDIUM",
     "estimated_time": "30 minutes",
+    "purpose": "Complete article editor and fix errors",
 
-    "components_to_update": [
+    "tasks": [
       {
-        "path": "frontend/src/pages/admin/AdminDashboard.tsx",
-        "changes": [
-          "Reemplazar bg-[#1a1f37] con bg-white",
-          "Reemplazar bg-[#2a325c] con bg-gray-50",
-          "Actualizar text-white a text-gray-900",
-          "Cambiar bordes oscuros por bordes claros"
+        "id": "5.1",
+        "title": "Fix article API validation",
+        "backend": "backend/src/routes/articles.ts",
+        "fix": "Remove or make optional venue requirement in validation"
+      },
+      {
+        "id": "5.2",
+        "title": "Complete article editor",
+        "file": "frontend/src/components/admin/ArticleEditor.tsx",
+        "implement": [
+          "Rich text editor (react-quill)",
+          "Title, subtitle, content fields",
+          "Category selection",
+          "Featured toggle",
+          "Status (draft/published)",
+          "Save and publish buttons"
         ]
       },
       {
-        "path": "frontend/src/components/user/Navigation.tsx",
-        "changes": [
-          "Actualizar colores de fondo oscuros",
-          "Cambiar iconos activos a azul pastel",
-          "Ajustar hover states para tema claro"
-        ]
-      },
-      {
-        "path": "frontend/src/components/user/UserHeader.tsx",
-        "changes": [
-          "Eliminar bg-[#1a1f37]/95",
-          "Usar bg-white con shadow-sm",
-          "Actualizar colores de texto"
-        ]
-      }
-    ],
-
-    "global_replacements": [
-      {
-        "find": "bg-\\[#[0-9a-f]{6}\\]",
-        "replace": "Check each occurrence and replace with appropriate light color",
-        "files": "All .tsx files in components and pages"
+        "id": "5.3",
+        "title": "Fix modal z-index",
+        "issue": "Modal on black background",
+        "fix": "z-50 for overlay, z-[60] for modal content"
       }
     ]
   },
 
-  "phase_6_testing": {
-    "purpose": "Validar todos los cambios realizados",
-    "priority": "CRITICAL",
+  "phase_6_events_fixes": {
+    "priority": "HIGH",
+    "estimated_time": "25 minutes",
+    "purpose": "Fix events section",
+
+    "tasks": [
+      {
+        "id": "6.1",
+        "title": "Fix getOperators error",
+        "already_fixed_in": "Phase 2.2",
+        "verify": "usersAPI.getOperators exists"
+      },
+      {
+        "id": "6.2",
+        "title": "Create event creation page",
+        "file": "frontend/src/pages/admin/CreateEvent.tsx",
+        "fields": [
+          "Event name",
+          "Select venue (dropdown)",
+          "Scheduled date/time",
+          "Assign operator (optional)",
+          "Description"
+        ]
+      },
+      {
+        "id": "6.3",
+        "title": "Add route for create event",
+        "file": "frontend/src/App.tsx",
+        "route": "/admin/events/create → CreateEvent component"
+      }
+    ]
+  },
+
+  "phase_7_visual_fixes": {
+    "priority": "LOW",
     "estimated_time": "15 minutes",
+    "purpose": "Fix visual issues",
 
-    "tests_to_run": [
+    "tasks": [
       {
-        "name": "Build Test",
-        "command": "npm run build",
-        "expected": "No errors, no warnings about missing CSS"
+        "id": "7.1",
+        "title": "Fix text contrast",
+        "global": "Replace text-gray-300/400 with text-gray-500",
+        "files": "All .tsx components"
       },
       {
-        "name": "Lint Test",
-        "command": "npm run lint",
-        "expected": "No linting errors"
+        "id": "7.2",
+        "title": "Add Venues section for users",
+        "file": "frontend/src/pages/user/Venues.tsx",
+        "copy_from": "Galleras.tsx",
+        "modify": "Show venues instead of galleras"
       },
       {
-        "name": "Visual Test",
-        "manual": true,
-        "checklist": [
-          "✓ Todos los fondos son blancos/claros",
-          "✓ Texto es legible (contraste adecuado)",
-          "✓ Botones tienen estados hover visibles",
-          "✓ Navegación muestra página activa claramente",
-          "✓ Logout visible en todos los roles",
-          "✓ Breadcrumbs funcionan en móvil",
-          "✓ No hay elementos con colores oscuros residuales"
+        "id": "7.3",
+        "title": "Fix button states",
+        "issue": "All users show 'Activar' button",
+        "fix": "Show 'Desactivar' for active users, 'Activar' for inactive"
+      }
+    ]
+  },
+
+  "phase_8_ads_system": {
+    "priority": "LOW",
+    "estimated_time": "20 minutes",
+    "purpose": "Verify ads system or remove",
+
+    "decision_tree": {
+      "check": "Does backend/src/models/Ad.ts exist?",
+      "if_yes": {
+        "action": "Create admin ads management",
+        "file": "frontend/src/pages/admin/Ads.tsx",
+        "features": ["List ads", "Create/edit/delete", "Position management"]
+      },
+      "if_no": {
+        "action": "Remove all ad references",
+        "files_to_clean": [
+          "frontend/src/components/ads/*",
+          "Remove AdSpace imports"
         ]
-      },
-      {
-        "name": "Accessibility Test",
-        "command": "Run Lighthouse audit",
-        "expected": "Score >= 90"
-      },
-      {
-        "name": "Cross-browser Test",
-        "browsers": ["Chrome", "Firefox", "Safari", "Edge"],
-        "check": "Visual consistency across browsers"
       }
-    ]
-  },
-
-  "execution_instructions": {
-    "pre_requirements": [
-      "Ensure git is initialized and all changes are committed",
-      "Run 'npm install' to ensure dependencies are up to date",
-      "Create a new branch: git checkout -b feature/ui-light-theme-v4"
-    ],
-
-    "execution_order": [
-      "Execute phases sequentially (1-6)",
-      "Run tests after each phase",
-      "Commit after each successful phase",
-      "If any phase fails, rollback and debug before continuing"
-    ],
-
-    "rollback_plan": {
-      "command": "git checkout -- .",
-      "description": "Revert all changes if critical issues arise"
-    },
-
-    "completion_checklist": [
-      "[ ] All CSS files cleaned up",
-      "[ ] Theme variables updated to light colors",
-      "[ ] Logout present in all 5 role headers",
-      "[ ] Breadcrumbs responsive on mobile",
-      "[ ] ARIA labels added to all interactive elements",
-      "[ ] All tests passing",
-      "[ ] No console errors or warnings",
-      "[ ] Visual QA completed on all roles"
-    ]
-  },
-
-  "context_for_ai": {
-    "project_structure": {
-      "frontend": "React + TypeScript + Vite",
-      "styling": "Tailwind CSS + CSS Variables",
-      "roles": ["user", "admin", "operator", "venue", "gallera"],
-      "key_files": {
-        "styles": "frontend/src/index.css",
-        "layouts": "frontend/src/components/layouts/*",
-        "headers": "frontend/src/components/*/Header.tsx"
-      }
-    },
-
-    "coding_conventions": {
-      "components": "Functional components with TypeScript",
-      "styling": "Tailwind utilities first, custom CSS only when needed",
-      "imports": "Absolute imports from 'src/'",
-      "naming": "PascalCase for components, camelCase for functions"
-    },
-
-    "constraints": [
-      "Maintain WebSocket singleton pattern",
-      "Preserve layout persistence between routes",
-      "Keep header components mounted during navigation",
-      "Ensure all financial operations remain atomic"
-    ],
-
-    "quality_standards": {
-      "performance": "Lighthouse score >= 90",
-      "accessibility": "WCAG AA compliance",
-      "browser_support": "Last 2 versions of major browsers",
-      "responsive": "Mobile-first, works from 320px width"
     }
+  },
+
+  "phase_9_operator_workflow": {
+    "priority": "INFO",
+    "purpose": "Document operator event workflow",
+    "note": "For future implementation",
+
+    "workflow": {
+      "pre_event": [
+        "Login as operator",
+        "Create/select event",
+        "Get stream key",
+        "Configure OBS with RTMP URL",
+        "Test transmission",
+        "Activate event (status: live)"
+      ],
+      "during_event": [
+        "Create fights dynamically",
+        "Open betting window (2-5 min)",
+        "Monitor live stats",
+        "Close betting (30s before fight)",
+        "Record official result",
+        "Validate automatic payouts"
+      ],
+      "post_event": [
+        "System processes pending bets",
+        "Generate audit reports",
+        "Send notifications via WebSocket",
+        "Archive event (status: completed)"
+      ]
+    }
+  },
+
+  "phase_10_testing": {
+    "priority": "CRITICAL",
+    "estimated_time": "30 minutes",
+    "purpose": "Validate all fixes",
+
+    "test_matrix": {
+      "database": [
+        "Articles load without venue_id error",
+        "Notifications show with status field",
+        "Transactions show user association",
+        "Gallera role exists in enum"
+      ],
+      "admin_users": [
+        "Filter by gallera role works",
+        "Toggle user status works",
+        "Change role includes gallera",
+        "Create user with any role",
+        "Edit any user profile",
+        "Change any user password"
+      ],
+      "admin_sections": [
+        "Articles load and can create",
+        "Events load and can create",
+        "Finance shows revenue data",
+        "Requests show withdrawals",
+        "Monitoring loads"
+      ],
+      "user_dashboard": [
+        "Dashboard loads without errors",
+        "News banner works",
+        "Notifications display",
+        "Venues section exists"
+      ],
+      "login": [
+        "Wrong username → error message, no crash",
+        "Wrong password → error message, no crash",
+        "Correct credentials → successful login"
+      ]
+    }
+  },
+
+  "execution_order": [
+    "CRITICAL: Phase 1 (Database) MUST be first",
+    "HIGH: Phases 2-3 (APIs and User Management)",
+    "CRITICAL: Phase 4 (Login fixes)",
+    "MEDIUM: Phases 5-6 (Articles and Events)",
+    "LOW: Phases 7-8 (Visual and Ads)",
+    "INFO: Phase 9 (Documentation only)",
+    "CRITICAL: Phase 10 (Testing)"
+  ],
+
+  "rollback_plan": {
+    "database": "psql gallobets < backup.sql",
+    "code": "git reset --hard HEAD~",
+    "emergency": "git checkout main"
+  },
+
+  "credentials": {
+    "admin": "admin@sportsbets.com / Test123456",
+    "user": "testuser1@sportsbets.com / Test123456",
+    "note": "All test users use Test123456"
   }
 }

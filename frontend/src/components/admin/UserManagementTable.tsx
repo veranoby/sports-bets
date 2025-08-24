@@ -116,7 +116,7 @@ const UserManagementTable: React.FC = () => {
   // Cambiar rol de usuario
   const handleChangeRole = (
     user: User,
-    newRole: "admin" | "operator" | "venue" | "user"
+    newRole: "admin" | "operator" | "venue" | "user" | "gallera"
   ) => {
     setConfirmAction({ type: "role", user, newValue: newRole });
   };
@@ -298,7 +298,7 @@ const UserManagementTable: React.FC = () => {
                         </button>
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200 hidden group-hover:block">
                           <div className="py-1">
-                            {["admin", "operator", "venue", "user"].map(
+                            {["admin", "operator", "venue", "user", "gallera"].map(
                               (role) => (
                                 <button
                                   key={role}

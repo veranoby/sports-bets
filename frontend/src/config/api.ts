@@ -240,6 +240,10 @@ export const walletAPI = {
 
   getRevenueTrends: (params?: any) =>
     apiClient.get("/wallet/revenue-trends", { params }),
+  
+  // Get wallet for specific user (admin only)
+  getUserWallet: (userId: string) => 
+    apiClient.get(`/wallet/user/${userId}`),
 };
 
 export const subscriptionAPI = {
@@ -384,13 +388,16 @@ export const usersAPI = {
 
   getById: (id: string) => apiClient.get(`/users/${id}`),
 
-  updateStatus: (id: string, isActive: boolean, reason?: string) =>
-    apiClient.put(`/users/${id}/status`, { isActive, reason }),
+  updateStatus: (id: string, status: boolean, reason?: string) =>
+    apiClient.put(`/users/${id}/status`, { status, reason }),
 
   updateRole: (id: string, role: string, reason?: string) =>
     apiClient.put(`/users/${id}/role`, { role, reason }),
 
   getAvailableOperators: () => apiClient.get("/users/operators/available"),
+
+  // Get operators with active status
+  getOperators: () => apiClient.get("/users?role=operator&isActive=true"),
 };
 
 export const articlesAPI = {
@@ -443,6 +450,12 @@ export const articlesAPI = {
     apiClient.put(`/articles/${id}/status`, { status }),
 
   delete: (id: string) => apiClient.delete(`/articles/${id}`),
+};
+
+// System API for monitoring and health
+export const systemAPI = {
+  getMetrics: () => apiClient.get("/system/metrics"),
+  getHealth: () => apiClient.get("/system/health"),
 };
 
 // WebSocket configuration

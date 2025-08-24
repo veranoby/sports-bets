@@ -5,7 +5,7 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 
 const router = Router();
 
@@ -465,6 +465,79 @@ router.get(
     };
 
     res.json({ success: true, data: metrics });
+  })
+);
+
+// GET /api/wallet/revenue-by-source - Revenue aggregated by transaction type
+router.get(
+  "/revenue-by-source",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    // Aggregate transactions by type, return totals
+    const revenueBySource = await Transaction.findAll({
+      attributes: [
+        "type",
+        [fn("SUM", col("amount")), "total"],
+        [fn("COUNT", "*"), "count"]
+      ],
+      where: {
+        status: "completed"
+      },
+      group: ["type"],
+      raw: true
+    });
+
+    res.json({
+      success: true,
+      data: { revenueBySource }
+    });
+  })
+);
+
+// GET /api/wallet/revenue-trends - Daily/monthly revenue trends
+router.get(
+  "/revenue-trends",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const { period = "daily", days = 30 } = req.query;
+    
+    let dateFormat = "%Y-%m-%d"; // daily format
+    if (period === "monthly") {
+      dateFormat = "%Y-%m";
+    }
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days as string));
+
+    const trends = await Transaction.findAll({
+      attributes: [
+        [fn("DATE_FORMAT", col("created_at"), dateFormat), "date"],
+        "type",
+        [fn("SUM", col("amount")), "amount"],
+        [fn("COUNT", "*"), "count"]
+      ],
+      where: {
+        status: "completed",
+        createdAt: {
+          [Op.gte]: startDate
+        }
+      },
+      group: [
+        fn("DATE_FORMAT", col("created_at"), dateFormat),
+        "type"
+      ],
+      order: [
+        [fn("DATE_FORMAT", col("created_at"), dateFormat), "DESC"]
+      ],
+      raw: true
+    });
+
+    res.json({
+      success: true,
+      data: { trends, period, days }
+    });
   })
 );
 

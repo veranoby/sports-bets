@@ -113,7 +113,7 @@ const AdminFinancePage: React.FC = () => {
       const [metricsRes, transactionsRes, revenueRes, trendsRes] =
         await Promise.all([
           walletAPI.getFinancialMetrics(params),
-          walletAPI.getTransactions({ ...params, limit: 100, type: "admin" }),
+          walletAPI.getTransactions({ ...params, limit: 100 }),
           walletAPI.getRevenueBySource(params),
           walletAPI.getRevenueTrends(params),
         ]);

@@ -164,7 +164,7 @@ router.put(
   authenticate,
   authorize("admin"),
   [
-    body("isActive").isBoolean().withMessage("isActive must be a boolean"),
+    body("status").isBoolean().withMessage("status must be a boolean"),
     body("reason")
       .optional()
       .isLength({ max: 500 })
@@ -182,26 +182,26 @@ router.put(
       );
     }
 
-    const { isActive, reason } = req.body;
+    const { status, reason } = req.body;
 
     const user = await User.findByPk(req.params.id);
     if (!user) {
       throw errors.notFound("User not found");
     }
 
-    user.isActive = isActive;
+    user.isActive = status;
     await user.save();
 
     // Log de auditoría
     require("../config/logger").logger.info(
       `User ${user.username} (${user.id}) ${
-        isActive ? "activated" : "deactivated"
+        status ? "activated" : "deactivated"
       } by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
     );
 
     res.json({
       success: true,
-      message: `User ${isActive ? "activated" : "deactivated"} successfully`,
+      message: `User ${status ? "activated" : "deactivated"} successfully`,
       data: user.toPublicJSON(),
     });
   })
@@ -214,7 +214,7 @@ router.put(
   authorize("admin"),
   [
     body("role")
-      .isIn(["admin", "operator", "venue", "user"])
+      .isIn(["admin", "operator", "venue", "user", "gallera"])
       .withMessage("Invalid role"),
     body("reason")
       .optional()
