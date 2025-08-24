@@ -541,4 +541,42 @@ router.get(
   })
 );
 
+// GET /api/wallet/user/:userId - Get specific user's wallet (admin only)
+router.get(
+  "/user/:userId",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const wallet = await Wallet.findOne({
+      where: { userId: req.params.userId },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "username", "email", "role"]
+        },
+        {
+          model: Transaction,
+          as: "transactions",
+          limit: 10,
+          order: [["createdAt", "DESC"]]
+        }
+      ]
+    });
+
+    if (!wallet) {
+      throw errors.notFound("Wallet not found for this user");
+    }
+
+    res.json({
+      success: true,
+      data: {
+        wallet: wallet.toPublicJSON(),
+        user: wallet.user,
+        recentTransactions: wallet.transactions?.map((t: any) => t.toPublicJSON?.() || t) || []
+      }
+    });
+  })
+);
+
 export default router;

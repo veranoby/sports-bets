@@ -46,6 +46,7 @@ import ArticlePage from "./components/user/ArticlePage";
 // Lazy imports para rutas no críticas
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const CreateUser = lazy(() => import("./pages/admin/CreateUser"));
 const AdminOperators = lazy(() => import("./pages/admin/Operators"));
 const AdminFinance = lazy(() => import("./pages/admin/Finance"));
 const AdminEvents = lazy(() => import("./pages/admin/Events"));
@@ -157,6 +158,14 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminUsers />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/users/create"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <CreateUser />
               </Suspense>
             }
           />

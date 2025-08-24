@@ -189,6 +189,7 @@ const UserManagementTable: React.FC = () => {
               <option value="operator">Operador</option>
               <option value="venue">Venue</option>
               <option value="user">Usuario</option>
+              <option value="gallera">Gallera</option>
             </select>
 
             <select
@@ -367,6 +368,7 @@ const UserManagementTable: React.FC = () => {
               { value: "operator", label: "Operadores" },
               { value: "venue", label: "Galleras" },
               { value: "user", label: "Usuarios" },
+              { value: "gallera", label: "Galleras" },
             ],
           },
           {

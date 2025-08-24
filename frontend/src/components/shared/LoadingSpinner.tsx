@@ -6,12 +6,14 @@ interface LoadingSpinnerProps {
   text?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  fullPage?: boolean;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   text = "Cargando...",
   size = "md",
   className = "",
+  fullPage = false,
 }) => {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -21,7 +23,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 ${className}`}
+      className={`flex flex-col items-center justify-center p-8 ${fullPage ? 'min-h-screen' : ''} ${className}`}
     >
       <Loader2
         className={`${sizeClasses[size]} animate-spin text-theme-primary mb-4`}

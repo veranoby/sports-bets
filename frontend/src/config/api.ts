@@ -388,6 +388,14 @@ export const usersAPI = {
 
   getById: (id: string) => apiClient.get(`/users/${id}`),
 
+  create: (data: {
+    username: string;
+    email: string;
+    password: string;
+    role: string;
+    profileInfo?: any;
+  }) => apiClient.post("/users", data),
+
   updateStatus: (id: string, status: boolean, reason?: string) =>
     apiClient.put(`/users/${id}/status`, { status, reason }),
 
@@ -456,6 +464,7 @@ export const articlesAPI = {
 export const systemAPI = {
   getMetrics: () => apiClient.get("/system/metrics"),
   getHealth: () => apiClient.get("/system/health"),
+  getLogs: () => apiClient.get("/system/logs"),
 };
 
 // WebSocket configuration

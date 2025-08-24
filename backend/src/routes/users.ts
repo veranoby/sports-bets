@@ -131,6 +131,85 @@ router.get(
   })
 );
 
+// POST /api/users - Create new user (admin only)
+router.post(
+  "/",
+  authenticate,
+  authorize("admin"),
+  [
+    body("username")
+      .isLength({ min: 3, max: 50 })
+      .withMessage("Username must be between 3 and 50 characters")
+      .isAlphanumeric()
+      .withMessage("Username must contain only letters and numbers"),
+    body("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+    body("role")
+      .isIn(["admin", "operator", "venue", "user", "gallera"])
+      .withMessage("Invalid role"),
+    body("profileInfo")
+      .optional()
+      .isObject()
+      .withMessage("Profile info must be an object"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { username, email, password, role, profileInfo } = req.body;
+
+    // Check if username or email already exists
+    const { Op } = require("sequelize");
+    const existingUser = await User.findOne({
+      where: {
+        [Op.or]: [{ username }, { email }]
+      }
+    });
+
+    if (existingUser) {
+      throw errors.badRequest(
+        existingUser.username === username
+          ? "Username already exists"
+          : "Email already exists"
+      );
+    }
+
+    const user = await User.create({
+      username,
+      email,
+      passwordHash: password, // Will be hashed automatically by the model hook
+      role,
+      profileInfo: profileInfo || { verificationLevel: "none" },
+      isActive: true
+    });
+
+    // Create wallet for user
+    await Wallet.create({
+      userId: user.id,
+      balance: 0,
+      frozenAmount: 0
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: user.toPublicJSON()
+    });
+  })
+);
+
 // GET /api/users/:id - Obtener usuario específico (solo admin)
 router.get(
   "/:id",

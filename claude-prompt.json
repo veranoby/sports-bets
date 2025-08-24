@@ -15,7 +15,11 @@
   "database_reference": {
     "location": "backend/database-analysis/",
     "critical_files": [
-      "backend/database-analysis/schema-analysis.json",
+      "backend/database-analysis/CURRENT_TABLES.json",
+      "backend/database-analysis/CURRENT_FOREIGN_KEYS.json",
+      "backend/database-analysis/CURRENT_INDEXES.json",
+      "backend/database-analysis/CURRENT_ENUMS.json",
+      "backend/database-analysis/CURRENT_CONSTRAINTS.json",
       "backend/database-analysis/credenciales.json"
     ],
     "neon_migrations_required": true,

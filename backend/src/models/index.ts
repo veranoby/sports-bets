@@ -39,8 +39,15 @@ Transaction.belongsTo(Wallet, {
   as: "wallet",
 });
 
-// User -> Transactions - Indirect relationship through Wallet
-// Note: Access transactions via wallet.transactions, user via wallet.user
+// User -> Transactions - Direct relationship for easier queries
+User.hasMany(Transaction, {
+  foreignKey: "userId",
+  as: "transactions",
+});
+Transaction.belongsTo(User, {
+  foreignKey: "userId", 
+  as: "user",
+});
 
 // User -> Venues (One-to-Many)
 User.hasMany(Venue, {
