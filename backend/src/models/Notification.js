@@ -11,10 +11,10 @@ const User_1 = require("./User");
 class Notification extends sequelize_1.Model {
     // Métodos de instancia
     isUnread() {
-        return this.status === "unread";
+        return this.isRead === false;
     }
     markAsRead() {
-        this.status = "read";
+        this.isRead = true;
     }
     toPublicJSON() {
         return {
@@ -22,7 +22,7 @@ class Notification extends sequelize_1.Model {
             title: this.title,
             message: this.message,
             type: this.type,
-            status: this.status,
+            isRead: this.isRead,
             metadata: this.metadata,
             createdAt: this.createdAt,
         };
@@ -58,21 +58,19 @@ Notification.init({
             notEmpty: true,
         },
     },
-    type: {
-        // ✅ USAR EL ENUM EXACTO DE LA DB
-        type: sequelize_1.DataTypes.ENUM("info", "warning", "error", "success", "bet_proposal"),
-        allowNull: false,
-        defaultValue: "info",
-    },
-    status: {
-        // ✅ USAR EL ENUM EXACTO DE LA DB
-        type: sequelize_1.DataTypes.ENUM("unread", "read", "archived"),
-        allowNull: false,
-        defaultValue: "unread",
+    isRead: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: "is_read",
     },
     metadata: {
         type: sequelize_1.DataTypes.JSONB,
         allowNull: true,
+    },
+    type: {
+        type: sequelize_1.DataTypes.ENUM("info", "warning", "error", "success", "bet_proposal"),
+        allowNull: false,
+        defaultValue: "info",
     },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
@@ -93,10 +91,9 @@ Notification.init({
     underscored: true,
     indexes: [
         { fields: ["user_id"] },
-        { fields: ["status"] },
-        { fields: ["type"] },
+        { fields: ["is_read"] },
         { fields: ["created_at"] },
-        { fields: ["user_id", "status"] },
+        { fields: ["user_id", "is_read"] },
     ],
 });
 exports.default = Notification;

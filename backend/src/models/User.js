@@ -42,7 +42,10 @@ class User extends sequelize_1.Model {
     // Método de instancia para verificar contraseña
     comparePassword(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            return bcryptjs_1.default.compare(password, this.passwordHash);
+            console.log('🔍 Comparing password:', password, 'with hash:', this.passwordHash);
+            const result = yield bcryptjs_1.default.compare(password, this.passwordHash);
+            console.log('🔍 Comparison result:', result);
+            return result;
         });
     }
     // Método para obtener datos públicos del usuario
@@ -114,6 +117,7 @@ User.init({
     passwordHash: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
+        field: 'password_hash', // Explicit field mapping for snake_case DB column
         validate: {
             len: [6, 255],
         },

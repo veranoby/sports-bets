@@ -59,6 +59,7 @@ Article.init({
     venue_id: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: true,
+        field: "venue_id",
         references: {
             model: Venue_1.Venue,
             key: "id",

@@ -30,6 +30,9 @@ class Wallet extends Model<
   declare getUser: BelongsToGetAssociationMixin<User>;
   declare setUser: BelongsToSetAssociationMixin<User, number>;
 
+  public user?: User;
+  public readonly transactions?: Transaction[];
+
   // Métodos de instancia
   getAvailableBalance(): number {
     return this.balance - this.frozenAmount;

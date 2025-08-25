@@ -111,6 +111,68 @@ router.get("/", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, errorHa
         },
     });
 })));
+// POST /api/users - Create new user (admin only)
+router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
+    (0, express_validator_1.body)("username")
+        .isLength({ min: 3, max: 50 })
+        .withMessage("Username must be between 3 and 50 characters")
+        .isAlphanumeric()
+        .withMessage("Username must contain only letters and numbers"),
+    (0, express_validator_1.body)("email")
+        .isEmail()
+        .withMessage("Please provide a valid email"),
+    (0, express_validator_1.body)("password")
+        .isLength({ min: 6 })
+        .withMessage("Password must be at least 6 characters long"),
+    (0, express_validator_1.body)("role")
+        .isIn(["admin", "operator", "venue", "user", "gallera"])
+        .withMessage("Invalid role"),
+    (0, express_validator_1.body)("profileInfo")
+        .optional()
+        .isObject()
+        .withMessage("Profile info must be an object"),
+], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrors = (0, express_validator_1.validationResult)(req);
+    if (!validationErrors.isEmpty()) {
+        throw errorHandler_1.errors.badRequest("Validation failed: " +
+            validationErrors
+                .array()
+                .map((err) => err.msg)
+                .join(", "));
+    }
+    const { username, email, password, role, profileInfo } = req.body;
+    // Check if username or email already exists
+    const { Op } = require("sequelize");
+    const existingUser = yield models_1.User.findOne({
+        where: {
+            [Op.or]: [{ username }, { email }]
+        }
+    });
+    if (existingUser) {
+        throw errorHandler_1.errors.badRequest(existingUser.username === username
+            ? "Username already exists"
+            : "Email already exists");
+    }
+    const user = yield models_1.User.create({
+        username,
+        email,
+        passwordHash: password, // Will be hashed automatically by the model hook
+        role,
+        profileInfo: profileInfo || { verificationLevel: "none" },
+        isActive: true
+    });
+    // Create wallet for user
+    yield models_1.Wallet.create({
+        userId: user.id,
+        balance: 0,
+        frozenAmount: 0
+    });
+    res.status(201).json({
+        success: true,
+        message: "User created successfully",
+        data: user.toPublicJSON()
+    });
+})));
 // GET /api/users/:id - Obtener usuario específico (solo admin)
 router.get("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield models_1.User.findByPk(req.params.id, {
@@ -132,7 +194,7 @@ router.get("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, erro
 })));
 // PUT /api/users/:id/status - Cambiar estado de usuario (solo admin)
 router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
-    (0, express_validator_1.body)("isActive").isBoolean().withMessage("isActive must be a boolean"),
+    (0, express_validator_1.body)("status").isBoolean().withMessage("status must be a boolean"),
     (0, express_validator_1.body)("reason")
         .optional()
         .isLength({ max: 500 })
@@ -146,25 +208,25 @@ router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
                 .map((err) => err.msg)
                 .join(", "));
     }
-    const { isActive, reason } = req.body;
+    const { status, reason } = req.body;
     const user = yield models_1.User.findByPk(req.params.id);
     if (!user) {
         throw errorHandler_1.errors.notFound("User not found");
     }
-    user.isActive = isActive;
+    user.isActive = status;
     yield user.save();
     // Log de auditoría
-    require("../config/logger").logger.info(`User ${user.username} (${user.id}) ${isActive ? "activated" : "deactivated"} by admin ${req.user.username}. Reason: ${reason || "Not specified"}`);
+    require("../config/logger").logger.info(`User ${user.username} (${user.id}) ${status ? "activated" : "deactivated"} by admin ${req.user.username}. Reason: ${reason || "Not specified"}`);
     res.json({
         success: true,
-        message: `User ${isActive ? "activated" : "deactivated"} successfully`,
+        message: `User ${status ? "activated" : "deactivated"} successfully`,
         data: user.toPublicJSON(),
     });
 })));
 // PUT /api/users/:id/role - Cambiar rol de usuario (solo admin)
 router.put("/:id/role", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     (0, express_validator_1.body)("role")
-        .isIn(["admin", "operator", "venue", "user"])
+        .isIn(["admin", "operator", "venue", "user", "gallera"])
         .withMessage("Invalid role"),
     (0, express_validator_1.body)("reason")
         .optional()

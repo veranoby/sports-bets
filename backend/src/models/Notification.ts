@@ -18,19 +18,19 @@ export class Notification extends Model<
   declare userId: ForeignKey<User["id"]>;
   declare title: string;
   declare message: string;
-  declare type: "info" | "warning" | "error" | "success" | "bet_proposal";
-  declare status: CreationOptional<"unread" | "read" | "archived">;
+  declare isRead: CreationOptional<boolean>;
   declare metadata: CreationOptional<object>;
+  declare type: "info" | "warning" | "error" | "success" | "bet_proposal";
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
   // Métodos de instancia
   isUnread(): boolean {
-    return this.status === "unread";
+    return this.isRead === false;
   }
 
   markAsRead(): void {
-    this.status = "read";
+    this.isRead = true;
   }
 
   toPublicJSON(): object {
@@ -39,7 +39,7 @@ export class Notification extends Model<
       title: this.title,
       message: this.message,
       type: this.type,
-      status: this.status,
+      isRead: this.isRead,
       metadata: this.metadata,
       createdAt: this.createdAt,
     };
@@ -76,8 +76,16 @@ Notification.init(
         notEmpty: true,
       },
     },
+    isRead: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: "is_read",
+    },
+    metadata: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
     type: {
-      // ✅ USAR EL ENUM EXACTO DE LA DB
       type: DataTypes.ENUM(
         "info",
         "warning",
@@ -87,16 +95,6 @@ Notification.init(
       ),
       allowNull: false,
       defaultValue: "info",
-    },
-    status: {
-      // ✅ USAR EL ENUM EXACTO DE LA DB
-      type: DataTypes.ENUM("unread", "read", "archived"),
-      allowNull: false,
-      defaultValue: "unread",
-    },
-    metadata: {
-      type: DataTypes.JSONB,
-      allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -118,10 +116,9 @@ Notification.init(
     underscored: true,
     indexes: [
       { fields: ["user_id"] },
-      { fields: ["status"] },
-      { fields: ["type"] },
+      { fields: ["is_read"] },
       { fields: ["created_at"] },
-      { fields: ["user_id", "status"] },
+      { fields: ["user_id", "is_read"] },
     ],
   }
 );

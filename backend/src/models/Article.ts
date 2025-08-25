@@ -90,6 +90,7 @@ Article.init(
     venue_id: {
       type: DataTypes.UUID,
       allowNull: true,
+      field: "venue_id",
       references: {
         model: Venue,
         key: "id",
