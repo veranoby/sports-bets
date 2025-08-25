@@ -17,7 +17,7 @@ const express_validator_1 = require("express-validator");
 const router = (0, express_1.Router)();
 // GET /api/users/profile - Obtener perfil del usuario autenticado
 router.get("/profile", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const user = yield models_1.User.findByPk(req.user.id, {
         include: [
             {
@@ -31,11 +31,20 @@ router.get("/profile", auth_1.authenticate, (0, errorHandler_1.asyncHandler)((re
         throw errorHandler_1.errors.notFound("User not found");
     }
     const userData = user.toJSON();
+    // Obtener suscripción actual normalizada (free si no hay activa)
+    const subscription = yield ((_b = (_a = user).getCurrentSubscription) === null || _b === void 0 ? void 0 : _b.call(_a));
     res.json({
         success: true,
         data: {
             user: user.toPublicJSON(),
-            wallet: ((_b = (_a = userData.wallet) === null || _a === void 0 ? void 0 : _a.toPublicJSON) === null || _b === void 0 ? void 0 : _b.call(_a)) || userData.wallet,
+            wallet: ((_d = (_c = userData.wallet) === null || _c === void 0 ? void 0 : _c.toPublicJSON) === null || _d === void 0 ? void 0 : _d.call(_c)) || userData.wallet,
+            subscription: subscription || {
+                type: 'free',
+                status: 'active',
+                expiresAt: null,
+                features: [],
+                remainingDays: 0,
+            },
         },
     });
 })));

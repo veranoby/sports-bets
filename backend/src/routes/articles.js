@@ -8,9 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 // 2. backend/src/routes/articles.ts
 const express_1 = require("express");
@@ -21,24 +18,23 @@ const Article_1 = require("../models/Article");
 const User_1 = require("../models/User");
 const Venue_1 = require("../models/Venue");
 const express_validator_1 = require("express-validator");
-const validator_1 = __importDefault(require("validator"));
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
-// GET /api/articles - Listar artículos públicos
+// GET /api/articles - Listar artículos con sanitización por rol
 router.get("/", auth_1.optionalAuth, [
     (0, express_validator_1.query)("search").optional().isString(),
-    (0, express_validator_1.query)("venueId").optional().custom((value) => !value || validator_1.default.isUUID(value)),
+    (0, express_validator_1.query)("venueId").optional().isUUID(),
     (0, express_validator_1.query)("status").optional().isIn(["published", "pending", "draft", "archived"]),
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const errors = (0, express_validator_1.validationResult)(req);
-    if (!errors.isEmpty()) {
+    const validationErrors = (0, express_validator_1.validationResult)(req);
+    if (!validationErrors.isEmpty()) {
         throw new Error("Invalid parameters");
     }
     const { search, venueId, status: rawStatus = "published", page = 1, limit = 10, } = req.query;
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const status = isAdmin ? rawStatus : "published"; // Solo admin puede listar no publicados
+    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
+    const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
     const offset = (page - 1) * limit;
     const whereClause = { status };
     if (search) {
@@ -52,18 +48,21 @@ router.get("/", auth_1.optionalAuth, [
     }
     const includeAuthor = true;
     const includeVenue = true;
-    const attributes = [
+    // Patrón attributes por rol: público ve campos mínimos
+    const publicListAttributes = [
         "id",
         "title",
-        "slug",
         "excerpt",
         "category",
         "status",
-        "featured_image",
         "published_at",
+        "author_id",
+        // Compatibilidad frontend (imagen y fechas)
+        "featured_image",
         "created_at",
         "updated_at",
     ];
+    const attributes = isPrivileged ? undefined : publicListAttributes;
     const { count, rows } = yield Article_1.Article.findAndCountAll({
         where: whereClause,
         attributes,
@@ -89,24 +88,8 @@ router.get("/", auth_1.optionalAuth, [
     res.json({
         success: true,
         data: {
-            // Lista pública: no exponer contenido completo por rendimiento
-            articles: rows.map((article) => {
-                const a = article.toPublicJSON();
-                return {
-                    id: a.id,
-                    title: a.title,
-                    slug: a.slug,
-                    summary: a.summary,
-                    category: a.category,
-                    status: a.status,
-                    featured_image_url: a.featured_image_url,
-                    published_at: a.published_at,
-                    created_at: a.created_at,
-                    updated_at: a.updated_at,
-                    author_name: a.author_name,
-                    venue_name: a.venue_name,
-                };
-            }),
+            // Lista: usar payload "lite"
+            articles: rows.map((article) => article.toPublicSummary()),
             total: count,
             totalPages: Math.ceil(count / limit),
             currentPage: page,

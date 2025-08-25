@@ -1,170 +1,432 @@
 {
-  "project": "GalloBets Fix V11 - Complete Solution",
-  "version": "11.0.0",
-  "date": "2025-08-25",
-  "tool": "Gemini CLI",
-  "os": "Windows PowerShell",
+  "project": {
+    "name": "Sistema de Suscripciones y Sanitización de Endpoints",
+    "version": "1.0.0",
+    "description": "Plan para corregir inconsistencias en suscripciones y aplicar sanitización de datos en endpoints públicos"
+  },
   
-  "critical_context": {
-    "database": {
-      "articles": "has venue_id, author_id, featured_image (snake_case)",
-      "notifications": "has is_read AND status (both exist)",
-      "subscriptions": "tracks user plans - check if test user has active sub"
-    },
-    "issues_v10": {
-      "articles_api": "Invalid parameters error persists",
-      "galleras_page": "Empty except title",
-      "subscriptions": "Inconsistent state, needs Spanish and free plan",
-      "subscription_guard": "Blocking content incorrectly"
-    }
-  },
-
-  "phase_1_articles_api_fix": {
-    "milestone": "Fix Invalid parameters error",
-    "file": "backend/src/routes/articles.ts",
-    "line": 14,
-    "problem": "Empty venueId string fails UUID validation",
-    "solution": {
-      "replace": "query(\"venueId\").optional().isUUID()",
-      "with": "query(\"venueId\").optional().custom((value) => !value || validator.isUUID(value))",
-      "also_add": "import validator from 'validator';"
-    },
-    "test": "curl 'http://localhost:3001/api/articles?venueId=&status=published'"
-  },
-
-  "phase_2_galleras_implementation": {
-    "milestone": "Complete Galleras page",
-    "file": "frontend/src/pages/user/Galleras.tsx",
-    "replace_entire_file": true,
-    "code": "import React, { useState, useEffect } from 'react';\nimport { Search, Shield, Users, Trophy, Calendar } from 'lucide-react';\nimport { articlesAPI, usersAPI } from '../../config/api';\nimport LoadingSpinner from '../../components/shared/LoadingSpinner';\nimport EmptyState from '../../components/shared/EmptyState';\n\ninterface GalleraProfile {\n  id: string;\n  name: string;\n  description: string;\n  location: string;\n  imageUrl?: string;\n  articlesCount: number;\n  establishedDate?: string;\n}\n\nconst GallerasPage = () => {\n  const [galleras, setGalleras] = useState<GalleraProfile[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [searchTerm, setSearchTerm] = useState('');\n  const [selectedGallera, setSelectedGallera] = useState<GalleraProfile | null>(null);\n\n  useEffect(() => {\n    fetchGalleras();\n  }, []);\n\n  const fetchGalleras = async () => {\n    try {\n      setLoading(true);\n      // Get users with gallera role\n      const galleraUsers = await usersAPI.getAll({ role: 'gallera' });\n      // Get their articles\n      const galleraProfiles = await Promise.all(\n        galleraUsers.data.map(async (user) => {\n          const articles = await articlesAPI.getAll({ author_id: user.id });\n          return {\n            id: user.id,\n            name: user.profileInfo?.galleraName || user.username,\n            description: user.profileInfo?.description || 'Institución criadora profesional',\n            location: user.profileInfo?.location || 'Ecuador',\n            imageUrl: user.profileInfo?.imageUrl,\n            articlesCount: articles.data.total || 0,\n            establishedDate: user.profileInfo?.establishedDate\n          };\n        })\n      );\n      setGalleras(galleraProfiles);\n    } catch (error) {\n      console.error('Error loading galleras:', error);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const filteredGalleras = galleras.filter(g =>\n    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||\n    g.location.toLowerCase().includes(searchTerm.toLowerCase())\n  );\n\n  if (loading) return <LoadingSpinner text=\"Cargando instituciones criadoras...\" />;\n\n  return (\n    <div className=\"container mx-auto px-4 py-6\">\n      <div className=\"mb-6\">\n        <h1 className=\"text-2xl font-bold text-gray-900 mb-2\">Instituciones Criadoras</h1>\n        <p className=\"text-gray-600\">Conoce las galleras más prestigiosas del país</p>\n      </div>\n\n      <div className=\"mb-6\">\n        <div className=\"relative\">\n          <Search className=\"absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5\" />\n          <input\n            type=\"text\"\n            placeholder=\"Buscar por nombre o ubicación...\"\n            className=\"w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg\"\n            value={searchTerm}\n            onChange={(e) => setSearchTerm(e.target.value)}\n          />\n        </div>\n      </div>\n\n      {filteredGalleras.length === 0 ? (\n        <EmptyState\n          icon={Shield}\n          title=\"No se encontraron instituciones\"\n          description=\"No hay instituciones criadoras que coincidan con tu búsqueda\"\n        />\n      ) : (\n        <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6\">\n          {filteredGalleras.map((gallera) => (\n            <div key={gallera.id} className=\"bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer\"\n                 onClick={() => setSelectedGallera(gallera)}>\n              <div className=\"flex items-start justify-between mb-4\">\n                <Shield className=\"w-8 h-8 text-green-600\" />\n                <span className=\"text-sm text-gray-500\">{gallera.articlesCount} artículos</span>\n              </div>\n              <h3 className=\"text-lg font-semibold text-gray-900 mb-2\">{gallera.name}</h3>\n              <p className=\"text-sm text-gray-600 mb-3\">{gallera.description}</p>\n              <div className=\"flex items-center text-sm text-gray-500\">\n                <Users className=\"w-4 h-4 mr-1\" />\n                <span>{gallera.location}</span>\n              </div>\n            </div>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default GallerasPage;"
-  },
-
-  "phase_3_subscriptions_spanish": {
-    "milestone": "Add free plan and Spanish translation",
-    "file": "frontend/src/pages/user/Subscriptions.tsx",
-    "changes": [
-      {
-        "find": "const plans = [",
-        "add_before": "const plans = [\n  {\n    type: 'free',\n    name: 'Plan Gratuito',\n    price: 0,\n    duration: 'Siempre',\n    features: ['Acceso limitado', 'Publicidad', 'Sin transmisiones en vivo'],\n    popular: false\n  },"
-      },
-      {
-        "find": "Daily Access",
-        "replace": "Acceso Diario"
-      },
-      {
-        "find": "Monthly Premium",
-        "replace": "Premium Mensual"
-      },
-      {
-        "find": "24 hours",
-        "replace": "24 horas"
-      },
-      {
-        "find": "30 days",
-        "replace": "30 días"
-      },
-      {
-        "find": "Live streaming",
-        "replace": "Transmisión en vivo"
-      },
-      {
-        "find": "HD quality",
-        "replace": "Calidad estándar"
-      },
-      {
-        "find": "720p quality",
-        "replace": "Calidad mejorada"
-      },
-      {
-        "find": "Chat access",
-        "replace": ""
-      },
-      {
-        "find": "Ad-free",
-        "replace": ""
-      },
-      {
-        "find": "Exclusive content",
-        "replace": "Contenido exclusivo"
-      }
-    ]
-  },
-
-  "phase_4_subscription_consistency": {
-    "milestone": "Fix subscription state consistency",
-    
-    "task_1": {
-      "file": "backend/src/routes/subscriptions.ts",
-      "endpoint": "GET /current",
-      "ensure_returns": {
-        "no_subscription": "{ success: true, data: { type: 'free', status: 'active', features: [] } }",
-        "with_subscription": "{ success: true, data: subscription }"
-      }
-    },
-
-    "task_2": {
-      "file": "frontend/src/components/user/UserHeader.tsx",
-      "add_subscription_display": {
-        "after": "wallet balance display",
-        "code": "{subscription?.type && <span className='text-xs bg-green-100 text-green-700 px-2 py-1 rounded'>Plan: {subscription.type}</span>}"
-      }
-    },
-
-    "task_3": {
-      "file": "frontend/src/components/streaming/SubscriptionGuard.tsx",
-      "fix_access_check": {
-        "find": "const hasAccess = useCallback(() => {",
-        "ensure": "// Free users have no access\nif (!subscription || subscription.type === 'free') return false;"
-      }
-    }
-  },
-
-  "phase_5_testing": {
-    "backend_tests": [
-      {
-        "name": "Articles with empty venueId",
-        "command": "curl 'http://localhost:3001/api/articles?venueId=&status=published'",
-        "expected": "200 OK, no Invalid parameters error"
-      },
-      {
-        "name": "Current subscription",
-        "command": "curl http://localhost:3001/api/subscriptions/current -H 'Authorization: Bearer TOKEN'",
-        "expected": "Returns free plan if no subscription"
-      }
+  "ai_configuration": {
+    "target_agents": ["gemini-cli", "claude-code"],
+    "mcps_required": [
+      "context7",
+      "github",
+      "filesystem", 
+      "database"
     ],
-    
-    "frontend_tests": [
-      {
-        "name": "Galleras page",
-        "navigate": "/galleras",
-        "expected": "Shows list of breeding institutions with search"
-      },
-      {
-        "name": "Subscriptions Spanish",
-        "navigate": "/subscriptions",
-        "expected": "Shows 3 plans: Gratuito, Diario, Mensual"
-      },
-      {
-        "name": "Header subscription",
-        "check": "User header",
-        "expected": "Shows current plan type"
-      }
-    ]
+    "reasoning_approach": "test_driven_development",
+    "task_decomposition": "atomic_focused_tasks"
   },
 
-  "execution_order": [
-    "Phase 1: Fix articles API validation",
-    "Phase 2: Implement Galleras page",
-    "Phase 3: Spanish subscriptions",
-    "Phase 4: Fix subscription consistency",
-    "Phase 5: Test everything"
+  "architecture_context": {
+    "backend": {
+      "framework": "Node.js + Express + TypeScript",
+      "orm": "Sequelize with PostgreSQL (Neon Tech)",
+      "auth": "JWT with role-based permissions",
+      "structure": "MVC pattern with middleware layers"
+    },
+    "frontend": {
+      "framework": "React + TypeScript + Vite",
+      "state": "Context API + hooks",
+      "routing": "React Router",
+      "styling": "Tailwind CSS"
+    },
+    "database": {
+      "source_of_truth": "/backend/database-analysis/*.json",
+      "naming": "snake_case in DB, camelCase in models",
+      "relations": "Defined in models/index.ts"
+    }
+  },
+
+  "coding_conventions": {
+    "typescript": {
+      "strict_mode": true,
+      "explicit_return_types": "for public methods",
+      "naming": "camelCase for variables/methods, PascalCase for classes"
+    },
+    "error_handling": {
+      "backend": "asyncHandler wrapper + custom error classes",
+      "frontend": "try/catch with user-friendly messages"
+    },
+    "validation": {
+      "backend": "express-validator for inputs",
+      "frontend": "form validation with error states"
+    },
+    "testing": {
+      "backend": "Jest + Supertest for API tests",
+      "frontend": "React Testing Library + Jest"
+    }
+  },
+
+  "phases": [
+    {
+      "phase": 1,
+      "title": "Corrección Sistema Suscripciones (CRÍTICO)",
+      "priority": "HIGH",
+      "estimated_time": "2-3 horas",
+      "tasks": [
+        {
+          "id": "SUB-001",
+          "title": "Unificar Respuesta Usuario con Suscripción",
+          "description": "Modificar GET /api/users/profile para incluir información de suscripción activa",
+          "files_to_modify": [
+            "backend/src/routes/users.ts",
+            "backend/src/models/User.ts"
+          ],
+          "purpose": "Eliminar inconsistencias entre diferentes endpoints que muestran información de suscripción",
+          "requirements": [
+            "El endpoint /api/users/profile debe incluir subscription actual del usuario",
+            "Si no hay suscripción activa, mostrar type: 'free'",
+            "Mantener compatibilidad con respuesta actual",
+            "Incluir información de expiración y features"
+          ],
+          "inputs": {
+            "request": "GET /api/users/profile con JWT token",
+            "auth": "Usuario autenticado"
+          },
+          "outputs": {
+            "success": {
+              "user": "Datos públicos del usuario",
+              "wallet": "Información de wallet",
+              "subscription": {
+                "type": "'free' | 'daily' | 'monthly'",
+                "status": "'active' | 'expired' | 'cancelled'",
+                "expiresAt": "Date | null",
+                "features": "string[]",
+                "remainingDays": "number"
+              }
+            }
+          },
+          "restrictions": [
+            "No romper compatibilidad con frontend actual",
+            "Usar JOIN eficiente para evitar N+1 queries",
+            "Manejar casos edge: usuario sin subscription"
+          ],
+          "test_cases": [
+            {
+              "name": "Usuario sin suscripción devuelve plan free",
+              "input": "Usuario sin registros en tabla subscriptions",
+              "expected": "subscription.type === 'free' && subscription.status === 'active'"
+            },
+            {
+              "name": "Usuario con suscripción activa devuelve datos completos", 
+              "input": "Usuario con subscription activa no expirada",
+              "expected": "subscription.type === 'daily'|'monthly' con datos completos"
+            },
+            {
+              "name": "Usuario con suscripción expirada devuelve plan free",
+              "input": "Usuario con subscription expirada",
+              "expected": "subscription.type === 'free' después de marcar como expired"
+            }
+          ],
+          "implementation_steps": [
+            "1. Agregar include de Subscription en User.findByPk del endpoint /profile",
+            "2. Crear método User.getCurrentSubscription() que maneje lógica de free/premium",
+            "3. Modificar respuesta para incluir subscription junto a user y wallet", 
+            "4. Escribir tests para los 3 casos edge"
+          ]
+        },
+        {
+          "id": "SUB-002", 
+          "title": "Corregir Hook useSubscription",
+          "description": "Unificar lógica de estado de suscripción en el frontend",
+          "files_to_modify": [
+            "frontend/src/hooks/useSubscription.ts",
+            "frontend/src/contexts/AuthContext.tsx"
+          ],
+          "purpose": "Eliminar inconsistencias entre useAuth y useSubscription que causan estados contradictorios",
+          "requirements": [
+            "useSubscription debe obtener datos de /api/users/profile en lugar de /api/subscriptions/current",
+            "Mantener compatibilidad con componentes existentes",
+            "Cachear respuesta para evitar requests múltiples",
+            "Manejar estados loading/error correctamente"
+          ],
+          "inputs": {
+            "context": "AuthContext con user autenticado",
+            "api": "Respuesta de /api/users/profile"
+          },
+          "outputs": {
+            "hook_return": {
+              "subscription": "Subscription | null",
+              "hasAccess": "boolean",
+              "isPremium": "boolean", 
+              "loading": "boolean",
+              "error": "string | null",
+              "refreshAccess": "() => Promise<void>"
+            }
+          },
+          "test_cases": [
+            {
+              "name": "Hook devuelve hasAccess=false para usuario free",
+              "input": "User con subscription.type === 'free'", 
+              "expected": "hasAccess === false && isPremium === false"
+            },
+            {
+              "name": "Hook devuelve hasAccess=true para usuario premium activo",
+              "input": "User con subscription activa no expirada",
+              "expected": "hasAccess === true && isPremium === true"
+            },
+            {
+              "name": "Hook maneja transición expired -> free correctamente",
+              "input": "User con subscription expirada",
+              "expected": "hasAccess === false después de refresh"
+            }
+          ],
+          "implementation_steps": [
+            "1. Modificar useSubscription para usar AuthContext en lugar de API directa",
+            "2. Agregar subscription a AuthContext desde /api/users/profile",
+            "3. Implementar lógica hasAccess basada en subscription.status y expiresAt",
+            "4. Escribir tests unitarios para cada caso"
+          ]
+        },
+        {
+          "id": "SUB-003",
+          "title": "Actualizar Headers y Profile con Tipo de Plan",
+          "description": "Mostrar tipo de suscripción actual en UI de header y página de perfil",
+          "files_to_modify": [
+            "frontend/src/components/layout/Header.tsx",
+            "frontend/src/pages/Profile.tsx",
+            "frontend/src/components/subscription/SubscriptionStatus.tsx"
+          ],
+          "purpose": "Dar visibilidad al usuario de su estado de suscripción actual",
+          "requirements": [
+            "Header debe mostrar badge de Premium/Free según suscripción",
+            "Profile debe mostrar detalles completos de suscripción",
+            "Componente SubscriptionStatus reutilizable",
+            "Actualización en tiempo real al cambiar suscripción"
+          ],
+          "inputs": {
+            "subscription": "Datos de suscripción desde useSubscription",
+            "user": "Datos de usuario desde useAuth"
+          },
+          "outputs": {
+            "ui_elements": {
+              "badge": "Premium/Free badge en header",
+              "status_card": "Card con detalles de suscripción en profile",
+              "expiry_warning": "Advertencia si suscripción próxima a expirar"
+            }
+          },
+          "test_cases": [
+            {
+              "name": "Header muestra badge Free para usuario sin suscripción",
+              "expected": "Badge con texto 'Free' y color gris"
+            },
+            {
+              "name": "Header muestra badge Premium para usuario con suscripción activa",
+              "expected": "Badge con texto 'Premium' y color dorado"
+            },
+            {
+              "name": "Profile muestra warning si suscripción expira en 3 días",
+              "expected": "Componente de advertencia visible con CTA para renovar"
+            }
+          ],
+          "implementation_steps": [
+            "1. Crear SubscriptionStatus component reutilizable",
+            "2. Integrar en Header con diseño responsive",
+            "3. Agregar sección de suscripción en Profile page", 
+            "4. Implementar lógica de warning para próximas expiraciones",
+            "5. Tests de rendering para cada estado"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "title": "Sanitización de Endpoints por Rol",
+      "priority": "MEDIUM", 
+      "estimated_time": "3-4 horas",
+      "tasks": [
+        {
+          "id": "SAN-001",
+          "title": "Aplicar Sanitización a Endpoint Articles",
+          "description": "Implementar patrón de attributes sanitizados en rutas de artículos",
+          "files_to_modify": [
+            "backend/src/routes/articles.ts",
+            "backend/src/models/Article.ts"
+          ],
+          "purpose": "Controlar qué campos de artículos ve cada tipo de usuario",
+          "requirements": [
+            "Usuarios públicos (sin auth): solo campos básicos",
+            "Usuarios autenticados: campos adicionales",
+            "Admin/Operator: todos los campos",
+            "Mantener compatibilidad con frontend"
+          ],
+          "field_visibility": {
+            "public": ["id", "title", "excerpt", "category", "status", "published_at", "author_id", "featured_image"],
+            "authenticated": ["...public", "content", "tags", "venue_id", "view_count"],
+            "admin": ["...all_fields"]
+          },
+          "endpoints_to_modify": [
+            "GET /api/articles",
+            "GET /api/articles/:id"
+          ],
+          "test_cases": [
+            {
+              "name": "Usuario sin auth ve solo campos públicos",
+              "request": "GET /api/articles sin Authorization header",
+              "expected": "Respuesta con solo campos públicos definidos"
+            },
+            {
+              "name": "Usuario autenticado ve campos adicionales",
+              "request": "GET /api/articles con JWT de user role",
+              "expected": "Respuesta incluye content y tags"
+            },
+            {
+              "name": "Admin ve todos los campos",
+              "request": "GET /api/articles con JWT de admin role",
+              "expected": "Respuesta completa sin restricciones"
+            }
+          ],
+          "implementation_steps": [
+            "1. Modificar middleware para detectar rol del usuario",
+            "2. Implementar función getArticleAttributes(userRole)",
+            "3. Aplicar attributes en queries de Sequelize",
+            "4. Escribir tests de integración para cada rol"
+          ]
+        },
+        {
+          "id": "SAN-002",
+          "title": "Aplicar Sanitización a Endpoint Events", 
+          "description": "Controlar campos visibles de eventos según rol de usuario",
+          "files_to_modify": [
+            "backend/src/routes/events.ts",
+            "backend/src/models/Event.ts"
+          ],
+          "purpose": "Ocultar información operacional sensible de eventos a usuarios públicos",
+          "field_visibility": {
+            "public": ["id", "name", "scheduledDate", "status", "venueId"],
+            "authenticated": ["...public", "totalFights", "completedFights"],
+            "operator": ["...authenticated", "streamKey", "streamUrl", "operatorId"],
+            "admin": ["...all_fields"]
+          },
+          "test_cases": [
+            {
+              "name": "Usuario público no ve streamKey ni información operacional",
+              "expected": "streamKey y streamUrl ausentes en respuesta"
+            },
+            {
+              "name": "Operator ve sus campos operacionales",
+              "expected": "streamKey y streamUrl incluidos para operators"
+            }
+          ],
+          "implementation_steps": [
+            "1. Crear función getEventAttributes(userRole)", 
+            "2. Aplicar en endpoints GET /api/events y GET /api/events/:id",
+            "3. Tests para verificar campos por rol"
+          ]
+        },
+        {
+          "id": "SAN-003",
+          "title": "Mantener Patrón en Endpoint Venues",
+          "description": "Verificar y documentar patrón ya implementado en venues",
+          "files_to_check": [
+            "backend/src/routes/venues.ts"
+          ],
+          "purpose": "Asegurar consistencia del patrón de sanitización",
+          "requirements": [
+            "Documentar patrón actual",
+            "Verificar que funcione correctamente",
+            "Agregar tests faltantes"
+          ],
+          "test_cases": [
+            {
+              "name": "Verificar patrón existente funciona",
+              "expected": "Campos sanitizados según rol actual"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "title": "Optimización de Payloads",
+      "priority": "LOW",
+      "estimated_time": "1-2 horas", 
+      "tasks": [
+        {
+          "id": "OPT-001",
+          "title": "Implementar Payload Lite para Articles",
+          "description": "Crear método toPublicSummary() para listas vs toPublicJSON() para detalles",
+          "files_to_modify": [
+            "backend/src/models/Article.ts",
+            "backend/src/routes/articles.ts"
+          ],
+          "purpose": "Optimizar transferencia de datos en listados de artículos",
+          "requirements": [
+            "toPublicSummary(): campos mínimos para listas",
+            "toPublicJSON(): campos completos para detalle individual",
+            "Aplicar en GET /api/articles (lista) vs GET /api/articles/:id (detalle)"
+          ],
+          "payload_comparison": {
+            "summary": ["id", "title", "excerpt", "category", "status", "published_at", "author_name"],
+            "detail": ["...summary", "content", "tags", "featured_image", "venue_name", "view_count"]
+          },
+          "test_cases": [
+            {
+              "name": "Lista de artículos devuelve payload compacto",
+              "endpoint": "GET /api/articles",
+              "expected": "Array con objetos usando toPublicSummary()"
+            },
+            {
+              "name": "Detalle de artículo devuelve payload completo",
+              "endpoint": "GET /api/articles/:id", 
+              "expected": "Objeto usando toPublicJSON()"
+            }
+          ]
+        }
+      ]
+    }
   ],
 
-  "validation_checklist": [
-    "[ ] No 'Invalid parameters' in News page",
-    "[ ] Galleras page shows breeding institutions",
-    "[ ] Subscriptions in Spanish with free plan",
-    "[ ] Header shows current subscription",
-    "[ ] SubscriptionGuard works correctly"
-  ]
+  "testing_strategy": {
+    "approach": "test_driven_development",
+    "test_types": {
+      "unit": "Métodos de modelos y utilidades",
+      "integration": "Endpoints API completos",
+      "e2e": "Flujos críticos de suscripción"
+    },
+    "critical_test_scenarios": [
+      "Transición usuario free -> premium -> expired",
+      "Sanitización de campos por rol en todos los endpoints",
+      "Consistencia entre useAuth y useSubscription"
+    ],
+    "test_files_to_create": [
+      "backend/src/__tests__/routes/users.subscription.test.ts",
+      "backend/src/__tests__/routes/articles.sanitization.test.ts", 
+      "frontend/src/hooks/__tests__/useSubscription.test.ts",
+      "frontend/src/components/__tests__/SubscriptionStatus.test.tsx"
+    ]
+  },
+
+  "success_criteria": {
+    "functional": [
+      "Usuario ve tipo de plan correcto en header y profile",
+      "useSubscription hook devuelve estado consistente", 
+      "Endpoints sanitizan campos según rol del usuario",
+      "No hay inconsistencias entre diferentes fuentes de datos de suscripción"
+    ],
+    "technical": [
+      "Todos los tests unitarios e integración pasan",
+      "No queries N+1 en endpoints modificados",
+      "Respuestas API mantienen compatibilidad con frontend",
+      "Código sigue convenciones establecidas del proyecto"
+    ],
+    "performance": [
+      "Endpoints no aumentan tiempo de respuesta",
+      "Frontend no hace requests redundantes de suscripción",
+      "Payload de listas optimizado vs detalle individual"
+    ]
+  },
+
+  "rollback_plan": {
+    "risk_mitigation": [
+      "Cada tarea tiene branch independiente",
+      "Tests deben pasar antes de merge",
+      "Backup de estructura actual antes de comenzar"
+    ],
+    "rollback_triggers": [
+      "Tests fallan después de cambios",
+      "Performance se degrada significativamente", 
+      "Frontend deja de funcionar por cambios de API"
+    ]
+  }
 }

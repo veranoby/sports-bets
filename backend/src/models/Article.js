@@ -29,6 +29,24 @@ class Article extends sequelize_1.Model {
             venue_name: (_d = this.venue) === null || _d === void 0 ? void 0 : _d.name,
         };
     }
+    // Resumen ligero para listados públicos
+    toPublicSummary() {
+        var _a, _b, _c, _d;
+        return {
+            id: this.id,
+            title: this.title,
+            slug: this.slug,
+            summary: this.excerpt,
+            category: this.category,
+            status: this.status,
+            featured_image_url: this.featured_image,
+            published_at: this.published_at,
+            created_at: this.created_at,
+            updated_at: this.updated_at,
+            author_name: ((_b = (_a = this.author) === null || _a === void 0 ? void 0 : _a.profileInfo) === null || _b === void 0 ? void 0 : _b.fullName) || ((_c = this.author) === null || _c === void 0 ? void 0 : _c.username) || "Autor",
+            venue_name: (_d = this.venue) === null || _d === void 0 ? void 0 : _d.name,
+        };
+    }
 }
 exports.Article = Article;
 Article.init({

@@ -68,6 +68,25 @@ export class Article
       venue_name: this.venue?.name,
     };
   }
+
+  // Resumen ligero para listados públicos
+  public toPublicSummary() {
+    return {
+      id: this.id,
+      title: this.title,
+      slug: this.slug,
+      summary: this.excerpt,
+      category: this.category,
+      status: this.status,
+      featured_image_url: this.featured_image,
+      published_at: this.published_at,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
+      author_name:
+        (this.author as any)?.profileInfo?.fullName || this.author?.username || "Autor",
+      venue_name: this.venue?.name,
+    };
+  }
 }
 
 Article.init(

@@ -16,18 +16,31 @@ const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const router = (0, express_1.Router)();
 // GET /api/venues - Listar galleras
-router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { status, limit = 20, offset = 0 } = req.query;
+    const isAdmin = !!req.user && req.user.role === "admin";
     const where = {};
     if (status)
         where.status = status;
-    const venues = yield models_1.Venue.findAndCountAll({
+    const publicAttributes = [
+        "id",
+        "name",
+        "location",
+        "description",
+        "status",
+        "isVerified",
+        "images",
+        "createdAt",
+        "updatedAt",
+    ];
+    const { count, rows } = yield models_1.Venue.findAndCountAll({
         where,
+        attributes: isAdmin ? undefined : publicAttributes,
         include: [
             {
                 model: models_1.User,
                 as: "owner",
-                attributes: ["id", "username", "email"],
+                attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
             },
         ],
         order: [["createdAt", "DESC"]],
@@ -37,30 +50,56 @@ router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
     res.json({
         success: true,
         data: {
-            venues: venues.rows.map((venue) => venue.toPublicJSON()),
-            total: venues.count,
+            venues: rows.map((v) => {
+                const data = v.get({ plain: true });
+                if (!isAdmin) {
+                    // Asegurar que contactInfo no se exponga a público
+                    delete data.contactInfo;
+                    delete data.ownerId;
+                }
+                return data;
+            }),
+            total: count,
             limit: parseInt(limit),
             offset: parseInt(offset),
         },
     });
 })));
 // GET /api/venues/:id - Obtener gallera específica
-router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const publicAttributes = [
+        "id",
+        "name",
+        "location",
+        "description",
+        "status",
+        "isVerified",
+        "images",
+        "createdAt",
+        "updatedAt",
+    ];
     const venue = yield models_1.Venue.findByPk(req.params.id, {
+        attributes: isAdmin ? undefined : publicAttributes,
         include: [
             {
                 model: models_1.User,
                 as: "owner",
-                attributes: ["id", "username", "email"],
+                attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
             },
         ],
     });
     if (!venue) {
         throw errorHandler_1.errors.notFound("Venue not found");
     }
+    const data = venue.get({ plain: true });
+    if (!isAdmin) {
+        delete data.contactInfo;
+        delete data.ownerId;
+    }
     res.json({
         success: true,
-        data: venue.toPublicJSON(),
+        data,
     });
 })));
 // POST /api/venues - Crear nueva gallera (admin/venue)

@@ -73,6 +73,32 @@ class User extends sequelize_1.Model {
     canManageVenues() {
         return ["admin", "venue"].includes(this.role);
     }
+    // Obtener suscripción actual normalizada (free si no hay activa)
+    getCurrentSubscription() {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _b;
+            // Carga perezosa para evitar problemas de importación circular
+            const { Subscription } = require('./Subscription');
+            const active = yield Subscription.findActiveByUserId(this.id);
+            if (!active) {
+                return {
+                    type: 'free',
+                    status: 'active',
+                    expiresAt: null,
+                    features: [],
+                    remainingDays: 0,
+                };
+            }
+            const json = active.toPublicJSON();
+            return {
+                type: (json.type || 'daily'),
+                status: json.status,
+                expiresAt: (_b = json.expiresAt) !== null && _b !== void 0 ? _b : null,
+                features: json.features || [],
+                remainingDays: typeof json.remainingDays === 'number' ? json.remainingDays : 0,
+            };
+        });
+    }
 }
 exports.User = User;
 _a = User;

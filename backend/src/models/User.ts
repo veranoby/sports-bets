@@ -93,6 +93,38 @@ export class User extends Model<
     return ["admin", "venue"].includes(this.role);
   }
 
+  // Obtener suscripción actual normalizada (free si no hay activa)
+  async getCurrentSubscription(): Promise<{
+    type: 'free' | 'daily' | 'monthly';
+    status: 'active' | 'cancelled' | 'expired' | 'pending';
+    expiresAt: Date | null;
+    features: string[];
+    remainingDays: number;
+  }> {
+    // Carga perezosa para evitar problemas de importación circular
+    const { Subscription } = require('./Subscription');
+
+    const active = await Subscription.findActiveByUserId(this.id);
+    if (!active) {
+      return {
+        type: 'free',
+        status: 'active',
+        expiresAt: null,
+        features: [],
+        remainingDays: 0,
+      };
+    }
+
+    const json = active.toPublicJSON();
+    return {
+      type: (json.type || 'daily') as 'daily' | 'monthly',
+      status: json.status,
+      expiresAt: json.expiresAt ?? null,
+      features: json.features || [],
+      remainingDays: typeof json.remainingDays === 'number' ? json.remainingDays : 0,
+    };
+  }
+
   // Hook antes de crear usuario
   static beforeCreateHook = async (user: User) => {
     if (user.passwordHash && !user.passwordHash.startsWith("$2")) {

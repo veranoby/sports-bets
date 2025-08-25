@@ -26,12 +26,21 @@ router.get(
     }
 
     const userData = user.toJSON() as any;
+    // Obtener suscripción actual normalizada (free si no hay activa)
+    const subscription = await (user as any).getCurrentSubscription?.();
 
     res.json({
       success: true,
       data: {
         user: user.toPublicJSON(),
         wallet: userData.wallet?.toPublicJSON?.() || userData.wallet,
+        subscription: subscription || {
+          type: 'free',
+          status: 'active',
+          expiresAt: null,
+          features: [],
+          remainingDays: 0,
+        },
       },
     });
   })

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middleware/auth";
+import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Venue, User } from "../models";
 import { body, validationResult } from "express-validator";
@@ -9,19 +9,35 @@ const router = Router();
 // GET /api/venues - Listar galleras
 router.get(
   "/",
+  optionalAuth,
   asyncHandler(async (req, res) => {
-    const { status, limit = 20, offset = 0 } = req.query;
+    const { status, limit = 20, offset = 0 } = req.query as any;
+
+    const isAdmin = !!req.user && req.user.role === "admin";
 
     const where: any = {};
     if (status) where.status = status;
 
-    const venues = await Venue.findAndCountAll({
+    const publicAttributes = [
+      "id",
+      "name",
+      "location",
+      "description",
+      "status",
+      "isVerified",
+      "images",
+      "createdAt",
+      "updatedAt",
+    ];
+
+    const { count, rows } = await Venue.findAndCountAll({
       where,
+      attributes: isAdmin ? undefined : publicAttributes,
       include: [
         {
           model: User,
           as: "owner",
-          attributes: ["id", "username", "email"],
+          attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -32,8 +48,16 @@ router.get(
     res.json({
       success: true,
       data: {
-        venues: venues.rows.map((venue) => venue.toPublicJSON()),
-        total: venues.count,
+        venues: rows.map((v) => {
+          const data = v.get({ plain: true }) as any;
+          if (!isAdmin) {
+            // Asegurar que contactInfo no se exponga a público
+            delete data.contactInfo;
+            delete data.ownerId;
+          }
+          return data;
+        }),
+        total: count,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
       },
@@ -44,13 +68,29 @@ router.get(
 // GET /api/venues/:id - Obtener gallera específica
 router.get(
   "/:id",
+  optionalAuth,
   asyncHandler(async (req, res) => {
+    const isAdmin = !!req.user && req.user.role === "admin";
+
+    const publicAttributes = [
+      "id",
+      "name",
+      "location",
+      "description",
+      "status",
+      "isVerified",
+      "images",
+      "createdAt",
+      "updatedAt",
+    ];
+
     const venue = await Venue.findByPk(req.params.id, {
+      attributes: isAdmin ? undefined : publicAttributes,
       include: [
         {
           model: User,
           as: "owner",
-          attributes: ["id", "username", "email"],
+          attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
         },
       ],
     });
@@ -59,9 +99,15 @@ router.get(
       throw errors.notFound("Venue not found");
     }
 
+    const data = venue.get({ plain: true }) as any;
+    if (!isAdmin) {
+      delete data.contactInfo;
+      delete data.ownerId;
+    }
+
     res.json({
       success: true,
-      data: venue.toPublicJSON(),
+      data,
     });
   })
 );

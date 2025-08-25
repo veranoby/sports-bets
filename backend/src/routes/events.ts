@@ -38,23 +38,19 @@ router.get(
       };
       where.status = "scheduled";
     }
-
-    const listAttributes = [
+    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
+    // Público: atributos mínimos; Privilegiados: todo
+    const publicListAttributes = [
       "id",
       "name",
       "venueId",
       "scheduledDate",
       "endDate",
       "status",
-      "operatorId",
-      "totalFights",
-      "completedFights",
-      "totalBets",
-      "totalPrizePool",
       "createdAt",
       "updatedAt",
-      "streamUrl",
     ];
+    const listAttributes = isPrivileged ? undefined : publicListAttributes;
 
     const events = await Event.findAndCountAll({
       where,
@@ -85,22 +81,24 @@ router.get(
         events: events.rows.map((e) => {
           const ev: any = e.toPublicJSON();
           const exposeStreamUrl = isAdmin || isOperator || ev.status === "in-progress";
+          if (!isPrivileged) {
+            // Devolver payload básico para público
+            return {
+              id: ev.id,
+              name: ev.name,
+              venueId: ev.venueId,
+              scheduledDate: ev.scheduledDate,
+              endDate: ev.endDate,
+              status: ev.status,
+              createdAt: ev.createdAt,
+              updatedAt: ev.updatedAt,
+              venue: ev.venue && { id: ev.venue.id, name: ev.venue.name, location: ev.venue.location },
+              streamUrl: exposeStreamUrl ? ev.streamUrl : null,
+            };
+          }
+          // Admin/Operator: payload completo
           return {
-            id: ev.id,
-            name: ev.name,
-            venueId: ev.venueId,
-            scheduledDate: ev.scheduledDate,
-            endDate: ev.endDate,
-            status: ev.status,
-            operatorId: ev.operatorId,
-            totalFights: ev.totalFights,
-            completedFights: ev.completedFights,
-            totalBets: ev.totalBets,
-            totalPrizePool: ev.totalPrizePool,
-            createdAt: ev.createdAt,
-            updatedAt: ev.updatedAt,
-            venue: ev.venue,
-            operator: ev.operator,
+            ...ev,
             streamUrl: exposeStreamUrl ? ev.streamUrl : null,
           };
         }),
@@ -117,23 +115,18 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const detailAttributes = [
+    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
+    const publicDetailAttributes = [
       "id",
       "name",
       "venueId",
       "scheduledDate",
       "endDate",
       "status",
-      "operatorId",
-      "createdBy",
-      "totalFights",
-      "completedFights",
-      "totalBets",
-      "totalPrizePool",
       "createdAt",
       "updatedAt",
-      "streamUrl",
     ];
+    const detailAttributes = isPrivileged ? undefined : publicDetailAttributes;
 
     const event = await Event.findByPk(req.params.id, {
       attributes: detailAttributes,

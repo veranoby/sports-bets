@@ -7,25 +7,24 @@ import { Article } from "../models/Article";
 import { User } from "../models/User";
 import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
-import validator from 'validator';
 import { Op } from "sequelize";
 
 const router = Router();
 
-// GET /api/articles - Listar artículos públicos
+// GET /api/articles - Listar artículos con sanitización por rol
 router.get(
   "/",
   optionalAuth,
   [
     query("search").optional().isString(),
-    query("venueId").optional().custom((value) => !value || validator.isUUID(value)),
+    query("venueId").optional().isUUID(),
     query("status").optional().isIn(["published", "pending", "draft", "archived"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
   ],
   asyncHandler(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
       throw new Error("Invalid parameters");
     }
 
@@ -36,8 +35,8 @@ router.get(
       page = 1,
       limit = 10,
     } = req.query as any;
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const status = isAdmin ? rawStatus : "published"; // Solo admin puede listar no publicados
+    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
+    const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
     const offset = (page - 1) * limit;
 
     const whereClause: any = { status };
@@ -55,18 +54,22 @@ router.get(
 
     const includeAuthor = true;
     const includeVenue = true;
-    const attributes = [
+
+    // Patrón attributes por rol: público ve campos mínimos
+    const publicListAttributes = [
       "id",
       "title",
-      "slug",
       "excerpt",
       "category",
       "status",
-      "featured_image",
       "published_at",
+      "author_id",
+      // Compatibilidad frontend (imagen y fechas)
+      "featured_image",
       "created_at",
       "updated_at",
     ];
+    const attributes = isPrivileged ? undefined : publicListAttributes;
 
     const { count, rows } = await Article.findAndCountAll({
       where: whereClause,
@@ -94,24 +97,8 @@ router.get(
     res.json({
       success: true,
       data: {
-        // Lista pública: no exponer contenido completo por rendimiento
-        articles: rows.map((article) => {
-          const a = article.toPublicJSON() as any;
-          return {
-            id: a.id,
-            title: a.title,
-            slug: a.slug,
-            summary: a.summary,
-            category: a.category,
-            status: a.status,
-            featured_image_url: a.featured_image_url,
-            published_at: a.published_at,
-            created_at: a.created_at,
-            updated_at: a.updated_at,
-            author_name: a.author_name,
-            venue_name: a.venue_name,
-          };
-        }),
+        // Lista: usar payload "lite"
+        articles: rows.map((article) => (article as any).toPublicSummary()),
         total: count,
         totalPages: Math.ceil(count / limit),
         currentPage: page,
