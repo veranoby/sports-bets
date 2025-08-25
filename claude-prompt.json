@@ -1,230 +1,170 @@
 {
-  "project": "GalloBets Fix V10 - Gemini CLI Optimized",
-  "version": "10.0.0",
+  "project": "GalloBets Fix V11 - Complete Solution",
+  "version": "11.0.0",
   "date": "2025-08-25",
   "tool": "Gemini CLI",
   "os": "Windows PowerShell",
   
-  "context": {
+  "critical_context": {
     "database": {
-      "provider": "Neon Tech PostgreSQL",
-      "schema_location": "backend/database-analysis/CURRENT_TABLES.json",
-      "naming": "snake_case (user_id, venue_id, is_read)",
-      "critical_tables": {
-        "articles": "has venue_id (uuid)",
-        "notifications": "has BOTH is_read (boolean) AND status (varchar)",
-        "venues": "physical locations for cockfights",
-        "galleras": "NOT a table - just users with role='gallera' who write articles"
-      }
+      "articles": "has venue_id, author_id, featured_image (snake_case)",
+      "notifications": "has is_read AND status (both exist)",
+      "subscriptions": "tracks user plans - check if test user has active sub"
     },
-    "backend": {
-      "framework": "Express + Sequelize",
-      "models_location": "backend/src/models/",
-      "routes_location": "backend/src/routes/",
-      "issue": "Models use camelCase but DB uses snake_case"
-    },
-    "frontend": {
-      "framework": "React + TypeScript + Vite",
-      "api_config": "frontend/src/config/api.ts",
-      "pages": "frontend/src/pages/"
+    "issues_v10": {
+      "articles_api": "Invalid parameters error persists",
+      "galleras_page": "Empty except title",
+      "subscriptions": "Inconsistent state, needs Spanish and free plan",
+      "subscription_guard": "Blocking content incorrectly"
     }
   },
 
-  "requirements": {
-    "purpose": "Fix model-DB mapping discrepancies and conceptual confusion",
-    "success_criteria": [
-      "Articles load without venue_id errors",
-      "Notifications work with is_read field",
-      "Venues and Galleras are properly separated",
-      "Subscriptions page loads without crash",
-      "All API validations pass"
+  "phase_1_articles_api_fix": {
+    "milestone": "Fix Invalid parameters error",
+    "file": "backend/src/routes/articles.ts",
+    "line": 14,
+    "problem": "Empty venueId string fails UUID validation",
+    "solution": {
+      "replace": "query(\"venueId\").optional().isUUID()",
+      "with": "query(\"venueId\").optional().custom((value) => !value || validator.isUUID(value))",
+      "also_add": "import validator from 'validator';"
+    },
+    "test": "curl 'http://localhost:3001/api/articles?venueId=&status=published'"
+  },
+
+  "phase_2_galleras_implementation": {
+    "milestone": "Complete Galleras page",
+    "file": "frontend/src/pages/user/Galleras.tsx",
+    "replace_entire_file": true,
+    "code": "import React, { useState, useEffect } from 'react';\nimport { Search, Shield, Users, Trophy, Calendar } from 'lucide-react';\nimport { articlesAPI, usersAPI } from '../../config/api';\nimport LoadingSpinner from '../../components/shared/LoadingSpinner';\nimport EmptyState from '../../components/shared/EmptyState';\n\ninterface GalleraProfile {\n  id: string;\n  name: string;\n  description: string;\n  location: string;\n  imageUrl?: string;\n  articlesCount: number;\n  establishedDate?: string;\n}\n\nconst GallerasPage = () => {\n  const [galleras, setGalleras] = useState<GalleraProfile[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [searchTerm, setSearchTerm] = useState('');\n  const [selectedGallera, setSelectedGallera] = useState<GalleraProfile | null>(null);\n\n  useEffect(() => {\n    fetchGalleras();\n  }, []);\n\n  const fetchGalleras = async () => {\n    try {\n      setLoading(true);\n      // Get users with gallera role\n      const galleraUsers = await usersAPI.getAll({ role: 'gallera' });\n      // Get their articles\n      const galleraProfiles = await Promise.all(\n        galleraUsers.data.map(async (user) => {\n          const articles = await articlesAPI.getAll({ author_id: user.id });\n          return {\n            id: user.id,\n            name: user.profileInfo?.galleraName || user.username,\n            description: user.profileInfo?.description || 'Institución criadora profesional',\n            location: user.profileInfo?.location || 'Ecuador',\n            imageUrl: user.profileInfo?.imageUrl,\n            articlesCount: articles.data.total || 0,\n            establishedDate: user.profileInfo?.establishedDate\n          };\n        })\n      );\n      setGalleras(galleraProfiles);\n    } catch (error) {\n      console.error('Error loading galleras:', error);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const filteredGalleras = galleras.filter(g =>\n    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||\n    g.location.toLowerCase().includes(searchTerm.toLowerCase())\n  );\n\n  if (loading) return <LoadingSpinner text=\"Cargando instituciones criadoras...\" />;\n\n  return (\n    <div className=\"container mx-auto px-4 py-6\">\n      <div className=\"mb-6\">\n        <h1 className=\"text-2xl font-bold text-gray-900 mb-2\">Instituciones Criadoras</h1>\n        <p className=\"text-gray-600\">Conoce las galleras más prestigiosas del país</p>\n      </div>\n\n      <div className=\"mb-6\">\n        <div className=\"relative\">\n          <Search className=\"absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5\" />\n          <input\n            type=\"text\"\n            placeholder=\"Buscar por nombre o ubicación...\"\n            className=\"w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg\"\n            value={searchTerm}\n            onChange={(e) => setSearchTerm(e.target.value)}\n          />\n        </div>\n      </div>\n\n      {filteredGalleras.length === 0 ? (\n        <EmptyState\n          icon={Shield}\n          title=\"No se encontraron instituciones\"\n          description=\"No hay instituciones criadoras que coincidan con tu búsqueda\"\n        />\n      ) : (\n        <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6\">\n          {filteredGalleras.map((gallera) => (\n            <div key={gallera.id} className=\"bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer\"\n                 onClick={() => setSelectedGallera(gallera)}>\n              <div className=\"flex items-start justify-between mb-4\">\n                <Shield className=\"w-8 h-8 text-green-600\" />\n                <span className=\"text-sm text-gray-500\">{gallera.articlesCount} artículos</span>\n              </div>\n              <h3 className=\"text-lg font-semibold text-gray-900 mb-2\">{gallera.name}</h3>\n              <p className=\"text-sm text-gray-600 mb-3\">{gallera.description}</p>\n              <div className=\"flex items-center text-sm text-gray-500\">\n                <Users className=\"w-4 h-4 mr-1\" />\n                <span>{gallera.location}</span>\n              </div>\n            </div>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default GallerasPage;"
+  },
+
+  "phase_3_subscriptions_spanish": {
+    "milestone": "Add free plan and Spanish translation",
+    "file": "frontend/src/pages/user/Subscriptions.tsx",
+    "changes": [
+      {
+        "find": "const plans = [",
+        "add_before": "const plans = [\n  {\n    type: 'free',\n    name: 'Plan Gratuito',\n    price: 0,\n    duration: 'Siempre',\n    features: ['Acceso limitado', 'Publicidad', 'Sin transmisiones en vivo'],\n    popular: false\n  },"
+      },
+      {
+        "find": "Daily Access",
+        "replace": "Acceso Diario"
+      },
+      {
+        "find": "Monthly Premium",
+        "replace": "Premium Mensual"
+      },
+      {
+        "find": "24 hours",
+        "replace": "24 horas"
+      },
+      {
+        "find": "30 days",
+        "replace": "30 días"
+      },
+      {
+        "find": "Live streaming",
+        "replace": "Transmisión en vivo"
+      },
+      {
+        "find": "HD quality",
+        "replace": "Calidad estándar"
+      },
+      {
+        "find": "720p quality",
+        "replace": "Calidad mejorada"
+      },
+      {
+        "find": "Chat access",
+        "replace": ""
+      },
+      {
+        "find": "Ad-free",
+        "replace": ""
+      },
+      {
+        "find": "Exclusive content",
+        "replace": "Contenido exclusivo"
+      }
     ]
   },
 
-  "phase_1_model_synchronization": {
-    "milestone": "Ensure all models map correctly to DB",
-    "estimated_time": "15 minutes",
+  "phase_4_subscription_consistency": {
+    "milestone": "Fix subscription state consistency",
     
-    "task_1_1": {
-      "file": "backend/src/models/Article.ts",
-      "line": 92,
-      "action": "Add underscored configuration",
-      "current_code": "{\n    sequelize,\n    modelName: \"Article\",\n    tableName: \"articles\",\n    timestamps: true,\n    createdAt: \"created_at\",\n    updatedAt: \"updated_at\",\n  }",
-      "replace_with": "{\n    sequelize,\n    modelName: \"Article\",\n    tableName: \"articles\",\n    timestamps: true,\n    underscored: true,\n    createdAt: \"created_at\",\n    updatedAt: \"updated_at\",\n  }",
-      "test": "const article = await Article.findOne(); console.log(article.venue_id); // Should work"
-    },
-
-    "task_1_2": {
-      "file": "backend/src/models/Subscription.ts",
-      "line": 85,
-      "action": "Add underscored: true",
-      "add_to_init": "underscored: true,",
-      "test": "const sub = await Subscription.findOne(); console.log(sub.user_id); // Should map"
-    }
-  },
-
-  "phase_2_api_validations": {
-    "milestone": "Fix API parameter validations",
-    "estimated_time": "10 minutes",
-    
-    "task_2_1": {
-      "file": "backend/src/routes/articles.ts",
-      "find": "router.get('/',",
-      "check_validations": [
-        "query('page').optional().isInt()",
-        "query('limit').optional().isInt()",
-        "query('status').optional().isIn(['draft','published','archived'])",
-        "query('venueId').optional().isUUID()",
-        "query('search').optional().isString()"
-      ],
-      "fix_if_missing": "Add proper express-validator checks"
-    },
-
-    "task_2_2": {
+    "task_1": {
       "file": "backend/src/routes/subscriptions.ts",
-      "find": "router.get('/plans',",
-      "ensure_returns": "res.json({ success: true, data: Array.isArray(plans) ? plans : [plans] })",
-      "explanation": "Frontend expects array, not object"
-    }
-  },
-
-  "phase_3_venues_galleras_separation": {
-    "milestone": "Separate Venues (locations) from Galleras (breeders)",
-    "estimated_time": "25 minutes",
-    
-    "conceptual_clarification": {
-      "venues": "Physical cockfighting arenas/locations",
-      "galleras": "Breeding institutions - NOT venues but organizations",
-      "database_reality": "Galleras are NOT a separate table, just articles by users with role='gallera'"
+      "endpoint": "GET /current",
+      "ensure_returns": {
+        "no_subscription": "{ success: true, data: { type: 'free', status: 'active', features: [] } }",
+        "with_subscription": "{ success: true, data: subscription }"
+      }
     },
 
-    "task_3_1": {
-      "create_file": "frontend/src/pages/user/Galleras.tsx",
-      "purpose": "Show breeding institutions (articles from gallera users)",
-      "template": "import React from 'react';\nimport { articlesAPI } from '../../config/api';\n\nconst GallerasPage = () => {\n  // Fetch articles where author.role = 'gallera'\n  // Display as institution profiles\n  return (\n    <div>\n      <h1>Instituciones Criadoras</h1>\n      {/* List gallera articles as institution profiles */}\n    </div>\n  );\n};\n\nexport default GallerasPage;",
-      "api_call": "articlesAPI.getAll({ authorRole: 'gallera' })"
+    "task_2": {
+      "file": "frontend/src/components/user/UserHeader.tsx",
+      "add_subscription_display": {
+        "after": "wallet balance display",
+        "code": "{subscription?.type && <span className='text-xs bg-green-100 text-green-700 px-2 py-1 rounded'>Plan: {subscription.type}</span>}"
+      }
     },
 
-    "task_3_2": {
-      "file": "frontend/src/components/user/Navigation.tsx",
-      "find": "items array",
-      "ensure_has": [
-        "{ path: '/venues', label: 'Venues', icon: Building2 }",
-        "{ path: '/galleras', label: 'Criadores', icon: Shield }"
-      ]
-    },
-
-    "task_3_3": {
-      "file": "frontend/src/App.tsx",
-      "add_routes": [
-        "<Route path=\"/galleras\" element={<GallerasPage />} />",
-        "<Route path=\"/venues\" element={<VenuesPage />} />"
-      ]
-    }
-  },
-
-  "phase_4_subscriptions_fix": {
-    "milestone": "Fix subscriptions page crash",
-    "estimated_time": "10 minutes",
-    
-    "task_4_1": {
-      "file": "frontend/src/pages/user/Subscriptions.tsx",
-      "line": "approximately 194",
-      "find": "plans.map",
-      "replace_with": "Array.isArray(plans) ? plans.map : [plans].map",
-      "or_better": "const plansArray = Array.isArray(plans) ? plans : plans?.data || [];\nplansArray.map(...)"
+    "task_3": {
+      "file": "frontend/src/components/streaming/SubscriptionGuard.tsx",
+      "fix_access_check": {
+        "find": "const hasAccess = useCallback(() => {",
+        "ensure": "// Free users have no access\nif (!subscription || subscription.type === 'free') return false;"
+      }
     }
   },
 
   "phase_5_testing": {
-    "milestone": "Validate all fixes",
-    "estimated_time": "10 minutes",
-    
     "backend_tests": [
       {
-        "test_name": "Articles with venue_id",
-        "command": "curl http://localhost:3001/api/articles?status=published",
-        "expected": "200 OK with articles data"
+        "name": "Articles with empty venueId",
+        "command": "curl 'http://localhost:3001/api/articles?venueId=&status=published'",
+        "expected": "200 OK, no Invalid parameters error"
       },
       {
-        "test_name": "Notifications with is_read",
-        "command": "curl http://localhost:3001/api/notifications",
-        "expected": "Notifications with isRead field"
+        "name": "Current subscription",
+        "command": "curl http://localhost:3001/api/subscriptions/current -H 'Authorization: Bearer TOKEN'",
+        "expected": "Returns free plan if no subscription"
       }
     ],
     
     "frontend_tests": [
       {
-        "test_name": "News page loads",
-        "navigate_to": "/news",
-        "expected": "No 500 errors in console"
+        "name": "Galleras page",
+        "navigate": "/galleras",
+        "expected": "Shows list of breeding institutions with search"
       },
       {
-        "test_name": "Subscriptions page",
-        "navigate_to": "/subscriptions",
-        "expected": "No 'plans.map is not a function' error"
+        "name": "Subscriptions Spanish",
+        "navigate": "/subscriptions",
+        "expected": "Shows 3 plans: Gratuito, Diario, Mensual"
       },
       {
-        "test_name": "Venues vs Galleras",
-        "check": "Two separate navigation items",
-        "venues_shows": "Physical locations",
-        "galleras_shows": "Breeding institutions"
+        "name": "Header subscription",
+        "check": "User header",
+        "expected": "Shows current plan type"
       }
     ]
   },
 
-  "conventions": {
-    "backend": {
-      "models": "Use underscored: true for ALL models",
-      "field_mapping": "Use field: 'snake_case_name' for explicit mapping",
-      "associations": "Define in models/index.ts, not in individual models"
-    },
-    "frontend": {
-      "api_responses": "Always check Array.isArray() before .map()",
-      "error_handling": "Wrap all API calls in try-catch",
-      "navigation": "Use react-router-dom for routing"
-    }
-  },
-
-  "inputs_outputs": {
-    "inputs": [
-      "Database schema in snake_case from backend/database-analysis/",
-      "User actions in frontend triggering API calls",
-      "Role-based permissions (admin, user, venue, gallera)"
-    ],
-    "outputs": [
-      "Properly mapped Sequelize models",
-      "Valid API responses without 500 errors",
-      "Separated Venues and Galleras sections",
-      "Working subscriptions page"
-    ]
-  },
-
-  "restrictions": {
-    "do_not": [
-      "Change database column names",
-      "Use raw SQL queries",
-      "Modify authentication logic",
-      "Remove existing functionality"
-    ],
-    "must": [
-      "Preserve all existing features",
-      "Maintain backwards compatibility",
-      "Follow TypeScript types",
-      "Handle null/undefined values"
-    ]
-  },
-
   "execution_order": [
-    "Phase 1: Fix model mappings (CRITICAL)",
-    "Phase 2: Fix API validations",
-    "Phase 3: Separate Venues/Galleras",
-    "Phase 4: Fix subscriptions",
+    "Phase 1: Fix articles API validation",
+    "Phase 2: Implement Galleras page",
+    "Phase 3: Spanish subscriptions",
+    "Phase 4: Fix subscription consistency",
     "Phase 5: Test everything"
   ],
 
-  "rollback_plan": {
-    "if_errors": "git stash or git checkout -- .",
-    "backup": "Create backup branch: git checkout -b backup-v9"
-  }
+  "validation_checklist": [
+    "[ ] No 'Invalid parameters' in News page",
+    "[ ] Galleras page shows breeding institutions",
+    "[ ] Subscriptions in Spanish with free plan",
+    "[ ] Header shows current subscription",
+    "[ ] SubscriptionGuard works correctly"
+  ]
 }

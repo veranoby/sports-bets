@@ -89,6 +89,9 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
 
   // Check if user has access to the feature
   const hasAccess = useCallback(() => {
+    // Free users have no access to protected content
+    if (!subscription || subscription.type === 'free') return false;
+
     if (!user) return false;
     if (!subscription) return false;
     

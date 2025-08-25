@@ -7,6 +7,7 @@ import { Article } from "../models/Article";
 import { User } from "../models/User";
 import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
+import validator from 'validator';
 import { Op } from "sequelize";
 
 const router = Router();
@@ -16,7 +17,7 @@ router.get(
   "/",
   [
     query("search").optional().isString(),
-    query("venueId").optional().isUUID(),
+    query("venueId").optional().custom((value) => !value || validator.isUUID(value)),
     query("status").optional().isIn(["published", "pending", "draft"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),

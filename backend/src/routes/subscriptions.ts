@@ -295,7 +295,7 @@ router.get(
       if (!subscription) {
         return res.json({
           success: true,
-          data: null
+          data: { type: 'free', status: 'active', features: [], plan: 'free', isActive: true, id: 'free-plan' }
         });
       }
 
@@ -304,7 +304,7 @@ router.get(
         await subscription.markAsExpired();
         return res.json({
           success: true,
-          data: null
+          data: { type: 'free', status: 'active', features: [], plan: 'free', isActive: true, id: 'free-plan' }
         });
       }
 

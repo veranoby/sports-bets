@@ -54,7 +54,21 @@ const SubscriptionsPage: React.FC = () => {
   const loadData = async () => {
     try {
       const plansData = await fetchPlans();
-      setPlans(plansData);
+      
+      const freePlan: Plan = {
+        id: 'free',
+        name: 'Plan Gratuito',
+        price: 0,
+        duration: 9999,
+        durationUnit: 'days',
+        description: 'Acceso limitado a noticias y resultados.',
+        features: ['Acceso a noticias', 'Resultados de eventos', 'Soporte por correo', 'Con publicidad'],
+        recommended: false
+      };
+
+      const apiPlans = Array.isArray(plansData) ? plansData : (plansData as any)?.data || [];
+      
+      setPlans([freePlan, ...apiPlans]);
       await fetchCurrent();
     } catch (err) {
       console.error("Error loading data:", err);
@@ -236,7 +250,7 @@ const SubscriptionsPage: React.FC = () => {
                 ))}
               </ul>
 
-              {(!subscription || subscription.plan !== plan.id) && (
+              {plan.id !== 'free' && (!subscription || subscription.plan !== plan.id) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

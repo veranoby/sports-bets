@@ -35,7 +35,7 @@ const UserHeader = memo(() => {
     fetchNotifications,
   } = useNotifications();
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
-  const { isPremium, hasAccess } = useSubscription();
+  const { subscription, isPremium, hasAccess } = useSubscription();
 
   const { isWalletEnabled, isBettingEnabled } = useFeatureFlags();
 
@@ -181,9 +181,18 @@ const UserHeader = memo(() => {
             >
               <Wallet className="w-4 h-4 text-theme-success" />
               <span className="text-sm font-semibold">
-                {isLoading ? "..." : `$${walletBalance.toFixed(2)}`}
+                {isLoading ? "..." : `${walletBalance.toFixed(2)}`}
               </span>
             </button>
+          )}
+
+          {subscription?.type && (
+            <div className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg">
+              <Crown className={`w-4 h-4 ${subscription.type === 'free' ? 'text-gray-400' : 'text-yellow-400'}`} />
+              <span className="text-sm font-semibold capitalize">
+                {subscription.type}
+              </span>
+            </div>
           )}
 
           {/* ACTIVE BETS */}

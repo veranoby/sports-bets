@@ -96,7 +96,14 @@ router.put(
 router.get(
   "/",
   authenticate,
-  authorize("admin"),
+  (req, res, next) => {
+    // Special case: Allow any authenticated user to view galleras
+    if (req.query.role === "gallera") {
+      return next();
+    }
+    // For all other user queries, require admin privileges
+    return authorize("admin")(req, res, next);
+  },
   asyncHandler(async (req, res) => {
     const { role, isActive, limit = 50, offset = 0 } = req.query;
 
