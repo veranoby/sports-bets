@@ -660,7 +660,7 @@ export function useNotifications() {
               ...prev,
               notifications: prev.notifications.map((notif) =>
                 notif.id === notificationId
-                  ? { ...notif, status: "read" }
+                  ? { ...notif, isRead: true }
                   : notif
               ),
             }
@@ -681,7 +681,7 @@ export function useNotifications() {
             ...prev,
             notifications: prev.notifications.map((notif) => ({
               ...notif,
-              status: "read",
+              isRead: true,
             })),
           }
         : null

@@ -1,67 +1,81 @@
 {
-  "project": "GalloBets Fix V3 - DB Sync",
-  "version": "6.0.0",
-  "analysis": "Models don't match actual DB structure",
+  "project": "GalloBets Fix Definitivo V4",
+  "instructions": "COPIAR Y PEGAR EXACTAMENTE",
 
-  "phase_1_model_fixes": {
-    "priority": "CRITICAL",
-    "tasks": [
-      {
-        "file": "backend/src/models/Article.ts",
-        "fix": "Add venue_id field properly",
-        "code": "venue_id: { type: DataTypes.UUID, allowNull: true, field: 'venue_id' }"
-      },
-      {
-        "file": "backend/src/models/Notification.ts",
-        "fix": "Use is_read instead of status",
-        "replace": {
-          "old": "status: { type: DataTypes.ENUM",
-          "new": "isRead: { type: DataTypes.BOOLEAN, defaultValue: false, field: 'is_read' }"
-        }
-      },
-      {
-        "file": "backend/src/models/index.ts",
-        "fix": "Remove direct Transaction→User association",
-        "remove": "Transaction.belongsTo(User",
-        "explanation": "Transactions link to Wallets, not Users directly"
-      }
+  "fix_1_article_model": {
+    "file": "backend/src/models/Article.ts",
+    "line_20_after_author_id": {
+      "add_this_exact_code": "venue_id: { type: DataTypes.UUID, allowNull: true, field: 'venue_id' },"
+    },
+    "line_40_in_init": {
+      "add_this_exact_code": "venueId: {\n  type: DataTypes.UUID,\n  allowNull: true,\n  field: 'venue_id',\n  references: { model: 'venues', key: 'id' }\n},"
+    }
+  },
+
+  "fix_2_notification_api": {
+    "file": "backend/src/routes/notifications.ts",
+    "line_30_in_GET_route": {
+      "replace": "where: { userId: req.user!.id, status: 'unread' }",
+      "with": "where: { userId: req.user!.id, isRead: false }"
+    }
+  },
+
+  "fix_3_notification_queries": {
+    "file": "backend/src/services/notificationService.ts",
+    "find_all": "status === 'unread'",
+    "replace_all_with": "isRead === false"
+  },
+
+  "fix_4_service_worker": {
+    "file": "frontend/public/sw.js",
+    "delete_entire_file": true,
+    "or_replace_with": "self.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', () => self.clients.claim());"
+  },
+
+  "fix_5_api_calls": {
+    "file": "frontend/src/hooks/useApi.ts",
+    "line_100": {
+      "find": "status: 'unread'",
+      "replace": "isRead: false"
+    }
+  },
+
+  "fix_6_wallet_transactions": {
+    "file": "backend/src/routes/wallet.ts",
+    "line_220_withdrawal_requests": {
+      "find": "include: [{ model: User",
+      "replace": "include: [{ model: Wallet, include: [{ model: User, as: 'user' }] }"
+    }
+  },
+
+  "fix_7_users_status": {
+    "file": "backend/src/routes/users.ts",
+    "line_150": {
+      "find": "body('isActive').isBoolean()",
+      "replace": "body('status').isBoolean()"
+    },
+    "line_160": {
+      "find": "const { isActive } = req.body",
+      "replace": "const { status } = req.body"
+    },
+    "line_170": {
+      "find": "user.isActive = isActive",
+      "replace": "user.isActive = status"
+    }
+  },
+
+  "test_queries": {
+    "run_in_neon": [
+      "SELECT venue_id FROM articles LIMIT 1;",
+      "SELECT is_read, status FROM notifications LIMIT 1;",
+      "\\d articles",
+      "\\d notifications"
     ]
   },
 
-  "phase_2_api_fixes": {
-    "tasks": [
-      {
-        "file": "backend/src/routes/wallet.ts",
-        "fix": "Join through wallet for user",
-        "include": "[{ model: Wallet, include: [User] }]"
-      },
-      {
-        "file": "backend/src/routes/users.ts",
-        "fix": "Change isActive to status in body",
-        "replace": "body('isActive')",
-        "with": "body('status')"
-      }
-    ]
-  },
-
-  "phase_3_frontend_fixes": {
-    "tasks": [
-      {
-        "file": "frontend/public/sw.js",
-        "fix": "Add error handling to service worker",
-        "wrap_fetch": "try { /* fetch */ } catch(e) { return Response.error() }"
-      },
-      {
-        "file": "frontend/src/pages/LoginPage.tsx",
-        "add_error_boundary": true,
-        "wrap_api_calls": "try/catch with proper error display"
-      }
-    ]
-  },
-
-  "validation_queries": [
-    "SELECT * FROM articles LIMIT 1;",
-    "SELECT * FROM notifications LIMIT 1;",
-    "SELECT t.*, w.user_id FROM transactions t JOIN wallets w ON t.wallet_id = w.id LIMIT 1;"
+  "restart_commands": [
+    "cd backend && npm run build",
+    "cd frontend && rm -rf .vite",
+    "npm run dev"
   ]
 }
