@@ -30,9 +30,9 @@ const AdminSidebar = memo(() => {
   ];
 
   return (
-    <aside className="w-64 bg-theme-header min-h-screen flex flex-col">
+    <aside className="w-64 bg-gray-300 min-h-screen flex flex-col">
       <div className="p-4 flex-1">
-        <h2 className="text-white text-lg font-bold mb-6">GalloBets Admin</h2>
+        <h2 className="text-gray-600 text-lg font-bold mb-6">GalloBets Admin</h2>
         <nav className="space-y-2">
           {navItems.map((item) => (
             <NavLink
@@ -43,7 +43,7 @@ const AdminSidebar = memo(() => {
                 `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
                   isActive
                     ? "bg-gray-700 text-white font-medium"
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    : "text-gray-500 hover:bg-gray-700 hover:text-white"
                 }`
               }
             >
@@ -56,7 +56,7 @@ const AdminSidebar = memo(() => {
       <div className="p-4 border-t border-gray-700">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2 text-gray-500 hover:bg-gray-700 hover:text-white rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5" />
           <span>Cerrar Sesión</span>
