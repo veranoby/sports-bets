@@ -19,6 +19,38 @@ const User_1 = require("../models/User");
 const Venue_1 = require("../models/Venue");
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
+function getArticleAttributes(role, type) {
+    const publicAttributes = [
+        "id",
+        "title",
+        "excerpt",
+        "category",
+        "status",
+        "published_at",
+        "author_id",
+        "featured_image",
+        "created_at",
+        "updated_at",
+    ];
+    const authenticatedAttributes = [
+        ...publicAttributes,
+        "content",
+        "tags",
+        "venue_id",
+        "view_count",
+    ];
+    switch (role) {
+        case "admin":
+        case "operator":
+            return undefined; // Return all attributes
+        case "user":
+        case "gallera":
+        case "venue":
+            return type === "list" ? publicAttributes : authenticatedAttributes;
+        default:
+            return publicAttributes;
+    }
+}
 const router = (0, express_1.Router)();
 // GET /api/articles - Listar artículos con sanitización por rol
 router.get("/", auth_1.optionalAuth, [
@@ -28,6 +60,7 @@ router.get("/", auth_1.optionalAuth, [
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const validationErrors = (0, express_validator_1.validationResult)(req);
     if (!validationErrors.isEmpty()) {
         throw new Error("Invalid parameters");
@@ -49,20 +82,7 @@ router.get("/", auth_1.optionalAuth, [
     const includeAuthor = true;
     const includeVenue = true;
     // Patrón attributes por rol: público ve campos mínimos
-    const publicListAttributes = [
-        "id",
-        "title",
-        "excerpt",
-        "category",
-        "status",
-        "published_at",
-        "author_id",
-        // Compatibilidad frontend (imagen y fechas)
-        "featured_image",
-        "created_at",
-        "updated_at",
-    ];
-    const attributes = isPrivileged ? undefined : publicListAttributes;
+    const attributes = getArticleAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "list");
     const { count, rows } = yield Article_1.Article.findAndCountAll({
         where: whereClause,
         attributes,
@@ -89,7 +109,7 @@ router.get("/", auth_1.optionalAuth, [
         success: true,
         data: {
             // Lista: usar payload "lite"
-            articles: rows.map((article) => article.toPublicSummary()),
+            articles: rows.map((article) => article.toJSON({ attributes })),
             total: count,
             totalPages: Math.ceil(count / limit),
             currentPage: page,
@@ -99,21 +119,22 @@ router.get("/", auth_1.optionalAuth, [
 })));
 // GET /api/articles/:id - Obtener artículo específico
 router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const includeAuthor = true;
-    const includeVenue = true;
+    var _a;
+    const attributes = getArticleAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "detail");
     const article = yield Article_1.Article.findByPk(req.params.id, {
+        attributes,
         include: [
-            includeAuthor && {
+            {
                 model: User_1.User,
                 as: "author",
                 attributes: ["id", "username"],
             },
-            includeVenue && {
+            {
                 model: Venue_1.Venue,
                 as: "venue",
                 attributes: ["id", "name"],
             },
-        ].filter(Boolean),
+        ],
     });
     if (!article) {
         throw errorHandler_1.errors.notFound("Article not found");
@@ -126,7 +147,7 @@ router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, r
     }
     res.json({
         success: true,
-        data: article.toPublicJSON(),
+        data: article.toJSON({ attributes }),
     });
 })));
 // POST /api/articles - Crear artículo (solo admin/gallera)
@@ -163,7 +184,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"),
     });
     res.status(201).json({
         success: true,
-        data: article.toPublicJSON(),
+        data: article.toJSON(),
     });
 })));
 // PUT /api/articles/:id/status - Aprobar/rechazar artículo (admin/operator)
@@ -180,7 +201,7 @@ router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin", "o
     yield article.save();
     res.json({
         success: true,
-        data: article.toPublicJSON(),
+        data: article.toJSON(),
     });
 })));
 // PUT /api/articles/:id/publish - Publish article (admin only)
@@ -196,7 +217,7 @@ router.put("/:id/publish", auth_1.authenticate, (0, auth_1.authorize)("admin"), 
     yield article.save();
     res.json({
         success: true,
-        data: article.toPublicJSON(),
+        data: article.toJSON(),
     });
 })));
 exports.default = router;

@@ -14,6 +14,7 @@ import {
 import sequelize from "../config/database";
 import { User } from "./User";
 import { Venue } from "./Venue";
+import { Fight } from "./Fight";
 
 // Definición del modelo Event
 export class Event extends Model<
@@ -40,6 +41,11 @@ export class Event extends Model<
   declare updatedAt: CreationOptional<Date>;
 
   // Asociaciones
+  public readonly venue?: Venue;
+  public readonly operator?: User;
+  public readonly creator?: User;
+  public readonly fights?: Fight[];
+
   declare getVenue: BelongsToGetAssociationMixin<Venue>;
   declare setVenue: BelongsToSetAssociationMixin<Venue, number>;
   declare getOperator: BelongsToGetAssociationMixin<User>;
@@ -65,9 +71,37 @@ export class Event extends Model<
     return `event_${this.id}_${Date.now()}`;
   }
 
-  toPublicJSON() {
-    const { streamKey, ...publicData } = this.toJSON();
-    return publicData;
+  public toJSON(options?: { attributes?: string[] }) {
+    const data = this.get(); // Get raw data from model instance
+    const result: { [key: string]: any } = {};
+
+    // Include only requested attributes if specified
+    if (options?.attributes) {
+      for (const attr of options.attributes) {
+        if (data[attr] !== undefined) {
+          result[attr] = data[attr];
+        }
+      }
+    } else {
+      // If no specific attributes requested, return all direct attributes
+      Object.assign(result, data);
+    }
+
+    // Conditionally add associated data if loaded
+    if (this.venue) {
+      result.venue = this.venue.toJSON(); // Assuming Venue model also has toJSON
+    }
+    if (this.operator) {
+      result.operator = this.operator.toJSON(); // Assuming User model also has toJSON
+    }
+    if (this.creator) {
+      result.creator = this.creator.toJSON(); // Assuming User model also has toJSON
+    }
+    if (this.fights) {
+      result.fights = this.fights.map(fight => fight.toJSON()); // Assuming Fight model also has toJSON
+    }
+
+    return result;
   }
 }
 

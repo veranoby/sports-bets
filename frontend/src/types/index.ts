@@ -1,6 +1,6 @@
 // Tipos centralizados para evitar importaciones circulares
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   success: boolean;
   message?: string;
   data: T;
@@ -22,6 +22,8 @@ export interface User {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  // Suscripción normalizada proveniente de /api/users/profile
+  subscription?: UserSubscription;
 }
 
 export interface Event {
@@ -145,7 +147,7 @@ export interface Transaction {
   status: "pending" | "completed" | "failed" | "cancelled";
   reference?: string;
   description: string;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: string;
   updatedAt: string;
 }
@@ -160,6 +162,15 @@ export interface Subscription {
   amount?: number;
   daysRemaining: number;
   isActive: boolean;
+}
+
+// Nueva representación normalizada utilizada por backend /users/profile
+export interface UserSubscription {
+  type: 'free' | 'daily' | 'monthly';
+  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  expiresAt: string | null;
+  features: string[];
+  remainingDays: number;
 }
 
 // 3. NAVIGATION PAGE TYPE (agregar si falta)

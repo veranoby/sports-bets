@@ -8,44 +8,39 @@ exports.Article = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = __importDefault(require("../config/database"));
 class Article extends sequelize_1.Model {
-    toPublicJSON() {
-        var _a, _b, _c, _d;
-        return {
-            id: this.id,
-            title: this.title,
-            slug: this.slug,
-            content: this.content,
-            summary: this.excerpt,
-            author_id: this.author_id,
-            venue_id: this.venue_id,
-            category: this.category,
-            status: this.status,
-            featured_image_url: this.featured_image,
-            tags: this.tags,
-            published_at: this.published_at,
-            created_at: this.created_at,
-            updated_at: this.updated_at,
-            author_name: ((_b = (_a = this.author) === null || _a === void 0 ? void 0 : _a.profileInfo) === null || _b === void 0 ? void 0 : _b.fullName) || ((_c = this.author) === null || _c === void 0 ? void 0 : _c.username) || "Autor",
-            venue_name: (_d = this.venue) === null || _d === void 0 ? void 0 : _d.name,
-        };
-    }
-    // Resumen ligero para listados públicos
-    toPublicSummary() {
-        var _a, _b, _c, _d;
-        return {
-            id: this.id,
-            title: this.title,
-            slug: this.slug,
-            summary: this.excerpt,
-            category: this.category,
-            status: this.status,
-            featured_image_url: this.featured_image,
-            published_at: this.published_at,
-            created_at: this.created_at,
-            updated_at: this.updated_at,
-            author_name: ((_b = (_a = this.author) === null || _a === void 0 ? void 0 : _a.profileInfo) === null || _b === void 0 ? void 0 : _b.fullName) || ((_c = this.author) === null || _c === void 0 ? void 0 : _c.username) || "Autor",
-            venue_name: (_d = this.venue) === null || _d === void 0 ? void 0 : _d.name,
-        };
+    toJSON(options) {
+        const data = this.get(); // Get raw data from model instance
+        const result = {};
+        // Include only requested attributes if specified
+        if (options === null || options === void 0 ? void 0 : options.attributes) {
+            for (const attr of options.attributes) {
+                if (data[attr] !== undefined) {
+                    result[attr] = data[attr];
+                }
+            }
+        }
+        else {
+            // If no specific attributes requested, return all direct attributes
+            Object.assign(result, data);
+        }
+        // Conditionally add associated data if loaded
+        if (this.author) {
+            result.author_name = this.author.username; // Assuming username is always available
+        }
+        if (this.venue) {
+            result.venue_name = this.venue.name; // Assuming name is always available
+        }
+        // Handle featured_image_url if featured_image is present
+        if (result.featured_image) {
+            result.featured_image_url = result.featured_image;
+            delete result.featured_image; // Remove original field if a new one is created
+        }
+        // Rename excerpt to summary for consistency with frontend
+        if (result.excerpt !== undefined) {
+            result.summary = result.excerpt;
+            delete result.excerpt;
+        }
+        return result;
     }
 }
 exports.Article = Article;

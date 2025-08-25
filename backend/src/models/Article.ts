@@ -47,45 +47,43 @@ export class Article
   public readonly author?: User;
   public readonly venue?: Venue;
 
-  public toPublicJSON() {
-    return {
-      id: this.id,
-      title: this.title,
-      slug: this.slug,
-      content: this.content,
-      summary: this.excerpt,
-      author_id: this.author_id,
-      venue_id: this.venue_id,
-      category: this.category,
-      status: this.status,
-      featured_image_url: this.featured_image,
-      tags: this.tags,
-      published_at: this.published_at,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
-      author_name:
-        (this.author as any)?.profileInfo?.fullName || this.author?.username || "Autor",
-      venue_name: this.venue?.name,
-    };
-  }
+  public toJSON(options?: { attributes?: string[] }) {
+    const data = this.get(); // Get raw data from model instance
+    const result: { [key: string]: any } = {};
 
-  // Resumen ligero para listados públicos
-  public toPublicSummary() {
-    return {
-      id: this.id,
-      title: this.title,
-      slug: this.slug,
-      summary: this.excerpt,
-      category: this.category,
-      status: this.status,
-      featured_image_url: this.featured_image,
-      published_at: this.published_at,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
-      author_name:
-        (this.author as any)?.profileInfo?.fullName || this.author?.username || "Autor",
-      venue_name: this.venue?.name,
-    };
+    // Include only requested attributes if specified
+    if (options?.attributes) {
+      for (const attr of options.attributes) {
+        if (data[attr] !== undefined) {
+          result[attr] = data[attr];
+        }
+      }
+    } else {
+      // If no specific attributes requested, return all direct attributes
+      Object.assign(result, data);
+    }
+
+    // Conditionally add associated data if loaded
+    if (this.author) {
+      result.author_name = this.author.username; // Assuming username is always available
+    }
+    if (this.venue) {
+      result.venue_name = this.venue.name; // Assuming name is always available
+    }
+
+    // Handle featured_image_url if featured_image is present
+    if (result.featured_image) {
+      result.featured_image_url = result.featured_image;
+      delete result.featured_image; // Remove original field if a new one is created
+    }
+
+    // Rename excerpt to summary for consistency with frontend
+    if (result.excerpt !== undefined) {
+      result.summary = result.excerpt;
+      delete result.excerpt;
+    }
+
+    return result;
   }
 }
 

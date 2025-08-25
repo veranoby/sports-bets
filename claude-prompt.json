@@ -62,120 +62,102 @@
       "phase": 1,
       "title": "Corrección Sistema Suscripciones (CRÍTICO)",
       "priority": "HIGH",
-      "estimated_time": "2-3 horas",
+      "estimated_time": "2-3 horas restantes", 
+      "progress": "35% completado",
+      "commit_v14_summary": {
+        "completed": [
+          "✅ SUB-001: GET /users/profile incluye subscription (commit previo)",
+          "✅ User.getCurrentSubscription() método implementado (commit previo)", 
+          "✅ Rol 'gallera' agregado a frontend components",
+          "✅ SubscriptionManager.tsx componente nuevo",
+          "✅ Profile.tsx rediseñado completo",
+          "✅ SubscriptionGuard.tsx mejorado",
+          "✅ ProtectedRoute incluye gallera role"
+        ],
+        "not_completed": [
+          "❌ SUB-002: useSubscription hook AÚN usa subscriptionAPI en lugar de AuthContext",
+          "❌ SUB-003: Headers/Profile NO muestran subscription status correcto",
+          "❌ Database migration script NO aplicado"
+        ],
+        "critical_issue": "useSubscription.ts NO modificado - sigue causando inconsistencias"
+      },
       "tasks": [
         {
           "id": "SUB-001",
-          "title": "Unificar Respuesta Usuario con Suscripción",
-          "description": "Modificar GET /api/users/profile para incluir información de suscripción activa",
-          "files_to_modify": [
-            "backend/src/routes/users.ts",
-            "backend/src/models/User.ts"
+          "title": "✅ COMPLETADO - Unificar Respuesta Usuario con Suscripción",
+          "description": "✅ GET /api/users/profile ahora incluye información de suscripción activa",
+          "status": "COMPLETED",
+          "completion_notes": "Implementado en commit V12 con User.getCurrentSubscription() method",
+          "files_modified": [
+            "✅ backend/src/routes/users.ts - Endpoint profile incluye subscription",
+            "✅ backend/src/models/User.ts - Método getCurrentSubscription() agregado"
           ],
-          "purpose": "Eliminar inconsistencias entre diferentes endpoints que muestran información de suscripción",
-          "requirements": [
-            "El endpoint /api/users/profile debe incluir subscription actual del usuario",
-            "Si no hay suscripción activa, mostrar type: 'free'",
-            "Mantener compatibilidad con respuesta actual",
-            "Incluir información de expiración y features"
+          "implemented_features": [
+            "✅ GET /api/users/profile devuelve { user, wallet, subscription }",
+            "✅ User.getCurrentSubscription() maneja lógica free/premium",
+            "✅ Formato normalizado: type free/daily/monthly",
+            "✅ Compatibilidad mantenida con frontend actual"
           ],
-          "inputs": {
-            "request": "GET /api/users/profile con JWT token",
-            "auth": "Usuario autenticado"
-          },
-          "outputs": {
-            "success": {
-              "user": "Datos públicos del usuario",
-              "wallet": "Información de wallet",
-              "subscription": {
-                "type": "'free' | 'daily' | 'monthly'",
-                "status": "'active' | 'expired' | 'cancelled'",
-                "expiresAt": "Date | null",
-                "features": "string[]",
-                "remainingDays": "number"
-              }
-            }
-          },
-          "restrictions": [
-            "No romper compatibilidad con frontend actual",
-            "Usar JOIN eficiente para evitar N+1 queries",
-            "Manejar casos edge: usuario sin subscription"
-          ],
-          "test_cases": [
-            {
-              "name": "Usuario sin suscripción devuelve plan free",
-              "input": "Usuario sin registros en tabla subscriptions",
-              "expected": "subscription.type === 'free' && subscription.status === 'active'"
-            },
-            {
-              "name": "Usuario con suscripción activa devuelve datos completos", 
-              "input": "Usuario con subscription activa no expirada",
-              "expected": "subscription.type === 'daily'|'monthly' con datos completos"
-            },
-            {
-              "name": "Usuario con suscripción expirada devuelve plan free",
-              "input": "Usuario con subscription expirada",
-              "expected": "subscription.type === 'free' después de marcar como expired"
-            }
-          ],
-          "implementation_steps": [
-            "1. Agregar include de Subscription en User.findByPk del endpoint /profile",
-            "2. Crear método User.getCurrentSubscription() que maneje lógica de free/premium",
-            "3. Modificar respuesta para incluir subscription junto a user y wallet", 
-            "4. Escribir tests para los 3 casos edge"
+          "verification_needed": [
+            "🧪 Tests unitarios para User.getCurrentSubscription()",
+            "🧪 Tests integración para endpoint profile con subscription",
+            "🧪 Verificar casos edge: usuario sin subscription"
           ]
         },
         {
+          "id": "SUB-001C",
+          "title": "✅ COMPLETADO PREVIAMENTE - Endpoints Admin Usuarios",
+          "description": "✅ Endpoints para gestión admin ya existían en commits anteriores",
+          "status": "COMPLETED", 
+          "completion_notes": "Endpoints ya estaban implementados antes de V14, no fueron agregados en V14",
+          "files_existing": [
+            "✅ backend/src/routes/users.ts - Endpoints activation/role preexistentes"
+          ],
+          "existing_features": [
+            "✅ PUT /api/users/:id/activation - Ya funcional",
+            "✅ PUT /api/users/:id/role - Ya funcional", 
+            "✅ GET /api/users/operators/available - Ya funcional",
+            "✅ Logs de auditoría - Ya implementados"
+          ]
+        }
+,
+        {
           "id": "SUB-002", 
-          "title": "Corregir Hook useSubscription",
-          "description": "Unificar lógica de estado de suscripción en el frontend",
+          "title": "🔄 ACTUALIZADO - Corregir Hook useSubscription",
+          "description": "Usar datos de subscription desde AuthContext/profile en lugar de endpoint separado",
           "files_to_modify": [
             "frontend/src/hooks/useSubscription.ts",
             "frontend/src/contexts/AuthContext.tsx"
           ],
-          "purpose": "Eliminar inconsistencias entre useAuth y useSubscription que causan estados contradictorios",
+          "purpose": "Eliminar inconsistencias usando datos unificados de /api/users/profile",
           "requirements": [
-            "useSubscription debe obtener datos de /api/users/profile en lugar de /api/subscriptions/current",
-            "Mantener compatibilidad con componentes existentes",
-            "Cachear respuesta para evitar requests múltiples",
-            "Manejar estados loading/error correctamente"
+            "useSubscription debe leer subscription desde AuthContext.user",
+            "AuthContext debe incluir subscription en fetchUser desde /api/users/profile",
+            "Mantener interfaz actual para compatibilidad con componentes",
+            "Sincronizar actualización subscription cuando user data cambia"
           ],
+          "current_issue": "useSubscription hook aún usa subscriptionAPI.getCurrentSubscription() que llama /api/subscriptions/current",
+          "solution_approach": "Obtener subscription desde user.subscription en AuthContext",
           "inputs": {
-            "context": "AuthContext con user autenticado",
-            "api": "Respuesta de /api/users/profile"
+            "context": "AuthContext.user.subscription desde /api/users/profile",
+            "fallback": "subscription null para usuarios no autenticados"
           },
           "outputs": {
             "hook_return": {
-              "subscription": "Subscription | null",
-              "hasAccess": "boolean",
-              "isPremium": "boolean", 
-              "loading": "boolean",
-              "error": "string | null",
-              "refreshAccess": "() => Promise<void>"
+              "subscription": "User.subscription | null",
+              "hasAccess": "boolean basado en type !== 'free' && status === 'active'",
+              "isPremium": "boolean alias de hasAccess", 
+              "loading": "boolean desde AuthContext loading",
+              "error": "string | null desde AuthContext error",
+              "refreshAccess": "() => AuthContext.fetchUser()"
             }
           },
-          "test_cases": [
-            {
-              "name": "Hook devuelve hasAccess=false para usuario free",
-              "input": "User con subscription.type === 'free'", 
-              "expected": "hasAccess === false && isPremium === false"
-            },
-            {
-              "name": "Hook devuelve hasAccess=true para usuario premium activo",
-              "input": "User con subscription activa no expirada",
-              "expected": "hasAccess === true && isPremium === true"
-            },
-            {
-              "name": "Hook maneja transición expired -> free correctamente",
-              "input": "User con subscription expirada",
-              "expected": "hasAccess === false después de refresh"
-            }
-          ],
           "implementation_steps": [
-            "1. Modificar useSubscription para usar AuthContext en lugar de API directa",
-            "2. Agregar subscription a AuthContext desde /api/users/profile",
-            "3. Implementar lógica hasAccess basada en subscription.status y expiresAt",
-            "4. Escribir tests unitarios para cada caso"
+            "1. Modificar AuthContext para parsear subscription de /api/users/profile",
+            "2. Cambiar useSubscription para leer user.subscription en lugar de API call",
+            "3. Actualizar lógica hasAccess: type !== 'free' && status === 'active' && no expired",
+            "4. Remover subscriptionAPI calls del hook",
+            "5. Tests para verificar sincronización AuthContext ↔ useSubscription"
           ]
         },
         {

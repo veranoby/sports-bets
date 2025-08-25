@@ -1,0 +1,1 @@
+export type UserRole = "admin" | "operator" | "venue" | "user" | "gallera";

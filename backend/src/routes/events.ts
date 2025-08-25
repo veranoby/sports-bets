@@ -20,6 +20,47 @@ import {
   delCache as cacheDel,
 } from "../config/redis";
 
+import { UserRole } from "../../../shared/types";
+
+function getEventAttributes(role: UserRole | undefined, type: "list" | "detail") {
+  const publicAttributes = [
+    "id",
+    "name",
+    "scheduledDate",
+    "status",
+    "venueId",
+    "createdAt",
+    "updatedAt",
+    "endDate",
+  ];
+
+  const authenticatedAttributes = [
+    ...publicAttributes,
+    "totalFights",
+    "completedFights",
+  ];
+
+  const operatorAttributes = [
+    ...authenticatedAttributes,
+    "streamKey",
+    "streamUrl",
+    "operatorId",
+  ];
+
+  switch (role) {
+    case "admin":
+      return undefined; // Return all attributes
+    case "operator":
+      return operatorAttributes;
+    case "user":
+    case "gallera":
+    case "venue":
+      return authenticatedAttributes;
+    default:
+      return publicAttributes;
+  }
+}
+
 const router = Router();
 
 // GET /api/events - Listar eventos con filtros
@@ -40,21 +81,11 @@ router.get(
     }
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     // Público: atributos mínimos; Privilegiados: todo
-    const publicListAttributes = [
-      "id",
-      "name",
-      "venueId",
-      "scheduledDate",
-      "endDate",
-      "status",
-      "createdAt",
-      "updatedAt",
-    ];
-    const listAttributes = isPrivileged ? undefined : publicListAttributes;
+    const attributes = getEventAttributes(req.user?.role, "list");
 
     const events = await Event.findAndCountAll({
       where,
-      attributes: listAttributes,
+      attributes,
       include: [
         {
           model: Venue,
@@ -72,36 +103,10 @@ router.get(
       offset: parseInt(offset as string),
     });
 
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const isOperator = !!req.user && req.user.role === "operator";
-
     res.json({
       success: true,
       data: {
-        events: events.rows.map((e) => {
-          const ev: any = e.toPublicJSON();
-          const exposeStreamUrl = isAdmin || isOperator || ev.status === "in-progress";
-          if (!isPrivileged) {
-            // Devolver payload básico para público
-            return {
-              id: ev.id,
-              name: ev.name,
-              venueId: ev.venueId,
-              scheduledDate: ev.scheduledDate,
-              endDate: ev.endDate,
-              status: ev.status,
-              createdAt: ev.createdAt,
-              updatedAt: ev.updatedAt,
-              venue: ev.venue && { id: ev.venue.id, name: ev.venue.name, location: ev.venue.location },
-              streamUrl: exposeStreamUrl ? ev.streamUrl : null,
-            };
-          }
-          // Admin/Operator: payload completo
-          return {
-            ...ev,
-            streamUrl: exposeStreamUrl ? ev.streamUrl : null,
-          };
-        }),
+        events: events.rows.map((e) => e.toJSON({ attributes })),
         total: events.count,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
@@ -115,21 +120,10 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
-    const publicDetailAttributes = [
-      "id",
-      "name",
-      "venueId",
-      "scheduledDate",
-      "endDate",
-      "status",
-      "createdAt",
-      "updatedAt",
-    ];
-    const detailAttributes = isPrivileged ? undefined : publicDetailAttributes;
+    const attributes = getEventAttributes(req.user?.role, "detail");
 
     const event = await Event.findByPk(req.params.id, {
-      attributes: detailAttributes,
+      attributes,
       include: [
         { model: Venue, as: "venue" },
         { model: User, as: "operator", attributes: ["id", "username"] },
@@ -146,17 +140,9 @@ router.get(
       throw errors.notFound("Event not found");
     }
 
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const isOperator = !!req.user && req.user.role === "operator";
-    const data: any = event.toPublicJSON();
-    const exposeStreamUrl = isAdmin || isOperator || data.status === "in-progress";
-    if (!exposeStreamUrl) {
-      data.streamUrl = null;
-    }
-
     res.json({
       success: true,
-      data,
+      data: event.toJSON({ attributes }),
     });
   })
 );
@@ -242,7 +228,7 @@ router.post(
     res.status(201).json({
       success: true,
       message: "Event created successfully",
-      data: event.toPublicJSON(),
+      data: event.toJSON(),
     });
   })
 );
@@ -305,7 +291,7 @@ router.put(
     res.json({
       success: true,
       message: "Event updated successfully",
-      data: event.toPublicJSON(),
+      data: event.toJSON(),
     });
   })
 );
@@ -364,7 +350,7 @@ router.post(
       success: true,
       message: "Event activated successfully",
       data: {
-        event: event.toPublicJSON(),
+        event: event.toJSON(),
         streamKey: event.streamKey, // Solo para el operador
       },
     });
@@ -433,6 +419,7 @@ router.post(
       success: true,
       message: "Stream started successfully",
       data: {
+        event: event.toJSON(), // Return full event data
         streamKey: event.streamKey,
         streamUrl: event.streamUrl,
         rtmpUrl: `rtmp://${
@@ -481,6 +468,7 @@ router.post(
     res.json({
       success: true,
       message: "Stream stopped successfully",
+      data: event.toJSON(), // Return updated event data
     });
   })
 );
@@ -552,7 +540,7 @@ router.post(
     res.json({
       success: true,
       message: "Event completed successfully",
-      data: event.toPublicJSON(),
+      data: event.toJSON(),
     });
   })
 );
@@ -606,6 +594,7 @@ router.delete(
     res.json({
       success: true,
       message: "Event cancelled successfully",
+      data: event.toJSON(), // Return updated event data
     });
   })
 );

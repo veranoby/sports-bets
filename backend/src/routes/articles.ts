@@ -9,6 +9,43 @@ import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
 import { Op } from "sequelize";
 
+import { UserRole } from "../../../shared/types";
+
+function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail") {
+  const publicAttributes = [
+    "id",
+    "title",
+    "excerpt",
+    "category",
+    "status",
+    "published_at",
+    "author_id",
+    "featured_image",
+    "created_at",
+    "updated_at",
+  ];
+
+  const authenticatedAttributes = [
+    ...publicAttributes,
+    "content",
+    "tags",
+    "venue_id",
+    "view_count",
+  ];
+
+  switch (role) {
+    case "admin":
+    case "operator":
+      return undefined; // Return all attributes
+    case "user":
+    case "gallera":
+    case "venue":
+      return type === "list" ? publicAttributes : authenticatedAttributes;
+    default:
+      return publicAttributes;
+  }
+}
+
 const router = Router();
 
 // GET /api/articles - Listar artículos con sanitización por rol
@@ -56,20 +93,7 @@ router.get(
     const includeVenue = true;
 
     // Patrón attributes por rol: público ve campos mínimos
-    const publicListAttributes = [
-      "id",
-      "title",
-      "excerpt",
-      "category",
-      "status",
-      "published_at",
-      "author_id",
-      // Compatibilidad frontend (imagen y fechas)
-      "featured_image",
-      "created_at",
-      "updated_at",
-    ];
-    const attributes = isPrivileged ? undefined : publicListAttributes;
+    const attributes = getArticleAttributes(req.user?.role, "list");
 
     const { count, rows } = await Article.findAndCountAll({
       where: whereClause,
@@ -98,7 +122,7 @@ router.get(
       success: true,
       data: {
         // Lista: usar payload "lite"
-        articles: rows.map((article) => (article as any).toPublicSummary()),
+        articles: rows.map((article) => article.toJSON({ attributes })),
         total: count,
         totalPages: Math.ceil(count / limit),
         currentPage: page,
@@ -113,21 +137,21 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const includeAuthor = true;
-    const includeVenue = true;
+    const attributes = getArticleAttributes(req.user?.role, "detail");
     const article = await Article.findByPk(req.params.id, {
+      attributes,
       include: [
-        includeAuthor && {
+        {
           model: User,
           as: "author",
           attributes: ["id", "username"],
         },
-        includeVenue && {
+        {
           model: Venue,
           as: "venue",
           attributes: ["id", "name"],
         },
-      ].filter(Boolean),
+      ],
     });
 
     if (!article) {
@@ -144,7 +168,7 @@ router.get(
 
     res.json({
       success: true,
-      data: article.toPublicJSON(),
+      data: article.toJSON({ attributes }),
     });
   })
 );
@@ -195,7 +219,7 @@ router.post(
 
     res.status(201).json({
       success: true,
-      data: article.toPublicJSON(),
+      data: article.toJSON(),
     });
   })
 );
@@ -223,7 +247,7 @@ router.put(
 
     res.json({
       success: true,
-      data: article.toPublicJSON(),
+      data: article.toJSON(),
     });
   })
 );
@@ -248,7 +272,7 @@ router.put(
 
     res.json({
       success: true,
-      data: article.toPublicJSON(),
+      data: article.toJSON(),
     });
   })
 );

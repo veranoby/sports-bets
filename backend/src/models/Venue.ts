@@ -35,14 +35,34 @@ export class Venue extends Model<
   declare updatedAt: CreationOptional<Date>;
 
   // Asociaciones (declaradas pero no definidas aquí)
+  public readonly owner?: User;
   declare getOwner: BelongsToGetAssociationMixin<User>;
   declare setOwner: BelongsToSetAssociationMixin<User, number>;
   declare createOwner: BelongsToCreateAssociationMixin<User>;
 
   // Métodos de instancia
-  toPublicJSON() {
-    const { ownerId, ...publicData } = this.toJSON();
-    return publicData;
+  public toJSON(options?: { attributes?: string[] }) {
+    const data = this.get(); // Get raw data from model instance
+    const result: { [key: string]: any } = {};
+
+    // Include only requested attributes if specified
+    if (options?.attributes) {
+      for (const attr of options.attributes) {
+        if (data[attr] !== undefined) {
+          result[attr] = data[attr];
+        }
+      }
+    } else {
+      // If no specific attributes requested, return all direct attributes
+      Object.assign(result, data);
+    }
+
+    // Conditionally add associated data if loaded
+    if (this.owner) {
+      result.owner = this.owner.toJSON(); // Assuming User model also has toJSON
+    }
+
+    return result;
   }
 }
 

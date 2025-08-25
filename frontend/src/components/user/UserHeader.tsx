@@ -21,6 +21,7 @@ import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useSubscription } from "../../hooks/useSubscription";
+import SubscriptionStatus from "../subscription/SubscriptionStatus";
 
 const UserHeader = memo(() => {
   const location = useLocation();
@@ -186,14 +187,7 @@ const UserHeader = memo(() => {
             </button>
           )}
 
-          {subscription?.type && (
-            <div className="flex items-center gap-2 px-3 py-2 h-10 bg-theme-card border border-theme-primary rounded-lg">
-              <Crown className={`w-4 h-4 ${subscription.type === 'free' ? 'text-gray-400' : 'text-yellow-400'}`} />
-              <span className="text-sm font-semibold capitalize">
-                {subscription.type}
-              </span>
-            </div>
-          )}
+          <SubscriptionStatus subscription={subscription} />
 
           {/* ACTIVE BETS */}
           {isBettingEnabled && (

@@ -1,15 +1,4 @@
 "use strict";
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -34,9 +23,35 @@ class Event extends sequelize_1.Model {
     generateStreamKey() {
         return `event_${this.id}_${Date.now()}`;
     }
-    toPublicJSON() {
-        const _a = this.toJSON(), { streamKey } = _a, publicData = __rest(_a, ["streamKey"]);
-        return publicData;
+    toJSON(options) {
+        const data = this.get(); // Get raw data from model instance
+        const result = {};
+        // Include only requested attributes if specified
+        if (options === null || options === void 0 ? void 0 : options.attributes) {
+            for (const attr of options.attributes) {
+                if (data[attr] !== undefined) {
+                    result[attr] = data[attr];
+                }
+            }
+        }
+        else {
+            // If no specific attributes requested, return all direct attributes
+            Object.assign(result, data);
+        }
+        // Conditionally add associated data if loaded
+        if (this.venue) {
+            result.venue = this.venue.toJSON(); // Assuming Venue model also has toJSON
+        }
+        if (this.operator) {
+            result.operator = this.operator.toJSON(); // Assuming User model also has toJSON
+        }
+        if (this.creator) {
+            result.creator = this.creator.toJSON(); // Assuming User model also has toJSON
+        }
+        if (this.fights) {
+            result.fights = this.fights.map(fight => fight.toJSON()); // Assuming Fight model also has toJSON
+        }
+        return result;
     }
 }
 exports.Event = Event;

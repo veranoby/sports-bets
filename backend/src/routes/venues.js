@@ -14,14 +14,7 @@ const auth_1 = require("../middleware/auth");
 const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
-const router = (0, express_1.Router)();
-// GET /api/venues - Listar galleras
-router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { status, limit = 20, offset = 0 } = req.query;
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const where = {};
-    if (status)
-        where.status = status;
+function getVenueAttributes(role) {
     const publicAttributes = [
         "id",
         "name",
@@ -33,14 +26,30 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
         "createdAt",
         "updatedAt",
     ];
+    switch (role) {
+        case "admin":
+            return undefined; // Return all attributes
+        default:
+            return publicAttributes;
+    }
+}
+const router = (0, express_1.Router)();
+// GET /api/venues - Listar galleras
+router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { status, limit = 20, offset = 0 } = req.query;
+    const attributes = getVenueAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role);
+    const where = {};
+    if (status)
+        where.status = status;
     const { count, rows } = yield models_1.Venue.findAndCountAll({
         where,
-        attributes: isAdmin ? undefined : publicAttributes,
+        attributes,
         include: [
             {
                 model: models_1.User,
                 as: "owner",
-                attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
+                attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
             },
         ],
         order: [["createdAt", "DESC"]],
@@ -50,15 +59,7 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
     res.json({
         success: true,
         data: {
-            venues: rows.map((v) => {
-                const data = v.get({ plain: true });
-                if (!isAdmin) {
-                    // Asegurar que contactInfo no se exponga a público
-                    delete data.contactInfo;
-                    delete data.ownerId;
-                }
-                return data;
-            }),
+            venues: rows.map((v) => v.toJSON({ attributes })),
             total: count,
             limit: parseInt(limit),
             offset: parseInt(offset),
@@ -67,39 +68,24 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
 })));
 // GET /api/venues/:id - Obtener gallera específica
 router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const publicAttributes = [
-        "id",
-        "name",
-        "location",
-        "description",
-        "status",
-        "isVerified",
-        "images",
-        "createdAt",
-        "updatedAt",
-    ];
+    var _a;
+    const attributes = getVenueAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role);
     const venue = yield models_1.Venue.findByPk(req.params.id, {
-        attributes: isAdmin ? undefined : publicAttributes,
+        attributes,
         include: [
             {
                 model: models_1.User,
                 as: "owner",
-                attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
+                attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
             },
         ],
     });
     if (!venue) {
         throw errorHandler_1.errors.notFound("Venue not found");
     }
-    const data = venue.get({ plain: true });
-    if (!isAdmin) {
-        delete data.contactInfo;
-        delete data.ownerId;
-    }
     res.json({
         success: true,
-        data,
+        data: venue.toJSON({ attributes }),
     });
 })));
 // POST /api/venues - Crear nueva gallera (admin/venue)
@@ -171,7 +157,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "venue"), [
     res.status(201).json({
         success: true,
         message: "Venue created successfully",
-        data: venue.toPublicJSON(),
+        data: venue.toJSON(),
     });
 })));
 // PUT /api/venues/:id - Actualizar gallera
@@ -237,7 +223,7 @@ router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin", "venue"),
     res.json({
         success: true,
         message: "Venue updated successfully",
-        data: venue.toPublicJSON(),
+        data: venue.toJSON(),
     });
 })));
 // PUT /api/venues/:id/status - Cambiar estado de gallera (solo admin)
@@ -271,7 +257,7 @@ router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     res.json({
         success: true,
         message: `Venue status updated to ${status}`,
-        data: venue.toPublicJSON(),
+        data: venue.toJSON(),
     });
 })));
 // DELETE /api/venues/:id - Eliminar gallera (solo admin)
@@ -298,7 +284,7 @@ router.get("/my/venues", auth_1.authenticate, (0, auth_1.authorize)("venue", "ad
     });
     res.json({
         success: true,
-        data: venues.map((venue) => venue.toPublicJSON()),
+        data: venues.map((venue) => venue.toJSON()),
     });
 })));
 exports.default = router;

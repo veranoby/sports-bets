@@ -16,9 +16,45 @@ const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
 const redis_1 = require("../config/redis");
+function getEventAttributes(role, type) {
+    const publicAttributes = [
+        "id",
+        "name",
+        "scheduledDate",
+        "status",
+        "venueId",
+        "createdAt",
+        "updatedAt",
+        "endDate",
+    ];
+    const authenticatedAttributes = [
+        ...publicAttributes,
+        "totalFights",
+        "completedFights",
+    ];
+    const operatorAttributes = [
+        ...authenticatedAttributes,
+        "streamKey",
+        "streamUrl",
+        "operatorId",
+    ];
+    switch (role) {
+        case "admin":
+            return undefined; // Return all attributes
+        case "operator":
+            return operatorAttributes;
+        case "user":
+        case "gallera":
+        case "venue":
+            return authenticatedAttributes;
+        default:
+            return publicAttributes;
+    }
+}
 const router = (0, express_1.Router)();
 // GET /api/events - Listar eventos con filtros
 router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { venueId, status, upcoming, limit = 20, offset = 0 } = req.query;
     const where = {};
     if (venueId)
@@ -33,20 +69,10 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
     }
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     // Público: atributos mínimos; Privilegiados: todo
-    const publicListAttributes = [
-        "id",
-        "name",
-        "venueId",
-        "scheduledDate",
-        "endDate",
-        "status",
-        "createdAt",
-        "updatedAt",
-    ];
-    const listAttributes = isPrivileged ? undefined : publicListAttributes;
+    const attributes = getEventAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "list");
     const events = yield models_1.Event.findAndCountAll({
         where,
-        attributes: listAttributes,
+        attributes,
         include: [
             {
                 model: models_1.Venue,
@@ -63,32 +89,10 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
         limit: parseInt(limit),
         offset: parseInt(offset),
     });
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const isOperator = !!req.user && req.user.role === "operator";
     res.json({
         success: true,
         data: {
-            events: events.rows.map((e) => {
-                const ev = e.toPublicJSON();
-                const exposeStreamUrl = isAdmin || isOperator || ev.status === "in-progress";
-                if (!isPrivileged) {
-                    // Devolver payload básico para público
-                    return {
-                        id: ev.id,
-                        name: ev.name,
-                        venueId: ev.venueId,
-                        scheduledDate: ev.scheduledDate,
-                        endDate: ev.endDate,
-                        status: ev.status,
-                        createdAt: ev.createdAt,
-                        updatedAt: ev.updatedAt,
-                        venue: ev.venue && { id: ev.venue.id, name: ev.venue.name, location: ev.venue.location },
-                        streamUrl: exposeStreamUrl ? ev.streamUrl : null,
-                    };
-                }
-                // Admin/Operator: payload completo
-                return Object.assign(Object.assign({}, ev), { streamUrl: exposeStreamUrl ? ev.streamUrl : null });
-            }),
+            events: events.rows.map((e) => e.toJSON({ attributes })),
             total: events.count,
             limit: parseInt(limit),
             offset: parseInt(offset),
@@ -97,20 +101,10 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
 })));
 // GET /api/events/:id - Obtener evento específico
 router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
-    const publicDetailAttributes = [
-        "id",
-        "name",
-        "venueId",
-        "scheduledDate",
-        "endDate",
-        "status",
-        "createdAt",
-        "updatedAt",
-    ];
-    const detailAttributes = isPrivileged ? undefined : publicDetailAttributes;
+    var _a;
+    const attributes = getEventAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "detail");
     const event = yield models_1.Event.findByPk(req.params.id, {
-        attributes: detailAttributes,
+        attributes,
         include: [
             { model: models_1.Venue, as: "venue" },
             { model: models_1.User, as: "operator", attributes: ["id", "username"] },
@@ -125,16 +119,9 @@ router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, r
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
-    const isAdmin = !!req.user && req.user.role === "admin";
-    const isOperator = !!req.user && req.user.role === "operator";
-    const data = event.toPublicJSON();
-    const exposeStreamUrl = isAdmin || isOperator || data.status === "in-progress";
-    if (!exposeStreamUrl) {
-        data.streamUrl = null;
-    }
     res.json({
         success: true,
-        data,
+        data: event.toJSON({ attributes }),
     });
 })));
 // POST /api/events - Crear nuevo evento (admin/venue)
@@ -204,7 +191,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "venue"), [
     res.status(201).json({
         success: true,
         message: "Event created successfully",
-        data: event.toPublicJSON(),
+        data: event.toJSON(),
     });
 })));
 // PUT /api/events/:id - Actualizar evento
@@ -253,7 +240,7 @@ router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator
     res.json({
         success: true,
         message: "Event updated successfully",
-        data: event.toPublicJSON(),
+        data: event.toJSON(),
     });
 })));
 // POST /api/events/:id/activate - Activar evento para transmisión
@@ -299,7 +286,7 @@ router.post("/:id/activate", auth_1.authenticate, (0, auth_1.authorize)("admin",
         success: true,
         message: "Event activated successfully",
         data: {
-            event: event.toPublicJSON(),
+            event: event.toJSON(),
             streamKey: event.streamKey, // Solo para el operador
         },
     });
@@ -353,6 +340,7 @@ router.post("/:id/stream/start", auth_1.authenticate, (0, auth_1.authorize)("ope
         success: true,
         message: "Stream started successfully",
         data: {
+            event: event.toJSON(), // Return full event data
             streamKey: event.streamKey,
             streamUrl: event.streamUrl,
             rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`,
@@ -387,6 +375,7 @@ router.post("/:id/stream/stop", auth_1.authenticate, (0, auth_1.authorize)("oper
     res.json({
         success: true,
         message: "Stream stopped successfully",
+        data: event.toJSON(), // Return updated event data
     });
 })));
 // GET /api/events/:id/stream/status - Obtener estado del stream
@@ -438,7 +427,7 @@ router.post("/:id/complete", auth_1.authenticate, (0, auth_1.authorize)("admin",
     res.json({
         success: true,
         message: "Event completed successfully",
-        data: event.toPublicJSON(),
+        data: event.toJSON(),
     });
 })));
 // GET /api/events/:id/stats - Obtener estadísticas del evento
@@ -475,6 +464,7 @@ router.delete("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, e
     res.json({
         success: true,
         message: "Event cancelled successfully",
+        data: event.toJSON(), // Return updated event data
     });
 })));
 // Invalidar cache en cambios de estado

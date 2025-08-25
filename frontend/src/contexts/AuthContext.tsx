@@ -6,12 +6,23 @@ import React, {
   useContext,
   useState,
   useEffect,
-  ReactNode,
+  type ReactNode,
   useCallback,
   useRef,
 } from "react";
-import { authAPI } from "../config/api";
-import type { APIResponse, User } from "../types";
+import { authAPI, usersAPI } from "../config/api";
+import type { User } from "../types";
+
+// Tipos locales para respuestas del backend
+interface ProfileResponseData {
+  user: User;
+  wallet: unknown;
+  subscription?: User["subscription"];
+}
+interface ProfileResponse {
+  success: boolean;
+  data: ProfileResponseData;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -61,9 +72,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (savedToken && !isOperatingRef.current) {
         try {
           setIsLoading(true);
-          const response: APIResponse<{ user: User; wallet: any }> =
-            await authAPI.me();
-          setUser(response.data.user);
+          // Usar perfil unificado que incluye subscription
+          const response = (await usersAPI.getProfile()) as unknown as ProfileResponse;
+          const u = response.data.user as User;
+          setUser({ ...u, subscription: response.data.subscription });
           setToken(savedToken);
         } catch (error) {
           console.error("Error loading user:", error);
@@ -89,24 +101,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 🔧 MEJORA: No setear isLoading inmediatamente para evitar re-renders
         // que puedan interfierir con el manejo de errores en el componente
 
-        const response: APIResponse<{ user: User; token: string }> =
-          await authAPI.login(credentials);
+        const response = (await authAPI.login(credentials)) as unknown as {
+          success: boolean;
+          data: { user: User; token: string };
+        };
 
-        const { user: userData, token: authToken } = response.data;
+        const { token: authToken } = response.data;
 
-        // Solo actualizar estado si la operación fue exitosa
-        setUser(userData);
+        // Guardar token y luego cargar perfil unificado (incluye subscription)
         setToken(authToken);
         localStorage.setItem("token", authToken);
-      } catch (error: any) {
+
+        try {
+          const me = (await usersAPI.getProfile()) as unknown as ProfileResponse;
+          const u = me.data.user as User;
+          setUser({ ...u, subscription: me.data.subscription });
+        } catch {
+          // Si falla el fetch del perfil, al menos mantener usuario básico del login
+          setUser(response.data.user);
+        }
+      } catch (error: unknown) {
         console.error("Login error:", error);
 
         // 🔧 MEJORA: Propagar error original sin modificar
         // para que el componente pueda manejarlo apropiadamente
         const originalError =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Error al iniciar sesión";
+          error instanceof Error ? error.message : "Error al iniciar sesión";
 
         throw new Error(originalError);
       } finally {
@@ -123,21 +143,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isOperatingRef.current = true;
 
       try {
-        const response: APIResponse<{ user: User; token: string }> =
-          await authAPI.register(userData);
+        const response = (await authAPI.register(userData)) as unknown as {
+          success: boolean;
+          data: { user: User; token: string };
+        };
 
-        const { user: newUser, token: authToken } = response.data;
+        const { token: authToken } = response.data;
 
-        setUser(newUser);
         setToken(authToken);
         localStorage.setItem("token", authToken);
-      } catch (error: any) {
+
+        try {
+          const me = (await usersAPI.getProfile()) as unknown as ProfileResponse;
+          const u = me.data.user as User;
+          setUser({ ...u, subscription: me.data.subscription });
+        } catch {
+          // fallback a user devuelto por register
+          setUser(response.data.user);
+        }
+      } catch (error: unknown) {
         console.error("Register error:", error);
 
         const originalError =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Error al registrarse";
+          error instanceof Error ? error.message : "Error al registrarse";
 
         throw new Error(originalError);
       } finally {
@@ -160,9 +188,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!token || isOperatingRef.current) return;
 
     try {
-      const response: APIResponse<{ user: User; wallet: any }> =
-        await authAPI.me();
-      setUser(response.data.user);
+      const response = (await usersAPI.getProfile()) as unknown as ProfileResponse;
+      const u = response.data.user as User;
+      setUser({ ...u, subscription: response.data.subscription });
     } catch (error) {
       console.error("Error refreshing user:", error);
       logout();

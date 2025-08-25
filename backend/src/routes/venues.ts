@@ -4,6 +4,29 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Venue, User } from "../models";
 import { body, validationResult } from "express-validator";
 
+import { UserRole } from "../../../shared/types";
+
+function getVenueAttributes(role: UserRole | undefined) {
+  const publicAttributes = [
+    "id",
+    "name",
+    "location",
+    "description",
+    "status",
+    "isVerified",
+    "images",
+    "createdAt",
+    "updatedAt",
+  ];
+
+  switch (role) {
+    case "admin":
+      return undefined; // Return all attributes
+    default:
+      return publicAttributes;
+  }
+}
+
 const router = Router();
 
 // GET /api/venues - Listar galleras
@@ -13,31 +36,19 @@ router.get(
   asyncHandler(async (req, res) => {
     const { status, limit = 20, offset = 0 } = req.query as any;
 
-    const isAdmin = !!req.user && req.user.role === "admin";
+    const attributes = getVenueAttributes(req.user?.role);
 
     const where: any = {};
     if (status) where.status = status;
 
-    const publicAttributes = [
-      "id",
-      "name",
-      "location",
-      "description",
-      "status",
-      "isVerified",
-      "images",
-      "createdAt",
-      "updatedAt",
-    ];
-
     const { count, rows } = await Venue.findAndCountAll({
       where,
-      attributes: isAdmin ? undefined : publicAttributes,
+      attributes,
       include: [
         {
           model: User,
           as: "owner",
-          attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
+          attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -48,15 +59,7 @@ router.get(
     res.json({
       success: true,
       data: {
-        venues: rows.map((v) => {
-          const data = v.get({ plain: true }) as any;
-          if (!isAdmin) {
-            // Asegurar que contactInfo no se exponga a público
-            delete data.contactInfo;
-            delete data.ownerId;
-          }
-          return data;
-        }),
+        venues: rows.map((v) => v.toJSON({ attributes })),
         total: count,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
@@ -70,27 +73,15 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const isAdmin = !!req.user && req.user.role === "admin";
-
-    const publicAttributes = [
-      "id",
-      "name",
-      "location",
-      "description",
-      "status",
-      "isVerified",
-      "images",
-      "createdAt",
-      "updatedAt",
-    ];
+    const attributes = getVenueAttributes(req.user?.role);
 
     const venue = await Venue.findByPk(req.params.id, {
-      attributes: isAdmin ? undefined : publicAttributes,
+      attributes,
       include: [
         {
           model: User,
           as: "owner",
-          attributes: isAdmin ? ["id", "username", "email"] : ["id", "username"],
+          attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
         },
       ],
     });
@@ -99,15 +90,9 @@ router.get(
       throw errors.notFound("Venue not found");
     }
 
-    const data = venue.get({ plain: true }) as any;
-    if (!isAdmin) {
-      delete data.contactInfo;
-      delete data.ownerId;
-    }
-
     res.json({
       success: true,
-      data,
+      data: venue.toJSON({ attributes }),
     });
   })
 );
@@ -193,7 +178,7 @@ router.post(
     res.status(201).json({
       success: true,
       message: "Venue created successfully",
-      data: venue.toPublicJSON(),
+      data: venue.toJSON(),
     });
   })
 );
@@ -275,7 +260,7 @@ router.put(
     res.json({
       success: true,
       message: "Venue updated successfully",
-      data: venue.toPublicJSON(),
+      data: venue.toJSON(),
     });
   })
 );
@@ -325,7 +310,7 @@ router.put(
     res.json({
       success: true,
       message: `Venue status updated to ${status}`,
-      data: venue.toPublicJSON(),
+      data: venue.toJSON(),
     });
   })
 );
@@ -370,7 +355,7 @@ router.get(
 
     res.json({
       success: true,
-      data: venues.map((venue) => venue.toPublicJSON()),
+      data: venues.map((venue) => venue.toJSON()),
     });
   })
 );

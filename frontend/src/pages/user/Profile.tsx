@@ -22,12 +22,15 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
+import { useSubscription } from "../../hooks/useSubscription"; // Added
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
+import SubscriptionStatus from "../../components/subscription/SubscriptionStatus"; // Added
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
   const { bets } = useBets();
+  const { subscription } = useSubscription();
   const { updateProfile } = useUsers();
   const { changePassword } = useAuthOperations();
   const navigate = useNavigate();
@@ -399,7 +402,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* ✅ ADDED: SUBSCRIPTION SECTION */}
+        {/* SUBSCRIPTION SECTION */}
         <div className="bg-indigo-300 rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Suscripción</h2>
@@ -408,7 +411,8 @@ const Profile: React.FC = () => {
             <div className="flex items-center justify-between p-4 bg-theme-main rounded-lg border border-theme-primary">
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-[#596c95]" />
-                <span className="text-theme-text-primary">Plan actual</span>
+                <span className="text-theme-text-primary">Plan actual:</span>
+                <SubscriptionStatus subscription={subscription} />
               </div>
               <button
                 onClick={() => navigate("/subscriptions")}
@@ -417,6 +421,18 @@ const Profile: React.FC = () => {
                 Gestionar Plan
               </button>
             </div>
+            {subscription && subscription.type !== 'free' && (
+              <div className="p-4 bg-theme-main rounded-lg border border-theme-primary text-sm text-theme-text-secondary">
+                <p>Tipo: <span className="font-medium capitalize">{subscription.type}</span></p>
+                <p>Estado: <span className="font-medium capitalize">{subscription.status}</span></p>
+                {subscription.expiresAt && (
+                  <p>Expira: <span className="font-medium">{new Date(subscription.expiresAt).toLocaleDateString()}</span></p>
+                )}
+                {subscription.features && subscription.features.length > 0 && (
+                  <p>Características: <span className="font-medium">{subscription.features.join(', ')}</span></p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
