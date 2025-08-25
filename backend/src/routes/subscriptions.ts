@@ -516,7 +516,7 @@ router.get(
       
       res.json({
         success: true,
-        data: plans
+        data: Array.isArray(plans) ? plans : [plans]
       });
     } catch (error: any) {
       console.error('Failed to get subscription plans:', error);
@@ -537,7 +537,7 @@ router.get(
       
       res.json({
         success: true,
-        data: plans
+        data: Array.isArray(plans) ? plans : [plans]
       });
     } catch (error: any) {
       console.error('Failed to get subscription plans:', error);

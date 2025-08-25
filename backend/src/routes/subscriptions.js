@@ -454,7 +454,7 @@ router.get('/plans/info', (0, errorHandler_1.asyncHandler)((req, res) => __await
         const plans = paymentService_1.paymentService.getSubscriptionPlans();
         res.json({
             success: true,
-            data: plans
+            data: Array.isArray(plans) ? plans : [plans]
         });
     }
     catch (error) {
@@ -471,7 +471,7 @@ router.get('/plans', (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(vo
         const plans = paymentService_1.paymentService.getSubscriptionPlans();
         res.json({
             success: true,
-            data: plans
+            data: Array.isArray(plans) ? plans : [plans]
         });
     }
     catch (error) {

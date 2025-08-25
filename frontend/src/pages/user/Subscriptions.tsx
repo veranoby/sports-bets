@@ -101,6 +101,8 @@ const SubscriptionsPage: React.FC = () => {
     return <LoadingSpinner text="Cargando información de suscripciones..." />;
   }
 
+  const plansArray = Array.isArray(plans) ? plans : (plans as any)?.data || [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -191,7 +193,7 @@ const SubscriptionsPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {plans.map((plan) => (
+          {plansArray.map((plan) => (
             <div
               key={plan.id}
               className={`relative border rounded-lg p-6 cursor-pointer transition-all ${

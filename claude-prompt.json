@@ -1,153 +1,230 @@
 {
-  "project": "GalloBets FINAL FIX - Mapeo Correcto Modelos-DB",
-  "version": "7.0-FINAL",
-  "problem": "Modelos Sequelize buscan camelCase pero DB usa snake_case",
-  "os": "Windows con PowerShell",
-
-  "CRITICAL_INFO": {
-    "database_location": "backend/database-analysis/CURRENT_TABLES.json",
-    "articles_has": "venue_id, author_id, featured_image (NO featuredImage)",
-    "notifications_has": "is_read AND status (BOTH columns exist)",
-    "transactions_has": "wallet_id (NO direct user_id)"
+  "project": "GalloBets Fix V10 - Gemini CLI Optimized",
+  "version": "10.0.0",
+  "date": "2025-08-25",
+  "tool": "Gemini CLI",
+  "os": "Windows PowerShell",
+  
+  "context": {
+    "database": {
+      "provider": "Neon Tech PostgreSQL",
+      "schema_location": "backend/database-analysis/CURRENT_TABLES.json",
+      "naming": "snake_case (user_id, venue_id, is_read)",
+      "critical_tables": {
+        "articles": "has venue_id (uuid)",
+        "notifications": "has BOTH is_read (boolean) AND status (varchar)",
+        "venues": "physical locations for cockfights",
+        "galleras": "NOT a table - just users with role='gallera' who write articles"
+      }
+    },
+    "backend": {
+      "framework": "Express + Sequelize",
+      "models_location": "backend/src/models/",
+      "routes_location": "backend/src/routes/",
+      "issue": "Models use camelCase but DB uses snake_case"
+    },
+    "frontend": {
+      "framework": "React + TypeScript + Vite",
+      "api_config": "frontend/src/config/api.ts",
+      "pages": "frontend/src/pages/"
+    }
   },
 
-  "phase_1_article_fix": {
-    "file": "backend/src/models/Article.ts",
-    "line": "aproximadamente línea 35-40",
-    "find_this_block": "author_id: string;",
-    "replace_entire_block_with": [
-      "author_id: {",
-      "  type: DataTypes.UUID,",
-      "  allowNull: false,",
-      "  field: 'author_id'",
-      "},",
-      "venue_id: {",
-      "  type: DataTypes.UUID,",
-      "  allowNull: true,",
-      "  field: 'venue_id'",
-      "},",
-      "featured_image: {",
-      "  type: DataTypes.STRING(500),",
-      "  allowNull: true,",
-      "  field: 'featured_image'",
-      "}"
+  "requirements": {
+    "purpose": "Fix model-DB mapping discrepancies and conceptual confusion",
+    "success_criteria": [
+      "Articles load without venue_id errors",
+      "Notifications work with is_read field",
+      "Venues and Galleras are properly separated",
+      "Subscriptions page loads without crash",
+      "All API validations pass"
+    ]
+  },
+
+  "phase_1_model_synchronization": {
+    "milestone": "Ensure all models map correctly to DB",
+    "estimated_time": "15 minutes",
+    
+    "task_1_1": {
+      "file": "backend/src/models/Article.ts",
+      "line": 92,
+      "action": "Add underscored configuration",
+      "current_code": "{\n    sequelize,\n    modelName: \"Article\",\n    tableName: \"articles\",\n    timestamps: true,\n    createdAt: \"created_at\",\n    updatedAt: \"updated_at\",\n  }",
+      "replace_with": "{\n    sequelize,\n    modelName: \"Article\",\n    tableName: \"articles\",\n    timestamps: true,\n    underscored: true,\n    createdAt: \"created_at\",\n    updatedAt: \"updated_at\",\n  }",
+      "test": "const article = await Article.findOne(); console.log(article.venue_id); // Should work"
+    },
+
+    "task_1_2": {
+      "file": "backend/src/models/Subscription.ts",
+      "line": 85,
+      "action": "Add underscored: true",
+      "add_to_init": "underscored: true,",
+      "test": "const sub = await Subscription.findOne(); console.log(sub.user_id); // Should map"
+    }
+  },
+
+  "phase_2_api_validations": {
+    "milestone": "Fix API parameter validations",
+    "estimated_time": "10 minutes",
+    
+    "task_2_1": {
+      "file": "backend/src/routes/articles.ts",
+      "find": "router.get('/',",
+      "check_validations": [
+        "query('page').optional().isInt()",
+        "query('limit').optional().isInt()",
+        "query('status').optional().isIn(['draft','published','archived'])",
+        "query('venueId').optional().isUUID()",
+        "query('search').optional().isString()"
+      ],
+      "fix_if_missing": "Add proper express-validator checks"
+    },
+
+    "task_2_2": {
+      "file": "backend/src/routes/subscriptions.ts",
+      "find": "router.get('/plans',",
+      "ensure_returns": "res.json({ success: true, data: Array.isArray(plans) ? plans : [plans] })",
+      "explanation": "Frontend expects array, not object"
+    }
+  },
+
+  "phase_3_venues_galleras_separation": {
+    "milestone": "Separate Venues (locations) from Galleras (breeders)",
+    "estimated_time": "25 minutes",
+    
+    "conceptual_clarification": {
+      "venues": "Physical cockfighting arenas/locations",
+      "galleras": "Breeding institutions - NOT venues but organizations",
+      "database_reality": "Galleras are NOT a separate table, just articles by users with role='gallera'"
+    },
+
+    "task_3_1": {
+      "create_file": "frontend/src/pages/user/Galleras.tsx",
+      "purpose": "Show breeding institutions (articles from gallera users)",
+      "template": "import React from 'react';\nimport { articlesAPI } from '../../config/api';\n\nconst GallerasPage = () => {\n  // Fetch articles where author.role = 'gallera'\n  // Display as institution profiles\n  return (\n    <div>\n      <h1>Instituciones Criadoras</h1>\n      {/* List gallera articles as institution profiles */}\n    </div>\n  );\n};\n\nexport default GallerasPage;",
+      "api_call": "articlesAPI.getAll({ authorRole: 'gallera' })"
+    },
+
+    "task_3_2": {
+      "file": "frontend/src/components/user/Navigation.tsx",
+      "find": "items array",
+      "ensure_has": [
+        "{ path: '/venues', label: 'Venues', icon: Building2 }",
+        "{ path: '/galleras', label: 'Criadores', icon: Shield }"
+      ]
+    },
+
+    "task_3_3": {
+      "file": "frontend/src/App.tsx",
+      "add_routes": [
+        "<Route path=\"/galleras\" element={<GallerasPage />} />",
+        "<Route path=\"/venues\" element={<VenuesPage />} />"
+      ]
+    }
+  },
+
+  "phase_4_subscriptions_fix": {
+    "milestone": "Fix subscriptions page crash",
+    "estimated_time": "10 minutes",
+    
+    "task_4_1": {
+      "file": "frontend/src/pages/user/Subscriptions.tsx",
+      "line": "approximately 194",
+      "find": "plans.map",
+      "replace_with": "Array.isArray(plans) ? plans.map : [plans].map",
+      "or_better": "const plansArray = Array.isArray(plans) ? plans : plans?.data || [];\nplansArray.map(...)"
+    }
+  },
+
+  "phase_5_testing": {
+    "milestone": "Validate all fixes",
+    "estimated_time": "10 minutes",
+    
+    "backend_tests": [
+      {
+        "test_name": "Articles with venue_id",
+        "command": "curl http://localhost:3001/api/articles?status=published",
+        "expected": "200 OK with articles data"
+      },
+      {
+        "test_name": "Notifications with is_read",
+        "command": "curl http://localhost:3001/api/notifications",
+        "expected": "Notifications with isRead field"
+      }
     ],
-    "also_fix_class_properties": [
-      "public author_id!: string;",
-      "public venue_id?: string;",
-      "public featured_image?: string;"
+    
+    "frontend_tests": [
+      {
+        "test_name": "News page loads",
+        "navigate_to": "/news",
+        "expected": "No 500 errors in console"
+      },
+      {
+        "test_name": "Subscriptions page",
+        "navigate_to": "/subscriptions",
+        "expected": "No 'plans.map is not a function' error"
+      },
+      {
+        "test_name": "Venues vs Galleras",
+        "check": "Two separate navigation items",
+        "venues_shows": "Physical locations",
+        "galleras_shows": "Breeding institutions"
+      }
     ]
   },
 
-  "phase_2_notification_fix": {
-    "file": "backend/src/models/Notification.ts",
-    "critical": "DB has BOTH is_read AND status columns",
-    "find_block": "type: 'info' | 'warning'",
-    "add_after_type": [
-      "isRead: {",
-      "  type: DataTypes.BOOLEAN,",
-      "  defaultValue: false,",
-      "  field: 'is_read'",
-      "},",
-      "status: {",
-      "  type: DataTypes.STRING(10),",
-      "  defaultValue: 'unread',",
-      "  field: 'status'",
-      "}"
+  "conventions": {
+    "backend": {
+      "models": "Use underscored: true for ALL models",
+      "field_mapping": "Use field: 'snake_case_name' for explicit mapping",
+      "associations": "Define in models/index.ts, not in individual models"
+    },
+    "frontend": {
+      "api_responses": "Always check Array.isArray() before .map()",
+      "error_handling": "Wrap all API calls in try-catch",
+      "navigation": "Use react-router-dom for routing"
+    }
+  },
+
+  "inputs_outputs": {
+    "inputs": [
+      "Database schema in snake_case from backend/database-analysis/",
+      "User actions in frontend triggering API calls",
+      "Role-based permissions (admin, user, venue, gallera)"
     ],
-    "in_class_declaration": [
-      "declare isRead: boolean;",
-      "declare status: string;"
+    "outputs": [
+      "Properly mapped Sequelize models",
+      "Valid API responses without 500 errors",
+      "Separated Venues and Galleras sections",
+      "Working subscriptions page"
     ]
   },
 
-  "phase_3_transaction_fix": {
-    "file": "backend/src/models/index.ts",
-    "find_line": "Transaction.belongsTo(User",
-    "action": "DELETE this line completely",
-    "explanation": "Transactions link to Wallets, not Users directly",
-
-    "file2": "backend/src/routes/wallet.ts",
-    "find": "include: [{ model: User",
-    "replace": "include: [{ model: Wallet, as: 'wallet', include: [{ model: User, as: 'user' }] }]"
-  },
-
-  "phase_4_api_fixes": {
-    "file": "backend/src/routes/articles.ts",
-    "find": "includeVenue && Venue",
-    "ensure_association": [
-      "include: [",
-      "  includeAuthor && { model: User, as: 'author', attributes: ['id', 'username'] },",
-      "  includeVenue && { model: Venue, as: 'venue', attributes: ['id', 'name'] }",
-      "].filter(Boolean)"
+  "restrictions": {
+    "do_not": [
+      "Change database column names",
+      "Use raw SQL queries",
+      "Modify authentication logic",
+      "Remove existing functionality"
+    ],
+    "must": [
+      "Preserve all existing features",
+      "Maintain backwards compatibility",
+      "Follow TypeScript types",
+      "Handle null/undefined values"
     ]
   },
 
-  "phase_5_filter_fixes": {
-    "file": "frontend/src/components/admin/UserManagementTable.tsx",
-    "find": "<option value=\"user\">Usuario</option>",
-    "add_after": "<option value=\"gallera\">Gallera</option>",
+  "execution_order": [
+    "Phase 1: Fix model mappings (CRITICAL)",
+    "Phase 2: Fix API validations",
+    "Phase 3: Separate Venues/Galleras",
+    "Phase 4: Fix subscriptions",
+    "Phase 5: Test everything"
+  ],
 
-    "clarification": "venues != galleras",
-    "venues": "Physical cockfighting arenas",
-    "galleras": "Users with article writing permissions"
-  },
-
-  "phase_6_service_worker": {
-    "file": "frontend/public/sw.js",
-    "wrap_all_fetch": [
-      "self.addEventListener('fetch', (event) => {",
-      "  event.respondWith(",
-      "    (async () => {",
-      "      try {",
-      "        // existing fetch code",
-      "        return await fetch(event.request);",
-      "      } catch (error) {",
-      "        console.error('SW fetch error:', error);",
-      "        return new Response('Network error', { status: 503 });",
-      "      }",
-      "    })()",
-      "  );",
-      "});"
-    ]
-  },
-
-  "phase_7_login_error_handling": {
-    "file": "frontend/src/pages/LoginPage.tsx",
-    "find": "const handleSubmit",
-    "ensure_has": [
-      "try {",
-      "  const response = await authAPI.login(formData);",
-      "  // success logic",
-      "} catch (error: any) {",
-      "  console.error('Login error:', error);",
-      "  if (error.response?.status === 404) {",
-      "    setError('Usuario no encontrado');",
-      "  } else if (error.response?.status === 401) {",
-      "    setError('Contraseña incorrecta');",
-      "  } else {",
-      "    setError('Error de conexión');",
-      "  }",
-      "}"
-    ]
-  },
-
-  "test_commands_windows": {
-    "backend": ["cd backend", "npm run dev"],
-    "frontend": ["cd frontend", "npm run dev"],
-    "verify_db": [
-      "psql -h <neon-host> -U <user> -d <database>",
-      "\\d articles",
-      "\\d notifications"
-    ]
-  },
-
-  "validation_checklist": [
-    "[ ] Article loads without venue_id error",
-    "[ ] Notifications work with is_read",
-    "[ ] Transactions show through wallet",
-    "[ ] User filter shows gallera option",
-    "[ ] Login errors don't crash",
-    "[ ] Service worker doesn't interrupt"
-  ]
+  "rollback_plan": {
+    "if_errors": "git stash or git checkout -- .",
+    "backup": "Create backup branch: git checkout -b backup-v9"
+  }
 }

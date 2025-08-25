@@ -8,7 +8,8 @@ import {
   Calendar,
   User,
   Newspaper,
-  Users as UsersIcon,
+  Building2,
+  Shield,
 } from "lucide-react";
 
 const Navigation: React.FC<{ currentPage?: string }> = () => {
@@ -22,6 +23,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
     if (location.pathname.startsWith("/profile")) return "profile";
     if (location.pathname.startsWith("/news")) return "news";
     if (location.pathname.startsWith("/venues")) return "venues";
+    if (location.pathname.startsWith("/galleras")) return "galleras";
     return "home";
   };
 
@@ -51,10 +53,17 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
     },
     {
       id: "venues",
-      icon: UsersIcon,
-      label: "Galleras",
+      icon: Building2,
+      label: "Venues",
       path: "/venues",
       gradient: "from-orange-500 to-orange-600",
+    },
+    {
+      id: "galleras",
+      icon: Shield,
+      label: "Criadores",
+      path: "/galleras",
+      gradient: "from-teal-500 to-teal-600",
     },
     {
       id: "profile",
