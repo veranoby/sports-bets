@@ -14,8 +14,7 @@ import { WebSocketProvider } from "./contexts/WebSocketContext";
 import UserLayout from "./components/layouts/UserLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import OperatorLayout from "./components/layouts/OperatorLayout";
-import VenueLayout from "./components/layouts/VenueLayout";
-import GalleraLayout from "./components/layouts/GalleraLayout";
+
 
 // Componentes comunes
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,12 +60,7 @@ const OperatorDashboard = lazy(() => import("./pages/operator/Dashboard"));
 const OperatorEvents = lazy(() => import("./pages/operator/Events"));
 const OperatorStream = lazy(() => import("./pages/operator/Stream"));
 
-const VenueDashboard = lazy(() => import("./pages/venue/Dashboard"));
-const VenueEvents = lazy(() => import("./pages/venue/Events"));
-const VenueProfile = lazy(() => import("./pages/venue/Profile"));
 
-const GalleraDashboard = lazy(() => import("./pages/gallera/Dashboard"));
-const GalleraArticles = lazy(() => import("./pages/gallera/MyArticles"));
 
 // 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
@@ -86,9 +80,9 @@ const RoleBasedRedirect: React.FC = () => {
   const roleRoutes = {
     admin: "/admin",
     operator: "/operator",
-    venue: "/venue",
+    venue: "/dashboard", // Redirect venue to user dashboard
     user: "/dashboard",
-    gallera: "/gallera",
+    gallera: "/dashboard", // Redirect gallera to user dashboard
   };
 
   return <Navigate to={roleRoutes[user.role] || "/dashboard"} replace />;
@@ -114,10 +108,16 @@ const AppContent: React.FC = () => {
           }
         />
 
+        {/* REDIRECTS para unificación de roles */}
+        <Route path="/venue" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/venue/*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/gallera" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/gallera/*" element={<Navigate to="/dashboard" replace />} />
+
         {/* 🎯 RUTAS DE USUARIO - Mantener carga inmediata */}
         <Route
           element={
-            <ProtectedRoute requiredRole="user">
+            <ProtectedRoute requiredRole={["user", "venue", "gallera"]}>
               <UserLayout />
             </ProtectedRoute>
           }
@@ -279,65 +279,7 @@ const AppContent: React.FC = () => {
           />
         </Route>
 
-        {/* 🏛️ RUTAS DE VENUE - Con lazy loading */}
-        <Route
-          element={
-            <ProtectedRoute requiredRole="venue">
-              <VenueLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route
-            path="/venue"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <VenueDashboard />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/venue/events"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <VenueEvents />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/venue/profile"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <VenueProfile />
-              </Suspense>
-            }
-          />
-        </Route>
-
-        {/* 🐓 RUTAS DE GALLERA - Con lazy loading */}
-        <Route
-          element={
-            <ProtectedRoute requiredRole="gallera">
-              <GalleraLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route
-            path="/gallera"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <GalleraDashboard />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/gallera/articles"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <GalleraArticles />
-              </Suspense>
-            }
-          />
-        </Route>
+        
 
         {/* 🛠️ DEBUG TESTING PAGE (solo desarrollo) */}
         <Route

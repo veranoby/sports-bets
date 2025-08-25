@@ -23,7 +23,10 @@ const ROLE_ROUTES: Record<string, Record<string, string>> = {
     "/profile": "Perfil",
     "/subscriptions": "Suscripciones",
     "/news": "Noticias",
-    "/venues": "Galleras"
+    "/venues": "Galleras",
+    // New paths for unified dashboard
+    "/dashboard/my-venues": "Mis Galleras", // For venue role
+    "/dashboard/my-articles": "Mis Artículos", // For gallera role
   },
   admin: {
     "/admin": "Dashboard",
@@ -41,24 +44,14 @@ const ROLE_ROUTES: Record<string, Record<string, string>> = {
     "/operator/events": "Eventos",
     "/operator/stream": "Streaming"
   },
-  venue: {
-    "/venue": "Dashboard",
-    "/venue/events": "Mis Eventos",
-    "/venue/profile": "Perfil"
-  },
-  gallera: {
-    "/gallera": "Dashboard",
-    "/gallera/articles": "Mis Artículos",
-    "/gallera/profile": "Perfil"
-  }
 };
 
 const ROLE_HOME: Record<string, { path: string; label: string }> = {
   user: { path: "/dashboard", label: "Inicio" },
   admin: { path: "/admin", label: "Admin" },
   operator: { path: "/operator", label: "Operador" },
-  venue: { path: "/venue", label: "Mi Gallera" },
-  gallera: { path: "/gallera", label: "Panel Escritor" }
+  venue: { path: "/dashboard", label: "Inicio" }, // Redirect venue to user dashboard
+  gallera: { path: "/dashboard", label: "Inicio" } // Redirect gallera to user dashboard
 };
 
 const Breadcrumbs: React.FC = () => {

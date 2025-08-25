@@ -1,414 +1,314 @@
 {
   "project": {
-    "name": "Sistema de Suscripciones y Sanitización de Endpoints",
-    "version": "1.0.0",
-    "description": "Plan para corregir inconsistencias en suscripciones y aplicar sanitización de datos en endpoints públicos"
+    "name": "Unificación Entornos Venues/Galleras con Usuario",
+    "version": "2.0.0", 
+    "description": "Plan para unificar entornos usando usuario base + secciones específicas por rol"
   },
-  
-  "ai_configuration": {
-    "target_agents": ["gemini-cli", "claude-code"],
-    "mcps_required": [
-      "context7",
-      "github",
-      "filesystem", 
-      "database"
+
+  "current_status": {
+    "subscriptions_phase": "95% completado - SUB-002 y SUB-003 implementados en V15",
+    "venue_gallera_status": "Dashboards básicos existentes, requieren unificación",
+    "user_environment": "Completo y funcional - base perfecta para extensión"
+  },
+
+  "architecture_decision": {
+    "approach": "CONDITIONAL_SECTIONS",
+    "reasoning": [
+      "Entorno usuario ya tiene: wallet, bets, notifications, subscription management",
+      "Venues/Galleras necesitan SOLO: gestión de artículos + info específica",
+      "DRY principle: evitar duplicación de código funcional",
+      "Mantenibilidad: un solo codebase para todas las funcionalidades comunes"
     ],
-    "reasoning_approach": "test_driven_development",
-    "task_decomposition": "atomic_focused_tasks"
-  },
-
-  "architecture_context": {
-    "backend": {
-      "framework": "Node.js + Express + TypeScript",
-      "orm": "Sequelize with PostgreSQL (Neon Tech)",
-      "auth": "JWT with role-based permissions",
-      "structure": "MVC pattern with middleware layers"
-    },
-    "frontend": {
-      "framework": "React + TypeScript + Vite",
-      "state": "Context API + hooks",
-      "routing": "React Router",
-      "styling": "Tailwind CSS"
-    },
-    "database": {
-      "source_of_truth": "/backend/database-analysis/*.json",
-      "naming": "snake_case in DB, camelCase in models",
-      "relations": "Defined in models/index.ts"
+    "rejected_approach": {
+      "name": "FILE_DUPLICATION",
+      "reasons": ["Código duplicado", "Múltiples fuentes de verdad", "Mantenimiento complejo"]
     }
   },
 
-  "coding_conventions": {
-    "typescript": {
-      "strict_mode": true,
-      "explicit_return_types": "for public methods",
-      "naming": "camelCase for variables/methods, PascalCase for classes"
-    },
-    "error_handling": {
-      "backend": "asyncHandler wrapper + custom error classes",
-      "frontend": "try/catch with user-friendly messages"
-    },
-    "validation": {
-      "backend": "express-validator for inputs",
-      "frontend": "form validation with error states"
-    },
-    "testing": {
-      "backend": "Jest + Supertest for API tests",
-      "frontend": "React Testing Library + Jest"
-    }
+  "current_frontend_structure": {
+    "venue_specific_files": [
+      "frontend/src/pages/venue/Dashboard.tsx",
+      "frontend/src/pages/venue/Events.tsx", 
+      "frontend/src/pages/venue/Profile.tsx",
+      "frontend/src/components/layouts/VenueLayout.tsx"
+    ],
+    "gallera_specific_files": [
+      "frontend/src/pages/gallera/Dashboard.tsx",
+      "frontend/src/pages/gallera/MyArticles.tsx",
+      "frontend/src/components/layouts/GalleraLayout.tsx"
+    ],
+    "app_routes_to_modify": [
+      "Lazy imports: VenueDashboard, VenueEvents, VenueProfile",
+      "Lazy imports: GalleraDashboard, GalleraArticles", 
+      "Route definitions: /venue/*, /gallera/*",
+      "RoleBasedRedirect: venue → /venue, gallera → /gallera"
+    ],
+    "breadcrumbs_to_update": [
+      "ROLE_ROUTES.venue entries",
+      "ROLE_ROUTES.gallera entries",
+      "ROLE_HOME venue/gallera entries"
+    ]
   },
 
   "phases": [
     {
       "phase": 1,
-      "title": "Corrección Sistema Suscripciones (CRÍTICO)",
+      "title": "Unificación Dashboard Principal", 
       "priority": "HIGH",
-      "estimated_time": "2-3 horas restantes", 
-      "progress": "35% completado",
-      "commit_v14_summary": {
-        "completed": [
-          "✅ SUB-001: GET /users/profile incluye subscription (commit previo)",
-          "✅ User.getCurrentSubscription() método implementado (commit previo)", 
-          "✅ Rol 'gallera' agregado a frontend components",
-          "✅ SubscriptionManager.tsx componente nuevo",
-          "✅ Profile.tsx rediseñado completo",
-          "✅ SubscriptionGuard.tsx mejorado",
-          "✅ ProtectedRoute incluye gallera role"
-        ],
-        "not_completed": [
-          "❌ SUB-002: useSubscription hook AÚN usa subscriptionAPI en lugar de AuthContext",
-          "❌ SUB-003: Headers/Profile NO muestran subscription status correcto",
-          "❌ Database migration script NO aplicado"
-        ],
-        "critical_issue": "useSubscription.ts NO modificado - sigue causando inconsistencias"
-      },
+      "estimated_time": "3-4 horas",
       "tasks": [
         {
-          "id": "SUB-001",
-          "title": "✅ COMPLETADO - Unificar Respuesta Usuario con Suscripción",
-          "description": "✅ GET /api/users/profile ahora incluye información de suscripción activa",
-          "status": "COMPLETED",
-          "completion_notes": "Implementado en commit V12 con User.getCurrentSubscription() method",
-          "files_modified": [
-            "✅ backend/src/routes/users.ts - Endpoint profile incluye subscription",
-            "✅ backend/src/models/User.ts - Método getCurrentSubscription() agregado"
-          ],
-          "implemented_features": [
-            "✅ GET /api/users/profile devuelve { user, wallet, subscription }",
-            "✅ User.getCurrentSubscription() maneja lógica free/premium",
-            "✅ Formato normalizado: type free/daily/monthly",
-            "✅ Compatibilidad mantenida con frontend actual"
-          ],
-          "verification_needed": [
-            "🧪 Tests unitarios para User.getCurrentSubscription()",
-            "🧪 Tests integración para endpoint profile con subscription",
-            "🧪 Verificar casos edge: usuario sin subscription"
-          ]
-        },
-        {
-          "id": "SUB-001C",
-          "title": "✅ COMPLETADO PREVIAMENTE - Endpoints Admin Usuarios",
-          "description": "✅ Endpoints para gestión admin ya existían en commits anteriores",
-          "status": "COMPLETED", 
-          "completion_notes": "Endpoints ya estaban implementados antes de V14, no fueron agregados en V14",
-          "files_existing": [
-            "✅ backend/src/routes/users.ts - Endpoints activation/role preexistentes"
-          ],
-          "existing_features": [
-            "✅ PUT /api/users/:id/activation - Ya funcional",
-            "✅ PUT /api/users/:id/role - Ya funcional", 
-            "✅ GET /api/users/operators/available - Ya funcional",
-            "✅ Logs de auditoría - Ya implementados"
-          ]
-        }
-,
-        {
-          "id": "SUB-002", 
-          "title": "🔄 ACTUALIZADO - Corregir Hook useSubscription",
-          "description": "Usar datos de subscription desde AuthContext/profile en lugar de endpoint separado",
+          "id": "UNIFY-001",
+          "title": "Migrar Venues/Galleras a Entorno Usuario",
+          "description": "Redirigir rutas y consolidar en dashboard usuario unificado",
           "files_to_modify": [
-            "frontend/src/hooks/useSubscription.ts",
-            "frontend/src/contexts/AuthContext.tsx"
+            "frontend/src/App.tsx",
+            "frontend/src/pages/user/Dashboard.tsx", 
+            "frontend/src/components/shared/Breadcrumbs.tsx"
           ],
-          "purpose": "Eliminar inconsistencias usando datos unificados de /api/users/profile",
+          "files_to_delete_after_migration": [
+            "frontend/src/pages/venue/Dashboard.tsx",
+            "frontend/src/pages/venue/Events.tsx", 
+            "frontend/src/pages/venue/Profile.tsx",
+            "frontend/src/pages/gallera/Dashboard.tsx",
+            "frontend/src/components/layouts/VenueLayout.tsx",
+            "frontend/src/components/layouts/GalleraLayout.tsx"
+          ],
+          "files_to_migrate_logic": [
+            "frontend/src/pages/gallera/MyArticles.tsx → ArticleManagement component"
+          ],
+          "purpose": "Unificar todos los roles en un solo entorno funcional",
           "requirements": [
-            "useSubscription debe leer subscription desde AuthContext.user",
-            "AuthContext debe incluir subscription en fetchUser desde /api/users/profile",
-            "Mantener interfaz actual para compatibilidad con componentes",
-            "Sincronizar actualización subscription cuando user data cambia"
+            "Redirigir rutas /venue/* y /gallera/* a /user/*",
+            "Agregar condicionales por rol en Dashboard.tsx",
+            "Mantener funcionalidades existentes del usuario",
+            "Agregar secciones específicas para venue/gallera"
           ],
-          "current_issue": "useSubscription hook aún usa subscriptionAPI.getCurrentSubscription() que llama /api/subscriptions/current",
-          "solution_approach": "Obtener subscription desde user.subscription en AuthContext",
-          "inputs": {
-            "context": "AuthContext.user.subscription desde /api/users/profile",
-            "fallback": "subscription null para usuarios no autenticados"
-          },
-          "outputs": {
-            "hook_return": {
-              "subscription": "User.subscription | null",
-              "hasAccess": "boolean basado en type !== 'free' && status === 'active'",
-              "isPremium": "boolean alias de hasAccess", 
-              "loading": "boolean desde AuthContext loading",
-              "error": "string | null desde AuthContext error",
-              "refreshAccess": "() => AuthContext.fetchUser()"
-            }
+          "conditional_sections": {
+            "all_roles": ["Wallet", "Notifications", "Subscription", "Profile"],
+            "venue_only": ["MyVenues", "VenueManagement", "VenueArticles"],
+            "gallera_only": ["GalleraArticles", "GalleraStats"],
+            "user_only": ["MyBets", "BettingHistory"]
           },
           "implementation_steps": [
-            "1. Modificar AuthContext para parsear subscription de /api/users/profile",
-            "2. Cambiar useSubscription para leer user.subscription en lugar de API call",
-            "3. Actualizar lógica hasAccess: type !== 'free' && status === 'active' && no expired",
-            "4. Remover subscriptionAPI calls del hook",
-            "5. Tests para verificar sincronización AuthContext ↔ useSubscription"
-          ]
+            "1. App.tsx: Eliminar lazy imports de VenueDashboard, VenueEvents, VenueProfile, GalleraDashboard, GalleraArticles",
+            "2. App.tsx: Cambiar RoleBasedRedirect - venue/gallera → /user",
+            "3. App.tsx: Reemplazar rutas específicas con redirects: <Route path='/venue' element={<Navigate to='/user' />} />",
+            "4. Dashboard.tsx: Agregar condicionales {user.role === 'venue' && <VenueSection />}",
+            "5. Breadcrumbs.tsx: Actualizar ROLE_ROUTES para venue/gallera → user paths"
+          ],
+          "routes_changes": {
+            "remove_routes": [
+              "Route path='/venue' → VenueLayout",
+              "Route path='/venue/events' → VenueEvents", 
+              "Route path='/venue/profile' → VenueProfile",
+              "Route path='/gallera' → GalleraDashboard",
+              "Route path='/gallera/articles' → GalleraArticles"
+            ],
+            "add_redirects": [
+              "<Route path='/venue' element={<Navigate to='/user' />} />",
+              "<Route path='/venue/*' element={<Navigate to='/user' />} />", 
+              "<Route path='/gallera' element={<Navigate to='/user' />} />",
+              "<Route path='/gallera/*' element={<Navigate to='/user' />} />"
+            ],
+            "update_protected_route": "allowedRoles={['venue', 'gallera', 'user']} para /user/*"
+          }
         },
         {
-          "id": "SUB-003",
-          "title": "Actualizar Headers y Profile con Tipo de Plan",
-          "description": "Mostrar tipo de suscripción actual en UI de header y página de perfil",
-          "files_to_modify": [
-            "frontend/src/components/layout/Header.tsx",
-            "frontend/src/pages/Profile.tsx",
-            "frontend/src/components/subscription/SubscriptionStatus.tsx"
+          "id": "UNIFY-002", 
+          "title": "Crear Componente ArticleManagement Universal",
+          "description": "Componente para crear/gestionar artículos usado por venues y galleras",
+          "files_to_create": [
+            "frontend/src/components/articles/ArticleManagement.tsx",
+            "frontend/src/components/articles/ArticleEditor.tsx", 
+            "frontend/src/components/articles/ArticleList.tsx"
           ],
-          "purpose": "Dar visibilidad al usuario de su estado de suscripción actual",
+          "purpose": "Funcionalidad común de gestión de artículos para venues y galleras",
           "requirements": [
-            "Header debe mostrar badge de Premium/Free según suscripción",
-            "Profile debe mostrar detalles completos de suscripción",
-            "Componente SubscriptionStatus reutilizable",
-            "Actualización en tiempo real al cambiar suscripción"
+            "Crear, editar, eliminar artículos",
+            "Lista de artículos propios con filtros",
+            "Estados: draft, pending, published",
+            "Interfaz en español",
+            "Sin quick actions (simplificado)"
           ],
-          "inputs": {
-            "subscription": "Datos de suscripción desde useSubscription",
-            "user": "Datos de usuario desde useAuth"
-          },
-          "outputs": {
-            "ui_elements": {
-              "badge": "Premium/Free badge en header",
-              "status_card": "Card con detalles de suscripción en profile",
-              "expiry_warning": "Advertencia si suscripción próxima a expirar"
-            }
-          },
-          "test_cases": [
-            {
-              "name": "Header muestra badge Free para usuario sin suscripción",
-              "expected": "Badge con texto 'Free' y color gris"
-            },
-            {
-              "name": "Header muestra badge Premium para usuario con suscripción activa",
-              "expected": "Badge con texto 'Premium' y color dorado"
-            },
-            {
-              "name": "Profile muestra warning si suscripción expira en 3 días",
-              "expected": "Componente de advertencia visible con CTA para renovar"
-            }
-          ],
-          "implementation_steps": [
-            "1. Crear SubscriptionStatus component reutilizable",
-            "2. Integrar en Header con diseño responsive",
-            "3. Agregar sección de suscripción en Profile page", 
-            "4. Implementar lógica de warning para próximas expiraciones",
-            "5. Tests de rendering para cada estado"
+          "based_on": "Mejorar frontend/src/pages/gallera/MyArticles.tsx existente",
+          "fixes_needed": [
+            "Traducir interfaz a español",
+            "Eliminar quick actions innecesarios", 
+            "Corregir error 'view all' en recent articles",
+            "Mejorar UX de creación/edición"
           ]
         }
       ]
     },
     {
       "phase": 2,
-      "title": "Sanitización de Endpoints por Rol",
-      "priority": "MEDIUM", 
-      "estimated_time": "3-4 horas",
+      "title": "Optimización Navegación y UX",
+      "priority": "MEDIUM",
+      "estimated_time": "2-3 horas", 
       "tasks": [
         {
-          "id": "SAN-001",
-          "title": "Aplicar Sanitización a Endpoint Articles",
-          "description": "Implementar patrón de attributes sanitizados en rutas de artículos",
+          "id": "NAV-001",
+          "title": "Actualizar Navegación por Rol",
+          "description": "Adaptar menú principal y breadcrumbs según rol del usuario",
           "files_to_modify": [
-            "backend/src/routes/articles.ts",
-            "backend/src/models/Article.ts"
+            "frontend/src/components/user/Navigation.tsx",
+            "frontend/src/components/shared/Breadcrumbs.tsx"
           ],
-          "purpose": "Controlar qué campos de artículos ve cada tipo de usuario",
-          "requirements": [
-            "Usuarios públicos (sin auth): solo campos básicos",
-            "Usuarios autenticados: campos adicionales",
-            "Admin/Operator: todos los campos",
-            "Mantener compatibilidad con frontend"
-          ],
-          "field_visibility": {
-            "public": ["id", "title", "excerpt", "category", "status", "published_at", "author_id", "featured_image"],
-            "authenticated": ["...public", "content", "tags", "venue_id", "view_count"],
-            "admin": ["...all_fields"]
-          },
-          "endpoints_to_modify": [
-            "GET /api/articles",
-            "GET /api/articles/:id"
-          ],
-          "test_cases": [
-            {
-              "name": "Usuario sin auth ve solo campos públicos",
-              "request": "GET /api/articles sin Authorization header",
-              "expected": "Respuesta con solo campos públicos definidos"
-            },
-            {
-              "name": "Usuario autenticado ve campos adicionales",
-              "request": "GET /api/articles con JWT de user role",
-              "expected": "Respuesta incluye content y tags"
-            },
-            {
-              "name": "Admin ve todos los campos",
-              "request": "GET /api/articles con JWT de admin role",
-              "expected": "Respuesta completa sin restricciones"
-            }
-          ],
-          "implementation_steps": [
-            "1. Modificar middleware para detectar rol del usuario",
-            "2. Implementar función getArticleAttributes(userRole)",
-            "3. Aplicar attributes en queries de Sequelize",
-            "4. Escribir tests de integración para cada rol"
-          ]
+          "navigation_items": {
+            "user": ["Dashboard", "Profile", "Wallet", "Betting History"],
+            "venue": ["Dashboard", "Profile", "Wallet", "My Venues", "Articles"], 
+            "gallera": ["Dashboard", "Profile", "Wallet", "Articles", "Statistics"],
+            "admin": ["Dashboard", "Users", "Venues", "Articles", "System"]
+          }
         },
         {
-          "id": "SAN-002",
-          "title": "Aplicar Sanitización a Endpoint Events", 
-          "description": "Controlar campos visibles de eventos según rol de usuario",
+          "id": "HEADER-001",
+          "title": "Mejorar UserHeader con Contexto de Rol",
+          "description": "Mostrar información relevante según el rol en el header",
           "files_to_modify": [
-            "backend/src/routes/events.ts",
-            "backend/src/models/Event.ts"
+            "frontend/src/components/user/UserHeader.tsx"
           ],
-          "purpose": "Ocultar información operacional sensible de eventos a usuarios públicos",
-          "field_visibility": {
-            "public": ["id", "name", "scheduledDate", "status", "venueId"],
-            "authenticated": ["...public", "totalFights", "completedFights"],
-            "operator": ["...authenticated", "streamKey", "streamUrl", "operatorId"],
-            "admin": ["...all_fields"]
-          },
-          "test_cases": [
-            {
-              "name": "Usuario público no ve streamKey ni información operacional",
-              "expected": "streamKey y streamUrl ausentes en respuesta"
-            },
-            {
-              "name": "Operator ve sus campos operacionales",
-              "expected": "streamKey y streamUrl incluidos para operators"
-            }
-          ],
-          "implementation_steps": [
-            "1. Crear función getEventAttributes(userRole)", 
-            "2. Aplicar en endpoints GET /api/events y GET /api/events/:id",
-            "3. Tests para verificar campos por rol"
-          ]
-        },
-        {
-          "id": "SAN-003",
-          "title": "Mantener Patrón en Endpoint Venues",
-          "description": "Verificar y documentar patrón ya implementado en venues",
-          "files_to_check": [
-            "backend/src/routes/venues.ts"
-          ],
-          "purpose": "Asegurar consistencia del patrón de sanitización",
-          "requirements": [
-            "Documentar patrón actual",
-            "Verificar que funcione correctamente",
-            "Agregar tests faltantes"
-          ],
-          "test_cases": [
-            {
-              "name": "Verificar patrón existente funciona",
-              "expected": "Campos sanitizados según rol actual"
-            }
-          ]
+          "role_specific_info": {
+            "user": "Betting stats, wallet balance",
+            "venue": "Active venues count, revenue summary", 
+            "gallera": "Articles published, engagement stats",
+            "admin": "System status, pending approvals"
+          }
         }
       ]
     },
     {
       "phase": 3,
-      "title": "Optimización de Payloads",
+      "title": "Limpieza y Optimización",
       "priority": "LOW",
-      "estimated_time": "1-2 horas", 
+      "estimated_time": "1-2 horas",
       "tasks": [
         {
-          "id": "OPT-001",
-          "title": "Implementar Payload Lite para Articles",
-          "description": "Crear método toPublicSummary() para listas vs toPublicJSON() para detalles",
-          "files_to_modify": [
-            "backend/src/models/Article.ts",
-            "backend/src/routes/articles.ts"
+          "id": "CLEAN-001",
+          "title": "Eliminar Archivos Duplicados",
+          "description": "Limpiar dashboards separados de venue/gallera tras migración",
+          "files_to_remove": [
+            "frontend/src/pages/venue/Dashboard.tsx",
+            "frontend/src/pages/gallera/Dashboard.tsx"
           ],
-          "purpose": "Optimizar transferencia de datos en listados de artículos",
-          "requirements": [
-            "toPublicSummary(): campos mínimos para listas",
-            "toPublicJSON(): campos completos para detalle individual",
-            "Aplicar en GET /api/articles (lista) vs GET /api/articles/:id (detalle)"
+          "files_to_refactor": [
+            "frontend/src/pages/gallera/MyArticles.tsx"
           ],
-          "payload_comparison": {
-            "summary": ["id", "title", "excerpt", "category", "status", "published_at", "author_name"],
-            "detail": ["...summary", "content", "tags", "featured_image", "venue_name", "view_count"]
-          },
-          "test_cases": [
-            {
-              "name": "Lista de artículos devuelve payload compacto",
-              "endpoint": "GET /api/articles",
-              "expected": "Array con objetos usando toPublicSummary()"
-            },
-            {
-              "name": "Detalle de artículo devuelve payload completo",
-              "endpoint": "GET /api/articles/:id", 
-              "expected": "Objeto usando toPublicJSON()"
-            }
-          ]
+          "purpose": "Eliminar código duplicado y mantener un solo source of truth"
         }
       ]
     }
   ],
 
-  "testing_strategy": {
-    "approach": "test_driven_development",
-    "test_types": {
-      "unit": "Métodos de modelos y utilidades",
-      "integration": "Endpoints API completos",
-      "e2e": "Flujos críticos de suscripción"
+  "component_structure": {
+    "unified_dashboard": {
+      "path": "frontend/src/pages/user/Dashboard.tsx",
+      "structure": [
+        "<!-- Common sections for all roles -->",
+        "<UserHeader />",
+        "<SubscriptionStatus />", 
+        "<WalletSummary />",
+        "",
+        "<!-- Role-specific sections -->", 
+        "{user.role === 'user' && <BettingSection />}",
+        "{user.role === 'venue' && <VenueManagement />}",
+        "{user.role === 'gallera' && <ArticleManagement />}",
+        "{(user.role === 'venue' || user.role === 'gallera') && <ArticleManagement />}"
+      ]
     },
-    "critical_test_scenarios": [
-      "Transición usuario free -> premium -> expired",
-      "Sanitización de campos por rol en todos los endpoints",
-      "Consistencia entre useAuth y useSubscription"
-    ],
-    "test_files_to_create": [
-      "backend/src/__tests__/routes/users.subscription.test.ts",
-      "backend/src/__tests__/routes/articles.sanitization.test.ts", 
-      "frontend/src/hooks/__tests__/useSubscription.test.ts",
-      "frontend/src/components/__tests__/SubscriptionStatus.test.tsx"
+    "article_management": {
+      "path": "frontend/src/components/articles/ArticleManagement.tsx",
+      "features": [
+        "✅ Crear artículo (título, contenido, imagen)",
+        "✅ Lista artículos propios con estados",
+        "✅ Editar artículos en draft",
+        "✅ Eliminar artículos",
+        "✅ Filtros por estado (draft/pending/published)",
+        "✅ Interfaz en español",
+        "❌ Quick actions removidos",
+        "❌ View all bug corregido"
+      ]
+    }
+  },
+
+  "routing_strategy": {
+    "current_routes": {
+      "/user/*": "Dashboard usuario funcional",
+      "/venue/*": "Dashboard venue separado (a eliminar)",
+      "/gallera/*": "Dashboard gallera separado (a eliminar)"
+    },
+    "target_routes": {
+      "/user/*": "Dashboard unificado con condicionales por rol",
+      "/venue": "Redirect → /user", 
+      "/gallera": "Redirect → /user"
+    },
+    "implementation": [
+      "App.tsx: <Route path='/venue' element={<Navigate to='/user' />} />",
+      "App.tsx: <Route path='/gallera' element={<Navigate to='/user' />} />",
+      "ProtectedRoute: allowedRoles incluye venue/gallera para /user/*"
+    ]
+  },
+
+  "testing_strategy": {
+    "test_scenarios": [
+      {
+        "name": "Usuario normal accede a /user",
+        "expected": "Ve dashboard con betting, wallet, subscription"
+      },
+      {
+        "name": "Venue accede a /user", 
+        "expected": "Ve dashboard + sección gestión venues + artículos"
+      },
+      {
+        "name": "Gallera accede a /user",
+        "expected": "Ve dashboard + sección gestión artículos"
+      },
+      {
+        "name": "Redirección /venue → /user",
+        "expected": "Redirige correctamente y muestra secciones de venue"
+      },
+      {
+        "name": "ArticleManagement funcional",
+        "expected": "Crear/editar/listar artículos sin errores"
+      }
     ]
   },
 
   "success_criteria": {
     "functional": [
-      "Usuario ve tipo de plan correcto en header y profile",
-      "useSubscription hook devuelve estado consistente", 
-      "Endpoints sanitizan campos según rol del usuario",
-      "No hay inconsistencias entre diferentes fuentes de datos de suscripción"
+      "✅ Un solo entorno /user funciona para todos los roles",
+      "✅ Secciones específicas se muestran según rol",
+      "✅ ArticleManagement funcional en español",
+      "✅ Navegación adaptada por rol",
+      "✅ No código duplicado entre roles"
     ],
     "technical": [
-      "Todos los tests unitarios e integración pasan",
-      "No queries N+1 en endpoints modificados",
-      "Respuestas API mantienen compatibilidad con frontend",
-      "Código sigue convenciones establecidas del proyecto"
+      "✅ Rutas /venue y /gallera redirigen a /user", 
+      "✅ Componentes condicionales renderizan correctamente",
+      "✅ Estado de artículos (draft/pending/published) funciona",
+      "✅ No errores console en transición"
     ],
-    "performance": [
-      "Endpoints no aumentan tiempo de respuesta",
-      "Frontend no hace requests redundantes de suscripción",
-      "Payload de listas optimizado vs detalle individual"
+    "ux": [
+      "✅ Experiencia fluida para todos los roles",
+      "✅ Interfaz en español para gestión artículos",
+      "✅ Navegación intuitiva y contextual"
     ]
   },
 
-  "rollback_plan": {
-    "risk_mitigation": [
-      "Cada tarea tiene branch independiente",
-      "Tests deben pasar antes de merge",
-      "Backup de estructura actual antes de comenzar"
-    ],
-    "rollback_triggers": [
-      "Tests fallan después de cambios",
-      "Performance se degrada significativamente", 
-      "Frontend deja de funcionar por cambios de API"
-    ]
+  "advantages_unified_approach": [
+    "🔄 DRY: Funcionalidades comunes compartidas",
+    "🛠️ Mantenibilidad: Un solo codebase",
+    "🚀 Performance: Menos código duplicado",
+    "🎯 Consistencia: UX uniforme entre roles",
+    "📱 Responsive: Diseño común optimizado",
+    "🔐 Security: Lógica de permisos centralizada"
+  ],
+
+  "migration_timeline": {
+    "day_1": "UNIFY-001 - Redirigir rutas y agregar condicionales",
+    "day_2": "UNIFY-002 - Crear ArticleManagement component", 
+    "day_3": "NAV-001, HEADER-001 - Optimizar navegación",
+    "day_4": "CLEAN-001 - Limpiar archivos duplicados y testing"
   }
 }

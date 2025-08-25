@@ -9,8 +9,14 @@ import {
   User,
   Newspaper,
   Building2,
-  Shield,
+  Wallet, // Added for wallet
+  Trophy, // Added for bets
+  BarChart, // Added for statistics
+  Users, // Added for admin users
+  Settings, // Added for admin system
 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext"; // Added
+import type { UserRole } from "../../../../shared/types"; // Fixed path to project-level shared/types; type-only import
 
 const Navigation: React.FC<{ currentPage?: string }> = () => {
   const navigate = useNavigate();
@@ -29,50 +35,156 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
 
   const activePage = getActivePage();
 
-  const navItems = [
-    {
-      id: "home",
-      icon: Home,
-      label: "Inicio",
-      path: "/dashboard",
-      gradient: "from-blue-500 to-blue-600",
-    },
-    {
-      id: "events",
-      icon: Calendar,
-      label: "Eventos",
-      path: "/events",
-      gradient: "from-purple-500 to-purple-600",
-    },
-    {
-      id: "news",
-      icon: Newspaper,
-      label: "Noticias",
-      path: "/news",
-      gradient: "from-pink-500 to-pink-600",
-    },
-    {
-      id: "venues",
-      icon: Building2,
-      label: "Venues",
-      path: "/venues",
-      gradient: "from-orange-500 to-orange-600",
-    },
-    {
-      id: "galleras",
-      icon: Shield,
-      label: "Criadores",
-      path: "/galleras",
-      gradient: "from-teal-500 to-teal-600",
-    },
-    {
-      id: "profile",
-      icon: User,
-      label: "Perfil",
-      path: "/profile",
-      gradient: "from-green-500 to-green-600",
-    },
-  ];
+  const { user } = useAuth(); // Get user from AuthContext
+
+  const getNavItems = (role: UserRole) => {
+    const commonItems = [
+      {
+        id: "home",
+        icon: Home,
+        label: "Inicio",
+        path: "/dashboard",
+        gradient: "from-blue-500 to-blue-600",
+      },
+      {
+        id: "profile",
+        icon: User,
+        label: "Perfil",
+        path: "/profile",
+        gradient: "from-green-500 to-green-600",
+      },
+      {
+        id: "wallet",
+        icon: Wallet,
+        label: "Cartera",
+        path: "/wallet",
+        gradient: "from-yellow-500 to-yellow-600",
+      },
+    ];
+
+    switch (role) {
+      case "user":
+        return [
+          ...commonItems,
+          {
+            id: "bets",
+            icon: Trophy,
+            label: "Mis Apuestas",
+            path: "/bets",
+            gradient: "from-red-500 to-red-600",
+          },
+          {
+            id: "events",
+            icon: Calendar,
+            label: "Eventos",
+            path: "/events",
+            gradient: "from-purple-500 to-purple-600",
+          },
+          {
+            id: "news",
+            icon: Newspaper,
+            label: "Noticias",
+            path: "/news",
+            gradient: "from-pink-500 to-pink-600",
+          },
+        ];
+      case "venue":
+        return [
+          ...commonItems,
+          {
+            id: "my-venues",
+            icon: Building2,
+            label: "Mis Galleras",
+            path: "/dashboard/my-venues", // New path for venue-specific section
+            gradient: "from-orange-500 to-orange-600",
+          },
+          {
+            id: "articles",
+            icon: Newspaper,
+            label: "Artículos",
+            path: "/dashboard/my-articles", // New path for articles management
+            gradient: "from-pink-500 to-pink-600",
+          },
+        ];
+      case "gallera":
+        return [
+          ...commonItems,
+          {
+            id: "articles",
+            icon: Newspaper,
+            label: "Artículos",
+            path: "/dashboard/my-articles", // New path for articles management
+            gradient: "from-pink-500 to-pink-600",
+          },
+          {
+            id: "statistics",
+            icon: BarChart,
+            label: "Estadísticas",
+            path: "/dashboard/statistics", // Placeholder for statistics
+            gradient: "from-teal-500 to-teal-600",
+          },
+        ];
+      case "admin":
+        return [
+          {
+            id: "admin-dashboard",
+            icon: Home,
+            label: "Admin",
+            path: "/admin",
+            gradient: "from-blue-500 to-blue-600",
+          },
+          {
+            id: "admin-users",
+            icon: Users,
+            label: "Usuarios",
+            path: "/admin/users",
+            gradient: "from-purple-500 to-purple-600",
+          },
+          {
+            id: "admin-venues",
+            icon: Building2,
+            label: "Galleras",
+            path: "/admin/venues",
+            gradient: "from-orange-500 to-orange-600",
+          },
+          {
+            id: "admin-articles",
+            icon: Newspaper,
+            label: "Artículos",
+            path: "/admin/articles",
+            gradient: "from-pink-500 to-pink-600",
+          },
+          {
+            id: "admin-system",
+            icon: Settings,
+            label: "Sistema",
+            path: "/admin/monitoring", // Or a more general settings page
+            gradient: "from-gray-500 to-gray-600",
+          },
+        ];
+      case "operator":
+        return [
+          {
+            id: "operator-dashboard",
+            icon: Home,
+            label: "Operador",
+            path: "/operator",
+            gradient: "from-blue-500 to-blue-600",
+          },
+          {
+            id: "operator-events",
+            icon: Calendar,
+            label: "Eventos",
+            path: "/operator/events",
+            gradient: "from-purple-500 to-purple-600",
+          },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const navItems = user ? getNavItems(user.role) : [];
 
   const handleNavigate = (path: string) => {
     navigate(path);

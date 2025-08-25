@@ -35,6 +35,7 @@ import Badge from "../../components/shared/Badge"; // Added Badge import
 // Componentes del usuario
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
+import ArticleManagement from "../../components/articles/ArticleManagement"; // Added
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -125,6 +126,24 @@ const Dashboard: React.FC = () => {
       <div className="p-4 space-y-6">
         {/* 📰 BANNER DE NOTICIAS */}
         <NewsBanner />
+
+        {/* ROLE-SPECIFIC SECTIONS */}
+        {user?.role === "venue" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Galleras</h2>
+            {/* Placeholder for Venue Management Component */}
+            <div className="card-background p-6">
+              <p>Aquí irá el componente de gestión de galleras.</p>
+            </div>
+          </div>
+        )}
+
+        {user?.role === "gallera" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Artículos</h2>
+            <ArticleManagement />
+          </div>
+        )}
 
         <div className="grid grid-cols-2 ">
           <div>
