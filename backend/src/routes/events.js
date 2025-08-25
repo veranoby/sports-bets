@@ -18,7 +18,7 @@ const sequelize_1 = require("sequelize");
 const redis_1 = require("../config/redis");
 const router = (0, express_1.Router)();
 // GET /api/events - Listar eventos con filtros
-router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { venueId, status, upcoming, limit = 20, offset = 0 } = req.query;
     const where = {};
     if (venueId)
@@ -31,8 +31,25 @@ router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
         };
         where.status = "scheduled";
     }
+    const listAttributes = [
+        "id",
+        "name",
+        "venueId",
+        "scheduledDate",
+        "endDate",
+        "status",
+        "operatorId",
+        "totalFights",
+        "completedFights",
+        "totalBets",
+        "totalPrizePool",
+        "createdAt",
+        "updatedAt",
+        "streamUrl",
+    ];
     const events = yield models_1.Event.findAndCountAll({
         where,
+        attributes: listAttributes,
         include: [
             {
                 model: models_1.Venue,
@@ -49,10 +66,33 @@ router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
         limit: parseInt(limit),
         offset: parseInt(offset),
     });
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isOperator = !!req.user && req.user.role === "operator";
     res.json({
         success: true,
         data: {
-            events: events.rows.map((event) => event.toPublicJSON()),
+            events: events.rows.map((e) => {
+                const ev = e.toPublicJSON();
+                const exposeStreamUrl = isAdmin || isOperator || ev.status === "in-progress";
+                return {
+                    id: ev.id,
+                    name: ev.name,
+                    venueId: ev.venueId,
+                    scheduledDate: ev.scheduledDate,
+                    endDate: ev.endDate,
+                    status: ev.status,
+                    operatorId: ev.operatorId,
+                    totalFights: ev.totalFights,
+                    completedFights: ev.completedFights,
+                    totalBets: ev.totalBets,
+                    totalPrizePool: ev.totalPrizePool,
+                    createdAt: ev.createdAt,
+                    updatedAt: ev.updatedAt,
+                    venue: ev.venue,
+                    operator: ev.operator,
+                    streamUrl: exposeStreamUrl ? ev.streamUrl : null,
+                };
+            }),
             total: events.count,
             limit: parseInt(limit),
             offset: parseInt(offset),
@@ -60,8 +100,26 @@ router.get("/", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
     });
 })));
 // GET /api/events/:id - Obtener evento específico
-router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const detailAttributes = [
+        "id",
+        "name",
+        "venueId",
+        "scheduledDate",
+        "endDate",
+        "status",
+        "operatorId",
+        "createdBy",
+        "totalFights",
+        "completedFights",
+        "totalBets",
+        "totalPrizePool",
+        "createdAt",
+        "updatedAt",
+        "streamUrl",
+    ];
     const event = yield models_1.Event.findByPk(req.params.id, {
+        attributes: detailAttributes,
         include: [
             { model: models_1.Venue, as: "venue" },
             { model: models_1.User, as: "operator", attributes: ["id", "username"] },
@@ -76,9 +134,16 @@ router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isOperator = !!req.user && req.user.role === "operator";
+    const data = event.toPublicJSON();
+    const exposeStreamUrl = isAdmin || isOperator || data.status === "in-progress";
+    if (!exposeStreamUrl) {
+        data.streamUrl = null;
+    }
     res.json({
         success: true,
-        data: event.toPublicJSON(),
+        data,
     });
 })));
 // POST /api/events - Crear nuevo evento (admin/venue)

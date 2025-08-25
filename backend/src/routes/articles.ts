@@ -1,6 +1,6 @@
 // 2. backend/src/routes/articles.ts
 import { Router } from "express";
-import { authenticate, authorize } from "../middleware/auth";
+import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { sanitizeArticleContent } from "../middleware/sanitization";
 import { Article } from "../models/Article";
@@ -15,10 +15,11 @@ const router = Router();
 // GET /api/articles - Listar artículos públicos
 router.get(
   "/",
+  optionalAuth,
   [
     query("search").optional().isString(),
     query("venueId").optional().custom((value) => !value || validator.isUUID(value)),
-    query("status").optional().isIn(["published", "pending", "draft"]),
+    query("status").optional().isIn(["published", "pending", "draft", "archived"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
   ],
@@ -31,10 +32,12 @@ router.get(
     const {
       search,
       venueId,
-      status = "published",
+      status: rawStatus = "published",
       page = 1,
       limit = 10,
     } = req.query as any;
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const status = isAdmin ? rawStatus : "published"; // Solo admin puede listar no publicados
     const offset = (page - 1) * limit;
 
     const whereClause: any = { status };
@@ -42,7 +45,7 @@ router.get(
     if (search) {
       whereClause[Op.or] = [
         { title: { [Op.iLike]: `%${search}%` } },
-        { summary: { [Op.iLike]: `%${search}%` } },
+        { excerpt: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -52,8 +55,22 @@ router.get(
 
     const includeAuthor = true;
     const includeVenue = true;
+    const attributes = [
+      "id",
+      "title",
+      "slug",
+      "excerpt",
+      "category",
+      "status",
+      "featured_image",
+      "published_at",
+      "created_at",
+      "updated_at",
+    ];
+
     const { count, rows } = await Article.findAndCountAll({
       where: whereClause,
+      attributes,
       include: [
         includeAuthor && {
           model: User,
@@ -77,7 +94,24 @@ router.get(
     res.json({
       success: true,
       data: {
-        articles: rows.map((article) => article.toPublicJSON()),
+        // Lista pública: no exponer contenido completo por rendimiento
+        articles: rows.map((article) => {
+          const a = article.toPublicJSON() as any;
+          return {
+            id: a.id,
+            title: a.title,
+            slug: a.slug,
+            summary: a.summary,
+            category: a.category,
+            status: a.status,
+            featured_image_url: a.featured_image_url,
+            published_at: a.published_at,
+            created_at: a.created_at,
+            updated_at: a.updated_at,
+            author_name: a.author_name,
+            venue_name: a.venue_name,
+          };
+        }),
         total: count,
         totalPages: Math.ceil(count / limit),
         currentPage: page,
@@ -90,6 +124,7 @@ router.get(
 // GET /api/articles/:id - Obtener artículo específico
 router.get(
   "/:id",
+  optionalAuth,
   asyncHandler(async (req, res) => {
     const includeAuthor = true;
     const includeVenue = true;
@@ -112,8 +147,11 @@ router.get(
       throw errors.notFound("Article not found");
     }
 
-    // Solo mostrar artículos publicados a usuarios no autenticados
-    if (article.status !== "published") {
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isAuthor = !!req.user && req.user.id === article.author_id;
+
+    // Solo mostrar artículos no publicados a admin o autor
+    if (article.status !== "published" && !isAdmin && !isAuthor) {
       throw errors.forbidden("Article not available");
     }
 
@@ -134,6 +172,7 @@ router.post(
     body("content").isString().isLength({ min: 10 }),
     body("excerpt").isString().isLength({ min: 10, max: 500 }),
     body("venue_id").optional().isUUID(),
+    body("featured_image").optional().isURL(),
     body("featured_image_url").optional().isURL(),
   ],
   sanitizeArticleContent,
@@ -143,7 +182,8 @@ router.post(
       throw new Error("Validation failed");
     }
 
-    const { title, content, excerpt, venue_id, featured_image_url } = req.body;
+    const { title, content, excerpt, venue_id, featured_image, featured_image_url } = req.body;
+    const featuredImage = featured_image || featured_image_url;
 
     // Galleras can only create articles in draft status
     let articleStatus: "draft" | "pending" | "published" | "archived" =
@@ -161,7 +201,7 @@ router.post(
       excerpt,
       author_id: req.user!.id,
       venue_id,
-      featured_image_url,
+      featured_image: featuredImage,
       status: articleStatus,
       published_at: publishedAt,
     });

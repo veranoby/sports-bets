@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middleware/auth";
+import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Event, Venue, User, Fight } from "../models";
 import { body, validationResult } from "express-validator";
@@ -25,6 +25,7 @@ const router = Router();
 // GET /api/events - Listar eventos con filtros
 router.get(
   "/",
+  optionalAuth,
   asyncHandler(async (req, res) => {
     const { venueId, status, upcoming, limit = 20, offset = 0 } = req.query;
 
@@ -38,8 +39,26 @@ router.get(
       where.status = "scheduled";
     }
 
+    const listAttributes = [
+      "id",
+      "name",
+      "venueId",
+      "scheduledDate",
+      "endDate",
+      "status",
+      "operatorId",
+      "totalFights",
+      "completedFights",
+      "totalBets",
+      "totalPrizePool",
+      "createdAt",
+      "updatedAt",
+      "streamUrl",
+    ];
+
     const events = await Event.findAndCountAll({
       where,
+      attributes: listAttributes,
       include: [
         {
           model: Venue,
@@ -57,10 +76,34 @@ router.get(
       offset: parseInt(offset as string),
     });
 
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isOperator = !!req.user && req.user.role === "operator";
+
     res.json({
       success: true,
       data: {
-        events: events.rows.map((event) => event.toPublicJSON()),
+        events: events.rows.map((e) => {
+          const ev: any = e.toPublicJSON();
+          const exposeStreamUrl = isAdmin || isOperator || ev.status === "in-progress";
+          return {
+            id: ev.id,
+            name: ev.name,
+            venueId: ev.venueId,
+            scheduledDate: ev.scheduledDate,
+            endDate: ev.endDate,
+            status: ev.status,
+            operatorId: ev.operatorId,
+            totalFights: ev.totalFights,
+            completedFights: ev.completedFights,
+            totalBets: ev.totalBets,
+            totalPrizePool: ev.totalPrizePool,
+            createdAt: ev.createdAt,
+            updatedAt: ev.updatedAt,
+            venue: ev.venue,
+            operator: ev.operator,
+            streamUrl: exposeStreamUrl ? ev.streamUrl : null,
+          };
+        }),
         total: events.count,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
@@ -72,8 +115,28 @@ router.get(
 // GET /api/events/:id - Obtener evento específico
 router.get(
   "/:id",
+  optionalAuth,
   asyncHandler(async (req, res) => {
+    const detailAttributes = [
+      "id",
+      "name",
+      "venueId",
+      "scheduledDate",
+      "endDate",
+      "status",
+      "operatorId",
+      "createdBy",
+      "totalFights",
+      "completedFights",
+      "totalBets",
+      "totalPrizePool",
+      "createdAt",
+      "updatedAt",
+      "streamUrl",
+    ];
+
     const event = await Event.findByPk(req.params.id, {
+      attributes: detailAttributes,
       include: [
         { model: Venue, as: "venue" },
         { model: User, as: "operator", attributes: ["id", "username"] },
@@ -90,9 +153,17 @@ router.get(
       throw errors.notFound("Event not found");
     }
 
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isOperator = !!req.user && req.user.role === "operator";
+    const data: any = event.toPublicJSON();
+    const exposeStreamUrl = isAdmin || isOperator || data.status === "in-progress";
+    if (!exposeStreamUrl) {
+      data.streamUrl = null;
+    }
+
     res.json({
       success: true,
-      data: event.toPublicJSON(),
+      data,
     });
   })
 );

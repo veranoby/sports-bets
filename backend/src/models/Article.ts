@@ -14,7 +14,7 @@ interface ArticleAttributes {
   venue_id?: string;
   category: "news" | "analysis" | "tutorial" | "announcement";
   status: "draft" | "pending" | "published" | "archived";
-  featured_image_url?: string;
+  featured_image?: string;
   tags?: string[];
   published_at?: Date;
   created_at: Date;
@@ -36,7 +36,7 @@ export class Article
   public author_id!: string;
   public venue_id?: string;
   public category!: "news" | "analysis" | "tutorial" | "announcement";
-  public featured_image_url?: string;
+  public featured_image?: string;
   public status!: "draft" | "pending" | "published" | "archived";
   public tags?: string[];
   public published_at?: Date;
@@ -58,12 +58,13 @@ export class Article
       venue_id: this.venue_id,
       category: this.category,
       status: this.status,
-      featured_image_url: this.featured_image_url,
+      featured_image_url: this.featured_image,
       tags: this.tags,
       published_at: this.published_at,
       created_at: this.created_at,
       updated_at: this.updated_at,
-      author_name: this.author?.profileInfo?.fullName || "Autor",
+      author_name:
+        (this.author as any)?.profileInfo?.fullName || this.author?.username || "Autor",
       venue_name: this.venue?.name,
     };
   }
@@ -113,7 +114,7 @@ Article.init(
       allowNull: false,
       defaultValue: "draft",
     },
-    featured_image_url: {
+    featured_image: {
       type: DataTypes.STRING(500),
       allowNull: true,
       field: "featured_image",

@@ -25,10 +25,10 @@ const validator_1 = __importDefault(require("validator"));
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
 // GET /api/articles - Listar artículos públicos
-router.get("/", [
+router.get("/", auth_1.optionalAuth, [
     (0, express_validator_1.query)("search").optional().isString(),
     (0, express_validator_1.query)("venueId").optional().custom((value) => !value || validator_1.default.isUUID(value)),
-    (0, express_validator_1.query)("status").optional().isIn(["published", "pending", "draft"]),
+    (0, express_validator_1.query)("status").optional().isIn(["published", "pending", "draft", "archived"]),
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -36,13 +36,15 @@ router.get("/", [
     if (!errors.isEmpty()) {
         throw new Error("Invalid parameters");
     }
-    const { search, venueId, status = "published", page = 1, limit = 10, } = req.query;
+    const { search, venueId, status: rawStatus = "published", page = 1, limit = 10, } = req.query;
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const status = isAdmin ? rawStatus : "published"; // Solo admin puede listar no publicados
     const offset = (page - 1) * limit;
     const whereClause = { status };
     if (search) {
         whereClause[sequelize_1.Op.or] = [
             { title: { [sequelize_1.Op.iLike]: `%${search}%` } },
-            { summary: { [sequelize_1.Op.iLike]: `%${search}%` } },
+            { excerpt: { [sequelize_1.Op.iLike]: `%${search}%` } },
         ];
     }
     if (venueId) {
@@ -50,8 +52,21 @@ router.get("/", [
     }
     const includeAuthor = true;
     const includeVenue = true;
+    const attributes = [
+        "id",
+        "title",
+        "slug",
+        "excerpt",
+        "category",
+        "status",
+        "featured_image",
+        "published_at",
+        "created_at",
+        "updated_at",
+    ];
     const { count, rows } = yield Article_1.Article.findAndCountAll({
         where: whereClause,
+        attributes,
         include: [
             includeAuthor && {
                 model: User_1.User,
@@ -74,7 +89,24 @@ router.get("/", [
     res.json({
         success: true,
         data: {
-            articles: rows.map((article) => article.toPublicJSON()),
+            // Lista pública: no exponer contenido completo por rendimiento
+            articles: rows.map((article) => {
+                const a = article.toPublicJSON();
+                return {
+                    id: a.id,
+                    title: a.title,
+                    slug: a.slug,
+                    summary: a.summary,
+                    category: a.category,
+                    status: a.status,
+                    featured_image_url: a.featured_image_url,
+                    published_at: a.published_at,
+                    created_at: a.created_at,
+                    updated_at: a.updated_at,
+                    author_name: a.author_name,
+                    venue_name: a.venue_name,
+                };
+            }),
             total: count,
             totalPages: Math.ceil(count / limit),
             currentPage: page,
@@ -83,7 +115,7 @@ router.get("/", [
     });
 })));
 // GET /api/articles/:id - Obtener artículo específico
-router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const includeAuthor = true;
     const includeVenue = true;
     const article = yield Article_1.Article.findByPk(req.params.id, {
@@ -103,8 +135,10 @@ router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void
     if (!article) {
         throw errorHandler_1.errors.notFound("Article not found");
     }
-    // Solo mostrar artículos publicados a usuarios no autenticados
-    if (article.status !== "published") {
+    const isAdmin = !!req.user && req.user.role === "admin";
+    const isAuthor = !!req.user && req.user.id === article.author_id;
+    // Solo mostrar artículos no publicados a admin o autor
+    if (article.status !== "published" && !isAdmin && !isAuthor) {
         throw errorHandler_1.errors.forbidden("Article not available");
     }
     res.json({
@@ -118,13 +152,15 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"),
     (0, express_validator_1.body)("content").isString().isLength({ min: 10 }),
     (0, express_validator_1.body)("excerpt").isString().isLength({ min: 10, max: 500 }),
     (0, express_validator_1.body)("venue_id").optional().isUUID(),
+    (0, express_validator_1.body)("featured_image").optional().isURL(),
     (0, express_validator_1.body)("featured_image_url").optional().isURL(),
 ], sanitization_1.sanitizeArticleContent, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         throw new Error("Validation failed");
     }
-    const { title, content, excerpt, venue_id, featured_image_url } = req.body;
+    const { title, content, excerpt, venue_id, featured_image, featured_image_url } = req.body;
+    const featuredImage = featured_image || featured_image_url;
     // Galleras can only create articles in draft status
     let articleStatus = "published";
     let publishedAt = new Date();
@@ -138,7 +174,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"),
         excerpt,
         author_id: req.user.id,
         venue_id,
-        featured_image_url,
+        featured_image: featuredImage,
         status: articleStatus,
         published_at: publishedAt,
     });
