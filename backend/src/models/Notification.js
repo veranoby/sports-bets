@@ -79,7 +79,7 @@ Notification.init({
         field: "expires_at",
     },
     data: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
     },
     type: {

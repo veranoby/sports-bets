@@ -53,13 +53,15 @@ Venue.init({
         allowNull: true,
     },
     contactInfo: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
+        field: "contact_info",
         defaultValue: {},
     },
     ownerId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "owner_id",
         references: {
             model: User_1.User,
             key: "id",
@@ -74,6 +76,7 @@ Venue.init({
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+        field: "is_verified",
     },
     images: {
         type: sequelize_1.DataTypes.ARRAY(sequelize_1.DataTypes.STRING),
@@ -83,10 +86,12 @@ Venue.init({
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "created_at",
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "updated_at",
     },
 }, {
     sequelize: database_1.default,

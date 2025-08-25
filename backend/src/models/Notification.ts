@@ -115,7 +115,7 @@ Notification.init(
       field: "expires_at",
     },
     data: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
     },
     type: {

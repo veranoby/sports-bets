@@ -157,7 +157,7 @@ User.init(
       defaultValue: true,
     },
     profileInfo: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
       field: "profile_info",
       defaultValue: {

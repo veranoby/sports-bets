@@ -89,6 +89,7 @@ Event.init(
     venueId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "venue_id",
       references: {
         model: Venue,
         key: "id",
@@ -97,6 +98,7 @@ Event.init(
     scheduledDate: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "scheduled_date",
       validate: {
         isDate: true,
         isAfter: new Date().toISOString(), // Solo fechas futuras al crear
@@ -105,6 +107,7 @@ Event.init(
     endDate: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "end_date",
     },
     status: {
       type: DataTypes.ENUM(
@@ -119,6 +122,7 @@ Event.init(
     operatorId: {
       type: DataTypes.UUID,
       allowNull: true,
+      field: "operator_id",
       references: {
         model: User,
         key: "id",
@@ -128,10 +132,12 @@ Event.init(
       type: DataTypes.STRING(255),
       allowNull: true,
       unique: true,
+      field: "stream_key",
     },
     streamUrl: {
       type: DataTypes.STRING(500),
       allowNull: true,
+      field: "stream_url",
       validate: {
         isUrl: true,
       },
@@ -139,6 +145,7 @@ Event.init(
     createdBy: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "created_by",
       references: {
         model: User,
         key: "id",
@@ -148,6 +155,7 @@ Event.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "total_fights",
       validate: {
         min: 0,
         max: 200,
@@ -157,6 +165,7 @@ Event.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "completed_fights",
       validate: {
         min: 0,
       },
@@ -165,6 +174,7 @@ Event.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "total_bets",
       validate: {
         min: 0,
       },
@@ -173,6 +183,7 @@ Event.init(
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
+      field: "total_prize_pool",
       validate: {
         min: 0,
       },
@@ -180,10 +191,12 @@ Event.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at",
     },
   },
   {

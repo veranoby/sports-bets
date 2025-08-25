@@ -134,7 +134,7 @@ User.init({
         defaultValue: true,
     },
     profileInfo: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
         field: "profile_info",
         defaultValue: {

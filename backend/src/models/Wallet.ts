@@ -226,6 +226,7 @@ Transaction.init(
     walletId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "wallet_id",
       references: {
         model: Wallet,
         key: "id",
@@ -262,7 +263,7 @@ Transaction.init(
       allowNull: false,
     },
     metadata: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
     },
     createdAt: {

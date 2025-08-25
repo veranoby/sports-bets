@@ -210,7 +210,7 @@ Bet.init(
       defaultValue: "none",
     },
     terms: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
       defaultValue: {
         ratio: 2.0,

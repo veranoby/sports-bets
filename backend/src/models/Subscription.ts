@@ -234,6 +234,7 @@ Subscription.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "user_id",
       references: {
         model: 'users',
         key: 'id'
@@ -253,17 +254,20 @@ Subscription.init(
     kushkiSubscriptionId: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true
+      unique: true,
+      field: "kushki_subscription_id",
     },
     paymentMethod: {
       type: DataTypes.ENUM('card', 'cash', 'transfer'),
       allowNull: false,
-      defaultValue: 'card'
+      defaultValue: 'card',
+      field: "payment_method",
     },
     autoRenew: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
+      field: "auto_renew",
     },
     amount: {
       type: DataTypes.INTEGER, // Amount in cents
@@ -280,23 +284,28 @@ Subscription.init(
     expiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "expires_at",
     },
     nextBillingDate: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "next_billing_date",
     },
     cancelledAt: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "cancelled_at",
     },
     cancelReason: {
       type: DataTypes.TEXT,
       allowNull: true,
+      field: "cancel_reason",
     },
     retryCount: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "retry_count",
       validate: {
         min: 0
       }
@@ -305,6 +314,7 @@ Subscription.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 3,
+      field: "max_retries",
       validate: {
         min: 0
       }
@@ -325,11 +335,13 @@ Subscription.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: "updated_at",
     },
   },
   {

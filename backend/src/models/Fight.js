@@ -46,6 +46,7 @@ Fight.init({
     eventId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "event_id",
         references: {
             model: Event_1.Event,
             key: "id",
@@ -62,6 +63,7 @@ Fight.init({
     redCorner: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
+        field: "red_corner",
         validate: {
             len: [2, 255],
         },
@@ -69,6 +71,7 @@ Fight.init({
     blueCorner: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
+        field: "blue_corner",
         validate: {
             len: [2, 255],
         },
@@ -86,8 +89,9 @@ Fight.init({
         allowNull: true,
     },
     initialOdds: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
+        field: "initial_odds",
         defaultValue: {
             red: 1.0,
             blue: 1.0,
@@ -96,15 +100,18 @@ Fight.init({
     bettingStartTime: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "betting_start_time",
     },
     bettingEndTime: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "betting_end_time",
     },
     totalBets: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
+        field: "total_bets",
         validate: {
             min: 0,
         },
@@ -113,6 +120,7 @@ Fight.init({
         type: sequelize_1.DataTypes.DECIMAL(12, 2),
         allowNull: false,
         defaultValue: 0,
+        field: "total_amount",
         validate: {
             min: 0,
         },
@@ -129,18 +137,22 @@ Fight.init({
     startTime: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "start_time",
     },
     endTime: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "end_time",
     },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "created_at",
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "updated_at",
     },
 }, {
     sequelize: database_1.default,

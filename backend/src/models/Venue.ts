@@ -73,13 +73,15 @@ Venue.init(
       allowNull: true,
     },
     contactInfo: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
+      field: "contact_info",
       defaultValue: {},
     },
     ownerId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "owner_id",
       references: {
         model: User,
         key: "id",
@@ -94,6 +96,7 @@ Venue.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+      field: "is_verified",
     },
     images: {
       type: DataTypes.ARRAY(DataTypes.STRING),
@@ -103,10 +106,12 @@ Venue.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at",
     },
   },
   {

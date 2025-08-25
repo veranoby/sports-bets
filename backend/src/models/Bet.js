@@ -157,7 +157,7 @@ Bet.init({
         defaultValue: "none",
     },
     terms: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
         defaultValue: {
             ratio: 2.0,

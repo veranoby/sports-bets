@@ -13,12 +13,15 @@ class Article extends sequelize_1.Model {
         return {
             id: this.id,
             title: this.title,
+            slug: this.slug,
             content: this.content,
             summary: this.excerpt,
             author_id: this.author_id,
             venue_id: this.venue_id,
+            category: this.category,
             status: this.status,
             featured_image_url: this.featured_image_url,
+            tags: this.tags,
             published_at: this.published_at,
             created_at: this.created_at,
             updated_at: this.updated_at,
@@ -38,13 +41,18 @@ Article.init({
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
     },
+    slug: {
+        type: sequelize_1.DataTypes.STRING(300),
+        allowNull: false,
+        unique: true,
+    },
     content: {
         type: sequelize_1.DataTypes.TEXT,
         allowNull: false,
     },
     excerpt: {
-        type: sequelize_1.DataTypes.STRING(500),
-        allowNull: false,
+        type: sequelize_1.DataTypes.TEXT,
+        allowNull: true,
     },
     author_id: {
         type: sequelize_1.DataTypes.UUID,
@@ -56,15 +64,24 @@ Article.init({
         allowNull: true,
         field: "venue_id",
     },
-    featured_image_url: {
-        type: sequelize_1.DataTypes.STRING(500),
-        allowNull: true,
-        field: "featured_image",
+    category: {
+        type: sequelize_1.DataTypes.ENUM("news", "analysis", "tutorial", "announcement"),
+        allowNull: false,
+        defaultValue: "news",
     },
     status: {
         type: sequelize_1.DataTypes.ENUM("draft", "pending", "published", "archived"),
         allowNull: false,
         defaultValue: "draft",
+    },
+    featured_image_url: {
+        type: sequelize_1.DataTypes.STRING(500),
+        allowNull: true,
+        field: "featured_image",
+    },
+    tags: {
+        type: sequelize_1.DataTypes.JSON,
+        allowNull: true,
     },
     published_at: {
         type: sequelize_1.DataTypes.DATE,

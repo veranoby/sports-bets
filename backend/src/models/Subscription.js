@@ -188,6 +188,7 @@ Subscription.init({
     userId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "user_id",
         references: {
             model: 'users',
             key: 'id'
@@ -207,17 +208,20 @@ Subscription.init({
     kushkiSubscriptionId: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
-        unique: true
+        unique: true,
+        field: "kushki_subscription_id",
     },
     paymentMethod: {
         type: sequelize_1.DataTypes.ENUM('card', 'cash', 'transfer'),
         allowNull: false,
-        defaultValue: 'card'
+        defaultValue: 'card',
+        field: "payment_method",
     },
     autoRenew: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false
+        defaultValue: false,
+        field: "auto_renew",
     },
     amount: {
         type: sequelize_1.DataTypes.INTEGER, // Amount in cents
@@ -234,23 +238,28 @@ Subscription.init({
     expiresAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "expires_at",
     },
     nextBillingDate: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "next_billing_date",
     },
     cancelledAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "cancelled_at",
     },
     cancelReason: {
         type: sequelize_1.DataTypes.TEXT,
         allowNull: true,
+        field: "cancel_reason",
     },
     retryCount: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
+        field: "retry_count",
         validate: {
             min: 0
         }
@@ -259,6 +268,7 @@ Subscription.init({
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 3,
+        field: "max_retries",
         validate: {
             min: 0
         }
@@ -279,11 +289,13 @@ Subscription.init({
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
         defaultValue: sequelize_1.DataTypes.NOW,
+        field: "created_at",
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
         defaultValue: sequelize_1.DataTypes.NOW,
+        field: "updated_at",
     },
 }, {
     sequelize: database_1.sequelize,

@@ -120,6 +120,7 @@ PaymentTransaction.init({
     subscriptionId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "subscription_id",
         references: {
             model: "subscriptions",
             key: "id",
@@ -130,6 +131,7 @@ PaymentTransaction.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
         unique: true,
+        field: "kushki_payment_id",
     },
     kushkiTransactionId: {
         type: sequelize_1.DataTypes.STRING(255),
@@ -209,18 +211,22 @@ PaymentTransaction.init({
     cardLast4: {
         type: sequelize_1.DataTypes.STRING(4),
         allowNull: true,
+        field: "card_last_4",
     },
     cardBrand: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
+        field: "card_brand",
     },
     errorCode: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
+        field: "error_code",
     },
     errorMessage: {
         type: sequelize_1.DataTypes.TEXT,
         allowNull: true,
+        field: "error_message",
     },
     kushkiResponse: {
         type: sequelize_1.DataTypes.JSON,
@@ -238,10 +244,12 @@ PaymentTransaction.init({
     failedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "failed_at",
     },
     refundedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "refunded_at",
     },
     metadata: {
         type: sequelize_1.DataTypes.JSON,

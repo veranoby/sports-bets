@@ -206,6 +206,7 @@ PaymentTransaction.init(
     subscriptionId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "subscription_id",
       references: {
         model: "subscriptions",
         key: "id",
@@ -216,6 +217,7 @@ PaymentTransaction.init(
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
+      field: "kushki_payment_id",
     },
     kushkiTransactionId: {
       type: DataTypes.STRING(255),
@@ -312,18 +314,22 @@ PaymentTransaction.init(
     cardLast4: {
       type: DataTypes.STRING(4),
       allowNull: true,
+      field: "card_last_4",
     },
     cardBrand: {
       type: DataTypes.STRING,
       allowNull: true,
+      field: "card_brand",
     },
     errorCode: {
       type: DataTypes.STRING,
       allowNull: true,
+      field: "error_code",
     },
     errorMessage: {
       type: DataTypes.TEXT,
       allowNull: true,
+      field: "error_message",
     },
     kushkiResponse: {
       type: DataTypes.JSON,
@@ -341,10 +347,12 @@ PaymentTransaction.init(
     failedAt: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "failed_at",
     },
     refundedAt: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "refunded_at",
     },
     metadata: {
       type: DataTypes.JSON,

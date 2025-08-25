@@ -176,6 +176,7 @@ Transaction.init({
     walletId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "wallet_id",
         references: {
             model: Wallet,
             key: "id",
@@ -206,7 +207,7 @@ Transaction.init({
         allowNull: false,
     },
     metadata: {
-        type: sequelize_1.DataTypes.JSONB,
+        type: sequelize_1.DataTypes.JSON,
         allowNull: true,
     },
     createdAt: {
