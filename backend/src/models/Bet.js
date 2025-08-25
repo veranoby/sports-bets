@@ -84,6 +84,7 @@ Bet.init({
     fightId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "fight_id",
         references: {
             model: Fight_1.Fight,
             key: "id",
@@ -92,6 +93,7 @@ Bet.init({
     userId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
+        field: "user_id",
         references: {
             model: User_1.User,
             key: "id",
@@ -112,6 +114,7 @@ Bet.init({
     potentialWin: {
         type: sequelize_1.DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        field: "potential_win",
         validate: {
             min: 0.01,
         },
@@ -128,6 +131,7 @@ Bet.init({
     matchedWith: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: true,
+        field: "matched_with",
         references: {
             model: "bets",
             key: "id",
@@ -136,6 +140,7 @@ Bet.init({
     parentBetId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: true,
+        field: "parent_bet_id",
         references: {
             model: "bets",
             key: "id",
@@ -158,6 +163,18 @@ Bet.init({
             ratio: 2.0,
             isOffer: true,
         },
+    },
+    createdAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false,
+        field: "created_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
+    },
+    updatedAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false,
+        field: "updated_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
 }, {
     sequelize: database_1.default,

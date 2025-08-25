@@ -49,20 +49,22 @@ router.get(
       whereClause.venue_id = venueId;
     }
 
+    const includeAuthor = true;
+    const includeVenue = true;
     const { count, rows } = await Article.findAndCountAll({
       where: whereClause,
       include: [
-        {
+        includeAuthor && {
           model: User,
           as: "author",
-          attributes: ["id", "profile_info"],
+          attributes: ["id", "username"],
         },
-        {
+        includeVenue && {
           model: Venue,
           as: "venue",
           attributes: ["id", "name"],
         },
-      ],
+      ].filter(Boolean),
       order: [
         ["published_at", "DESC"],
         ["created_at", "DESC"],
@@ -88,19 +90,21 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req, res) => {
+    const includeAuthor = true;
+    const includeVenue = true;
     const article = await Article.findByPk(req.params.id, {
       include: [
-        {
+        includeAuthor && {
           model: User,
           as: "author",
-          attributes: ["id", "profile_info"],
+          attributes: ["id", "username"],
         },
-        {
+        includeVenue && {
           model: Venue,
           as: "venue",
           attributes: ["id", "name"],
         },
-      ],
+      ].filter(Boolean),
     });
 
     if (!article) {
@@ -127,7 +131,7 @@ router.post(
   [
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
-    body("summary").isString().isLength({ min: 10, max: 500 }),
+    body("excerpt").isString().isLength({ min: 10, max: 500 }),
     body("venue_id").optional().isUUID(),
     body("featured_image_url").optional().isURL(),
   ],
@@ -138,12 +142,13 @@ router.post(
       throw new Error("Validation failed");
     }
 
-    const { title, content, summary, venue_id, featured_image_url } = req.body;
+    const { title, content, excerpt, venue_id, featured_image_url } = req.body;
 
     // Galleras can only create articles in draft status
-    let articleStatus: "draft" | "pending" | "published" | "archived" = "published";
+    let articleStatus: "draft" | "pending" | "published" | "archived" =
+      "published";
     let publishedAt = new Date();
-    
+
     if (req.user!.role === "gallera") {
       articleStatus = "pending";
       publishedAt = undefined as any;
@@ -152,7 +157,7 @@ router.post(
     const article = await Article.create({
       title,
       content,
-      summary,
+      excerpt,
       author_id: req.user!.id,
       venue_id,
       featured_image_url,

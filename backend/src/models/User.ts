@@ -53,9 +53,14 @@ export class User extends Model<
 
   // Método de instancia para verificar contraseña
   async comparePassword(password: string): Promise<boolean> {
-    console.log('🔍 Comparing password:', password, 'with hash:', this.passwordHash);
+    console.log(
+      "🔍 Comparing password:",
+      password,
+      "with hash:",
+      this.passwordHash
+    );
     const result = await bcrypt.compare(password, this.passwordHash);
-    console.log('🔍 Comparison result:', result);
+    console.log("🔍 Comparison result:", result);
     return result;
   }
 
@@ -135,7 +140,7 @@ User.init(
     passwordHash: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      field: 'password_hash', // Explicit field mapping for snake_case DB column
+      field: "password_hash",
       validate: {
         len: [6, 255],
       },
@@ -148,11 +153,13 @@ User.init(
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
+      field: "is_active",
       defaultValue: true,
     },
     profileInfo: {
       type: DataTypes.JSONB,
       allowNull: true,
+      field: "profile_info",
       defaultValue: {
         verificationLevel: "none",
       },
@@ -160,14 +167,19 @@ User.init(
     lastLogin: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "last_login",
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
     },
   },
   {
@@ -183,7 +195,7 @@ User.init(
         unique: true,
       },
       {
-        name: "users_username_unique", 
+        name: "users_username_unique",
         fields: ["username"],
         unique: true,
       },

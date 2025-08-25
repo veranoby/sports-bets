@@ -10,6 +10,21 @@ import {
 import sequelize from "../config/database";
 import { User } from "./User";
 
+export interface NotificationAttributes {
+  id: string;
+  userId: string;
+  type: "info" | "warning" | "error" | "success" | "bet_proposal";
+  title: string;
+  message: string;
+  data?: object;
+  isRead: boolean;
+  status: string;
+  readAt?: Date;
+  expiresAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class Notification extends Model<
   InferAttributes<Notification>,
   InferCreationAttributes<Notification>
@@ -18,9 +33,12 @@ export class Notification extends Model<
   declare userId: ForeignKey<User["id"]>;
   declare title: string;
   declare message: string;
-  declare isRead: CreationOptional<boolean>;
-  declare metadata: CreationOptional<object>;
   declare type: "info" | "warning" | "error" | "success" | "bet_proposal";
+  declare isRead: CreationOptional<boolean>;
+  declare data: CreationOptional<object>;
+  declare status: string;
+  declare readAt: CreationOptional<Date>;
+  declare expiresAt: CreationOptional<Date>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -40,7 +58,7 @@ export class Notification extends Model<
       message: this.message,
       type: this.type,
       isRead: this.isRead,
-      metadata: this.metadata,
+      metadata: this.data,
       createdAt: this.createdAt,
     };
   }
@@ -81,7 +99,22 @@ Notification.init(
       defaultValue: false,
       field: "is_read",
     },
-    metadata: {
+    status: {
+      type: DataTypes.STRING(10),
+      defaultValue: "unread",
+      field: "status",
+    },
+    readAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "read_at",
+    },
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "expires_at",
+    },
+    data: {
       type: DataTypes.JSONB,
       allowNull: true,
     },

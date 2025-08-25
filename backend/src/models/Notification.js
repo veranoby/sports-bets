@@ -23,7 +23,7 @@ class Notification extends sequelize_1.Model {
             message: this.message,
             type: this.type,
             isRead: this.isRead,
-            metadata: this.metadata,
+            metadata: this.data,
             createdAt: this.createdAt,
         };
     }
@@ -63,7 +63,22 @@ Notification.init({
         defaultValue: false,
         field: "is_read",
     },
-    metadata: {
+    status: {
+        type: sequelize_1.DataTypes.STRING(10),
+        defaultValue: "unread",
+        field: "status",
+    },
+    readAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+        field: "read_at",
+    },
+    expiresAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+        field: "expires_at",
+    },
+    data: {
         type: sequelize_1.DataTypes.JSONB,
         allowNull: true,
     },

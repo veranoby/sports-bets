@@ -8,7 +8,7 @@ interface ArticleAttributes {
   id: string;
   title: string;
   content: string;
-  summary: string;
+  excerpt: string;
   author_id: string;
   venue_id?: string;
   status: "draft" | "pending" | "published" | "archived";
@@ -28,11 +28,11 @@ export class Article
   public id!: string;
   public title!: string;
   public content!: string;
-  public summary!: string;
+  public excerpt!: string;
   public author_id!: string;
   public venue_id?: string;
-  public status!: "draft" | "pending" | "published" | "archived";
   public featured_image_url?: string;
+  public status!: "draft" | "pending" | "published" | "archived";
   public published_at?: Date;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -46,7 +46,7 @@ export class Article
       id: this.id,
       title: this.title,
       content: this.content,
-      summary: this.summary,
+      summary: this.excerpt,
       author_id: this.author_id,
       venue_id: this.venue_id,
       status: this.status,
@@ -75,35 +75,29 @@ Article.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    summary: {
+    excerpt: {
       type: DataTypes.STRING(500),
       allowNull: false,
     },
     author_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
+      field: "author_id",
     },
     venue_id: {
       type: DataTypes.UUID,
       allowNull: true,
       field: "venue_id",
-      references: {
-        model: Venue,
-        key: "id",
-      },
+    },
+    featured_image_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: "featured_image",
     },
     status: {
       type: DataTypes.ENUM("draft", "pending", "published", "archived"),
       allowNull: false,
       defaultValue: "draft",
-    },
-    featured_image_url: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
     },
     published_at: {
       type: DataTypes.DATE,

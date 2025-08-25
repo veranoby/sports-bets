@@ -41,6 +41,8 @@ export class Bet extends Model<
     doyAmount?: number;
     proposedBy?: string;
   }>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
 
   // Asociaciones
   declare getFight: BelongsToGetAssociationMixin<Fight>;
@@ -135,6 +137,7 @@ Bet.init(
     fightId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "fight_id",
       references: {
         model: Fight,
         key: "id",
@@ -143,6 +146,7 @@ Bet.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "user_id",
       references: {
         model: User,
         key: "id",
@@ -163,6 +167,7 @@ Bet.init(
     potentialWin: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      field: "potential_win",
       validate: {
         min: 0.01,
       },
@@ -179,6 +184,7 @@ Bet.init(
     matchedWith: {
       type: DataTypes.UUID,
       allowNull: true,
+      field: "matched_with",
       references: {
         model: "bets",
         key: "id",
@@ -187,6 +193,7 @@ Bet.init(
     parentBetId: {
       type: DataTypes.UUID,
       allowNull: true,
+      field: "parent_bet_id",
       references: {
         model: "bets",
         key: "id",
@@ -209,6 +216,18 @@ Bet.init(
         ratio: 2.0,
         isOffer: true,
       },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
     },
   },
   {

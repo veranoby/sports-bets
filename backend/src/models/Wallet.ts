@@ -157,6 +157,7 @@ Wallet.init(
       type: DataTypes.UUID,
       allowNull: false,
       unique: true,
+      field: "user_id",
       references: {
         model: User,
         key: "id",
@@ -177,14 +178,19 @@ Wallet.init(
       validate: {
         min: 0,
       },
+      field: "frozen_amount",
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
     },
   },
   {
@@ -262,10 +268,12 @@ Transaction.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      field: "updated_at",
     },
   },
   {

@@ -44,20 +44,22 @@ router.get("/", [
     if (venueId) {
         whereClause.venue_id = venueId;
     }
+    const includeAuthor = true;
+    const includeVenue = true;
     const { count, rows } = yield Article_1.Article.findAndCountAll({
         where: whereClause,
         include: [
-            {
+            includeAuthor && {
                 model: User_1.User,
                 as: "author",
-                attributes: ["id", "profile_info"],
+                attributes: ["id", "username"],
             },
-            {
+            includeVenue && {
                 model: Venue_1.Venue,
                 as: "venue",
                 attributes: ["id", "name"],
             },
-        ],
+        ].filter(Boolean),
         order: [
             ["published_at", "DESC"],
             ["created_at", "DESC"],
@@ -78,19 +80,21 @@ router.get("/", [
 })));
 // GET /api/articles/:id - Obtener artículo específico
 router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const includeAuthor = true;
+    const includeVenue = true;
     const article = yield Article_1.Article.findByPk(req.params.id, {
         include: [
-            {
+            includeAuthor && {
                 model: User_1.User,
                 as: "author",
-                attributes: ["id", "profile_info"],
+                attributes: ["id", "username"],
             },
-            {
+            includeVenue && {
                 model: Venue_1.Venue,
                 as: "venue",
                 attributes: ["id", "name"],
             },
-        ],
+        ].filter(Boolean),
     });
     if (!article) {
         throw errorHandler_1.errors.notFound("Article not found");
@@ -108,7 +112,7 @@ router.get("/:id", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void
 router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"), [
     (0, express_validator_1.body)("title").isString().isLength({ min: 5, max: 255 }),
     (0, express_validator_1.body)("content").isString().isLength({ min: 10 }),
-    (0, express_validator_1.body)("summary").isString().isLength({ min: 10, max: 500 }),
+    (0, express_validator_1.body)("excerpt").isString().isLength({ min: 10, max: 500 }),
     (0, express_validator_1.body)("venue_id").optional().isUUID(),
     (0, express_validator_1.body)("featured_image_url").optional().isURL(),
 ], sanitization_1.sanitizeArticleContent, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -116,7 +120,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"),
     if (!errors.isEmpty()) {
         throw new Error("Validation failed");
     }
-    const { title, content, summary, venue_id, featured_image_url } = req.body;
+    const { title, content, excerpt, venue_id, featured_image_url } = req.body;
     // Galleras can only create articles in draft status
     let articleStatus = "published";
     let publishedAt = new Date();
@@ -127,7 +131,7 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "gallera"),
     const article = yield Article_1.Article.create({
         title,
         content,
-        summary,
+        excerpt,
         author_id: req.user.id,
         venue_id,
         featured_image_url,

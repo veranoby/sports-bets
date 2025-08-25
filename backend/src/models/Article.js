@@ -7,8 +7,6 @@ exports.Article = void 0;
 // 1. backend/src/models/Article.ts
 const sequelize_1 = require("sequelize");
 const database_1 = __importDefault(require("../config/database"));
-const User_1 = require("./User");
-const Venue_1 = require("./Venue");
 class Article extends sequelize_1.Model {
     toPublicJSON() {
         var _a, _b, _c;
@@ -16,7 +14,7 @@ class Article extends sequelize_1.Model {
             id: this.id,
             title: this.title,
             content: this.content,
-            summary: this.summary,
+            summary: this.excerpt,
             author_id: this.author_id,
             venue_id: this.venue_id,
             status: this.status,
@@ -44,35 +42,29 @@ Article.init({
         type: sequelize_1.DataTypes.TEXT,
         allowNull: false,
     },
-    summary: {
+    excerpt: {
         type: sequelize_1.DataTypes.STRING(500),
         allowNull: false,
     },
     author_id: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
-        references: {
-            model: User_1.User,
-            key: "id",
-        },
+        field: "author_id",
     },
     venue_id: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: true,
         field: "venue_id",
-        references: {
-            model: Venue_1.Venue,
-            key: "id",
-        },
+    },
+    featured_image_url: {
+        type: sequelize_1.DataTypes.STRING(500),
+        allowNull: true,
+        field: "featured_image",
     },
     status: {
         type: sequelize_1.DataTypes.ENUM("draft", "pending", "published", "archived"),
         allowNull: false,
         defaultValue: "draft",
-    },
-    featured_image_url: {
-        type: sequelize_1.DataTypes.STRING(500),
-        allowNull: true,
     },
     published_at: {
         type: sequelize_1.DataTypes.DATE,

@@ -42,9 +42,9 @@ class User extends sequelize_1.Model {
     // Método de instancia para verificar contraseña
     comparePassword(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔍 Comparing password:', password, 'with hash:', this.passwordHash);
+            console.log("🔍 Comparing password:", password, "with hash:", this.passwordHash);
             const result = yield bcryptjs_1.default.compare(password, this.passwordHash);
-            console.log('🔍 Comparison result:', result);
+            console.log("🔍 Comparison result:", result);
             return result;
         });
     }
@@ -117,7 +117,7 @@ User.init({
     passwordHash: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
-        field: 'password_hash', // Explicit field mapping for snake_case DB column
+        field: "password_hash",
         validate: {
             len: [6, 255],
         },
@@ -130,11 +130,13 @@ User.init({
     isActive: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
+        field: "is_active",
         defaultValue: true,
     },
     profileInfo: {
         type: sequelize_1.DataTypes.JSONB,
         allowNull: true,
+        field: "profile_info",
         defaultValue: {
             verificationLevel: "none",
         },
@@ -142,14 +144,19 @@ User.init({
     lastLogin: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
+        field: "last_login",
     },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "created_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "updated_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
 }, {
     sequelize: database_1.default,

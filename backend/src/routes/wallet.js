@@ -372,17 +372,17 @@ router.get("/revenue-by-source", auth_1.authenticate, (0, auth_2.authorize)("adm
         attributes: [
             "type",
             [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "total"],
-            [(0, sequelize_1.fn)("COUNT", "*"), "count"]
+            [(0, sequelize_1.fn)("COUNT", "*"), "count"],
         ],
         where: {
-            status: "completed"
+            status: "completed",
         },
         group: ["type"],
-        raw: true
+        raw: true,
     });
     res.json({
         success: true,
-        data: { revenueBySource }
+        data: { revenueBySource },
     });
 })));
 // GET /api/wallet/revenue-trends - Daily/monthly revenue trends
@@ -399,26 +399,21 @@ router.get("/revenue-trends", auth_1.authenticate, (0, auth_2.authorize)("admin"
             [(0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("created_at"), dateFormat), "date"],
             "type",
             [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "amount"],
-            [(0, sequelize_1.fn)("COUNT", "*"), "count"]
+            [(0, sequelize_1.fn)("COUNT", "*"), "count"],
         ],
         where: {
             status: "completed",
             createdAt: {
-                [sequelize_1.Op.gte]: startDate
-            }
+                [sequelize_1.Op.gte]: startDate,
+            },
         },
-        group: [
-            (0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("created_at"), dateFormat),
-            "type"
-        ],
-        order: [
-            [(0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("created_at"), dateFormat), "DESC"]
-        ],
-        raw: true
+        group: [(0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("created_at"), dateFormat), "type"],
+        order: [[(0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("created_at"), dateFormat), "DESC"]],
+        raw: true,
     });
     res.json({
         success: true,
-        data: { trends, period, days }
+        data: { trends, period, days },
     });
 })));
 // GET /api/wallet/user/:userId - Get specific user's wallet (admin only)
@@ -428,17 +423,17 @@ router.get("/user/:userId", auth_1.authenticate, (0, auth_2.authorize)("admin"),
         where: { userId: req.params.userId },
         include: [
             {
-                model: models_1.User,
-                as: "user",
-                attributes: ["id", "username", "email", "role"]
+                model: models_1.Wallet,
+                as: "wallet",
+                include: [{ model: models_1.User, as: "user" }],
             },
             {
                 model: models_1.Transaction,
                 as: "transactions",
                 limit: 10,
-                order: [["createdAt", "DESC"]]
-            }
-        ]
+                order: [["createdAt", "DESC"]],
+            },
+        ],
     });
     if (!wallet) {
         throw errorHandler_1.errors.notFound("Wallet not found for this user");
@@ -448,8 +443,8 @@ router.get("/user/:userId", auth_1.authenticate, (0, auth_2.authorize)("admin"),
         data: {
             wallet: wallet.toPublicJSON(),
             user: wallet.user,
-            recentTransactions: ((_a = wallet.transactions) === null || _a === void 0 ? void 0 : _a.map((t) => { var _a; return ((_a = t.toPublicJSON) === null || _a === void 0 ? void 0 : _a.call(t)) || t; })) || []
-        }
+            recentTransactions: ((_a = wallet.transactions) === null || _a === void 0 ? void 0 : _a.map((t) => { var _a; return ((_a = t.toPublicJSON) === null || _a === void 0 ? void 0 : _a.call(t)) || t; })) || [],
+        },
     });
 })));
 exports.default = router;

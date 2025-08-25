@@ -479,18 +479,18 @@ router.get(
       attributes: [
         "type",
         [fn("SUM", col("amount")), "total"],
-        [fn("COUNT", "*"), "count"]
+        [fn("COUNT", "*"), "count"],
       ],
       where: {
-        status: "completed"
+        status: "completed",
       },
       group: ["type"],
-      raw: true
+      raw: true,
     });
 
     res.json({
       success: true,
-      data: { revenueBySource }
+      data: { revenueBySource },
     });
   })
 );
@@ -502,7 +502,7 @@ router.get(
   authorize("admin"),
   asyncHandler(async (req, res) => {
     const { period = "daily", days = 30 } = req.query;
-    
+
     let dateFormat = "%Y-%m-%d"; // daily format
     if (period === "monthly") {
       dateFormat = "%Y-%m";
@@ -516,27 +516,22 @@ router.get(
         [fn("DATE_FORMAT", col("created_at"), dateFormat), "date"],
         "type",
         [fn("SUM", col("amount")), "amount"],
-        [fn("COUNT", "*"), "count"]
+        [fn("COUNT", "*"), "count"],
       ],
       where: {
         status: "completed",
         createdAt: {
-          [Op.gte]: startDate
-        }
+          [Op.gte]: startDate,
+        },
       },
-      group: [
-        fn("DATE_FORMAT", col("created_at"), dateFormat),
-        "type"
-      ],
-      order: [
-        [fn("DATE_FORMAT", col("created_at"), dateFormat), "DESC"]
-      ],
-      raw: true
+      group: [fn("DATE_FORMAT", col("created_at"), dateFormat), "type"],
+      order: [[fn("DATE_FORMAT", col("created_at"), dateFormat), "DESC"]],
+      raw: true,
     });
 
     res.json({
       success: true,
-      data: { trends, period, days }
+      data: { trends, period, days },
     });
   })
 );
@@ -551,17 +546,17 @@ router.get(
       where: { userId: req.params.userId },
       include: [
         {
-          model: User,
-          as: "user",
-          attributes: ["id", "username", "email", "role"]
+          model: Wallet,
+          as: "wallet",
+          include: [{ model: User, as: "user" }],
         },
         {
           model: Transaction,
           as: "transactions",
           limit: 10,
-          order: [["createdAt", "DESC"]]
-        }
-      ]
+          order: [["createdAt", "DESC"]],
+        },
+      ],
     });
 
     if (!wallet) {
@@ -573,8 +568,9 @@ router.get(
       data: {
         wallet: wallet.toPublicJSON(),
         user: wallet.user,
-        recentTransactions: wallet.transactions?.map((t: any) => t.toPublicJSON?.() || t) || []
-      }
+        recentTransactions:
+          wallet.transactions?.map((t: any) => t.toPublicJSON?.() || t) || [],
+      },
     });
   })
 );

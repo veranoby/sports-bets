@@ -16,39 +16,39 @@ const database_1 = require("../config/database");
 class PaymentTransaction extends sequelize_1.Model {
     // Instance methods
     isCompleted() {
-        return this.status === 'completed';
+        return this.status === "completed";
     }
     isFailed() {
-        return this.status === 'failed';
+        return this.status === "failed";
     }
     canRetry() {
         return this.isFailed() && this.retryAttempt < 3;
     }
     getFormattedAmount() {
         const amount = this.amount / 100; // Convert cents to dollars
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: this.currency
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: this.currency,
         }).format(amount);
     }
     markAsCompleted(kushkiData) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.update({
-                status: 'completed',
+                status: "completed",
                 processedAt: new Date(),
                 kushkiResponse: kushkiData,
                 errorCode: null,
-                errorMessage: null
+                errorMessage: null,
             });
         });
     }
     markAsFailed(errorCode, errorMessage) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.update({
-                status: 'failed',
+                status: "failed",
                 failedAt: new Date(),
                 errorCode,
-                errorMessage
+                errorMessage,
             });
         });
     }
@@ -56,7 +56,7 @@ class PaymentTransaction extends sequelize_1.Model {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.update({
                 retryAttempt: this.retryAttempt + 1,
-                status: 'pending'
+                status: "pending",
             });
         });
     }
@@ -64,7 +64,7 @@ class PaymentTransaction extends sequelize_1.Model {
     static findByKushkiPaymentId(kushkiPaymentId) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield PaymentTransaction.findOne({
-                where: { kushkiPaymentId }
+                where: { kushkiPaymentId },
             });
         });
     }
@@ -72,7 +72,7 @@ class PaymentTransaction extends sequelize_1.Model {
         return __awaiter(this, void 0, void 0, function* () {
             return yield PaymentTransaction.findAll({
                 where: { subscriptionId },
-                order: [['createdAt', 'DESC']]
+                order: [["createdAt", "DESC"]],
             });
         });
     }
@@ -80,31 +80,31 @@ class PaymentTransaction extends sequelize_1.Model {
         return __awaiter(this, void 0, void 0, function* () {
             return yield PaymentTransaction.findAll({
                 where: {
-                    status: 'failed',
+                    status: "failed",
                     retryAttempt: {
-                        [require('sequelize').Op.lt]: 3
-                    }
+                        [require("sequelize").Op.lt]: 3,
+                    },
                 },
-                order: [['failedAt', 'ASC']]
+                order: [["failedAt", "ASC"]],
             });
         });
     }
     static getTransactionStats(subscriptionId) {
         return __awaiter(this, void 0, void 0, function* () {
             const transactions = yield PaymentTransaction.findAll({
-                where: { subscriptionId }
+                where: { subscriptionId },
             });
-            const completed = transactions.filter(t => t.status === 'completed');
-            const failed = transactions.filter(t => t.status === 'failed');
+            const completed = transactions.filter((t) => t.status === "completed");
+            const failed = transactions.filter((t) => t.status === "failed");
             const totalAmount = completed.reduce((sum, t) => sum + t.amount, 0);
             const lastPayment = completed.length > 0
-                ? new Date(Math.max(...completed.map(t => { var _a; return ((_a = t.processedAt) === null || _a === void 0 ? void 0 : _a.getTime()) || 0; })))
+                ? new Date(Math.max(...completed.map((t) => { var _a; return ((_a = t.processedAt) === null || _a === void 0 ? void 0 : _a.getTime()) || 0; })))
                 : undefined;
             return {
                 totalAmount,
                 successfulPayments: completed.length,
                 failedPayments: failed.length,
-                lastPayment
+                lastPayment,
             };
         });
     }
@@ -121,46 +121,90 @@ PaymentTransaction.init({
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'subscriptions',
-            key: 'id'
+            model: "subscriptions",
+            key: "id",
         },
-        onDelete: 'CASCADE'
+        onDelete: "CASCADE",
     },
     kushkiPaymentId: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
-        unique: true
+        unique: true,
     },
     kushkiTransactionId: {
-        type: sequelize_1.DataTypes.STRING,
+        type: sequelize_1.DataTypes.STRING(255),
         allowNull: true,
+        field: "kushki_transaction_id",
+    },
+    kushkiTicketNumber: {
+        type: sequelize_1.DataTypes.STRING(255),
+        allowNull: true,
+        field: "kushki_ticket_number",
     },
     type: {
-        type: sequelize_1.DataTypes.ENUM('subscription_payment', 'one_time_payment', 'refund', 'chargeback'),
+        type: sequelize_1.DataTypes.ENUM("subscription_payment", "one_time_payment", "refund", "chargeback"),
         allowNull: false,
-        defaultValue: 'subscription_payment'
+    },
+    transactionType: {
+        type: sequelize_1.DataTypes.ENUM("subscription_payment", "subscription_refund", "bet_deposit", "bet_withdrawal"),
+        allowNull: false,
+        field: "transaction_type",
+    },
+    paymentMethod: {
+        type: sequelize_1.DataTypes.ENUM("card", "cash", "transfer", "wallet"),
+        allowNull: false,
+        field: "payment_method",
+    },
+    idempotencyKey: {
+        type: sequelize_1.DataTypes.STRING(255),
+        allowNull: true,
+        field: "idempotency_key",
+    },
+    processedAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: true,
+        field: "processed_at",
+    },
+    retryCount: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        field: "retry_count",
+        defaultValue: 0,
+    },
+    maxRetries: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        field: "max_retries",
+        defaultValue: 3,
+    },
+    createdAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false,
+        field: "created_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
+    },
+    updatedAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false,
+        field: "updated_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
     status: {
-        type: sequelize_1.DataTypes.ENUM('pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'),
+        type: sequelize_1.DataTypes.ENUM("pending", "processing", "completed", "failed", "cancelled", "refunded"),
         allowNull: false,
-        defaultValue: 'pending'
+        defaultValue: "pending",
     },
     amount: {
         type: sequelize_1.DataTypes.INTEGER, // Amount in cents
         allowNull: false,
         validate: {
-            min: 0
-        }
+            min: 0,
+        },
     },
     currency: {
         type: sequelize_1.DataTypes.STRING(3),
         allowNull: false,
-        defaultValue: 'USD'
-    },
-    paymentMethod: {
-        type: sequelize_1.DataTypes.ENUM('card', 'cash', 'transfer'),
-        allowNull: false,
-        defaultValue: 'card'
+        defaultValue: "USD",
     },
     cardLast4: {
         type: sequelize_1.DataTypes.STRING(4),
@@ -188,12 +232,8 @@ PaymentTransaction.init({
         defaultValue: 0,
         validate: {
             min: 0,
-            max: 3
-        }
-    },
-    processedAt: {
-        type: sequelize_1.DataTypes.DATE,
-        allowNull: true,
+            max: 3,
+        },
     },
     failedAt: {
         type: sequelize_1.DataTypes.DATE,
@@ -207,82 +247,72 @@ PaymentTransaction.init({
         type: sequelize_1.DataTypes.JSON,
         allowNull: true,
     },
-    createdAt: {
-        type: sequelize_1.DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize_1.DataTypes.NOW,
-    },
-    updatedAt: {
-        type: sequelize_1.DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize_1.DataTypes.NOW,
-    },
 }, {
     sequelize: database_1.sequelize,
-    tableName: 'payment_transactions',
-    modelName: 'PaymentTransaction',
+    tableName: "payment_transactions",
+    modelName: "PaymentTransaction",
     timestamps: true,
     indexes: [
         {
-            fields: ['subscriptionId']
+            fields: ["subscriptionId"],
         },
         {
-            fields: ['status']
+            fields: ["status"],
         },
         {
-            fields: ['type']
+            fields: ["type"],
         },
         {
-            fields: ['kushkiPaymentId'],
+            fields: ["kushkiPaymentId"],
             unique: true,
             where: {
                 kushkiPaymentId: {
-                    [require('sequelize').Op.ne]: null
-                }
-            }
+                    [require("sequelize").Op.ne]: null,
+                },
+            },
         },
         {
-            fields: ['createdAt']
+            fields: ["createdAt"],
         },
         {
-            fields: ['processedAt']
+            fields: ["processedAt"],
         },
         {
-            fields: ['failedAt']
+            fields: ["failedAt"],
         },
         {
-            fields: ['status', 'retryAttempt']
-        }
+            fields: ["status", "retryAttempt"],
+        },
     ],
     hooks: {
         beforeCreate: (transaction) => {
             // Set processing timestamp for non-pending transactions
-            if (transaction.status === 'processing') {
+            if (transaction.status === "processing") {
                 transaction.processedAt = new Date();
             }
         },
         beforeUpdate: (transaction) => {
             // Set timestamps based on status changes
-            if (transaction.changed('status')) {
+            if (transaction.changed("status")) {
                 switch (transaction.status) {
-                    case 'completed':
+                    case "completed":
                         if (!transaction.processedAt) {
                             transaction.processedAt = new Date();
                         }
                         break;
-                    case 'failed':
+                    case "failed":
                         if (!transaction.failedAt) {
                             transaction.failedAt = new Date();
                         }
                         break;
-                    case 'refunded':
+                    case "refunded":
                         if (!transaction.refundedAt) {
                             transaction.refundedAt = new Date();
                         }
                         break;
                 }
             }
-        }
-    }
+        },
+    },
 });
 exports.default = PaymentTransaction;

@@ -111,6 +111,7 @@ Wallet.init({
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
         unique: true,
+        field: "user_id",
         references: {
             model: User_1.User,
             key: "id",
@@ -131,14 +132,19 @@ Wallet.init({
         validate: {
             min: 0,
         },
+        field: "frozen_amount",
     },
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "created_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "updated_at",
+        defaultValue: sequelize_1.DataTypes.NOW,
     },
 }, {
     sequelize: database_1.default,
@@ -206,10 +212,12 @@ Transaction.init({
     createdAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "created_at",
     },
     updatedAt: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
+        field: "updated_at",
     },
 }, {
     sequelize: database_1.default,

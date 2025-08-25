@@ -1,81 +1,153 @@
 {
-  "project": "GalloBets Fix Definitivo V4",
-  "instructions": "COPIAR Y PEGAR EXACTAMENTE",
+  "project": "GalloBets FINAL FIX - Mapeo Correcto Modelos-DB",
+  "version": "7.0-FINAL",
+  "problem": "Modelos Sequelize buscan camelCase pero DB usa snake_case",
+  "os": "Windows con PowerShell",
 
-  "fix_1_article_model": {
+  "CRITICAL_INFO": {
+    "database_location": "backend/database-analysis/CURRENT_TABLES.json",
+    "articles_has": "venue_id, author_id, featured_image (NO featuredImage)",
+    "notifications_has": "is_read AND status (BOTH columns exist)",
+    "transactions_has": "wallet_id (NO direct user_id)"
+  },
+
+  "phase_1_article_fix": {
     "file": "backend/src/models/Article.ts",
-    "line_20_after_author_id": {
-      "add_this_exact_code": "venue_id: { type: DataTypes.UUID, allowNull: true, field: 'venue_id' },"
-    },
-    "line_40_in_init": {
-      "add_this_exact_code": "venueId: {\n  type: DataTypes.UUID,\n  allowNull: true,\n  field: 'venue_id',\n  references: { model: 'venues', key: 'id' }\n},"
-    }
+    "line": "aproximadamente línea 35-40",
+    "find_this_block": "author_id: string;",
+    "replace_entire_block_with": [
+      "author_id: {",
+      "  type: DataTypes.UUID,",
+      "  allowNull: false,",
+      "  field: 'author_id'",
+      "},",
+      "venue_id: {",
+      "  type: DataTypes.UUID,",
+      "  allowNull: true,",
+      "  field: 'venue_id'",
+      "},",
+      "featured_image: {",
+      "  type: DataTypes.STRING(500),",
+      "  allowNull: true,",
+      "  field: 'featured_image'",
+      "}"
+    ],
+    "also_fix_class_properties": [
+      "public author_id!: string;",
+      "public venue_id?: string;",
+      "public featured_image?: string;"
+    ]
   },
 
-  "fix_2_notification_api": {
-    "file": "backend/src/routes/notifications.ts",
-    "line_30_in_GET_route": {
-      "replace": "where: { userId: req.user!.id, status: 'unread' }",
-      "with": "where: { userId: req.user!.id, isRead: false }"
-    }
+  "phase_2_notification_fix": {
+    "file": "backend/src/models/Notification.ts",
+    "critical": "DB has BOTH is_read AND status columns",
+    "find_block": "type: 'info' | 'warning'",
+    "add_after_type": [
+      "isRead: {",
+      "  type: DataTypes.BOOLEAN,",
+      "  defaultValue: false,",
+      "  field: 'is_read'",
+      "},",
+      "status: {",
+      "  type: DataTypes.STRING(10),",
+      "  defaultValue: 'unread',",
+      "  field: 'status'",
+      "}"
+    ],
+    "in_class_declaration": [
+      "declare isRead: boolean;",
+      "declare status: string;"
+    ]
   },
 
-  "fix_3_notification_queries": {
-    "file": "backend/src/services/notificationService.ts",
-    "find_all": "status === 'unread'",
-    "replace_all_with": "isRead === false"
+  "phase_3_transaction_fix": {
+    "file": "backend/src/models/index.ts",
+    "find_line": "Transaction.belongsTo(User",
+    "action": "DELETE this line completely",
+    "explanation": "Transactions link to Wallets, not Users directly",
+
+    "file2": "backend/src/routes/wallet.ts",
+    "find": "include: [{ model: User",
+    "replace": "include: [{ model: Wallet, as: 'wallet', include: [{ model: User, as: 'user' }] }]"
   },
 
-  "fix_4_service_worker": {
+  "phase_4_api_fixes": {
+    "file": "backend/src/routes/articles.ts",
+    "find": "includeVenue && Venue",
+    "ensure_association": [
+      "include: [",
+      "  includeAuthor && { model: User, as: 'author', attributes: ['id', 'username'] },",
+      "  includeVenue && { model: Venue, as: 'venue', attributes: ['id', 'name'] }",
+      "].filter(Boolean)"
+    ]
+  },
+
+  "phase_5_filter_fixes": {
+    "file": "frontend/src/components/admin/UserManagementTable.tsx",
+    "find": "<option value=\"user\">Usuario</option>",
+    "add_after": "<option value=\"gallera\">Gallera</option>",
+
+    "clarification": "venues != galleras",
+    "venues": "Physical cockfighting arenas",
+    "galleras": "Users with article writing permissions"
+  },
+
+  "phase_6_service_worker": {
     "file": "frontend/public/sw.js",
-    "delete_entire_file": true,
-    "or_replace_with": "self.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', () => self.clients.claim());"
+    "wrap_all_fetch": [
+      "self.addEventListener('fetch', (event) => {",
+      "  event.respondWith(",
+      "    (async () => {",
+      "      try {",
+      "        // existing fetch code",
+      "        return await fetch(event.request);",
+      "      } catch (error) {",
+      "        console.error('SW fetch error:', error);",
+      "        return new Response('Network error', { status: 503 });",
+      "      }",
+      "    })()",
+      "  );",
+      "});"
+    ]
   },
 
-  "fix_5_api_calls": {
-    "file": "frontend/src/hooks/useApi.ts",
-    "line_100": {
-      "find": "status: 'unread'",
-      "replace": "isRead: false"
-    }
+  "phase_7_login_error_handling": {
+    "file": "frontend/src/pages/LoginPage.tsx",
+    "find": "const handleSubmit",
+    "ensure_has": [
+      "try {",
+      "  const response = await authAPI.login(formData);",
+      "  // success logic",
+      "} catch (error: any) {",
+      "  console.error('Login error:', error);",
+      "  if (error.response?.status === 404) {",
+      "    setError('Usuario no encontrado');",
+      "  } else if (error.response?.status === 401) {",
+      "    setError('Contraseña incorrecta');",
+      "  } else {",
+      "    setError('Error de conexión');",
+      "  }",
+      "}"
+    ]
   },
 
-  "fix_6_wallet_transactions": {
-    "file": "backend/src/routes/wallet.ts",
-    "line_220_withdrawal_requests": {
-      "find": "include: [{ model: User",
-      "replace": "include: [{ model: Wallet, include: [{ model: User, as: 'user' }] }"
-    }
-  },
-
-  "fix_7_users_status": {
-    "file": "backend/src/routes/users.ts",
-    "line_150": {
-      "find": "body('isActive').isBoolean()",
-      "replace": "body('status').isBoolean()"
-    },
-    "line_160": {
-      "find": "const { isActive } = req.body",
-      "replace": "const { status } = req.body"
-    },
-    "line_170": {
-      "find": "user.isActive = isActive",
-      "replace": "user.isActive = status"
-    }
-  },
-
-  "test_queries": {
-    "run_in_neon": [
-      "SELECT venue_id FROM articles LIMIT 1;",
-      "SELECT is_read, status FROM notifications LIMIT 1;",
+  "test_commands_windows": {
+    "backend": ["cd backend", "npm run dev"],
+    "frontend": ["cd frontend", "npm run dev"],
+    "verify_db": [
+      "psql -h <neon-host> -U <user> -d <database>",
       "\\d articles",
       "\\d notifications"
     ]
   },
 
-  "restart_commands": [
-    "cd backend && npm run build",
-    "cd frontend && rm -rf .vite",
-    "npm run dev"
+  "validation_checklist": [
+    "[ ] Article loads without venue_id error",
+    "[ ] Notifications work with is_read",
+    "[ ] Transactions show through wallet",
+    "[ ] User filter shows gallera option",
+    "[ ] Login errors don't crash",
+    "[ ] Service worker doesn't interrupt"
   ]
 }
