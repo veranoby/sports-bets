@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middleware/auth";
+import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { User, Wallet } from "../models";
 import { body, validationResult } from "express-validator";
@@ -95,13 +95,14 @@ router.put(
 // GET /api/users - Listar usuarios (solo admin)
 router.get(
   "/",
-  authenticate,
+  optionalAuth,
   (req, res, next) => {
-    // Special case: Allow any authenticated user to view galleras
-    if (req.query.role === "gallera") {
+    const requestedRole = req.query.role as string;
+    const isPublicQuery = requestedRole === "gallera" || requestedRole === "venue";
+    if (isPublicQuery) {
       return next();
     }
-    // For all other user queries, require admin privileges
+    // For all other user list requests, require admin privileges
     return authorize("admin")(req, res, next);
   },
   asyncHandler(async (req, res) => {
@@ -111,16 +112,34 @@ router.get(
     if (role) where.role = role;
     if (isActive !== undefined) where.isActive = isActive === "true";
 
+    // For public queries, only return public profile information
+    const isPublicQuery = role === "gallera" || role === "venue";
+    const attributes = isPublicQuery
+      ? ["id", "username", "role", "profileInfo", "createdAt"]
+      : [
+          "id",
+          "username",
+          "email",
+          "role",
+          "isActive",
+          "profileInfo",
+          "lastLogin",
+          "createdAt",
+          "updatedAt",
+        ];
+
     const users = await User.findAndCountAll({
       where,
-      attributes: { exclude: ["passwordHash"] },
-      include: [
-        {
-          model: Wallet,
-          as: "wallet",
-          attributes: ["balance", "frozenAmount"],
-        },
-      ],
+      attributes,
+      include: isPublicQuery
+        ? []
+        : [
+            {
+              model: Wallet,
+              as: "wallet",
+              attributes: ["balance", "frozenAmount"],
+            },
+          ],
       order: [["createdAt", "DESC"]],
       limit: parseInt(limit as string),
       offset: parseInt(offset as string),
@@ -220,37 +239,70 @@ router.post(
 // GET /api/users/:id - Obtener usuario específico (solo admin)
 router.get(
   "/:id",
-  authenticate,
-  authorize("admin"),
-  asyncHandler(async (req, res) => {
+  optionalAuth,
+  asyncHandler(async (req, res, next) => {
+    // Fetch minimal user first to determine role/public access
+    const target = await User.findByPk(req.params.id);
+
+    if (!target) {
+      throw errors.notFound("User not found");
+    }
+
+    const isPublicProfile = target.role === "gallera" || target.role === "venue";
+    const isSelf = req.user && req.user.id === target.id;
+    const isAdmin = req.user && req.user.role === "admin";
+
+    // If not a public profile, only admin or the user themself can view
+    if (!isPublicProfile && !isAdmin && !isSelf) {
+      return next(errors.forbidden("Insufficient permissions"));
+    }
+
+    const attributes = isPublicProfile
+      ? ["id", "username", "role", "profileInfo", "createdAt"]
+      : { exclude: ["passwordHash"] };
+
+    const include = isPublicProfile
+      ? []
+      : [
+          {
+            model: Wallet,
+            as: "wallet",
+            attributes: ["balance", "frozenAmount"],
+          },
+        ];
+
     const user = await User.findByPk(req.params.id, {
-      attributes: { exclude: ["passwordHash"] },
-      include: [
-        {
-          model: Wallet,
-          as: "wallet",
-        },
-      ],
+      attributes,
+      include,
     });
 
     if (!user) {
       throw errors.notFound("User not found");
     }
 
+    // Build sanitized response according to include
+    const userJson: any = (user as any).toPublicJSON ? (user as any).toPublicJSON() : user;
+    let responseData: any = userJson;
+    if (!isPublicProfile) {
+      const userRaw = user.toJSON() as any;
+      const wallet = userRaw.wallet?.toPublicJSON?.() || userRaw.wallet;
+      responseData = { user: userJson, wallet };
+    }
+
     res.json({
       success: true,
-      data: user,
+      data: responseData,
     });
   })
 );
 
-// PUT /api/users/:id/status - Cambiar estado de usuario (solo admin)
+// PUT /api/users/:id/activation - Activar/desactivar usuario (solo admin)
 router.put(
-  "/:id/status",
+  "/:id/activation",
   authenticate,
   authorize("admin"),
   [
-    body("status").isBoolean().withMessage("status must be a boolean"),
+    body("isActive").isBoolean().withMessage("isActive must be a boolean value"),
     body("reason")
       .optional()
       .isLength({ max: 500 })
@@ -268,26 +320,26 @@ router.put(
       );
     }
 
-    const { status, reason } = req.body;
+    const { isActive, reason } = req.body;
 
     const user = await User.findByPk(req.params.id);
     if (!user) {
       throw errors.notFound("User not found");
     }
 
-    user.isActive = status;
+    user.isActive = isActive;
     await user.save();
 
     // Log de auditoría
     require("../config/logger").logger.info(
-      `User ${user.username} (${user.id}) ${
-        status ? "activated" : "deactivated"
-      } by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
+      `User ${user.username} (${user.id}) active status changed to ${isActive} by admin ${
+        req.user!.username
+      }. Reason: ${reason || "Not specified"}`
     );
 
     res.json({
       success: true,
-      message: `User ${status ? "activated" : "deactivated"} successfully`,
+      message: `User active status updated to ${isActive} successfully`,
       data: user.toPublicJSON(),
     });
   })

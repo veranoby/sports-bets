@@ -1,16 +1,23 @@
-api.ts:387 
- GET http://localhost:3001/api/users?role=gallera 403 (Forbidden)
-Promise.then		
-getAll	@	api.ts:387
-fetchGalleras	@	Galleras.tsx:31
+api.ts:389  GET http://localhost:3001/api/users/1401acf5-20d6-414a-b3c1-e8963b9cb1a6 403 (Forbidden)
 
-api.ts:35 API Error: {error: true, message: 'Insufficient permissions', statusCode: 403, stack: 'Error: Insufficient permissions\n    at createError…ections (node:internal/process/task_queues:105:5)'}
-
-Galleras.tsx:49 Error loading galleras: Error: Insufficient permissions
+UserProfilePage.tsx:47 Error fetching profile data: Error: Insufficient permissions
     at api.ts:49:27
     at async Axios.request (axios.js?v=7d193ca2:2115:14)
-    at async fetchGalleras (Galleras.tsx:31:28)
+    at async fetchData (UserProfilePage.tsx:40:30)
     at Axios.request (axios.js?v=7d193ca2:2119:41)
-    at async fetchGalleras (Galleras.tsx:31:28)
+    at async fetchData (UserProfilePage.tsx:40:30)
+
+    api.ts:35 API Error: {error: true, message: 'Insufficient permissions', statusCode: 403, stack: 'Error: Insufficient permissions\n    at createError…ections (node:internal/process/task_queues:105:5)'}
+
+    api.ts:389  GET http://localhost:3001/api/users/d447f8ed-1e4c-42de-b919-868d58fcbe08 403 (Forbidden)
+
+    api.ts:35 API Error: {error: true, message: 'Insufficient permissions', statusCode: 403, stack: 'Error: Insufficient permissions\n    at createError…ections (node:internal/process/task_queues:105:5)'}
+
+    UserProfilePage.tsx:47 Error fetching profile data: Error: Insufficient permissions
+    at api.ts:49:27
+    at async Axios.request (axios.js?v=7d193ca2:2115:14)
+    at async fetchData (UserProfilePage.tsx:40:30)
+    at Axios.request (axios.js?v=7d193ca2:2119:41)
+    at async fetchData (UserProfilePage.tsx:40:30)
 
     

@@ -3,30 +3,61 @@
 // Reutiliza useVenues() existente + server-side filtering
 // Eficiente para costos de servidor
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, MapPin, Users, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useVenues } from "../../hooks/useApi";
+import { usersAPI } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
+
+interface VenueProfile {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  imageUrl?: string;
+}
 
 const VenuesPage: React.FC = () => {
   const navigate = useNavigate();
   const { venueId } = useParams<{ venueId?: string }>();
   const [search, setSearch] = useState("");
+  const [venues, setVenues] = useState<VenueProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Reutilizar hook existente
-  const { venues, loading, error } = useVenues();
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        setLoading(true);
+        const response = await usersAPI.getAll({ role: 'venue' });
+        const venueProfiles = response.data.users.map(user => ({
+          id: user.id,
+          name: user.profileInfo?.venueName || user.username,
+          description: user.profileInfo?.description || 'Local para eventos de gallos',
+          location: user.profileInfo?.location || 'Ubicación no especificada',
+          imageUrl: user.profileInfo?.imageUrl,
+        }));
+        setVenues(venueProfiles);
+      } catch (err) {
+        setError("Error al cargar los locales. Inténtalo de nuevo más tarde.");
+        console.error('Error loading venues:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Server-side filtering (los venues ya vienen filtrados del backend)
+    fetchVenues();
+  }, []);
+
   const filteredVenues = venues.filter(
     (venue) =>
       venue.name.toLowerCase().includes(search.toLowerCase()) ||
       venue.location.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <LoadingSpinner text="Cargando galleras..." />;
+  if (loading) return <LoadingSpinner text="Cargando locales..." />;
 
   // Vista individual (simplificada)
   if (venueId) {
@@ -34,19 +65,19 @@ const VenuesPage: React.FC = () => {
     if (!venue)
       return (
         <EmptyState
-          title="Gallera no encontrada"
+          title="Local no encontrado"
           icon={<Users className="w-12 h-12" />}
         />
       );
 
     return (
       <div className="page-background space-y-4 p-4">
-        <button
+                <button
           onClick={() => navigate("/venues")}
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary"
         >
           <ChevronRight className="w-4 h-4 rotate-180" />
-          Volver
+          Volver a la lista
         </button>
 
         <div className="p-6">
@@ -63,11 +94,11 @@ const VenuesPage: React.FC = () => {
         {/* Placeholder para artículos del venue */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-theme-primary mb-4">
-            Noticias de {venue.name}
+            Artículos de {venue.name}
           </h2>
           <EmptyState
             title="Próximamente"
-            description="Las noticias de esta gallera aparecerán aquí"
+            description="Los artículos de este local aparecerán aquí"
             icon={<Users className="w-12 h-12" />}
           />
         </Card>
@@ -84,7 +115,7 @@ const VenuesPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-light" />
           <input
             type="text"
-            placeholder="Buscar galleras..."
+            placeholder="Buscar locales por nombre o ubicación..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-[#1a1f37]/50 border border-gray-600/50 rounded-lg text-theme-primary"
@@ -97,7 +128,7 @@ const VenuesPage: React.FC = () => {
         <Card variant="error">{error}</Card>
       ) : !filteredVenues.length ? (
         <EmptyState
-          title="No se encontraron galleras"
+          title="No se encontraron locales"
           icon={<Users className="w-12 h-12" />}
         />
       ) : (

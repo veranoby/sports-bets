@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // 2. backend/src/routes/articles.ts
 const express_1 = require("express");
@@ -18,12 +21,13 @@ const Article_1 = require("../models/Article");
 const User_1 = require("../models/User");
 const Venue_1 = require("../models/Venue");
 const express_validator_1 = require("express-validator");
+const validator_1 = __importDefault(require("validator"));
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
 // GET /api/articles - Listar artículos públicos
 router.get("/", [
     (0, express_validator_1.query)("search").optional().isString(),
-    (0, express_validator_1.query)("venueId").optional().isUUID(),
+    (0, express_validator_1.query)("venueId").optional().custom((value) => !value || validator_1.default.isUUID(value)),
     (0, express_validator_1.query)("status").optional().isIn(["published", "pending", "draft"]),
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),

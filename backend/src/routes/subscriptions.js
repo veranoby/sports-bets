@@ -268,7 +268,7 @@ router.get('/current', auth_1.authenticate, (0, errorHandler_1.asyncHandler)((re
         if (!subscription) {
             return res.json({
                 success: true,
-                data: null
+                data: { type: 'free', status: 'active', features: [], plan: 'free', isActive: true, id: 'free-plan' }
             });
         }
         // Check if subscription is actually expired
@@ -276,7 +276,7 @@ router.get('/current', auth_1.authenticate, (0, errorHandler_1.asyncHandler)((re
             yield subscription.markAsExpired();
             return res.json({
                 success: true,
-                data: null
+                data: { type: 'free', status: 'active', features: [], plan: 'free', isActive: true, id: 'free-plan' }
             });
         }
         res.json({

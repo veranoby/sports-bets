@@ -81,7 +81,7 @@ class AuthDebugger {
                         username: user.username,
                         email: user.email,
                         role: user.role,
-                        is_active: user.is_active,
+                        isActive: user.is_active,
                         password_hash_length: ((_a = user.password_hash) === null || _a === void 0 ? void 0 : _a.length) || 0,
                         password_hash_starts_with: ((_b = user.password_hash) === null || _b === void 0 ? void 0 : _b.substring(0, 7)) || 'N/A'
                     });
@@ -214,7 +214,7 @@ class AuthDebugger {
                         this.addResult('Complete Auth Simulation', 'SUCCESS', {
                             user_found: true,
                             password_valid: isPasswordValid,
-                            user_active: user.isActive,
+                            user_isActive: user.isActive,
                             auth_success: true
                         });
                     }
@@ -222,9 +222,9 @@ class AuthDebugger {
                         this.addResult('Complete Auth Simulation', 'FAILED', {
                             user_found: true,
                             password_valid: isPasswordValid,
-                            user_active: user.isActive,
+                            user_isActive: user.isActive,
                             auth_success: false,
-                            failure_reason: !user.isActive ? 'User inactive' : 'Invalid password'
+                            failure_reason: !user.isActive ? `User is not active` : 'Invalid password'
                         });
                     }
                 }

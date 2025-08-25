@@ -80,23 +80,48 @@ router.put("/profile", auth_1.authenticate, [
     });
 })));
 // GET /api/users - Listar usuarios (solo admin)
-router.get("/", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", auth_1.optionalAuth, (req, res, next) => {
+    const requestedRole = req.query.role;
+    const isPublicQuery = requestedRole === "gallera" || requestedRole === "venue";
+    if (isPublicQuery) {
+        return next();
+    }
+    // For all other user list requests, require admin privileges
+    return (0, auth_1.authorize)("admin")(req, res, next);
+}, (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { role, isActive, limit = 50, offset = 0 } = req.query;
     const where = {};
     if (role)
         where.role = role;
     if (isActive !== undefined)
         where.isActive = isActive === "true";
+    // For public queries, only return public profile information
+    const isPublicQuery = role === "gallera" || role === "venue";
+    const attributes = isPublicQuery
+        ? ["id", "username", "role", "profileInfo", "createdAt"]
+        : [
+            "id",
+            "username",
+            "email",
+            "role",
+            "isActive",
+            "profileInfo",
+            "lastLogin",
+            "createdAt",
+            "updatedAt",
+        ];
     const users = yield models_1.User.findAndCountAll({
         where,
-        attributes: { exclude: ["passwordHash"] },
-        include: [
-            {
-                model: models_1.Wallet,
-                as: "wallet",
-                attributes: ["balance", "frozenAmount"],
-            },
-        ],
+        attributes,
+        include: isPublicQuery
+            ? []
+            : [
+                {
+                    model: models_1.Wallet,
+                    as: "wallet",
+                    attributes: ["balance", "frozenAmount"],
+                },
+            ],
         order: [["createdAt", "DESC"]],
         limit: parseInt(limit),
         offset: parseInt(offset),
@@ -174,27 +199,55 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     });
 })));
 // GET /api/users/:id - Obtener usuario específico (solo admin)
-router.get("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield models_1.User.findByPk(req.params.id, {
-        attributes: { exclude: ["passwordHash"] },
-        include: [
+router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    // Fetch minimal user first to determine role/public access
+    const target = yield models_1.User.findByPk(req.params.id);
+    if (!target) {
+        throw errorHandler_1.errors.notFound("User not found");
+    }
+    const isPublicProfile = target.role === "gallera" || target.role === "venue";
+    const isSelf = req.user && req.user.id === target.id;
+    const isAdmin = req.user && req.user.role === "admin";
+    // If not a public profile, only admin or the user themself can view
+    if (!isPublicProfile && !isAdmin && !isSelf) {
+        return next(errorHandler_1.errors.forbidden("Insufficient permissions"));
+    }
+    const attributes = isPublicProfile
+        ? ["id", "username", "role", "profileInfo", "createdAt"]
+        : { exclude: ["passwordHash"] };
+    const include = isPublicProfile
+        ? []
+        : [
             {
                 model: models_1.Wallet,
                 as: "wallet",
+                attributes: ["balance", "frozenAmount"],
             },
-        ],
+        ];
+    const user = yield models_1.User.findByPk(req.params.id, {
+        attributes,
+        include,
     });
     if (!user) {
         throw errorHandler_1.errors.notFound("User not found");
     }
+    // Build sanitized response according to include
+    const userJson = user.toPublicJSON ? user.toPublicJSON() : user;
+    let responseData = userJson;
+    if (!isPublicProfile) {
+        const userRaw = user.toJSON();
+        const wallet = ((_b = (_a = userRaw.wallet) === null || _a === void 0 ? void 0 : _a.toPublicJSON) === null || _b === void 0 ? void 0 : _b.call(_a)) || userRaw.wallet;
+        responseData = { user: userJson, wallet };
+    }
     res.json({
         success: true,
-        data: user,
+        data: responseData,
     });
 })));
-// PUT /api/users/:id/status - Cambiar estado de usuario (solo admin)
-router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
-    (0, express_validator_1.body)("status").isBoolean().withMessage("status must be a boolean"),
+// PUT /api/users/:id/activation - Activar/desactivar usuario (solo admin)
+router.put("/:id/activation", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
+    (0, express_validator_1.body)("isActive").isBoolean().withMessage("isActive must be a boolean value"),
     (0, express_validator_1.body)("reason")
         .optional()
         .isLength({ max: 500 })
@@ -208,18 +261,18 @@ router.put("/:id/status", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
                 .map((err) => err.msg)
                 .join(", "));
     }
-    const { status, reason } = req.body;
+    const { isActive, reason } = req.body;
     const user = yield models_1.User.findByPk(req.params.id);
     if (!user) {
         throw errorHandler_1.errors.notFound("User not found");
     }
-    user.isActive = status;
+    user.isActive = isActive;
     yield user.save();
     // Log de auditoría
-    require("../config/logger").logger.info(`User ${user.username} (${user.id}) ${status ? "activated" : "deactivated"} by admin ${req.user.username}. Reason: ${reason || "Not specified"}`);
+    require("../config/logger").logger.info(`User ${user.username} (${user.id}) active status changed to ${isActive} by admin ${req.user.username}. Reason: ${reason || "Not specified"}`);
     res.json({
         success: true,
-        message: `User ${status ? "activated" : "deactivated"} successfully`,
+        message: `User active status updated to ${isActive} successfully`,
         data: user.toPublicJSON(),
     });
 })));

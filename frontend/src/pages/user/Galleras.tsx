@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Shield, Users, Trophy, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Shield, Users, Calendar } from 'lucide-react';
 import { articlesAPI, usersAPI } from '../../config/api';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -18,7 +19,7 @@ const GallerasPage = () => {
   const [galleras, setGalleras] = useState<GalleraProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGallera, setSelectedGallera] = useState<GalleraProfile | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchGalleras();
@@ -31,7 +32,8 @@ const GallerasPage = () => {
       const galleraUsers = await usersAPI.getAll({ role: 'gallera' });
       // Get their articles
       const galleraProfiles = await Promise.all(
-        galleraUsers.data.map(async (user) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        galleraUsers.data.users.map(async (user: any) => {
           const articles = await articlesAPI.getAll({ author_id: user.id });
           return {
             id: user.id,
@@ -78,12 +80,16 @@ const GallerasPage = () => {
         <EmptyState 
           icon={<Shield size={48} />}
           title='No se encontraron instituciones'
-          message='No hay criadores que coincidan con tu búsqueda.'
+          description='No hay criadores que coincidan con tu búsqueda.'
         />
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {filteredGalleras.map(gallera => (
-            <div key={gallera.id} className='card-background p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300'>
+            <div
+              key={gallera.id}
+              className='card-background p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer hover:bg-[#2a325c]/30'
+              onClick={() => navigate(`/galleras/${gallera.id}`)}
+            >
               <div className='flex items-center mb-4'>
                 <img 
                   src={gallera.imageUrl || '/placeholder.svg'}

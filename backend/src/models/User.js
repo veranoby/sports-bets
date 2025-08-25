@@ -130,8 +130,8 @@ User.init({
     isActive: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
-        field: "is_active",
         defaultValue: true,
+        field: "is_active",
     },
     profileInfo: {
         type: sequelize_1.DataTypes.JSON,
@@ -176,11 +176,11 @@ User.init({
             unique: true,
         },
         {
-            name: "idx_users_role_active",
+            name: "idx_users_role_is_active",
             fields: ["role", "is_active"],
         },
         {
-            name: "idx_users_email_active",
+            name: "idx_users_email_is_active",
             fields: ["email", "is_active"],
         },
     ],
