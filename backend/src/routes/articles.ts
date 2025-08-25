@@ -53,16 +53,18 @@ router.get(
   "/",
   optionalAuth,
   [
-    query("search").optional().isString(),
-    query("venueId").optional().isUUID(),
-    query("status").optional().isIn(["published", "pending", "draft", "archived"]),
+    // Accept empty strings as "not provided" with checkFalsy to avoid 500s from UI sending ''
+    query("search").optional({ checkFalsy: true }).isString(),
+    query("venueId").optional({ checkFalsy: true }).isUUID(),
+    query("status").optional({ checkFalsy: true }).isIn(["published", "pending", "draft", "archived"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      throw new Error("Invalid parameters");
+      // Return 400 instead of 500 when query params are invalid
+      throw errors.badRequest("Invalid parameters");
     }
 
     const {

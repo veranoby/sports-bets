@@ -54,16 +54,18 @@ function getArticleAttributes(role, type) {
 const router = (0, express_1.Router)();
 // GET /api/articles - Listar artículos con sanitización por rol
 router.get("/", auth_1.optionalAuth, [
-    (0, express_validator_1.query)("search").optional().isString(),
-    (0, express_validator_1.query)("venueId").optional().isUUID(),
-    (0, express_validator_1.query)("status").optional().isIn(["published", "pending", "draft", "archived"]),
+    // Accept empty strings as "not provided" with checkFalsy to avoid 500s from UI sending ''
+    (0, express_validator_1.query)("search").optional({ checkFalsy: true }).isString(),
+    (0, express_validator_1.query)("venueId").optional({ checkFalsy: true }).isUUID(),
+    (0, express_validator_1.query)("status").optional({ checkFalsy: true }).isIn(["published", "pending", "draft", "archived"]),
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const validationErrors = (0, express_validator_1.validationResult)(req);
     if (!validationErrors.isEmpty()) {
-        throw new Error("Invalid parameters");
+        // Return 400 instead of 500 when query params are invalid
+        throw errorHandler_1.errors.badRequest("Invalid parameters");
     }
     const { search, venueId, status: rawStatus = "published", page = 1, limit = 10, } = req.query;
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
