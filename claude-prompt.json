@@ -72,10 +72,14 @@
             "frontend/src/pages/venue/Profile.tsx",
             "frontend/src/pages/gallera/Dashboard.tsx",
             "frontend/src/components/layouts/VenueLayout.tsx",
-            "frontend/src/components/layouts/GalleraLayout.tsx"
+            "frontend/src/components/layouts/GalleraLayout.tsx",
+            "frontend/src/components/venue/* (todo el directorio)",
+            "frontend/src/components/gallera/* (todo el directorio)"
           ],
-          "files_to_migrate_logic": [
-            "frontend/src/pages/gallera/MyArticles.tsx → ArticleManagement component"
+          "files_not_needed": [
+            "❌ NO crear ArticleManagement - YA EXISTE",
+            "❌ NO crear ArticleEditor - YA EXISTE", 
+            "❌ NO crear ArticleList - YA EXISTE"
           ],
           "purpose": "Unificar todos los roles en un solo entorno funcional",
           "requirements": [
@@ -116,27 +120,29 @@
         },
         {
           "id": "UNIFY-002", 
-          "title": "Crear Componente ArticleManagement Universal",
-          "description": "Componente para crear/gestionar artículos usado por venues y galleras",
-          "files_to_create": [
-            "frontend/src/components/articles/ArticleManagement.tsx",
-            "frontend/src/components/articles/ArticleEditor.tsx", 
-            "frontend/src/components/articles/ArticleList.tsx"
+          "title": "✅ REUTILIZAR ArticleManagement Existente",
+          "description": "DESCUBRIMIENTO: ArticleManagement YA EXISTE y es funcional - solo integrarlo",
+          "files_existing": [
+            "✅ frontend/src/components/articles/ArticleManagement.tsx",
+            "✅ frontend/src/components/articles/ArticleEditor.tsx", 
+            "✅ frontend/src/components/articles/ArticleList.tsx"
           ],
-          "purpose": "Funcionalidad común de gestión de artículos para venues y galleras",
-          "requirements": [
-            "Crear, editar, eliminar artículos",
-            "Lista de artículos propios con filtros",
-            "Estados: draft, pending, published",
-            "Interfaz en español",
-            "Sin quick actions (simplificado)"
+          "integration_needed": [
+            "Importar ArticleManagement en Dashboard.tsx",
+            "Agregar condicional: {(user.role === 'venue' || user.role === 'gallera') && <ArticleManagement />}",
+            "Verificar si requiere traducción a español"
           ],
-          "based_on": "Mejorar frontend/src/pages/gallera/MyArticles.tsx existente",
-          "fixes_needed": [
-            "Traducir interfaz a español",
-            "Eliminar quick actions innecesarios", 
-            "Corregir error 'view all' en recent articles",
-            "Mejorar UX de creación/edición"
+          "advantages": [
+            "✅ NO crear componentes nuevos",
+            "✅ NO duplicar funcionalidad",
+            "✅ Reutilizar código probado",
+            "✅ Menos tiempo de desarrollo"
+          ],
+          "requirements_met": [
+            "✅ Crear, editar, eliminar artículos",
+            "✅ Lista con filtros por estado", 
+            "✅ Estados: draft, pending, published",
+            "✅ Modal de creación/edición"
           ]
         }
       ]

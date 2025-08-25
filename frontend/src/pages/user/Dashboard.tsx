@@ -1,8 +1,3 @@
-// frontend/src/pages/user/Dashboard.tsx - CORREGIDO V11
-// ========================================================
-// ✅ SOLUCIONADO: ReferenceError LiveEventsWidget
-// ✅ AGREGADO: Import correcto del componente premium
-
 import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
 import {
   Calendar,
@@ -128,17 +123,25 @@ const Dashboard: React.FC = () => {
         <NewsBanner />
 
         {/* ROLE-SPECIFIC SECTIONS */}
-        {user?.role === "venue" && (
+        {user?.role === "user" && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Galleras</h2>
-            {/* Placeholder for Venue Management Component */}
+            <h2 className="text-2xl font-bold text-theme-primary">Mis Apuestas</h2>
             <div className="card-background p-6">
-              <p>Aquí irá el componente de gestión de galleras.</p>
+              <p>Aquí irán las secciones de Mis Apuestas y Historial de Apuestas.</p>
             </div>
           </div>
         )}
 
-        {user?.role === "gallera" && (
+        {user?.role === "venue" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Galleras</h2>
+            <div className="card-background p-6">
+              <p>Aquí irá el componente de gestión de galleras (MyVenues, VenueManagement).</p>
+            </div>
+          </div>
+        )}
+
+        {(user?.role === "venue" || user?.role === "gallera") && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-theme-primary">Gestión de Artículos</h2>
             <ArticleManagement />

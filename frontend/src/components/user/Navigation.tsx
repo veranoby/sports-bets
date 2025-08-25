@@ -11,7 +11,6 @@ import {
   Building2,
   Wallet, // Added for wallet
   Trophy, // Added for bets
-  BarChart, // Added for statistics
   Users, // Added for admin users
   Settings, // Added for admin system
 } from "lucide-react";
@@ -88,42 +87,29 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
             gradient: "from-pink-500 to-pink-600",
           },
         ];
-      case "venue":
-        return [
-          ...commonItems,
-          {
-            id: "my-venues",
-            icon: Building2,
-            label: "Mis Galleras",
-            path: "/dashboard/my-venues", // New path for venue-specific section
-            gradient: "from-orange-500 to-orange-600",
-          },
-          {
-            id: "articles",
-            icon: Newspaper,
-            label: "Artículos",
-            path: "/dashboard/my-articles", // New path for articles management
-            gradient: "from-pink-500 to-pink-600",
-          },
-        ];
-      case "gallera":
-        return [
-          ...commonItems,
-          {
-            id: "articles",
-            icon: Newspaper,
-            label: "Artículos",
-            path: "/dashboard/my-articles", // New path for articles management
-            gradient: "from-pink-500 to-pink-600",
-          },
-          {
-            id: "statistics",
-            icon: BarChart,
-            label: "Estadísticas",
-            path: "/dashboard/statistics", // Placeholder for statistics
-            gradient: "from-teal-500 to-teal-600",
-          },
-        ];
+        case "venue":
+          return [
+            ...commonItems,
+            {
+              id: "venues",
+              icon: Building2,
+              label: "Mis Galleras", 
+              path: "/venues", // ✅ Ruta que SÍ existe
+              gradient: "from-orange-500 to-orange-600",
+            },
+            // Remover temporalmente articles hasta crear componente
+          ];
+        case "gallera":
+          return [
+            ...commonItems,
+            {
+              id: "news", 
+              icon: Newspaper,
+              label: "Noticias",
+              path: "/news", // ✅ Ruta que SÍ existe  
+              gradient: "from-pink-500 to-pink-600",
+            },
+          ];
       case "admin":
         return [
           {

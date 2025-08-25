@@ -174,16 +174,31 @@ const UserHeader = memo(() => {
             )}
           </span>
           {/* Role-specific info */}
+          {user.role === "user" && (
+            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              <span>Apuestas Activas: {activeBetsCount}</span>
+            </span>
+          )}
           {user.role === "venue" && (
             <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
               <Building2 className="w-3 h-3" />
-              <span>Venues: 5</span> {/* Placeholder */}
+              <span>Galleras Activas: X</span> {/* Placeholder for active venues count */}
+              {/* <span>Ingresos: $Y</span> Placeholder for revenue summary */}
             </span>
           )}
           {user.role === "gallera" && (
             <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center gap-1">
               <Newspaper className="w-3 h-3" />
-              <span>Articles: 12</span> {/* Placeholder */}
+              <span>Artículos Publicados: Z</span> {/* Placeholder for articles published */}
+              {/* <span>Engagement: W%</span> Placeholder for engagement stats */}
+            </span>
+          )}
+          {user.role === "admin" && (
+            <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full flex items-center gap-1">
+              <Settings className="w-3 h-3" />
+              <span>Estado del Sistema: OK</span> {/* Placeholder for system status */}
+              {/* <span>Aprobaciones Pendientes: P</span> Placeholder for pending approvals */}
             </span>
           )}
         </div>

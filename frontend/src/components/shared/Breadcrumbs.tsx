@@ -24,7 +24,7 @@ const ROLE_ROUTES: Record<string, Record<string, string>> = {
     "/subscriptions": "Suscripciones",
     "/news": "Noticias",
     "/venues": "Galleras",
-    // New paths for unified dashboard
+    // Paths for unified dashboard (venue/gallera specific sections)
     "/dashboard/my-venues": "Mis Galleras", // For venue role
     "/dashboard/my-articles": "Mis Artículos", // For gallera role
   },

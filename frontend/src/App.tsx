@@ -117,8 +117,8 @@ const AppContent: React.FC = () => {
         {/* 🎯 RUTAS DE USUARIO - Mantener carga inmediata */}
         <Route
           element={
-            <ProtectedRoute requiredRole={["user", "venue", "gallera"]}>
-              <UserLayout />
+<ProtectedRoute allowedRoles={["user", "venue", "gallera"]}>
+<UserLayout />
             </ProtectedRoute>
           }
         >

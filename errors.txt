@@ -1,8 +1,53 @@
-frontend\src\components\user\UserHeader.tsx: Unterminated regular expression. (186:10)
-  189 |         {/* WALLET BALANCE */}
-E:/Documents/Proyecto Programacion/sports-bets/frontend/src/components/user/UserHeader.tsx:186:10
-184|              </span>
-185|            )
-186|          </div>
-   |            ^
-187|  
+// EMERGENCY FIX V16 - CORREGIDO DESPUÉS DE VERIFICACIÓN
+
+// ===========================================
+// 1. ARREGLAR App.tsx - ProtectedRoute syntax ✅ CONFIRMADO
+// ===========================================
+
+// LÍNEA 66 EN App.tsx - CAMBIAR:
+<ProtectedRoute requiredRole={["user", "venue", "gallera"]}>
+// POR:
+<ProtectedRoute allowedRoles={["user", "venue", "gallera"]}>
+
+// ===========================================
+// 2. ARREGLAR Navigation.tsx - Paths correctos ✅ CONFIRMADO  
+// ===========================================
+
+// EN frontend/src/components/user/Navigation.tsx
+// LÍNEAS ~45-55 - venue case - CAMBIAR:
+path: "/dashboard/my-venues"
+// POR:
+path: "/venues"
+
+// LÍNEAS gallera case - CAMBIAR:
+path: "/dashboard/my-articles" 
+// POR:
+path: "/news" // Temporalmente hasta crear articles
+
+// ===========================================
+// 3. ARREGLAR Dashboard.tsx - Navegación correcta ✅ CONFIRMADO
+// ===========================================
+
+// EN frontend/src/pages/user/Dashboard.tsx
+// FUNCIÓN handleViewWallet - CAMBIAR:
+const handleViewWallet = () => {
+  navigate("/user/Wallet"); // ❌ INCORRECTO
+};
+// POR:
+const handleViewWallet = () => {
+  navigate("/wallet"); // ✅ CORRECTO
+};
+
+// FUNCIÓN handleEnterEvent - CAMBIAR:
+const handleEnterEvent = (id: string) => {
+  navigate(`/user/LiveEvent/${id}`); // ❌ INCORRECTO  
+};
+// POR:
+const handleEnterEvent = (id: string) => {
+  navigate(`/live-event/${id}`); // ✅ CORRECTO
+};
+
+// ===========================================
+// ROOT CAUSE 404: ProtectedRoute syntax incorrecto
+// ===========================================
+// requiredRole NO existe → ProtectedRoute falla → redirect infinito → 404
