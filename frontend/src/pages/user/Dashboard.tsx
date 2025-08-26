@@ -31,6 +31,7 @@ import Badge from "../../components/shared/Badge"; // Added Badge import
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 import ArticleManagement from "../../components/articles/ArticleManagement"; // Added
+import VenueManagement from "../../components/venues/VenueManagement"; // NEWLY ADDED IMPORT
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -127,7 +128,8 @@ const Dashboard: React.FC = () => {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-theme-primary">Mis Apuestas</h2>
             <div className="card-background p-6">
-              <p>Aquí irán las secciones de Mis Apuestas y Historial de Apuestas.</p>
+              <p>Aquí irán las secciones de Mis Apuestas y Historial de Apuestas (BettingSection).</p>
+              {/* <BettingSection /> */} {/* Placeholder for actual component */}
             </div>
           </div>
         )}
@@ -135,9 +137,7 @@ const Dashboard: React.FC = () => {
         {user?.role === "venue" && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-theme-primary">Gestión de Galleras</h2>
-            <div className="card-background p-6">
-              <p>Aquí irá el componente de gestión de galleras (MyVenues, VenueManagement).</p>
-            </div>
+            <VenueManagement />
           </div>
         )}
 
@@ -217,7 +217,7 @@ const Dashboard: React.FC = () => {
                       size="md"
                       icon={<Calendar className="w-3 h-3" />}
                       className="hover:bg-[#596c95] transition-colors cursor-pointer m-2"
-                      onClick={() => navigate(`/events/${event.id}`)}
+                      onClick={() => navigate(`/live-event/${event.id}`)}
                     >
                       {event.name}
                     </Badge>

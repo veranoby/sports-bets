@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom"; // Added Navigate import
 import {
   Activity,
   TrendingUp,
@@ -24,11 +24,15 @@ import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatureFlags import
 
 // ✅ TIPOS LOCALES PARA EVITAR DEPENDENCIAS EXTERNAS
 type TabType = "my_bets" | "available" | "history" | "stats";
 
 const UserBets: React.FC = () => {
+  const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
+  if (!isBettingEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
+
   const navigate = useNavigate();
 
   // Estados principales

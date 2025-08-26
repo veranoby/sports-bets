@@ -141,7 +141,7 @@ const AppContent: React.FC = () => {
         {/* 🔧 RUTAS DE ADMIN - Con lazy loading */}
         <Route
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={["admin"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -248,7 +248,7 @@ const AppContent: React.FC = () => {
         {/* 🎥 RUTAS DE OPERADOR - Con lazy loading */}
         <Route
           element={
-            <ProtectedRoute requiredRole="operator">
+            <ProtectedRoute allowedRoles={["operator"]}>
               <OperatorLayout />
             </ProtectedRoute>
           }

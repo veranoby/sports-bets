@@ -28,9 +28,11 @@ import {
   Legend,
   Filler,
 } from "chart.js";
+import { Navigate } from "react-router-dom"; // Added Navigate import
 
 // Hooks y contextos
 import { useWallet } from "../../hooks/useApi";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatureFlags import
 // ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
@@ -57,6 +59,9 @@ Chart.register(
 );
 
 const WalletPage: React.FC = () => {
+  const { isWalletEnabled } = useFeatureFlags(); // Added feature flag check
+  if (!isWalletEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
+
   // ❌ ELIMINADO: const theme = getUserThemeClasses();
   const {
     wallet,

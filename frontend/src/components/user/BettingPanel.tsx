@@ -7,6 +7,7 @@ import { useWebSocketRoom } from "../../hooks/useWebSocket";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 
 interface BettingPanelProps {
   fightId: string;
@@ -25,6 +26,9 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { wallet } = useWallet();
   const { isConnected } = useWebSocketRoom(fightId);
   const { addListener, removeListener } = useWebSocketContext();
+  const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
+
+  if (!isBettingEnabled) return null; // Conditional rendering
 
   // Referencia estable para fetchAvailableBets
   const fetchAvailableBetsRef = useRef(fetchAvailableBets);

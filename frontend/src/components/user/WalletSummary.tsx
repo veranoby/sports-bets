@@ -9,6 +9,7 @@ import React from "react";
 import { Wallet, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Card from "../shared/Card";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 
 export interface WalletSummaryProps {
   balance: number;
@@ -24,6 +25,9 @@ const WalletSummary: React.FC<WalletSummaryProps> = ({
   showQuickActions,
 }) => {
   const navigate = useNavigate();
+  const { isWalletEnabled } = useFeatureFlags(); // Added feature flag check
+
+  if (!isWalletEnabled) return null; // Conditional rendering
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("es-MX", {

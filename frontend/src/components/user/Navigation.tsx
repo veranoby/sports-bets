@@ -15,11 +15,13 @@ import {
   Settings, // Added for admin system
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext"; // Added
+import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatureFlags import
 import type { UserRole } from "../../../../shared/types"; // Fixed path to project-level shared/types; type-only import
 
 const Navigation: React.FC<{ currentPage?: string }> = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isWalletEnabled, isBettingEnabled } = useFeatureFlags(); // Added feature flag checks
 
   const getActivePage = () => {
     if (location.pathname.startsWith("/events")) return "events";
@@ -52,26 +54,31 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         path: "/profile",
         gradient: "from-green-500 to-green-600",
       },
-      {
+    ];
+
+    if (isWalletEnabled) { // Conditionally add wallet item
+      commonItems.push({
         id: "wallet",
         icon: Wallet,
         label: "Cartera",
         path: "/wallet",
         gradient: "from-yellow-500 to-yellow-600",
-      },
-    ];
+      });
+    }
 
     switch (role) {
       case "user":
-        return [
-          ...commonItems,
-          {
+        const userItems = [...commonItems];
+        if (isBettingEnabled) { // Conditionally add bets item
+          userItems.push({
             id: "bets",
             icon: Trophy,
             label: "Mis Apuestas",
             path: "/bets",
             gradient: "from-red-500 to-red-600",
-          },
+          });
+        }
+        userItems.push(
           {
             id: "events",
             icon: Calendar,
@@ -86,7 +93,8 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
             path: "/news",
             gradient: "from-pink-500 to-pink-600",
           },
-        ];
+        );
+        return userItems;
         case "venue":
           return [
             ...commonItems,
