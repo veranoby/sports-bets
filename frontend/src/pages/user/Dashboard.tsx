@@ -1,20 +1,17 @@
-import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Calendar,
   Activity,
-  Wallet,
-  Play,
-  Trophy,
+  
   Webcam,
   Zap,
   Dices,
-  Crown,
   Lock,
   TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useEvents, useBets, useWallet } from "../../hooks/useApi";
+import { useEvents, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
@@ -31,7 +28,6 @@ import Badge from "../../components/shared/Badge"; // Added Badge import
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 import ArticleManagement from "../../components/articles/ArticleManagement"; // Added
-import VenueManagement from "../../components/venues/VenueManagement"; // NEWLY ADDED IMPORT
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +41,7 @@ const Dashboard: React.FC = () => {
     error: eventsError,
     fetchEvents,
   } = useEvents();
-  const { bets, loading: betsLoading, error: betsError } = useBets();
+  const { loading: betsLoading } = useBets();
 
   // ✅ LISTENERS ESPECÍFICOS DE EVENTOS
   useWebSocketListener(
@@ -107,7 +103,6 @@ const Dashboard: React.FC = () => {
 
   // Estados de carga
   const isLoading = eventsLoading || betsLoading;
-  const hasErrors = eventsError || betsError;
 
   if (isLoading) {
     return (
@@ -124,7 +119,7 @@ const Dashboard: React.FC = () => {
         <NewsBanner />
 
         {/* ROLE-SPECIFIC SECTIONS */}
-        {user?.role === "user" && (
+        {user?.role === "user" && isBettingEnabled && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-theme-primary">Mis Apuestas</h2>
             <div className="card-background p-6">
@@ -134,16 +129,9 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {user?.role === "venue" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Galleras</h2>
-            <VenueManagement />
-          </div>
-        )}
 
         {(user?.role === "venue" || user?.role === "gallera") && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-theme-primary">Gestión de Artículos</h2>
             <ArticleManagement />
           </div>
         )}
@@ -210,17 +198,22 @@ const Dashboard: React.FC = () => {
                     />{" "}
                   </h3>
                   {todayEvents.map((event) => (
-                    <Badge
+                    <button
                       key={event.id}
-                      value={formatTime(new Date(event.scheduledDate))} // Solo hora
-                      variant="success"
-                      size="md"
-                      icon={<Calendar className="w-3 h-3" />}
-                      className="hover:bg-[#596c95] transition-colors cursor-pointer m-2"
+                      type="button"
                       onClick={() => navigate(`/live-event/${event.id}`)}
+                      className="m-2"
                     >
-                      {event.name}
-                    </Badge>
+                      <Badge
+                        value={formatTime(new Date(event.scheduledDate))} // Solo hora
+                        variant="success"
+                        size="md"
+                        icon={<Calendar className="w-3 h-3" />}
+                        className="hover:bg-[#596c95] transition-colors cursor-pointer"
+                      >
+                        {event.name}
+                      </Badge>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -258,14 +251,7 @@ const Dashboard: React.FC = () => {
                             {event.venue?.name}
                           </p>
 
-                          {event.currentViewers && (
-                            <div className="flex items-center gap-1 mt-2">
-                              <div className="w-1 h-1 bg-green-400 rounded-full"></div>
-                              <span className="text-xs text-green-400">
-                                {event.currentViewers} espectadores
-                              </span>
-                            </div>
-                          )}
+                          {/* Removed currentViewers display due to missing type on EventData */}
                         </div>
                       ))}
 

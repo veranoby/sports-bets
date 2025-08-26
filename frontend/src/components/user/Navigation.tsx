@@ -48,6 +48,34 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         gradient: "from-blue-500 to-blue-600",
       },
       {
+        id: "events",
+        icon: Calendar,
+        label: "Eventos",
+        path: "/events",
+        gradient: "from-purple-500 to-purple-600",
+      },
+      {
+        id: "venues",
+        icon: Building2,
+        label: "Locales",
+        path: "/venues",
+        gradient: "from-orange-500 to-orange-600",
+      },
+      {
+        id: "galleras",
+        icon: Building2,
+        label: "Galleras",
+        path: "/galleras",
+        gradient: "from-orange-500 to-orange-600",
+      },
+      {
+        id: "news",
+        icon: Newspaper,
+        label: "Noticias",
+        path: "/news",
+        gradient: "from-pink-500 to-pink-600",
+      },
+      {
         id: "profile",
         icon: User,
         label: "Perfil",
@@ -65,59 +93,35 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         gradient: "from-yellow-500 to-yellow-600",
       });
     }
+    if (isBettingEnabled) { // Conditionally add bets item
+      commonItems.push({
+        id: "bets",
+        icon: Trophy,
+        label: "Mis Apuestas",
+        path: "/bets",
+        gradient: "from-red-500 to-red-600",
+      });
+    }
 
     switch (role) {
-      case "user":
+      case "user": {
         const userItems = [...commonItems];
-        if (isBettingEnabled) { // Conditionally add bets item
-          userItems.push({
-            id: "bets",
-            icon: Trophy,
-            label: "Mis Apuestas",
-            path: "/bets",
-            gradient: "from-red-500 to-red-600",
-          });
-        }
+
         userItems.push(
-          {
-            id: "events",
-            icon: Calendar,
-            label: "Eventos",
-            path: "/events",
-            gradient: "from-purple-500 to-purple-600",
-          },
-          {
-            id: "news",
-            icon: Newspaper,
-            label: "Noticias",
-            path: "/news",
-            gradient: "from-pink-500 to-pink-600",
-          },
+         
         );
         return userItems;
+      }
         case "venue":
           return [
             ...commonItems,
-            {
-              id: "venues",
-              icon: Building2,
-              label: "Mis Galleras", 
-              path: "/venues", // ✅ Ruta que SÍ existe
-              gradient: "from-orange-500 to-orange-600",
-            },
-            // Remover temporalmente articles hasta crear componente
+         
           ];
-        case "gallera":
-          return [
-            ...commonItems,
-            {
-              id: "news", 
-              icon: Newspaper,
-              label: "Noticias",
-              path: "/news", // ✅ Ruta que SÍ existe  
-              gradient: "from-pink-500 to-pink-600",
-            },
-          ];
+                        case "gallera":
+                  return [
+                    ...commonItems,
+                   
+                  ];
       case "admin":
         return [
           {

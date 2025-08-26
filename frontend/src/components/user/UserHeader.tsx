@@ -180,17 +180,11 @@ const UserHeader = memo(() => {
               <span>Apuestas Activas: {activeBetsCount}</span>
             </span>
           )}
-          {user.role === "venue" && (
-            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
-              <Building2 className="w-3 h-3" />
-              <span>Galleras Activas: X</span> {/* Placeholder for active venues count */}
-              {/* <span>Ingresos: $Y</span> Placeholder for revenue summary */}
-            </span>
-          )}
-          {user.role === "gallera" && (
+   
+          {user.role === "gallera" || user.role === "venue" && (
             <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center gap-1">
               <Newspaper className="w-3 h-3" />
-              <span>Artículos Publicados: Z</span> {/* Placeholder for articles published */}
+              <span>Artículos Publicados: </span> {/* Placeholder for articles published */}
               {/* <span>Engagement: W%</span> Placeholder for engagement stats */}
             </span>
           )}
