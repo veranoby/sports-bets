@@ -42,7 +42,7 @@ const ArticleManagement: React.FC = () => {
       // Get articles for the current user (gallera)
       const response = await articlesAPI.getAll({
         author_id: user?.id,
-        limit: 100,
+        limit: 50,
         includeAuthor: true
       });
       

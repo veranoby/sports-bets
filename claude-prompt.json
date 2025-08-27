@@ -1,396 +1,109 @@
 {
-  "project": {
-    "name": "Unificación Entornos Venues/Galleras con Usuario",
-    "version": "2.0.0", 
-    "description": "Plan para unificar entornos usando usuario base + secciones específicas por rol"
-  },
-
-  "current_status": {
-    "subscriptions_phase": "95% completado - SUB-002 y SUB-003 implementados en V15",
-    "venue_gallera_status": "Dashboards básicos existentes, requieren unificación",
-    "user_environment": "Completo y funcional - base perfecta para extensión"
-  },
-
-  "architecture_decision": {
-    "approach": "CONDITIONAL_SECTIONS",
-    "reasoning": [
-      "Entorno usuario ya tiene: wallet, bets, notifications, subscription management",
-      "Venues/Galleras necesitan SOLO: gestión de artículos + info específica",
-      "DRY principle: evitar duplicación de código funcional",
-      "Mantenibilidad: un solo codebase para todas las funcionalidades comunes"
+  "componentRefactorPlan": {
+    "title": "Plan de Refactorización y Limpieza de Componentes de Frontend",
+    "version": "1.0",
+    "date": "2025-08-26",
+    "strategy": [
+      "1. Realizar los cambios de manera incremental, un ID de plan a la vez (ej. completar todo DEL-001, probar, y hacer commit).",
+      "2. Después de cada cambio, verificar la aplicación en todos los roles (user, venue, gallera, admin, operator) para asegurar que no haya regresiones.",
+      "3. Utilizar la búsqueda global ('Find in Files') para confirmar que no queden importaciones huérfanas de los componentes eliminados."
     ],
-    "rejected_approach": {
-      "name": "FILE_DUPLICATION",
-      "reasons": ["Código duplicado", "Múltiples fuentes de verdad", "Mantenimiento complejo"]
-    }
-  },
-
-  "current_frontend_structure": {
-    "venue_specific_files": [
-      "frontend/src/pages/venue/Dashboard.tsx",
-      "frontend/src/pages/venue/Events.tsx", 
-      "frontend/src/pages/venue/Profile.tsx",
-      "frontend/src/components/layouts/VenueLayout.tsx"
-    ],
-    "gallera_specific_files": [
-      "frontend/src/pages/gallera/Dashboard.tsx",
-      "frontend/src/pages/gallera/MyArticles.tsx",
-      "frontend/src/components/layouts/GalleraLayout.tsx"
-    ],
-    "app_routes_to_modify": [
-      "Lazy imports: VenueDashboard, VenueEvents, VenueProfile",
-      "Lazy imports: GalleraDashboard, GalleraArticles", 
-      "Route definitions: /venue/*, /gallera/*",
-      "RoleBasedRedirect: venue → /venue, gallera → /gallera"
-    ],
-    "breadcrumbs_to_update": [
-      "ROLE_ROUTES.venue entries",
-      "ROLE_ROUTES.gallera entries",
-      "ROLE_HOME venue/gallera entries"
-    ]
-  },
-
-  "emergency_status": {
-    "commit_analysis": "DAÑOS CRÍTICOS - Funcionalidades eliminadas por Gemini CLI",
-    "lost_functionality": [
-      "❌ Navigation: Secciones venues/galleras eliminadas", 
-      "❌ Dashboard: Wallet/bets sin feature flags",
-      "❌ Articles: Sin integración venue/gallera",
-      "❌ Routes: Syntax errors en ProtectedRoute"
-    ],
-    "existing_components_analysis": {
-      "articles_components": {
-        "ArticleManagement": "✅ YA EXISTE - frontend/src/components/articles/ArticleManagement.tsx", 
-        "MyArticles": "✅ YA EXISTE - frontend/src/pages/gallera/MyArticles.tsx (FUNCIONAL)",
-        "ArticleEditor": "✅ YA EXISTE",
-        "ArticleList": "✅ YA EXISTE"
+    "deletions": [
+      {
+        "id": "DEL-001",
+        "title": "Eliminar Componentes de Debug",
+        "description": "Eliminar todas las herramientas y componentes de debugging que no son necesarios para la funcionalidad de la aplicación.",
+        "files_to_delete": [
+          "frontend/src/components/debug/DebugPanel.tsx",
+          "frontend/src/components/debug/RoleSwitcher.tsx",
+          "frontend/src/components/debug/README.md",
+          "frontend/src/pages/DebugTestPage.tsx"
+        ],
+        "action_steps": [
+          "Eliminar el directorio 'frontend/src/components/debug'.",
+          "Eliminar el archivo 'frontend/src/pages/DebugTestPage.tsx'.",
+          "En 'frontend/src/App.tsx', remover las importaciones lazy de RoleSwitcher, DebugPanel y DebugTestPage, y la ruta '/debug'."
+        ]
       },
-      "venues_galleras_pages": {
-        "Venues": "✅ YA EXISTE - frontend/src/pages/user/Venues.tsx (búsqueda funcional)",
-        "Galleras": "✅ DEBE EXISTIR - frontend/src/pages/user/Galleras.tsx",
-        "VenuesPage search": "✅ FUNCIONAL - no recrear"
+      {
+        "id": "DEL-002",
+        "title": "Eliminar Componente Placeholder de Venue",
+        "description": "El componente 'VenueManagement.tsx' es un placeholder y su funcionalidad real reside en las páginas de administración.",
+        "files_to_delete": [
+          "frontend/src/components/venues/VenueManagement.tsx"
+        ],
+        "action_steps": [
+          "Verificar que no haya importaciones de este componente.",
+          "Eliminar el archivo y el directorio 'frontend/src/components/venues/' si queda vacío."
+        ]
       },
-      "navigation_components": {
-        "Navigation": "✅ EXISTE - solo restaurar iconos venues/galleras",
-        "UserHeader": "✅ EXISTE - aplicar feature flags",
-        "Breadcrumbs": "✅ EXISTE - corregir rutas"
+      {
+        "id": "DEL-003",
+        "title": "Eliminar Componente Vacío de Shared",
+        "description": "El componente 'WebSocketTester.tsx' está vacío y no se utiliza en ninguna parte de la aplicación.",
+        "files_to_delete": [
+          "frontend/src/components/shared/WebSocketTester.tsx"
+        ],
+        "action_steps": [
+          "Verificar que no haya importaciones y eliminar el archivo."
+        ]
+      },
+      {
+        "id": "DEL-004",
+        "title": "Eliminar Formulario de Pago Redundante",
+        "description": "Existe un formulario de pago duplicado. 'subscriptions/PaymentForm.tsx' es más completo y está en uso. 'payments/PaymentForm.tsx' es redundante.",
+        "files_to_delete": [
+          "frontend/src/components/payments/PaymentForm.tsx"
+        ],
+        "action_steps": [
+          "Verificar que 'payments/PaymentForm.tsx' no se importe en ninguna vista crítica.",
+          "Eliminar el directorio 'frontend/src/components/payments/'."
+        ]
       }
-    }
-  },
-
-  "phases": [
-    {
-      "phase": 0,
-      "title": "🚨 CORRECCIÓN EMERGENCIA - Restaurar Funcionalidades",
-      "priority": "CRITICAL", 
-      "estimated_time": "1-2 horas",
-      "tasks": [
-        {
-          "id": "EMERGENCY-001",
-          "title": "Corregir Errores Técnicos Críticos",
-          "description": "Arreglar syntax errors que causan 404s y fallas de routing",
-          "files_to_fix": [
-            "frontend/src/App.tsx",
-            "frontend/src/pages/user/Dashboard.tsx",
-            "frontend/src/components/shared/Breadcrumbs.tsx"
-          ],
-          "critical_fixes": [
-            "App.tsx línea 66: requiredRole → allowedRoles",
-            "Dashboard.tsx: /user/Wallet → /wallet", 
-            "Dashboard.tsx: /user/LiveEvent → /live-event",
-            "Breadcrumbs.tsx: venue/gallera → user paths"
-          ]
-        },
-        {
-          "id": "EMERGENCY-002", 
-          "title": "Restaurar Navegación Venues/Galleras",
-          "description": "Devolver iconos y secciones eliminadas a Navigation",
-          "files_to_modify": [
-            "frontend/src/components/user/Navigation.tsx"
-          ],
-          "restore_navigation": {
-            "all_roles": [
-              "venues icon + path: /venues (REUTILIZAR página existente)",
-              "galleras icon + path: /galleras (REUTILIZAR página existente)"
-            ],
-            "do_not_create": "NO crear páginas nuevas - YA EXISTEN"
-          }
-        },
-        {
-          "id": "EMERGENCY-003",
-          "title": "Aplicar Feature Flags a Wallet/Bets", 
-          "description": "Ocultar wallet/bets hasta habilitar variable entorno",
-          "files_to_modify": [
-            "frontend/src/components/user/UserHeader.tsx",
-            "frontend/src/pages/user/Dashboard.tsx",
-            "frontend/src/components/user/Navigation.tsx"
-          ],
-          "feature_flags_logic": [
-            "useFeatureFlags() hook para isWalletEnabled, isBettingEnabled",
-            "{isWalletEnabled && <WalletSection />}",
-            "{isBettingEnabled && <BettingSection />}"
-          ]
-        }
-      ]
-    },
-    {
-      "phase": 1,
-      "title": "Unificación Dashboard Principal", 
-      "priority": "HIGH",
-      "estimated_time": "3-4 horas",
-      "tasks": [
-        {
-          "id": "UNIFY-001",
-          "title": "Migrar Venues/Galleras a Entorno Usuario",
-          "description": "Redirigir rutas y consolidar en dashboard usuario unificado",
-          "files_to_modify": [
-            "frontend/src/App.tsx",
-            "frontend/src/pages/user/Dashboard.tsx", 
-            "frontend/src/components/shared/Breadcrumbs.tsx"
-          ],
-          "files_to_delete_after_migration": [
-            "frontend/src/pages/venue/Dashboard.tsx",
-            "frontend/src/pages/venue/Events.tsx", 
-            "frontend/src/pages/venue/Profile.tsx",
-            "frontend/src/pages/gallera/Dashboard.tsx",
-            "frontend/src/components/layouts/VenueLayout.tsx",
-            "frontend/src/components/layouts/GalleraLayout.tsx"
-          ],
-          "files_to_migrate_logic": [
-            "frontend/src/pages/gallera/MyArticles.tsx → ArticleManagement component"
-          ],
-          "purpose": "Unificar todos los roles en un solo entorno funcional",
-          "requirements": [
-            "Redirigir rutas /venue/* y /gallera/* a /user/*",
-            "Agregar condicionales por rol en Dashboard.tsx",
-            "Mantener funcionalidades existentes del usuario",
-            "Agregar secciones específicas para venue/gallera"
-          ],
-          "conditional_sections": {
-            "all_roles": ["Wallet", "Notifications", "Subscription", "Profile"],
-            "venue_only": ["MyVenues", "VenueManagement", "VenueArticles"],
-            "gallera_only": ["GalleraArticles", "GalleraStats"],
-            "user_only": ["MyBets", "BettingHistory"]
-          },
-          "implementation_steps": [
-            "1. App.tsx: Eliminar lazy imports de VenueDashboard, VenueEvents, VenueProfile, GalleraDashboard, GalleraArticles",
-            "2. App.tsx: Cambiar RoleBasedRedirect - venue/gallera → /user",
-            "3. App.tsx: Reemplazar rutas específicas con redirects: <Route path='/venue' element={<Navigate to='/user' />} />",
-            "4. Dashboard.tsx: Agregar condicionales {user.role === 'venue' && <VenueSection />}",
-            "5. Breadcrumbs.tsx: Actualizar ROLE_ROUTES para venue/gallera → user paths"
-          ],
-          "routes_changes": {
-            "remove_routes": [
-              "Route path='/venue' → VenueLayout",
-              "Route path='/venue/events' → VenueEvents", 
-              "Route path='/venue/profile' → VenueProfile",
-              "Route path='/gallera' → GalleraDashboard",
-              "Route path='/gallera/articles' → GalleraArticles"
-            ],
-            "add_redirects": [
-              "<Route path='/venue' element={<Navigate to='/user' />} />",
-              "<Route path='/venue/*' element={<Navigate to='/user' />} />", 
-              "<Route path='/gallera' element={<Navigate to='/user' />} />",
-              "<Route path='/gallera/*' element={<Navigate to='/user' />} />"
-            ],
-            "update_protected_route": "allowedRoles={['venue', 'gallera', 'user']} para /user/*"
-          }
-        },
-        {
-          "id": "UNIFY-002", 
-          "title": "Crear Componente ArticleManagement Universal",
-          "description": "Componente para crear/gestionar artículos usado por venues y galleras",
-          "files_to_create": [
-            "frontend/src/components/articles/ArticleManagement.tsx",
-            "frontend/src/components/articles/ArticleEditor.tsx", 
-            "frontend/src/components/articles/ArticleList.tsx"
-          ],
-          "purpose": "Funcionalidad común de gestión de artículos para venues y galleras",
-          "requirements": [
-            "Crear, editar, eliminar artículos",
-            "Lista de artículos propios con filtros",
-            "Estados: draft, pending, published",
-            "Interfaz en español",
-            "Sin quick actions (simplificado)"
-          ],
-          "based_on": "Mejorar frontend/src/pages/gallera/MyArticles.tsx existente",
-          "fixes_needed": [
-            "Traducir interfaz a español",
-            "Eliminar quick actions innecesarios", 
-            "Corregir error 'view all' en recent articles",
-            "Mejorar UX de creación/edición"
-          ]
-        }
-      ]
-    },
-    {
-      "phase": 2,
-      "title": "Optimización Navegación y UX",
-      "priority": "MEDIUM",
-      "estimated_time": "2-3 horas", 
-      "tasks": [
-        {
-          "id": "NAV-001",
-          "title": "Actualizar Navegación por Rol",
-          "description": "Adaptar menú principal y breadcrumbs según rol del usuario",
-          "files_to_modify": [
-            "frontend/src/components/user/Navigation.tsx",
-            "frontend/src/components/shared/Breadcrumbs.tsx"
-          ],
-          "navigation_items": {
-            "user": ["Dashboard", "Profile", "Wallet", "Betting History"],
-            "venue": ["Dashboard", "Profile", "Wallet", "My Venues", "Articles"], 
-            "gallera": ["Dashboard", "Profile", "Wallet", "Articles", "Statistics"],
-            "admin": ["Dashboard", "Users", "Venues", "Articles", "System"]
-          }
-        },
-        {
-          "id": "HEADER-001",
-          "title": "Mejorar UserHeader con Contexto de Rol",
-          "description": "Mostrar información relevante según el rol en el header",
-          "files_to_modify": [
-            "frontend/src/components/user/UserHeader.tsx"
-          ],
-          "role_specific_info": {
-            "user": "Betting stats, wallet balance",
-            "venue": "Active venues count, revenue summary", 
-            "gallera": "Articles published, engagement stats",
-            "admin": "System status, pending approvals"
-          }
-        }
-      ]
-    },
-    {
-      "phase": 3,
-      "title": "Limpieza y Optimización",
-      "priority": "LOW",
-      "estimated_time": "1-2 horas",
-      "tasks": [
-        {
-          "id": "CLEAN-001",
-          "title": "Eliminar Archivos Duplicados",
-          "description": "Limpiar dashboards separados de venue/gallera tras migración",
-          "files_to_remove": [
-            "frontend/src/pages/venue/Dashboard.tsx",
-            "frontend/src/pages/gallera/Dashboard.tsx"
-          ],
-          "files_to_refactor": [
-            "frontend/src/pages/gallera/MyArticles.tsx"
-          ],
-          "purpose": "Eliminar código duplicado y mantener un solo source of truth"
-        }
-      ]
-    }
-  ],
-
-  "component_structure": {
-    "unified_dashboard": {
-      "path": "frontend/src/pages/user/Dashboard.tsx",
-      "structure": [
-        "<!-- Common sections for all roles -->",
-        "<UserHeader />",
-        "<SubscriptionStatus />", 
-        "<WalletSummary />",
-        "",
-        "<!-- Role-specific sections -->", 
-        "{user.role === 'user' && <BettingSection />}",
-        "{user.role === 'venue' && <VenueManagement />}",
-        "{user.role === 'gallera' && <ArticleManagement />}",
-        "{(user.role === 'venue' || user.role === 'gallera') && <ArticleManagement />}"
-      ]
-    },
-    "article_management": {
-      "path": "frontend/src/components/articles/ArticleManagement.tsx",
-      "features": [
-        "✅ Crear artículo (título, contenido, imagen)",
-        "✅ Lista artículos propios con estados",
-        "✅ Editar artículos en draft",
-        "✅ Eliminar artículos",
-        "✅ Filtros por estado (draft/pending/published)",
-        "✅ Interfaz en español",
-        "❌ Quick actions removidos",
-        "❌ View all bug corregido"
-      ]
-    }
-  },
-
-  "routing_strategy": {
-    "current_routes": {
-      "/user/*": "Dashboard usuario funcional",
-      "/venue/*": "Dashboard venue separado (a eliminar)",
-      "/gallera/*": "Dashboard gallera separado (a eliminar)"
-    },
-    "target_routes": {
-      "/user/*": "Dashboard unificado con condicionales por rol",
-      "/venue": "Redirect → /user", 
-      "/gallera": "Redirect → /user"
-    },
-    "implementation": [
-      "App.tsx: <Route path='/venue' element={<Navigate to='/user' />} />",
-      "App.tsx: <Route path='/gallera' element={<Navigate to='/user' />} />",
-      "ProtectedRoute: allowedRoles incluye venue/gallera para /user/*"
-    ]
-  },
-
-  "testing_strategy": {
-    "test_scenarios": [
+    ],
+    "unifications": [
       {
-        "name": "Usuario normal accede a /user",
-        "expected": "Ve dashboard con betting, wallet, subscription"
+        "id": "UNI-001",
+        "title": "Unificar Directorios 'subscription' y 'subscriptions'",
+        "description": "La existencia de dos directorios para suscripciones es confusa. Se consolidará todo en la carpeta 'subscriptions'.",
+        "files_to_move": {
+          "from": "frontend/src/components/subscription/SubscriptionStatus.tsx",
+          "to": "frontend/src/components/subscriptions/SubscriptionStatus.tsx"
+        },
+        "directory_to_delete": "frontend/src/components/subscription",
+        "action_steps": [
+          "Mover 'SubscriptionStatus.tsx' de la carpeta 'subscription' a 'subscriptions'.",
+          "Buscar y actualizar todas las importaciones que apunten a la ruta antigua.",
+          "Eliminar el directorio 'frontend/src/components/subscription'."
+        ]
+      }
+    ],
+    "optimizations": [
+      {
+        "id": "OPT-001",
+        "title": "Optimizar Tabla de Historial de Apuestas",
+        "description": "'BetHistoryTable.tsx' usa una tabla HTML simple. Debe ser refactorizado para usar el componente reutilizable 'shared/AdvancedTable.tsx' para obtener funcionalidades avanzadas como paginación, ordenamiento y filtros.",
+        "target_component": "frontend/src/components/user/BetHistoryTable.tsx",
+        "reusable_component": "frontend/src/components/shared/AdvancedTable.tsx",
+        "action_steps": [
+          "Importar 'AdvancedTable' en 'BetHistoryTable'.",
+          "Definir las columnas (columns) para la tabla avanzada (Evento, Monto, Estado, Resultado, Fecha).",
+          "Renderizar el componente 'AdvancedTable' pasándole los datos de las apuestas (bets) y las columnas definidas.",
+          "Eliminar el código de la tabla HTML estática."
+        ]
       },
       {
-        "name": "Venue accede a /user", 
-        "expected": "Ve dashboard + sección gestión venues + artículos"
-      },
-      {
-        "name": "Gallera accede a /user",
-        "expected": "Ve dashboard + sección gestión artículos"
-      },
-      {
-        "name": "Redirección /venue → /user",
-        "expected": "Redirige correctamente y muestra secciones de venue"
-      },
-      {
-        "name": "ArticleManagement funcional",
-        "expected": "Crear/editar/listar artículos sin errores"
+        "id": "OPT-002",
+        "title": "Integrar Reproductor de Video Avanzado",
+        "description": "'StreamingPanel.tsx' contiene una lógica de video muy simple. Debe ser mejorado para usar el componente 'StreamPlayer.tsx' que ya integra 'video.js' y ofrece una experiencia más robusta.",
+        "target_component": "frontend/src/components/user/StreamingPanel.tsx",
+        "reusable_component": "frontend/src/components/user/StreamPlayer.tsx",
+        "action_steps": [
+          "Importar 'StreamPlayer' en 'StreamingPanel'.",
+          "Reemplazar el elemento '<video>' y la lógica de placeholder con el componente '<StreamPlayer streamUrl={streamUrl} />'.",
+          "Asegurarse de que las props necesarias se pasen correctamente."
+        ]
       }
     ]
-  },
-
-  "success_criteria": {
-    "functional": [
-      "✅ Un solo entorno /user funciona para todos los roles",
-      "✅ Secciones específicas se muestran según rol",
-      "✅ ArticleManagement funcional en español",
-      "✅ Navegación adaptada por rol",
-      "✅ No código duplicado entre roles"
-    ],
-    "technical": [
-      "✅ Rutas /venue y /gallera redirigen a /user", 
-      "✅ Componentes condicionales renderizan correctamente",
-      "✅ Estado de artículos (draft/pending/published) funciona",
-      "✅ No errores console en transición"
-    ],
-    "ux": [
-      "✅ Experiencia fluida para todos los roles",
-      "✅ Interfaz en español para gestión artículos",
-      "✅ Navegación intuitiva y contextual"
-    ]
-  },
-
-  "advantages_unified_approach": [
-    "🔄 DRY: Funcionalidades comunes compartidas",
-    "🛠️ Mantenibilidad: Un solo codebase",
-    "🚀 Performance: Menos código duplicado",
-    "🎯 Consistencia: UX uniforme entre roles",
-    "📱 Responsive: Diseño común optimizado",
-    "🔐 Security: Lógica de permisos centralizada"
-  ],
-
-  "migration_timeline": {
-    "day_1": "UNIFY-001 - Redirigir rutas y agregar condicionales",
-    "day_2": "UNIFY-002 - Crear ArticleManagement component", 
-    "day_3": "NAV-001, HEADER-001 - Optimizar navegación",
-    "day_4": "CLEAN-001 - Limpiar archivos duplicados y testing"
   }
 }

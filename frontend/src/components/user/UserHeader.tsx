@@ -4,7 +4,7 @@
 // IMPLEMENTADO: useWallet(), useNotifications(), useBets() hooks
 // MEJORADO: Variables CSS globales, degradado elegante, GalloBets logo
 
-import React, { memo, useState, useCallback, useEffect, useRef } from "react";
+import React, { memo, useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LogOut,
@@ -12,11 +12,10 @@ import {
   Trophy,
   Bell,
   X,
-  AlertCircle,
   User,
   Crown,
-  Building2,
   Newspaper,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
@@ -24,6 +23,7 @@ import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useSubscription } from "../../hooks/useSubscription";
 import SubscriptionStatus from "../subscription/SubscriptionStatus";
+import { articlesAPI } from "../../config/api";
 
 const UserHeader = memo(() => {
   const location = useLocation();
@@ -38,21 +38,20 @@ const UserHeader = memo(() => {
     fetchNotifications,
   } = useNotifications();
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
-  const { subscription, isPremium, hasAccess } = useSubscription();
+  const { subscription, isPremium } = useSubscription();
 
   const { isWalletEnabled, isBettingEnabled } = useFeatureFlags();
 
   // Estados UI
   const [showBets, setShowBets] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [publishedArticles, setPublishedArticles] = useState(0);
 
   // ✅ DATOS COMPUTADOS CON HOOKS REALES
   const activeBets = bets?.filter((bet) => bet.status === "active") || [];
-  const unreadNotifications =
-    notifications?.filter((notif) => notif.status === "unread") || [];
 
   const activeBetsCount = activeBets.length;
-  const unreadNotificationsCount = unreadNotifications.length;
+  // const unreadNotificationsCount = unreadNotifications.length; // reserved for future UI
   const walletBalance = Number(wallet?.balance || 0);
 
   // 🔔 WALLET UPDATES - Para balance en header
@@ -85,6 +84,27 @@ const UserHeader = memo(() => {
       fetchNotifications();
     }, [fetchNotifications])
   );
+
+  // 📄 Published articles count for venue/gallera
+  useEffect(() => {
+    const fetchPublished = async () => {
+      if (!user || (user.role !== "venue" && user.role !== "gallera")) return;
+      try {
+        const res = await articlesAPI.getAll({
+          author_id: user.id,
+          status: "published",
+          limit: 10,
+        });
+        const count = Array.isArray(res.data?.articles)
+          ? res.data.articles.length
+          : 0;
+        setPublishedArticles(count);
+      } catch {
+        setPublishedArticles(0);
+      }
+    };
+    fetchPublished();
+  }, [user]);
 
   // Page title mapping
   const getPageTitle = useCallback(() => {
@@ -181,11 +201,10 @@ const UserHeader = memo(() => {
             </span>
           )}
    
-          {user.role === "gallera" || user.role === "venue" && (
+          {(user.role === "gallera" || user.role === "venue") && (
             <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center gap-1">
               <Newspaper className="w-3 h-3" />
-              <span>Artículos Publicados: </span> {/* Placeholder for articles published */}
-              {/* <span>Engagement: W%</span> Placeholder for engagement stats */}
+              <span>Artículos publicados: {publishedArticles}</span>
             </span>
           )}
           {user.role === "admin" && (

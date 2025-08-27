@@ -21,10 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 
-// Debug Tools (solo en desarrollo)
-const RoleSwitcher = lazy(() => import("./components/debug/RoleSwitcher"));
-const DebugPanel = lazy(() => import("./components/debug/DebugPanel"));
-const DebugTestPage = lazy(() => import("./pages/DebugTestPage"));
+// Debug Tools removidos en producción
 
 // Toast System
 import ToastContainer from "./components/shared/ToastContainer";
@@ -281,15 +278,7 @@ const AppContent: React.FC = () => {
 
         
 
-        {/* 🛠️ DEBUG TESTING PAGE (solo desarrollo) */}
-        <Route
-          path="/debug"
-          element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <DebugTestPage />
-            </Suspense>
-          }
-        />
+        {/* Debug route removida */}
 
         {/* 🚫 RUTA 404 */}
         <Route
@@ -313,11 +302,7 @@ const AppContent: React.FC = () => {
       {/* Toast System - Notificaciones globales */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
-      {/* Debug Tools - Solo visible en desarrollo */}
-      <Suspense fallback={null}>
-        <RoleSwitcher />
-        <DebugPanel />
-      </Suspense>
+      {/* Debug tools removidos */}
     </>
   );
 };
