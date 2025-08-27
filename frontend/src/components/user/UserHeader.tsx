@@ -194,7 +194,7 @@ const UserHeader = memo(() => {
             )}
           </span>
           {/* Role-specific info */}
-          {user.role === "user" && (
+          {user.role === "user" && isBettingEnabled && (
             <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
               <Trophy className="w-3 h-3" />
               <span>Apuestas Activas: {activeBetsCount}</span>

@@ -23,6 +23,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
 import { useSubscription } from "../../hooks/useSubscription"; // Added
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 import SubscriptionStatus from "../../components/subscriptions/SubscriptionStatus";
@@ -33,6 +34,7 @@ const Profile: React.FC = () => {
   const { subscription } = useSubscription();
   const { updateProfile } = useUsers();
   const { changePassword } = useAuthOperations();
+  const { isBettingEnabled } = useFeatureFlags();
   const navigate = useNavigate();
 
   // Estados
@@ -183,12 +185,16 @@ const Profile: React.FC = () => {
 
             {/* Stats chips */}
             <div className="flex flex-wrap justify-center gap-2">
-              <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
-                🎯 {userStats.totalBets} apuestas
-              </div>
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                📊 {userStats.winRate}% efectividad
-              </div>
+              {isBettingEnabled && (
+                <>
+                  <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+                    🎯 {userStats.totalBets} apuestas
+                  </div>
+                  <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    📊 {userStats.winRate}% efectividad
+                  </div>
+                </>
+              )}
               <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {userStats.memberSince}
