@@ -22,7 +22,7 @@ import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useSubscription } from "../../hooks/useSubscription";
-import SubscriptionStatus from "../subscription/SubscriptionStatus";
+import SubscriptionStatus from "../subscriptions/SubscriptionStatus";
 import { articlesAPI } from "../../config/api";
 
 const UserHeader = memo(() => {

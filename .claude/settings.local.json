@@ -24,7 +24,8 @@
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []

@@ -25,7 +25,7 @@ import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
 import { useSubscription } from "../../hooks/useSubscription"; // Added
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
-import SubscriptionStatus from "../../components/subscription/SubscriptionStatus"; // Added
+import SubscriptionStatus from "../../components/subscriptions/SubscriptionStatus";
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
