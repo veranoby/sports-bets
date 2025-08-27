@@ -1,109 +1,373 @@
 {
   "componentRefactorPlan": {
-    "title": "Plan de Refactorización y Limpieza de Componentes de Frontend",
-    "version": "1.0",
+    "title": "Plan de Refactorización y Limpieza de Componentes Frontend V3 - ANÁLISIS DETALLADO",
+    "version": "3.0",
     "date": "2025-08-26",
-    "strategy": [
-      "1. Realizar los cambios de manera incremental, un ID de plan a la vez (ej. completar todo DEL-001, probar, y hacer commit).",
-      "2. Después de cada cambio, verificar la aplicación en todos los roles (user, venue, gallera, admin, operator) para asegurar que no haya regresiones.",
-      "3. Utilizar la búsqueda global ('Find in Files') para confirmar que no queden importaciones huérfanas de los componentes eliminados."
-    ],
+    "analysis_summary": {
+      "current_state": "Análisis basado en importaciones reales y estructura actual verificada",
+      "critical_findings": {
+        "confirmed_duplicates": {
+          "SubscriptionGuard": "2 versiones diferentes - streaming/ vs shared/",
+          "directory_confusion": "subscription/ vs subscriptions/ - SubscriptionStatus mal ubicado"
+        },
+        "import_conflicts_verified": {
+          "UserHeader": "Importa from '../subscription/SubscriptionStatus' (directorio singular)",
+          "UserLayout": "Importa from '../shared/SubscriptionStatusBar' (no hay conflicto - componentes diferentes)"
+        },
+        "optimization_confirmed": {
+          "BetHistoryTable": "Usa HTML simple, necesita AdvancedTable",
+          "venue_components": "Ya eliminados según usuario - no encontrados en análisis"
+        }
+      },
+      "confidence_level": "VERY HIGH - Basado en código real analizado"
+    },
+    
     "deletions": [
       {
         "id": "DEL-001",
-        "title": "Eliminar Componentes de Debug",
-        "description": "Eliminar todas las herramientas y componentes de debugging que no son necesarios para la funcionalidad de la aplicación.",
+        "title": "Eliminar SubscriptionGuard de streaming/",
+        "description": "Mantener solo el de shared/ que es más genérico y reutilizable",
+        "priority": "HIGH",
         "files_to_delete": [
-          "frontend/src/components/debug/DebugPanel.tsx",
-          "frontend/src/components/debug/RoleSwitcher.tsx",
-          "frontend/src/components/debug/README.md",
-          "frontend/src/pages/DebugTestPage.tsx"
+          "frontend/src/components/streaming/SubscriptionGuard.tsx",
+          "frontend/src/components/streaming/__tests__/SubscriptionGuard.test.tsx"
+        ],
+        "rationale": "El de streaming/ es muy específico para streaming, el de shared/ es más genérico",
+        "verification_commands": [
+          "grep -r 'streaming/SubscriptionGuard' frontend/src/",
+          "grep -r 'shared/SubscriptionGuard' frontend/src/"
+        ],
+        "imports_to_update": [
+          "LiveEvent.tsx: '../shared/SubscriptionGuard' (ya correcto)",
+          "Buscar otros componentes que importen desde streaming/"
         ],
         "action_steps": [
-          "Eliminar el directorio 'frontend/src/components/debug'.",
-          "Eliminar el archivo 'frontend/src/pages/DebugTestPage.tsx'.",
-          "En 'frontend/src/App.tsx', remover las importaciones lazy de RoleSwitcher, DebugPanel y DebugTestPage, y la ruta '/debug'."
+          "1. Buscar TODAS las importaciones de streaming/SubscriptionGuard",
+          "2. Migrar funcionalidades específicas del streaming/ al shared/ si es necesario",
+          "3. Actualizar todas las importaciones a shared/",
+          "4. Eliminar archivos de streaming/",
+          "5. Probar funcionalidad de suscripciones en todos los roles"
         ]
       },
+      
       {
-        "id": "DEL-002",
-        "title": "Eliminar Componente Placeholder de Venue",
-        "description": "El componente 'VenueManagement.tsx' es un placeholder y su funcionalidad real reside en las páginas de administración.",
-        "files_to_delete": [
-          "frontend/src/components/venues/VenueManagement.tsx"
-        ],
+        "id": "DEL-002", 
+        "title": "Limpiar Directorio streaming/ si queda vacío",
+        "description": "Después de eliminar SubscriptionGuard, verificar si streaming/ tiene otros componentes",
+        "priority": "MEDIUM",
+        "depends_on": "DEL-001",
         "action_steps": [
-          "Verificar que no haya importaciones de este componente.",
-          "Eliminar el archivo y el directorio 'frontend/src/components/venues/' si queda vacío."
+          "1. Verificar contenido restante en components/streaming/",
+          "2. Si está vacío, eliminar directorio completo",
+          "3. Si hay otros componentes, evaluar si deben moverse a shared/"
         ]
       },
+      
       {
         "id": "DEL-003",
-        "title": "Eliminar Componente Vacío de Shared",
-        "description": "El componente 'WebSocketTester.tsx' está vacío y no se utiliza en ninguna parte de la aplicación.",
-        "files_to_delete": [
-          "frontend/src/components/shared/WebSocketTester.tsx"
+        "title": "Eliminar Tests Huérfanos en subscriptions/",
+        "description": "Verificar que todos los tests en subscriptions/__tests__/ tengan componentes correspondientes",
+        "priority": "LOW",
+        "files_to_check": [
+          "frontend/src/components/subscriptions/__tests__/"
         ],
         "action_steps": [
-          "Verificar que no haya importaciones y eliminar el archivo."
-        ]
-      },
-      {
-        "id": "DEL-004",
-        "title": "Eliminar Formulario de Pago Redundante",
-        "description": "Existe un formulario de pago duplicado. 'subscriptions/PaymentForm.tsx' es más completo y está en uso. 'payments/PaymentForm.tsx' es redundante.",
-        "files_to_delete": [
-          "frontend/src/components/payments/PaymentForm.tsx"
-        ],
-        "action_steps": [
-          "Verificar que 'payments/PaymentForm.tsx' no se importe en ninguna vista crítica.",
-          "Eliminar el directorio 'frontend/src/components/payments/'."
+          "1. Listar todos los archivos .test.tsx en subscriptions/__tests__/",
+          "2. Verificar que cada test tenga su componente correspondiente",
+          "3. Eliminar tests sin componente asociado",
+          "4. Actualizar tests que referencien imports obsoletos"
         ]
       }
     ],
+    
     "unifications": [
       {
         "id": "UNI-001",
-        "title": "Unificar Directorios 'subscription' y 'subscriptions'",
-        "description": "La existencia de dos directorios para suscripciones es confusa. Se consolidará todo en la carpeta 'subscriptions'.",
-        "files_to_move": {
-          "from": "frontend/src/components/subscription/SubscriptionStatus.tsx",
-          "to": "frontend/src/components/subscriptions/SubscriptionStatus.tsx"
+        "title": "Consolidar subscription/ en subscriptions/",
+        "description": "Mover SubscriptionStatus.tsx al directorio subscriptions/ para unificar",
+        "priority": "CRITICAL",
+        "evidence": "UserHeader importa '../subscription/SubscriptionStatus' - directorio singular confuso",
+        "current_structure": {
+          "subscription/": ["SubscriptionStatus.tsx"],
+          "subscriptions/": ["SubscriptionManager.tsx", "SubscriptionPlans.tsx", "__tests__/"]
         },
-        "directory_to_delete": "frontend/src/components/subscription",
+        "target_structure": {
+          "subscriptions/": ["SubscriptionStatus.tsx", "SubscriptionManager.tsx", "SubscriptionPlans.tsx", "__tests__/"]
+        },
+        "files_to_move": [
+          {
+            "from": "frontend/src/components/subscription/SubscriptionStatus.tsx",
+            "to": "frontend/src/components/subscriptions/SubscriptionStatus.tsx"
+          }
+        ],
+        "imports_to_update_verified": [
+          "frontend/src/components/user/UserHeader.tsx: '../subscription/SubscriptionStatus' → '../subscriptions/SubscriptionStatus'"
+        ],
+        "additional_imports_to_search": [
+          "grep -r 'subscription/SubscriptionStatus' frontend/src/",
+          "grep -r '../subscription/' frontend/src/"
+        ],
+        "directory_to_delete": "frontend/src/components/subscription/",
         "action_steps": [
-          "Mover 'SubscriptionStatus.tsx' de la carpeta 'subscription' a 'subscriptions'.",
-          "Buscar y actualizar todas las importaciones que apunten a la ruta antigua.",
-          "Eliminar el directorio 'frontend/src/components/subscription'."
-        ]
+          "1. Mover SubscriptionStatus.tsx a subscriptions/",
+          "2. Ejecutar: grep -r 'subscription/SubscriptionStatus' frontend/src/",
+          "3. Actualizar import en UserHeader.tsx (confirmado)",
+          "4. Buscar y actualizar cualquier otro import encontrado",
+          "5. Eliminar directorio subscription/ vacío",
+          "6. Probar compilación y funcionalidad"
+        ],
+        "risk": "MEDIUM - UserHeader es componente crítico, pero cambio es simple"
       }
     ],
+    
     "optimizations": [
       {
         "id": "OPT-001",
-        "title": "Optimizar Tabla de Historial de Apuestas",
-        "description": "'BetHistoryTable.tsx' usa una tabla HTML simple. Debe ser refactorizado para usar el componente reutilizable 'shared/AdvancedTable.tsx' para obtener funcionalidades avanzadas como paginación, ordenamiento y filtros.",
+        "title": "Migrar BetHistoryTable a AdvancedTable",
+        "description": "BetHistoryTable usa tabla HTML básica sin funcionalidades modernas",
+        "priority": "HIGH",
+        "current_issues_verified": [
+          "Tabla HTML estática en pages/user/Bets.tsx",
+          "No paginación, no ordenamiento, no filtros",
+          "No aprovecha AdvancedTable disponible en shared/"
+        ],
         "target_component": "frontend/src/components/user/BetHistoryTable.tsx",
         "reusable_component": "frontend/src/components/shared/AdvancedTable.tsx",
+        "implementation_plan": {
+          "data_columns": [
+            "{ header: 'Evento', accessor: 'eventName', sortable: true }",
+            "{ header: 'Pelea', accessor: 'fightDetails', format: fight => `${fight.redCorner} vs ${fight.blueCorner}` }",
+            "{ header: 'Lado', accessor: 'side', format: side => side === 'red' ? '🔴 Rojo' : '🔵 Azul' }",
+            "{ header: 'Monto', accessor: 'amount', format: amount => `${amount.toFixed(2)}`, sortable: true }",
+            "{ header: 'Odds', accessor: 'odds', format: odds => `${odds}x` }",
+            "{ header: 'Estado', accessor: 'status', format: status => getStatusChip(status) }",
+            "{ header: 'Fecha', accessor: 'createdAt', format: date => formatDate(date), sortable: true }"
+          ],
+          "features_to_implement": [
+            "Paginación automática (10 items per page)",
+            "Ordenamiento por monto, fecha",
+            "Filtros: Estado (active, won, lost), Fecha (last 7 days, last month)",
+            "Búsqueda por nombre de evento",
+            "Export a CSV (opcional)"
+          ],
+          "enhanced_functionality": [
+            "Click en fila para ver detalles de apuesta",
+            "Indicadores visuales para estado (colores)",
+            "Loading states y error handling",
+            "Responsive design para móvil"
+          ]
+        },
         "action_steps": [
-          "Importar 'AdvancedTable' en 'BetHistoryTable'.",
-          "Definir las columnas (columns) para la tabla avanzada (Evento, Monto, Estado, Resultado, Fecha).",
-          "Renderizar el componente 'AdvancedTable' pasándole los datos de las apuestas (bets) y las columnas definidas.",
-          "Eliminar el código de la tabla HTML estática."
+          "1. Verificar que AdvancedTable existe en shared/ y sus capacidades",
+          "2. Crear nueva versión de BetHistoryTable usando AdvancedTable",
+          "3. Definir columnas con formatters apropiados",
+          "4. Implementar filtros y búsqueda",
+          "5. Mantener la API actual para compatibilidad",
+          "6. Probar en páginas que usan BetHistoryTable",
+          "7. Verificar responsive design"
+        ],
+        "files_affected": [
+          "frontend/src/components/user/BetHistoryTable.tsx - Refactorizar",
+          "frontend/src/pages/user/Bets.tsx - Verificar integración"
         ]
       },
+      
       {
         "id": "OPT-002",
-        "title": "Integrar Reproductor de Video Avanzado",
-        "description": "'StreamingPanel.tsx' contiene una lógica de video muy simple. Debe ser mejorado para usar el componente 'StreamPlayer.tsx' que ya integra 'video.js' y ofrece una experiencia más robusta.",
-        "target_component": "frontend/src/components/user/StreamingPanel.tsx",
-        "reusable_component": "frontend/src/components/user/StreamPlayer.tsx",
+        "title": "Unificar Card y DataCard - Eliminar Duplicación",
+        "description": "Card.tsx ya es componente unificado, pero DataCard se sigue usando",
+        "priority": "HIGH",
+        "evidence_confirmed": [
+          "Card.tsx incluye funcionalidad completa de DataCard (value, icon, trend, etc.)",
+          "DataCard se usa en: user/Dashboard.tsx, user/Wallet.tsx, operator/Dashboard.tsx",
+          "Card se usa en: admin/Articles.tsx, articles/ArticleList.tsx",
+          "Duplicación de lógica y mantenimiento innecesario"
+        ],
+        "target": "Migrar todos los usos de DataCard a Card unificado",
+        "files_to_update": [
+          {
+            "file": "frontend/src/pages/user/Dashboard.tsx",
+            "change": "import DataCard → import Card",
+            "usage": "<DataCard title={...} value={...} → <Card title={...} value={...}"
+          },
+          {
+            "file": "frontend/src/pages/user/Wallet.tsx", 
+            "change": "import DataCard → import Card",
+            "usage": "Migrar componentes DataCard existentes"
+          },
+          {
+            "file": "frontend/src/pages/operator/Dashboard.tsx",
+            "change": "import DataCard → import Card", 
+            "usage": "Migrar uso de DataCard (cuando se trabaje operator en futuro)"
+          }
+        ],
+        "files_to_delete_after": [
+          "frontend/src/components/shared/DataCard.tsx"
+        ],
         "action_steps": [
-          "Importar 'StreamPlayer' en 'StreamingPanel'.",
-          "Reemplazar el elemento '<video>' y la lógica de placeholder con el componente '<StreamPlayer streamUrl={streamUrl} />'.",
-          "Asegurarse de que las props necesarias se pasen correctamente."
+          "1. Verificar que Card.tsx tiene TODA la funcionalidad de DataCard",
+          "2. Buscar TODOS los imports de DataCard: grep -r 'DataCard' frontend/src/",
+          "3. Migrar imports en user/Dashboard.tsx y user/Wallet.tsx", 
+          "4. Probar que funcionalidad visual se mantiene igual",
+          "5. Solo después de confirmar que todo funciona, eliminar DataCard.tsx",
+          "6. Verificar compilación sin errores"
+        ],
+        "benefits": [
+          "Un solo componente para mantener",
+          "Consistencia en toda la app",
+          "Menos duplicación de código",
+          "Mejor TypeScript intellisense"
+        ]
+      },
+      
+      {
+        "id": "OPT-003",
+        "title": "Unificar Lógica de Subscription Hooks",
+        "description": "Múltiples componentes usan diferentes hooks para subscriptions",
+        "priority": "MEDIUM",
+        "evidence_found": [
+          "useSubscriptions() en SubscriptionStatusBar",
+          "useSubscription() en UserHeader", 
+          "subscriptionAPI calls directos en algunos componentes"
+        ],
+        "target": "Estandarizar uso de hooks para subscription data",
+        "action_steps": [
+          "1. Auditar todos los imports de subscription hooks/APIs",
+          "2. Estandarizar en useSubscription() como hook principal",
+          "3. Eliminar calls directos a subscriptionAPI donde sea posible",
+          "4. Centralizar estado de subscription en AuthContext si no está ya"
+        ]
+      },
+      
+      {
+        "id": "OPT-004",
+        "title": "Evaluar ErrorBoundary vs ErrorMessage Usage",
+        "description": "Ambos componentes se usan para manejo de errores - verificar si son complementarios",
+        "priority": "LOW",
+        "evidence_found": [
+          "ErrorBoundary se usa como wrapper component en user/Bets.tsx",
+          "ErrorMessage se usa para mostrar errores específicos con retry",
+          "PageContainer también usa ErrorMessage - patrón establecido"
+        ],
+        "recommendation": "MANTENER AMBOS - son complementarios, no duplicados",
+        "usage_pattern": {
+          "ErrorBoundary": "React error boundary para capturar errores de componentes",
+          "ErrorMessage": "Componente para mostrar errores específicos con botón retry"
+        },
+        "action_steps": [
+          "1. Documentar cuándo usar cada uno",
+          "2. Estandarizar uso consistente en toda la app",
+          "3. No requiere cambios - ambos son necesarios"
         ]
       }
-    ]
+    ],
+    
+    "additional_findings": {
+      "confirmed_imports": {
+        "UserLayout": "SubscriptionStatusBar from '../shared/SubscriptionStatusBar' ✅",
+        "UserHeader": "SubscriptionStatus from '../subscription/SubscriptionStatus' ⚠️ (needs fix)",
+        "LiveEvent": "SubscriptionGuard from '../shared/SubscriptionGuard' ✅"
+      },
+      "component_usage_verified": {
+        "BetHistoryTable": "Usado en pages/user/Bets.tsx - activo",
+        "EventCard": "Usado en Dashboard.tsx - activo", 
+        "BetCard": "Usado en pages/user/Bets.tsx - activo",
+        "SubscriptionManager": "Componente complejo con tabs, payments - mantener",
+        "SubscriptionPlans": "Con tests completos - mantener"
+      },
+      "no_conflicts_found": [
+        "SubscriptionStatus vs SubscriptionStatusBar - son diferentes, no hay conflicto",
+        "No dashboards venue duplicados encontrados - usuario ya los eliminó",
+        "No componentes debug encontrados - usuario ya los eliminó"
+      ]
+    },
+    
+    "component_analysis_updated": {
+      "user_components": {
+        "status": "GOOD - All components in active use",
+        "confirmed_active": [
+          "UserHeader.tsx ✅ - Usado en UserLayout",
+          "BetHistoryTable.tsx ⚠️ - Necesita migración a AdvancedTable", 
+          "EventCard.tsx ✅ - Usado en Dashboard",
+          "BetCard.tsx ✅ - Usado en Bets page",
+          "Navigation.tsx ✅ - Usado en UserLayout"
+        ]
+      },
+      "subscription_components": {
+        "status": "NEEDS RESTRUCTURING",
+        "issues_confirmed": [
+          "SubscriptionStatus en directorio incorrecto (subscription/ vs subscriptions/)",
+          "SubscriptionGuard duplicado (streaming/ vs shared/)",
+          "Import paths inconsistentes"
+        ],
+        "resolution": "UNI-001 + DEL-001 resolverán estos issues"
+      },
+      "shared_components": {
+        "status": "GOOD - Well structured",
+        "confirmed_components": [
+          "SubscriptionStatusBar.tsx ✅ - Específico para barra de estado",
+          "SubscriptionGuard.tsx ✅ - Version genérica a mantener",
+          "AdvancedTable.tsx ✅ - Disponible para BetHistoryTable"
+        ]
+      }
+    },
+    
+    "execution_order_refined": [
+      "FASE 1 - CRÍTICA: UNI-001 (Unificar directorios subscription)",
+      "FASE 2 - LIMPIEZA: DEL-001 (SubscriptionGuard duplicado)", 
+      "FASE 3 - MEJORAS: OPT-001 (BetHistoryTable optimization)",
+      "FASE 4 - FINALIZACIÓN: DEL-002, DEL-003, OPT-002, OPT-003"
+    ],
+    
+    "risk_assessment_updated": {
+      "critical_path": "UNI-001 debe hacerse primero - UserHeader depende de SubscriptionStatus",
+      "low_risk": [
+        "DEL-002 - Eliminar streaming/ vacío",
+        "DEL-003 - Limpiar tests huérfanos"
+      ],
+      "medium_risk": [
+        "UNI-001 - Cambiar import en UserHeader (componente crítico)",
+        "DEL-001 - SubscriptionGuard usado en multiple lugares"
+      ],
+      "high_risk": [],
+      "testing_required": [
+        "Subscription functionality en todos los roles",
+        "BetHistoryTable después de migración",
+        "UserHeader después de cambio de imports"
+      ]
+    },
+    
+    "success_criteria_detailed": {
+      "structural_goals": [
+        "✅ Solo un directorio subscriptions/ (no subscription/)",
+        "✅ Solo un SubscriptionGuard en shared/",
+        "✅ Imports consistentes y limpios",
+        "✅ No directorios vacíos"
+      ],
+      "functional_goals": [
+        "✅ UserHeader muestra subscription status correctamente",
+        "✅ BetHistoryTable tiene paginación, ordenamiento, filtros",
+        "✅ Subscription workflows funcionan en todos los roles",
+        "✅ No errores de compilación o importación"
+      ],
+      "performance_goals": [
+        "✅ Menos componentes duplicados cargándose",
+        "✅ Hooks de subscription unificados",
+        "✅ Mejor UX en tablas con AdvancedTable"
+      ]
+    },
+    
+    "verification_commands": {
+      "before_changes": [
+        "find frontend/src/components -name '*.tsx' | grep -E '(subscription|subscriptions)' | sort",
+        "grep -r 'SubscriptionGuard' frontend/src/ | wc -l",
+        "grep -r 'subscription/SubscriptionStatus' frontend/src/"
+      ],
+      "after_each_phase": [
+        "npm run build - verificar compilación",
+        "grep -r 'subscription/' frontend/src/ - no debe existir después UNI-001",
+        "find frontend/src -type d -empty - no directorios vacíos"
+      ]
+    }
   }
 }
