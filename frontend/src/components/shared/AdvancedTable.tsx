@@ -4,7 +4,6 @@ import { Pagination } from "./Pagination"; // Import your pagination component
 import { LoadingSpinner } from "./LoadingSpinner"; // Import your loading spinner component
 import { ArrowDown, ArrowUp, Filter, Download } from "lucide-react"; // Importar íconos de Lucide
 import { ActionButton } from "./ActionButton";
-import { StatusChip } from "./StatusChip";
 import { Modal } from "./Modal";
 import { TableLoadingRow } from "./TableLoadingRow";
 

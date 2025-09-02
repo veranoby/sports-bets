@@ -28,7 +28,7 @@ export class Venue extends Model<
     phone?: string;
   }>;
   declare ownerId: ForeignKey<User["id"]>;
-  declare status: CreationOptional<"pending" | "active" | "suspended">;
+  declare status: CreationOptional<"pending" | "active" | "suspended" | "approved" | "rejected">;
   declare isVerified: CreationOptional<boolean>;
   declare images: CreationOptional<string[]>;
   declare createdAt: CreationOptional<Date>;
@@ -108,7 +108,7 @@ Venue.init(
       },
     },
     status: {
-      type: DataTypes.ENUM("pending", "active", "suspended"),
+      type: DataTypes.ENUM("pending", "active", "suspended", "approved", "rejected"),
       allowNull: false,
       defaultValue: "pending",
     },

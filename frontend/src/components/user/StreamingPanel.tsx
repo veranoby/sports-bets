@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import StatusIndicator from "../shared/StatusIndicator";
+import StatusChip from "../shared/StatusChip";
 import Card from "../shared/Card";
 import type { StreamQuality, StreamStatus } from "../../types";
 
@@ -86,7 +86,7 @@ export const StreamingPanel: React.FC<StreamingPanelProps> = ({
         className="p-4 bg-theme-card text-theme-primary"
       >
         <div className="flex items-center justify-between">
-          <StatusIndicator status={streamStatus} />
+          <StatusChip status={streamStatus} />
           {renderStats()}
         </div>
       </Card>
@@ -116,7 +116,7 @@ export const StreamingPanel: React.FC<StreamingPanelProps> = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <StatusIndicator status={streamStatus} />
+          <StatusChip status={streamStatus} />
           {renderQualityControls()}
           {renderStats()}
         </div>

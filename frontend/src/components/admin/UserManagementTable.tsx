@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import type { User } from "../../types";
-import { Search, RefreshCw, UserCheck, UserX } from "lucide-react";
+import { Search, RefreshCw, UserCheck, UserX, Trash2 } from "lucide-react";
 import StatusChip from "../shared/StatusChip";
 import TableLoadingRow from "../shared/TableLoadingRow";
 import FilterBar from "../shared/FilterBar";
@@ -34,6 +34,18 @@ const usersAPI = {
       body: JSON.stringify({ role }),
     });
   },
+  delete: async (userId: string) => {
+    await fetch(`/api/users/${userId}`, {
+      method: "DELETE",
+    });
+  },
+  bulkUpdateStatus: async (userIds: string[], isActive: boolean) => {
+    await fetch(`/api/users/bulk-status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds, isActive }),
+    });
+  },
 };
 
 const TABLE_COLUMNS = [
@@ -55,11 +67,12 @@ const UserManagementTable: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState<null | {
-    type: "status" | "role";
+    type: "status" | "role" | "delete";
     user: User;
-    newValue: any;
+    newValue?: any;
   }>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   // Cargar usuarios
   const loadUsers = async () => {
@@ -121,6 +134,22 @@ const UserManagementTable: React.FC = () => {
     setConfirmAction({ type: "role", user, newValue: newRole });
   };
 
+  const handleDeleteUser = (user: User) => {
+    setConfirmAction({ type: "delete", user });
+  };
+
+  const handleBulkActivate = async () => {
+    await usersAPI.bulkUpdateStatus(selectedUsers, true);
+    setUsers(users.map(u => selectedUsers.includes(u.id) ? { ...u, isActive: true } : u));
+    setSelectedUsers([]);
+  };
+
+  const handleBulkDeactivate = async () => {
+    await usersAPI.bulkUpdateStatus(selectedUsers, false);
+    setUsers(users.map(u => selectedUsers.includes(u.id) ? { ...u, isActive: false } : u));
+    setSelectedUsers([]);
+  };
+
   const handleConfirmAction = async () => {
     if (!confirmAction) return;
     setIsUpdating(true);
@@ -152,6 +181,10 @@ const UserManagementTable: React.FC = () => {
           )
         );
         setSuccessMsg(`Rol actualizado correctamente.`);
+      } else if (confirmAction.type === "delete") {
+        await usersAPI.delete(confirmAction.user.id);
+        setUsers(users.filter((u) => u.id !== confirmAction.user.id));
+        setSuccessMsg(`Usuario eliminado correctamente.`);
       }
     } catch (err) {
       setError((err as Error).message || "Error al actualizar usuario");
@@ -164,6 +197,35 @@ const UserManagementTable: React.FC = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      {selectedUsers.length > 0 && (
+        <div className="p-4 bg-blue-50 border-b border-blue-200">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-900">
+              {selectedUsers.length} user(s) selected
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={handleBulkActivate}
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+              >
+                Activate Selected
+              </button>
+              <button
+                onClick={handleBulkDeactivate}
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                Deactivate Selected
+              </button>
+              <button
+                onClick={() => setSelectedUsers([])}
+                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Filtros y búsqueda */}
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -227,6 +289,15 @@ const UserManagementTable: React.FC = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <input type="checkbox" onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedUsers(filteredUsers.map(u => u.id));
+                  } else {
+                    setSelectedUsers([]);
+                  }
+                }} />
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Usuario
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -261,6 +332,15 @@ const UserManagementTable: React.FC = () => {
             ) : (
               filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => {
+                      if (selectedUsers.includes(user.id)) {
+                        setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                      } else {
+                        setSelectedUsers([...selectedUsers, user.id]);
+                      }
+                    }} />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.username}
                   </td>
@@ -346,6 +426,15 @@ const UserManagementTable: React.FC = () => {
                           </>
                         )}
                       </button>
+
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={isUpdating}
+                        className="px-2 py-1 text-xs rounded flex items-center bg-red-100 text-red-800 hover:bg-red-200"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Eliminar
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -390,14 +479,18 @@ const UserManagementTable: React.FC = () => {
           title={
             confirmAction.type === "status"
               ? `¿Confirmar cambio de estado?`
-              : `¿Confirmar cambio de rol?`
+              : confirmAction.type === "role"
+              ? `¿Confirmar cambio de rol?`
+              : `¿Confirmar eliminación?`
           }
           message={
             confirmAction.type === "status"
               ? `¿Seguro que deseas ${
                   confirmAction.newValue ? "activar" : "desactivar"
                 } al usuario ${confirmAction.user.username}?`
-              : `¿Seguro que deseas cambiar el rol de ${confirmAction.user.username} a ${confirmAction.newValue}?`
+              : confirmAction.type === "role"
+              ? `¿Seguro que deseas cambiar el rol de ${confirmAction.user.username} a ${confirmAction.newValue}?`
+              : `¿Seguro que deseas eliminar al usuario ${confirmAction.user.username}? Esta acción no se puede deshacer.`
           }
           isOpen={!!confirmAction}
           onConfirm={handleConfirmAction}

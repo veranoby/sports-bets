@@ -296,7 +296,7 @@ const LiveEventsWidget: React.FC = () => {
             <h2 className="text-lg font-bold text-theme-primary">
               Eventos en Vivo Premium
             </h2>
-            <StatusChip status="premium" text="PREMIUM" />
+            <StatusChip status="premium" />
           </div>
 
           <div className="flex items-center gap-2">

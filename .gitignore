@@ -7,7 +7,7 @@ node_modules/
 # Testing
 /coverage
 
-# Producci�n
+# Produccin
 /build
 /dist
 **/build
@@ -46,3 +46,12 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Claude/Cursor
+.claude/
+claude_workspace/
+*.claude
+*.claude-desktop-arch/
+claude-desktop-arch/
+.cursor/
+cursor_workspace/

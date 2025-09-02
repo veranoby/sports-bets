@@ -74,7 +74,7 @@ Venue.init({
         },
     },
     status: {
-        type: sequelize_1.DataTypes.ENUM("pending", "active", "suspended"),
+        type: sequelize_1.DataTypes.ENUM("pending", "active", "suspended", "approved", "rejected"),
         allowNull: false,
         defaultValue: "pending",
     },

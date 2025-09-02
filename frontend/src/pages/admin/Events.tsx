@@ -38,6 +38,8 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
+import CreateFightModal from "../../components/admin/CreateFightModal";
+import EditEventModal from "../../components/admin/EditEventModal";
 
 // APIs
 import {
@@ -135,6 +137,8 @@ const AdminEventsPage: React.FC = () => {
     useState<EventDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
+  const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
+  const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
 
   // Estados operativos
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
@@ -252,6 +256,9 @@ const AdminEventsPage: React.FC = () => {
         case "complete":
           response = await eventsAPI.complete(eventId);
           break;
+        case "cancel":
+          response = await eventsAPI.cancel(eventId);
+          break;
       }
 
       // Actualizar eventos local
@@ -320,6 +327,29 @@ const AdminEventsPage: React.FC = () => {
     } finally {
       setOperationInProgress(null);
     }
+  };
+
+  const handleFightCreated = (newFight: Fight) => {
+    if (eventDetailData) {
+      setEventDetailData({
+        ...eventDetailData,
+        fights: [...eventDetailData.fights, newFight],
+      });
+    }
+    setIsCreateFightModalOpen(false);
+  };
+
+  const handleEventUpdated = (updatedEvent: Event) => {
+    setEvents(
+      events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e))
+    );
+    if (eventDetailData && eventDetailData.event.id === updatedEvent.id) {
+      setEventDetailData({
+        ...eventDetailData,
+        event: updatedEvent,
+      });
+    }
+    setIsEditEventModalOpen(false);
   };
 
   const openEventDetail = (eventId: string) => {
@@ -677,6 +707,21 @@ const AdminEventsPage: React.FC = () => {
                   </p>
                 )}
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsEditEventModalOpen(true)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEventAction(selectedEventId!, 'cancel')}
+                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Cancelar Evento
+                </button>
               <button
                 onClick={closeEventDetail}
                 className="text-gray-400 hover:text-gray-600"
@@ -812,13 +857,132 @@ const AdminEventsPage: React.FC = () => {
                   {/* Tab Peleas ⭐⭐⭐ - CRÍTICO */}
                   {activeTab === "fights" && (
                     <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Control de Streaming
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-500">
+                                Estado del Stream
+                              </label>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div
+                                  className={`w-3 h-3 rounded-full ${
+                                    eventDetailData.streamInfo.status === "live"
+                                      ? "bg-red-500 animate-pulse"
+                                      : eventDetailData.streamInfo.status ===
+                                        "error"
+                                      ? "bg-red-500"
+                                      : "bg-gray-400"
+                                  }`}
+                                ></div>
+                                <span className="text-sm capitalize">
+                                  {eventDetailData.streamInfo.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            {eventDetailData.streamInfo.url && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-500">
+                                  URL del Stream
+                                </label>
+                                <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
+                                  {eventDetailData.streamInfo.url}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleEventAction(
+                                    eventDetailData.event.id,
+                                    "start-stream"
+                                  )
+                                }
+                                disabled={
+                                  eventDetailData.streamInfo.status ===
+                                    "live" ||
+                                  operationInProgress?.includes("stream")
+                                }
+                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                              >
+                                <Play className="w-4 h-4" />
+                                Iniciar Stream
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleEventAction(
+                                    eventDetailData.event.id,
+                                    "stop-stream"
+                                  )
+                                }
+                                disabled={
+                                  eventDetailData.streamInfo.status !==
+                                    "live" ||
+                                  operationInProgress?.includes("stream")
+                                }
+                                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+                              >
+                                <Square className="w-4 h-4" />
+                                Detener Stream
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Estadísticas Técnicas
+                          </h3>
+                          <div className="space-y-3">
+                            {eventDetailData.streamInfo.viewers !==
+                              undefined && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-500">
+                                  Espectadores
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                  {eventDetailData.streamInfo.viewers}
+                                </p>
+                              </div>
+                            )}
+                            {eventDetailData.streamInfo.bitrate && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-500">
+                                  Bitrate
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                  {eventDetailData.streamInfo.bitrate} kbps
+                                </p>
+                              </div>
+                            )}
+                            {eventDetailData.streamInfo.uptime && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-500">
+                                  Tiempo en línea
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                  {Math.floor(
+                                    eventDetailData.streamInfo.uptime / 60
+                                  )}{" "}
+                                  min
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium text-gray-900">
                           Gestión de Peleas ({eventDetailData.fights.length})
                         </h3>
                         <button
                           onClick={() => {
-                            /* TODO: Crear nueva pelea */
+                            setIsCreateFightModalOpen(true);
                           }}
                           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
                         >
@@ -836,7 +1000,7 @@ const AdminEventsPage: React.FC = () => {
                             action={
                               <button
                                 onClick={() => {
-                                  /* TODO: Crear nueva pelea */
+                                  setIsCreateFightModalOpen(true);
                                 }}
                                 className="btn-primary"
                               >
@@ -1039,125 +1203,11 @@ const AdminEventsPage: React.FC = () => {
                   {/* Tab Streaming */}
                   {activeTab === "stream" && (
                     <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Control de Streaming
-                          </h3>
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-500">
-                                Estado del Stream
-                              </label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    eventDetailData.streamInfo.status === "live"
-                                      ? "bg-red-500 animate-pulse"
-                                      : eventDetailData.streamInfo.status ===
-                                        "error"
-                                      ? "bg-red-500"
-                                      : "bg-gray-400"
-                                  }`}
-                                ></div>
-                                <span className="text-sm capitalize">
-                                  {eventDetailData.streamInfo.status}
-                                </span>
-                              </div>
-                            </div>
-
-                            {eventDetailData.streamInfo.url && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  URL del Stream
-                                </label>
-                                <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
-                                  {eventDetailData.streamInfo.url}
-                                </p>
-                              </div>
-                            )}
-
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleEventAction(
-                                    eventDetailData.event.id,
-                                    "start-stream"
-                                  )
-                                }
-                                disabled={
-                                  eventDetailData.streamInfo.status ===
-                                    "live" ||
-                                  operationInProgress?.includes("stream")
-                                }
-                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-                              >
-                                <Play className="w-4 h-4" />
-                                Iniciar Stream
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleEventAction(
-                                    eventDetailData.event.id,
-                                    "stop-stream"
-                                  )
-                                }
-                                disabled={
-                                  eventDetailData.streamInfo.status !==
-                                    "live" ||
-                                  operationInProgress?.includes("stream")
-                                }
-                                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
-                              >
-                                <Square className="w-4 h-4" />
-                                Detener Stream
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Estadísticas Técnicas
-                          </h3>
-                          <div className="space-y-3">
-                            {eventDetailData.streamInfo.viewers !==
-                              undefined && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Espectadores
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.streamInfo.viewers}
-                                </p>
-                              </div>
-                            )}
-                            {eventDetailData.streamInfo.bitrate && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Bitrate
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.streamInfo.bitrate} kbps
-                                </p>
-                              </div>
-                            )}
-                            {eventDetailData.streamInfo.uptime && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Tiempo en línea
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {Math.floor(
-                                    eventDetailData.streamInfo.uptime / 60
-                                  )}{" "}
-                                  min
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <EmptyState
+                        title="Controles de streaming movidos"
+                        description="Los controles de streaming ahora se encuentran en la pestaña de Peleas para un manejo más integrado."
+                        icon={<Video className="w-12 h-12" />}
+                      />
                     </div>
                   )}
 
@@ -1200,6 +1250,22 @@ const AdminEventsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {isCreateFightModalOpen && selectedEventId && (
+        <CreateFightModal
+          eventId={selectedEventId}
+          onClose={() => setIsCreateFightModalOpen(false)}
+          onFightCreated={handleFightCreated}
+        />
+      )}
+
+      {isEditEventModalOpen && eventDetailData && (
+        <EditEventModal
+          event={eventDetailData.event}
+          onClose={() => setIsEditEventModalOpen(false)}
+          onEventUpdated={handleEventUpdated}
+        />
       )}
     </div>
   );

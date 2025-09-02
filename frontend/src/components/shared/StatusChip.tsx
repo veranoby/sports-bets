@@ -1,114 +1,180 @@
-// REEMPLAZAR TODO EL CONTENIDO
+// frontend/src/components/shared/StatusChip.tsx - VERSIÓN UNIFICADA
+// ================================================================
+// 🎯 ABSORBE StatusIndicator - Preserva todas las funcionalidades
+
 import React from "react";
+
+export type StatusType =
+  | "active" | "inactive" | "pending" | "approved" | "rejected"
+  | "live" | "upcoming" | "completed" | "cancelled" | "settled" | "matched"
+  | "connected" | "disconnected" | "banned" | "postponed" | "betting" | "closed"
+  | "processing" | "confirmed" | "failed" | "unmatched" | "retrying"
+  | "connecting" | "success" | "error" | "warning";
 
 interface StatusChipProps {
   status: string;
   size?: "sm" | "md" | "lg";
-  variant?: "default" | "outline";
+  variant?: "chip" | "indicator" | "outline";
   className?: string;
+  // StatusIndicator compatibility props
+  isConnected?: boolean;
+  label?: string;
 }
 
 const StatusChip: React.FC<StatusChipProps> = ({
   status,
   size = "md",
-  variant = "default",
+  variant = "chip",
   className = "",
+  isConnected,
+  label,
 }) => {
+  // Auto-determine status from isConnected if provided (StatusIndicator compatibility)
+  const finalStatus = isConnected !== undefined 
+    ? (isConnected ? "connected" : "disconnected")
+    : status;
+
+  // Common status configurations
   const statusConfig = {
     // Estados positivos
-    active: "bg-theme-success/20 text-theme-success",
-    approved: "bg-theme-success/20 text-theme-success",
-    completed: "bg-theme-success/20 text-theme-success",
-    settled: "bg-theme-success/20 text-theme-success",
-    connected: "bg-theme-success/20 text-theme-success",
-    confirmed: "bg-theme-success/20 text-theme-success",
-    success: "bg-theme-success/20 text-theme-success",
-    full: "bg-theme-success/20 text-theme-success",
+    active: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    approved: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    completed: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    settled: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    connected: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    confirmed: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
+    success: { 
+      chip: "bg-theme-success/20 text-theme-success",
+      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+    },
 
-    // Estados en progreso
-    live: "bg-theme-secondary/20 text-theme-secondary",
-    pending: "bg-theme-primary/20 text-theme-primary",
-    matched: "bg-theme-primary/20 text-theme-primary",
-    betting: "bg-theme-primary/20 text-theme-primary",
-    processing: "bg-theme-primary/20 text-theme-primary",
-    retrying: "bg-theme-primary/20 text-theme-primary",
-
-    // Estados warning
-    upcoming: "bg-theme-warning/20 text-theme-warning",
-    basic: "bg-theme-warning/20 text-theme-warning",
-    warning: "bg-theme-warning/20 text-theme-warning",
+    // Estados en progreso  
+    live: { 
+      chip: "bg-theme-secondary/20 text-theme-secondary",
+      indicator: { color: "bg-blue-500", textColor: "text-blue-400", pulse: true }
+    },
+    pending: { 
+      chip: "bg-yellow-100 text-yellow-800",
+      indicator: { color: "bg-yellow-500", textColor: "text-yellow-400", pulse: true }
+    },
+    processing: { 
+      chip: "bg-blue-100 text-blue-800",
+      indicator: { color: "bg-blue-500", textColor: "text-blue-400", pulse: true }
+    },
+    connecting: { 
+      chip: "bg-yellow-100 text-yellow-800",
+      indicator: { color: "bg-yellow-500", textColor: "text-yellow-400", pulse: true }
+    },
 
     // Estados negativos
-    cancelled: "bg-theme-error/20 text-theme-error",
-    rejected: "bg-theme-error/20 text-theme-error",
-    disconnected: "bg-theme-error/20 text-theme-error",
-    banned: "bg-theme-error/20 text-theme-error",
-    failed: "bg-theme-error/20 text-theme-error",
-    error: "bg-theme-error/20 text-theme-error",
+    inactive: { 
+      chip: "bg-gray-100 text-gray-600",
+      indicator: { color: "bg-gray-500", textColor: "text-gray-400", pulse: false }
+    },
+    rejected: { 
+      chip: "bg-theme-danger/20 text-theme-danger",
+      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+    },
+    cancelled: { 
+      chip: "bg-theme-danger/20 text-theme-danger",
+      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+    },
+    disconnected: { 
+      chip: "bg-theme-danger/20 text-theme-danger",
+      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: true }
+    },
+    failed: { 
+      chip: "bg-theme-danger/20 text-theme-danger",
+      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+    },
+    error: { 
+      chip: "bg-red-100 text-red-800",
+      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+    },
 
     // Estados neutros
-    inactive: "bg-gray-500/20 text-gray-400",
-    postponed: "bg-gray-500/20 text-gray-400",
-    closed: "bg-gray-500/20 text-gray-400",
-    unmatched: "bg-gray-500/20 text-gray-400",
-    none: "bg-gray-500/20 text-gray-400",
-    unknown: "bg-gray-500/20 text-gray-400",
-
-    // Información
-    info: "bg-theme-info/20 text-theme-info",
+    upcoming: { 
+      chip: "bg-gray-100 text-gray-600",
+      indicator: { color: "bg-gray-400", textColor: "text-gray-400", pulse: false }
+    },
+    matched: { 
+      chip: "bg-purple-100 text-purple-800",
+      indicator: { color: "bg-purple-500", textColor: "text-purple-400", pulse: false }
+    }
   };
 
-  const sizeClasses = {
-    sm: "text-xs px-2 py-1",
-    md: "text-sm px-3 py-1.5",
-    lg: "text-base px-4 py-2",
+  const config = statusConfig[finalStatus as keyof typeof statusConfig] || statusConfig.inactive;
+
+  const getSizeClasses = () => {
+    if (variant === "indicator") {
+      return {
+        sm: "w-2 h-2",
+        md: "w-3 h-3", 
+        lg: "w-4 h-4"
+      }[size];
+    }
+    
+    return {
+      sm: "px-2 py-1 text-xs",
+      md: "px-3 py-1 text-sm",
+      lg: "px-4 py-2 text-base"
+    }[size];
   };
 
-  const statusLabels = {
-    active: "Activo",
-    inactive: "Inactivo",
-    pending: "Pendiente",
-    approved: "Aprobado",
-    rejected: "Rechazado",
-    live: "En vivo",
-    upcoming: "Próximo",
-    completed: "Completado",
-    cancelled: "Cancelado",
-    settled: "Liquidado",
-    matched: "Emparejado",
-    connected: "Conectado",
-    disconnected: "Desconectado",
-    banned: "Bloqueado",
-    postponed: "Postpuesto",
-    betting: "Apuestas",
-    closed: "Cerrado",
-    processing: "Procesando",
-    confirmed: "Confirmado",
-    failed: "Fallido",
-    unmatched: "No emparejado",
-    retrying: "Reintentando",
-    info: "Info",
-    warning: "Advertencia",
-    error: "Error",
-    success: "Éxito",
-    none: "Sin verificar",
-    basic: "Básico",
-    full: "Verificado",
-    unknown: "Desconocido",
-  };
+  // Render as indicator (circle with optional label)
+  if (variant === "indicator") {
+    const indicatorConfig = config.indicator;
+    const sizeClasses = getSizeClasses();
 
-  const statusClass =
-    statusConfig[status as keyof typeof statusConfig] || statusConfig.unknown;
-  const label =
-    statusLabels[status as keyof typeof statusLabels] || statusLabels.unknown;
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        <div
+          className={`${sizeClasses} ${indicatorConfig.color} rounded-full ${
+            indicatorConfig.pulse ? "animate-pulse" : ""
+          }`}
+        />
+        {(label || finalStatus) && (
+          <span className={`text-sm ${indicatorConfig.textColor}`}>
+            {label || finalStatus}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Render as chip (default behavior)
+  const chipClasses = variant === "outline" 
+    ? `border-2 border-current bg-transparent ${config.chip.replace(/bg-\S+/, '')}`
+    : config.chip;
 
   return (
     <span
-      className={`rounded-full font-medium ${
-        sizeClasses[size]
-      } ${statusClass} ${variant === "outline" ? "border" : ""} ${className}`}
+      className={`
+        inline-flex items-center justify-center font-medium rounded-full
+        ${getSizeClasses()}
+        ${chipClasses}
+        ${className}
+      `.trim()}
     >
-      {label}
+      {finalStatus}
     </span>
   );
 };

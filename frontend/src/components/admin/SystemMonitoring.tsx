@@ -113,7 +113,7 @@ const SystemMonitoring: React.FC = () => {
   };
 
   // Renderizar indicador de estado
-  const renderStatusIndicator = (status: "healthy" | "degraded" | "down") => {
+  const renderStatusChip = (status: "healthy" | "degraded" | "down") => {
     switch (status) {
       case "healthy":
         return (
@@ -249,7 +249,7 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusIndicator(systemStatus.api.status)}
+                {renderStatusChip(systemStatus.api.status)}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
@@ -287,7 +287,7 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusIndicator(systemStatus.database.status)}
+                {renderStatusChip(systemStatus.database.status)}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
@@ -323,7 +323,7 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusIndicator(systemStatus.streaming.status)}
+                {renderStatusChip(systemStatus.streaming.status)}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
@@ -359,7 +359,7 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusIndicator(systemStatus.cache.status)}
+                {renderStatusChip(systemStatus.cache.status)}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">

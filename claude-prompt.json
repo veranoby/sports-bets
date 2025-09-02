@@ -1,373 +1,335 @@
 {
-  "componentRefactorPlan": {
-    "title": "Plan de Refactorización y Limpieza de Componentes Frontend V3 - ANÁLISIS DETALLADO",
-    "version": "3.0",
-    "date": "2025-08-26",
-    "analysis_summary": {
-      "current_state": "Análisis basado en importaciones reales y estructura actual verificada",
-      "critical_findings": {
-        "confirmed_duplicates": {
-          "SubscriptionGuard": "2 versiones diferentes - streaming/ vs shared/",
-          "directory_confusion": "subscription/ vs subscriptions/ - SubscriptionStatus mal ubicado"
-        },
-        "import_conflicts_verified": {
-          "UserHeader": "Importa from '../subscription/SubscriptionStatus' (directorio singular)",
-          "UserLayout": "Importa from '../shared/SubscriptionStatusBar' (no hay conflicto - componentes diferentes)"
-        },
-        "optimization_confirmed": {
-          "BetHistoryTable": "Usa HTML simple, necesita AdvancedTable",
-          "venue_components": "Ya eliminados según usuario - no encontrados en análisis"
-        }
-      },
-      "confidence_level": "VERY HIGH - Basado en código real analizado"
-    },
-    
-    "deletions": [
-      {
-        "id": "DEL-001",
-        "title": "Eliminar SubscriptionGuard de streaming/",
-        "description": "Mantener solo el de shared/ que es más genérico y reutilizable",
-        "priority": "HIGH",
-        "files_to_delete": [
-          "frontend/src/components/streaming/SubscriptionGuard.tsx",
-          "frontend/src/components/streaming/__tests__/SubscriptionGuard.test.tsx"
-        ],
-        "rationale": "El de streaming/ es muy específico para streaming, el de shared/ es más genérico",
-        "verification_commands": [
-          "grep -r 'streaming/SubscriptionGuard' frontend/src/",
-          "grep -r 'shared/SubscriptionGuard' frontend/src/"
-        ],
-        "imports_to_update": [
-          "LiveEvent.tsx: '../shared/SubscriptionGuard' (ya correcto)",
-          "Buscar otros componentes que importen desde streaming/"
-        ],
-        "action_steps": [
-          "1. Buscar TODAS las importaciones de streaming/SubscriptionGuard",
-          "2. Migrar funcionalidades específicas del streaming/ al shared/ si es necesario",
-          "3. Actualizar todas las importaciones a shared/",
-          "4. Eliminar archivos de streaming/",
-          "5. Probar funcionalidad de suscripciones en todos los roles"
-        ]
-      },
-      
-      {
-        "id": "DEL-002", 
-        "title": "Limpiar Directorio streaming/ si queda vacío",
-        "description": "Después de eliminar SubscriptionGuard, verificar si streaming/ tiene otros componentes",
-        "priority": "MEDIUM",
-        "depends_on": "DEL-001",
-        "action_steps": [
-          "1. Verificar contenido restante en components/streaming/",
-          "2. Si está vacío, eliminar directorio completo",
-          "3. Si hay otros componentes, evaluar si deben moverse a shared/"
-        ]
-      },
-      
-      {
-        "id": "DEL-003",
-        "title": "Eliminar Tests Huérfanos en subscriptions/",
-        "description": "Verificar que todos los tests en subscriptions/__tests__/ tengan componentes correspondientes",
-        "priority": "LOW",
-        "files_to_check": [
-          "frontend/src/components/subscriptions/__tests__/"
-        ],
-        "action_steps": [
-          "1. Listar todos los archivos .test.tsx en subscriptions/__tests__/",
-          "2. Verificar que cada test tenga su componente correspondiente",
-          "3. Eliminar tests sin componente asociado",
-          "4. Actualizar tests que referencien imports obsoletos"
-        ]
-      }
+  "knowledge_verification": {
+    "database_analysis_consulted": [
+      "backend/database-analysis/CURRENT_TABLES.json - Complete PostgreSQL schema",
+      "backend/database-analysis/CURRENT_FOREIGN_KEYS.json - All table relationships",
+      "backend/database-analysis/CURRENT_CONSTRAINTS.json - Database constraints",
+      "backend/database-analysis/users.json - User data and role examples"
     ],
-    
-    "unifications": [
-      {
-        "id": "UNI-001",
-        "title": "Consolidar subscription/ en subscriptions/",
-        "description": "Mover SubscriptionStatus.tsx al directorio subscriptions/ para unificar",
-        "priority": "CRITICAL",
-        "evidence": "UserHeader importa '../subscription/SubscriptionStatus' - directorio singular confuso",
-        "current_structure": {
-          "subscription/": ["SubscriptionStatus.tsx"],
-          "subscriptions/": ["SubscriptionManager.tsx", "SubscriptionPlans.tsx", "__tests__/"]
-        },
-        "target_structure": {
-          "subscriptions/": ["SubscriptionStatus.tsx", "SubscriptionManager.tsx", "SubscriptionPlans.tsx", "__tests__/"]
-        },
-        "files_to_move": [
-          {
-            "from": "frontend/src/components/subscription/SubscriptionStatus.tsx",
-            "to": "frontend/src/components/subscriptions/SubscriptionStatus.tsx"
-          }
-        ],
-        "imports_to_update_verified": [
-          "frontend/src/components/user/UserHeader.tsx: '../subscription/SubscriptionStatus' → '../subscriptions/SubscriptionStatus'"
-        ],
-        "additional_imports_to_search": [
-          "grep -r 'subscription/SubscriptionStatus' frontend/src/",
-          "grep -r '../subscription/' frontend/src/"
-        ],
-        "directory_to_delete": "frontend/src/components/subscription/",
-        "action_steps": [
-          "1. Mover SubscriptionStatus.tsx a subscriptions/",
-          "2. Ejecutar: grep -r 'subscription/SubscriptionStatus' frontend/src/",
-          "3. Actualizar import en UserHeader.tsx (confirmado)",
-          "4. Buscar y actualizar cualquier otro import encontrado",
-          "5. Eliminar directorio subscription/ vacío",
-          "6. Probar compilación y funcionalidad"
-        ],
-        "risk": "MEDIUM - UserHeader es componente crítico, pero cambio es simple"
-      }
+    "existing_components_identified": [
+      "SystemMonitoring component - needs real API integration",
+      "UserManagementTable - exists but may need CRUD completion", 
+      "VenueApprovalPanel - exists but integration unclear",
+      "FinancialStats - exists but data source needs connection",
+      "Admin routing and authentication - implemented"
     ],
-    
-    "optimizations": [
-      {
-        "id": "OPT-001",
-        "title": "Migrar BetHistoryTable a AdvancedTable",
-        "description": "BetHistoryTable usa tabla HTML básica sin funcionalidades modernas",
-        "priority": "HIGH",
-        "current_issues_verified": [
-          "Tabla HTML estática en pages/user/Bets.tsx",
-          "No paginación, no ordenamiento, no filtros",
-          "No aprovecha AdvancedTable disponible en shared/"
-        ],
-        "target_component": "frontend/src/components/user/BetHistoryTable.tsx",
-        "reusable_component": "frontend/src/components/shared/AdvancedTable.tsx",
-        "implementation_plan": {
-          "data_columns": [
-            "{ header: 'Evento', accessor: 'eventName', sortable: true }",
-            "{ header: 'Pelea', accessor: 'fightDetails', format: fight => `${fight.redCorner} vs ${fight.blueCorner}` }",
-            "{ header: 'Lado', accessor: 'side', format: side => side === 'red' ? '🔴 Rojo' : '🔵 Azul' }",
-            "{ header: 'Monto', accessor: 'amount', format: amount => `${amount.toFixed(2)}`, sortable: true }",
-            "{ header: 'Odds', accessor: 'odds', format: odds => `${odds}x` }",
-            "{ header: 'Estado', accessor: 'status', format: status => getStatusChip(status) }",
-            "{ header: 'Fecha', accessor: 'createdAt', format: date => formatDate(date), sortable: true }"
-          ],
-          "features_to_implement": [
-            "Paginación automática (10 items per page)",
-            "Ordenamiento por monto, fecha",
-            "Filtros: Estado (active, won, lost), Fecha (last 7 days, last month)",
-            "Búsqueda por nombre de evento",
-            "Export a CSV (opcional)"
-          ],
-          "enhanced_functionality": [
-            "Click en fila para ver detalles de apuesta",
-            "Indicadores visuales para estado (colores)",
-            "Loading states y error handling",
-            "Responsive design para móvil"
-          ]
-        },
-        "action_steps": [
-          "1. Verificar que AdvancedTable existe en shared/ y sus capacidades",
-          "2. Crear nueva versión de BetHistoryTable usando AdvancedTable",
-          "3. Definir columnas con formatters apropiados",
-          "4. Implementar filtros y búsqueda",
-          "5. Mantener la API actual para compatibilidad",
-          "6. Probar en páginas que usan BetHistoryTable",
-          "7. Verificar responsive design"
-        ],
-        "files_affected": [
-          "frontend/src/components/user/BetHistoryTable.tsx - Refactorizar",
-          "frontend/src/pages/user/Bets.tsx - Verificar integración"
-        ]
-      },
-      
-      {
-        "id": "OPT-002",
-        "title": "Unificar Card y DataCard - Eliminar Duplicación",
-        "description": "Card.tsx ya es componente unificado, pero DataCard se sigue usando",
-        "priority": "HIGH",
-        "evidence_confirmed": [
-          "Card.tsx incluye funcionalidad completa de DataCard (value, icon, trend, etc.)",
-          "DataCard se usa en: user/Dashboard.tsx, user/Wallet.tsx, operator/Dashboard.tsx",
-          "Card se usa en: admin/Articles.tsx, articles/ArticleList.tsx",
-          "Duplicación de lógica y mantenimiento innecesario"
-        ],
-        "target": "Migrar todos los usos de DataCard a Card unificado",
-        "files_to_update": [
-          {
-            "file": "frontend/src/pages/user/Dashboard.tsx",
-            "change": "import DataCard → import Card",
-            "usage": "<DataCard title={...} value={...} → <Card title={...} value={...}"
-          },
-          {
-            "file": "frontend/src/pages/user/Wallet.tsx", 
-            "change": "import DataCard → import Card",
-            "usage": "Migrar componentes DataCard existentes"
-          },
-          {
-            "file": "frontend/src/pages/operator/Dashboard.tsx",
-            "change": "import DataCard → import Card", 
-            "usage": "Migrar uso de DataCard (cuando se trabaje operator en futuro)"
-          }
-        ],
-        "files_to_delete_after": [
-          "frontend/src/components/shared/DataCard.tsx"
-        ],
-        "action_steps": [
-          "1. Verificar que Card.tsx tiene TODA la funcionalidad de DataCard",
-          "2. Buscar TODOS los imports de DataCard: grep -r 'DataCard' frontend/src/",
-          "3. Migrar imports en user/Dashboard.tsx y user/Wallet.tsx", 
-          "4. Probar que funcionalidad visual se mantiene igual",
-          "5. Solo después de confirmar que todo funciona, eliminar DataCard.tsx",
-          "6. Verificar compilación sin errores"
-        ],
-        "benefits": [
-          "Un solo componente para mantener",
-          "Consistencia en toda la app",
-          "Menos duplicación de código",
-          "Mejor TypeScript intellisense"
-        ]
-      },
-      
-      {
-        "id": "OPT-003",
-        "title": "Unificar Lógica de Subscription Hooks",
-        "description": "Múltiples componentes usan diferentes hooks para subscriptions",
-        "priority": "MEDIUM",
-        "evidence_found": [
-          "useSubscriptions() en SubscriptionStatusBar",
-          "useSubscription() en UserHeader", 
-          "subscriptionAPI calls directos en algunos componentes"
-        ],
-        "target": "Estandarizar uso de hooks para subscription data",
-        "action_steps": [
-          "1. Auditar todos los imports de subscription hooks/APIs",
-          "2. Estandarizar en useSubscription() como hook principal",
-          "3. Eliminar calls directos a subscriptionAPI donde sea posible",
-          "4. Centralizar estado de subscription en AuthContext si no está ya"
-        ]
-      },
-      
-      {
-        "id": "OPT-004",
-        "title": "Evaluar ErrorBoundary vs ErrorMessage Usage",
-        "description": "Ambos componentes se usan para manejo de errores - verificar si son complementarios",
-        "priority": "LOW",
-        "evidence_found": [
-          "ErrorBoundary se usa como wrapper component en user/Bets.tsx",
-          "ErrorMessage se usa para mostrar errores específicos con retry",
-          "PageContainer también usa ErrorMessage - patrón establecido"
-        ],
-        "recommendation": "MANTENER AMBOS - son complementarios, no duplicados",
-        "usage_pattern": {
-          "ErrorBoundary": "React error boundary para capturar errores de componentes",
-          "ErrorMessage": "Componente para mostrar errores específicos con botón retry"
-        },
-        "action_steps": [
-          "1. Documentar cuándo usar cada uno",
-          "2. Estandarizar uso consistente en toda la app",
-          "3. No requiere cambios - ambos son necesarios"
-        ]
-      }
-    ],
-    
-    "additional_findings": {
-      "confirmed_imports": {
-        "UserLayout": "SubscriptionStatusBar from '../shared/SubscriptionStatusBar' ✅",
-        "UserHeader": "SubscriptionStatus from '../subscription/SubscriptionStatus' ⚠️ (needs fix)",
-        "LiveEvent": "SubscriptionGuard from '../shared/SubscriptionGuard' ✅"
-      },
-      "component_usage_verified": {
-        "BetHistoryTable": "Usado en pages/user/Bets.tsx - activo",
-        "EventCard": "Usado en Dashboard.tsx - activo", 
-        "BetCard": "Usado en pages/user/Bets.tsx - activo",
-        "SubscriptionManager": "Componente complejo con tabs, payments - mantener",
-        "SubscriptionPlans": "Con tests completos - mantener"
-      },
-      "no_conflicts_found": [
-        "SubscriptionStatus vs SubscriptionStatusBar - son diferentes, no hay conflicto",
-        "No dashboards venue duplicados encontrados - usuario ya los eliminó",
-        "No componentes debug encontrados - usuario ya los eliminó"
+    "knowledge_gaps": [
+      "Current status of CRUD operations completeness needs verification",
+      "Model/Sequelize consistency with database analysis files needs validation",
+      "Streaming control integration status unclear"
+    ]
+  },
+  
+  "task_decomposition": {
+    "phase_0_project_setup": {
+      "duration": "0.5 hours",
+      "tasks": [
+        "Update .gitignore to exclude Claude-related files and directories",
+        "Add entries: .claude/, claude_workspace/, *.claude, .cursor/, cursor_workspace/",
+        "Verify backend/database-analysis/*.json files are accessible and current"
       ]
     },
-    
-    "component_analysis_updated": {
-      "user_components": {
-        "status": "GOOD - All components in active use",
-        "confirmed_active": [
-          "UserHeader.tsx ✅ - Usado en UserLayout",
-          "BetHistoryTable.tsx ⚠️ - Necesita migración a AdvancedTable", 
-          "EventCard.tsx ✅ - Usado en Dashboard",
-          "BetCard.tsx ✅ - Usado en Bets page",
-          "Navigation.tsx ✅ - Usado en UserLayout"
-        ]
-      },
-      "subscription_components": {
-        "status": "NEEDS RESTRUCTURING",
-        "issues_confirmed": [
-          "SubscriptionStatus en directorio incorrecto (subscription/ vs subscriptions/)",
-          "SubscriptionGuard duplicado (streaming/ vs shared/)",
-          "Import paths inconsistentes"
-        ],
-        "resolution": "UNI-001 + DEL-001 resolverán estos issues"
-      },
-      "shared_components": {
-        "status": "GOOD - Well structured",
-        "confirmed_components": [
-          "SubscriptionStatusBar.tsx ✅ - Específico para barra de estado",
-          "SubscriptionGuard.tsx ✅ - Version genérica a mantener",
-          "AdvancedTable.tsx ✅ - Disponible para BetHistoryTable"
-        ]
-      }
-    },
-    
-    "execution_order_refined": [
-      "FASE 1 - CRÍTICA: UNI-001 (Unificar directorios subscription)",
-      "FASE 2 - LIMPIEZA: DEL-001 (SubscriptionGuard duplicado)", 
-      "FASE 3 - MEJORAS: OPT-001 (BetHistoryTable optimization)",
-      "FASE 4 - FINALIZACIÓN: DEL-002, DEL-003, OPT-002, OPT-003"
-    ],
-    
-    "risk_assessment_updated": {
-      "critical_path": "UNI-001 debe hacerse primero - UserHeader depende de SubscriptionStatus",
-      "low_risk": [
-        "DEL-002 - Eliminar streaming/ vacío",
-        "DEL-003 - Limpiar tests huérfanos"
-      ],
-      "medium_risk": [
-        "UNI-001 - Cambiar import en UserHeader (componente crítico)",
-        "DEL-001 - SubscriptionGuard usado en multiple lugares"
-      ],
-      "high_risk": [],
-      "testing_required": [
-        "Subscription functionality en todos los roles",
-        "BetHistoryTable después de migración",
-        "UserHeader después de cambio de imports"
+    "phase_1_error_analysis": {
+      "duration": "2 hours",
+      "tasks": [
+        "Analyze SystemMonitoring component API integration failures",
+        "Verify CRUD operations completeness across admin components",
+        "Cross-reference database JSONs with Sequelize models for inconsistencies",
+        "Identify broken or incomplete admin dashboard integrations"
       ]
     },
-    
-    "success_criteria_detailed": {
-      "structural_goals": [
-        "✅ Solo un directorio subscriptions/ (no subscription/)",
-        "✅ Solo un SubscriptionGuard en shared/",
-        "✅ Imports consistentes y limpios",
-        "✅ No directorios vacíos"
-      ],
-      "functional_goals": [
-        "✅ UserHeader muestra subscription status correctamente",
-        "✅ BetHistoryTable tiene paginación, ordenamiento, filtros",
-        "✅ Subscription workflows funcionan en todos los roles",
-        "✅ No errores de compilación o importación"
-      ],
-      "performance_goals": [
-        "✅ Menos componentes duplicados cargándose",
-        "✅ Hooks de subscription unificados",
-        "✅ Mejor UX en tablas con AdvancedTable"
+    "phase_2_critical_streaming_workflow": {
+      "duration": "4 hours", 
+      "tasks": [
+        "Implement intuitive event creation workflow (non-technical users)",
+        "Create event activation with streaming key generation",
+        "Build fight management within events (create/start/stop fights)",
+        "Implement streaming controls (start/stop per fight with clear status)",
+        "Add between-fight interview session handling"
       ]
     },
-    
-    "verification_commands": {
-      "before_changes": [
-        "find frontend/src/components -name '*.tsx' | grep -E '(subscription|subscriptions)' | sort",
-        "grep -r 'SubscriptionGuard' frontend/src/ | wc -l",
-        "grep -r 'subscription/SubscriptionStatus' frontend/src/"
-      ],
-      "after_each_phase": [
-        "npm run build - verificar compilación",
-        "grep -r 'subscription/' frontend/src/ - no debe existir después UNI-001",
-        "find frontend/src -type d -empty - no directorios vacíos"
+    "phase_3_crud_completion": {
+      "duration": "3 hours",
+      "tasks": [
+        "Complete user management (create/edit/delete all roles)",
+        "Finalize venue management (approve/reject/modify)",
+        "Implement event CRUD with full lifecycle",
+        "Add article/propaganda management",
+        "Create bulk operations for efficiency"
+      ]
+    },
+    "phase_4_integration_testing": {
+      "duration": "1 hour",
+      "tasks": [
+        "Test complete admin workflow end-to-end",
+        "Verify streaming controls work with backend",
+        "Test role-based permission enforcement",
+        "Validate non-technical user experience"
       ]
     }
+  },
+
+  "purpose_and_requirements": {
+    "primary_purpose": "Complete admin environment to 100% functionality enabling operator hierarchy and streaming revenue generation",
+    "business_objective": "Enable revenue generation through event transmissions by Sept 15, 2025",
+    "user_experience_priority": "Interface must be intuitive for non-technical operators managing live events",
+    "functional_requirements": [
+      "Real-time system monitoring with live streaming metrics",
+      "Complete CRUD operations for all entities (users, events, venues, fights, articles)",
+      "Intuitive streaming workflow: event creation → activation → fight management → transmission control",
+      "Role-based interface showing appropriate tools per user role",
+      "Between-fight interview session management capability",
+      "Bulk operations for operational efficiency"
+    ],
+    "non_functional_requirements": [
+      "Response time <2 seconds for all admin operations",
+      "Real-time updates for streaming status and metrics", 
+      "Mobile-responsive design (desktop/tablet primary)",
+      "99.5% uptime during live events",
+      "Clear error messages and loading states for non-technical users"
+    ]
+  },
+
+  "inputs_and_outputs": {
+    "input_parameters": {
+      "user_context": {
+        "type": "AuthUser",
+        "validation": "Must have admin or operator role",
+        "example": "{ id: 'uuid', role: 'admin', username: 'admin_user' }"
+      },
+      "event_data": {
+        "type": "EventCreationForm",
+        "validation": "name (3-255 chars), venueId (UUID), scheduledDate (future date)",
+        "example": "{ name: 'Gallera El Palenque Domingo', venueId: 'venue-uuid', scheduledDate: '2025-09-15T15:00:00Z' }"
+      },
+      "fight_data": {
+        "type": "FightCreationForm", 
+        "validation": "redCorner !== blueCorner, weight > 0, eventId exists",
+        "example": "{ eventId: 'event-uuid', redCorner: 'Gallo Colorado', blueCorner: 'Gallo Azul', weight: 2.5 }"
+      }
+    },
+    "output_formats": {
+      "admin_dashboard": "Complete React component with tabs: Users, Events, Venues, Monitoring",
+      "streaming_controls": "Real-time status indicators with start/stop buttons and viewer counts", 
+      "crud_interfaces": "Consistent table views with create/edit modals and bulk operations",
+      "system_monitoring": "Live metrics display with health indicators and error logs"
+    },
+    "edge_cases": [
+      "Handle streaming server connectivity failures gracefully",
+      "Prevent event activation without scheduled fights", 
+      "Block fight creation during active transmission",
+      "Handle concurrent operator actions on same event"
+    ]
+  },
+
+  "constraints_and_restrictions": {
+    "technical_constraints": [
+      "PostgreSQL database on Neon.tech - cannot modify schema",
+      "Sequelize ORM models must match database JSON definitions exactly",
+      "React + TypeScript + Tailwind CSS stack - no additional libraries",
+      "WebSocket namespaces: /stream and /stream-control already defined",
+      "JWT authentication with role-based claims required"
+    ],
+    "business_constraints": [
+      "Non-technical users (galleros) will operate streaming controls",
+      "Live events cannot be interrupted by system failures",
+      "Revenue generation depends on reliable streaming workflow",
+      "Operator hierarchy must prevent admin/operator management by operators"
+    ],
+    "timeline_constraints": [
+      "MVP deadline: September 15, 2025 (13 days remaining)",
+      "Admin environment must be 100% complete before operator integration",
+      "Testing with real users required before production deployment"
+    ]
+  },
+
+  "apis_and_integrations": {
+    "internal_apis": [
+      "/api/system/status - System monitoring data (needs implementation)",
+      "/api/users - CRUD operations with role filtering",
+      "/api/events - Complete event lifecycle management", 
+      "/api/events/:id/activate - Event activation with stream key generation",
+      "/api/streaming/start - Start RTMP stream for event",
+      "/api/streaming/stop - Stop active stream",
+      "/api/venues - Venue management with approval workflow",
+      "/api/fights - Fight management within events"
+    ],
+    "websocket_integration": [
+      "/stream-control namespace - Real-time streaming controls",
+      "stream_started event - Broadcast stream status changes",
+      "stream_stopped event - Handle stream termination",
+      "viewer_count updates - Real-time viewer metrics"
+    ],
+    "database_schema_reference": [
+      "backend/database-analysis/CURRENT_TABLES.json - Complete table definitions",
+      "backend/database-analysis/CURRENT_FOREIGN_KEYS.json - All relationships",
+      "backend/database-analysis/CURRENT_CONSTRAINTS.json - Database constraints",
+      "Users: id, username, email, role, profile_info",
+      "Events: id, name, venue_id, operator_id, status, stream_key",
+      "Venues: id, name, location, owner_id, status",
+      "Fights: id, event_id, red_corner, blue_corner, status"
+    ]
+  },
+
+  "test_driven_development": {
+    "unit_tests": [
+      "SystemMonitoring component renders with loading state",
+      "Event creation form validates required fields",
+      "Streaming controls disable when no active event",
+      "Role-based component rendering works correctly",
+      "CRUD operations handle errors gracefully"
+    ],
+    "integration_tests": [
+      "Complete event workflow: create → activate → add fights → start stream",
+      "Admin dashboard loads all sections without errors",
+      "Real-time streaming metrics update correctly",
+      "Role-based permissions prevent unauthorized actions"
+    ],
+    "user_acceptance_tests": [
+      "Non-technical user can create and activate event in <5 minutes",
+      "Streaming controls are intuitive during live event",
+      "System monitoring provides actionable information during issues",
+      "Between-fight workflow (stop stream, interview, start next fight) is smooth"
+    ],
+    "mock_data": [
+      "Mock system status with healthy/degraded/down states",
+      "Sample events with different statuses and streaming states",
+      "Mock user data covering all roles (admin, operator, venue, user)",
+      "Test fight data with various states and results"
+    ]
+  },
+
+  "development_phases": {
+    "phase_1_diagnostic": {
+      "objective": "Identify and document all current issues",
+      "deliverables": [
+        "List of broken/incomplete admin components",
+        "Database vs Model consistency report",
+        "API integration status assessment",
+        "Priority fix list based on P0 requirements"
+      ],
+      "validation": "All issues documented with reproduction steps"
+    },
+    "phase_2_streaming_workflow": {
+      "objective": "Implement complete non-technical-friendly streaming workflow",
+      "deliverables": [
+        "Event creation wizard with validation",
+        "Event activation with automatic stream key generation",
+        "Fight management interface (add/remove/reorder fights)",
+        "Streaming controls with real-time status",
+        "Interview session handling between fights"
+      ],
+      "validation": "Complete event lifecycle works end-to-end"
+    },
+    "phase_3_crud_completion": {
+      "objective": "Ensure all admin CRUD operations are complete and functional",
+      "deliverables": [
+        "User management with role-based operations",
+        "Venue approval workflow",
+        "Event management with full lifecycle",
+        "Article/content management system",
+        "Bulk operations for efficiency"
+      ],
+      "validation": "All CRUD operations tested with edge cases"
+    },
+    "phase_4_integration": {
+      "objective": "Connect all components with real-time data and ensure production readiness",
+      "deliverables": [
+        "SystemMonitoring with live data from /api/system/status",
+        "Real-time streaming metrics via WebSocket",
+        "Error handling and loading states",
+        "Mobile-responsive interface verification"
+      ],
+      "validation": "Admin dashboard fully functional with real data"
+    }
+  },
+
+  "coding_conventions": {
+    "component_structure": "Functional components with TypeScript interfaces",
+    "state_management": "useState and useReducer, Context for global state",
+    "styling": "Tailwind CSS classes, consistent color palette from UI_UX.json",
+    "api_calls": "Custom hooks (useApi.ts pattern) with error handling",
+    "file_organization": "pages/admin/ for page components, components/admin/ for reusable components"
+  },
+
+  "context_injection": {
+    "existing_patterns": [
+      "SystemMonitoring component structure - extend with real API integration",
+      "AdminDashboard tab navigation pattern - use for consistency",
+      "Card component from shared/ - use for consistent UI",
+      "LoadingSpinner and ErrorMessage patterns - use throughout",
+      "Role-based rendering pattern from ProtectedRoute - apply to admin sections"
+    ],
+    "database_schema": "Reference CURRENT_TABLES.json and FOREIGN_KEYS.json as source of truth",
+    "streaming_architecture": "Backend streamingSocket.ts defines WebSocket events - integrate with frontend",
+    "authentication": "JWT with role claims - verify admin/operator permissions"
+  },
+
+  "tool_specific_config": {
+    "gemini_cli_settings": {
+      "model": "gemini-2.0-flash-exp",
+      "temperature": 0.1,
+      "max_tokens": 8192,
+      "safety_settings": "block_none"
+    },
+    "system_instructions": "You are an expert React/TypeScript developer working on a sports betting platform admin interface. Focus on creating intuitive interfaces for non-technical users managing live streaming events. Prioritize functionality and user experience over visual complexity.",
+    "database_context": "Reference backend/database-analysis/*.json files for complete PostgreSQL schema, foreign keys, and constraints",
+    "working_directory": "frontend/src/",
+    "focus_areas": "components/admin/ and pages/admin/ directories",
+    "gitignore_update": "Add Claude-related directories and files to .gitignore"
+  },
+
+  "risk_mitigation": {
+    "common_gemini_cli_issues": [
+      "Hallucinating API endpoints - verify all endpoints exist in project_knowledge",
+      "Creating inconsistent component patterns - follow existing Card/LoadingSpinner patterns",
+      "Missing TypeScript interfaces - define all interfaces based on database schema",
+      "Ignoring role-based permissions - always check user.role in admin components"
+    ],
+    "streaming_workflow_risks": [
+      "Complex workflow confusing non-technical users - use wizard pattern with clear steps",
+      "Stream state synchronization issues - use WebSocket events for real-time updates", 
+      "Race conditions during fight transitions - implement proper loading states",
+      "Error states during live events - provide clear recovery actions"
+    ],
+    "rollback_plan": [
+      "Keep existing admin components as backup until new implementation tested",
+      "Incremental deployment - test each phase before proceeding",
+      "Real user testing before production deployment"
+    ]
+  },
+
+  "success_criteria": {
+    "technical_validation": [
+      "All admin CRUD operations complete and functional",
+      "SystemMonitoring displays real-time data from backend",
+      "Streaming workflow works end-to-end with WebSocket integration",
+      "Role-based permissions properly enforced",
+      "Mobile-responsive interface on tablets"
+    ],
+    "business_validation": [
+      "Non-technical user can create and start event transmission in <5 minutes",
+      "Admin dashboard provides actionable information during live events",
+      "Between-fight workflow smooth enough for live event use",
+      "Zero critical errors during admin operations"
+    ],
+    "integration_validation": [
+      "Database models consistent with PostgreSQL schema JSONs",
+      "All API endpoints respond correctly with proper error handling",
+      "Real-time updates work during concurrent user actions",
+      "Performance acceptable with 25+ concurrent admin actions"
+    ]
+  },
+
+  "model_database_consistency_check": {
+    "priority": "HIGH - Report before implementation",
+    "verification_required": [
+      "Compare Sequelize User model with users table JSON definition",
+      "Verify Event model matches events table with all foreign keys",
+      "Check Venue model consistency with venues table structure", 
+      "Validate Fight model aligns with fights table schema",
+      "Ensure all foreign key relationships match CURRENT_FOREIGN_KEYS.json"
+    ],
+    "action_required": "Document any inconsistencies found for separate resolution before proceeding with frontend work"
   }
 }

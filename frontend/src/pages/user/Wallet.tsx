@@ -40,8 +40,7 @@ import { useWebSocketListener } from "../../hooks/useWebSocket";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import TransactionHistory from "../../components/user/TransactionHistory";
-import DepositModal from "../../components/user/DepositModal";
-import WithdrawModal from "../../components/user/WithdrawModal";
+import WalletTransactionModal from "../../components/user/WalletTransactionModal";
 import Card from "../../components/shared/Card";
 
 // Tipos
@@ -387,25 +386,35 @@ const WalletPage: React.FC = () => {
               Exportar
             </button>
           </div>
-          <TransactionHistory transactions={recentTransactions || []} />
+          <TransactionHistory transactions={(recentTransactions || []).map(t => ({
+            id: t.id,
+            type: t.type as "deposit" | "withdrawal" | "bet-win" | "bet-loss" | "bet-refund",
+            amount: t.amount,
+            status: t.status as "pending" | "completed" | "failed",
+            description: t.description || `${t.type === 'deposit' ? 'Depósito' : 'Retiro'} de $${t.amount}`,
+            createdAt: new Date(t.createdAt)
+          }))} />
         </Card>
       </div>
 
       {/* Modales */}
-      {showDepositModal && (
-        <DepositModal
-          onClose={() => setShowDepositModal(false)}
-          onDeposit={handleDeposit}
-        />
-      )}
+      <WalletTransactionModal
+        mode="deposit"
+        isOpen={showDepositModal}
+        onClose={() => setShowDepositModal(false)}
+        onDeposit={handleDeposit}
+        onWithdraw={handleWithdraw}
+        availableBalance={wallet?.balance || 0}
+      />
 
-      {showWithdrawModal && (
-        <WithdrawModal
-          onClose={() => setShowWithdrawModal(false)}
-          onWithdraw={handleWithdraw}
-          availableBalance={wallet?.balance || 0}
-        />
-      )}
+      <WalletTransactionModal
+        mode="withdraw"
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        onDeposit={handleDeposit}
+        onWithdraw={handleWithdraw}
+        availableBalance={wallet?.balance || 0}
+      />
     </div>
   );
 };

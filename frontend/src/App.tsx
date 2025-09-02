@@ -52,6 +52,7 @@ const AdminArticles = lazy(() => import("./pages/admin/Articles"));
 const AdminVenues = lazy(() => import("./pages/admin/Venues"));
 const AdminRequests = lazy(() => import("./pages/admin/Requests"));
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
+const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
 const OperatorDashboard = lazy(() => import("./pages/operator/Dashboard"));
 const OperatorEvents = lazy(() => import("./pages/operator/Events"));
@@ -197,6 +198,14 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminEvents />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/events/create"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <CreateEvent />
               </Suspense>
             }
           />

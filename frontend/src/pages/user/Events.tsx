@@ -33,7 +33,6 @@ import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
-import StatusIndicator from "../../components/shared/StatusIndicator";
 import StatusChip from "../../components/shared/StatusChip";
 import Badge from "../../components/shared/Badge";
 import SearchInput from "../../components/shared/SearchInput";
@@ -72,9 +71,6 @@ const EventCard = React.memo(
             )}
             <StatusChip
               status={event.status}
-              text={
-                isLive ? "En Vivo" : isUpcoming ? "Próximamente" : "Finalizado"
-              }
             />
           </div>
           <ChevronRight className="w-4 h-4 text-theme-light" />
@@ -446,7 +442,7 @@ const EventsPage: React.FC = () => {
 
         {/* Estado de conexión WebSocket */}
         <div className="fixed bottom-20 right-4 z-30">
-          <StatusIndicator isConnected={isConnected} label="Tiempo Real" />
+          <StatusChip variant="indicator" status={isConnected ? "connected" : "disconnected"} label="Tiempo Real" />
         </div>
       </div>
 

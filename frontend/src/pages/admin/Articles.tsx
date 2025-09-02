@@ -29,6 +29,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
+import ArticleEditorForm from "../../components/admin/ArticleEditorForm";
 
 // APIs
 import { articlesAPI, venuesAPI } from "../../config/api";
@@ -327,6 +328,17 @@ const AdminArticlesPage: React.FC = () => {
 
   const closePreview = () => {
     setPreviewArticle(null);
+  };
+
+  const handleArticleSaved = (savedArticle: Article) => {
+    if (editingArticle) {
+      setArticles(
+        articles.map((a) => (a.id === savedArticle.id ? savedArticle : a))
+      );
+    } else {
+      setArticles([savedArticle, ...articles]);
+    }
+    closeArticleModal();
   };
 
   // Fetch inicial
@@ -824,13 +836,11 @@ const AdminArticlesPage: React.FC = () => {
             </div>
 
             <div className="p-6">
-              <div className="text-center py-8 text-gray-500">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p>Editor de artículos en desarrollo...</p>
-                <p className="text-sm mt-2">
-                  Funcionalidad completa disponible próximamente
-                </p>
-              </div>
+              <ArticleEditorForm
+                article={editingArticle}
+                onClose={closeArticleModal}
+                onArticleSaved={handleArticleSaved}
+              />
             </div>
           </div>
         </div>

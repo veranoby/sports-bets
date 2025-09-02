@@ -23,12 +23,14 @@ import {
   Mail,
   Shield,
   AlertTriangle,
+  Edit,
 } from "lucide-react";
 
 // Componentes reutilizados
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
+import EditVenueModal from "../../components/admin/EditVenueModal";
 
 // APIs
 import { venuesAPI, articlesAPI, eventsAPI } from "../../config/api";
@@ -108,6 +110,7 @@ const AdminVenuesPage: React.FC = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [isEditVenueModalOpen, setIsEditVenueModalOpen] = useState(false);
 
   // Fetch venues
   const fetchVenues = useCallback(async () => {
@@ -274,6 +277,19 @@ const AdminVenuesPage: React.FC = () => {
     } catch (err) {
       setError("Error al cambiar estado");
     }
+  };
+
+  const handleVenueUpdated = (updatedVenue: Venue) => {
+    setVenues(
+      venues.map((v) => (v.id === updatedVenue.id ? updatedVenue : v))
+    );
+    if (venueDetailData && venueDetailData.venue.id === updatedVenue.id) {
+      setVenueDetailData({
+        ...venueDetailData,
+        venue: updatedVenue,
+      });
+    }
+    setIsEditVenueModalOpen(false);
   };
 
   const openVenueDetail = (venueId: string) => {
@@ -659,6 +675,14 @@ const AdminVenuesPage: React.FC = () => {
               <h2 className="text-xl font-semibold text-gray-900">
                 Detalle de Venue
               </h2>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setIsEditVenueModalOpen(true)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar
+                </button>
               <button
                 onClick={closeVenueDetail}
                 className="text-gray-400 hover:text-gray-600"
@@ -1015,6 +1039,14 @@ const AdminVenuesPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {isEditVenueModalOpen && venueDetailData && (
+        <EditVenueModal
+          venue={venueDetailData.venue}
+          onClose={() => setIsEditVenueModalOpen(false)}
+          onVenueUpdated={handleVenueUpdated}
+        />
       )}
     </div>
   );

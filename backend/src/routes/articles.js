@@ -60,6 +60,8 @@ router.get("/", auth_1.optionalAuth, [
     (0, express_validator_1.query)("status").optional({ checkFalsy: true }).isIn(["published", "pending", "draft", "archived"]),
     (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).toInt(),
     (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
+    (0, express_validator_1.query)("author_id").optional({ checkFalsy: true }).isUUID(),
+    (0, express_validator_1.query)("includeAuthor").optional({ checkFalsy: true }).isBoolean().toBoolean(),
 ], (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const validationErrors = (0, express_validator_1.validationResult)(req);
@@ -67,7 +69,7 @@ router.get("/", auth_1.optionalAuth, [
         // Return 400 instead of 500 when query params are invalid
         throw errorHandler_1.errors.badRequest("Invalid parameters");
     }
-    const { search, venueId, status: rawStatus = "published", page = 1, limit = 10, } = req.query;
+    const { search, venueId, status: rawStatus = "published", page = 1, limit = 10, author_id, includeAuthor = true, } = req.query;
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
     const offset = (page - 1) * limit;
@@ -81,7 +83,9 @@ router.get("/", auth_1.optionalAuth, [
     if (venueId) {
         whereClause.venue_id = venueId;
     }
-    const includeAuthor = true;
+    if (author_id) {
+        whereClause.author_id = author_id;
+    }
     const includeVenue = true;
     // Patrón attributes por rol: público ve campos mínimos
     const attributes = getArticleAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "list");
