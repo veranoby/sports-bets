@@ -61,3 +61,5 @@ cursor_workspace/
 .ai-context/
 .cursorrules
 claude-prompt.json
+.brain/
+.brain/*
