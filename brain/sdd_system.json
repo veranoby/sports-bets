@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "purpose": "System design and technical architecture for sports betting platform",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "cross_references": ["prd_system.json", "backlog.json", "priorities_memory_index.json"]
+  },
+  "technical_architecture": {
+    "database_layer": {
+      "primary_database": {
+        "type": "PostgreSQL",
+        "hosting": "Neon.tech",
+        "rationale": "Managed PostgreSQL with excellent performance and scaling capabilities",
+        "connection_management": "Sequelize ORM with connection pooling",
+        "backup_strategy": "Neon.tech automated backups + point-in-time recovery"
+      },
+      "schema_version": "Current (August 2025)",
+      "migration_strategy": "Migration-only architecture - NO sync() operations",
+      "performance_optimizations": [
+        "Proper indexing on foreign keys and query patterns",
+        "Connection pooling with monitored metrics",
+        "Query optimization for real-time analytics"
+      ]
+    },
+    "backend_architecture": {
+      "framework": "Node.js + Express.js",
+      "orm": "Sequelize",
+      "authentication": "JWT with role-based access control",
+      "real_time": "Socket.io for streaming controls and analytics",
+      "api_design": "RESTful APIs with WebSocket supplements",
+      "rationale": "Proven stack with excellent streaming support and rapid development"
+    },
+    "frontend_architecture": {
+      "framework": "React + TypeScript",
+      "state_management": "React Context + useState/useReducer",
+      "routing": "React Router with protected routes",
+      "styling": "Tailwind CSS with custom components",
+      "build_system": "Vite for development speed",
+      "rationale": "Modern React stack optimized for developer velocity"
+    },
+    "streaming_infrastructure": {
+      "protocol": "RTMP for ingestion, HLS/DASH for delivery",
+      "integration": "OBS Studio with auto-generated stream keys",
+      "real_time_control": "WebSocket namespaces (/stream and /stream-control)",
+      "viewer_authentication": "JWT tokens with subscription validation",
+      "analytics": "Real-time viewer tracking and stream performance metrics",
+      "rationale": "Industry-standard streaming with operator-friendly OBS integration"
+    }
+  },
+  "database_architecture": {
+    "core_entities": {
+      "users": {
+        "purpose": "Authentication and role management",
+        "key_fields": ["id", "username", "email", "role", "profile_info"],
+        "roles": ["admin", "operator", "venue", "gallera", "user"],
+        "relationships": ["venues", "events", "subscriptions", "bets"]
+      },
+      "venues": {
+        "purpose": "Physical locations for events (galleras)",
+        "key_fields": ["id", "name", "location", "description", "contact_info"],
+        "relationships": ["users (owner)", "events"]
+      },
+      "events": {
+        "purpose": "Fighting events with streaming capabilities", 
+        "key_fields": ["id", "title", "venue_id", "operator_id", "created_by", "status"],
+        "relationships": ["venue", "fights", "operator", "creator"]
+      },
+      "fights": {
+        "purpose": "Individual rooster fights within events",
+        "key_fields": ["id", "event_id", "rooster_1", "rooster_2", "status", "result"],
+        "relationships": ["event", "bets"]
+      },
+      "subscriptions": {
+        "purpose": "User payment and access management",
+        "key_fields": ["id", "user_id", "type", "status", "expires_at"],
+        "types": ["daily", "weekly", "monthly"],
+        "relationships": ["user", "payment_transactions"]
+      },
+      "payment_transactions": {
+        "purpose": "Financial transaction tracking",
+        "key_fields": ["id", "user_id", "subscription_id", "amount", "status", "kushki_transaction_id"],
+        "payment_provider": "Kushki",
+        "relationships": ["user", "subscription"]
+      }
+    },
+    "deferred_entities": {
+      "bets": {
+        "purpose": "Betting system (Post-MVP implementation)",
+        "implementation_priority": "P1",
+        "complexity": "High - requires wallet integration"
+      },
+      "wallets": {
+        "purpose": "User balance management (Post-MVP implementation)",
+        "implementation_priority": "P1", 
+        "complexity": "High - financial compliance requirements"
+      },
+      "transactions": {
+        "purpose": "Wallet transaction history (Post-MVP implementation)",
+        "implementation_priority": "P1",
+        "dependency": "wallets + bets implementation"
+      }
+    },
+    "indexing_strategy": {
+      "performance_critical": [
+        "users.role + users.is_active (role-based queries)",
+        "events.status + events.created_at (event listings)",
+        "subscriptions.user_id + subscriptions.status (access validation)",
+        "subscriptions.expires_at (subscription monitoring)"
+      ],
+      "analytics_support": [
+        "payment_transactions.created_at (revenue reporting)",
+        "events.venue_id + events.created_at (venue analytics)"
+      ]
+    }
+  },
+  "application_components": {
+    "admin_dashboard": {
+      "current_status": "70% complete",
+      "key_features": [
+        "SystemMonitoring for real-time platform status",
+        "User management across all roles",
+        "Event management and oversight",
+        "Subscription and payment monitoring"
+      ],
+      "pending_work": [
+        "Real-time streaming metrics integration",
+        "Advanced user filtering and bulk operations",
+        "Comprehensive analytics dashboard"
+      ]
+    },
+    "operator_interface": {
+      "current_status": "Planned (0% complete)",
+      "key_features": [
+        "Limited admin capabilities with hierarchical restrictions",
+        "Event creation and management",
+        "Streaming controls (start/stop/monitor)",
+        "Basic user management within assigned scope"
+      ],
+      "technical_approach": "Extend existing admin components with permission filtering"
+    },
+    "streaming_system": {
+      "current_status": "60% complete",
+      "implemented": [
+        "RTMP server configuration",
+        "WebSocket real-time controls",
+        "Stream key generation",
+        "OBS integration framework"
+      ],
+      "pending_work": [
+        "End-to-end streaming workflow testing",
+        "Viewer authentication integration",
+        "Stream analytics real-time display",
+        "Performance optimization"
+      ]
+    },
+    "subscription_system": {
+      "current_status": "Implemented",
+      "features": [
+        "Kushki payment integration",
+        "Multiple subscription tiers (daily/weekly/monthly)",
+        "Automatic renewal handling",
+        "Subscription status validation"
+      ],
+      "integration_points": [
+        "Stream access control",
+        "User dashboard subscription management",
+        "Admin subscription monitoring"
+      ]
+    }
+  },
+  "automation_workflows": {
+    "current_automations": {
+      "database_migrations": {
+        "trigger": "Code deployment",
+        "process": "Automated migration execution with rollback capability"
+      },
+      "subscription_monitoring": {
+        "trigger": "Scheduled (daily)",
+        "process": "Check subscription expirations and send notifications"
+      }
+    },
+    "planned_automations": {
+      "stream_health_monitoring": {
+        "trigger": "Continuous during events",
+        "process": "Automated stream quality monitoring with alerts",
+        "priority": "P0"
+      },
+      "event_lifecycle_automation": {
+        "trigger": "Event status changes",
+        "process": "Automated notifications and stream preparation",
+        "priority": "P1"
+      }
+    }
+  },
+  "development_phases": {
+    "phase_1_mvp": {
+      "timeline": "September 1-15, 2025",
+      "scope": "Admin environment + Operator integration + Streaming system",
+      "deliverables": [
+        "Complete admin dashboard",
+        "Operator role with hierarchical permissions",
+        "End-to-end streaming workflow",
+        "Production deployment"
+      ],
+      "success_criteria": "Platform generating revenue from event transmissions"
+    },
+    "phase_2_expansion": {
+      "timeline": "October-December 2025",
+      "scope": "Betting system + Wallet integration",
+      "deliverables": [
+        "Betting system implementation",
+        "Wallet system with financial controls",
+        "Enhanced analytics and reporting",
+        "Mobile-optimized interface"
+      ],
+      "success_criteria": "Betting system contributing significant revenue growth"
+    }
+  },
+  "performance_requirements": {
+    "scalability_targets": {
+      "concurrent_users": {
+        "mvp_target": "25+ concurrent viewers per event",
+        "year_1_target": "100+ concurrent viewers per event",
+        "ultimate_target": "500+ concurrent viewers per event"
+      },
+      "event_capacity": {
+        "mvp_target": "1-2 events per week",
+        "year_1_target": "5-7 events per week",
+        "ultimate_target": "Multiple concurrent events"
+      },
+      "database_performance": {
+        "query_response": "<200ms for 95% of queries",
+        "connection_pool": "Monitored usage with automatic scaling",
+        "transaction_throughput": "Support payment processing spikes"
+      }
+    },
+    "availability_targets": {
+      "platform_uptime": "99.5% during events, 99% overall",
+      "streaming_uptime": "99.5% during active streams",
+      "payment_processing": "99.9% availability",
+      "recovery_time": "<5 minutes for critical issues"
+    }
+  },
+  "security_architecture": {
+    "authentication": {
+      "method": "JWT tokens with role-based claims",
+      "token_expiry": "7 days with refresh capability",
+      "password_security": "bcrypt with 12 rounds"
+    },
+    "authorization": {
+      "role_hierarchy": "admin > operator > venue/gallera > user",
+      "permission_model": "Role-based with resource-level restrictions",
+      "api_protection": "Protected routes with role validation"
+    },
+    "data_protection": {
+      "encryption": "TLS 1.3 for all communications",
+      "sensitive_data": "Payment info handled by Kushki (PCI compliance)",
+      "user_privacy": "GDPR-compliant data handling"
+    }
+  },
+  "technical_debt_tracking": {
+    "high_priority": [
+      {
+        "item": "Database constraint optimization",
+        "impact": "Performance at scale",
+        "estimated_effort": "4 hours",
+        "target_resolution": "Post-MVP"
+      }
+    ],
+    "monitoring_required": [
+      {
+        "item": "WebSocket connection scaling",
+        "trigger": ">50 concurrent connections",
+        "action": "Implement connection pooling"
+      }
+    ]
+  }
+}

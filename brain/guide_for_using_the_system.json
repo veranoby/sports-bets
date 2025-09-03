@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "purpose": "Operational manual for effective use of the brain system across AI tools",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "target_users": ["Claude", "Gemini 2.5 Pro", "Claude Code", "Gemini CLI", "veranoby"]
+  },
+  "query_strategies": {
+    "strategic_decisions": {
+      "required_files": ["priorities_memory_index.json", "objectives_memory_index.json", "monthly_report.json"],
+      "query_approach": "Always check business objectives first, then current priorities, then progress constraints",
+      "example_query": "Reference priorities_memory_index.json and objectives_memory_index.json to validate this feature against current P0 objectives and timeline constraints",
+      "output_requirement": "Cite specific priorities and objectives in recommendations"
+    },
+    "development_planning": {
+      "required_files": ["backlog.json", "priorities_memory_index.json", "sdd_system.json"],
+      "query_approach": "Check current task status, priority alignment, and technical architecture consistency",
+      "example_query": "Before planning Vibe Coding session, check backlog.json for task dependencies and sdd_system.json for technical constraints",
+      "output_requirement": "Provide task-specific context with dependency awareness"
+    },
+    "architecture_decisions": {
+      "required_files": ["sdd_system.json", "prd_system.json", "priorities_memory_index.json"],
+      "query_approach": "Validate technical decisions against business requirements and timeline constraints",
+      "example_query": "Reference sdd_system.json current architecture and prd_system.json requirements to evaluate this database change",
+      "output_requirement": "Technical recommendations with business impact assessment"
+    },
+    "ui_ux_decisions": {
+      "required_files": ["UI_UX.json", "prd_system.json", "objectives_memory_index.json"],
+      "query_approach": "Ensure design decisions support user adoption goals and business objectives",
+      "example_query": "Check UI_UX.json design principles and prd_system.json user stories before recommending interface changes",
+      "output_requirement": "Design recommendations with user adoption impact analysis"
+    }
+  },
+  "decision_framework": {
+    "business_impact_analysis": {
+      "step_1": "Query objectives_memory_index.json for relevant strategic goals",
+      "step_2": "Check priorities_memory_index.json for current priority alignment",
+      "step_3": "Reference monthly_report.json for timeline and resource constraints",
+      "step_4": "Provide recommendation with business context and priority impact",
+      "decision_template": "Based on [specific objective] and [current priority], recommend [action] because [business rationale] with [timeline impact]"
+    },
+    "technical_decision_framework": {
+      "step_1": "Query sdd_system.json for current architecture constraints",
+      "step_2": "Check backlog.json for implementation dependencies",
+      "step_3": "Reference prd_system.json for requirement compliance",
+      "step_4": "Provide technical recommendation with implementation path",
+      "decision_template": "Given current architecture [constraint] and requirement [need], recommend [technical approach] because [rationale] with [implementation effort]"
+    }
+  },
+  "update_procedures": {
+    "task_completion_updates": {
+      "trigger": "When development task changes status (not_started → in_progress → completed)",
+      "files_to_update": ["backlog.json"],
+      "update_process": [
+        "Update task status and completion percentage",
+        "Log outcomes and challenges in vibe_coding_sessions",
+        "Identify any new blockers or dependencies",
+        "Update estimated remaining effort"
+      ],
+      "example_update": "Update backlog.json: rtmp_obs_integration_finalization from 'in_progress' to 'completed', add session outcomes, update transmission_workflow completion to 80%"
+    },
+    "priority_changes": {
+      "trigger": "When business priorities shift or new P0 items identified",
+      "files_to_update": ["priorities_memory_index.json", "objectives_memory_index.json"],
+      "update_process": [
+        "Document priority change rationale",
+        "Update resource allocation percentages",
+        "Recalculate timeline impact", 
+        "Update success gates if necessary"
+      ],
+      "example_update": "If operator integration becomes critical blocker, elevate to P0 and adjust resource allocation in priorities_memory_index.json"
+    },
+    "architecture_decisions": {
+      "trigger": "When technical implementation approaches change during development",
+      "files_to_update": ["sdd_system.json", "backlog.json"],
+      "update_process": [
+        "Document new technical approach with rationale",
+        "Update affected components and dependencies",
+        "Assess impact on development timeline",
+        "Update related tasks in backlog"
+      ],
+      "example_update": "If WebSocket implementation changes, update sdd_system.json streaming_infrastructure section and related backlog tasks"
+    },
+    "weekly_progress_updates": {
+      "trigger": "Every Friday during development sprint",
+      "files_to_update": ["monthly_report.json", "priorities_memory_index.json", "backlog.json"],
+      "update_process": [
+        "Update milestone progress percentages",
+        "Document blockers and resolutions",
+        "Adjust timeline projections if needed",
+        "Plan next week's focus areas"
+      ]
+    }
+  },
+  "strategic_advice_examples": {
+    "example_1_feature_prioritization": {
+      "scenario": "Should we add real-time chat during streams?",
+      "query_process": [
+        "Check objectives_memory_index.json: Does this support revenue generation or user retention?",
+        "Check priorities_memory_index.json: Does this align with P0 MVP scope?",
+        "Check prd_system.json: Is this in MVP scope or explicitly excluded?"
+      ],
+      "expected_response": "Based on objectives_memory_index.json focus on revenue generation and priorities_memory_index.json P0 scope, real-time chat should be deferred post-MVP as it doesn't directly impact subscription conversion and adds development complexity."
+    },
+    "example_2_technical_architecture": {
+      "scenario": "Should we implement Redis caching for performance?",
+      "query_process": [
+        "Check sdd_system.json: What are current performance requirements?",
+        "Check priorities_memory_index.json: What are timeline constraints?",
+        "Check monthly_report.json: What are current performance metrics?"
+      ],
+      "expected_response": "Based on sdd_system.json performance targets of 25+ concurrent users for MVP and priorities_memory_index.json 15-day deadline, Redis caching should be deferred as current PostgreSQL performance acceptable for MVP scale."
+    },
+    "example_3_development_planning": {
+      "scenario": "What should be the focus of next Claude Code session?",
+      "query_process": [
+        "Check backlog.json: What P0 tasks are in_progress or planned?",
+        "Check priorities_memory_index.json: What's on critical path?",
+        "Check sdd_system.json: Any architectural dependencies?"
+      ],
+      "expected_response": "Based on backlog.json, focus next Claude Code session on rtmp_obs_integration_finalization (currently in_progress, 60% complete) as it's on critical path per priorities_memory_index.json for September 14 deadline."
+    }
+  },
+  "ai_tool_coordination": {
+    "claude_code_sessions": {
+      "pre_session_queries": [
+        "Check backlog.json for current task status and blockers",
+        "Reference sdd_system.json for architecture constraints",
+        "Verify priorities_memory_index.json for task importance"
+      ],
+      "post_session_updates": [
+        "Update backlog.json with session outcomes",
+        "Log challenges and solutions for future reference",
+        "Update task completion percentages"
+      ]
+    },
+    "gemini_cli_sessions": {
+      "pre_session_queries": [
+        "Check UI_UX.json for design consistency requirements",
+        "Reference prd_system.json for user story acceptance criteria",
+        "Check backlog.json for frontend task priorities"
+      ],
+      "post_session_updates": [
+        "Update UI_UX.json if design decisions made",
+        "Update backlog.json with component completion status"
+      ]
+    },
+    "planning_sessions": {
+      "required_context": "Query all relevant brain files before architectural or strategic planning",
+      "documentation_requirement": "Update affected brain files with planning decisions",
+      "consistency_check": "Ensure new plans align with existing objectives and constraints"
+    }
+  },
+  "quality_assurance": {
+    "decision_validation": {
+      "business_alignment": "Every recommendation should reference specific business objectives",
+      "priority_consistency": "All suggestions should consider current P0-P3 priority stack",
+      "timeline_awareness": "Consider 15-day MVP deadline in all recommendations"
+    },
+    "brain_maintenance": {
+      "weekly_review": "Review all brain files weekly for outdated information",
+      "consistency_check": "Ensure cross-references between files remain accurate",
+      "completeness_validation": "Verify brain files contain sufficient context for decisions"
+    }
+  },
+  "troubleshooting": {
+    "insufficient_context": {
+      "problem": "AI provides generic advice without project context",
+      "solution": "Query 2-3 relevant brain files before requesting advice",
+      "example": "Instead of asking 'How to implement streaming?', query sdd_system.json and ask 'Based on current RTMP architecture in sdd_system.json, how to complete the remaining 40% of transmission workflow?'"
+    },
+    "conflicting_priorities": {
+      "problem": "Multiple high-priority items competing for resources",
+      "solution": "Reference priorities_memory_index.json P0-P3 stack for resolution",
+      "escalation": "Update priorities_memory_index.json if priority conflicts persist"
+    },
+    "outdated_information": {
+      "problem": "Brain files contain stale information affecting decisions",
+      "solution": "Regular weekly updates to affected files",
+      "prevention": "Update brain files immediately after significant decisions or progress"
+    }
+  },
+  "success_metrics": {
+    "system_effectiveness": [
+      "AI decisions reference specific project context (not generic advice)",
+      "Development velocity increases with context awareness",
+      "Technical debt tracked and resolved systematically",
+      "Cross-tool coordination via brain system"
+    ],
+    "business_impact": [
+      "15-day MVP deadline met with quality deliverables",
+      "Resource allocation optimized for highest impact tasks",
+      "Strategic decisions aligned with revenue objectives",
+      "Risk mitigation proactive rather than reactive"
+    ]
+  }
+}

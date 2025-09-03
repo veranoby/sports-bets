@@ -1,0 +1,256 @@
+{
+  "metadata": {
+    "purpose": "Strategic priority stack and resource allocation for 15-day MVP sprint",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "sprint_target": "September 15, 2025",
+    "cross_references": ["backlog.json", "objectives_memory_index.json", "sdd_system.json"]
+  },
+  "development_priority_stack": {
+    "P0_critical_path": {
+      "deadline": "September 15, 2025",
+      "business_rationale": "Revenue generation through event transmissions",
+      "success_criteria": "Live transmission system generating subscription revenue",
+      "tasks": {
+        "admin_environment_completion": {
+          "status": "in_progress",
+          "priority": "P0",
+          "estimated_effort": "3-4 days",
+          "completion_percentage": 70,
+          "dependencies": [],
+          "rationale": "Foundation for all operational control",
+          "acceptance_criteria": [
+            "System monitoring dashboard functional",
+            "User management with role hierarchy",
+            "Event management interface complete",
+            "Streaming controls integrated"
+          ]
+        },
+        "operator_environment_integration": {
+          "status": "planned",
+          "priority": "P0", 
+          "estimated_effort": "3-4 days",
+          "completion_percentage": 0,
+          "dependencies": ["admin_environment_completion"],
+          "rationale": "Enable delegated operations while maintaining control hierarchy",
+          "acceptance_criteria": [
+            "Operator role with limited admin access",
+            "Hierarchical permission system (similar to user/venue/gallera unification)",
+            "Operator-specific dashboard with restricted tools",
+            "Event creation and management permissions"
+          ]
+        },
+        "transmission_workflow_completion": {
+          "status": "in_progress",
+          "priority": "P0",
+          "estimated_effort": "5-6 days",
+          "completion_percentage": 60,
+          "dependencies": [],
+          "rationale": "Core revenue-generating functionality",
+          "acceptance_criteria": [
+            "End-to-end RTMP streaming workflow",
+            "OBS integration with stream keys",
+            "WebSocket real-time controls",
+            "Viewer authentication and access control",
+            "Stream analytics and monitoring"
+          ]
+        },
+        "mvp_deployment_preparation": {
+          "status": "planned",
+          "priority": "P0",
+          "estimated_effort": "2-3 days",
+          "completion_percentage": 0,
+          "dependencies": ["admin_environment_completion", "operator_environment_integration", "transmission_workflow_completion"],
+          "rationale": "Launch readiness for revenue generation",
+          "acceptance_criteria": [
+            "Production deployment pipeline",
+            "Database migrations verified",
+            "Environment configurations secured",
+            "Performance testing completed"
+          ]
+        }
+      },
+      "total_estimated_effort": "13-17 days",
+      "risk_assessment": {
+        "timeline_risk": "Medium - tight deadline but achievable",
+        "technical_risk": "Low - core infrastructure exists",
+        "dependency_risk": "Low - most components independent"
+      }
+    },
+    "P1_post_mvp": {
+      "rationale": "Revenue optimization and platform expansion",
+      "timeline": "After September 15, 2025",
+      "tasks": {
+        "betting_system_implementation": {
+          "status": "deferred",
+          "priority": "P1",
+          "estimated_effort": "2-3 weeks",
+          "rationale": "Major revenue expansion but requires stable transmission base",
+          "dependencies": ["MVP launch success", "user_base_establishment"]
+        },
+        "wallet_system_implementation": {
+          "status": "deferred", 
+          "priority": "P1",
+          "estimated_effort": "2-3 weeks",
+          "rationale": "Required for betting system, complex financial requirements",
+          "dependencies": ["betting_system_implementation"]
+        },
+        "user_acquisition_optimization": {
+          "status": "deferred",
+          "priority": "P1",
+          "estimated_effort": "Ongoing",
+          "rationale": "Scale subscription base after MVP validation"
+        }
+      }
+    },
+    "P2_enhancement": {
+      "rationale": "Platform optimization and user experience",
+      "timeline": "Q1 2026",
+      "tasks": {
+        "advanced_streaming_features": {
+          "status": "idea",
+          "priority": "P2",
+          "examples": ["Multi-camera angles", "Interactive betting overlay", "Real-time chat"]
+        },
+        "mobile_app_development": {
+          "status": "idea",
+          "priority": "P2",
+          "rationale": "Expand accessibility but web-first approach sufficient initially"
+        }
+      }
+    },
+    "P3_future": {
+      "rationale": "Long-term platform evolution",
+      "timeline": "2026+",
+      "tasks": {
+        "ai_powered_analytics": {
+          "status": "idea",
+          "priority": "P3"
+        },
+        "international_expansion": {
+          "status": "idea", 
+          "priority": "P3"
+        }
+      }
+    }
+  },
+  "decision_maker_priorities": {
+    "veranoby_solo_founder": {
+      "decision_style": "Data-driven with rapid iteration",
+      "primary_concerns": [
+        "Revenue generation within 15 days",
+        "Technical debt management",
+        "Development velocity optimization",
+        "Market validation through user adoption"
+      ],
+      "success_metrics": [
+        "Live transmissions generating subscriptions",
+        "Platform stability under user load",
+        "Operator efficiency through hierarchy",
+        "Development workflow optimization"
+      ],
+      "communication_preference": "Technical detail with business context",
+      "risk_tolerance": "Medium - willing to take calculated risks for speed"
+    }
+  },
+  "implementation_roadmap": {
+    "week_1": {
+      "dates": "September 1-7, 2025",
+      "focus": "Admin environment completion + operator integration start",
+      "deliverables": [
+        "Admin dashboard fully functional",
+        "System monitoring operational", 
+        "Operator role permissions designed",
+        "Transmission workflow 80% complete"
+      ],
+      "tools_coordination": {
+        "claude_code": "Admin interface completion",
+        "gemini_cli": "Operator permission system",
+        "cursor_windsurf": "UI/UX refinements"
+      }
+    },
+    "week_2": {
+      "dates": "September 8-15, 2025", 
+      "focus": "Final integration + deployment preparation",
+      "deliverables": [
+        "Operator environment fully integrated",
+        "Transmission workflow completed",
+        "End-to-end testing completed",
+        "Production deployment ready"
+      ],
+      "success_gate": "Live transmission with paying subscribers"
+    }
+  },
+  "success_gates": {
+    "gate_1_admin_complete": {
+      "date": "September 7, 2025",
+      "criteria": [
+        "All admin functions operational",
+        "System monitoring providing real-time data",
+        "User management with role hierarchy"
+      ],
+      "go_no_go": "Must pass to proceed with operator integration"
+    },
+    "gate_2_operator_integrated": {
+      "date": "September 12, 2025", 
+      "criteria": [
+        "Operator role functional with proper limitations",
+        "Hierarchical permissions working",
+        "Operator dashboard user-friendly"
+      ],
+      "go_no_go": "Must pass for MVP launch"
+    },
+    "gate_3_transmission_ready": {
+      "date": "September 14, 2025",
+      "criteria": [
+        "End-to-end streaming workflow functional",
+        "OBS integration working",
+        "Viewer authentication operational",
+        "Real-time analytics available"
+      ],
+      "go_no_go": "Must pass for revenue generation"
+    },
+    "gate_4_mvp_launch": {
+      "date": "September 15, 2025",
+      "criteria": [
+        "Production deployment stable",
+        "Payment system processing subscriptions",
+        "First live transmission successful",
+        "Operator workflow validated"
+      ],
+      "success_definition": "Platform generating revenue from event transmissions"
+    }
+  },
+  "resource_allocation": {
+    "development_time_distribution": {
+      "admin_completion": "25%",
+      "operator_integration": "30%", 
+      "transmission_workflow": "35%",
+      "deployment_testing": "10%"
+    },
+    "tool_usage_strategy": {
+      "claude_code": "Complex backend logic and API development",
+      "gemini_cli": "Frontend components and UI interactions", 
+      "gemini_2.5_pro": "Architecture planning and JSON specifications",
+      "cursor_windsurf": "UI refinements and debugging",
+      "claude_github": "Error verification and code review"
+    }
+  },
+  "risk_mitigation": {
+    "timeline_risks": {
+      "risk": "15-day deadline too aggressive",
+      "mitigation": "Focus on core MVP features only, defer all P1+ items",
+      "contingency": "Extend deadline by 3-5 days if critical features incomplete"
+    },
+    "technical_risks": {
+      "risk": "Operator hierarchy complexity",
+      "mitigation": "Reuse user/venue/gallera unification pattern",
+      "contingency": "Implement basic operator role first, enhance permissions post-MVP"
+    },
+    "business_risks": {
+      "risk": "No immediate user adoption",
+      "mitigation": "Pre-launch user testing with existing galleras/venues",
+      "contingency": "Rapid iteration based on initial user feedback"
+    }
+  }
+}

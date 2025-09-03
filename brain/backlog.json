@@ -1,0 +1,303 @@
+{
+  "metadata": {
+    "purpose": "Granular task tracking and Vibe Coding session management",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "cross_references": ["priorities_memory_index.json", "sdd_system.json"]
+  },
+  "active_tasks": {
+    "P0_admin_environment": {
+      "parent_priority": "admin_environment_completion",
+      "status": "in_progress",
+      "completion": 70,
+      "subtasks": {
+        "system_monitoring_refinement": {
+          "status": "in_progress",
+          "complexity": "medium",
+          "estimated_hours": 4,
+          "tool": "claude_code",
+          "dependencies": [],
+          "description": "Complete SystemMonitoring component with real-time data",
+          "acceptance_criteria": [
+            "Real-time streaming metrics display",
+            "Database connection monitoring",
+            "Error log aggregation functional"
+          ],
+          "current_blockers": []
+        },
+        "user_role_hierarchy_completion": {
+          "status": "in_progress", 
+          "complexity": "medium",
+          "estimated_hours": 6,
+          "tool": "gemini_cli",
+          "dependencies": [],
+          "description": "Finalize admin interface for user management across all roles",
+          "acceptance_criteria": [
+            "Admin can manage users, venues, galleras, operators",
+            "Role-based permission enforcement",
+            "Bulk user operations functional"
+          ],
+          "current_blockers": []
+        }
+      }
+    },
+    "P0_operator_integration": {
+      "parent_priority": "operator_environment_integration",
+      "status": "planned",
+      "completion": 0,
+      "subtasks": {
+        "operator_permission_system": {
+          "status": "planned",
+          "complexity": "high",
+          "estimated_hours": 8,
+          "tool": "claude_code",
+          "dependencies": ["user_role_hierarchy_completion"],
+          "description": "Implement hierarchical permissions for operator role",
+          "acceptance_criteria": [
+            "Operators inherit limited admin capabilities",
+            "Cannot manage admin users or operators",
+            "Can manage events, venues, users within assigned scope",
+            "Permission boundaries clearly enforced"
+          ],
+          "technical_approach": "Extend existing user/venue/gallera unification pattern",
+          "current_blockers": ["Waiting for admin environment completion"]
+        },
+        "operator_dashboard_creation": {
+          "status": "planned",
+          "complexity": "medium", 
+          "estimated_hours": 6,
+          "tool": "gemini_cli",
+          "dependencies": ["operator_permission_system"],
+          "description": "Create operator-specific dashboard with limited admin tools",
+          "acceptance_criteria": [
+            "Operator sees only relevant admin sections",
+            "Streamlined interface for daily operations",
+            "Quick access to event management and streaming controls"
+          ],
+          "current_blockers": ["Waiting for permission system"]
+        }
+      }
+    },
+    "P0_transmission_workflow": {
+      "parent_priority": "transmission_workflow_completion",
+      "status": "in_progress",
+      "completion": 60,
+      "subtasks": {
+        "rtmp_obs_integration_finalization": {
+          "status": "in_progress",
+          "complexity": "high",
+          "estimated_hours": 10,
+          "tool": "claude_code",
+          "dependencies": [],
+          "description": "Complete RTMP streaming with OBS configuration",
+          "acceptance_criteria": [
+            "Stream key generation functional",
+            "OBS configuration automated",
+            "Stream quality controls working",
+            "Stream start/stop controls operational"
+          ],
+          "current_progress": "RTMPConfig component exists, needs integration testing",
+          "current_blockers": []
+        },
+        "websocket_realtime_controls": {
+          "status": "in_progress",
+          "complexity": "medium",
+          "estimated_hours": 6,
+          "tool": "claude_code", 
+          "dependencies": [],
+          "description": "Real-time streaming controls via WebSocket",
+          "acceptance_criteria": [
+            "Live viewer count updates",
+            "Stream status broadcasting",
+            "Performance monitoring real-time",
+            "Operator control responsiveness"
+          ],
+          "current_progress": "streamingSocket.ts implemented, needs frontend integration",
+          "current_blockers": []
+        },
+        "viewer_authentication_system": {
+          "status": "planned",
+          "complexity": "medium",
+          "estimated_hours": 5,
+          "tool": "claude_code",
+          "dependencies": ["subscription system integration"],
+          "description": "Authenticate viewers based on subscription status",
+          "acceptance_criteria": [
+            "Subscription validation for stream access",
+            "JWT tokens for stream authentication",
+            "Graceful handling of expired subscriptions"
+          ],
+          "current_blockers": ["Need subscription system verification"]
+        }
+      }
+    },
+    "P0_deployment_preparation": {
+      "parent_priority": "mvp_deployment_preparation",
+      "status": "planned",
+      "completion": 0,
+      "subtasks": {
+        "production_environment_setup": {
+          "status": "planned",
+          "complexity": "medium",
+          "estimated_hours": 4,
+          "tool": "manual_configuration",
+          "dependencies": ["all_p0_tasks"],
+          "description": "Configure production environment on Neon.tech + hosting",
+          "acceptance_criteria": [
+            "Environment variables configured",
+            "Database migrations executed",
+            "SSL certificates installed",
+            "Performance monitoring enabled"
+          ]
+        },
+        "end_to_end_testing": {
+          "status": "planned",
+          "complexity": "medium",
+          "estimated_hours": 6,
+          "tool": "manual_testing",
+          "dependencies": ["production_environment_setup"],
+          "description": "Complete system testing with real users",
+          "acceptance_criteria": [
+            "Full user registration → subscription → stream access flow tested",
+            "Operator event creation → stream management tested",
+            "Payment processing verified",
+            "Performance under load validated"
+          ]
+        }
+      }
+    }
+  },
+  "vibe_coding_sessions": {
+    "session_tracking": {
+      "last_session": {
+        "date": "2025-08-30",
+        "tool": "claude_code",
+        "focus": "Admin interface system monitoring",
+        "duration_hours": 2,
+        "outcomes": [
+          "SystemMonitoring component structure created",
+          "Real-time data flow architecture planned",
+          "API endpoints for system status defined"
+        ],
+        "next_session_prep": "Focus on connecting real-time streaming metrics"
+      },
+      "upcoming_sessions": [
+        {
+          "planned_date": "2025-09-01",
+          "tool": "claude_code", 
+          "focus": "Complete RTMP integration and testing",
+          "estimated_duration": 3,
+          "prerequisites": ["Review current RTMPConfig component", "Test OBS connection"]
+        },
+        {
+          "planned_date": "2025-09-02",
+          "tool": "gemini_cli",
+          "focus": "Operator permission system implementation",
+          "estimated_duration": 4,
+          "prerequisites": ["Admin environment completion verified"]
+        }
+      ]
+    },
+    "session_outcomes_log": [
+      {
+        "date": "2025-08-29",
+        "tool": "gemini_cli", 
+        "focus": "Database schema review and frontend integration",
+        "achievements": [
+          "Confirmed PostgreSQL schema complete",
+          "Identified subscription system integration points",
+          "User role hierarchy clarified"
+        ],
+        "challenges": [
+          "Operator permission boundaries need definition",
+          "Stream analytics integration complex"
+        ],
+        "follow_up_required": [
+          "Define exact operator limitations",
+          "Plan WebSocket integration approach"
+        ]
+      }
+    ]
+  },
+  "coding_environment": {
+    "primary_tools": {
+      "claude_code": {
+        "use_case": "Complex backend logic, API development, database integration",
+        "current_focus": "RTMP streaming system completion",
+        "coordination_with_brain": "Check sdd_system.json + priorities before sessions"
+      },
+      "gemini_cli": {
+        "use_case": "Frontend components, UI interactions, React development",
+        "current_focus": "Admin dashboard and operator interface",
+        "coordination_with_brain": "Reference UI_UX.json for consistency"
+      },
+      "gemini_2.5_pro": {
+        "use_case": "Architecture planning, JSON specifications, strategic decisions",
+        "current_focus": "System design validation and planning sessions",
+        "coordination_with_brain": "Use all brain files for comprehensive context"
+      },
+      "cursor_windsurf": {
+        "use_case": "UI refinements, debugging, code review",
+        "current_focus": "Interface polishing and user experience optimization",
+        "coordination_with_brain": "Reference UI_UX.json + user feedback"
+      }
+    },
+    "development_workflow": {
+      "planning_phase": "Gemini 2.5 Pro + Claude with brain context → JSON specifications",
+      "implementation_phase": "Claude Code (backend) + Gemini CLI (frontend)",
+      "verification_phase": "Claude GitHub integration + manual browser testing",
+      "refinement_phase": "Cursor/Windsurf for UI polish"
+    }
+  },
+  "technical_debt": {
+    "high_priority": [
+      {
+        "item": "Database constraint optimization",
+        "impact": "Performance degradation as users scale", 
+        "estimated_fix_time": 4,
+        "defer_until": "Post-MVP launch",
+        "rationale": "Current performance acceptable for MVP user load"
+      }
+    ],
+    "medium_priority": [
+      {
+        "item": "WebSocket connection pooling",
+        "impact": "Resource usage optimization",
+        "estimated_fix_time": 6,
+        "defer_until": "After user base > 100 concurrent",
+        "rationale": "Not blocking for initial user acquisition"
+      }
+    ],
+    "low_priority": [
+      {
+        "item": "Code documentation completion", 
+        "impact": "Developer experience",
+        "estimated_fix_time": 8,
+        "defer_until": "Team expansion or handoff needed",
+        "rationale": "Solo development doesn't require extensive docs immediately"
+      }
+    ]
+  },
+  "brain_update_triggers": {
+    "task_status_changes": {
+      "trigger": "When task moves between not_started → in_progress → completed",
+      "action": "Update completion percentage and identify new blockers"
+    },
+    "session_completion": {
+      "trigger": "After each Vibe Coding session",
+      "action": "Log outcomes, challenges, and plan next session"
+    },
+    "blocker_identification": {
+      "trigger": "When development blocked by external dependency",
+      "action": "Update priorities_memory_index.json with timeline impact"
+    },
+    "architecture_decisions": {
+      "trigger": "When technical approach changes during implementation",
+      "action": "Update sdd_system.json with new decisions and rationale"
+    },
+    "scope_changes": {
+      "trigger": "When task requirements expand or contract",
+      "action": "Update prd_system.json and recalculate timeline impact"
+    }
+  }
+}

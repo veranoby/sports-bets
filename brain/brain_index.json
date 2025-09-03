@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "purpose": "Navigation map and usage guide for Proyecto Gallos de pelea brain system",
+    "project_name": "Proyecto Gallos de pelea",
+    "created": "2025-08-31",
+    "updated": "2025-08-31",
+    "version": "1.0"
+  },
+  "project_context": {
+    "current_phase": "MVP Phase - Admin Environment + Transmission System",
+    "deadline": "15 days (September 15, 2025)",
+    "primary_stakeholder": "veranoby (solo founder/developer)",
+    "revenue_strategy": "Subscription-based event transmissions",
+    "tech_stack": {
+      "database": "PostgreSQL on Neon.tech",
+      "backend": "Node.js + Sequelize",
+      "frontend": "React + TypeScript",
+      "streaming": "RTMP + WebSocket",
+      "development_tools": ["Claude Code", "Gemini CLI", "Cursor", "Windsurf", "Gemini 2.5 Pro"]
+    }
+  },
+  "file_purposes": {
+    "brain_index.json": {
+      "purpose": "System navigation and decision framework",
+      "update_frequency": "Weekly or when major system changes",
+      "primary_use": "Initial consultation for any strategic decision"
+    },
+    "priorities_memory_index.json": {
+      "purpose": "P0-P3 priority stack and resource allocation",
+      "update_frequency": "Daily during development sprints",
+      "primary_use": "Development planning and conflict resolution",
+      "critical_for": ["Sprint planning", "Feature prioritization", "Blocker resolution"]
+    },
+    "backlog.json": {
+      "purpose": "Granular task tracking and Vibe Coding session management",
+      "update_frequency": "After each coding session",
+      "primary_use": "Development workflow coordination",
+      "critical_for": ["Claude Code sessions", "Gemini CLI coordination", "Progress tracking"]
+    },
+    "monthly_report.json": {
+      "purpose": "Progress metrics and business validation",
+      "update_frequency": "Weekly during MVP, then monthly",
+      "primary_use": "Stakeholder reporting and course correction",
+      "critical_for": ["MVP milestone tracking", "Revenue validation", "Post-launch metrics"]
+    },
+    "objectives_memory_index.json": {
+      "purpose": "Strategic goals and success criteria",
+      "update_frequency": "Bi-weekly or when pivoting",
+      "primary_use": "Validate decisions against business objectives",
+      "critical_for": ["Feature validation", "Architecture decisions", "Business pivots"]
+    },
+    "prd_system.json": {
+      "purpose": "Product requirements and business context",
+      "update_frequency": "When requirements change or stakeholder feedback",
+      "primary_use": "Feature specification and stakeholder alignment",
+      "critical_for": ["Admin environment scope", "Operator hierarchy", "Transmission workflows"]
+    },
+    "sdd_system.json": {
+      "purpose": "Technical architecture and development phases",
+      "update_frequency": "After architectural decisions",
+      "primary_use": "Technical consistency and development planning",
+      "critical_for": ["Database schema decisions", "API design", "Streaming infrastructure"]
+    },
+    "UI_UX.json": {
+      "purpose": "Design decisions and user experience flows",
+      "update_frequency": "After UX research or user feedback",
+      "primary_use": "Interface consistency and user adoption",
+      "critical_for": ["Admin dashboard design", "Operator interface", "User resistance mitigation"]
+    },
+    "guide_for_using_the_system.json": {
+      "purpose": "Operational procedures and decision frameworks",
+      "update_frequency": "When usage patterns change",
+      "primary_use": "AI coordination and quality assurance"
+    }
+  },
+  "query_patterns": {
+    "development_decisions": {
+      "required_files": ["priorities_memory_index.json", "backlog.json", "sdd_system.json"],
+      "optional_files": ["prd_system.json"],
+      "use_case": "Planning Vibe Coding sessions, technical debt resolution"
+    },
+    "architecture_decisions": {
+      "required_files": ["sdd_system.json", "prd_system.json", "priorities_memory_index.json"],
+      "optional_files": ["objectives_memory_index.json"],
+      "use_case": "Database schema changes, API design, streaming infrastructure"
+    },
+    "business_strategy": {
+      "required_files": ["objectives_memory_index.json", "priorities_memory_index.json", "monthly_report.json"],
+      "optional_files": ["prd_system.json"],
+      "use_case": "Revenue validation, feature prioritization, stakeholder decisions"
+    },
+    "user_experience": {
+      "required_files": ["UI_UX.json", "prd_system.json"],
+      "optional_files": ["objectives_memory_index.json"],
+      "use_case": "Admin interface design, operator hierarchy, user adoption"
+    },
+    "progress_tracking": {
+      "required_files": ["backlog.json", "monthly_report.json", "priorities_memory_index.json"],
+      "optional_files": ["objectives_memory_index.json"],
+      "use_case": "Sprint reviews, milestone tracking, course correction"
+    }
+  },
+  "update_scenarios": {
+    "task_completion": {
+      "triggers": ["Feature delivered", "Bug resolved", "Technical debt addressed"],
+      "files_to_update": ["backlog.json", "priorities_memory_index.json"],
+      "update_type": "Status modification"
+    },
+    "architectural_change": {
+      "triggers": ["Database schema update", "API modification", "New service integration"],
+      "files_to_update": ["sdd_system.json", "backlog.json"],
+      "update_type": "Add new entries + modify dependencies"
+    },
+    "business_decision": {
+      "triggers": ["Priority shift", "Feature pivot", "Timeline change"],
+      "files_to_update": ["priorities_memory_index.json", "objectives_memory_index.json", "prd_system.json"],
+      "update_type": "Modify existing + add rationale"
+    },
+    "development_session": {
+      "triggers": ["Vibe Coding session completed", "Claude Code session", "Gemini CLI session"],
+      "files_to_update": ["backlog.json"],
+      "update_type": "Add outcomes + update task status"
+    },
+    "weekly_review": {
+      "triggers": ["Sprint completion", "Weekly milestone"],
+      "files_to_update": ["monthly_report.json", "priorities_memory_index.json", "backlog.json"],
+      "update_type": "Progress summary + next period planning"
+    }
+  },
+  "current_priorities": {
+    "P0_immediate": [
+      "Complete admin environment with operator integration",
+      "Implement operator role hierarchy (limited admin tools)",
+      "Finalize event transmission workflow",
+      "Deploy MVP for revenue generation (15-day deadline)"
+    ],
+    "P1_post_mvp": [
+      "Betting system implementation",
+      "Wallet system implementation",
+      "Revenue optimization",
+      "User acquisition"
+    ],
+    "deferred": [
+      "Advanced analytics",
+      "Mobile app",
+      "International expansion"
+    ]
+  },
+  "ai_coordination": {
+    "memory_usage_protocol": {
+      "query_first": "Always check relevant brain files before strategic/technical guidance",
+      "context_requirement": "Reference 2-3 brain files minimum for comprehensive recommendations",
+      "update_triggers": ["Task status changes", "New discoveries", "Architecture decisions", "Weekly progress"],
+      "auto_update": "Update brain after significant conversations about progress/decisions"
+    },
+    "tool_coordination": {
+      "claude_code": "Reference backlog.json + sdd_system.json for context",
+      "gemini_cli": "Use priorities_memory_index.json for task selection",
+      "cursor_windsurf": "Coordinate via brain system for consistency",
+      "planning_sessions": "Use Gemini 2.5 Pro + Claude with brain context"
+    }
+  },
+  "success_indicators": {
+    "system_effectiveness": [
+      "Decisions reference specific project context vs generic advice",
+      "AI tools coordinate via shared brain state",
+      "Development velocity increases with context awareness",
+      "Technical debt tracked and resolved systematically"
+    ],
+    "business_impact": [
+      "15-day MVP deadline met",
+      "Transmission revenue stream activated",
+      "Operator hierarchy successfully implemented",
+      "Admin environment completion verified"
+    ]
+  }
+}

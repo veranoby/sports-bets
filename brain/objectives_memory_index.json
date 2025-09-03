@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "purpose": "Strategic objectives and success metrics for Proyecto Gallos de pelea",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "cross_references": ["priorities_memory_index.json", "monthly_report.json"]
+  },
+  "strategic_objectives": {
+    "primary_business_objective": {
+      "goal": "Launch revenue-generating event transmission platform",
+      "timeline": "15 days (by September 15, 2025)",
+      "success_definition": "Platform processing subscription payments for live event access",
+      "rationale": "Establish sustainable revenue stream to fund platform expansion",
+      "metrics": {
+        "baseline": 0,
+        "target_mvp": "First live transmission with paying subscribers",
+        "target_30_days": "3-5 events per week with 50+ subscribers",
+        "measurement_method": "Subscription transactions + viewer analytics"
+      }
+    },
+    "operational_efficiency_objective": {
+      "goal": "Enable scalable event operations through operator hierarchy",
+      "timeline": "Within MVP launch (September 15, 2025)",
+      "success_definition": "Operators can manage events independently with proper oversight",
+      "rationale": "Reduce operational bottlenecks as event volume scales",
+      "metrics": {
+        "baseline": "100% admin-dependent operations",
+        "target_mvp": "Operators handle 80% of routine event management",
+        "measurement_method": "Time tracking + operator task completion rates"
+      }
+    },
+    "technical_foundation_objective": {
+      "goal": "Establish robust streaming infrastructure supporting 100+ concurrent viewers",
+      "timeline": "MVP launch + 30 days optimization",
+      "success_definition": "Zero stream interruptions during events, sub-3s latency",
+      "rationale": "User retention depends on reliable streaming experience",
+      "metrics": {
+        "baseline": "Development environment only",
+        "target_mvp": "25+ concurrent viewers with stable streams",
+        "target_30_days": "100+ concurrent viewers, <3s latency",
+        "measurement_method": "Stream analytics + user feedback"
+      }
+    }
+  },
+  "success_metrics_tracking": {
+    "revenue_metrics": {
+      "subscription_revenue": {
+        "baseline": 0,
+        "target_month_1": "$500+ monthly recurring",
+        "target_month_3": "$2000+ monthly recurring", 
+        "measurement_frequency": "Daily",
+        "current_status": "Not launched"
+      },
+      "subscriber_acquisition": {
+        "baseline": 0,
+        "target_month_1": "25+ active subscribers",
+        "target_month_3": "100+ active subscribers",
+        "measurement_frequency": "Weekly",
+        "current_status": "Pre-launch"
+      },
+      "churn_rate": {
+        "target": "<15% monthly churn",
+        "measurement_frequency": "Monthly",
+        "current_status": "TBD post-launch"
+      }
+    },
+    "operational_metrics": {
+      "events_per_week": {
+        "baseline": 0,
+        "target_mvp": "1-2 events per week",
+        "target_month_3": "5-7 events per week",
+        "measurement_frequency": "Weekly",
+        "current_status": "Development"
+      },
+      "operator_efficiency": {
+        "target": "Operators handle event setup in <30 minutes",
+        "measurement_frequency": "Per event",
+        "current_status": "Operator system not implemented"
+      },
+      "admin_time_saved": {
+        "target": "50% reduction in admin time per event",
+        "measurement_frequency": "Monthly average",
+        "current_status": "Baseline TBD"
+      }
+    },
+    "technical_metrics": {
+      "streaming_uptime": {
+        "target": "99.5% uptime during events",
+        "measurement_frequency": "Per event",
+        "current_status": "Development environment"
+      },
+      "concurrent_viewers": {
+        "baseline": 0,
+        "target_mvp": "25+ peak concurrent",
+        "target_month_3": "100+ peak concurrent",
+        "measurement_frequency": "Per event",
+        "current_status": "Not launched"
+      },
+      "stream_latency": {
+        "target": "<3 seconds end-to-end latency",
+        "measurement_frequency": "Continuous monitoring",
+        "current_status": "Not measured"
+      }
+    }
+  },
+  "quarterly_milestones": {
+    "Q3_2025": {
+      "timeline": "September-November 2025",
+      "primary_focus": "MVP launch and initial market validation",
+      "deliverables": [
+        "Live transmission platform operational",
+        "Subscription system processing payments", 
+        "Operator hierarchy functional",
+        "First 25 paying subscribers acquired"
+      ],
+      "success_criteria": {
+        "minimum_viable": "Platform generating revenue from transmissions",
+        "stretch_goal": "Breaking even on operational costs"
+      }
+    },
+    "Q4_2025": {
+      "timeline": "December 2025-February 2026",
+      "primary_focus": "Feature expansion and user acquisition",
+      "deliverables": [
+        "Betting system implementation",
+        "Wallet system integration",
+        "100+ active subscribers",
+        "5+ events per week consistently"
+      ],
+      "success_criteria": {
+        "minimum_viable": "Betting system generating additional revenue",
+        "stretch_goal": "Platform profitable with growth trajectory"
+      }
+    }
+  },
+  "risk_mitigation_objectives": {
+    "technical_risk_mitigation": {
+      "objective": "Minimize platform downtime and performance issues",
+      "strategies": [
+        "Comprehensive monitoring and alerting systems",
+        "Automated backup and recovery procedures",
+        "Load testing before scaling user base",
+        "Redundant streaming infrastructure"
+      ],
+      "success_criteria": "Zero revenue-impacting outages in first 90 days"
+    },
+    "business_risk_mitigation": {
+      "objective": "Validate market demand and optimize user acquisition",
+      "strategies": [
+        "Pre-launch user testing with existing galleras/venues",
+        "Rapid iteration based on user feedback",
+        "Multiple subscription tiers for different user segments",
+        "Strong operator onboarding and training"
+      ],
+      "success_criteria": "Positive user feedback and growing subscriber base"
+    },
+    "operational_risk_mitigation": {
+      "objective": "Scale operations without compromising quality",
+      "strategies": [
+        "Clear operator role definitions and training",
+        "Automated event management workflows",
+        "Quality assurance procedures for streams",
+        "Customer support system for subscribers"
+      ],
+      "success_criteria": "Operators successfully managing events with minimal admin oversight"
+    }
+  },
+  "decision_validation_framework": {
+    "feature_prioritization": {
+      "primary_filter": "Does this directly support revenue generation or operational efficiency?",
+      "secondary_filter": "Can this be implemented within resource constraints?",
+      "decision_criteria": [
+        "Impact on subscription conversion",
+        "Effect on user retention",
+        "Operational complexity reduction",
+        "Technical implementation effort"
+      ]
+    },
+    "architecture_decisions": {
+      "primary_filter": "Does this support 100+ concurrent users with good performance?",
+      "secondary_filter": "Is this maintainable by solo developer?",
+      "decision_criteria": [
+        "Scalability to target user load",
+        "Development velocity impact",
+        "Operational complexity",
+        "Third-party dependency risks"
+      ]
+    },
+    "business_decisions": {
+      "primary_filter": "Does this accelerate time to revenue or reduce operational costs?",
+      "secondary_filter": "Is the ROI measurable within 90 days?",
+      "decision_criteria": [
+        "Revenue impact magnitude",
+        "Timeline to implementation",
+        "Resource allocation efficiency",
+        "Market validation potential"
+      ]
+    }
+  }
+}

@@ -49,9 +49,15 @@ yarn-error.log*
 
 # Claude/Cursor
 .claude/
+.claude/*
 claude_workspace/
 *.claude
 *.claude-desktop-arch/
 claude-desktop-arch/
 .cursor/
 cursor_workspace/
+.gemini-session/
+.gemini/
+.ai-context/
+.cursorrules
+claude-prompt.json

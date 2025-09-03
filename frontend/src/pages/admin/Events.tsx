@@ -722,12 +722,13 @@ const AdminEventsPage: React.FC = () => {
                   <XCircle className="w-4 h-4" />
                   Cancelar Evento
                 </button>
-              <button
-                onClick={closeEventDetail}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
+                <button
+                  onClick={closeEventDetail}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Tabs */}

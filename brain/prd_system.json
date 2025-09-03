@@ -1,0 +1,319 @@
+{
+  "metadata": {
+    "purpose": "Product requirements and business context for sports betting platform MVP",
+    "updated": "2025-08-31",
+    "version": "1.0",
+    "cross_references": ["objectives_memory_index.json", "sdd_system.json", "UI_UX.json"]
+  },
+  "stakeholders": {
+    "primary_stakeholder": {
+      "role": "Solo founder/developer (veranoby)",
+      "decision_style": "Data-driven with rapid iteration preference",
+      "communication_preference": "Technical detail with business context",
+      "primary_concerns": [
+        "15-day MVP deadline adherence",
+        "Revenue generation speed",
+        "Development velocity optimization", 
+        "Technical debt management"
+      ],
+      "success_metrics": [
+        "Platform generating subscription revenue",
+        "Operational efficiency through operator hierarchy",
+        "Technical stability under user load"
+      ],
+      "approval_authority": "All technical and business decisions"
+    },
+    "end_users": {
+      "galleros_event_organizers": {
+        "needs": [
+          "Easy event setup and management",
+          "Reliable streaming infrastructure",
+          "Revenue sharing from subscriptions"
+        ],
+        "pain_points": [
+          "Manual event coordination",
+          "Limited reach for events",
+          "No monetization of digital audience"
+        ],
+        "adoption_strategy": "Partner with existing galleras for initial events"
+      },
+      "betting_enthusiasts": {
+        "needs": [
+          "High-quality live streams",
+          "Easy subscription management", 
+          "Future betting capabilities"
+        ],
+        "pain_points": [
+          "Poor quality free streams",
+          "No reliable access to events",
+          "Fragmented betting options"
+        ],
+        "adoption_strategy": "Premium experience with reliable access"
+      },
+      "operators": {
+        "needs": [
+          "Streamlined event management tools",
+          "Clear operational procedures",
+          "Appropriate access level for their role"
+        ],
+        "pain_points": [
+          "Complex admin interfaces",
+          "Unclear permission boundaries",
+          "Manual processes for routine tasks"
+        ],
+        "adoption_strategy": "Intuitive interface with proper training"
+      }
+    }
+  },
+  "pain_points_prioritized": {
+    "revenue_blocking": {
+      "priority": "P0",
+      "impact": "Critical - blocks MVP launch",
+      "pain_points": [
+        {
+          "problem": "No live streaming revenue stream",
+          "current_impact": "Zero revenue generation",
+          "solution": "Subscription-based event access",
+          "success_metric": "Active subscribers generating monthly recurring revenue"
+        },
+        {
+          "problem": "Manual event operations don't scale",
+          "current_impact": "Admin bottleneck limits event frequency",
+          "solution": "Operator role with delegated permissions",
+          "success_metric": "Operators managing 80% of routine event tasks"
+        }
+      ]
+    },
+    "user_experience_critical": {
+      "priority": "P0",
+      "impact": "High - affects user retention",
+      "pain_points": [
+        {
+          "problem": "Unreliable streaming quality",
+          "current_impact": "User churn and poor reputation",
+          "solution": "Professional RTMP/OBS integration with monitoring",
+          "success_metric": "99.5% uptime during events, <3s latency"
+        },
+        {
+          "problem": "Complex subscription management",
+          "current_impact": "User abandonment during signup",
+          "solution": "Streamlined Kushki payment integration",
+          "success_metric": "<5% subscription abandonment rate"
+        }
+      ]
+    },
+    "operational_efficiency": {
+      "priority": "P1",
+      "impact": "Medium - affects scaling capability",
+      "pain_points": [
+        {
+          "problem": "Admin handles all event setup",
+          "current_impact": "Limited event frequency",
+          "solution": "Operator dashboard with event management tools",
+          "success_metric": "Event setup time reduced to <30 minutes"
+        }
+      ]
+    }
+  },
+  "solution_architecture": {
+    "core_value_proposition": "Professional-grade live streaming platform for cockfighting events with subscription-based access",
+    "differentiation": [
+      "Higher streaming quality than free alternatives",
+      "Reliable event scheduling and access",
+      "Future betting integration (competitive advantage)",
+      "Operator-friendly management tools"
+    ],
+    "mvp_scope": {
+      "included_features": [
+        "User registration and authentication",
+        "Role-based access control (admin, operator, venue, gallera, user)",
+        "Subscription system with Kushki payments",
+        "Live event streaming with RTMP/OBS integration",
+        "Admin dashboard with system monitoring",
+        "Operator dashboard with limited admin tools",
+        "Real-time streaming controls and analytics"
+      ],
+      "explicitly_excluded": [
+        "Betting system (Post-MVP)",
+        "Wallet system (Post-MVP)", 
+        "Mobile apps (Web-first approach)",
+        "Advanced analytics (Basic metrics only)",
+        "Multi-language support (Spanish only initially)"
+      ]
+    }
+  },
+  "business_metrics": {
+    "current_scale": {
+      "users": "Development environment with test users",
+      "events": "0 (platform not launched)",
+      "revenue": "$0 (pre-revenue)",
+      "infrastructure_cost": "~$50/month (Neon.tech + hosting)"
+    },
+    "target_scale": {
+      "month_1": {
+        "active_subscribers": "25+",
+        "events_per_week": "1-2",
+        "monthly_revenue": "$500+",
+        "concurrent_viewers": "25+ peak"
+      },
+      "month_3": {
+        "active_subscribers": "100+", 
+        "events_per_week": "5-7",
+        "monthly_revenue": "$2000+",
+        "concurrent_viewers": "100+ peak"
+      }
+    },
+    "unit_economics": {
+      "subscription_pricing": {
+        "daily": "$2.99",
+        "weekly": "$9.99", 
+        "monthly": "$29.99"
+      },
+      "estimated_ltv": "$150 per user (annual retention)",
+      "customer_acquisition_cost": "TBD (organic initially)",
+      "gross_margin": "~85% (digital product with low variable costs)"
+    }
+  },
+  "timeline_constraints": {
+    "hard_deadlines": {
+      "mvp_launch": "September 15, 2025",
+      "rationale": "Revenue generation needed to sustain development",
+      "consequences_if_missed": "Funding gap and development momentum loss"
+    },
+    "soft_deadlines": {
+      "first_live_event": "September 20, 2025",
+      "10_paying_subscribers": "September 30, 2025",
+      "break_even_revenue": "November 30, 2025"
+    }
+  },
+  "feature_specifications": {
+    "admin_dashboard": {
+      "user_story": "As an admin, I need comprehensive platform control to monitor operations and manage all users/events",
+      "acceptance_criteria": [
+        "Real-time system monitoring (streaming, database, user activity)",
+        "User management across all roles with bulk operations",
+        "Event oversight with streaming controls",
+        "Subscription and payment monitoring",
+        "Analytics dashboard with key metrics"
+      ],
+      "technical_requirements": [
+        "Role-based component rendering",
+        "Real-time data via WebSocket connections",
+        "Responsive design for desktop/tablet use",
+        "Performance optimized for large data sets"
+      ]
+    },
+    "operator_dashboard": {
+      "user_story": "As an operator, I need streamlined event management tools with appropriate access restrictions",
+      "acceptance_criteria": [
+        "Event creation and management within assigned scope",
+        "Streaming controls (start/stop/monitor) for my events", 
+        "Basic user management (venues, galleras, users - not admins/operators)",
+        "Event performance analytics",
+        "Clear indication of permission boundaries"
+      ],
+      "technical_requirements": [
+        "Permission filtering at component level",
+        "Simplified interface compared to admin dashboard",
+        "Context-aware tool availability",
+        "Hierarchical data access enforcement"
+      ]
+    },
+    "streaming_system": {
+      "user_story": "As a gallero, I need reliable streaming tools to broadcast my events to paying subscribers",
+      "acceptance_criteria": [
+        "OBS integration with auto-generated stream keys",
+        "One-click stream start/stop controls",
+        "Real-time viewer count and engagement metrics",
+        "Stream quality monitoring and alerts",
+        "Subscriber-only access enforcement"
+      ],
+      "technical_requirements": [
+        "RTMP server with HLS/DASH delivery",
+        "WebSocket real-time communication",
+        "JWT-based stream access tokens",
+        "CDN integration for scalability",
+        "Analytics event tracking"
+      ]
+    },
+    "subscription_system": {
+      "user_story": "As a user, I need easy subscription management to access premium event streams",
+      "acceptance_criteria": [
+        "Multiple subscription tier options (daily/weekly/monthly)",
+        "Secure payment processing via Kushki",
+        "Automatic renewal handling",
+        "Easy subscription modification/cancellation",
+        "Clear access status indication"
+      ],
+      "technical_requirements": [
+        "Kushki payment gateway integration",
+        "Subscription status validation middleware",
+        "Automated expiration handling",
+        "Payment webhook processing",
+        "User notification system"
+      ]
+    }
+  },
+  "integration_requirements": {
+    "payment_processing": {
+      "provider": "Kushki",
+      "rationale": "Local payment processor with good Ecuador/Latin America support",
+      "integration_scope": [
+        "Subscription creation and renewal",
+        "Webhook handling for payment status",
+        "Secure tokenization for recurring payments",
+        "Payment failure handling and retry logic"
+      ]
+    },
+    "streaming_infrastructure": {
+      "approach": "Self-hosted RTMP with potential CDN integration",
+      "rationale": "Control over streaming quality and costs",
+      "integration_scope": [
+        "RTMP ingestion server",
+        "HLS/DASH stream delivery",
+        "OBS Studio integration",
+        "Real-time analytics collection"
+      ]
+    }
+  },
+  "compliance_requirements": {
+    "data_protection": {
+      "scope": "User personal data and payment information",
+      "requirements": [
+        "GDPR-compliant data handling",
+        "Secure password storage (bcrypt)",
+        "PCI compliance via Kushki integration",
+        "User data export/deletion capabilities"
+      ]
+    },
+    "content_regulation": {
+      "scope": "Cockfighting event streaming", 
+      "requirements": [
+        "Age verification for users",
+        "Content warnings and disclaimers",
+        "Geographic content restrictions if needed",
+        "Event moderation capabilities"
+      ]
+    }
+  },
+  "success_criteria": {
+    "mvp_launch_success": [
+      "Platform processes first subscription payment",
+      "Live event streamed to paying subscribers",
+      "Operator successfully manages event independently",
+      "Zero critical bugs during first week"
+    ],
+    "business_validation": [
+      "25+ active subscribers within first month",
+      "Average session duration >15 minutes",
+      "Subscription renewal rate >70%",
+      "Positive user feedback (>4.0 rating equivalent)"
+    ],
+    "technical_validation": [
+      "99.5% uptime during events",
+      "Stream latency <3 seconds",
+      "Support for 25+ concurrent viewers",
+      "Page load times <2 seconds"
+    ]
+  }
+}
