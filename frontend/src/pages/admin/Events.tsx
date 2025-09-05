@@ -40,6 +40,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditEventModal from "../../components/admin/EditEventModal";
+import StreamStatusMonitor from "../../components/admin/StreamStatusMonitor";
 
 // APIs
 import {
@@ -49,6 +50,9 @@ import {
   usersAPI,
   venuesAPI,
 } from "../../config/api";
+
+// Hooks
+import useSSE from "../../hooks/useSSE";
 
 interface Event {
   id: string;
@@ -123,6 +127,9 @@ const AdminEventsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Estado de transmisión en tiempo real usando SSE
+  const [streamStatuses, setStreamStatuses] = useState<Record<string, any>>({});
+
   // Filtros
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get("status") || ""
@@ -171,6 +178,24 @@ const AdminEventsPage: React.FC = () => {
       setLoading(false);
     }
   }, []);
+
+  // Usar SSE para obtener el estado de transmisión en tiempo real
+  useEffect(() => {
+    if (events.length > 0) {
+      events.forEach(event => {
+        if (event.id) {
+          const sseData = useSSE(`/api/sse/events/${event.id}/stream`, [event.id]);
+          
+          if (sseData.data) {
+            setStreamStatuses(prev => ({
+              ...prev,
+              [event.id]: sseData.data
+            }));
+          }
+        }
+      });
+    }
+  }, [events]);
 
   // Fetch event detail
   const fetchEventDetail = useCallback(async (eventId: string) => {
@@ -574,7 +599,7 @@ const AdminEventsPage: React.FC = () => {
 
                     {event.status === "active" && (
                       <>
-                        {event.streamStatus !== "live" ? (
+                        {streamStatuses[event.id]?.status !== "live" ? (
                           <button
                             onClick={() =>
                               handleEventAction(event.id, "start-stream")
@@ -871,16 +896,16 @@ const AdminEventsPage: React.FC = () => {
                               <div className="flex items-center gap-2 mt-1">
                                 <div
                                   className={`w-3 h-3 rounded-full ${
-                                    eventDetailData.streamInfo.status === "live"
+                                    streamStatuses[eventDetailData.event.id]?.status === "live"
                                       ? "bg-red-500 animate-pulse"
-                                      : eventDetailData.streamInfo.status ===
+                                      : streamStatuses[eventDetailData.event.id]?.status ===
                                         "error"
                                       ? "bg-red-500"
                                       : "bg-gray-400"
                                   }`}
                                 ></div>
                                 <span className="text-sm capitalize">
-                                  {eventDetailData.streamInfo.status}
+                                  {streamStatuses[eventDetailData.event.id]?.status || "offline"}
                                 </span>
                               </div>
                             </div>
@@ -905,7 +930,7 @@ const AdminEventsPage: React.FC = () => {
                                   )
                                 }
                                 disabled={
-                                  eventDetailData.streamInfo.status ===
+                                  streamStatuses[eventDetailData.event.id]?.status ===
                                     "live" ||
                                   operationInProgress?.includes("stream")
                                 }
@@ -922,7 +947,7 @@ const AdminEventsPage: React.FC = () => {
                                   )
                                 }
                                 disabled={
-                                  eventDetailData.streamInfo.status !==
+                                  streamStatuses[eventDetailData.event.id]?.status !==
                                     "live" ||
                                   operationInProgress?.includes("stream")
                                 }
@@ -1268,6 +1293,20 @@ const AdminEventsPage: React.FC = () => {
           onEventUpdated={handleEventUpdated}
         />
       )}
+
+      {/* Componentes para monitorear el estado de transmisión en tiempo real */}
+      {events.map(event => (
+        <StreamStatusMonitor 
+          key={event.id}
+          eventId={event.id}
+          onStatusUpdate={(status) => {
+            setStreamStatuses(prev => ({
+              ...prev,
+              [event.id]: status
+            }));
+          }}
+        />
+      ))}
     </div>
   );
 };

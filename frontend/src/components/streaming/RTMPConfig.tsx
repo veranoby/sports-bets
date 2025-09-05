@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Copy, Check, Server, Key, Monitor, RefreshCw, AlertTriangle } from 'lucide-react';
 import { streamingAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
+import useSSE from '../../hooks/useSSE';
 
 interface RTMPConfigProps {
   eventId?: string;
@@ -53,10 +54,21 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const [streamKey, setStreamKey] = useState<StreamKey | null>(null);
   const [obsConfig, setOBSConfig] = useState<OBSConfig | null>(null);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [streamStatus, setStreamStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Use SSE hook for stream status updates
+  const streamStatusData = useSSE(eventId ? `/api/sse/events/${eventId}/stream` : null, [eventId]);
+
+  // Update stream status when SSE data changes
+  useEffect(() => {
+    if (streamStatusData.data) {
+      setStreamStatus(streamStatusData.data.status);
+    }
+  }, [streamStatusData.data]);
 
   // Fetch system health on mount
   useEffect(() => {

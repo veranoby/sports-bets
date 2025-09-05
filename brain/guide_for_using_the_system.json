@@ -180,12 +180,75 @@
       "prevention": "Update brain files immediately after significant decisions or progress"
     }
   },
+  "json_work_plan_optimization": {
+    "purpose": "Learnings from failed Gemini CLI JSON to improve future AI tool instructions",
+    "critical_failures_identified": {
+      "insufficient_current_state": {
+        "problem": "JSON too strategic vs operational, generic vs code-specific",
+        "solution": "Include exact file status, line-level errors, specific broken functionality",
+        "example": "Instead of 'SystemMonitoring needs improvement' → 'Line 67 SystemMonitoring.tsx: systemAPI.getStatus() fails - /api/system/status endpoint missing'"
+      },
+      "tool_context_mismatch": {
+        "problem": "Abstract instructions vs concrete file operations",
+        "solution": "Specify exact files to modify, working directory, file patterns",
+        "example": "working_directory: 'frontend/src/components/admin/', modify: ['SystemMonitoring.tsx', 'Events.tsx'], avoid: ['index.ts']"
+      },
+      "missing_concrete_examples": {
+        "problem": "High-level acceptance criteria vs implementable code changes",
+        "solution": "Before/after code examples, exact API endpoints, specific function signatures",
+        "example": "Replace 'const response = mockData;' with 'const response = await fetch(/api/system/status);'"
+      },
+      "knowledge_gap_assumptions": {
+        "problem": "Vague references to project knowledge vs specific schema/API details",
+        "solution": "Embed exact schema, API endpoints, current error states in JSON",
+        "example": "database_schema: {users: 'id, username, email, role', events: 'id, name, venue_id, stream_key'}"
+      }
+    },
+    "improved_json_template": {
+      "file_level_specificity": {
+        "current_file_status": "Map each file to exact issues and required changes",
+        "modification_targets": "List specific files, functions, lines to change",
+        "avoid_patterns": "Files or patterns tool should not modify"
+      },
+      "implementation_granularity": {
+        "atomic_tasks": "Each task <2 hours, single file focus, measurable completion",
+        "before_after_examples": "Show current broken code → expected working code",
+        "api_endpoint_details": "Exact URLs, methods, request/response schemas"
+      },
+      "tool_specific_context": {
+        "gemini_cli": {
+          "working_directory": "Exact path where tool executes",
+          "file_patterns": "Specific files to focus on vs avoid",
+          "dependency_map": "Which files depend on others for this task"
+        },
+        "claude_code": {
+          "session_scope": "Specific repository area and file types",
+          "architecture_constraints": "Existing patterns to follow",
+          "testing_requirements": "How to validate changes work"
+        }
+      },
+      "error_context_embedding": {
+        "known_errors": "List current failing functionality with reproduction steps",
+        "root_causes": "Why current implementation fails (missing endpoints, wrong imports)",
+        "validation_steps": "How to verify fix works (API calls, UI interactions)"
+      }
+    },
+    "quality_checklist": [
+      "Does JSON specify exact files and line numbers to change?",
+      "Are there concrete before/after code examples?",
+      "Is current broken state clearly documented?",
+      "Are API endpoints, schemas, and dependencies specified?",
+      "Can tool execute task without external knowledge?",
+      "Are success criteria measurable and immediate?"
+    ]
+  },
   "success_metrics": {
     "system_effectiveness": [
       "AI decisions reference specific project context (not generic advice)",
       "Development velocity increases with context awareness",
       "Technical debt tracked and resolved systematically",
-      "Cross-tool coordination via brain system"
+      "Cross-tool coordination via brain system",
+      "AI tool JSONs produce working code without iteration"
     ],
     "business_impact": [
       "15-day MVP deadline met with quality deliverables",

@@ -18,6 +18,7 @@ import {
 import ErrorMessage from "../shared/ErrorMessage";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import Card from "../shared/Card";
+import useSSE from "../../hooks/useSSE";
 
 interface SystemStatus {
   api: {
@@ -68,48 +69,34 @@ const errorLevels = {
 };
 
 const SystemMonitoring: React.FC = () => {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
-  // Reemplazar mock con datos reales
-  const loadSystemStatus = async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      const response = await systemAPI.getStatus();
-      setSystemStatus(response.data); // Asume que la API devuelve { data: SystemStatus }
+  // Usar SSE para obtener el estado del sistema en tiempo real
+  const { data: systemStatus, error: sseError } = useSSE('/api/sse/system/status');
+
+  // Actualizar la fecha de última actualización cuando se reciben datos
+  useEffect(() => {
+    if (systemStatus) {
+      setIsLoading(false);
       setLastRefreshed(new Date());
-    } catch (err: any) {
+    }
+  }, [systemStatus]);
+
+  // Manejar errores de SSE
+  useEffect(() => {
+    if (sseError) {
       setError("Sistema de monitoreo no disponible");
-      setSystemStatus(null);
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, [sseError]);
 
-  // Configurar intervalo
-  useEffect(() => {
-    const interval = refreshInterval
-      ? setInterval(loadSystemStatus, refreshInterval * 1000)
-      : null;
-    return () => interval && clearInterval(interval);
-  }, [refreshInterval]);
-
-  // Cambiar intervalo de actualización
-  const setRefreshRate = (seconds: number | null) => {
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-      setRefreshInterval(null);
-    }
-
-    if (seconds) {
-      const interval = window.setInterval(() => {
-        loadSystemStatus();
-      }, seconds * 1000);
-      setRefreshInterval(interval);
-    }
+  // Función para actualizar el estado (no hace nada porque usamos SSE)
+  const loadSystemStatus = async (): Promise<void> => {
+    // No es necesario hacer nada aquí porque usamos SSE para actualizaciones en tiempo real
+    // Esta función se mantiene para compatibilidad con la UI
   };
 
   // Renderizar indicador de estado
@@ -155,7 +142,7 @@ const SystemMonitoring: React.FC = () => {
           </div>
           <div className="flex rounded-lg overflow-hidden border border-gray-200">
             <button
-              onClick={() => setRefreshRate(null)}
+              onClick={() => setRefreshInterval(null)}
               className={`px-2 py-1 text-xs ${
                 !refreshInterval ? "bg-gray-100" : "hover:bg-gray-50"
               }`}
@@ -163,7 +150,7 @@ const SystemMonitoring: React.FC = () => {
               Manual
             </button>
             <button
-              onClick={() => setRefreshRate(30)}
+              onClick={() => setRefreshInterval(30)}
               className={`px-2 py-1 text-xs ${
                 refreshInterval === 30
                   ? "text-white"
@@ -176,7 +163,7 @@ const SystemMonitoring: React.FC = () => {
               30s
             </button>
             <button
-              onClick={() => setRefreshRate(60)}
+              onClick={() => setRefreshInterval(60)}
               className={`px-2 py-1 text-xs ${
                 refreshInterval === 60
                   ? "text-white"
@@ -189,7 +176,7 @@ const SystemMonitoring: React.FC = () => {
               1m
             </button>
             <button
-              onClick={() => setRefreshRate(300)}
+              onClick={() => setRefreshInterval(300)}
               className={`px-2 py-1 text-xs ${
                 refreshInterval === 300
                   ? "text-white"
@@ -249,25 +236,25 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusChip(systemStatus.api.status)}
+                {systemStatus.api ? renderStatusChip(systemStatus.api.status) : renderStatusChip('down')}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tiempo de respuesta:</span>
                   <span className="font-medium">
-                    {systemStatus.api.responseTime} ms
+                    {systemStatus.api?.responseTime || 'N/A'} ms
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Uptime:</span>
                   <span className="font-medium">
-                    {systemStatus.api.uptime}%
+                    {systemStatus.api?.uptime || 'N/A'}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Último reinicio:</span>
                   <span className="font-medium">
-                    {new Date(systemStatus.api.lastRestart).toLocaleString()}
+                    {systemStatus.api?.lastRestart ? new Date(systemStatus.api.lastRestart).toLocaleString() : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -287,25 +274,25 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusChip(systemStatus.database.status)}
+                {systemStatus.database ? renderStatusChip(systemStatus.database.status) : renderStatusChip('down')}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Conexiones:</span>
                   <span className="font-medium">
-                    {systemStatus.database.connections}
+                    {systemStatus.database?.connections || 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tiempo de consulta:</span>
                   <span className="font-medium">
-                    {systemStatus.database.queryTime} ms
+                    {systemStatus.database?.queryTime || 'N/A'} ms
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Uso de disco:</span>
                   <span className="font-medium">
-                    {systemStatus.database.diskUsage}%
+                    {systemStatus.database?.diskUsage || 'N/A'}%
                   </span>
                 </div>
               </div>
@@ -323,25 +310,25 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusChip(systemStatus.streaming.status)}
+                {systemStatus.streaming ? renderStatusChip(systemStatus.streaming.status) : renderStatusChip('down')}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Streams activos:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming.activeStreams}
+                    {systemStatus.streaming?.activeStreams || 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Ancho de banda:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming.bandwidth} Mbps
+                    {systemStatus.streaming?.bandwidth || 'N/A'} Mbps
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Errores:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming.errors}
+                    {systemStatus.streaming?.errors || 'N/A'}
                   </span>
                 </div>
               </div>
@@ -359,25 +346,25 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {renderStatusChip(systemStatus.cache.status)}
+                {systemStatus.cache ? renderStatusChip(systemStatus.cache.status) : renderStatusChip('down')}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Hit rate:</span>
                   <span className="font-medium">
-                    {systemStatus.cache.hitRate}%
+                    {systemStatus.cache?.hitRate || 'N/A'}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tamaño:</span>
                   <span className="font-medium">
-                    {systemStatus.cache.size} MB
+                    {systemStatus.cache?.size || 'N/A'} MB
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Items:</span>
                   <span className="font-medium">
-                    {systemStatus.cache.items.toLocaleString()}
+                    {systemStatus.cache?.items ? systemStatus.cache.items.toLocaleString() : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -420,7 +407,7 @@ const SystemMonitoring: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {systemStatus.recentErrors.map((error, index) => {
+                  {systemStatus.recentErrors?.map((error, index) => {
                     return (
                       <tr key={index}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
