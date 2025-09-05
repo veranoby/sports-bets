@@ -16,8 +16,6 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const dotenv_1 = require("dotenv");
-const http_1 = require("http");
-const socket_io_1 = require("socket.io");
 const database_1 = require("./config/database");
 const logger_1 = require("./config/logger");
 const errorHandler_1 = require("./middleware/errorHandler");
@@ -34,6 +32,8 @@ const subscriptions_1 = __importDefault(require("./routes/subscriptions"));
 const webhooks_1 = __importDefault(require("./routes/webhooks"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const articles_1 = __importDefault(require("./routes/articles"));
+const sse_1 = __importDefault(require("./routes/sse"));
+const betting_sse_1 = __importDefault(require("./routes/betting-sse"));
 // Cargar variables de entorno
 (0, dotenv_1.config)();
 // Importar Redis
@@ -42,20 +42,12 @@ class Server {
     constructor() {
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || 3001;
-        this.httpServer = (0, http_1.createServer)(this.app);
-        this.io = new socket_io_1.Server(this.httpServer, {
-            cors: {
-                origin: process.env.FRONTEND_URL || "http://localhost:5173",
-                methods: ["GET", "POST"],
-            },
-        });
         // Inicializar Redis (no bloqueante)
         (0, redis_1.initRedis)().catch((err) => {
             logger_1.logger.error("Redis initialization error:", err);
         });
         this.initializeMiddlewares();
         this.initializeRoutes();
-        this.initializeWebSocket();
         this.initializeErrorHandling();
     }
     initializeMiddlewares() {
@@ -69,7 +61,6 @@ class Server {
                     scriptSrc: ["'self'"],
                     imgSrc: ["'self'", "data:", "https:"],
                     mediaSrc: ["'self'", "https:"],
-                    connectSrc: ["'self'", "ws:", "wss:"],
                 },
             },
         }));
@@ -118,6 +109,8 @@ class Server {
         this.app.use("/api/webhooks", webhooks_1.default);
         this.app.use("/api/notifications", notifications_1.default);
         this.app.use("/api/articles", articles_1.default);
+        this.app.use("/api/sse", sse_1.default);
+        this.app.use("/api/sse", betting_sse_1.default);
         // Ruta para servir archivos estáticos si es necesario
         this.app.use("/uploads", express_1.default.static("uploads"));
         // Ruta 404
@@ -127,32 +120,6 @@ class Server {
                 path: req.originalUrl,
             });
         });
-    }
-    initializeWebSocket() {
-        this.io.on("connection", (socket) => {
-            logger_1.logger.info(`Client connected: ${socket.id}`);
-            // Unirse a una sala específica (evento)
-            socket.on("join_event", (eventId) => {
-                socket.join(`event_${eventId}`);
-                logger_1.logger.info(`Socket ${socket.id} joined event_${eventId}`);
-            });
-            // Salir de una sala específica
-            socket.on("leave_event", (eventId) => {
-                socket.leave(`event_${eventId}`);
-                logger_1.logger.info(`Socket ${socket.id} left event_${eventId}`);
-            });
-            // Unirse a sala de operador
-            socket.on("join_operator", (eventId) => {
-                socket.join(`operator_${eventId}`);
-                logger_1.logger.info(`Operator ${socket.id} joined event_${eventId}`);
-            });
-            // Desconexión
-            socket.on("disconnect", () => {
-                logger_1.logger.info(`Client disconnected: ${socket.id}`);
-            });
-        });
-        // Hacer disponible el socket para otros módulos
-        this.app.set("io", this.io);
     }
     initializeErrorHandling() {
         this.app.use(errorHandler_1.errorHandler);
@@ -171,7 +138,7 @@ class Server {
                 // Conectar a la base de datos
                 yield (0, database_1.connectDatabase)();
                 // Iniciar el servidor
-                this.httpServer.listen(this.port, () => {
+                this.app.listen(this.port, () => {
                     logger_1.logger.info(`🚀 Server running on port ${this.port}`);
                     logger_1.logger.info(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
                     logger_1.logger.info(`📊 Health check: http://localhost:${this.port}/health`);
@@ -185,9 +152,6 @@ class Server {
     }
     getApp() {
         return this.app;
-    }
-    getIO() {
-        return this.io;
     }
 }
 // Inicializar y arrancar el servidor

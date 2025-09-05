@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { config } from "dotenv";
-import { createServer } from "http";
-import { Server as SocketServer } from "socket.io";
 import { connectDatabase } from "./config/database";
 import { logger } from "./config/logger";
 import { errorHandler } from "./middleware/errorHandler";
@@ -21,6 +19,8 @@ import subscriptionRoutes from "./routes/subscriptions";
 import webhookRoutes from "./routes/webhooks";
 import notificationRoutes from "./routes/notifications";
 import articleRoutes from "./routes/articles";
+import sseRoutes from "./routes/sse";
+import bettingSseRoutes from "./routes/betting-sse";
 
 // Cargar variables de entorno
 config();
@@ -30,20 +30,11 @@ import { initRedis } from "./config/redis";
 
 class Server {
   private app: express.Application;
-  private httpServer: any;
-  private io: SocketServer;
   private port: string | number;
 
   constructor() {
     this.app = express();
     this.port = process.env.PORT || 3001;
-    this.httpServer = createServer(this.app);
-    this.io = new SocketServer(this.httpServer, {
-      cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
-        methods: ["GET", "POST"],
-      },
-    });
 
     // Inicializar Redis (no bloqueante)
     initRedis().catch((err) => {
@@ -52,7 +43,6 @@ class Server {
 
     this.initializeMiddlewares();
     this.initializeRoutes();
-    this.initializeWebSocket();
     this.initializeErrorHandling();
   }
 
@@ -68,7 +58,6 @@ class Server {
             scriptSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https:"],
             mediaSrc: ["'self'", "https:"],
-            connectSrc: ["'self'", "ws:", "wss:"],
           },
         },
       })
@@ -124,6 +113,8 @@ class Server {
     this.app.use("/api/webhooks", webhookRoutes);
     this.app.use("/api/notifications", notificationRoutes);
     this.app.use("/api/articles", articleRoutes);
+    this.app.use("/api/sse", sseRoutes);
+    this.app.use("/api/sse", bettingSseRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));
@@ -135,38 +126,6 @@ class Server {
         path: req.originalUrl,
       });
     });
-  }
-
-  private initializeWebSocket(): void {
-    this.io.on("connection", (socket) => {
-      logger.info(`Client connected: ${socket.id}`);
-
-      // Unirse a una sala específica (evento)
-      socket.on("join_event", (eventId: string) => {
-        socket.join(`event_${eventId}`);
-        logger.info(`Socket ${socket.id} joined event_${eventId}`);
-      });
-
-      // Salir de una sala específica
-      socket.on("leave_event", (eventId: string) => {
-        socket.leave(`event_${eventId}`);
-        logger.info(`Socket ${socket.id} left event_${eventId}`);
-      });
-
-      // Unirse a sala de operador
-      socket.on("join_operator", (eventId: string) => {
-        socket.join(`operator_${eventId}`);
-        logger.info(`Operator ${socket.id} joined event_${eventId}`);
-      });
-
-      // Desconexión
-      socket.on("disconnect", () => {
-        logger.info(`Client disconnected: ${socket.id}`);
-      });
-    });
-
-    // Hacer disponible el socket para otros módulos
-    this.app.set("io", this.io);
   }
 
   private initializeErrorHandling(): void {
@@ -189,7 +148,7 @@ class Server {
       await connectDatabase();
 
       // Iniciar el servidor
-      this.httpServer.listen(this.port, () => {
+      this.app.listen(this.port, () => {
         logger.info(`🚀 Server running on port ${this.port}`);
         logger.info(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
         logger.info(`📊 Health check: http://localhost:${this.port}/health`);
@@ -202,10 +161,6 @@ class Server {
 
   public getApp(): express.Application {
     return this.app;
-  }
-
-  public getIO(): SocketServer {
-    return this.io;
   }
 }
 
