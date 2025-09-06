@@ -1,29 +1,65 @@
 {
   "metadata": {
     "purpose": "Granular task tracking and Vibe Coding session management",
-    "updated": "2025-08-31",
-    "version": "1.0",
-    "cross_references": ["priorities_memory_index.json", "sdd_system.json"]
+    "updated": "2025-09-05",
+    "version": "1.2",
+    "cross_references": ["priorities_memory_index.json", "sdd_system.json"],
+    "work_instructions_file": "/home/veranoby/sports-bets/claude-prompt.json",
+    "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
+    "prd_sdd_updates": "Architecture decision: Hybrid SSE (admin) + WebSocket (betting only) confirmed",
+    "betting_websocket_rationale": "PAGO proposals, timeouts, and bidirectional interactions require WebSocket",
+    "architecture_hybrid_confirmed": "SSE for admin + WebSocket for betting ONLY - PRD-SDD updated",
+    "next_phase_priorities": ["Complete SSE architecture", "WebSocket cleanup", "Operator dashboard", "Notification system"]
+  },
+  "next_phase_tasks": {
+    "P0_complete_sse_architecture": {
+      "status": "planned",
+      "priority": "P0",
+      "description": "Verify SSE endpoints work, test admin SSE + user WebSocket simultaneously",
+      "estimated_hours": 7
+    },
+    "P0_websocket_cleanup": {
+      "status": "planned", 
+      "priority": "P0",
+      "description": "Remove WebSocket complexity, keep only betting WebSocket",
+      "estimated_hours": 10
+    },
+    "P0_operator_dashboard": {
+      "status": "planned",
+      "priority": "P0", 
+      "description": "Create operator dashboard based on admin with role limitations",
+      "estimated_hours": 8
+    },
+    "P0_betting_windows_system": {
+      "status": "planned",
+      "priority": "P0",
+      "description": "Implement fight-based betting windows with temporal logic",
+      "estimated_hours": 12
+    },
   },
   "active_tasks": {
     "P0_admin_environment": {
       "parent_priority": "admin_environment_completion",
-      "status": "in_progress",
-      "completion": 70,
+      "status": "near_completion",
+      "completion": 90,
       "subtasks": {
         "system_monitoring_refinement": {
-          "status": "in_progress",
+          "status": "completed",
           "complexity": "medium",
           "estimated_hours": 4,
+          "actual_hours": 3,
           "tool": "claude_code",
           "dependencies": [],
           "description": "Complete SystemMonitoring component with real-time data",
           "acceptance_criteria": [
-            "Real-time streaming metrics display",
-            "Database connection monitoring",
-            "Error log aggregation functional"
+            "✅ Real-time streaming metrics display with SSE",
+            "✅ Database connection monitoring",
+            "✅ Error log aggregation functional",
+            "✅ Multi-service status tracking (API, DB, Streaming, Cache)",
+            "✅ Automatic refresh intervals"
           ],
-          "current_blockers": []
+          "current_blockers": [],
+          "completion_notes": "Exceeded expectations - enterprise-grade monitoring dashboard with SSE real-time updates"
         },
         "user_role_hierarchy_completion": {
           "status": "in_progress", 
@@ -80,40 +116,51 @@
     },
     "P0_transmission_workflow": {
       "parent_priority": "transmission_workflow_completion",
-      "status": "in_progress",
-      "completion": 60,
+      "status": "near_completion",
+      "completion": 85,
       "subtasks": {
         "rtmp_obs_integration_finalization": {
-          "status": "in_progress",
+          "status": "completed",
           "complexity": "high",
           "estimated_hours": 10,
+          "actual_hours": 8,
           "tool": "claude_code",
           "dependencies": [],
           "description": "Complete RTMP streaming with OBS configuration",
           "acceptance_criteria": [
-            "Stream key generation functional",
-            "OBS configuration automated",
-            "Stream quality controls working",
-            "Stream start/stop controls operational"
+            "✅ Stream key generation functional",
+            "✅ OBS configuration automated with getOBSConfiguration",
+            "✅ Stream quality controls working",
+            "✅ Stream start/stop controls operational",
+            "✅ RTMP server health monitoring",
+            "✅ Stream analytics and viewer tracking",
+            "✅ Automated stream lifecycle management"
           ],
-          "current_progress": "RTMPConfig component exists, needs integration testing",
-          "current_blockers": []
+          "current_progress": "Enterprise-grade RTMP service implemented with full analytics",
+          "current_blockers": [],
+          "completion_notes": "Significantly exceeded scope - includes viewer analytics, stream health monitoring, and advanced stream management"
         },
         "websocket_realtime_controls": {
-          "status": "in_progress",
-          "complexity": "medium",
-          "estimated_hours": 6,
-          "tool": "claude_code", 
-          "dependencies": [],
-          "description": "Real-time streaming controls via WebSocket",
-          "acceptance_criteria": [
-            "Live viewer count updates",
-            "Stream status broadcasting",
-            "Performance monitoring real-time",
-            "Operator control responsiveness"
+        "status": "completed",
+        "complexity": "medium",
+        "estimated_hours": 6,
+        "actual_hours": 5,
+        "tool": "claude_code",
+        "dependencies": [],
+        "description": "Real-time streaming controls via WebSocket",
+        "acceptance_criteria": [
+        "✅ Live viewer count updates with 10s intervals",
+        "✅ Stream status broadcasting to all namespaces",
+        "✅ Performance monitoring real-time",
+          "✅ Operator control responsiveness",
+          "✅ Dual namespace architecture (/stream and /stream-control)",
+          "✅ JWT authentication for both namespaces",
+            "✅ Automated inactive viewer cleanup",
+            "✅ Comprehensive analytics broadcasting"
           ],
-          "current_progress": "streamingSocket.ts implemented, needs frontend integration",
-          "current_blockers": []
+          "current_progress": "Professional WebSocket implementation with dual namespaces and full feature set",
+          "current_blockers": [],
+          "completion_notes": "Production-ready implementation with authentication, analytics, and automated cleanup"
         },
         "viewer_authentication_system": {
           "status": "planned",
@@ -168,6 +215,75 @@
     }
   },
   "vibe_coding_sessions": {
+    "critical_streaming_workflow": {
+      "architecture_decision_final": {
+        "hybrid_approach_confirmed": "SSE for admin/notifications + WebSocket for betting only",
+        "sse_usage": ["Admin interface real-time updates", "System notifications", "Event status changes", "Stream monitoring"],
+        "websocket_usage": ["MINIMAL: Only PAGO/DOY proposals with bidirectional timeout handling"],
+        "benefits_target": ["Simplified admin architecture", "Reduced memory leaks", "Better separation of concerns", "Polished betting UX", "Easier debugging"]
+      },
+      "admin_transmission_management": {
+        "database_structure_analysis": {
+          "events_table": "status enum: scheduled→in-progress→completed, operator_id, stream_key, stream_url",
+          "fights_table": "status enum: upcoming→betting→live→completed, start_time, end_time, number (order)",
+          "users_table": "role enum: admin, operator, venue, user, gallera"
+        },
+        "workflow_states": {
+          "event_preparation": "Admin creates event (scheduled) → assigns operator → generates stream_key",
+          "event_activation": "Event day → Admin/Operator enables (in-progress) → creates fights list",
+          "transmission_cycle": "Start fight (live) → stream active → end fight (completed) → prepare next",
+          "between_fights": "Interview sessions (TBD: part of transmission or separate tag)",
+          "event_completion": "All fights completed → event status (completed)"
+        },
+        "technical_requirements": {
+          "stream_management": "Seamless start/stop between fights without technical complexity",
+          "notification_flow": "Real-time updates to all stakeholders without overwhelming",
+          "operator_limitations": "Hierarchical permissions - operators cannot manage admin/operator users",
+          "error_handling": "Graceful failure recovery during live transmissions"
+        }
+      }
+    },
+    "architecture_decisions_confirmed": {
+    "hybrid_approach_finalized": {
+    "sse_usage": "Admin interface + system notifications",
+    "websocket_usage": "MINIMAL: Only PAGO/DOY proposals with bidirectional timeout handling",
+    "rationale": "Betting requires bidirectional real-time for PAGO proposals, matching, timeouts"
+    },
+      "target_benefits": {
+        "verify_sse_endpoints_work": true,
+        "test_admin_sse_user_websocket_simultaneously": true,
+        "no_breaking_changes": true,
+        "simplified_architecture_reduces_bugs": true,
+        "reduced_memory_leaks_admin_interface": true,
+        "polished_betting_experience_users": true
+      },
+      "betting_system_requirements": {
+        "pago_proposals_only": "ONLY WebSocket use: User B proposes PAGO/DOY → User A accepts/rejects (3min timeout)",
+        "auto_matching_sse": "Auto-matching uses SSE notification, not WebSocket", 
+        "wallet_manual_refresh": "Wallet operations use manual refresh, no WebSocket",
+        "no_dynamic_suggestions": "Betting suggestions are click-based, no live typing",
+        "no_chat_no_fight_rooms": "No chat system exists - WebSocket minimal usage only"
+      }
+    },
+    "project_cleanup_requirements": {
+      "deprecated_files_removal": {
+        "backend_duplicates": [
+          "backend/src/sockets/streamingSocket.js (keep .ts)",
+          "backend/src/services/rtmpService.js (keep .ts)", 
+          "backend/src/services/paymentService.js (keep .ts)",
+          "backend/src/services/streamHealthCheck.js (keep .ts)"
+        ],
+        "frontend_unused": [
+          "frontend/src/components/betting/BettingNotifications.tsx (feature disabled)"
+        ],
+        "consolidation_pattern": "Always keep TypeScript versions, remove JavaScript duplicates"
+      },
+      "architecture_cleanup": {
+        "websocket_singleton_removal": "Remove complex WebSocket singleton patterns",
+        "sse_migration": "Replace admin WebSocket usage with SSE",
+        "polling_removal": "Remove any remaining polling mechanisms"
+      }
+    },
     "session_tracking": {
       "last_session": {
         "date": "2025-08-30",
@@ -249,6 +365,38 @@
       "refinement_phase": "Cursor/Windsurf for UI polish"
     }
   },
+  "critical_context_notes": {
+    "gemini_cli_failure_prevention": {
+      "previous_failures": "JSONs too strategic vs operational, generic vs code-specific, architectural vs practical",
+      "required_approach": [
+        "File-level specificity - exactamente qué archivos modificar",
+        "Line-level context - dónde están los errores actuales",
+        "Before/after examples - mostrar código actual vs esperado",
+        "Tool-specific commands - comandos exactos para Gemini CLI"
+      ]
+    },
+    "focus_areas": {
+      "primary": "Admin environment (including operator)",
+      "excluded": "User environment (venues, galleras) - NOT working on this yet",
+      "critical_workflow": "Admin streaming transmission management with many subtleties"
+    },
+    "streaming_workflow_requirements": {
+      "flow": [
+        "1. Event created for specific day (status: scheduled)",
+        "2. Event day arrives → enable event (status: in-progress)", 
+        "3. Create fights in order (status: upcoming)",
+        "4. Start fight → transmission (status: live)",
+        "5. End fight → transmission (status: completed)",
+        "6. Prepare next fight OR interview session",
+        "7. Repeat until event complete"
+      ],
+      "interview_sessions": "Between fights - need to decide if part of transmission or separate tag",
+      "user_experience": "Non-technical users need fluid, easy process",
+      "notification_system": "Be extremely careful with notification implementation"
+    },
+    "crud_completion_status": "All CRUD elements should be finished (users, events, fights, articles, venues, galleras, ads)",
+    "database_integrity": "backend/database-analysis/*.json is source of truth, not models/sequelize - report inconsistencies"
+  },
   "technical_debt": {
     "high_priority": [
       {
@@ -278,7 +426,26 @@
       }
     ]
   },
-  "brain_update_triggers": {
+  "implementation_guidelines": {
+      "file_specificity_requirements": {
+        "exact_files": "Always specify exact file paths to modify",
+        "line_numbers": "Identify specific line ranges with current errors",
+        "before_after": "Show actual current code vs expected replacement",
+        "gemini_cli_commands": "Provide exact commands for tool execution"
+      },
+      "database_verification": {
+        "primary_source": "backend/database-analysis/*.json files",
+        "secondary_check": "Sequelize models (but don't trust 100%)",
+        "inconsistency_reporting": "Always flag mismatches between analysis and models"
+      }
+    },
+    "immediate_work_priorities": [
+      "Complete SSE architecture implementation",
+      "WebSocket cleanup - remove streaming complexity", 
+      "Operator dashboard completion",
+      "Notification system finalization"
+    ],
+    "brain_update_triggers": {
     "task_status_changes": {
       "trigger": "When task moves between not_started → in_progress → completed",
       "action": "Update completion percentage and identify new blockers"

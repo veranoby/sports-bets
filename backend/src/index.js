@@ -20,6 +20,8 @@ const database_1 = require("./config/database");
 const logger_1 = require("./config/logger");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestLogger_1 = require("./middleware/requestLogger");
+// Importar servicio SSE
+const sseService_1 = __importDefault(require("./services/sseService"));
 // Importar rutas
 const auth_1 = __importDefault(require("./routes/auth"));
 const users_1 = __importDefault(require("./routes/users"));
@@ -51,6 +53,9 @@ class Server {
         this.initializeErrorHandling();
     }
     initializeMiddlewares() {
+        // Registrar el servicio SSE en la aplicación
+        this.app.set('sseService', sseService_1.default);
+        
         // Middleware de seguridad
         this.app.use((0, helmet_1.default)({
             crossOriginEmbedderPolicy: false, // Para permitir streaming

@@ -12,7 +12,6 @@ import {
   startStreaming as startStreamService,
   stopStreaming as stopStreamService,
 } from "../services/streamingService";
-import { checkStreamServerHealth } from "../services/streamHealthCheck";
 
 import {
   getCache as cacheGet,
@@ -337,12 +336,13 @@ router.post(
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     await event.save();
 
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("event_activated", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      sseService.broadcastToSystem("event_activated", {
         eventId: event.id,
         streamUrl: event.streamUrl,
+        timestamp: new Date()
       });
     }
 
@@ -529,11 +529,12 @@ router.post(
     event.streamKey = null;
     await event.save();
 
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("event_completed", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      sseService.broadcastToSystem("event_completed", {
         eventId: event.id,
+        timestamp: new Date()
       });
     }
 

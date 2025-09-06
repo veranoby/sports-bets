@@ -2,88 +2,77 @@ const express = require('express');
 const router = express.Router();
 const sseService = require('../services/sseService');
 
-// Middleware para manejar conexiones SSE
-const sseMiddleware = (req, res, next) => {
-  // Configurar headers para SSE
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*'
-  });
-
-  // Enviar un comentario inicial para mantener la conexión
-  res.write(': keep-alive\n\n');
-
-  // Manejar cierre de conexión
-  req.on('close', () => {
-    // Aquí se removería la conexión del servicio SSE
-    // Esto se manejará en cada endpoint específico
-  });
-
-  next();
-};
-
-// Endpoint para streaming de eventos
-// GET /api/sse/events/:eventId/stream
-router.get('/events/:eventId/stream', sseMiddleware, (req, res) => {
+/**
+ * Endpoint para stream de estado de eventos
+ * GET /api/sse/events/:eventId/stream
+ */
+router.get('/events/:eventId/stream', (req, res) => {
   const { eventId } = req.params;
+  const clientId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   
-  // Agregar conexión al servicio SSE
-  sseService.addConnection(`event:${eventId}`, res);
+  // Registrar la conexión
+  sseService.addConnection(clientId, 'event', eventId, res);
+  
+  // Enviar mensaje inicial
+  res.write(`data: ${JSON.stringify({ type: 'stream_connected', eventId, clientId })}\n\n`);
   
   // Manejar cierre de conexión
   req.on('close', () => {
-    sseService.removeConnection(`event:${eventId}`, res);
+    sseService.removeConnection(clientId, 'event', eventId);
+  });
+  
+  // Manejar errores
+  req.on('error', () => {
+    sseService.removeConnection(clientId, 'event', eventId);
   });
 });
 
-// Endpoint para monitoreo del sistema
-// GET /api/sse/system/status
-router.get('/system/status', sseMiddleware, (req, res) => {
-  // Agregar conexión al servicio SSE
-  sseService.addConnection('system:status', res);
+/**
+ * Endpoint para monitoreo del sistema
+ * GET /api/sse/system/status
+ */
+router.get('/system/status', (req, res) => {
+  const clientId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   
-  // Enviar datos iniciales
-  const initialData = {
-    api: { status: 'healthy' },
-    database: { status: 'healthy' }
-  };
+  // Registrar la conexión
+  sseService.addConnection(clientId, 'system', null, res);
   
-  res.write(`data: ${JSON.stringify(initialData)}\n\n`);
-  
-  // Simular envío periódico de datos (cada 5 segundos)
-  const interval = setInterval(() => {
-    const statusData = {
-      api: { status: 'healthy' },
-      database: { status: 'healthy' }
-    };
-    
-    res.write(`data: ${JSON.stringify(statusData)}\n\n`);
-  }, 5000);
+  // Enviar mensaje inicial
+  res.write(`data: ${JSON.stringify({ type: 'system_connected', clientId })}\n\n`);
   
   // Manejar cierre de conexión
   req.on('close', () => {
-    clearInterval(interval);
-    sseService.removeConnection('system:status', res);
+    sseService.removeConnection(clientId, 'system');
+  });
+  
+  // Manejar errores
+  req.on('error', () => {
+    sseService.removeConnection(clientId, 'system');
   });
 });
 
-// Endpoint para notificaciones de apuestas (feature flag)
-// GET /api/sse/users/me/betting
-router.get('/users/me/betting', sseMiddleware, (req, res) => {
-  // Verificar feature flag
-  if (process.env.FEATURES_BETTING !== 'true') {
-    res.status(403).json({ error: 'Feature disabled' });
-    return;
-  }
+/**
+ * Endpoint para cambios de estado de peleas
+ * GET /api/sse/events/:eventId/fights
+ */
+router.get('/events/:eventId/fights', (req, res) => {
+  const { eventId } = req.params;
+  const clientId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   
-  // Agregar conexión al servicio SSE
-  sseService.addConnection('betting:notifications', res);
+  // Registrar la conexión
+  sseService.addConnection(clientId, 'event', eventId, res);
+  
+  // Enviar mensaje inicial
+  res.write(`data: ${JSON.stringify({ type: 'fights_connected', eventId, clientId })}\n\n`);
   
   // Manejar cierre de conexión
   req.on('close', () => {
-    sseService.removeConnection('betting:notifications', res);
+    sseService.removeConnection(clientId, 'event', eventId);
+  });
+  
+  // Manejar errores
+  req.on('error', () => {
+    sseService.removeConnection(clientId, 'event', eventId);
   });
 });
 

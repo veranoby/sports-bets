@@ -1,104 +1,95 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Hook personalizado para manejar conexiones SSE (Server-Sent Events)
- * @param {string} endpoint - La URL del endpoint SSE
- * @param {Array} dependencies - Array de dependencias para reconectar cuando cambian
- * @returns {object} - Objeto con los datos recibidos y el estado de conexión
+ * Hook personalizado para Server-Sent Events (SSE)
+ * @param {string} endpoint - Endpoint SSE al que conectarse
+ * @param {Object} options - Opciones de configuración
+ * @returns {Object} Objeto con datos, error y estado de conexión
  */
-const useSSE = (endpoint, dependencies = []) => {
+const useSSE = (endpoint, options = {}) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [connected, setConnected] = useState(false);
+  
+  const {
+    dependencies = [],
+    reconnectInterval = 5000,
+    withCredentials = false
+  } = options;
 
   useEffect(() => {
     let eventSource = null;
     let reconnectTimeout = null;
-    
-    // Función para conectar al servidor SSE
+
     const connect = () => {
       try {
-        // Crear nueva conexión EventSource
-        eventSource = new EventSource(`${process.env.REACT_APP_API_BASE_URL || ''}${endpoint}`);
+        // Crear nueva conexión SSE
+        eventSource = new EventSource(endpoint, { withCredentials });
         
-        // Manejar mensajes generales
+        // Manejar conexión abierta
+        eventSource.onopen = () => {
+          setConnected(true);
+          setError(null);
+        };
+        
+        // Manejar mensajes recibidos
         eventSource.onmessage = (event) => {
           try {
             const parsedData = JSON.parse(event.data);
             setData(parsedData);
-            setIsLoading(false);
-          } catch (err) {
-            console.error('Error parsing SSE data:', err);
-            setError('Error parsing data');
+          } catch (parseError) {
+            console.warn('Error parsing SSE message:', parseError);
           }
         };
         
-        // Manejar eventos específicos
-        eventSource.addEventListener('stream_status', (event) => {
+        // Manejar eventos personalizados
+        eventSource.addEventListener('event_activated', (event) => {
           try {
             const parsedData = JSON.parse(event.data);
             setData(prevData => ({
               ...prevData,
-              streamStatus: parsedData
+              ...parsedData,
+              eventType: 'event_activated'
             }));
-            setIsLoading(false);
-          } catch (err) {
-            console.error('Error parsing stream_status event:', err);
-            setError('Error parsing stream_status event');
+          } catch (parseError) {
+            console.warn('Error parsing event_activated message:', parseError);
           }
         });
         
-        // Manejar errores de conexión
+        // Manejar errores
         eventSource.onerror = (err) => {
-          console.error('SSE connection error:', err);
-          setError('Connection error');
-          setIsLoading(false);
+          setConnected(false);
+          setError(err);
           
-          // Intentar reconectar después de 5 segundos
-          if (!reconnectTimeout) {
+          // Intentar reconectar
+          if (reconnectInterval > 0) {
             reconnectTimeout = setTimeout(() => {
-              reconnectTimeout = null;
-              if (eventSource) {
-                eventSource.close();
-              }
+              eventSource.close();
               connect();
-            }, 5000);
+            }, reconnectInterval);
           }
         };
-        
-        // Limpiar errores al conectarse
-        eventSource.onopen = () => {
-          setError(null);
-          setIsLoading(false);
-        };
-        
       } catch (err) {
-        console.error('Error creating EventSource:', err);
-        setError('Failed to create connection');
-        setIsLoading(false);
+        setError(err);
+        setConnected(false);
       }
     };
-    
+
     // Iniciar conexión
     connect();
     
-    // Función de limpieza
+    // Limpiar conexión al desmontar o cambiar dependencias
     return () => {
-      // Limpiar timeout de reconexión si existe
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-      }
-      
-      // Cerrar conexión SSE si existe
       if (eventSource) {
         eventSource.close();
-        eventSource = null;
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
       }
     };
-  }, [endpoint, ...dependencies]); // Reconectar cuando cambian el endpoint o las dependencias
-  
-  return { data, error, isLoading };
+  }, [endpoint, ...dependencies, reconnectInterval, withCredentials]);
+
+  return { data, error, connected };
 };
 
 export default useSSE;

@@ -118,6 +118,12 @@ const UserManagementTable: React.FC = () => {
       result = result.filter((user) => user.isActive === isActive);
     }
 
+    // Filtrado por rol para operadores
+    // Los operadores solo pueden ver usuarios con roles de venue, user y gallera
+    // No pueden ver admin u operator
+    // Esta lógica se aplicaría si tuviéramos acceso al rol del usuario actual
+    // desde el contexto de la aplicación
+
     setFilteredUsers(result);
   }, [users, searchTerm, roleFilter, statusFilter]);
 

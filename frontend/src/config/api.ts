@@ -100,6 +100,8 @@ export const eventsAPI = {
 
   getStats: (id: string) => apiClient.get(`/events/${id}/stats`),
 
+  getCurrentBetting: (id: string) => apiClient.get(`/events/${id}/current-betting`),
+
   delete: (id: string) => apiClient.delete(`/events/${id}`),
 };
 
@@ -134,8 +136,8 @@ export const fightsAPI = {
 
   closeBetting: (id: string) => apiClient.post(`/fights/${id}/close-betting`),
 
-  recordResult: (id: string, result: "red" | "blue" | "draw" | "cancelled") =>
-    apiClient.post(`/fights/${id}/result`, { result }),
+  recordResult: (id: string, data: { winner: "red" | "blue" | "draw"; notes?: string }) =>
+    apiClient.post(`/fights/${id}/result`, data),
 };
 
 // ✅ BETS API COMPLETA CON MÉTODOS PAGO/DOY

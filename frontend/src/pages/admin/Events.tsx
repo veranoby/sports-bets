@@ -179,23 +179,23 @@ const AdminEventsPage: React.FC = () => {
     }
   }, []);
 
-  // Usar SSE para obtener el estado de transmisión en tiempo real
+  // Usar SSE para obtener actualizaciones del sistema en tiempo real
+  const systemSSE = useSSE('/api/sse/system/status', {
+    dependencies: [],
+    reconnectInterval: 5000
+  });
+
+  // Manejar actualizaciones SSE del sistema
   useEffect(() => {
-    if (events.length > 0) {
-      events.forEach(event => {
-        if (event.id) {
-          const sseData = useSSE(`/api/sse/events/${event.id}/stream`, [event.id]);
-          
-          if (sseData.data) {
-            setStreamStatuses(prev => ({
-              ...prev,
-              [event.id]: sseData.data
-            }));
-          }
-        }
-      });
+    if (systemSSE.data) {
+      const { eventType } = systemSSE.data;
+      
+      if (eventType === 'event_activated' || eventType === 'event_completed') {
+        // Refrescar eventos cuando hay cambios
+        fetchEvents();
+      }
     }
-  }, [events]);
+  }, [systemSSE.data, fetchEvents]);
 
   // Fetch event detail
   const fetchEventDetail = useCallback(async (eventId: string) => {

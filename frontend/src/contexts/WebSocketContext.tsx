@@ -1,4 +1,21 @@
-// frontend/src/contexts/WebSocketContext.tsx - VERSIÓN COMPLETA CORREGIDA
+// frontend/src/contexts/WebSocketContext.tsx - RESTRICTED TO BETTING ONLY
+// ========================================================================
+// 
+// ⚠️  USAGE RESTRICTION: This WebSocket context is ONLY for betting features
+// - PAGO/DOY bet proposals and responses
+// - Real-time betting workflows requiring bidirectional communication
+// - Betting timeouts and notifications
+//
+// 🚫 DO NOT USE FOR:
+// - Admin notifications (use SSE instead)
+// - Event status updates (use SSE instead)
+// - System monitoring (use SSE instead)
+// - General real-time updates (use SSE instead)
+//
+// ✅ ALLOWED USAGE:
+// - components/betting/* components
+// - pages/user/Bets.tsx
+// - Betting-related real-time interactions
 // ==================================================================
 
 import React, {

@@ -63,3 +63,6 @@ cursor_workspace/
 claude-prompt.json
 .brain/
 .brain/*
+CLAUDE.md
+QWEN.md
+GEMINI.md

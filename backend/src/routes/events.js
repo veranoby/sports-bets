@@ -16,6 +16,7 @@ const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
 const redis_1 = require("../config/redis");
+const notificationService_1 = require("../services/notificationService");
 function getEventAttributes(role, type) {
     const publicAttributes = [
         "id",
@@ -274,13 +275,24 @@ router.post("/:id/activate", auth_1.authenticate, (0, auth_1.authorize)("admin",
     event.streamKey = event.generateStreamKey();
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     yield event.save();
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.emit("event_activated", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToEvent(event.id, "event_activated", {
             eventId: event.id,
             streamUrl: event.streamUrl,
+            timestamp: new Date()
         });
+    }
+    
+    // Crear notificación de evento activado
+    try {
+        await notificationService_1.default.createEventNotification('event_activated', event.id, [], {
+            eventName: event.name,
+            streamUrl: event.streamUrl
+        });
+    } catch (notificationError) {
+        console.error('Error creando notificación de evento activado:', notificationError);
     }
     res.json({
         success: true,
@@ -328,13 +340,24 @@ router.post("/:id/stream/start", auth_1.authenticate, (0, auth_1.authorize)("ope
     catch (error) {
         throw errorHandler_1.errors.conflict("Streaming server is not available");
     }
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.to(`event_${event.id}`).emit("stream_started", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToEvent(event.id, "stream_started", {
             eventId: event.id,
             streamUrl: event.streamUrl,
+            timestamp: new Date()
         });
+    }
+    
+    // Crear notificación de inicio de transmisión
+    try {
+        await notificationService_1.default.createStreamNotification('stream_started', event.id, {
+            streamUrl: event.streamUrl,
+            rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
+        });
+    } catch (notificationError) {
+        console.error('Error creando notificación de inicio de transmisión:', notificationError);
     }
     res.json({
         success: true,
@@ -365,12 +388,20 @@ router.post("/:id/stream/stop", auth_1.authenticate, (0, auth_1.authorize)("oper
     event.streamUrl = null;
     // Mantener streamKey para poder reiniciar si es necesario
     yield event.save();
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.to(`event_${event.id}`).emit("stream_stopped", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToEvent(event.id, "stream_stopped", {
             eventId: event.id,
+            timestamp: new Date()
         });
+    }
+    
+    // Crear notificación de detención de transmisión
+    try {
+        await notificationService_1.default.createStreamNotification('stream_stopped', event.id);
+    } catch (notificationError) {
+        console.error('Error creando notificación de detención de transmisión:', notificationError);
     }
     res.json({
         success: true,
@@ -417,12 +448,22 @@ router.post("/:id/complete", auth_1.authenticate, (0, auth_1.authorize)("admin",
     event.endDate = new Date();
     event.streamKey = null;
     yield event.save();
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-        io.emit("event_completed", {
+    // Emitir evento via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToEvent(event.id, "event_completed", {
             eventId: event.id,
+            timestamp: new Date()
         });
+    }
+    
+    // Crear notificación de evento completado
+    try {
+        await notificationService_1.default.createEventNotification('event_completed', event.id, [], {
+            eventName: event.name
+        });
+    } catch (notificationError) {
+        console.error('Error creando notificación de evento completado:', notificationError);
     }
     res.json({
         success: true,

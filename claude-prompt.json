@@ -1,273 +1,244 @@
 {
-  "knowledge_verification": {
-    "brain_files_consulted": [
-      "backlog.json - WebSocket real-time controls 60% complete, needs frontend integration",
-      "priorities_memory_index.json - P0 transmission workflow critical path, 13 days deadline", 
-      "sdd_system.json - WebSocket infrastructure documented, streaming via RTMP+WebSocket",
-      "prd_system.json - Real-time admin controls required for operator management"
-    ],
-    "current_broken_functionality": {
-      "backend/src/sockets/streamingSocket.ts": "WebSocket implementation with memory leak risks, complex singleton pattern",
-      "frontend/src/components/admin/SystemMonitoring.tsx": "Line 67: systemAPI.getStatus() calls non-existent /api/system/status endpoint",
-      "frontend/src/components/streaming/RTMPConfig.tsx": "Uses WebSocket for stream events, need SSE replacement",
-      "frontend/src/hooks/useApi.ts": "Lines 145-160: WebSocket streaming controls via Socket.io",
-      "backend/src/routes/streaming.ts": "Lines 89-120: Uses WebSocket emit for status broadcasts"
-    },
-    "exact_files_to_modify": [
-      "backend/src/services/sseService.js - CREATE NEW",
-      "backend/src/routes/sse.js - CREATE NEW", 
-      "backend/src/routes/streaming.ts - MODIFY lines 89-120",
-      "frontend/src/hooks/useSSE.js - CREATE NEW",
-      "frontend/src/components/admin/SystemMonitoring.tsx - MODIFY lines 67-85",
-      "frontend/src/pages/admin/Events.tsx - MODIFY streaming controls integration",
-      "backend/package.json - REMOVE socket.io dependencies",
-      "frontend/package.json - REMOVE socket.io-client dependencies"
-    ],
-    "feature_flag_constraints": {
-      "FEATURES_BETTING": "false - betting SSE structure created but disabled",
-      "FEATURES_WALLET": "false - wallet SSE structure created but disabled", 
-      "FEATURES_STREAMING": "true - primary focus of migration"
-    }
+  "metadata": {
+    "purpose": "Next Phase: Complete hybrid architecture + operator dashboard + notifications",
+    "updated": "2025-09-05",
+    "project_status": "Phase 2: Architecture Completion & Operator Integration", 
+    "critical_focus": "Finalize SSE, cleanup WebSocket, operator dashboard, notification system",
+    "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
+    "architecture_decision": "CONFIRMED: Hybrid SSE+WebSocket - now implementing"
+  },
+  
+  "implementation_context": {
+    "architecture_decision_confirmed": "SSE for admin interface, WebSocket ONLY for betting system",
+    "betting_websocket_rationale": "MINIMAL: Only PAGO/DOY proposals require bidirectional timeout handling",
+    "admin_sse_rationale": "Unidirectional notifications, auto-reconnect, simpler than WebSocket. Also for auto-matching notifications",
+    "current_status": "Admin environment 90% complete, architecture finalized",
+    "phase_objectives": [
+      "Complete SSE architecture implementation",
+      "WebSocket cleanup - isolate to MINIMAL usage (PAGO/DOY only)", 
+      "Operator dashboard based on admin with limitations",
+      "Notification system completion",
+      "Auto-matching via SSE, wallet operations manual refresh"
+    ]
   },
 
-  "task_decomposition": {
-    "phase_1_sse_infrastructure": {
-      "duration": "4 hours",
-      "files_to_create": [
-        "backend/src/services/sseService.js",
-        "backend/src/routes/sse.js",
-        "frontend/src/hooks/useSSE.js"
-      ],
-      "atomic_tasks": [
-        "Create SSEService class with connection management (1 hour)",
-        "Create SSE routes for events, system status, betting (1.5 hours)",
-        "Create frontend useSSE hook with auto-reconnection (1.5 hours)"
-      ]
+  "file_level_specifications": {
+    "priority_1_typescript_compilation": {
+      "duration": "30 minutes",
+      "business_critical": "Ensure all TypeScript files are compiled",
+      
+      "compilation_command": "npx tsc",
+      "verification": "Check that all .ts files compile without errors",
+      "no_file_removal": "Keep both .js and .ts versions, compile TypeScript"
     },
-    "phase_2_streaming_controls_migration": {
-      "duration": "3 hours", 
-      "files_to_modify": [
-        "backend/src/routes/streaming.ts",
-        "frontend/src/components/streaming/RTMPConfig.tsx",
-        "frontend/src/pages/admin/Events.tsx"
-      ],
-      "atomic_tasks": [
-        "Replace WebSocket broadcasts with SSE in streaming.ts (1 hour)",
-        "Update RTMPConfig to use SSE instead of WebSocket (1 hour)",
-        "Update Events page streaming controls with SSE (1 hour)"
-      ]
-    },
-    "phase_3_system_monitoring_fix": {
-      "duration": "2 hours",
-      "files_to_modify": [
-        "backend/src/routes/sse.js",
-        "frontend/src/components/admin/SystemMonitoring.tsx"
-      ],
-      "atomic_tasks": [
-        "Add /api/sse/system/status endpoint with real data (1 hour)",
-        "Fix SystemMonitoring.tsx to use SSE endpoint (1 hour)"
-      ]
-    },
-    "phase_4_betting_sse_structure": {
-      "duration": "2 hours",
-      "files_to_create": [
-        "backend/src/routes/betting-sse.js",
-        "frontend/src/components/betting/BettingNotifications.tsx"
-      ],
-      "atomic_tasks": [
-        "Create betting SSE routes (feature flag disabled) (1 hour)",
-        "Create betting notifications component (feature flag disabled) (1 hour)"
-      ]
-    },
-    "phase_5_websocket_removal": {
-      "duration": "1 hour",
-      "files_to_modify": [
-        "backend/package.json",
-        "frontend/package.json", 
-        "backend/src/app.js"
-      ],
-      "atomic_tasks": [
-        "Remove Socket.io dependencies and imports (30 minutes)",
-        "Update app.js to remove WebSocket initialization (30 minutes)"
-      ]
-    }
-  },
 
-  "purpose_and_requirements": {
-    "primary_purpose": "Complete migration from WebSocket to SSE for all real-time functionality while maintaining feature flag constraints",
-    "business_critical": "Enable admin/operator streaming controls without WebSocket complexity for September 15 MVP deadline",
-    "feature_flag_compliance": "Betting and wallet SSE infrastructure created but disabled via existing feature flags",
-    "technical_objective": "Simpler architecture, auto-reconnection, reduced memory leaks, same functionality"
-  },
+    "priority_2_sse_infrastructure": {
+      "duration": "4-6 hours",
+      "business_critical": "Replace WebSocket complexity with SSE for admin interface",
+      
+      "create_new_files": {
+        "backend/src/services/sseService.js": {
+          "purpose": "Central SSE connection management for admin interface",
+          "exact_implementation": "EventSource-based service with connection registry",
+          "methods": ["addConnection", "removeConnection", "broadcastToAdmin", "broadcastToEvent"]
+        },
+        "backend/src/routes/sse.js": {
+          "purpose": "SSE endpoints for admin real-time updates",
+          "required_endpoints": [
+            "GET /api/sse/admin/system-status - System monitoring",
+            "GET /api/sse/admin/events/:eventId - Event updates", 
+            "GET /api/sse/admin/notifications - Admin notifications"
+          ],
+          "response_format": "text/event-stream with proper headers"
+        },
+        "frontend/src/hooks/useSSE.js": {
+          "purpose": "React hook for SSE connections with auto-reconnection",
+          "exact_functionality": "useSSE(endpoint, options) returns {data, connected, error}",
+          "features": ["Auto-reconnect", "Error handling", "Cleanup on unmount"]
+        }
+      },
 
-  "file_level_specificity": {
-    "backend/src/services/sseService.js": {
-      "purpose": "Central SSE connection management service",
-      "create_new": true,
-      "exact_content": "Class with addConnection, removeConnection, broadcast, broadcastToEvent methods",
-      "dependencies": "None - standalone service"
+      "modify_existing_files": {
+        "backend/src/routes/events.js": {
+          "lines_to_modify": "280-295, 320-335, 360-375",
+          "current_broken_code": "io.emit('event_activated', data) // WebSocket broadcast",
+          "replacement_approach": "sseService.broadcastToAdmin('event_activated', data)",
+          "integration_pattern": "Replace all admin-focused io.emit() with SSE"
+        },
+        "frontend/src/pages/admin/Events.tsx": {
+          "lines_to_modify": "156-170",
+          "current_issue": "useSSE hook called but not implemented",
+          "exact_fix": "Import and use properly implemented useSSE hook",
+          "dependency": "Requires completed backend SSE infrastructure"
+        },
+        "frontend/src/components/admin/SystemMonitoring.tsx": {
+          "current_sse_usage": "Already uses useSSE hook correctly",
+          "verification_needed": "Ensure backend endpoint /api/sse/system/status exists"
+        }
+      }
     },
-    "backend/src/routes/sse.js": {
-      "purpose": "SSE endpoint routes for events, system, betting",
-      "create_new": true,
-      "endpoints_to_create": [
-        "GET /api/sse/events/:eventId/stream - Event streaming status",
-        "GET /api/sse/system/status - System monitoring data", 
-        "GET /api/sse/users/me/betting - Betting notifications (feature flag)"
-      ]
+
+    "priority_3_websocket_isolation": {
+      "duration": "2-3 hours",
+      "business_critical": "Isolate WebSocket to MINIMAL betting usage only",
+      
+      "modify_files": {
+        "backend/src/sockets/streamingSocket.ts": {
+          "current_complexity": "Dual namespace (/stream and /stream-control) + admin features",
+          "new_approach": "Single /betting namespace for PAGO/DOY workflows only",
+          "remove_features": ["Stream control events", "Admin notifications", "System monitoring"]
+        },
+        "frontend/src/contexts/WebSocketContext.tsx": {
+          "current_usage": "Used by both admin and user interfaces",
+          "new_limitation": "Import restricted to betting components only",
+          "admin_migration": "Admin components must use SSE instead"
+        }
+      }
     },
-    "frontend/src/hooks/useSSE.js": {
-      "purpose": "React hook for SSE connections with auto-reconnection",
-      "create_new": true,
-      "exact_functionality": "useSSE(endpoint, dependencies) returns data state with reconnection logic"
+
+    "priority_4_betting_windows_implementation": {
+      "duration": "8-12 hours",
+      "business_critical": "Core betting functionality with temporal fight logic",
+      
+      "fight_status_flow": {
+        "temporal_logic": "upcoming → betting → live → completed",
+        "betting_restrictions": "Apuestas SOLO permitidas durante status='betting'",
+        "operator_controls": "Admin/operator controla transiciones de estado"
+      },
+
+      "backend_endpoints_required": {
+        "GET /api/events/:eventId/current-betting": {
+          "purpose": "Single endpoint returning active fight + available bets",
+          "response": "{ currentFight: {...}, availableBets: [...], bettingOpen: boolean }"
+        },
+        "POST /api/fights/:fightId/open-betting": {
+          "purpose": "Admin/operator opens betting window",
+          "status_change": "upcoming → betting"
+        },
+        "POST /api/fights/:fightId/close-betting": {
+          "purpose": "Admin/operator closes betting, starts fight", 
+          "status_change": "betting → live"
+        },
+        "GET /api/bets/available/:fightId": {
+          "purpose": "Get bets for specific fight",
+          "validation": "Returns 403 if fight.status !== 'betting'"
+        }
+      },
+
+      "frontend_components_required": {
+        "admin/FightControl.tsx": {
+          "purpose": "Admin controls for betting window management",
+          "actions": ["Abrir apuestas", "Cerrar apuestas", "Registrar resultado"]
+        },
+        "user/CurrentBettingPanel.tsx": {
+          "purpose": "Dynamic panel showing only current active fight",
+          "features": ["Countdown timer", "Available bets list", "Create bet modal"]
+        },
+        "shared/FightStatusIndicator.tsx": {
+          "purpose": "Visual status indicator for fight states",
+          "states": ["Próximamente", "Apuestas abiertas", "En vivo", "Finalizada"]
+        }
+      },
+
+      "sse_integration": {
+        "real_time_updates": [
+          "betting_opened: User sees betting panel activate",
+          "betting_closed: User sees 'betting closed' message", 
+          "bet_created: New bet appears in available list",
+          "bet_matched: Bet removed from available list"
+        ]
+      },
+
+      "database_modifications": {
+        "fights_table_status_enum": "['upcoming', 'betting', 'live', 'completed', 'cancelled']",
+        "bets_table_constraints": "Bets can only be created if fight.status = 'betting'",
+        "automated_cleanup": "Auto-cancel pending bets when fight.status changes from 'betting'"
+      }
     },
-    "backend/src/routes/streaming.ts": {
-      "lines_to_modify": "89-120",
-      "current_broken_code": "io.of('/stream').to(`event:${data.eventId}`).emit('stream_status', data)",
-      "replacement_pattern": "sseService.broadcastToEvent(data.eventId, 'stream_status', data)"
-    },
-    "frontend/src/components/admin/SystemMonitoring.tsx": {
-      "lines_to_modify": "67-85", 
-      "current_broken_code": "const response = await systemAPI.getStatus();",
-      "replacement_pattern": "const systemStatus = useSSE('/api/sse/system/status');"
-    }
   },
 
   "before_after_examples": {
-    "streaming_control_backend": {
-      "before": "// Line 89-95 in backend/src/routes/streaming.ts\nio.of('/stream').to(`event:${eventId}`).emit('stream_status', {\n  status: 'live',\n  streamId: data.streamId,\n  timestamp: new Date()\n});",
-      "after": "// Replace with SSE broadcast\nsseService.broadcastToEvent(eventId, 'stream_status', {\n  status: 'live',\n  streamId: data.streamId,\n  timestamp: new Date()\n});"
+    "file_cleanup_example": {
+      "before_messy": "// Multiple versions\nbackend/src/services/rtmpService.js\nbackend/src/services/rtmpService.ts\n// Inconsistent imports\nimport { rtmpService } from './rtmpService.js';",
+      "after_clean": "// Single TypeScript version\nbackend/src/services/rtmpService.ts\n// Consistent imports\nimport { rtmpService } from './rtmpService';"
     },
-    "system_monitoring_frontend": {
-      "before": "// Lines 67-85 in SystemMonitoring.tsx\nconst loadSystemStatus = async () => {\n  try {\n    const response = await systemAPI.getStatus();\n    setSystemStatus(response.data);\n  } catch (err) {\n    setError(err.message);\n  }\n};",
-      "after": "// Replace with SSE hook\nconst SystemMonitoring = () => {\n  const systemStatus = useSSE('/api/sse/system/status');\n  const [error, setError] = useState(null);\n  \n  if (!systemStatus && !error) {\n    return <LoadingSpinner />;\n  }"
+    "sse_implementation": {
+      "before_websocket": "// backend/src/routes/events.js line 285\nconst io = req.app.get('io');\nif (io) {\n  io.emit('event_activated', {\n    eventId: event.id,\n    streamUrl: event.streamUrl\n  });\n}",
+      "after_sse": "// backend/src/routes/events.js line 285\nconst sseService = req.app.get('sseService');\nsseService.broadcastToAdmin('event_activated', {\n  eventId: event.id,\n  streamUrl: event.streamUrl,\n  timestamp: new Date()\n});"
     },
-    "streaming_controls_frontend": {
-      "before": "// In RTMPConfig.tsx - WebSocket listener\nsocket.on('stream_status', (data) => {\n  setStreamStatus(data.status);\n});",
-      "after": "// Replace with SSE hook\nconst streamStatus = useSSE(`/api/sse/events/${eventId}/stream`);\n\nuseEffect(() => {\n  if (streamStatus) {\n    setStreamStatus(streamStatus.status);\n  }\n}, [streamStatus]);"
+    "frontend_sse_usage": {
+      "before_complex": "// Complex WebSocket singleton\nconst { addListener, removeListener } = useWebSocketContext();\nuseEffect(() => {\n  const cleanup = addListener('event_status', handler);\n  return cleanup;\n}, []);",
+      "after_simple": "// Simple SSE hook\nconst eventStatus = useSSE(`/api/sse/admin/events/${eventId}`, {\n  dependencies: [eventId]\n});"
     }
   },
 
-  "api_endpoints_specification": {
-    "backend_sse_routes": {
-      "GET /api/sse/events/:eventId/stream": {
-        "auth": "JWT required",
-        "response_format": "text/event-stream",
-        "events": ["stream_status", "viewer_count", "stream_error"],
-        "sample_data": "event: stream_status\\ndata: {\"status\":\"live\",\"viewerCount\":25}\\n\\n"
-      },
-      "GET /api/sse/system/status": {
-        "auth": "Admin/Operator only",
-        "response_format": "text/event-stream", 
-        "interval": "5 seconds",
-        "sample_data": "data: {\"api\":{\"status\":\"healthy\"},\"database\":{\"status\":\"healthy\"}}\\n\\n"
-      },
-      "GET /api/sse/users/me/betting": {
-        "auth": "JWT required",
-        "feature_flag": "FEATURES_BETTING must be true",
-        "events": ["pago_proposed", "proposal_accepted", "bet_matched"],
-        "disabled_response": "403 Forbidden if feature flag false"
-      }
-    },
-    "modified_rest_endpoints": {
-      "POST /api/streaming/start": {
-        "current_websocket_emit": "Remove io.emit() calls",
-        "new_sse_broadcast": "Add sseService.broadcastToEvent() calls",
-        "response_unchanged": "Same JSON response format"
-      }
-    }
-  },
-
-  "feature_flag_implementation": {
-    "betting_sse_structure": {
-      "create_files": [
-        "backend/src/routes/betting-sse.js",
-        "frontend/src/components/betting/BettingNotifications.tsx"
-      ],
-      "feature_flag_check": "if (!process.env.FEATURES_BETTING === 'true') return res.status(403).json({error: 'Feature disabled'});",
-      "frontend_conditional": "const bettingNotifications = process.env.VITE_FEATURES_BETTING === 'true' ? useSSE('/api/sse/users/me/betting') : null;"
-    },
-    "wallet_sse_structure": {
-      "create_files": [
-        "backend/src/routes/wallet-sse.js"
-      ],
-      "feature_flag_check": "if (!process.env.FEATURES_WALLET === 'true') return res.status(403).json({error: 'Feature disabled'});",
-      "purpose": "Wallet balance updates via SSE when feature enabled"
-    }
-  },
-
-  "validation_steps": {
-    "backend_validation": [
-      "npm start - server starts without WebSocket errors",
-      "curl -N http://localhost:3001/api/sse/system/status - SSE stream works",
-      "POST to /api/streaming/start - check SSE broadcast not WebSocket emit"
+  "database_verification_checklist": {
+    "primary_source": "backend/database-analysis/*.json files",
+    "critical_verifications": [
+      "events table has proper status enum (scheduled, in-progress, completed, cancelled)",
+      "fights table has complete status enum (upcoming, betting, live, completed, cancelled)", 
+      "users table role enum includes admin, operator, venue, user, gallera",
+      "Foreign key relationships: events.operator_id → users.id, fights.event_id → events.id"
     ],
-    "frontend_validation": [
-      "Admin dashboard loads SystemMonitoring without API errors",
-      "Events page streaming controls work with SSE",
-      "Network tab shows EventSource connections not WebSocket",
-      "Feature flags: betting/wallet components not rendered when disabled"
-    ],
-    "integration_validation": [
-      "Stream start/stop controls work end-to-end via SSE",
-      "Admin dashboard shows real-time system status",
-      "Multiple browser tabs receive same SSE updates",
-      "Auto-reconnection works after server restart"
+    "potential_inconsistencies": [
+      "Sequelize models may not match database analysis - always verify against analysis files",
+      "Enum values in models should exactly match CURRENT_ENUMS.json",
+      "Foreign key constraints should match CURRENT_FOREIGN_KEYS.json"
     ]
   },
 
-  "error_context_embedding": {
-    "current_failing_functionality": {
-      "systemAPI.getStatus()": "Returns 404 - endpoint /api/system/status doesn't exist",
-      "WebSocket memory leaks": "activeViewers Map grows without cleanup",
-      "Socket.io complexity": "Singleton pattern causing connection issues"
-    },
-    "migration_risk_mitigation": {
-      "gradual_replacement": "Keep WebSocket imports until SSE working, then remove",
-      "feature_flag_safety": "Betting/wallet SSE created but disabled by existing flags",
-      "backwards_compatibility": "Same data formats, same component interfaces"
-    }
+  "admin_environment_gaps_corrected": {
+    "galleras_management": "❌ NOT A GAP - Admin can manage gallera users via Users.tsx",
+    "ads_propaganda": "❌ NOT A GAP - Uses existing Articles.tsx system",
+    "notifications_admin": "✅ REAL GAP - Missing admin interface and automated notification creation"
   },
-
-  "tool_specific_config": {
-    "gemini_cli_settings": {
-      "working_directory": "./",
-      "focus_directories": ["backend/src/", "frontend/src/"],
-      "avoid_patterns": ["node_modules/", "dist/", ".git/"],
-      "file_creation_priority": "backend services first, then routes, then frontend hooks"
-    },
-    "execution_sequence": [
-      "1. Create backend/src/services/sseService.js",
-      "2. Create backend/src/routes/sse.js", 
-      "3. Create frontend/src/hooks/useSSE.js",
-      "4. Modify backend/src/routes/streaming.ts lines 89-120",
-      "5. Modify frontend/src/components/admin/SystemMonitoring.tsx lines 67-85",
-      "6. Create betting SSE structure (feature flag disabled)",
-      "7. Remove WebSocket dependencies from package.json files"
+  "hybrid_architecture_tasks": {
+    "estimated_total_duration": "7-11 hours",
+    "priorities_sequence": [
+      "1. File cleanup (1-2 hours) - Remove .js duplicates, consolidate codebase",
+      "2. SSE infrastructure (4-6 hours) - Admin interface real-time updates", 
+      "3. WebSocket isolation (2-3 hours) - Betting system only"
     ],
-    "dependencies_to_install": [],
-    "dependencies_to_remove": ["socket.io", "socket.io-client"]
+    "mvp_readiness": "Hybrid architecture optimizes both admin UX and betting performance",
+    "deployment_confidence": "High - cleaner separation of concerns, better maintainability"
   },
-
-  "success_criteria": {
-    "functional_requirements": [
-      "Admin can start/stop streams via SSE controls (no WebSocket)",
-      "SystemMonitoring dashboard shows real-time data via SSE",
-      "Event streaming status updates work via SSE",
-      "Feature flags keep betting/wallet SSE disabled but code ready",
-      "No WebSocket imports or Socket.io dependencies remain"
+    "immediate_next_steps": [
+      "1. Verify SSE endpoints work correctly",
+      "2. Test admin SSE + user WebSocket simultaneously",
+      "3. Remove WebSocket complexity from streaming",
+      "4. Create operator dashboard with role limitations", 
+      "5. Complete notification system"
     ],
-    "technical_requirements": [
-      "All SSE endpoints return proper Content-Type: text/event-stream",
-      "Auto-reconnection works on network interruption",
-      "Memory usage stable (no connection leaks)",
-      "Same data formats maintained for component compatibility"
-    ],
-    "business_requirements": [
-      "MVP streaming functionality maintained exactly as before",
-      "Admin/operator workflow unchanged from user perspective", 
-      "13-day deadline preserved - simpler architecture enables faster development",
-      "Future betting/wallet features ready for activation via feature flags"
+    "success_criteria": [
+      "SSE endpoints verified working",
+      "Admin SSE + user WebSocket work simultaneously", 
+      "WebSocket complexity removed (betting only)",
+      "Operator dashboard functional with limitations",
+      "Notification system implemented",
+      "Polished betting experience maintained"
     ]
+  },
+
+  "tool_execution_sequence": {
+    "gemini_cli_commands": [
+      "Focus on creating SSE service first: backend/src/services/sseService.js",
+      "Then SSE routes: backend/src/routes/sse.js with specific endpoints",
+      "Update Events.tsx SSE integration: frontend/src/pages/admin/Events.tsx",
+      "Create operator dashboard: frontend/src/pages/operator/OperatorDashboard.tsx",
+      "Add permission middleware: backend/src/middleware/operatorAuth.js"
+    ],
+    "validation_steps": [
+      "Test admin event activation → fight management → stream controls",
+      "Verify operator permissions prevent admin/operator management", 
+      "Check SSE real-time updates work across browser tabs",
+      "Confirm database analysis matches actual implementation"
+    ]
+  },
+
+  "risk_mitigation": {
+    "notification_overload": "Batch SSE updates, clear visual hierarchy in UI",
+    "permission_escalation": "Strict validation - operators cannot manage privileged roles",
+    "database_inconsistency": "Always verify against database-analysis/*.json files",
+    "technical_user_complexity": "Streamlined UI with clear visual flows for operations"
   }
 }
