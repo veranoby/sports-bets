@@ -1,1 +1,53 @@
-class SSEService {\n  constructor() {\n    // Mapa para almacenar conexiones SSE por evento\n    this.eventConnections = new Map();\n    // Mapa para almacenar todas las conexiones del sistema\n    this.systemConnections = new Map();\n  }\n\n  /**\n   * Agrega una nueva conexión SSE\n   * @param {string} clientId - ID único del cliente\n   * @param {string} eventType - Tipo de evento ('event', 'system')\n   * @param {string} eventId - ID del evento (opcional, solo para eventType='event')\n   * @param {Response} response - Objeto de respuesta HTTP\n   */\n  addConnection(clientId, eventType, eventId, response) {\n    // Configurar encabezados para SSE\n    response.writeHead(200, {\n      'Content-Type': 'text/event-stream',\n      'Cache-Control': 'no-cache',\n      'Connection': 'keep-alive',\n      'Access-Control-Allow-Origin': '*'\n    });\n\n    // Enviar un mensaje de conexión inicial\n    response.write(`data: ${JSON.stringify({ type: 'connected', clientId })}\\n\\n`);\n\n    // Almacenar la conexión según el tipo\n    if (eventType === 'event' && eventId) {\n      if (!this.eventConnections.has(eventId)) {\n        this.eventConnections.set(eventId, new Map());\n      }\n      this.eventConnections.get(eventId).set(clientId, response);\n    } else if (eventType === 'system') {\n      this.systemConnections.set(clientId, response);\n    }\n  }\n\n  /**\n   * Elimina una conexión SSE\n   * @param {string} clientId - ID único del cliente\n   * @param {string} eventType - Tipo de evento ('event', 'system')\n   * @param {string} eventId - ID del evento (opcional, solo para eventType='event')\n   */\n  removeConnection(clientId, eventType, eventId) {\n    if (eventType === 'event' && eventId) {\n      if (this.eventConnections.has(eventId)) {\n        this.eventConnections.get(eventId).delete(clientId);\n        // Limpiar mapa si no hay conexiones\n        if (this.eventConnections.get(eventId).size === 0) {\n          this.eventConnections.delete(eventId);\n        }\n      }\n    } else if (eventType === 'system') {\n      this.systemConnections.delete(clientId);\n    }\n  }\n\n  /**\n   * Envía datos a todas las conexiones de un evento específico\n   * @param {string} eventId - ID del evento\n   * @param {string} eventType - Tipo de evento a enviar\n   * @param {Object} data - Datos a enviar\n   */\n  broadcastToEvent(eventId, eventType, data) {\n    if (this.eventConnections.has(eventId)) {\n      const connections = this.eventConnections.get(eventId);\n      const message = `event: ${eventType}\\ndata: ${JSON.stringify(data)}\\n\\n`;\n      \n      for (const [clientId, response] of connections) {\n        try {\n          response.write(message);\n        } catch (error) {\n          // Eliminar conexiones que ya no son válidas\n          connections.delete(clientId);\n        }\n      }\n      \n      // Limpiar mapa si no hay conexiones\n      if (connections.size === 0) {\n        this.eventConnections.delete(eventId);\n      }\n    }\n  }\n\n  /**\n   * Envía datos a todas las conexiones del sistema\n   * @param {string} eventType - Tipo de evento a enviar\n   * @param {Object} data - Datos a enviar\n   */\n  broadcastToSystem(eventType, data) {\n    const message = `event: ${eventType}\\ndata: ${JSON.stringify(data)}\\n\\n`;\n    \n    for (const [clientId, response] of this.systemConnections) {\n      try {\n        response.write(message);\n      } catch (error) {\n        // Eliminar conexiones que ya no son válidas\n        this.systemConnections.delete(clientId);\n      }\n    }\n  }\n\n  /**\n   * Obtiene el número de conexiones activas para un evento\n   * @param {string} eventId - ID del evento\n   * @returns {number} Número de conexiones activas\n   */\n  getEventConnectionCount(eventId) {\n    if (this.eventConnections.has(eventId)) {\n      return this.eventConnections.get(eventId).size;\n    }\n    return 0;\n  }\n\n  /**\n   * Obtiene el número total de conexiones del sistema\n   * @returns {number} Número total de conexiones del sistema\n   */\n  getSystemConnectionCount() {\n    return this.systemConnections.size;\n  }\n}\n\n// Exportar una instancia singleton\nmodule.exports = new SSEService();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sseService = void 0;
+const crypto_1 = require("crypto");
+class SseService {
+    constructor() {
+        this.connections = new Map();
+    }
+    addConnection(res, channel) {
+        const clientId = (0, crypto_1.randomUUID)();
+        this.connections.set(clientId, { res, channel });
+        return clientId;
+    }
+    removeConnection(clientId) {
+        this.connections.delete(clientId);
+    }
+    sendToClient(clientId, data) {
+        const connection = this.connections.get(clientId);
+        if (connection && !connection.res.destroyed) {
+            try {
+                connection.res.write(`data: ${JSON.stringify(data)}\n\n`);
+                return true;
+            }
+            catch (error) {
+                console.error(`Failed to send to client ${clientId}:`, error);
+                this.removeConnection(clientId);
+                return false;
+            }
+        }
+        return false;
+    }
+    broadcast(data, channel) {
+        for (const [clientId, connection] of this.connections.entries()) {
+            if (!channel || connection.channel === channel) {
+                this.sendToClient(clientId, data);
+            }
+        }
+    }
+    broadcastToAdmin(data) {
+        // Assuming admin channels might start with 'admin-'
+        for (const [clientId, connection] of this.connections.entries()) {
+            if (connection.channel && connection.channel.startsWith('admin')) {
+                this.sendToClient(clientId, data);
+            }
+        }
+    }
+    broadcastToEvent(eventId, data) {
+        this.broadcast(data, `event-${eventId}`);
+        this.broadcast(data, `stream-${eventId}`);
+        this.broadcast(data, `fight-${eventId}`);
+    }
+}
+exports.sseService = new SseService();

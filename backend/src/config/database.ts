@@ -6,10 +6,10 @@ import { logger } from "./logger";
 
 // Configuración optimizada para Neon.tech
 const poolSettings = {
-  max: 10, // Máximo conexiones (Neon free tier)
+  max: 5, // Máximo conexiones (Neon free tier - reducido)
   min: 0, // Mínimo conexiones activas
-  acquire: 60000, // 30s máximo para obtener conexión
-  idle: 30000, // 10s antes de cerrar conexión inactiva
+  acquire: 30000, // 30s máximo para obtener conexión
+  idle: 10000, // 10s antes de cerrar conexión inactiva
   evict: 5000, // Intervalo de validación (5s)
 };
 
@@ -111,11 +111,10 @@ export const connectDatabase = async (): Promise<void> => {
       logger.debug("Database Pool Status", getPoolStats());
     }, 30000); // Cada 30 segundos
   } catch (error) {
-    logger.error("❌ Database connection failed", {
-      error: error.message,
-      stack: error.stack,
-      poolStats: getPoolStats(),
-    });
+    logger.error("❌ Database connection failed");
+    logger.error("Error details:", error.message);
+    logger.error("DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "Not set");
+    console.error("Full error:", error);
     throw error;
   }
 };

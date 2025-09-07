@@ -5,20 +5,9 @@ import { Event, Venue, User, Fight } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import {
-  generateStreamKey,
-  checkStreamHealth,
-  getStreamUrl,
-  getStreamInfo,
-  startStreaming as startStreamService,
-  stopStreaming as stopStreamService,
-} from "../services/streamingService";
-
-import {
-  getCache as cacheGet,
-  setCache as cacheSet,
   delCache as cacheDel,
 } from "../config/redis";
-
+import notificationService from "../services/notificationService";
 import { UserRole } from "../../../shared/types";
 
 function getEventAttributes(role: UserRole | undefined, type: "list" | "detail") {
@@ -78,8 +67,6 @@ router.get(
       };
       where.status = "scheduled";
     }
-    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
-    // Público: atributos mínimos; Privilegiados: todo
     const attributes = getEventAttributes(req.user?.role, "list");
 
     const events = await Event.findAndCountAll({
@@ -184,18 +171,15 @@ router.post(
 
     const { name, venueId, scheduledDate, operatorId } = req.body;
 
-    // Verificar que la gallera existe
     const venue = await Venue.findByPk(venueId);
     if (!venue) {
       throw errors.notFound("Venue not found");
     }
 
-    // Si es un usuario venue, verificar que es dueño de la gallera
     if (req.user!.role === "venue" && venue.ownerId !== req.user!.id) {
       throw errors.forbidden("You can only create events for your own venues");
     }
 
-    // Si se especifica operador, verificar que existe y tiene el rol correcto
     if (operatorId) {
       const operator = await User.findByPk(operatorId);
       if (!operator || operator.role !== "operator") {
@@ -203,7 +187,6 @@ router.post(
       }
     }
 
-    // Crear evento con campos inicializados
     const event = await Event.create({
       name,
       venueId,
@@ -216,7 +199,6 @@ router.post(
       totalPrizePool: 0,
     });
 
-    // Recargar con asociaciones
     await event.reload({
       include: [
         { model: Venue, as: "venue" },
@@ -272,12 +254,10 @@ router.put(
       throw errors.notFound("Event not found");
     }
 
-    // Verificar permisos
     if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Actualizar campos permitidos
     const allowedFields = ["name", "scheduledDate", "operatorId", "status"];
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -314,36 +294,43 @@ router.post(
       throw errors.notFound("Event not found");
     }
 
-    // Verificar que el operador está asignado
     if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Verificar que el evento puede ser activado
     if (event.status !== "scheduled") {
       throw errors.badRequest("Only scheduled events can be activated");
     }
 
-    // Verificar que hay peleas programadas
     const eventData = event.toJSON() as any;
     if (!eventData.fights || eventData.fights.length === 0) {
       throw errors.badRequest("Event must have at least one fight scheduled");
     }
 
-    // Activar evento
     event.status = "in-progress";
     event.streamKey = event.generateStreamKey();
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     await event.save();
 
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-      sseService.broadcastToSystem("event_activated", {
-        eventId: event.id,
-        streamUrl: event.streamUrl,
-        timestamp: new Date()
+      sseService.broadcastToEvent(event.id, {
+        type: "EVENT_ACTIVATED",
+        data: {
+          eventId: event.id,
+          streamUrl: event.streamUrl,
+          timestamp: new Date()
+        }
       });
+    }
+    
+    try {
+        await notificationService.createEventNotification('event_activated', event.id, [], {
+            eventName: event.name,
+            streamUrl: event.streamUrl
+        });
+    } catch (notificationError) {
+        console.error('Error creating event activation notification:', notificationError);
     }
 
     res.json({
@@ -351,7 +338,7 @@ router.post(
       message: "Event activated successfully",
       data: {
         event: event.toJSON(),
-        streamKey: event.streamKey, // Solo para el operador
+        streamKey: event.streamKey,
       },
     });
   })
@@ -369,36 +356,27 @@ router.post(
       throw errors.notFound("Event not found");
     }
 
-    // Verificar permisos
     if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Verificar que el evento está activo
     if (event.status !== "in-progress") {
       throw errors.badRequest("Event must be activated first");
     }
 
-    // Verificar si ya hay stream activo
     if (event.streamUrl) {
       throw errors.conflict("Stream is already active");
     }
 
-    // Generar nueva stream key si no existe
     if (!event.streamKey) {
       event.streamKey = event.generateStreamKey();
     }
 
-    // Configurar URL del stream
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     await event.save();
 
-    // Verificar salud del servidor de streaming
     try {
-      // Aquí iría la verificación real del servidor RTMP
-      // Por ahora simulamos que está funcionando
       const streamHealthy = true;
-
       if (!streamHealthy) {
         throw new Error("Streaming server is not available");
       }
@@ -406,20 +384,32 @@ router.post(
       throw errors.conflict("Streaming server is not available");
     }
 
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-      io.to(`event_${event.id}`).emit("stream_started", {
-        eventId: event.id,
-        streamUrl: event.streamUrl,
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      sseService.broadcastToEvent(event.id, {
+        type: "STREAM_STARTED",
+        data: {
+          eventId: event.id,
+          streamUrl: event.streamUrl,
+          timestamp: new Date()
+        }
       });
+    }
+    
+    try {
+        await notificationService.createStreamNotification('stream_started', event.id, {
+            streamUrl: event.streamUrl,
+            rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
+        });
+    } catch (notificationError) {
+        console.error('Error creating stream start notification:', notificationError);
     }
 
     res.json({
       success: true,
       message: "Stream started successfully",
       data: {
-        event: event.toJSON(), // Return full event data
+        event: event.toJSON(),
         streamKey: event.streamKey,
         streamUrl: event.streamUrl,
         rtmpUrl: `rtmp://${
@@ -442,33 +432,38 @@ router.post(
       throw errors.notFound("Event not found");
     }
 
-    // Verificar permisos
     if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Verificar que hay stream activo
     if (!event.streamUrl) {
       throw errors.badRequest("No active stream found");
     }
 
-    // Detener stream
     event.streamUrl = null;
-    // Mantener streamKey para poder reiniciar si es necesario
     await event.save();
 
-    // Emitir evento via WebSocket
-    const io = req.app.get("io");
-    if (io) {
-      io.to(`event_${event.id}`).emit("stream_stopped", {
-        eventId: event.id,
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      sseService.broadcastToEvent(event.id, {
+        type: "STREAM_STOPPED",
+        data: {
+          eventId: event.id,
+          timestamp: new Date()
+        }
       });
+    }
+    
+    try {
+        await notificationService.createStreamNotification('stream_stopped', event.id);
+    } catch (notificationError) {
+        console.error('Error creating stream stop notification:', notificationError);
     }
 
     res.json({
       success: true,
       message: "Stream stopped successfully",
-      data: event.toJSON(), // Return updated event data
+      data: event.toJSON(),
     });
   })
 );
@@ -485,7 +480,7 @@ router.get(
     }
 
     const isStreaming = !!event.streamUrl;
-    const streamHealth = isStreaming ? "healthy" : "offline"; // Simplificado
+    const streamHealth = isStreaming ? "healthy" : "offline";
 
     res.json({
       success: true,
@@ -493,7 +488,7 @@ router.get(
         isStreaming,
         streamHealth,
         streamUrl: event.streamUrl,
-        viewers: 0, // Implementar contador real más adelante
+        viewers: 0,
       },
     });
   })
@@ -518,24 +513,32 @@ router.post(
       throw errors.badRequest("Only active events can be completed");
     }
 
-    // Detener stream si está activo
     if (event.streamUrl) {
       event.streamUrl = null;
     }
 
-    // Completar evento
     event.status = "completed";
     event.endDate = new Date();
     event.streamKey = null;
     await event.save();
 
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-      sseService.broadcastToSystem("event_completed", {
-        eventId: event.id,
-        timestamp: new Date()
+      sseService.broadcastToEvent(event.id, {
+        type: "EVENT_COMPLETED",
+        data: {
+          eventId: event.id,
+          timestamp: new Date()
+        }
       });
+    }
+    
+    try {
+        await notificationService.createEventNotification('event_completed', event.id, [], {
+            eventName: event.name
+        });
+    } catch (notificationError) {
+        console.error('Error creating event completion notification:', notificationError);
     }
 
     res.json({
@@ -595,17 +598,15 @@ router.delete(
     res.json({
       success: true,
       message: "Event cancelled successfully",
-      data: event.toJSON(), // Return updated event data
+      data: event.toJSON(),
     });
   })
 );
 
-// Invalidar cache en cambios de estado
 const invalidateEventCache = async () => {
   await cacheDel("events:in-progress");
 };
 
-// Añadir en endpoints que cambian estado (activate, complete, etc.)
 async function init() {
   await invalidateEventCache();
 }

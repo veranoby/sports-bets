@@ -22,7 +22,7 @@ const Event_1 = require("../models/Event");
 const Subscription_1 = require("../models/Subscription");
 const rtmpService_1 = require("../services/rtmpService");
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-const sseService_1 = __importDefault(require("../services/sseService"));
+const sseService_1 = require("../services/sseService");
 const router = (0, express_1.Router)();
 // Apply streaming feature flag check to all routes
 router.use((0, featureFlags_1.requireFeature)('streaming'));
@@ -203,7 +203,8 @@ router.post("/start", streamControlLimit, auth_1.authenticate, (0, auth_1.author
             }
         });
         // Broadcast stream status via SSE
-        sseService_1.default.broadcastToEvent(eventId, 'stream_status', {
+        sseService_1.sseService.broadcastToEvent(eventId, {
+            type: 'stream_status',
             status: 'live',
             streamId: streamResult.streamId,
             eventId: eventId,
@@ -282,7 +283,8 @@ router.post("/stop", streamControlLimit, auth_1.authenticate, (0, auth_1.authori
         });
         // Broadcast stream status via SSE
         if (targetStream.eventId) {
-            sseService_1.default.broadcastToEvent(targetStream.eventId, 'stream_status', {
+            sseService_1.sseService.broadcastToEvent(targetStream.eventId, {
+                type: 'stream_status',
                 status: 'ended',
                 streamId: targetStream.streamId,
                 eventId: targetStream.eventId,

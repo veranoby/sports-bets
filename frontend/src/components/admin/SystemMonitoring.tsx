@@ -75,7 +75,7 @@ const SystemMonitoring: React.FC = () => {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
   // Usar SSE para obtener el estado del sistema en tiempo real
-  const { data: systemStatus, error: sseError } = useSSE('/api/sse/system/status');
+  const { data: systemStatus, error: sseError } = useSSE<SystemStatus>('/api/sse/admin/system-status');
 
   // Actualizar la fecha de última actualización cuando se reciben datos
   useEffect(() => {

@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
-const operatorAuth_1 = require("../middleware/operatorAuth");
 const errorHandler_1 = require("../middleware/errorHandler");
 const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
@@ -146,8 +145,8 @@ router.get("/", auth_1.optionalAuth, (req, res, next) => {
         },
     });
 })));
-// POST /api/users - Create new user (admin and operators with restrictions)
-router.post("/", auth_1.authenticate, operatorAuth_1.default, [
+// POST /api/users - Create new user (admin only)
+router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     (0, express_validator_1.body)("username")
         .isLength({ min: 3, max: 50 })
         .withMessage("Username must be between 3 and 50 characters")
@@ -255,8 +254,8 @@ router.get("/:id", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, r
         data: responseData,
     });
 })));
-// PUT /api/users/:id/activation - Activar/desactivar usuario (admin and operators with restrictions)
-router.put("/:id/activation", auth_1.authenticate, operatorAuth_1.default, [
+// PUT /api/users/:id/activation - Activar/desactivar usuario (solo admin)
+router.put("/:id/activation", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     (0, express_validator_1.body)("isActive").isBoolean().withMessage("isActive must be a boolean value"),
     (0, express_validator_1.body)("reason")
         .optional()
@@ -286,8 +285,8 @@ router.put("/:id/activation", auth_1.authenticate, operatorAuth_1.default, [
         data: user.toPublicJSON(),
     });
 })));
-// PUT /api/users/:id/role - Cambiar rol de usuario (admin and operators with restrictions)
-router.put("/:id/role", auth_1.authenticate, operatorAuth_1.default, [
+// PUT /api/users/:id/role - Cambiar rol de usuario (solo admin)
+router.put("/:id/role", auth_1.authenticate, (0, auth_1.authorize)("admin"), [
     (0, express_validator_1.body)("role")
         .isIn(["admin", "operator", "venue", "user", "gallera"])
         .withMessage("Invalid role"),

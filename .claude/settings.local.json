@@ -28,7 +28,11 @@
       "Bash(cp:*)",
       "Bash(sed:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm start)",
+      "Bash(tsc)",
+      "Bash(node:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

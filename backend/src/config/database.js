@@ -16,10 +16,10 @@ const sequelize_1 = require("sequelize");
 const logger_1 = require("./logger");
 // Configuración optimizada para Neon.tech
 const poolSettings = {
-    max: 10, // Máximo conexiones (Neon free tier)
+    max: 5, // Máximo conexiones (Neon free tier - reducido)
     min: 0, // Mínimo conexiones activas
-    acquire: 60000, // 30s máximo para obtener conexión
-    idle: 30000, // 10s antes de cerrar conexión inactiva
+    acquire: 30000, // 30s máximo para obtener conexión
+    idle: 10000, // 10s antes de cerrar conexión inactiva
     evict: 5000, // Intervalo de validación (5s)
 };
 const sequelize = process.env.DATABASE_URL
@@ -120,11 +120,10 @@ const connectDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
         }, 30000); // Cada 30 segundos
     }
     catch (error) {
-        logger_1.logger.error("❌ Database connection failed", {
-            error: error.message,
-            stack: error.stack,
-            poolStats: (0, exports.getPoolStats)(),
-        });
+        logger_1.logger.error("❌ Database connection failed");
+        logger_1.logger.error("Error details:", error.message);
+        logger_1.logger.error("DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "Not set");
+        console.error("Full error:", error);
         throw error;
     }
 });

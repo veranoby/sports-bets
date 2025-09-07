@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
@@ -16,7 +19,7 @@ const models_1 = require("../models");
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
 const redis_1 = require("../config/redis");
-const notificationService_1 = require("../services/notificationService");
+const notificationService_1 = __importDefault(require("../services/notificationService"));
 function getEventAttributes(role, type) {
     const publicAttributes = [
         "id",
@@ -68,8 +71,6 @@ router.get("/", auth_1.optionalAuth, (0, errorHandler_1.asyncHandler)((req, res)
         };
         where.status = "scheduled";
     }
-    const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
-    // Público: atributos mínimos; Privilegiados: todo
     const attributes = getEventAttributes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role, "list");
     const events = yield models_1.Event.findAndCountAll({
         where,
@@ -154,23 +155,19 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "venue"), [
                 .join(", "));
     }
     const { name, venueId, scheduledDate, operatorId } = req.body;
-    // Verificar que la gallera existe
     const venue = yield models_1.Venue.findByPk(venueId);
     if (!venue) {
         throw errorHandler_1.errors.notFound("Venue not found");
     }
-    // Si es un usuario venue, verificar que es dueño de la gallera
     if (req.user.role === "venue" && venue.ownerId !== req.user.id) {
         throw errorHandler_1.errors.forbidden("You can only create events for your own venues");
     }
-    // Si se especifica operador, verificar que existe y tiene el rol correcto
     if (operatorId) {
         const operator = yield models_1.User.findByPk(operatorId);
         if (!operator || operator.role !== "operator") {
             throw errorHandler_1.errors.badRequest("Invalid operator specified");
         }
     }
-    // Crear evento con campos inicializados
     const event = yield models_1.Event.create({
         name,
         venueId,
@@ -182,7 +179,6 @@ router.post("/", auth_1.authenticate, (0, auth_1.authorize)("admin", "venue"), [
         totalBets: 0,
         totalPrizePool: 0,
     });
-    // Recargar con asociaciones
     yield event.reload({
         include: [
             { model: models_1.Venue, as: "venue" },
@@ -226,11 +222,9 @@ router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
-    // Verificar permisos
     if (req.user.role === "operator" && event.operatorId !== req.user.id) {
         throw errorHandler_1.errors.forbidden("You are not assigned to this event");
     }
-    // Actualizar campos permitidos
     const allowedFields = ["name", "scheduledDate", "operatorId", "status"];
     allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
@@ -257,49 +251,46 @@ router.post("/:id/activate", auth_1.authenticate, (0, auth_1.authorize)("admin",
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
-    // Verificar que el operador está asignado
     if (req.user.role === "operator" && event.operatorId !== req.user.id) {
         throw errorHandler_1.errors.forbidden("You are not assigned to this event");
     }
-    // Verificar que el evento puede ser activado
     if (event.status !== "scheduled") {
         throw errorHandler_1.errors.badRequest("Only scheduled events can be activated");
     }
-    // Verificar que hay peleas programadas
     const eventData = event.toJSON();
     if (!eventData.fights || eventData.fights.length === 0) {
         throw errorHandler_1.errors.badRequest("Event must have at least one fight scheduled");
     }
-    // Activar evento
     event.status = "in-progress";
     event.streamKey = event.generateStreamKey();
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     yield event.save();
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-        sseService.broadcastToEvent(event.id, "event_activated", {
-            eventId: event.id,
-            streamUrl: event.streamUrl,
-            timestamp: new Date()
+        sseService.broadcastToEvent(event.id, {
+            type: "EVENT_ACTIVATED",
+            data: {
+                eventId: event.id,
+                streamUrl: event.streamUrl,
+                timestamp: new Date()
+            }
         });
     }
-    
-    // Crear notificación de evento activado
     try {
-        await notificationService_1.default.createEventNotification('event_activated', event.id, [], {
+        yield notificationService_1.default.createEventNotification('event_activated', event.id, [], {
             eventName: event.name,
             streamUrl: event.streamUrl
         });
-    } catch (notificationError) {
-        console.error('Error creando notificación de evento activado:', notificationError);
+    }
+    catch (notificationError) {
+        console.error('Error creating event activation notification:', notificationError);
     }
     res.json({
         success: true,
         message: "Event activated successfully",
         data: {
             event: event.toJSON(),
-            streamKey: event.streamKey, // Solo para el operador
+            streamKey: event.streamKey,
         },
     });
 })));
@@ -309,29 +300,21 @@ router.post("/:id/stream/start", auth_1.authenticate, (0, auth_1.authorize)("ope
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
-    // Verificar permisos
     if (req.user.role === "operator" && event.operatorId !== req.user.id) {
         throw errorHandler_1.errors.forbidden("You are not assigned to this event");
     }
-    // Verificar que el evento está activo
     if (event.status !== "in-progress") {
         throw errorHandler_1.errors.badRequest("Event must be activated first");
     }
-    // Verificar si ya hay stream activo
     if (event.streamUrl) {
         throw errorHandler_1.errors.conflict("Stream is already active");
     }
-    // Generar nueva stream key si no existe
     if (!event.streamKey) {
         event.streamKey = event.generateStreamKey();
     }
-    // Configurar URL del stream
     event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
     yield event.save();
-    // Verificar salud del servidor de streaming
     try {
-        // Aquí iría la verificación real del servidor RTMP
-        // Por ahora simulamos que está funcionando
         const streamHealthy = true;
         if (!streamHealthy) {
             throw new Error("Streaming server is not available");
@@ -340,30 +323,31 @@ router.post("/:id/stream/start", auth_1.authenticate, (0, auth_1.authorize)("ope
     catch (error) {
         throw errorHandler_1.errors.conflict("Streaming server is not available");
     }
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-        sseService.broadcastToEvent(event.id, "stream_started", {
-            eventId: event.id,
-            streamUrl: event.streamUrl,
-            timestamp: new Date()
+        sseService.broadcastToEvent(event.id, {
+            type: "STREAM_STARTED",
+            data: {
+                eventId: event.id,
+                streamUrl: event.streamUrl,
+                timestamp: new Date()
+            }
         });
     }
-    
-    // Crear notificación de inicio de transmisión
     try {
-        await notificationService_1.default.createStreamNotification('stream_started', event.id, {
+        yield notificationService_1.default.createStreamNotification('stream_started', event.id, {
             streamUrl: event.streamUrl,
             rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
         });
-    } catch (notificationError) {
-        console.error('Error creando notificación de inicio de transmisión:', notificationError);
+    }
+    catch (notificationError) {
+        console.error('Error creating stream start notification:', notificationError);
     }
     res.json({
         success: true,
         message: "Stream started successfully",
         data: {
-            event: event.toJSON(), // Return full event data
+            event: event.toJSON(),
             streamKey: event.streamKey,
             streamUrl: event.streamUrl,
             rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`,
@@ -376,37 +360,34 @@ router.post("/:id/stream/stop", auth_1.authenticate, (0, auth_1.authorize)("oper
     if (!event) {
         throw errorHandler_1.errors.notFound("Event not found");
     }
-    // Verificar permisos
     if (req.user.role === "operator" && event.operatorId !== req.user.id) {
         throw errorHandler_1.errors.forbidden("You are not assigned to this event");
     }
-    // Verificar que hay stream activo
     if (!event.streamUrl) {
         throw errorHandler_1.errors.badRequest("No active stream found");
     }
-    // Detener stream
     event.streamUrl = null;
-    // Mantener streamKey para poder reiniciar si es necesario
     yield event.save();
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-        sseService.broadcastToEvent(event.id, "stream_stopped", {
-            eventId: event.id,
-            timestamp: new Date()
+        sseService.broadcastToEvent(event.id, {
+            type: "STREAM_STOPPED",
+            data: {
+                eventId: event.id,
+                timestamp: new Date()
+            }
         });
     }
-    
-    // Crear notificación de detención de transmisión
     try {
-        await notificationService_1.default.createStreamNotification('stream_stopped', event.id);
-    } catch (notificationError) {
-        console.error('Error creando notificación de detención de transmisión:', notificationError);
+        yield notificationService_1.default.createStreamNotification('stream_stopped', event.id);
+    }
+    catch (notificationError) {
+        console.error('Error creating stream stop notification:', notificationError);
     }
     res.json({
         success: true,
         message: "Stream stopped successfully",
-        data: event.toJSON(), // Return updated event data
+        data: event.toJSON(),
     });
 })));
 // GET /api/events/:id/stream/status - Obtener estado del stream
@@ -416,14 +397,14 @@ router.get("/:id/stream/status", auth_1.authenticate, (0, errorHandler_1.asyncHa
         throw errorHandler_1.errors.notFound("Event not found");
     }
     const isStreaming = !!event.streamUrl;
-    const streamHealth = isStreaming ? "healthy" : "offline"; // Simplificado
+    const streamHealth = isStreaming ? "healthy" : "offline";
     res.json({
         success: true,
         data: {
             isStreaming,
             streamHealth,
             streamUrl: event.streamUrl,
-            viewers: 0, // Implementar contador real más adelante
+            viewers: 0,
         },
     });
 })));
@@ -439,31 +420,30 @@ router.post("/:id/complete", auth_1.authenticate, (0, auth_1.authorize)("admin",
     if (event.status !== "in-progress") {
         throw errorHandler_1.errors.badRequest("Only active events can be completed");
     }
-    // Detener stream si está activo
     if (event.streamUrl) {
         event.streamUrl = null;
     }
-    // Completar evento
     event.status = "completed";
     event.endDate = new Date();
     event.streamKey = null;
     yield event.save();
-    // Emitir evento via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
-        sseService.broadcastToEvent(event.id, "event_completed", {
-            eventId: event.id,
-            timestamp: new Date()
+        sseService.broadcastToEvent(event.id, {
+            type: "EVENT_COMPLETED",
+            data: {
+                eventId: event.id,
+                timestamp: new Date()
+            }
         });
     }
-    
-    // Crear notificación de evento completado
     try {
-        await notificationService_1.default.createEventNotification('event_completed', event.id, [], {
+        yield notificationService_1.default.createEventNotification('event_completed', event.id, [], {
             eventName: event.name
         });
-    } catch (notificationError) {
-        console.error('Error creando notificación de evento completado:', notificationError);
+    }
+    catch (notificationError) {
+        console.error('Error creating event completion notification:', notificationError);
     }
     res.json({
         success: true,
@@ -505,14 +485,12 @@ router.delete("/:id", auth_1.authenticate, (0, auth_1.authorize)("admin"), (0, e
     res.json({
         success: true,
         message: "Event cancelled successfully",
-        data: event.toJSON(), // Return updated event data
+        data: event.toJSON(),
     });
 })));
-// Invalidar cache en cambios de estado
 const invalidateEventCache = () => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, redis_1.delCache)("events:in-progress");
 });
-// Añadir en endpoints que cambian estado (activate, complete, etc.)
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         yield invalidateEventCache();

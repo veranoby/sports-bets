@@ -1,22 +1,51 @@
 {
   "metadata": {
     "purpose": "Granular task tracking and Vibe Coding session management",
-    "updated": "2025-09-05",
+    "updated": "2025-09-06",
     "version": "1.2",
     "cross_references": ["priorities_memory_index.json", "sdd_system.json"],
     "work_instructions_file": "/home/veranoby/sports-bets/claude-prompt.json",
     "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
     "prd_sdd_updates": "Architecture decision: Hybrid SSE (admin) + WebSocket (betting only) confirmed",
     "betting_websocket_rationale": "PAGO proposals, timeouts, and bidirectional interactions require WebSocket",
-    "architecture_hybrid_confirmed": "SSE for admin + WebSocket for betting ONLY - PRD-SDD updated",
-    "next_phase_priorities": ["Complete SSE architecture", "WebSocket cleanup", "Operator dashboard", "Notification system"]
+    "critical_blocker_identified": "backend/src/routes/sse.ts missing causing server startup failure",
+    "manual_del_operador_completed": "Updated with real state, no Docker, Node Media Server alternatives",
+    "rtmp_solution_confirmed": "Node Media Server (no Docker) for local development",
+    "next_phase_priorities": ["Fix sse.ts blocker", "Complete SSE architecture", "Fight status transitions", "Operator dashboard"]
   },
-  "next_phase_tasks": {
-    "P0_complete_sse_architecture": {
+  "phase_2b_completion": {
+    "status": "completed",
+    "completion_date": "2025-09-06",
+    "critical_achievements": [
+      "✅ P0 SSE blocker resolved - server startup working",
+      "✅ All 5 SSE endpoints implemented and tested",
+      "✅ TypeScript compilation issues fixed (ts-node cache)",
+      "✅ Neon.tech PostgreSQL connection established",
+      "✅ RTMP streaming server operational (ports 1935/8000)",
+      "✅ SSE connection management with proper cleanup",
+      "✅ Import errors corrected in streaming services"
+    ],
+    "critical_knowledge_captured": [
+      "TypeScript compilation: 'npx tsc' must run from /backend only, not project root",
+      "ts-node cache issues: Clear with 'rm -rf node_modules/.cache .ts-node'",
+      "SSE architecture pattern established for scalable real-time updates",
+      "Connection registry pattern for managing multiple SSE clients"
+    ]
+  },
+  "phase_3_priorities": {
+    "P0_betting_system_implementation": {
       "status": "planned",
       "priority": "P0",
-      "description": "Verify SSE endpoints work, test admin SSE + user WebSocket simultaneously",
-      "estimated_hours": 7
+      "description": "Implement fight-based betting windows with PAGO/DOY WebSocket integration",
+      "estimated_hours": 12,
+      "dependencies": ["SSE architecture complete"]
+    },
+    "P0_operator_dashboard_creation": {
+      "status": "planned",
+      "priority": "P0", 
+      "description": "Create operator dashboard with fight status transitions",
+      "estimated_hours": 8,
+      "dependencies": ["Betting system base"]
     },
     "P0_websocket_cleanup": {
       "status": "planned", 
@@ -368,8 +397,14 @@
   "critical_context_notes": {
     "gemini_cli_failure_prevention": {
       "previous_failures": "JSONs too strategic vs operational, generic vs code-specific, architectural vs practical",
+      "lessons_learned_sse_blocker": "Missing sse.ts file not specified in JSON instructions - need file-level specificity",
+      "json_improvements_applied": {
+        "file_specificity": "claude-prompt.json updated with exact file creation requirements",
+        "import_verification": "Check all imports have corresponding files",
+        "before_after_examples": "Show exact code changes needed"
+      },
       "required_approach": [
-        "File-level specificity - exactamente qué archivos modificar",
+        "File-level specificity - exactamente qué archivos crear",
         "Line-level context - dónde están los errores actuales",
         "Before/after examples - mostrar código actual vs esperado",
         "Tool-specific commands - comandos exactos para Gemini CLI"

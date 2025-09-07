@@ -20,8 +20,6 @@ const database_1 = require("./config/database");
 const logger_1 = require("./config/logger");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestLogger_1 = require("./middleware/requestLogger");
-// Importar servicio SSE
-const sseService_1 = __importDefault(require("./services/sseService"));
 // Importar rutas
 const auth_1 = __importDefault(require("./routes/auth"));
 const users_1 = __importDefault(require("./routes/users"));
@@ -35,7 +33,6 @@ const webhooks_1 = __importDefault(require("./routes/webhooks"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const articles_1 = __importDefault(require("./routes/articles"));
 const sse_1 = __importDefault(require("./routes/sse"));
-const betting_sse_1 = __importDefault(require("./routes/betting-sse"));
 // Cargar variables de entorno
 (0, dotenv_1.config)();
 // Importar Redis
@@ -53,9 +50,6 @@ class Server {
         this.initializeErrorHandling();
     }
     initializeMiddlewares() {
-        // Registrar el servicio SSE en la aplicación
-        this.app.set('sseService', sseService_1.default);
-        
         // Middleware de seguridad
         this.app.use((0, helmet_1.default)({
             crossOriginEmbedderPolicy: false, // Para permitir streaming
@@ -115,7 +109,6 @@ class Server {
         this.app.use("/api/notifications", notifications_1.default);
         this.app.use("/api/articles", articles_1.default);
         this.app.use("/api/sse", sse_1.default);
-        this.app.use("/api/sse", betting_sse_1.default);
         // Ruta para servir archivos estáticos si es necesario
         this.app.use("/uploads", express_1.default.static("uploads"));
         // Ruta 404

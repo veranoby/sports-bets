@@ -465,4 +465,206 @@ router.post("/:id/result", auth_1.authenticate, (0, auth_1.authorize)("operator"
         });
     }));
 })));
+// =============================================
+// BETTING WINDOWS MANAGEMENT ENDPOINTS
+// =============================================
+// POST /api/fights/:fightId/open-betting - Open betting window
+router.post("/:fightId/open-betting", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const fight = yield models_1.Fight.findByPk(req.params.fightId, {
+        include: [{ model: models_1.Event, as: "event" }]
+    });
+    if (!fight) {
+        throw errorHandler_1.errors.notFound("Fight not found");
+    }
+    // Verify fight status
+    if (fight.status !== "upcoming") {
+        throw errorHandler_1.errors.badRequest(`Cannot open betting for fight with status: ${fight.status}`);
+    }
+    // Open betting window
+    fight.status = "betting";
+    yield fight.save();
+    // Notify via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToSystem("betting_opened", {
+            fightId: fight.id,
+            eventId: fight.eventId,
+            fightNumber: fight.number,
+            redCorner: fight.redCorner,
+            blueCorner: fight.blueCorner,
+            timestamp: new Date()
+        });
+    }
+    res.json({
+        success: true,
+        message: "Betting window opened successfully",
+        data: {
+            fightId: fight.id,
+            status: fight.status,
+            fightDetails: fight.toPublicJSON()
+        }
+    });
+})));
+// POST /api/fights/:fightId/close-betting - Close betting window
+router.post("/:fightId/close-betting", auth_1.authenticate, (0, auth_1.authorize)("admin", "operator"), (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const fight = yield models_1.Fight.findByPk(req.params.fightId);
+    if (!fight) {
+        throw errorHandler_1.errors.notFound("Fight not found");
+    }
+    // Verify fight status
+    if (fight.status !== "betting") {
+        throw errorHandler_1.errors.badRequest(`Cannot close betting for fight with status: ${fight.status}`);
+    }
+    yield (0, database_1.transaction)((t) => __awaiter(void 0, void 0, void 0, function* () {
+        // Close betting window
+        fight.status = "live";
+        yield fight.save({ transaction: t });
+        // Auto-cancel any pending unmatched bets
+        const pendingBets = yield models_1.Bet.findAll({
+            where: {
+                fightId: fight.id,
+                status: "pending"
+            },
+            transaction: t
+        });
+        for (const bet of pendingBets) {
+            bet.status = "cancelled";
+            yield bet.save({ transaction: t });
+        }
+        // Refund cancelled bets
+        for (const bet of pendingBets) {
+            if (bet.userId && bet.amount) {
+                const wallet = yield models_1.Wallet.findOne({
+                    where: { userId: bet.userId },
+                    transaction: t
+                });
+                if (wallet) {
+                    yield models_1.Transaction.create({
+                        walletId: wallet.id,
+                        type: "bet-refund",
+                        amount: bet.amount,
+                        description: `Refund for cancelled bet on fight ${fight.number}`,
+                        status: "completed"
+                    }, { transaction: t });
+                    wallet.balance += bet.amount;
+                    yield wallet.save({ transaction: t });
+                }
+            }
+        }
+    }));
+    // Notify via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+        sseService.broadcastToSystem("betting_closed", {
+            fightId: fight.id,
+            eventId: fight.eventId,
+            fightNumber: fight.number,
+            timestamp: new Date()
+        });
+    }
+    res.json({
+        success: true,
+        message: "Betting window closed successfully",
+        data: {
+            fightId: fight.id,
+            status: fight.status,
+            fightDetails: fight.toPublicJSON()
+        }
+    });
+})));
+// GET /api/events/:eventId/current-betting - Get current active betting fight
+router.get("/events/:eventId/current-betting", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const eventId = req.params.eventId;
+    // Find the current fight with betting status
+    const currentFight = yield models_1.Fight.findOne({
+        where: {
+            eventId,
+            status: "betting"
+        },
+        include: [
+            { model: models_1.Event, as: "event" },
+            {
+                model: models_1.Bet,
+                as: "bets",
+                where: { status: "pending" },
+                required: false,
+                include: [
+                    {
+                        model: models_1.User,
+                        as: "user",
+                        attributes: ["id", "username"]
+                    }
+                ]
+            }
+        ],
+        order: [["number", "ASC"]]
+    });
+    if (!currentFight) {
+        return res.json({
+            success: true,
+            data: {
+                currentFight: null,
+                availableBets: [],
+                bettingOpen: false
+            }
+        });
+    }
+    // Get available bets for this fight
+    const availableBets = yield models_1.Bet.findAll({
+        where: {
+            fightId: currentFight.id,
+            status: "pending"
+        },
+        include: [
+            {
+                model: models_1.User,
+                as: "user",
+                attributes: ["id", "username"]
+            }
+        ],
+        order: [["createdAt", "DESC"]]
+    });
+    res.json({
+        success: true,
+        data: {
+            currentFight: currentFight.toPublicJSON(),
+            availableBets: availableBets.map(bet => bet.toPublicJSON()),
+            bettingOpen: true
+        }
+    });
+})));
+// GET /api/bets/available/:fightId - Get available bets for specific fight
+router.get("/bets/available/:fightId", (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const fightId = req.params.fightId;
+    const fight = yield models_1.Fight.findByPk(fightId);
+    if (!fight) {
+        throw errorHandler_1.errors.notFound("Fight not found");
+    }
+    // Verify betting is open
+    if (fight.status !== "betting") {
+        throw errorHandler_1.errors.forbidden("Betting is not open for this fight");
+    }
+    const availableBets = yield models_1.Bet.findAll({
+        where: {
+            fightId,
+            status: "pending"
+        },
+        include: [
+            {
+                model: models_1.User,
+                as: "user",
+                attributes: ["id", "username"]
+            }
+        ],
+        order: [["createdAt", "DESC"]]
+    });
+    res.json({
+        success: true,
+        data: {
+            fightId,
+            fightStatus: fight.status,
+            availableBets: availableBets.map(bet => bet.toPublicJSON())
+        }
+    });
+})));
 exports.default = router;

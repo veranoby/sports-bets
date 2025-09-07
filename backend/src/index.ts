@@ -20,7 +20,6 @@ import webhookRoutes from "./routes/webhooks";
 import notificationRoutes from "./routes/notifications";
 import articleRoutes from "./routes/articles";
 import sseRoutes from "./routes/sse";
-import bettingSseRoutes from "./routes/betting-sse";
 
 // Cargar variables de entorno
 config();
@@ -114,7 +113,6 @@ class Server {
     this.app.use("/api/notifications", notificationRoutes);
     this.app.use("/api/articles", articleRoutes);
     this.app.use("/api/sse", sseRoutes);
-    this.app.use("/api/sse", bettingSseRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));
