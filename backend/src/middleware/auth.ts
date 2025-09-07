@@ -3,11 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import { User } from '../models/User';
 import { errors } from './errorHandler';
 
-// Extender Request interface para incluir user
+// Extender Request interface para incluir user y queryFilter
 declare global {
   namespace Express {
     interface Request {
       user?: User;
+      queryFilter?: any;
     }
   }
 }
@@ -101,4 +102,24 @@ export const optionalAuth = async (
     // En autenticación opcional, continuamos sin usuario si hay error
     next();
   }
+};
+
+// Middleware para filtrar datos para operadores
+export const filterByOperatorAssignment = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  // Si el usuario es un operador, añadimos un filtro para sus consultas.
+  // Este filtro será usado en los controladores para limitar los resultados
+  // a los eventos/datos que le han sido asignados.
+  if (req.user?.role === 'operator') {
+    // Se adjunta el filtro al objeto de la petición.
+    // Los controladores deben estar preparados para usar este filtro.
+    req.queryFilter = { operatorId: req.user.id };
+  }
+
+  // Si el rol es 'admin' o cualquier otro, no se aplica ningún filtro,
+  // permitiendo acceso completo (según lo definido en 'authorize').
+  next();
 };

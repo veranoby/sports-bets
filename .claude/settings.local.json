@@ -32,7 +32,9 @@
       "Bash(npm start)",
       "Bash(tsc)",
       "Bash(node:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(git push origin main)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

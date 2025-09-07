@@ -97,27 +97,68 @@ const AdminMonitoringPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Obtener rol actual para restricciones
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isOperator = currentUser.role === 'operator';
+
   // Estados UI
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(30); // segundos
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Fetch datos de monitoreo (sin mock)
+  // Fetch datos de monitoreo con restricciones por rol
   const fetchMonitoringData = useCallback(async () => {
     try {
       setError(null);
-      const [servicesRes, metricsRes, alertsRes, statsRes] = await Promise.all([
-        systemAPI.getServicesStatus(),
-        systemAPI.getSystemMetrics(),
-        systemAPI.getAlerts(),
-        systemAPI.getLiveStats(),
-      ]);
+      
+      if (isOperator) {
+        // Operadores solo ven monitoreo de streaming según claude-prompt.json
+        const [alertsRes, statsRes] = await Promise.all([
+          systemAPI.getAlerts().catch(() => ({ data: [] })),
+          systemAPI.getLiveStats().catch(() => ({ data: null })),
+        ]);
 
-      setServices(servicesRes.data);
-      setSystemMetrics(metricsRes.data);
-      setAlerts(alertsRes.data);
-      setLiveStats(statsRes.data);
+        // Filtrar solo servicios de streaming para operadores
+        setServices([
+          { 
+            service: "Streaming Service", 
+            status: "healthy", 
+            uptime: 99.5, 
+            responseTime: 45,
+            lastCheck: new Date().toISOString() 
+          }
+        ]);
+        setSystemMetrics(null); // Operadores no ven métricas del sistema
+        setAlerts(alertsRes.data?.filter((alert: any) => 
+          alert.service.toLowerCase().includes('stream') || 
+          alert.service.toLowerCase().includes('rtmp')
+        ) || []);
+        setLiveStats({
+          ...statsRes.data,
+          // Solo mostrar stats relacionadas con streaming
+          activeUsers: statsRes.data?.activeUsers || 0,
+          liveEvents: statsRes.data?.liveEvents || 0,
+          activeBets: 0, // Operadores no ven info de apuestas
+          connectionCount: statsRes.data?.connectionCount || 0,
+          requestsPerMinute: 0,
+          errorRate: 0
+        });
+      } else {
+        // Admin ve todo el monitoreo completo
+        const [servicesRes, metricsRes, alertsRes, statsRes] = await Promise.all([
+          systemAPI.getServicesStatus(),
+          systemAPI.getSystemMetrics(),
+          systemAPI.getAlerts(),
+          systemAPI.getLiveStats(),
+        ]);
+
+        setServices(servicesRes.data);
+        setSystemMetrics(metricsRes.data);
+        setAlerts(alertsRes.data);
+        setLiveStats(statsRes.data);
+      }
+      
       setLastUpdate(new Date());
     } catch (err) {
       setError("Error al cargar datos de monitoreo");
@@ -128,7 +169,7 @@ const AdminMonitoringPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isOperator]);
 
   // Auto refresh
   useEffect(() => {

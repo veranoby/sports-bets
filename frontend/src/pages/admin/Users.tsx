@@ -106,7 +106,7 @@ const AdminUsersPage: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeDetailTab, setActiveDetailTab] = useState("general");
 
-  // Fetch usuarios
+  // Fetch usuarios con filtrado por operator
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -119,7 +119,18 @@ const AdminUsersPage: React.FC = () => {
       };
 
       const response = await usersAPI.getAll(params);
-      setUsers(response.data?.users || []);
+      let allUsers = response.data?.users || [];
+
+      // Aplicar filtrado por rol de operator según claude-prompt.json
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser.role === 'operator') {
+        // Operador solo ve: venue, gallera, user (no admin, no operator)
+        allUsers = allUsers.filter(user => 
+          ['venue', 'gallera', 'user'].includes(user.role)
+        );
+      }
+
+      setUsers(allUsers);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading users");
     } finally {

@@ -26,6 +26,7 @@ import ErrorBoundary from "./components/shared/ErrorBoundary";
 // Toast System
 import ToastContainer from "./components/shared/ToastContainer";
 import { useToast } from "./hooks/useToast";
+import { usePWA } from "./hooks/usePWA";
 
 // Páginas de Usuario
 import UserDashboard from "./pages/user/Dashboard";
@@ -90,6 +91,7 @@ const RoleBasedRedirect: React.FC = () => {
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { toasts, removeToast } = useToast();
+  const { canInstall, install } = usePWA();
 
   return (
     <>
@@ -311,6 +313,17 @@ const AppContent: React.FC = () => {
       {/* Toast System - Notificaciones globales */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
+      {/* PWA Install Button */}
+      {canInstall && (
+        <button
+          onClick={install}
+          className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors z-50"
+          aria-label="Install App"
+        >
+          Instalar App
+        </button>
+      )}
+
       {/* Debug tools removidos */}
     </>
   );

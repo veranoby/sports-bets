@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { User, Wallet } from "../models";
+import { User, Wallet, Event, Venue, Fight } from "../models";
 import { body, validationResult } from "express-validator";
+import { Op } from "sequelize";
 
 const router = Router();
 
@@ -104,51 +105,86 @@ router.put(
 // GET /api/users - Listar usuarios (solo admin)
 router.get(
   "/",
-  optionalAuth,
-  (req, res, next) => {
-    const requestedRole = req.query.role as string;
-    const isPublicQuery = requestedRole === "gallera" || requestedRole === "venue";
-    if (isPublicQuery) {
-      return next();
-    }
-    // For all other user list requests, require admin privileges
-    return authorize("admin")(req, res, next);
-  },
+  authenticate, // Not optional anymore, operators need to be authenticated
+  authorize("admin", "operator"),
   asyncHandler(async (req, res) => {
     const { role, isActive, limit = 50, offset = 0 } = req.query;
-
     const where: any = {};
-    if (role) where.role = role;
-    if (isActive !== undefined) where.isActive = isActive === "true";
 
-    // For public queries, only return public profile information
-    const isPublicQuery = role === "gallera" || role === "venue";
-    const attributes = isPublicQuery
-      ? ["id", "username", "role", "profileInfo", "createdAt"]
-      : [
-          "id",
-          "username",
-          "email",
-          "role",
-          "isActive",
-          "profileInfo",
-          "lastLogin",
-          "createdAt",
-          "updatedAt",
-        ];
+    if (req.user!.role === "operator") {
+      const operatorId = req.user!.id;
+
+      const events = await Event.findAll({
+        where: { operatorId },
+        attributes: ["id", "venueId"],
+        raw: true,
+      });
+
+      if (events.length === 0) {
+        return res.json({
+          success: true,
+          data: { users: [], total: 0, limit: Number(limit), offset: Number(offset) },
+        });
+      }
+
+      const eventIds = events.map(e => e.id);
+      const venueIds = [...new Set(events.map(e => e.venueId).filter(Boolean))];
+
+      const venues = await Venue.findAll({
+        where: { id: { [Op.in]: venueIds } },
+        attributes: ["ownerId"],
+        raw: true,
+      });
+      const venueOwnerIds = venues.map(v => v.ownerId);
+
+      const fights = await Fight.findAll({
+        where: { eventId: { [Op.in]: eventIds } },
+        attributes: ["redCorner", "blueCorner"],
+        raw: true,
+      });
+      const galleraUsernames = [...new Set(fights.flatMap(f => [f.redCorner, f.blueCorner]))];
+
+      const galleras = await User.findAll({
+        where: { username: { [Op.in]: galleraUsernames }, role: "gallera" },
+        attributes: ["id"],
+        raw: true,
+      });
+      const galleraUserIds = galleras.map(g => g.id);
+
+      const userIds = [...new Set([...venueOwnerIds, ...galleraUserIds])];
+
+      where.id = { [Op.in]: userIds };
+      if (role) {
+        where.role = role;
+      } else {
+        where.role = { [Op.in]: ["venue", "gallera"] };
+      }
+    } else { // Admin
+      if (role) where.role = role;
+    }
+
+    if (isActive !== undefined) where.isActive = isActive === "true";
 
     const users = await User.findAndCountAll({
       where,
-      attributes,
-      include: isPublicQuery
-        ? []
-        : [
-            {
-              model: Wallet,
-              as: "wallet",
-              attributes: ["balance", "frozenAmount"],
-            },
-          ],
+      attributes: [
+        "id",
+        "username",
+        "email",
+        "role",
+        "isActive",
+        "profileInfo",
+        "lastLogin",
+        "createdAt",
+        "updatedAt",
+      ],
+      include: [
+        {
+          model: Wallet,
+          as: "wallet",
+          attributes: ["balance", "frozenAmount"],
+        },
+      ],
       order: [["createdAt", "DESC"]],
       limit: parseInt(limit as string),
       offset: parseInt(offset as string),

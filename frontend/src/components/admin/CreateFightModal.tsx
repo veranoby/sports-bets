@@ -82,7 +82,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, o
           </div>
           <div>
             <label htmlFor="weight" className="block text-sm font-medium text-gray-700">Weight (kg)</label>
-            <input type="number" step="0.01" id="weight" value={weight} onChange={(e) => setWeight(e.target..value)} className={`mt-1 block w-full px-3 py-2 border ${formErrors.weight ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`} />
+            <input type="number" step="0.01" id="weight" value={weight} onChange={(e) => setWeight(e.target.value)} className={`mt-1 block w-full px-3 py-2 border ${formErrors.weight ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`} />
             {formErrors.weight && <p className="text-xs text-red-500 mt-1">{formErrors.weight}</p>}
           </div>
           <div>

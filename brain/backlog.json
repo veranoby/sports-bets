@@ -33,38 +33,31 @@
     ]
   },
   "phase_3_priorities": {
-    "P0_betting_system_implementation": {
-      "status": "planned",
+    "status": "active",
+    "phase_name": "Operator Admin Integration + PWA Enhancement + Final Optimizations", 
+    "total_estimated_hours": 10,
+    "verification_complete": "✅ Core systems confirmed implemented - betting, WebSocket, SSE all functional",
+    "P0_operator_admin_integration": {
+      "status": "active",
       "priority": "P0",
-      "description": "Implement fight-based betting windows with PAGO/DOY WebSocket integration",
-      "estimated_hours": 12,
-      "dependencies": ["SSE architecture complete"]
+      "description": "Integrate operator role into admin interface with access restrictions (same UI, not separate)",
+      "estimated_hours": 5,
+      "approach": "Role-based conditionals in existing admin components, like venues/galleras pattern",
+      "dependencies": ["All core systems verified complete ✅"]
     },
-    "P0_operator_dashboard_creation": {
+    "P1_pwa_enhancement": {
       "status": "planned",
-      "priority": "P0", 
-      "description": "Create operator dashboard with fight status transitions",
-      "estimated_hours": 8,
-      "dependencies": ["Betting system base"]
+      "priority": "P1",
+      "description": "Enhance PWA capabilities - offline support, install prompts, push notifications",
+      "estimated_hours": 4,
+      "current_state": "Basic PWA ✅ (manifest.json + sw.js), needs enhancement"
     },
-    "P0_websocket_cleanup": {
+    "P1_final_optimizations": {
       "status": "planned", 
-      "priority": "P0",
-      "description": "Remove WebSocket complexity, keep only betting WebSocket",
-      "estimated_hours": 10
-    },
-    "P0_operator_dashboard": {
-      "status": "planned",
-      "priority": "P0", 
-      "description": "Create operator dashboard based on admin with role limitations",
-      "estimated_hours": 8
-    },
-    "P0_betting_windows_system": {
-      "status": "planned",
-      "priority": "P0",
-      "description": "Implement fight-based betting windows with temporal logic",
-      "estimated_hours": 12
-    },
+      "priority": "P1",
+      "description": "Performance optimization, security hardening, production readiness",
+      "estimated_hours": 3
+    }
   },
   "active_tasks": {
     "P0_admin_environment": {

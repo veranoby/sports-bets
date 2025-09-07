@@ -1,7 +1,7 @@
 {
   "metadata": {
     "purpose": "System design and technical architecture for sports betting platform",
-    "updated": "2025-08-31",
+    "updated": "2025-09-06",
     "version": "1.0",
     "cross_references": ["prd_system.json", "backlog.json", "priorities_memory_index.json"]
   },
@@ -38,14 +38,12 @@
       "build_system": "Vite for development speed",
       "rationale": "Modern React stack optimized for developer velocity"
     },
-    "streaming_infrastructure": {
-      "protocol": "RTMP for ingestion, HLS/DASH for delivery",
-      "integration": "OBS Studio with auto-generated stream keys",
-      "real_time_control": "WebSocket namespaces (/stream and /stream-control)",
-      "viewer_authentication": "JWT tokens with subscription validation",
-      "analytics": "Real-time viewer tracking and stream performance metrics",
-      "rationale": "Industry-standard streaming with operator-friendly OBS integration"
-    }
+    "rtmp_production_plan": {
+      "mvp_solution": "VPS $5-10/mes + Nginx-RTMP (25-50 viewers)",
+      "growth_solution": "Red5 Cloud (50GB free, then pay-as-you-go)",
+      "alternative": "Wowza Cloud ($2.50/hour + $0.10/viewer hour)",
+      "development": "Node Media Server (no Docker)"
+    },
   },
   "database_architecture": {
     "core_entities": {

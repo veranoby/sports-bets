@@ -683,12 +683,13 @@ const AdminVenuesPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-              <button
-                onClick={closeVenueDetail}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
+                <button
+                  onClick={closeVenueDetail}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Tabs */}

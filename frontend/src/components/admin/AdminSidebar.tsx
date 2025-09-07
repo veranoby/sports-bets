@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Users,
   Building2,
-  Settings,
   FileText,
   Calendar,
   DollarSign,
@@ -18,7 +17,7 @@ import {
 const AdminSidebar = memo(() => {
   const { user, logout } = useAuth();
 
-  const navItems = [
+  const allNavItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/admin/users", icon: Users, label: "Usuarios" },
     { path: "/admin/venues", icon: Building2, label: "Galleras" },
@@ -29,10 +28,34 @@ const AdminSidebar = memo(() => {
     { path: "/admin/monitoring", icon: Server, label: "Monitoreo" },
   ];
 
+  const navItems = (() => {
+    switch (user?.role) {
+      case 'admin':
+        return allNavItems;
+      case 'operator': {
+        const allowedPaths = [
+          '/admin',
+          '/admin/events',
+          '/admin/users',
+          '/admin/venues',
+          '/admin/monitoring',
+        ];
+        return allNavItems.filter(item => allowedPaths.includes(item.path));
+      }
+      default:
+        return [];
+    }
+  })();
+
+  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Invitado';
+
   return (
     <aside className="w-64 bg-gray-300 min-h-screen flex flex-col">
       <div className="p-4 flex-1">
-        <h2 className="text-gray-600 text-lg font-bold mb-6">GalloBets Admin</h2>
+        <h2 className="text-gray-600 text-lg font-bold mb-2">GalloBets Admin</h2>
+        <div className="mb-6 bg-gray-700 text-white px-2 py-1 rounded-md text-center">
+          <span className="font-semibold">{userRole}</span>
+        </div>
         <nav className="space-y-2">
           {navItems.map((item) => (
             <NavLink

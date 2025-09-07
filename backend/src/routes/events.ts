@@ -1,12 +1,10 @@
 import { Router } from "express";
-import { authenticate, authorize, optionalAuth } from "../middleware/auth";
+import { authenticate, authorize, optionalAuth, filterByOperatorAssignment } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Event, Venue, User, Fight } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
-import {
-  delCache as cacheDel,
-} from "../config/redis";
+import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
 import notificationService from "../services/notificationService";
 import { UserRole } from "../../../shared/types";
 
@@ -55,10 +53,21 @@ const router = Router();
 router.get(
   "/",
   optionalAuth,
+  filterByOperatorAssignment,
   asyncHandler(async (req, res) => {
     const { venueId, status, upcoming, limit = 20, offset = 0 } = req.query;
+    const userRole = req.user?.role || 'public';
 
-    const where: any = {};
+    // Create a unique cache key based on query params and user role
+    const cacheKey = `events:list:${userRole}:${venueId || ''}:${status || ''}:${upcoming || ''}:${limit}:${offset}`;
+
+    // Try to get data from cache
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      return res.json(JSON.parse(cachedData));
+    }
+
+    const where: any = { ...req.queryFilter };
     if (venueId) where.venueId = venueId;
     if (status) where.status = status;
     if (upcoming === "true") {
@@ -89,7 +98,7 @@ router.get(
       offset: parseInt(offset as string),
     });
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
         events: events.rows.map((e) => e.toJSON({ attributes })),
@@ -97,7 +106,12 @@ router.get(
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
       },
-    });
+    };
+
+    // Store data in cache for 5 minutes (300 seconds)
+    await setCache(cacheKey, JSON.stringify(responseData), 300);
+
+    res.json(responseData);
   })
 );
 
@@ -105,10 +119,12 @@ router.get(
 router.get(
   "/:id",
   optionalAuth,
+  filterByOperatorAssignment,
   asyncHandler(async (req, res) => {
     const attributes = getEventAttributes(req.user?.role, "detail");
 
-    const event = await Event.findByPk(req.params.id, {
+    const event = await Event.findOne({
+      where: { id: req.params.id, ...req.queryFilter },
       attributes,
       include: [
         { model: Venue, as: "venue" },
@@ -141,7 +157,9 @@ router.post(
   [
     body("name")
       .isLength({ min: 3, max: 255 })
-      .withMessage("Name must be between 3 and 255 characters"),
+      .withMessage("Name must be between 3 and 255 characters")
+      .trim()
+      .escape(),
     body("venueId").isUUID().withMessage("Valid venue ID is required"),
     body("scheduledDate")
       .isISO8601()
@@ -223,7 +241,9 @@ router.put(
     body("name")
       .optional()
       .isLength({ min: 3, max: 255 })
-      .withMessage("Name must be between 3 and 255 characters"),
+      .withMessage("Name must be between 3 and 255 characters")
+      .trim()
+      .escape(),
     body("scheduledDate")
       .optional()
       .isISO8601()
