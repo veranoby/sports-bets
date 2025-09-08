@@ -21,12 +21,16 @@ import notificationRoutes from "./routes/notifications";
 import articleRoutes from "./routes/articles";
 import sseRoutes from "./routes/sse";
 import pushRoutes from "./routes/push";
+import settingsRoutes from "./routes/settings";
 
 // Cargar variables de entorno
 config();
 
 // Importar Redis
 import { initRedis } from "./config/redis";
+
+// Importar middleware de configuración global
+import { checkMaintenanceMode, injectPublicSettings } from "./middleware/settingsMiddleware";
 
 class Server {
   private app: express.Application;
@@ -89,6 +93,10 @@ class Server {
     // Logger de requests
     this.app.use(requestLogger);
 
+    // Global settings middleware
+    this.app.use(checkMaintenanceMode);
+    this.app.use(injectPublicSettings);
+
     // Health check endpoint
     this.app.get("/health", (req, res) => {
       res.status(200).json({
@@ -115,6 +123,7 @@ class Server {
     this.app.use("/api/articles", articleRoutes);
     this.app.use("/api/sse", sseRoutes);
     this.app.use("/api/push", pushRoutes);
+    this.app.use("/api/settings", settingsRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));

@@ -48,6 +48,7 @@ const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const CreateUser = lazy(() => import("./pages/admin/CreateUser"));
 const AdminOperators = lazy(() => import("./pages/admin/Operators"));
 const AdminFinance = lazy(() => import("./pages/admin/Finance"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminEvents = lazy(() => import("./pages/admin/Events"));
 const AdminArticles = lazy(() => import("./pages/admin/Articles"));
 const AdminVenues = lazy(() => import("./pages/admin/Venues"));
@@ -248,6 +249,16 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminMonitoring />
+              </Suspense>
+            }
+          />
+
+          {/* Configuración */}
+          <Route
+            path="/admin/settings"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminSettings />
               </Suspense>
             }
           />

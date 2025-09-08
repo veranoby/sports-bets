@@ -11,6 +11,7 @@ import {
   DollarSign,
   TrendingUp,
   Server,
+  Settings,
   LogOut,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ const AdminSidebar = memo(() => {
     { path: "/admin/requests", icon: DollarSign, label: "Solicitudes" },
     { path: "/admin/finance", icon: TrendingUp, label: "Finanzas" },
     { path: "/admin/monitoring", icon: Server, label: "Monitoreo" },
+    { path: "/admin/settings", icon: Settings, label: "Configuración" },
   ];
 
   const navItems = (() => {

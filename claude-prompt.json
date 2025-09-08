@@ -1,359 +1,220 @@
 {
   "metadata": {
-    "purpose": "Phase 3: Operator Admin Integration + PWA Enhancement + Final Optimizations - IMPLEMENTADO COMPLETAMENTE",
+    "purpose": "Phase 4: Global Settings System + Production Deployment",
     "updated": "2025-09-07",
-    "project_status": "Phase 3: COMPLETADO - MVP 100% funcional con PWA avanzado", 
-    "critical_focus": "✅ PWA completamente implementado, optimizaciones de performance aplicadas, sistema listo para producción",
+    "project_status": "Phase 4: System settings implementation + Production deployment", 
+    "critical_focus": "Create admin global settings system, deploy PWA to production with HTTPS",
     "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
-    "verification_completed": "✅ Todos los sistemas críticos confirmados, PWA funcionando, tests exhaustivos completados"
+    "verification_corrected": "✅ Operator admin integration already implemented - AdminSidebar + Users filtering working"
   },
   
   "implementation_context": {
-    "verified_complete": {
-      "betting_system": "✅ fights.ts endpoints complete - open/close/result all implemented",
-      "betting_windows": "✅ Temporal logic complete - upcoming→betting→live→completed working",
-      "websocket_minimal": "✅ bettingSocket.ts already optimized - only PAGO/DOY with timeout",
-      "sse_infrastructure": "✅ 5 SSE endpoints operational - admin real-time working",
-      "rtmp_streaming": "✅ RTMP server + OBS integration functional",
-      "pwa_system": "✅ COMPLETAMENTE IMPLEMENTADO - Push notifications, service worker avanzado, caching inteligente",
-      "performance_optimizations": "✅ Redis caching middleware, database optimizations, API response optimization"
-    },
-    "operator_dashboard_clarification": "Use same admin interface with role-based restrictions (like venues/galleras), NOT separate operator environment",
+    "operator_admin_status": "✅ ALREADY IMPLEMENTED - AdminSidebar role filtering + Users.tsx data filtering working correctly",
+    "pwa_phase_3_completed": "✅ PWA fully functional - push notifications, service worker, Redis caching implemented",
+    "new_priority": "Global settings system to replace environment variables with admin-controlled configuration",
     "immediate_priorities": [
-      "✅ COMPLETADO - PWA capabilities enhanced con notificaciones push y service worker avanzado",
-      "✅ COMPLETADO - Performance optimizations implementadas con Redis caching",
-      "✅ COMPLETADO - Tests exhaustivos de funcionamiento ejecutados exitosamente"
+      "Create admin global settings system for wallets/bets enable/disable",
+      "Deploy PWA to production with HTTPS and VAPID keys",
+      "Optimize system with global settings integration"
     ]
-  },
-  
-  "implementacion_completada_2025_09_07": {
-    "resumen_tecnico": "Implementación completa de PWA enhancement y performance optimizations según claude-prompt.json Phase 3",
-    "funcionalidades_implementadas": {
-      "push_notifications": {
-        "frontend_service": "✅ frontend/src/services/pushNotificationService.ts - Servicio completo de notificaciones push",
-        "backend_endpoints": "✅ backend/src/routes/push.ts - API endpoints completos con autenticación",
-        "vapor_integration": "✅ Web Push protocol con VAPID keys (configurables por ambiente)",
-        "notification_types": ["betting_window_open", "betting_window_close", "fight_result", "pago_proposal"],
-        "features": ["Subscribe", "Unsubscribe", "Send", "Broadcast", "Subscription management"]
-      },
-      "service_worker_avanzado": {
-        "archivo": "✅ frontend/public/sw-enhanced.js - Service Worker completo con estrategias avanzadas",
-        "caching_strategies": {
-          "network_first": "APIs dinámicas - siempre busca network primero, cache como fallback",
-          "cache_first": "Assets estáticos - imágenes, CSS, JS servidos desde cache",
-          "intelligent_fallback": "Página offline para navigation requests cuando falla network"
-        },
-        "background_sync": "✅ Implementado para sincronizar apuestas offline cuando vuelve conexión",
-        "push_handlers": "✅ Manejadores completos para push events y notification clicks",
-        "cache_management": "✅ Limpieza automática de caches antiguos"
-      },
-      "performance_optimizations": {
-        "redis_caching": "✅ backend/src/middleware/cacheMiddleware.ts - Middleware completo de caching",
-        "cache_invalidation": "✅ Invalidación inteligente por eventos, peleas, apuestas",
-        "cache_configurations": "✅ TTL configurado por tipo de contenido (events: 5min, fights: 30s, etc.)",
-        "response_optimization": "✅ JSON responses cached con keys específicos por usuario/rol"
-      },
-      "testing_exhaustivo": {
-        "test_suite": "✅ backend/tests/pwa-functionality.test.js - 8 suites de tests comprehensivos",
-        "coverage_areas": [
-          "Push Notification API endpoints",
-          "Service Worker file accessibility", 
-          "API Response Caching performance",
-          "SSE Real-time Updates integration",
-          "CORS and Security Headers",
-          "Performance under concurrent load",
-          "Error handling and recovery",
-          "End-to-end PWA workflow"
-        ],
-        "validation_manual": "✅ Health check endpoint funcional, server running correctamente"
-      }
-    },
-    "archivos_creados": [
-      "frontend/src/services/pushNotificationService.ts (185 líneas)",
-      "frontend/public/sw-enhanced.js (300 líneas)",  
-      "backend/src/routes/push.ts (203 líneas)",
-      "backend/src/middleware/cacheMiddleware.ts (220 líneas)",
-      "backend/tests/pwa-functionality.test.js (350 líneas)"
-    ],
-    "dependencias_agregadas": [
-      "web-push@3.6.7 (backend)",
-      "ts-jest@29.4.1 (backend dev)"
-    ],
-    "integraciones_realizadas": {
-      "backend_routes": "✅ Rutas push registradas en src/index.ts",
-      "vapid_configuration": "✅ Configuración VAPID condicional basada en environment variables",
-      "redis_integration": "✅ Middleware de cache integrado con configuración Redis existente",
-      "sse_compatibility": "✅ Push notifications complementan SSE para real-time updates"
-    }
   },
 
   "critical_implementations_p0": {
-    "operator_admin_integration": {
-      "duration": "4-6 hours",
-      "business_critical": "Operator workflow needs admin interface access with proper restrictions",
+    "global_settings_system": {
+      "duration": "6-8 hours",
+      "business_critical": "Replace environment variables with admin-controlled settings for operational flexibility",
       
-      "role_restriction_approach": {
-        "same_interface": "Use existing admin layout/components with conditional rendering",
-        "restriction_pattern": "Similar to venues/galleras - show only assigned data",
-        "cannot_access": ["admin users", "operator users", "system settings", "global configurations"],
-        "can_access": ["assigned events", "venue users in assigned events", "gallera users in assigned events", "fights in assigned events"]
-      },
-
-      "implementation_strategy": {
-        "backend_middleware": "Enhance existing auth middleware to filter data by operator assignments",
-        "frontend_conditionals": "Add role-based conditionals in admin components",
-        "navigation_restrictions": "Hide/disable admin-only menu items for operators"
-      },
-
-      "components_to_modify": {
-        "layouts/AdminLayout.tsx": {
-          "modification": "Add operator role support with restricted navigation",
-          "approach": "Conditional menu items based on user.role"
-        },
-        "components/admin/UserManagement.tsx": {
-          "modification": "Filter users by operator assignments",
-          "approach": "Operator sees only venue/gallera users from assigned events"
-        },
-        "components/admin/EventManagement.tsx": {
-          "modification": "Filter events by operator assignments",
-          "approach": "Operator sees only events where event.operatorId === user.id"
+      "database_structure": {
+        "system_settings_table": {
+          "columns": [
+            "id (uuid)",
+            "key (varchar 100, unique)",
+            "value (jsonb)",
+            "type (enum: boolean, string, number, json)",
+            "category (varchar 50)",
+            "description (text)",
+            "is_public (boolean, default false)",
+            "updated_by (uuid, foreign key users)",
+            "created_at (timestamp)",
+            "updated_at (timestamp)"
+          ],
+          "indexes": ["key (unique)", "category", "is_public"]
         }
       },
 
-      "required_tests": [
-        "Operator login shows admin interface with restrictions",
-        "Operator cannot see admin/operator users in user management",
-        "Operator sees only assigned events in event management",
-        "Operator can manage venue/gallera users in assigned events only",
-        "Navigation hides system settings and global admin tools"
-      ]
-    },
-
-    "pwa_enhancement": {
-      "duration": "3-4 hours",
-      "business_critical": "Mobile user experience optimization for gallera attendance",
-      
-      "current_pwa_status": {
-        "manifest": "✅ Basic manifest.json with app info configured",
-        "service_worker": "✅ Basic sw.js with network fallback implemented",
-        "missing_features": ["Offline capabilities", "Push notifications", "Install prompts", "Better caching"]
-      },
-
-      "enhancement_priorities": {
-        "offline_event_viewing": {
-          "purpose": "Cache event schedules for offline viewing at galleras",
-          "implementation": "Cache strategy for GET /api/events and fight schedules"
+      "settings_categories": {
+        "system": {
+          "maintenance_mode": "boolean - Enable/disable platform access",
+          "api_rate_limit": "number - Requests per minute per user",
+          "max_concurrent_streams": "number - Maximum simultaneous streams"
         },
-        "install_prompt": {
-          "purpose": "Encourage mobile app-like installation",
-          "implementation": "BeforeInstallPrompt handling with user-friendly install dialog"
+        "features": {
+          "enable_wallets": "boolean - Enable/disable wallet system",
+          "enable_betting": "boolean - Enable/disable betting system",
+          "enable_streaming": "boolean - Enable/disable streaming features",
+          "enable_push_notifications": "boolean - Enable/disable PWA push notifications"
         },
-        "push_notifications": {
-          "purpose": "Notify users of betting windows and fight results",
-          "implementation": "Firebase FCM integration with betting event triggers"
+        "business": {
+          "commission_percentage": "number - Platform commission on bets",
+          "min_bet_amount": "number - Minimum bet amount",
+          "max_bet_amount": "number - Maximum bet amount",
+          "auto_approval_threshold": "number - Auto-approve deposits under this amount",
+          "withdrawal_daily_limit": "number - Daily withdrawal limit per user"
         },
-        "better_caching": {
-          "purpose": "Cache static assets and API responses for performance",
-          "implementation": "Workbox strategies for different content types"
+        "streaming": {
+          "default_stream_quality": "string - Default streaming quality (720p, 1080p)",
+          "max_viewers_per_stream": "number - Maximum viewers per stream",
+          "stream_buffer_seconds": "number - Stream buffer time"
         }
       },
 
-      "implementation_files": {
-        "enhance_sw.js": "Add comprehensive caching strategies and offline support",
-        "create_pwa_service": "frontend/src/services/pwaService.ts for install prompts",
-        "add_notifications": "Integration with existing SSE system for push notifications"
+      "backend_implementation": {
+        "models/SystemSetting.ts": "Sequelize model for system_settings table",
+        "services/settingsService.ts": "Settings management with Redis caching",
+        "routes/settings.ts": "Admin-only endpoints for settings CRUD",
+        "middleware/settingsMiddleware.ts": "Inject settings into request context"
+      },
+
+      "frontend_implementation": {
+        "pages/admin/Settings.tsx": "Admin settings management interface",
+        "components/admin/SettingsForm.tsx": "Form components for different setting types",
+        "hooks/useSettings.ts": "React hook for accessing settings",
+        "contexts/SettingsContext.tsx": "Global settings context for app"
       },
 
       "required_tests": [
-        "App installs correctly on mobile devices",
-        "Basic functionality works offline (view cached events)",
-        "Install prompt appears on eligible devices",
-        "Push notifications work for betting events",
-        "Performance metrics improved on mobile"
+        "Settings CRUD operations work correctly",
+        "Redis caching improves settings access performance",
+        "Feature toggles (wallets/betting) work in real-time",
+        "Non-admin users cannot access settings endpoints",
+        "Settings validation prevents invalid configurations"
       ]
     },
 
-    "final_optimizations": {
+    "production_pwa_deployment": {
+      "duration": "3-4 hours", 
+      "business_critical": "PWA requires HTTPS for full functionality",
+
+      "vapid_keys_setup": {
+        "generate_keys": "Use web-push library: web-push generate-vapid-keys",
+        "environment_vars": "VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL in production",
+        "frontend_config": "Update pushNotificationService.ts with production VAPID public key",
+        "backend_integration": "Ensure push.ts routes use production VAPID configuration"
+      },
+
+      "deployment_requirements": {
+        "https_mandatory": "PWA service worker requires HTTPS for push notifications",
+        "manifest_validation": "Update manifest.json with production domain URLs",
+        "service_worker_scope": "Ensure sw-enhanced.js works with production paths",
+        "cors_configuration": "Update CORS for production frontend domain"
+      },
+
+      "production_environment": {
+        "vercel_frontend": "Deploy frontend with automatic HTTPS",
+        "railway_backend": "Deploy backend with Redis add-on enabled",
+        "environment_variables": "Configure all production environment variables",
+        "domain_setup": "Custom domains with SSL certificates"
+      }
+    },
+
+    "settings_integration_optimization": {
       "duration": "2-3 hours",
-      "business_critical": "Production readiness and performance optimization",
-      
-      "optimization_areas": {
-        "database_queries": {
-          "focus": "Optimize frequent queries with proper indexing",
-          "actions": ["Add indexes on frequently queried fields", "Optimize N+1 queries", "Add query result caching"]
-        },
-        "api_response_caching": {
-          "focus": "Cache static/semi-static API responses",
-          "actions": ["Cache event lists", "Cache user profiles", "Cache fight schedules"]
-        },
-        "frontend_performance": {
-          "focus": "Optimize React rendering and bundle size",
-          "actions": ["Lazy load admin components", "Optimize image loading", "Reduce bundle size"]
-        },
-        "security_hardening": {
-          "focus": "Production security measures",
-          "actions": ["Rate limiting", "Input sanitization review", "JWT security review"]
-        }
+      "business_critical": "Integrate settings system with existing features",
+
+      "feature_integration": {
+        "wallet_endpoints": "Check 'enable_wallets' setting before processing wallet operations",
+        "betting_endpoints": "Check 'enable_betting' setting before accepting bets",
+        "streaming_controls": "Use streaming settings for quality and viewer limits",
+        "push_notifications": "Respect 'enable_push_notifications' setting"
       },
 
-      "required_tests": [
-        "Load testing with 100+ concurrent users",
-        "Database performance under betting load",
-        "Security scan for common vulnerabilities",
-        "Mobile performance metrics",
-        "Production deployment smoke tests"
+      "middleware_integration": {
+        "settingsMiddleware": "Inject current settings into req.settings for all routes",
+        "featureGate": "Middleware to block disabled features with appropriate errors",
+        "cachingStrategy": "Redis cache for settings with 5-minute TTL"
+      }
+    }
+  },
+
+  "database_migration": {
+    "create_system_settings_table": {
+      "sql": "CREATE TABLE system_settings (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), key VARCHAR(100) UNIQUE NOT NULL, value JSONB NOT NULL, type VARCHAR(20) NOT NULL, category VARCHAR(50) NOT NULL, description TEXT, is_public BOOLEAN DEFAULT false, updated_by UUID REFERENCES users(id), created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());",
+      "indexes": "CREATE INDEX idx_system_settings_category ON system_settings(category); CREATE INDEX idx_system_settings_public ON system_settings(is_public);"
+    },
+    "seed_default_settings": {
+      "purpose": "Insert default system settings for immediate functionality",
+      "settings": [
+        "('enable_wallets', 'true', 'boolean', 'features', 'Enable wallet system')",
+        "('enable_betting', 'true', 'boolean', 'features', 'Enable betting system')",
+        "('enable_streaming', 'true', 'boolean', 'features', 'Enable streaming features')",
+        "('maintenance_mode', 'false', 'boolean', 'system', 'Platform maintenance mode')",
+        "('commission_percentage', '5', 'number', 'business', 'Platform commission percentage')",
+        "('min_bet_amount', '1', 'number', 'business', 'Minimum bet amount')",
+        "('max_bet_amount', '10000', 'number', 'business', 'Maximum bet amount')"
       ]
     }
   },
 
-  "file_level_specifications": {
-    "operator_admin_integration": {
-      "modify_existing_files": {
-        "layouts/AdminLayout.tsx": {
-          "current_functionality": "Admin navigation and layout",
-          "required_changes": "Add operator role support with conditional menu items",
-          "approach": "if (user.role === 'operator') hide SystemSettings, UserAdmin, OperatorAdmin"
-        },
-        "components/admin/UserManagement.tsx": {
-          "current_functionality": "Manage all users",
-          "required_changes": "Filter users by operator assignments",
-          "approach": "Filter users where user.role in ['venue', 'gallera'] AND events assigned to operator"
-        },
-        "backend/src/middleware/auth.ts": {
-          "current_functionality": "Authentication and basic authorization",
-          "required_changes": "Add operator data filtering middleware",
-          "approach": "New middleware filterByOperatorAssignment() for data access control"
-        }
-      }
+  "admin_settings_interface": {
+    "settings_categories_ui": {
+      "system_settings": "Maintenance mode, rate limits, concurrent users",
+      "feature_toggles": "Enable/disable wallets, betting, streaming, notifications",
+      "business_configuration": "Commission rates, bet limits, approval thresholds",
+      "streaming_configuration": "Quality settings, viewer limits, buffer time"
     },
-
-    "pwa_enhancement": {
-      "modify_existing_files": {
-        "frontend/public/sw.js": {
-          "current_functionality": "Basic fetch handling with network fallback",
-          "required_changes": "Add comprehensive caching strategies",
-          "approach": "Implement cache-first for assets, network-first for API, offline fallbacks"
-        },
-        "frontend/public/manifest.json": {
-          "current_functionality": "Basic PWA manifest",
-          "required_changes": "Add better icons, shortcuts, and display options",
-          "approach": "Add proper icon sizes, more shortcuts, better theme colors"
-        }
-      },
-      "create_new_files": {
-        "frontend/src/services/pwaService.ts": {
-          "purpose": "Handle PWA install prompts and notifications",
-          "functionality": "Install prompt management, push notification setup"
-        },
-        "frontend/src/hooks/usePWA.ts": {
-          "purpose": "React hook for PWA functionality",
-          "functionality": "Install state, notification permissions, offline status"
-        }
-      }
+    "ui_components": {
+      "toggle_switches": "For boolean settings (enable/disable features)",
+      "number_inputs": "For numeric settings with validation",
+      "select_dropdowns": "For enum settings (quality, etc.)",
+      "json_editor": "For complex configuration objects"
+    },
+    "validation_rules": {
+      "business_logic": "Commission 0-20%, bet amounts 1-100000, limits > 0",
+      "feature_dependencies": "Cannot disable wallets if betting enabled",
+      "production_safety": "Confirm dangerous changes (maintenance mode)"
     }
-  },
-
-  "testing_strategy": {
-    "operator_integration_tests": [
-      "Login as operator → verify admin interface loads",
-      "Check navigation → system settings hidden",
-      "User management → only venue/gallera users visible",
-      "Event management → only assigned events visible",
-      "Fight management → can control fights in assigned events only"
-    ],
-    "pwa_functionality_tests": [
-      "Mobile device → install prompt appears",
-      "Install app → functions as standalone app",
-      "Offline → cached events viewable",
-      "Push notifications → betting alerts work",
-      "Performance → mobile metrics acceptable"
-    ],
-    "end_to_end_workflow_tests": [
-      "Complete operator workflow: login → manage event → control fights → handle betting",
-      "Complete user workflow: register → subscribe → view stream → place bets",
-      "System under load: 50+ concurrent users betting on live fight"
-    ]
   },
 
   "success_criteria": [
-    "✅ PWA installs correctly on mobile devices - Service worker implementado",
-    "✅ Basic offline functionality works for cached content - Caching strategies implementadas", 
-    "✅ Push notifications work for betting events - Sistema completo implementado",
-    "✅ System performs well under concurrent user load - Redis caching optimiza performance",
-    "✅ All security validations pass - CORS, autenticación, validation implementados",
-    "⏳ Operator admin interface - Pendiente para siguiente fase (90% arquitectura lista)",
-    "✅ API response optimization - Middleware de cache implementado",
-    "✅ Service worker advanced caching - Network/Cache first strategies"
+    "✅ Admin can enable/disable wallets and betting via settings interface",
+    "✅ Settings changes take effect immediately without redeployment",
+    "✅ PWA deploys to production with HTTPS and full push notification functionality", 
+    "✅ Settings system replaces critical environment variables",
+    "✅ Redis caching optimizes settings access performance",
+    "✅ Feature toggles work across all system endpoints",
+    "✅ Production deployment supports real mobile device testing"
   ],
 
-  "implementation_phases": {
-    "immediate_phase": [
-      "Integrate operator role into admin interface (Days 1-2)",
-      "Add role-based restrictions and data filtering (Days 2-3)",
-      "Test operator workflow in admin interface (Day 3)"
-    ],
-    "enhancement_phase": [
-      "Enhance PWA capabilities with offline support (Days 4-5)", 
-      "Add install prompts and push notifications (Day 5)",
-      "Performance optimizations and caching (Day 6)"
-    ],
-    "validation_phase": [
-      "Comprehensive testing with real users (Day 7)",
-      "Load testing and security review (Day 7)",
-      "Production deployment preparation (Day 7)"
-    ]
-  },
+  "immediate_next_steps": [
+    "1. Create system_settings table migration and seed default values",
+    "2. Implement SystemSetting model and settingsService with Redis caching",
+    "3. Create admin Settings.tsx interface with categorized configuration",
+    "4. Integrate feature gates in wallet and betting endpoints",
+    "5. Generate production VAPID keys and configure environment variables",
+    "6. Deploy to production with HTTPS and test PWA functionality on real devices",
+    "7. Replace critical environment variables with settings system",
+    "8. Test end-to-end: admin changes settings → features enable/disable in real-time"
+  ],
 
   "tool_execution_sequence": {
     "claude_code_priority": [
-      "Enhance backend auth middleware for operator data filtering",
-      "Optimize database queries and add caching",
-      "Enhance service worker with comprehensive caching strategies"
+      "Create system_settings table migration and SystemSetting model",
+      "Implement settingsService with Redis caching and validation",
+      "Create settings middleware and feature gate integration",
+      "Generate VAPID keys and configure production environment"
     ],
     "gemini_cli_priority": [
-      "Modify AdminLayout.tsx for operator role support",
-      "Update admin components with role-based conditionals",
-      "Create PWA service and hooks for enhanced functionality",
-      "Add install prompts and notification handling"
+      "Create admin Settings.tsx page with categorized interface",
+      "Implement SettingsForm components for different setting types",
+      "Create useSettings hook and SettingsContext for global access",
+      "Update manifest.json and service worker for production deployment"
     ]
   },
 
-  "immediate_next_steps": [
-    "✅ COMPLETADO - Enhanced PWA service worker with advanced caching strategies",
-    "✅ COMPLETADO - Push notification system fully implemented and tested",
-    "✅ COMPLETADO - Performance optimizations with Redis caching middleware",
-    "✅ COMPLETADO - Comprehensive testing suite for PWA functionality",
-    "📋 PRÓXIMO - Configure VAPID keys in production environment variables",
-    "📋 PRÓXIMO - Implement operator role support in AdminLayout.tsx (architecture ready)",
-    "📋 PRÓXIMO - Deploy to production environment with SSL/HTTPS for PWA features",
-    "📋 PRÓXIMO - Load testing with real users to validate caching performance"
-  ],
-  
-  "recomendaciones_siguientes_pasos": {
-    "produccion": {
-      "vapid_keys": "Generar y configurar VAPID keys reales para push notifications en producción",
-      "redis_setup": "Configurar Redis URL en producción para activar caching completo",
-      "https_requirement": "PWA requiere HTTPS - configurar SSL para manifestar service worker",
-      "performance_monitoring": "Implementar métricas para monitor cache hit rates y push delivery"
-    },
-    "features_adicionales": {
-      "offline_betting": "Expandir background sync para permitir apuestas offline completas",
-      "notification_customization": "Permitir usuarios customizar tipos de notificaciones que reciben",
-      "cache_strategies": "Fine-tune TTL values basado en patrones de uso real",
-      "pwa_install_banner": "Implementar custom install prompt para mejorar conversion rate"
-    },
-    "testing_adicional": {
-      "device_testing": "Testing en dispositivos móviles reales (iOS/Android)",
-      "network_conditions": "Testing bajo diferentes condiciones de red (slow 3G, offline)",
-      "stress_testing": "Load testing con múltiples usuarios simultáneos usando PWA",
-      "notification_testing": "Testing de push notifications en diferentes browsers"
-    }
-  },
-
   "risk_mitigation": {
-    "operator_access_control": "Use whitelist approach for operator permissions to prevent privilege escalation",
-    "pwa_compatibility": "Progressive enhancement approach - PWA features enhance but don't break basic functionality",
-    "performance_impact": "Implement caching incrementally to avoid introducing new bugs",
-    "production_readiness": "Comprehensive testing in staging environment before production deployment"
+    "settings_validation": "Prevent invalid configurations that could break system functionality",
+    "feature_dependencies": "Validate feature relationships before allowing changes",
+    "production_deployment": "Staging environment testing before production deployment",
+    "cache_invalidation": "Proper Redis cache invalidation when settings change"
   }
 }

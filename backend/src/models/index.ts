@@ -12,6 +12,7 @@ import { connectDatabase } from "../config/database";
 // ✅ AGREGAR IMPORT (al inicio del archivo)
 import Notification from "./Notification";
 import { Article } from "./Article";
+import { SystemSetting } from './SystemSetting';
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -153,6 +154,10 @@ Article.belongsTo(User, { foreignKey: "author_id", as: "author" });
 Venue.hasMany(Article, { foreignKey: "venue_id", as: "articles" });
 Article.belongsTo(Venue, { foreignKey: "venue_id", as: "venue" });
 
+// User -> SystemSetting (One-to-Many)
+User.hasMany(SystemSetting, { foreignKey: "updated_by", as: "updatedSettings" });
+SystemSetting.belongsTo(User, { foreignKey: "updated_by", as: "updatedByUser" });
+
 console.log("✅ Asociaciones configuradas correctamente");
 
 // ========================================
@@ -170,6 +175,7 @@ export {
   Subscription,
   Notification,
   Article,
+  SystemSetting,
   connectDatabase,
 };
 
@@ -234,6 +240,7 @@ export default {
   Subscription,
   Notification,
   Article,
+  SystemSetting,
   syncModels,
   checkAssociations,
   ModelUtils,

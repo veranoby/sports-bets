@@ -32,30 +32,29 @@
       "Connection registry pattern for managing multiple SSE clients"
     ]
   },
-  "phase_3_priorities": {
+  "phase_4_priorities": {
     "status": "active",
-    "phase_name": "Operator Admin Integration + PWA Enhancement + Final Optimizations", 
-    "total_estimated_hours": 10,
-    "verification_complete": "✅ Core systems confirmed implemented - betting, WebSocket, SSE all functional",
-    "P0_operator_admin_integration": {
+    "phase_name": "Global Settings System + Production PWA Deployment", 
+    "total_estimated_hours": 14,
+    "operator_admin_confirmed": "✅ YA IMPLEMENTADO - AdminSidebar filtering + Users.tsx data filtering working correctly",
+    "P0_global_settings_system": {
       "status": "active",
       "priority": "P0",
-      "description": "Integrate operator role into admin interface with access restrictions (same UI, not separate)",
-      "estimated_hours": 5,
-      "approach": "Role-based conditionals in existing admin components, like venues/galleras pattern",
-      "dependencies": ["All core systems verified complete ✅"]
+      "description": "Admin settings interface to enable/disable wallets/betting vs environment variables",
+      "estimated_hours": 8,
+      "features": ["system_settings table", "admin interface", "feature toggles", "Redis caching"]
     },
-    "P1_pwa_enhancement": {
+    "P0_production_pwa_deployment": {
       "status": "planned",
-      "priority": "P1",
-      "description": "Enhance PWA capabilities - offline support, install prompts, push notifications",
+      "priority": "P0",
+      "description": "Deploy PWA to production with HTTPS, VAPID keys, full functionality",
       "estimated_hours": 4,
-      "current_state": "Basic PWA ✅ (manifest.json + sw.js), needs enhancement"
+      "requirements": ["HTTPS mandatory", "Production VAPID keys", "Real device testing"]
     },
-    "P1_final_optimizations": {
+    "P1_settings_integration": {
       "status": "planned", 
       "priority": "P1",
-      "description": "Performance optimization, security hardening, production readiness",
+      "description": "Integrate settings system with existing wallet/betting endpoints",
       "estimated_hours": 3
     }
   },

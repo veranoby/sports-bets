@@ -6,8 +6,12 @@ import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
 import { Op, fn, col } from "sequelize";
+import { requireWallets, injectCommissionSettings } from "../middleware/settingsMiddleware";
 
 const router = Router();
+
+// Apply wallet feature gate to all routes
+router.use(requireWallets);
 
 // GET /api/wallet - Obtener información del wallet del usuario
 router.get(

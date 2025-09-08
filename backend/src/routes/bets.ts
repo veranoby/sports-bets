@@ -5,8 +5,12 @@ import { Bet, Fight, Event, User, Wallet, Transaction } from "../models";
 import { body, validationResult } from "express-validator";
 import { transaction } from "../config/database";
 import { Op } from "sequelize";
+import { requireBetting, enforceBetLimits, injectCommissionSettings } from "../middleware/settingsMiddleware";
 
 const router = Router();
+
+// Apply betting feature gate to all routes
+router.use(requireBetting);
 
 // GET /api/bets - Listar apuestas del usuario
 router.get(
@@ -97,6 +101,8 @@ router.get(
 router.post(
   "/",
   authenticate,
+  enforceBetLimits,
+  injectCommissionSettings,
   [
     body("fightId").isUUID().withMessage("Valid fight ID is required"),
     body("side").isIn(["red", "blue"]).withMessage("Side must be red or blue"),
@@ -242,6 +248,7 @@ router.post(
 router.post(
   "/:id/accept",
   authenticate,
+  injectCommissionSettings,
   asyncHandler(async (req, res) => {
     await transaction(async (t) => {
       // Buscar la apuesta a aceptar
@@ -496,6 +503,7 @@ router.get(
 router.post(
   "/:id/propose-pago",
   authenticate,
+  enforceBetLimits,
   [
     body("pagoAmount")
       .isFloat({ min: 0.01, max: 10000 })
