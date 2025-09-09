@@ -127,14 +127,26 @@
       ]
     },
     "operator_interface": {
-      "current_status": "Planned (0% complete)",
+      "current_status": "Implemented (100% complete)",
+      "architecture_decision": "SHARED ADMIN ENVIRONMENT - Operators use admin interface with role-based restrictions",
       "key_features": [
-        "Limited admin capabilities with hierarchical restrictions",
-        "Event creation and management",
-        "Streaming controls (start/stop/monitor)",
-        "Basic user management within assigned scope"
+        "✅ Same AdminLayout with filtered navigation based on role hierarchy",
+        "✅ AdminSidebar with declarative role permissions per section",
+        "✅ Event creation and management access",
+        "✅ Streaming controls (start/stop/monitor)",
+        "✅ User management (limited to venue/gallera/user creation)",
+        "✅ Articles/News management access",
+        "✅ Venues/Galleras management access",
+        "✅ System monitoring access"
       ],
-      "technical_approach": "Extend existing admin components with permission filtering"
+      "technical_approach": "Role-based filtering in AdminSidebar.tsx with declarative permissions array",
+      "restricted_sections": ["Solicitudes", "Finanzas", "Configuración"],
+      "allowed_sections": ["Dashboard", "Usuarios", "Galleras", "Noticias", "Eventos", "Monitoreo"],
+      "implementation_notes": [
+        "No separate operator components - uses admin components with restrictions",
+        "Visual role indicator (admin=red, operator=blue)",
+        "Automatic redirection: /operator → /admin for unified experience"
+      ]
     },
     "streaming_system": {
       "current_status": "60% complete",

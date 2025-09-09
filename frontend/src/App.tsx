@@ -13,7 +13,6 @@ import { WebSocketProvider } from "./contexts/WebSocketContext";
 // Layouts por rol
 import UserLayout from "./components/layouts/UserLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
-import OperatorLayout from "./components/layouts/OperatorLayout";
 
 
 // Componentes comunes
@@ -56,9 +55,7 @@ const AdminRequests = lazy(() => import("./pages/admin/Requests"));
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
-const OperatorDashboard = lazy(() => import("./pages/operator/Dashboard"));
-const OperatorEvents = lazy(() => import("./pages/operator/Events"));
-const OperatorStream = lazy(() => import("./pages/operator/Stream"));
+// Operators use admin environment with role-based restrictions
 
 
 
@@ -79,7 +76,7 @@ const RoleBasedRedirect: React.FC = () => {
   // Redirigir según rol
   const roleRoutes = {
     admin: "/admin",
-    operator: "/operator",
+    operator: "/admin", // Operators use admin environment with restrictions
     venue: "/dashboard", // Redirect venue to user dashboard
     user: "/dashboard",
     gallera: "/dashboard", // Redirect gallera to user dashboard
@@ -139,10 +136,10 @@ const AppContent: React.FC = () => {
           <Route path="/article/:articleId" element={<ArticlePage />} />
         </Route>
 
-        {/* 🔧 RUTAS DE ADMIN - Con lazy loading */}
+        {/* 🔧 RUTAS DE ADMIN - Con lazy loading (incluye operadores con jerarquía) */}
         <Route
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin", "operator"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -264,39 +261,7 @@ const AppContent: React.FC = () => {
           />
         </Route>
 
-        {/* 🎥 RUTAS DE OPERADOR - Con lazy loading */}
-        <Route
-          element={
-            <ProtectedRoute allowedRoles={["operator"]}>
-              <OperatorLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route
-            path="/operator"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <OperatorDashboard />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/operator/events"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <OperatorEvents />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/operator/stream/:eventId"
-            element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <OperatorStream />
-              </Suspense>
-            }
-          />
-        </Route>
+        {/* Operators use admin routes with role-based restrictions */}
 
         
 

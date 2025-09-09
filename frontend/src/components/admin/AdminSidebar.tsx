@@ -19,34 +19,22 @@ const AdminSidebar = memo(() => {
   const { user, logout } = useAuth();
 
   const allNavItems = [
-    { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/admin/users", icon: Users, label: "Usuarios" },
-    { path: "/admin/venues", icon: Building2, label: "Galleras" },
-    { path: "/admin/articles", icon: FileText, label: "Noticias" },
-    { path: "/admin/events", icon: Calendar, label: "Eventos ⭐" },
-    { path: "/admin/requests", icon: DollarSign, label: "Solicitudes" },
-    { path: "/admin/finance", icon: TrendingUp, label: "Finanzas" },
-    { path: "/admin/monitoring", icon: Server, label: "Monitoreo" },
-    { path: "/admin/settings", icon: Settings, label: "Configuración" },
+    { path: "/admin", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "operator"] },
+    { path: "/admin/users", icon: Users, label: "Usuarios", roles: ["admin", "operator"] },
+    { path: "/admin/venues", icon: Building2, label: "Galleras", roles: ["admin", "operator"] },
+    { path: "/admin/articles", icon: FileText, label: "Noticias", roles: ["admin", "operator"] },
+    { path: "/admin/events", icon: Calendar, label: "Eventos ⭐", roles: ["admin", "operator"] },
+    { path: "/admin/requests", icon: DollarSign, label: "Solicitudes", roles: ["admin"] },
+    { path: "/admin/finance", icon: TrendingUp, label: "Finanzas", roles: ["admin"] },
+    { path: "/admin/monitoring", icon: Server, label: "Monitoreo", roles: ["admin", "operator"] },
+    { path: "/admin/settings", icon: Settings, label: "Configuración", roles: ["admin"] },
   ];
 
   const navItems = (() => {
-    switch (user?.role) {
-      case 'admin':
-        return allNavItems;
-      case 'operator': {
-        const allowedPaths = [
-          '/admin',
-          '/admin/events',
-          '/admin/users',
-          '/admin/venues',
-          '/admin/monitoring',
-        ];
-        return allNavItems.filter(item => allowedPaths.includes(item.path));
-      }
-      default:
-        return [];
-    }
+    if (!user?.role) return [];
+    
+    // Filter items based on role permissions
+    return allNavItems.filter(item => item.roles.includes(user.role));
   })();
 
   const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Invitado';
@@ -55,7 +43,9 @@ const AdminSidebar = memo(() => {
     <aside className="w-64 bg-gray-300 min-h-screen flex flex-col">
       <div className="p-4 flex-1">
         <h2 className="text-gray-600 text-lg font-bold mb-2">GalloBets Admin</h2>
-        <div className="mb-6 bg-gray-700 text-white px-2 py-1 rounded-md text-center">
+        <div className={`mb-6 text-white px-2 py-1 rounded-md text-center ${
+          user?.role === 'admin' ? 'bg-red-600' : 'bg-blue-600'
+        }`}>
           <span className="font-semibold">{userRole}</span>
         </div>
         <nav className="space-y-2">

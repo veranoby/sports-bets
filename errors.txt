@@ -1,4 +1,11 @@
-api.ts:422  GET http://localhost:3001/api/articles?author_id=1401acf5-20d6-414a-b3c1-e8963b9cb1a6&limit=100&includeAuthor=true 400 (Bad Request)
+[plugin:vite:import-analysis] Failed to resolve import "./pages/operator/Dashboard" from "src/App.tsx". Does the file exist?
+/home/veranoby/sports-bets/frontend/src/App.tsx:59:44
+66 |  const CreateEvent = lazy(_c21 = () => import("./pages/admin/CreateEvent"));
+67 |  _c22 = CreateEvent;
+68 |  const OperatorDashboard = lazy(_c23 = () => import("./pages/operator/Dashboard"));
+   |                                                     ^
+69 |  _c24 = OperatorDashboard;
+70 |  const OperatorEvents = lazy(_c25 = () => import("./pages/operator/Events"));
 
-api.ts:35 API Error: {error: true, message: 'Invalid parameters', statusCode: 400, stack: 'Error: Invalid parameters\n    at createError (E:\\D…nd\\node_modules\\express\\lib\\router\\layer.js:95:5)'}
+
 

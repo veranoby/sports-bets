@@ -1,0 +1,96 @@
+{
+  "metadata": {
+    "purpose": "Documented lessons learned and prevention strategies for future development",
+    "updated": "2025-09-09",
+    "version": "1.0",
+    "cross_references": ["backlog.json", "sdd_system.json"]
+  },
+  "critical_lessons": {
+    "operator_environment_architecture": {
+      "date": "2025-09-09",
+      "error_description": "Created standalone operator components (/pages/operator/) instead of using admin environment with role hierarchy",
+      "correct_approach": "Operators use admin interface with role-based filtering in AdminSidebar.tsx",
+      "root_cause_analysis": [
+        "Misinterpreted requirement - assumed 'operator environment' meant separate UI",
+        "Did not analyze existing AdminSidebar hierarchy system before implementation",
+        "Reacted to missing import errors without understanding architectural context"
+      ],
+      "prevention_strategy": {
+        "before_component_creation": [
+          "Check existing AdminSidebar.tsx for role hierarchy patterns",
+          "Verify App.tsx routing architecture for role-based access",
+          "Understand 'environment' vs 'separate interface' distinction",
+          "Read brain files (sdd_system.json) for architectural decisions"
+        ],
+        "analysis_first_approach": [
+          "When encountering missing component errors, analyze WHY they're missing",
+          "Question if separate components are needed vs extending existing ones",
+          "Consult with user about architecture before creating new patterns"
+        ]
+      },
+      "correct_implementation": {
+        "AdminSidebar_pattern": "Declarative role permissions: { path, icon, label, roles: ['admin', 'operator'] }",
+        "routing_pattern": "Single admin routes with allowedRoles: ['admin', 'operator']",
+        "visual_indicators": "Role-based styling (admin=red, operator=blue badges)",
+        "access_control": "Filter navigation items based on user.role inclusion in roles array"
+      }
+    }
+  },
+  "development_principles": {
+    "architecture_first": {
+      "rule": "Always analyze existing architecture before creating new components",
+      "tools": [
+        "Read AdminSidebar.tsx for role patterns",
+        "Check App.tsx for routing architecture", 
+        "Review brain/*.json files for documented decisions",
+        "Understand user role hierarchy from existing code"
+      ]
+    },
+    "shared_vs_separate": {
+      "rule": "Default to extending existing interfaces with restrictions vs creating separate ones",
+      "benefits": [
+        "Consistent user experience across roles",
+        "Reduced code duplication",
+        "Easier maintenance and updates",
+        "Single source of truth for UI patterns"
+      ]
+    },
+    "error_investigation": {
+      "rule": "Investigate WHY components are missing before creating them",
+      "process": [
+        "Analyze the error context and architectural fit",
+        "Check if existing components can be extended",
+        "Verify if separate components align with system design",
+        "Consult documentation and user requirements"
+      ]
+    }
+  },
+  "implementation_patterns": {
+    "role_based_ui_filtering": {
+      "pattern_name": "Declarative Role Permissions",
+      "implementation": "Array-based role checking: item.roles.includes(user.role)",
+      "example": "{ path: '/admin/articles', roles: ['admin', 'operator'] }",
+      "benefits": ["Easy to maintain", "Self-documenting", "Scalable for new roles"]
+    },
+    "unified_admin_environment": {
+      "pattern_name": "Single Interface with Role Restrictions",
+      "approach": "Same components, different permissions based on user.role",
+      "visual_differentiation": "Role badges, conditional styling, restricted sections",
+      "navigation_control": "Filtered sidebar items, conditional route access"
+    }
+  },
+  "quality_gates": {
+    "before_new_components": [
+      "✅ Analyze existing similar components",
+      "✅ Check brain files for architectural guidance",
+      "✅ Verify role hierarchy requirements", 
+      "✅ Consider extension vs creation trade-offs"
+    ],
+    "role_based_features": [
+      "✅ Use declarative role arrays for permissions",
+      "✅ Implement visual role differentiation",
+      "✅ Test with different user roles",
+      "✅ Document role restrictions clearly"
+    ]
+  }
+}
