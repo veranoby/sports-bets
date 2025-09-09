@@ -33,8 +33,9 @@ export const authenticate = async (
       throw errors.unauthorized('Invalid token or user inactive');
     }
 
-    // lastLogin is only updated during actual login in auth.ts
-    // Removed excessive database updates per request
+    // Actualizar último acceso
+    user.lastLogin = new Date();
+    await user.save();
 
     req.user = user;
     next();

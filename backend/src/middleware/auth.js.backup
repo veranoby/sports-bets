@@ -28,8 +28,9 @@ const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!user || !user.isActive) {
             throw errorHandler_1.errors.unauthorized('Invalid token or user inactive');
         }
-        // lastLogin is only updated during actual login in auth.ts
-        // Removed excessive database updates per request
+        // Actualizar último acceso
+        user.lastLogin = new Date();
+        yield user.save();
         req.user = user;
         next();
     }

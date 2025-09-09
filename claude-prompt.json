@@ -1,220 +1,110 @@
 {
-  "metadata": {
-    "purpose": "Phase 4: Global Settings System + Production Deployment",
-    "updated": "2025-09-07",
-    "project_status": "Phase 4: System settings implementation + Production deployment", 
-    "critical_focus": "Create admin global settings system, deploy PWA to production with HTTPS",
-    "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
-    "verification_corrected": "✅ Operator admin integration already implemented - AdminSidebar + Users filtering working"
+  "instructions": {
+    "priority": "P0_CRITICAL_PERFORMANCE_FIX",
+    "project": "GalloBets - Database Performance Optimization",
+    "critical_issue": "users table excessive updates (140x ratio)",
+    "timeline": "2-4 hours",
+    "context": "Authentication middleware causing 842 updates vs 6 inserts on users table"
   },
   
-  "implementation_context": {
-    "operator_admin_status": "✅ ALREADY IMPLEMENTED - AdminSidebar role filtering + Users.tsx data filtering working correctly",
-    "pwa_phase_3_completed": "✅ PWA fully functional - push notifications, service worker, Redis caching implemented",
-    "new_priority": "Global settings system to replace environment variables with admin-controlled configuration",
-    "immediate_priorities": [
-      "Create admin global settings system for wallets/bets enable/disable",
-      "Deploy PWA to production with HTTPS and VAPID keys",
-      "Optimize system with global settings integration"
-    ]
-  },
-
-  "critical_implementations_p0": {
-    "global_settings_system": {
-      "duration": "6-8 hours",
-      "business_critical": "Replace environment variables with admin-controlled settings for operational flexibility",
-      
-      "database_structure": {
-        "system_settings_table": {
-          "columns": [
-            "id (uuid)",
-            "key (varchar 100, unique)",
-            "value (jsonb)",
-            "type (enum: boolean, string, number, json)",
-            "category (varchar 50)",
-            "description (text)",
-            "is_public (boolean, default false)",
-            "updated_by (uuid, foreign key users)",
-            "created_at (timestamp)",
-            "updated_at (timestamp)"
-          ],
-          "indexes": ["key (unique)", "category", "is_public"]
-        }
-      },
-
-      "settings_categories": {
-        "system": {
-          "maintenance_mode": "boolean - Enable/disable platform access",
-          "api_rate_limit": "number - Requests per minute per user",
-          "max_concurrent_streams": "number - Maximum simultaneous streams"
-        },
-        "features": {
-          "enable_wallets": "boolean - Enable/disable wallet system",
-          "enable_betting": "boolean - Enable/disable betting system",
-          "enable_streaming": "boolean - Enable/disable streaming features",
-          "enable_push_notifications": "boolean - Enable/disable PWA push notifications"
-        },
-        "business": {
-          "commission_percentage": "number - Platform commission on bets",
-          "min_bet_amount": "number - Minimum bet amount",
-          "max_bet_amount": "number - Maximum bet amount",
-          "auto_approval_threshold": "number - Auto-approve deposits under this amount",
-          "withdrawal_daily_limit": "number - Daily withdrawal limit per user"
-        },
-        "streaming": {
-          "default_stream_quality": "string - Default streaming quality (720p, 1080p)",
-          "max_viewers_per_stream": "number - Maximum viewers per stream",
-          "stream_buffer_seconds": "number - Stream buffer time"
-        }
-      },
-
-      "backend_implementation": {
-        "models/SystemSetting.ts": "Sequelize model for system_settings table",
-        "services/settingsService.ts": "Settings management with Redis caching",
-        "routes/settings.ts": "Admin-only endpoints for settings CRUD",
-        "middleware/settingsMiddleware.ts": "Inject settings into request context"
-      },
-
-      "frontend_implementation": {
-        "pages/admin/Settings.tsx": "Admin settings management interface",
-        "components/admin/SettingsForm.tsx": "Form components for different setting types",
-        "hooks/useSettings.ts": "React hook for accessing settings",
-        "contexts/SettingsContext.tsx": "Global settings context for app"
-      },
-
-      "required_tests": [
-        "Settings CRUD operations work correctly",
-        "Redis caching improves settings access performance",
-        "Feature toggles (wallets/betting) work in real-time",
-        "Non-admin users cannot access settings endpoints",
-        "Settings validation prevents invalid configurations"
+  "work_phases": {
+    "phase_1_diagnosis": {
+      "name": "Auth Code Analysis",
+      "duration": "45 minutes",
+      "files_to_analyze": [
+        "backend/src/middleware/auth.ts",
+        "backend/src/routes/auth.ts", 
+        "backend/src/controllers/authController.ts",
+        "backend/src/models/User.ts"
+      ],
+      "objectives": [
+        "Identify where last_login updates occur",
+        "Check if update happens on every authenticated request",
+        "Document current auth flow"
+      ],
+      "commands": [
+        "cd /home/veranoby/sports-bets",
+        "find backend/src -name '*.ts' -exec grep -l 'last_login' {} \\;",
+        "find backend/src -name '*.ts' -exec grep -l 'UPDATE.*users' {} \\;",
+        "grep -r 'last_login' backend/src/ --include='*.ts'"
       ]
     },
 
-    "production_pwa_deployment": {
-      "duration": "3-4 hours", 
-      "business_critical": "PWA requires HTTPS for full functionality",
-
-      "vapid_keys_setup": {
-        "generate_keys": "Use web-push library: web-push generate-vapid-keys",
-        "environment_vars": "VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL in production",
-        "frontend_config": "Update pushNotificationService.ts with production VAPID public key",
-        "backend_integration": "Ensure push.ts routes use production VAPID configuration"
-      },
-
-      "deployment_requirements": {
-        "https_mandatory": "PWA service worker requires HTTPS for push notifications",
-        "manifest_validation": "Update manifest.json with production domain URLs",
-        "service_worker_scope": "Ensure sw-enhanced.js works with production paths",
-        "cors_configuration": "Update CORS for production frontend domain"
-      },
-
-      "production_environment": {
-        "vercel_frontend": "Deploy frontend with automatic HTTPS",
-        "railway_backend": "Deploy backend with Redis add-on enabled",
-        "environment_variables": "Configure all production environment variables",
-        "domain_setup": "Custom domains with SSL certificates"
-      }
+    "phase_2_fix_implementation": {
+      "name": "Optimize Auth Updates", 
+      "duration": "90 minutes",
+      "strategy": "Only update last_login on actual login, not every request",
+      "changes_required": [
+        "Modify auth middleware to NOT update last_login on token validation",
+        "Ensure last_login only updates on POST /auth/login",
+        "Add session-based update throttling (max 1 update per hour)"
+      ],
+      "performance_target": "Reduce users table updates by 95%"
     },
 
-    "settings_integration_optimization": {
-      "duration": "2-3 hours",
-      "business_critical": "Integrate settings system with existing features",
-
-      "feature_integration": {
-        "wallet_endpoints": "Check 'enable_wallets' setting before processing wallet operations",
-        "betting_endpoints": "Check 'enable_betting' setting before accepting bets",
-        "streaming_controls": "Use streaming settings for quality and viewer limits",
-        "push_notifications": "Respect 'enable_push_notifications' setting"
-      },
-
-      "middleware_integration": {
-        "settingsMiddleware": "Inject current settings into req.settings for all routes",
-        "featureGate": "Middleware to block disabled features with appropriate errors",
-        "cachingStrategy": "Redis cache for settings with 5-minute TTL"
-      }
-    }
-  },
-
-  "database_migration": {
-    "create_system_settings_table": {
-      "sql": "CREATE TABLE system_settings (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), key VARCHAR(100) UNIQUE NOT NULL, value JSONB NOT NULL, type VARCHAR(20) NOT NULL, category VARCHAR(50) NOT NULL, description TEXT, is_public BOOLEAN DEFAULT false, updated_by UUID REFERENCES users(id), created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());",
-      "indexes": "CREATE INDEX idx_system_settings_category ON system_settings(category); CREATE INDEX idx_system_settings_public ON system_settings(is_public);"
+    "phase_3_testing": {
+      "name": "Validation & Testing",
+      "duration": "30 minutes", 
+      "tests": [
+        "Test login flow still updates last_login",
+        "Test authenticated requests do NOT update last_login",
+        "Verify pg_stat_user_tables improvements",
+        "Test multiple users concurrent login"
+      ],
+      "validation_sql": "SELECT n_tup_upd, n_tup_ins FROM pg_stat_user_tables WHERE relname = 'users'"
     },
-    "seed_default_settings": {
-      "purpose": "Insert default system settings for immediate functionality",
-      "settings": [
-        "('enable_wallets', 'true', 'boolean', 'features', 'Enable wallet system')",
-        "('enable_betting', 'true', 'boolean', 'features', 'Enable betting system')",
-        "('enable_streaming', 'true', 'boolean', 'features', 'Enable streaming features')",
-        "('maintenance_mode', 'false', 'boolean', 'system', 'Platform maintenance mode')",
-        "('commission_percentage', '5', 'number', 'business', 'Platform commission percentage')",
-        "('min_bet_amount', '1', 'number', 'business', 'Minimum bet amount')",
-        "('max_bet_amount', '10000', 'number', 'business', 'Maximum bet amount')"
+
+    "phase_4_monitoring": {
+      "name": "Performance Verification",
+      "duration": "15 minutes",
+      "metrics": [
+        "Monitor update ratio after fix deployment", 
+        "Verify ratio drops to ~1:1 (1 update per login)",
+        "Test system performance improvement"
       ]
     }
   },
 
-  "admin_settings_interface": {
-    "settings_categories_ui": {
-      "system_settings": "Maintenance mode, rate limits, concurrent users",
-      "feature_toggles": "Enable/disable wallets, betting, streaming, notifications",
-      "business_configuration": "Commission rates, bet limits, approval thresholds",
-      "streaming_configuration": "Quality settings, viewer limits, buffer time"
+  "critical_files": {
+    "backend/src/middleware/auth.ts": "Primary suspect - likely updates last_login on every request",
+    "backend/src/routes/auth.ts": "Login endpoint - should be only place updating last_login",
+    "backend/src/models/User.ts": "Check for hooks that auto-update last_login"
+  },
+
+  "expected_findings": {
+    "probable_issue": "auth middleware calls user.update({last_login: new Date()}) on token validation",
+    "correct_behavior": "last_login should only update on successful POST /auth/login",
+    "performance_gain": "95% reduction in users table write operations"
+  },
+
+  "implementation_strategy": {
+    "approach": "Conservative fix with session throttling",
+    "backup": "Store current auth middleware before changes",
+    "rollback_plan": "Revert to current version if login breaks",
+    "monitoring": "Track pg_stat_user_tables for update reduction"
+  },
+
+  "database_context": {
+    "current_stats": {
+      "users_updates": 842,
+      "users_inserts": 6, 
+      "ratio": "140:1 (critical)",
+      "other_tables": "0:1 (normal)"
     },
-    "ui_components": {
-      "toggle_switches": "For boolean settings (enable/disable features)",
-      "number_inputs": "For numeric settings with validation",
-      "select_dropdowns": "For enum settings (quality, etc.)",
-      "json_editor": "For complex configuration objects"
-    },
-    "validation_rules": {
-      "business_logic": "Commission 0-20%, bet amounts 1-100000, limits > 0",
-      "feature_dependencies": "Cannot disable wallets if betting enabled",
-      "production_safety": "Confirm dangerous changes (maintenance mode)"
+    "target_stats": {
+      "expected_ratio": "1-2:1",
+      "acceptable_threshold": "Max 10:1"
     }
   },
 
-  "success_criteria": [
-    "✅ Admin can enable/disable wallets and betting via settings interface",
-    "✅ Settings changes take effect immediately without redeployment",
-    "✅ PWA deploys to production with HTTPS and full push notification functionality", 
-    "✅ Settings system replaces critical environment variables",
-    "✅ Redis caching optimizes settings access performance",
-    "✅ Feature toggles work across all system endpoints",
-    "✅ Production deployment supports real mobile device testing"
-  ],
-
-  "immediate_next_steps": [
-    "1. Create system_settings table migration and seed default values",
-    "2. Implement SystemSetting model and settingsService with Redis caching",
-    "3. Create admin Settings.tsx interface with categorized configuration",
-    "4. Integrate feature gates in wallet and betting endpoints",
-    "5. Generate production VAPID keys and configure environment variables",
-    "6. Deploy to production with HTTPS and test PWA functionality on real devices",
-    "7. Replace critical environment variables with settings system",
-    "8. Test end-to-end: admin changes settings → features enable/disable in real-time"
-  ],
-
-  "tool_execution_sequence": {
-    "claude_code_priority": [
-      "Create system_settings table migration and SystemSetting model",
-      "Implement settingsService with Redis caching and validation",
-      "Create settings middleware and feature gate integration",
-      "Generate VAPID keys and configure production environment"
-    ],
-    "gemini_cli_priority": [
-      "Create admin Settings.tsx page with categorized interface",
-      "Implement SettingsForm components for different setting types",
-      "Create useSettings hook and SettingsContext for global access",
-      "Update manifest.json and service worker for production deployment"
-    ]
+  "success_criteria": {
+    "primary": "users table update ratio drops below 10:1",
+    "secondary": "Login functionality preserved",
+    "tertiary": "System performance improvement measurable"
   },
 
-  "risk_mitigation": {
-    "settings_validation": "Prevent invalid configurations that could break system functionality",
-    "feature_dependencies": "Validate feature relationships before allowing changes",
-    "production_deployment": "Staging environment testing before production deployment",
-    "cache_invalidation": "Proper Redis cache invalidation when settings change"
+  "brain_updates_required": {
+    "backlog.json": "Mark critical_database_issue as resolved",
+    "sdd_system.json": "Update performance_optimizations with auth fix"
   }
 }
