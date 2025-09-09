@@ -14,7 +14,15 @@
         "connection_management": "Sequelize ORM with connection pooling",
         "backup_strategy": "Neon.tech automated backups + point-in-time recovery"
       },
-      "schema_version": "Current (August 2025)",
+      "schema_version": "Current (September 2025)",
+      "postgresql_version": "PostgreSQL 17.5 (aarch64-linux-gnu)",
+      "database_size": "10 MB",
+      "current_stats": {
+        "tables": 12,
+        "constraints": 158,
+        "indexes": 91,
+        "enums": 23
+      },
       "migration_strategy": "Migration-only architecture - NO sync() operations",
       "performance_optimizations": [
         "Proper indexing on foreign keys and query patterns",

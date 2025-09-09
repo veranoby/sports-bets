@@ -11,7 +11,14 @@
     "critical_blocker_identified": "backend/src/routes/sse.ts missing causing server startup failure",
     "manual_del_operador_completed": "Updated with real state, no Docker, Node Media Server alternatives",
     "rtmp_solution_confirmed": "Node Media Server (no Docker) for local development",
-    "next_phase_priorities": ["Fix sse.ts blocker", "Complete SSE architecture", "Fight status transitions", "Operator dashboard"]
+    "next_phase_priorities": ["Fix sse.ts blocker", "Complete SSE architecture", "Fight status transitions", "Operator dashboard"],
+    "critical_database_issue_identified": {
+      "table": "users",
+      "problem": "842 updates vs 6 inserts (140 updates/user)",
+      "probable_cause": "Excessive login tracking or session refresh",
+      "investigation_required": "Check auth middleware and login frequency",
+      "impact": "Performance degradation and unnecessary database load"
+    }
   },
   "phase_2b_completion": {
     "status": "completed",

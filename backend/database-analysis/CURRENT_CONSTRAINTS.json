@@ -1,3 +1,889 @@
 [{
-  "json_agg": "[{\"table_name\":\"articles\",\"constraint_name\":\"articles_author_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"articles\",\"constraint_name\":\"articles_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"articles\",\"constraint_name\":\"articles_slug_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"articles\",\"constraint_name\":\"articles_venue_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"bets\",\"constraint_name\":\"bets_fight_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"bets\",\"constraint_name\":\"bets_matched_with_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"bets\",\"constraint_name\":\"bets_parent_bet_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"bets\",\"constraint_name\":\"bets_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"bets\",\"constraint_name\":\"bets_user_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_created_by_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_operator_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_stream_key_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_stream_key_key1\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_stream_key_unique\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"events\",\"constraint_name\":\"events_venue_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"fights\",\"constraint_name\":\"fights_event_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"fights\",\"constraint_name\":\"fights_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"notifications\",\"constraint_name\":\"notifications_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"notifications\",\"constraint_name\":\"notifications_user_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"payment_transactions\",\"constraint_name\":\"payment_transactions_idempotency_key_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"payment_transactions\",\"constraint_name\":\"payment_transactions_kushki_transaction_id_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"payment_transactions\",\"constraint_name\":\"payment_transactions_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"payment_transactions\",\"constraint_name\":\"payment_transactions_subscription_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"payment_transactions\",\"constraint_name\":\"payment_transactions_user_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"schema_migrations\",\"constraint_name\":\"schema_migrations_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"subscriptions\",\"constraint_name\":\"subscriptions_kushki_subscription_id_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"subscriptions\",\"constraint_name\":\"subscriptions_kushki_subscription_id_key1\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"subscriptions\",\"constraint_name\":\"subscriptions_kushki_subscription_id_key2\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"subscriptions\",\"constraint_name\":\"subscriptions_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"subscriptions\",\"constraint_name\":\"subscriptions_user_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"transactions\",\"constraint_name\":\"transactions_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"transactions\",\"constraint_name\":\"transactions_wallet_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_email_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_email_key1\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_email_unique\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_username_key\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_username_key1\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"users\",\"constraint_name\":\"users_username_unique\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}, {\"table_name\":\"venues\",\"constraint_name\":\"venues_owner_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"venues\",\"constraint_name\":\"venues_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"wallets\",\"constraint_name\":\"wallets_pkey\",\"constraint_type\":\"PRIMARY KEY\",\"check_clause\":null}, {\"table_name\":\"wallets\",\"constraint_name\":\"wallets_user_id_fkey\",\"constraint_type\":\"FOREIGN KEY\",\"check_clause\":null}, {\"table_name\":\"wallets\",\"constraint_name\":\"wallets_user_id_unique\",\"constraint_type\":\"UNIQUE\",\"check_clause\":null}]"
+  "constraint_name": "2200_819215_11_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "view_count IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_13_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_14_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_1_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_2_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "title IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_3_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "slug IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_4_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "content IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_6_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "author_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_7_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "category IS NOT NULL"
+}, {
+  "constraint_name": "2200_819215_8_not_null",
+  "table_name": "articles",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "articles_pkey",
+  "table_name": "articles",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "articles_slug_key",
+  "table_name": "articles",
+  "constraint_type": "UNIQUE",
+  "column_names": "slug",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811249_11_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "proposal_status IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_15_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_16_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_17_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "potential_win IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_1_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_2_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_3_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "fight_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_4_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "side IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_5_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_6_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "bet_type IS NOT NULL"
+}, {
+  "constraint_name": "2200_811249_9_not_null",
+  "table_name": "bets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "bets_pkey",
+  "table_name": "bets",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811213_13_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_14_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_17_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "total_fights IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_18_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "completed_fights IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_19_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "total_bets IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_1_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_20_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "total_prize_pool IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_2_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "name IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_3_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "venue_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_5_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_by IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_6_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "scheduled_date IS NOT NULL"
+}, {
+  "constraint_name": "2200_811213_9_not_null",
+  "table_name": "events",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "events_pkey",
+  "table_name": "events",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "events_stream_key_key",
+  "table_name": "events",
+  "constraint_type": "UNIQUE",
+  "column_names": "stream_key",
+  "check_clause": null
+}, {
+  "constraint_name": "events_stream_key_key1",
+  "table_name": "events",
+  "constraint_type": "UNIQUE",
+  "column_names": "stream_key",
+  "check_clause": null
+}, {
+  "constraint_name": "events_stream_key_unique",
+  "table_name": "events",
+  "constraint_type": "UNIQUE",
+  "column_names": "stream_key",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811226_13_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_17_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_18_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_19_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "number IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_1_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_20_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "red_corner IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_21_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "blue_corner IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_22_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "weight IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_27_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "total_bets IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_28_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "total_amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_811226_2_not_null",
+  "table_name": "fights",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "event_id IS NOT NULL"
+}, {
+  "constraint_name": "fights_pkey",
+  "table_name": "fights",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_819232_10_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_11_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_1_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_2_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_3_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "type IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_4_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "title IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_5_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "message IS NOT NULL"
+}, {
+  "constraint_name": "2200_819232_7_not_null",
+  "table_name": "notifications",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "is_read IS NOT NULL"
+}, {
+  "constraint_name": "notifications_pkey",
+  "table_name": "notifications",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_819299_10_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_16_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "retry_count IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_17_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "max_retries IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_19_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_1_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_20_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_3_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_6_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "transaction_type IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_7_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "payment_method IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_8_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_819299_9_not_null",
+  "table_name": "payment_transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "currency IS NOT NULL"
+}, {
+  "constraint_name": "payment_transactions_pkey",
+  "table_name": "payment_transactions",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "payment_transactions_idempotency_key_key",
+  "table_name": "payment_transactions",
+  "constraint_type": "UNIQUE",
+  "column_names": "idempotency_key",
+  "check_clause": null
+}, {
+  "constraint_name": "payment_transactions_kushki_transaction_id_key",
+  "table_name": "payment_transactions",
+  "constraint_type": "UNIQUE",
+  "column_names": "kushki_transaction_id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_819200_1_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "version IS NOT NULL"
+}, {
+  "constraint_name": "2200_819200_2_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "description IS NOT NULL"
+}, {
+  "constraint_name": "2200_819200_3_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "executed_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819200_4_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "checksum IS NOT NULL"
+}, {
+  "constraint_name": "2200_819200_5_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819200_6_not_null",
+  "table_name": "schema_migrations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "schema_migrations_pkey",
+  "table_name": "schema_migrations",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "version",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_819245_10_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "expires_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_14_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "retry_count IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_15_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "max_retries IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_16_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "features IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_18_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_19_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_1_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_2_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_3_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "type IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_4_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_6_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "payment_method IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_7_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "auto_renew IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_8_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_819245_9_not_null",
+  "table_name": "subscriptions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "currency IS NOT NULL"
+}, {
+  "constraint_name": "subscriptions_pkey",
+  "table_name": "subscriptions",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "subscriptions_kushki_subscription_id_key",
+  "table_name": "subscriptions",
+  "constraint_type": "UNIQUE",
+  "column_names": "kushki_subscription_id",
+  "check_clause": null
+}, {
+  "constraint_name": "subscriptions_kushki_subscription_id_key1",
+  "table_name": "subscriptions",
+  "constraint_type": "UNIQUE",
+  "column_names": "kushki_subscription_id",
+  "check_clause": null
+}, {
+  "constraint_name": "subscriptions_kushki_subscription_id_key2",
+  "table_name": "subscriptions",
+  "constraint_type": "UNIQUE",
+  "column_names": "kushki_subscription_id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_843776_1_not_null",
+  "table_name": "system_settings",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_843776_2_not_null",
+  "table_name": "system_settings",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "key IS NOT NULL"
+}, {
+  "constraint_name": "2200_843776_3_not_null",
+  "table_name": "system_settings",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "value IS NOT NULL"
+}, {
+  "constraint_name": "2200_843776_4_not_null",
+  "table_name": "system_settings",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "type IS NOT NULL"
+}, {
+  "constraint_name": "2200_843776_5_not_null",
+  "table_name": "system_settings",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "category IS NOT NULL"
+}, {
+  "constraint_name": "system_settings_pkey",
+  "table_name": "system_settings",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "system_settings_key_key",
+  "table_name": "system_settings",
+  "constraint_type": "UNIQUE",
+  "column_names": "key",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811263_10_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_1_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_2_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "wallet_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_3_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "type IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_4_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_5_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_7_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "description IS NOT NULL"
+}, {
+  "constraint_name": "2200_811263_9_not_null",
+  "table_name": "transactions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "transactions_pkey",
+  "table_name": "transactions",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811186_10_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_1_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_2_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "username IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_3_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "email IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_4_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "password_hash IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_5_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "role IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_6_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "is_active IS NOT NULL"
+}, {
+  "constraint_name": "2200_811186_9_not_null",
+  "table_name": "users",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "users_pkey",
+  "table_name": "users",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "users_email_key",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "email",
+  "check_clause": null
+}, {
+  "constraint_name": "users_email_key1",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "email",
+  "check_clause": null
+}, {
+  "constraint_name": "users_email_unique",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "email",
+  "check_clause": null
+}, {
+  "constraint_name": "users_username_key",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "username",
+  "check_clause": null
+}, {
+  "constraint_name": "users_username_key1",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "username",
+  "check_clause": null
+}, {
+  "constraint_name": "users_username_unique",
+  "table_name": "users",
+  "constraint_type": "UNIQUE",
+  "column_names": "username",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811199_10_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_11_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_1_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_2_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "name IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_3_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "location IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_6_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "owner_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_7_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_811199_8_not_null",
+  "table_name": "venues",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "is_verified IS NOT NULL"
+}, {
+  "constraint_name": "venues_pkey",
+  "table_name": "venues",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_811239_1_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811239_2_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_811239_3_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "balance IS NOT NULL"
+}, {
+  "constraint_name": "2200_811239_4_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "frozen_amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_811239_5_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_811239_6_not_null",
+  "table_name": "wallets",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "wallets_pkey",
+  "table_name": "wallets",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "wallets_user_id_unique",
+  "table_name": "wallets",
+  "constraint_type": "UNIQUE",
+  "column_names": "user_id",
+  "check_clause": null
 }]
