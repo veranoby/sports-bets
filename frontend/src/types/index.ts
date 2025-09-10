@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Tipos centralizados para evitar importaciones circulares
 
 export interface APIResponse<T = unknown> {
@@ -129,6 +131,41 @@ export interface Venue {
   images?: string[];
   createdAt: string;
   updatedAt: string;
+  owner?: User;
+}
+
+export interface Gallera {
+  id: string;
+  name: string;
+  location: string;
+  description?: string;
+  ownerId: string;
+  owner_id?: string;
+  specialties?: {
+    breeds?: string[];
+    trainingMethods?: string[];
+    experience?: string;
+  };
+  activeRoosters?: number;
+  active_roosters?: number;
+  fightRecord?: {
+    wins: number;
+    losses: number;
+    draws: number;
+  };
+  fight_record?: {
+    wins: number;
+    losses: number;
+    draws: number;
+  };
+  status: "pending" | "active" | "suspended" | "rejected";
+  isVerified: boolean;
+  is_verified?: boolean;
+  images?: string[];
+  createdAt: string;
+  updatedAt: string;
+  created_at?: string;
+  updated_at?: string;
   owner?: User;
 }
 

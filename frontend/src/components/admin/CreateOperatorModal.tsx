@@ -1,19 +1,21 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { usersAPI } from "../../config/api";
 import { useToast } from "../../hooks/useToast";
-import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
-import Card from "../../components/shared/Card";
-import ErrorMessage from "../../components/shared/ErrorMessage";
+import { Loader2, UserPlus } from "lucide-react";
+import ErrorMessage from "../shared/ErrorMessage";
 
-const CreateUser: React.FC = () => {
-  const navigate = useNavigate();
+interface CreateOperatorModalProps {
+  onClose: () => void;
+  onOperatorCreated: () => void;
+}
+
+const CreateOperatorModal: React.FC<CreateOperatorModalProps> = ({ onClose, onOperatorCreated }) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    role: "user", // Hardcoded to 'user'
+    role: "operator", // Hardcoded to 'operator'
     profileInfo: {
       fullName: "",
       phoneNumber: "",
@@ -21,8 +23,6 @@ const CreateUser: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Role selection removed
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -50,17 +50,16 @@ const CreateUser: React.FC = () => {
     setError(null);
 
     try {
-      // The role is already set to 'user' in the state
       await usersAPI.create(formData);
       addToast({
         type: "success",
-        title: "Usuario Creado",
-        message: `El usuario ${formData.username} ha sido creado exitosamente.`,
+        title: "Operador Creado",
+        message: `El operador ${formData.username} ha sido creado exitosamente.`, 
       });
-      navigate("/admin/users");
+      onOperatorCreated(); // Notify parent to refresh list
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || err.message || "Ocurrió un error al crear el usuario.";
+        err.response?.data?.message || err.message || "Ocurrió un error al crear el operador.";
       setError(errorMessage);
       addToast({
         type: "error",
@@ -72,32 +71,20 @@ const CreateUser: React.FC = () => {
     }
   };
 
-  // Define consistent styles based on ArticleEditorForm
   const inputStyle = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
   const labelStyle = "block text-sm font-medium text-gray-700";
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-6 flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="p-6 border-b flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Crear Nuevo Operador</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            &times;
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Crear Nuevo Usuario Normal
-            </h1>
-            <p className="text-sm text-gray-500">
-              Completa el formulario para añadir un nuevo usuario con rol 'user'.
-            </p>
-          </div>
         </div>
-
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-6 p-6">
+        <div className="p-6 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <ErrorMessage error={error} onClose={() => setError(null)} />
             )}
@@ -153,8 +140,6 @@ const CreateUser: React.FC = () => {
               />
             </div>
 
-            {/* Role field is now removed */}
-
             <hr />
 
             <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -196,7 +181,7 @@ const CreateUser: React.FC = () => {
             <div className="flex justify-end pt-4 gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/users")}
+                onClick={onClose}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 disabled={isLoading}
               >
@@ -215,16 +200,16 @@ const CreateUser: React.FC = () => {
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Crear Usuario
+                    Crear Operador
                   </>
                 )}
               </button>
             </div>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );
 };
 
-export default CreateUser;
+export default CreateOperatorModal;

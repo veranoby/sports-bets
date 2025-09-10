@@ -74,24 +74,4 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEvent
   );
 };
 
-export default EditEventModal;            ))}
-            </select>
-          </div>
-
-          {error && <ErrorMessage error={error} />}
-
-          <div className="flex justify-end space-x-3 mt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
-              {loading ? <LoadingSpinner text="Saving..." /> : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
 export default EditEventModal;

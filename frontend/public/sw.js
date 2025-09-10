@@ -57,14 +57,13 @@ self.addEventListener('install', (event) => {
 // Activate event: enhanced cleanup
 self.addEventListener('activate', (event) => {
   console.log('🔄 Service Worker activating with cache cleanup');
+  const cacheWhitelist = [STATIC_CACHE, API_CACHE, IMAGES_CACHE, CACHE_NAME];
   event.waitUntil(
-    Promise.all([
-      // Clean up old caches
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (!['gallobets-cache-v2', 'gallobets-static-v2', 'gallobets-api-v2', 'gallobets-images-v2'].includes(cacheName)) {
-              console.log('🗑️ Deleting old cache:', cacheName);
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            console.log('🗑️ Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -119,7 +118,7 @@ async function networkFirstStrategy(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse && networkResponse.status === 200) {
+    if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
     }
@@ -153,7 +152,7 @@ async function cacheFirstStrategy(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse && networkResponse.status === 200) {
+    if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
     }
@@ -161,20 +160,11 @@ async function cacheFirstStrategy(request, cacheName) {
     return networkResponse;
   } catch (error) {
     console.log(`Failed to fetch ${request.url}`);
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(request, responseToCache);
-              });
-          }
-          return networkResponse;
-        });
-      })
-      .catch(() => {
-        // If everything fails, show an offline page for navigation requests
-        if (request.mode === 'navigate') {
-          return caches.match('/offline.html');
-        }
-      })
-  );
-});
+    // If fetch fails, and it's a navigation request, show offline page.
+    if (request.mode === 'navigate') {
+      return caches.match('/offline.html');
+    }
+    // For other assets, we don't have a fallback, so just let it fail.
+    throw error;
+  }
+}

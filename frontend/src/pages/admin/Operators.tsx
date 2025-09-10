@@ -16,12 +16,13 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import EditOperatorModal from "../../components/admin/EditOperatorModal"; // Import new modal
+import CreateOperatorModal from "../../components/admin/CreateOperatorModal"; // Import create modal
 
 // APIs
 import { usersAPI } from "../../config/api";
 
 // Tipos
-import { User } from "../../types";
+import type { User } from "../../types";
 
 const AdminOperatorsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,9 +33,10 @@ const AdminOperatorsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   
-  // State for modal
+  // State for modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingOperator, setEditingOperator] = useState<User | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // New state for create modal
 
   // Fetch de operadores
   const fetchOperators = useCallback(async () => {
@@ -42,6 +44,8 @@ const AdminOperatorsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const res = await usersAPI.getAll({ role: "operator", limit: 1000 });
+      console.log("API Response for operators:", res); // Debug log
+      console.log("Users data from API:", res.data?.users); // Debug log
       setOperators(res.data?.users || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading operators");
@@ -61,25 +65,34 @@ const AdminOperatorsPage: React.FC = () => {
       (op.email && op.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Handlers for modal
+  // Handlers for edit modal
   const handleEditOperator = (operator: User) => {
     setEditingOperator(operator);
     setIsEditModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingOperator(null);
   };
 
   const handleOperatorUpdated = (updatedOperator: User) => {
     setOperators(operators.map(op => op.id === updatedOperator.id ? updatedOperator : op));
-    handleCloseModal();
+    handleCloseEditModal();
   };
 
+  // Handlers for create modal
   const handleCreateOperator = () => {
-    // TODO: Implementar modal de creación
-    alert("TODO: Abrir modal para crear nuevo operador");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleOperatorCreated = () => {
+    fetchOperators(); // Re-fetch the list to include the new operator
+    handleCloseCreateModal(); // Close the modal
   };
 
   if (loading) {
@@ -206,8 +219,15 @@ const AdminOperatorsPage: React.FC = () => {
       {isEditModalOpen && editingOperator && (
         <EditOperatorModal 
           operator={editingOperator}
-          onClose={handleCloseModal}
+          onClose={handleCloseEditModal}
           onOperatorUpdated={handleOperatorUpdated}
+        />
+      )}
+
+      {isCreateModalOpen && (
+        <CreateOperatorModal
+          onClose={handleCloseCreateModal}
+          onOperatorCreated={handleOperatorCreated}
         />
       )}
     </div>

@@ -26,7 +26,7 @@ import VenueEntityForm from "../../components/forms/VenueEntityForm";
 import { usersAPI, venuesAPI } from "../../config/api";
 
 // Tipos
-import { User as UserType, Venue as VenueType } from "../../types";
+import type { User as UserType, Venue as VenueType } from "../../types";
 
 interface CombinedVenueData {
   user: UserType;

@@ -26,7 +26,7 @@ import GalleraEntityForm from "../../components/forms/GalleraEntityForm";
 import { usersAPI, gallerasAPI } from "../../config/api";
 
 // Tipos
-import { User as UserType, Gallera as GalleraType } from "../../types";
+import type { User as UserType, Gallera as GalleraType } from "../../types";
 
 interface CombinedGalleraData {
   user: UserType;

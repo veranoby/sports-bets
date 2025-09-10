@@ -283,19 +283,3 @@ const AdminDashboard: React.FC = () => {
 };
 
 export default AdminDashboard;
-al</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Última sincronización:</span>
-              <span className="text-theme-secondary">
-                {lastRefresh.toLocaleTimeString()}
-              </span>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-};
-
-export default AdminDashboard;

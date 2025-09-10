@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
-import { User } from '../../types';
+import type { User } from '../../types';
 
 interface EditOperatorModalProps {
   operator: User;
@@ -14,12 +14,24 @@ interface EditOperatorModalProps {
 }
 
 const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose, onOperatorUpdated }) => {
-  const [formData, setFormData] = useState(operator);
+  const [formData, setFormData] = useState({
+    fullName: operator.profileInfo?.fullName || '',
+    phoneNumber: operator.profileInfo?.phoneNumber || '',
+    address: operator.profileInfo?.address || '',
+    identificationNumber: operator.profileInfo?.identificationNumber || '',
+    is_active: operator.isActive
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setFormData(operator);
+    setFormData({
+      fullName: operator.profileInfo?.fullName || '',
+      phoneNumber: operator.profileInfo?.phoneNumber || '',
+      address: operator.profileInfo?.address || '',
+      identificationNumber: operator.profileInfo?.identificationNumber || '',
+      is_active: operator.isActive
+    });
   }, [operator]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -39,10 +51,33 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
     setError(null);
 
     try {
-      // Aquí se podrían llamar a varias APIs, por ejemplo, para actualizar el perfil y el estado
-      const { id, ...updateData } = formData;
-      const response = await usersAPI.update(id, updateData); // Asumiendo que existe un usersAPI.update
-      onOperatorUpdated(response.data);
+      // Update user profile info
+      await usersAPI.updateProfile({
+        profileInfo: {
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          identificationNumber: formData.identificationNumber || operator.profileInfo?.identificationNumber,
+          verificationLevel: operator.profileInfo?.verificationLevel || "none"
+        }
+      });
+      
+      // Update user status if changed
+      if (formData.is_active !== operator.isActive) {
+        await usersAPI.updateStatus(operator.id, formData.is_active);
+      }
+      onOperatorUpdated({
+        ...operator,
+        profileInfo: {
+          ...operator.profileInfo,
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          identificationNumber: formData.identificationNumber || operator.profileInfo?.identificationNumber,
+          verificationLevel: operator.profileInfo?.verificationLevel || "none"
+        },
+        isActive: formData.is_active
+      });
       onClose();
     } catch (err) {
       setError('Failed to update operator. Please try again.');
@@ -58,11 +93,11 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-            <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+            <input type="text" id="username" name="username" value={operator.username} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled />
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+            <input type="email" id="email" name="email" value={operator.email} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled />
           </div>
           <div>
             <label htmlFor="is_active" className="block text-sm font-medium text-gray-700">Status</label>

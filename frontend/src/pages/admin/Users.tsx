@@ -20,12 +20,13 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
+import EditUserModal from "../../components/admin/EditUserModal";
 
 // APIs
 import { usersAPI } from "../../config/api";
 
 // Tipos
-import { User } from "../../types";
+import type { User } from "../../types";
 
 const AdminUsersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const AdminUsersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Fetch de usuarios
   const fetchUsers = useCallback(async () => {
@@ -61,9 +64,23 @@ const AdminUsersPage: React.FC = () => {
       (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Placeholder para acciones
+  // Handlers para modal
   const handleEditUser = (userId: string) => {
-    alert(`TODO: Abrir modal para editar usuario ${userId}`);
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setEditingUser(user);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setEditingUser(null);
+  };
+
+  const handleUserUpdated = (updatedUser: User) => {
+    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+    handleCloseModal();
   };
 
   const handleCreateUser = () => {
@@ -141,6 +158,12 @@ const AdminUsersPage: React.FC = () => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Suscripción
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Miembro Desde
                 </th>
                 <th scope="col" className="relative px-6 py-3">
@@ -163,12 +186,36 @@ const AdminUsersPage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusChip
-                      status={user.is_active ? "active" : "inactive"}
+                      status={user.isActive ? "active" : "inactive"}
                       size="sm"
                     />
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {user.subscription ? (
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.subscription.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : user.subscription.status === 'expired'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {user.subscription.planType === 'daily' ? '📅 Diario' : '📆 Mensual'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {user.subscription.status}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Sin suscripción
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
