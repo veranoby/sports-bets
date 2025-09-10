@@ -20,8 +20,10 @@ const AdminSidebar = memo(() => {
 
   const allNavItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "operator"] },
-    { path: "/admin/users", icon: Users, label: "Usuarios", roles: ["admin", "operator"] },
-    { path: "/admin/venues", icon: Building2, label: "Galleras", roles: ["admin", "operator"] },
+    { path: "/admin/users", icon: Users, label: "Usuarios", roles: ["admin"] },
+    { path: "/admin/operators", icon: Users, label: "Operadores", roles: ["admin"] },
+    { path: "/admin/galleras", icon: Users, label: "Galleras", roles: ["admin"] },
+    { path: "/admin/venues", icon: Building2, label: "Locales/Coliseos", roles: ["admin", "operator"] },
     { path: "/admin/articles", icon: FileText, label: "Noticias", roles: ["admin", "operator"] },
     { path: "/admin/events", icon: Calendar, label: "Eventos ⭐", roles: ["admin", "operator"] },
     { path: "/admin/requests", icon: DollarSign, label: "Solicitudes", roles: ["admin"] },
