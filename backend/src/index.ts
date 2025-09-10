@@ -15,6 +15,7 @@ import fightRoutes from "./routes/fights";
 import betRoutes from "./routes/bets";
 import walletRoutes from "./routes/wallet";
 import venueRoutes from "./routes/venues";
+import gallerasRoutes from "./routes/galleras";
 import subscriptionRoutes from "./routes/subscriptions";
 import webhookRoutes from "./routes/webhooks";
 import notificationRoutes from "./routes/notifications";
@@ -124,6 +125,7 @@ class Server {
     this.app.use("/api/sse", sseRoutes);
     this.app.use("/api/push", pushRoutes);
     this.app.use("/api/settings", settingsRoutes);
+    this.app.use("/api/galleras", gallerasRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));

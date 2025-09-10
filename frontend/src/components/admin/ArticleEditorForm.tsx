@@ -1,6 +1,6 @@
 // frontend/src/components/admin/ArticleEditorForm.tsx
 import React, { useState, useEffect } from 'react';
-import { articlesAPI, venuesAPI } from '../../config/api';
+import { articlesAPI, venuesAPI, gallerasAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 
@@ -11,29 +11,36 @@ interface ArticleEditorFormProps {
 }
 
 const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({ article, onClose, onArticleSaved }) => {
-  const [formData, setFormData] = useState(article || {});
+  const [formData, setFormData] = useState(article || {
+    title: '',
+    content: '',
+    summary: '',
+    status: 'draft',
+    venue_id: '',
+    featured_image_url: '',
+  });
   const [venues, setVenues] = useState<any[]>([]);
+  const [galleras, setGalleras] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setFormData(article || {
-      title: '',
-      content: '',
-      summary: '',
-      status: 'draft',
-      venue_id: '',
-      featured_image_url: '',
-    });
-    const fetchVenues = async () => {
+    if (article) {
+      setFormData(article);
+    }
+    const fetchData = async () => {
       try {
-        const venuesRes = await venuesAPI.getAll({ status: 'active', limit: 1000 });
+        const [venuesRes, gallerasRes] = await Promise.all([
+          venuesAPI.getAll({ status: 'active', limit: 1000 }),
+          gallerasAPI.getAll({ status: 'active', limit: 1000 })
+        ]);
         setVenues(venuesRes.data?.venues || []);
+        setGalleras(gallerasRes.data?.galleras || []);
       } catch (err) {
-        setError('Failed to load venues.');
+        setError('Failed to load venues and galleras.');
       }
     };
-    fetchVenues();
+    fetchData();
   }, [article]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -93,14 +100,23 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({ article, onClose,
         </select>
       </div>
       <div>
-        <label htmlFor="venue_id" className="block text-sm font-medium text-gray-700">Venue (Optional)</label>
-        <select id="venue_id" name="venue_id" value={formData.venue_id || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">Select a Venue</option>
-          {venues.map((venue) => (
-            <option key={venue.id} value={venue.id}>
-              {venue.name}
-            </option>
-          ))}
+        <label htmlFor="venue_id" className="block text-sm font-medium text-gray-700">Associated Entity (Optional)</label>
+        <select id="venue_id" name="venue_id" value={formData.venue_id} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">Select a Venue or Gallera</option>
+          <optgroup label="Venues">
+            {venues.map((venue) => (
+              <option key={`venue-${venue.id}`} value={venue.id}>
+                🏟️ {venue.name}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Galleras">
+            {galleras.map((gallera) => (
+              <option key={`gallera-${gallera.id}`} value={gallera.id}>
+                🐓 {gallera.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
 

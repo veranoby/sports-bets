@@ -12,10 +12,8 @@ const CreateEvent: React.FC = () => {
   const [name, setName] = useState('');
   const [venueId, setVenueId] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
-  const [operatorId, setOperatorId] = useState('');
 
   const [venues, setVenues] = useState<any[]>([]);
-  const [operators, setOperators] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,12 +23,8 @@ const CreateEvent: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [venuesRes, operatorsRes] = await Promise.all([
-          venuesAPI.getAll({ status: 'active', limit: 1000 }),
-          usersAPI.getOperators(),
-        ]);
+        const venuesRes = await venuesAPI.getAll({ status: 'active', limit: 1000 });
         setVenues(venuesRes.data?.venues || []);
-        setOperators(operatorsRes.data || []);
       } catch (err) {
         setError('Failed to load necessary data. Please try again.');
       } finally {
@@ -143,22 +137,26 @@ const CreateEvent: React.FC = () => {
             {formErrors.scheduledDate && <p className="text-xs text-red-500 mt-1">{formErrors.scheduledDate}</p>}
           </div>
 
-          <div>
-            <label htmlFor="operatorId" className="block text-sm font-medium text-gray-700">
-              Operator (Optional)
-            </label>
-            <select
-              id="operatorId"
-              value={operatorId}
-              onChange={(e) => setOperatorId(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          {/* Operator selection removed */}
+
+          {error && <ErrorMessage error={error} />}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              <option value="">Select an Operator</option>
-              {operators.map((operator) => (
-                <option key={operator.id} value={operator.id}>
-                  {operator.username}
-                </option>
-              ))}
+              {loading ? <LoadingSpinner text="Creating..." /> : 'Create Event'}
+            </button>
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+};
+
+export default CreateEvent;
             </select>
           </div>
 

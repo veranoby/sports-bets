@@ -12,21 +12,11 @@ interface EditEventModalProps {
 
 const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEventUpdated }) => {
   const [formData, setFormData] = useState(event);
-  const [operators, setOperators] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setFormData(event);
-    const fetchOperators = async () => {
-      try {
-        const operatorsRes = await usersAPI.getOperators();
-        setOperators(operatorsRes.data || []);
-      } catch (err) {
-        setError('Failed to load operators.');
-      }
-    };
-    fetchOperators();
   }, [event]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -66,15 +56,25 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEvent
             <label htmlFor="scheduledDate" className="block text-sm font-medium text-gray-700">Scheduled Date</label>
             <input type="datetime-local" id="scheduledDate" name="scheduledDate" value={formData.scheduledDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
-          <div>
-            <label htmlFor="operatorId" className="block text-sm font-medium text-gray-700">Operator</label>
-            <select id="operatorId" name="operatorId" value={formData.operatorId || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <option value="">Select an Operator</option>
-              {operators.map((operator) => (
-                <option key={operator.id} value={operator.id}>
-                  {operator.username}
-                </option>
-              ))}
+          {/* Operator selection removed */}
+
+          {error && <ErrorMessage error={error} />}
+
+          <div className="flex justify-end space-x-3 mt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              {loading ? <LoadingSpinner text="Saving..." /> : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default EditEventModal;            ))}
             </select>
           </div>
 

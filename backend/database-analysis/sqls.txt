@@ -107,7 +107,7 @@ SELECT version() as postgres_version;
 
 SELECT pg_size_pretty(pg_database_size(current_database())) as database_size;
 
--- 3. Información de columnas con estadísticas (alternativo a pg_stats)
+-- 3. COLUMN_STATISTICS.json
 
 SELECT 
     table_schema,
@@ -137,7 +137,7 @@ SELECT
 FROM pg_stat_user_tables 
 ORDER BY relname;
 
--- 5. Tamaños de tablas individuales
+-- 5. TABLE_SIZES.json
 
 SELECT 
     schemaname,
@@ -174,3 +174,5 @@ WHERE relname = 'users';
 SELECT username, last_login, updated_at 
 FROM users 
 ORDER BY updated_at DESC LIMIT 10;
+
+

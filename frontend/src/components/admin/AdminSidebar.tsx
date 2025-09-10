@@ -57,7 +57,7 @@ const AdminSidebar = memo(() => {
               to={item.path}
               end={item.path === "/admin"}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm ${
                   isActive
                     ? "bg-gray-700 text-white font-medium"
                     : "text-gray-500 hover:bg-gray-700 hover:text-white"

@@ -1,0 +1,221 @@
+// frontend/src/components/forms/VenueEntityForm.tsx
+// Formulario para editar información específica de la entidad Venue
+
+import React, { useState, useEffect } from 'react';
+import { venuesAPI } from '../../config/api';
+import LoadingSpinner from '../shared/LoadingSpinner';
+import ErrorMessage from '../shared/ErrorMessage';
+import { MapPin, Building2, Phone, Mail } from 'lucide-react';
+
+interface VenueEntityFormProps {
+  venue?: any;
+  userId: string;
+  onSave: (venueData: any) => void;
+  onCancel: () => void;
+}
+
+const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: venue?.name || '',
+    location: venue?.location || '',
+    description: venue?.description || '',
+    contactInfo: venue?.contactInfo || {
+      phone: '',
+      email: '',
+      website: ''
+    },
+    images: venue?.images || [],
+    status: venue?.status || 'pending'
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    if (name.startsWith('contactInfo.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        contactInfo: {
+          ...prev.contactInfo,
+          [field]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      let result;
+      if (venue?.id) {
+        result = await venuesAPI.update(venue.id, {
+          ...formData,
+          ownerId: userId
+        });
+      } else {
+        result = await venuesAPI.create({
+          ...formData,
+          ownerId: userId
+        });
+      }
+      onSave(result.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save venue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Building2 className="w-5 h-5 text-blue-600" />
+        <h3 className="text-lg font-semibold text-gray-800">
+          {venue?.id ? 'Edit Venue Information' : 'Create Venue Information'}
+        </h3>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Venue Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <MapPin className="w-4 h-4 inline mr-1" />
+            Location
+          </label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Phone className="w-4 h-4 inline mr-1" />
+              Phone
+            </label>
+            <input
+              type="tel"
+              name="contactInfo.phone"
+              value={formData.contactInfo.phone}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Mail className="w-4 h-4 inline mr-1" />
+              Email
+            </label>
+            <input
+              type="email"
+              name="contactInfo.email"
+              value={formData.contactInfo.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Website
+          </label>
+          <input
+            type="url"
+            name="contactInfo.website"
+            value={formData.contactInfo.website}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        {error && <ErrorMessage error={error} />}
+
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Saving...
+              </>
+            ) : (
+              'Save Venue'
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default VenueEntityForm;

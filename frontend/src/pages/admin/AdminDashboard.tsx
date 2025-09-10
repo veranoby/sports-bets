@@ -62,6 +62,7 @@ const AdminDashboard: React.FC = () => {
         eventsData,
         pendingUsersData,
         pendingVenuesData,
+        pendingGallerasData,
         pendingArticlesData,
         withdrawalsData,
         financeData,
@@ -69,6 +70,7 @@ const AdminDashboard: React.FC = () => {
         eventsAPI.getAll({ today: true }),
         usersAPI.getAll({ status: "pending", limit: 1 }),
         usersAPI.getAll({ role: "venue", status: "pending", limit: 1 }),
+        usersAPI.getAll({ role: "gallera", status: "pending", limit: 1 }),
         articlesAPI.getAll({ status: "pending", limit: 1 }),
         walletAPI.getTransactions({
           type: "withdrawal",
@@ -266,6 +268,22 @@ const AdminDashboard: React.FC = () => {
             <div className="flex justify-between">
               <span>Usuarios activos:</span>
               <span className="font-medium">En tiempo real</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Última sincronización:</span>
+              <span className="text-theme-secondary">
+                {lastRefresh.toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
+al</span>
             </div>
             <div className="flex justify-between">
               <span>Última sincronización:</span>

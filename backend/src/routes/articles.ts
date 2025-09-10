@@ -61,6 +61,7 @@ router.get(
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
     query("author_id").optional({ checkFalsy: true }).isUUID(),
     query("includeAuthor").optional({ checkFalsy: true }).isBoolean().toBoolean(),
+    query("includeVenue").optional({ checkFalsy: true }).isBoolean().toBoolean(),
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
@@ -77,6 +78,7 @@ router.get(
       limit = 10,
       author_id,
       includeAuthor = true,
+      includeVenue = true,
     } = req.query as any;
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
@@ -98,8 +100,6 @@ router.get(
     if (author_id) {
       whereClause.author_id = author_id;
     }
-
-    const includeVenue = true;
 
     // Patrón attributes por rol: público ve campos mínimos
     const attributes = getArticleAttributes(req.user?.role, "list");

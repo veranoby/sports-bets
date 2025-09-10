@@ -168,31 +168,11 @@
         }
       ]
     },
-    "phase_3_database_consistency": {
-      "priority": "P1",
-      "estimated_time": "3-4 hours",
-      "tasks": [
-        {
-          "task": "Create galleras table migration",
-          "files": ["backend/migrations/[timestamp]-create-galleras.js"],
-          "action": "Create migration script for galleras table with proper schema"
-        },
-        {
-          "task": "Create Gallera model",
-          "files": ["backend/src/models/Gallera.ts"],
-          "action": "Sequelize model with associations to users"
-        },
-        {
-          "task": "Create galleras API routes",
-          "files": ["backend/src/routes/galleras.ts"],
-          "action": "CRUD operations for galleras entities"
-        },
-        {
-          "task": "Update user associations",
-          "files": ["backend/src/models/User.ts"],
-          "action": "Add hasMany galleras association"
-        }
-      ]
+    "database_consistency_completed": {
+      "status": "COMPLETED - galleras table already exists in Neon Tech",
+      "confirmed_schema": "id, name, location, description, owner_id, specialties, active_roosters, fight_record, images, status, is_verified",
+      "foreign_keys": "galleras_owner_id_fkey -> users.id (CASCADE DELETE)",
+      "next_steps": "Create Sequelize model and API routes only"
     },
     "phase_4_role_separation": {
       "priority": "P1",
@@ -286,11 +266,10 @@
       "frontend/src/components/articles/ArticleEditorForm.tsx - Fix controlled inputs"
     ],
     "database_consistency_files": [
-      "backend/migrations/[timestamp]-create-galleras.js - Create galleras table",
-      "backend/src/models/Gallera.ts - Sequelize model for galleras",
-      "backend/src/routes/galleras.ts - CRUD API for galleras entities",
-      "backend/src/models/User.ts - Add galleras association",
-      "backend/src/models/index.ts - Export Gallera model"
+      "backend/src/models/Gallera.ts - Sequelize model for galleras (NEW)",
+      "backend/src/routes/galleras.ts - CRUD API for galleras entities (NEW)",
+      "backend/src/models/User.ts - Add galleras association (UPDATE)",
+      "backend/src/models/index.ts - Export Gallera model (UPDATE)"
     ],
     "new_pages_required": [
       "frontend/src/pages/admin/Users.tsx - Role-specific user management",

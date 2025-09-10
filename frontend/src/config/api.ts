@@ -318,6 +318,40 @@ export const venuesAPI = {
   getMyVenues: () => apiClient.get("/venues/my/venues"),
 };
 
+export const gallerasAPI = {
+  getAll: (params?: { status?: string; limit?: number; offset?: number }) =>
+    apiClient.get("/galleras", { params }),
+
+  getById: (id: string) => apiClient.get(`/galleras/${id}`),
+
+  create: (data: {
+    name: string;
+    location: string;
+    description?: string;
+    specialties?: any;
+    activeRoosters?: number;
+    fightRecord?: any;
+    ownerId?: string;
+  }) => apiClient.post("/galleras", data),
+
+  update: (
+    id: string,
+    data: {
+      name?: string;
+      location?: string;
+      description?: string;
+      specialties?: any;
+      activeRoosters?: number;
+      fightRecord?: any;
+      images?: string[];
+      status?: string;
+      isVerified?: boolean;
+    }
+  ) => apiClient.put(`/galleras/${id}`, data),
+
+  delete: (id: string) => apiClient.delete(`/galleras/${id}`),
+};
+
 export const streamingAPI = {
   // Stream access
   getStreamAccess: (eventId: string) =>

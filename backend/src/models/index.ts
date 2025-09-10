@@ -13,6 +13,7 @@ import { connectDatabase } from "../config/database";
 import Notification from "./Notification";
 import { Article } from "./Article";
 import { SystemSetting } from './SystemSetting';
+import { Gallera } from "./Gallera";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -48,6 +49,16 @@ User.hasMany(Venue, {
   as: "venues",
 });
 Venue.belongsTo(User, {
+  foreignKey: "ownerId",
+  as: "owner",
+});
+
+// User -> Galleras (One-to-Many)
+User.hasMany(Gallera, {
+  foreignKey: "ownerId",
+  as: "galleras",
+});
+Gallera.belongsTo(User, {
   foreignKey: "ownerId",
   as: "owner",
 });
@@ -176,6 +187,7 @@ export {
   Notification,
   Article,
   SystemSetting,
+  Gallera,
   connectDatabase,
 };
 
@@ -241,6 +253,7 @@ export default {
   Notification,
   Article,
   SystemSetting,
+  Gallera,
   syncModels,
   checkAssociations,
   ModelUtils,
