@@ -448,6 +448,97 @@
   "column_default": "0"
 }, {
   "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": "gen_random_uuid()"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "name",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "location",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "description",
+  "data_type": "text",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "owner_id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "specialties",
+  "data_type": "jsonb",
+  "is_nullable": "YES",
+  "column_default": "'{}'::jsonb"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "active_roosters",
+  "data_type": "integer",
+  "is_nullable": "YES",
+  "column_default": "0"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "fight_record",
+  "data_type": "jsonb",
+  "is_nullable": "YES",
+  "column_default": "'{\"wins\": 0, \"draws\": 0, \"losses\": 0}'::jsonb"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "images",
+  "data_type": "ARRAY",
+  "is_nullable": "YES",
+  "column_default": "ARRAY[]::character varying[]"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "status",
+  "data_type": "USER-DEFINED",
+  "is_nullable": "YES",
+  "column_default": "'pending'::enum_galleras_status"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "is_verified",
+  "data_type": "boolean",
+  "is_nullable": "YES",
+  "column_default": "false"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "created_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": "now()"
+}, {
+  "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "updated_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": "now()"
+}, {
+  "table_schema": "public",
   "table_name": "notifications",
   "column_name": "id",
   "data_type": "uuid",

@@ -1,110 +1,354 @@
 {
-  "instructions": {
-    "priority": "P0_CRITICAL_PERFORMANCE_FIX",
-    "project": "GalloBets - Database Performance Optimization",
-    "critical_issue": "users table excessive updates (140x ratio)",
-    "timeline": "2-4 hours",
-    "context": "Authentication middleware causing 842 updates vs 6 inserts on users table"
+  "metadata": {
+    "project": "GalloBets Admin Environment Fixes",
+    "created": "2025-09-09",
+    "priority": "P0 - Admin Environment Critical",
+    "estimated_time": "12-16 hours",
+    "phase": "Admin UI/UX Optimization"
   },
-  
-  "work_phases": {
-    "phase_1_diagnosis": {
-      "name": "Auth Code Analysis",
-      "duration": "45 minutes",
-      "files_to_analyze": [
-        "backend/src/middleware/auth.ts",
-        "backend/src/routes/auth.ts", 
-        "backend/src/controllers/authController.ts",
-        "backend/src/models/User.ts"
-      ],
-      "objectives": [
-        "Identify where last_login updates occur",
-        "Check if update happens on every authenticated request",
-        "Document current auth flow"
-      ],
-      "commands": [
-        "cd /home/veranoby/sports-bets",
-        "find backend/src -name '*.ts' -exec grep -l 'last_login' {} \\;",
-        "find backend/src -name '*.ts' -exec grep -l 'UPDATE.*users' {} \\;",
-        "grep -r 'last_login' backend/src/ --include='*.ts'"
+  "critical_issues_identified": {
+    "sse_404_error": {
+      "problem": "GET /api/sse/system/status 404 (repeated every 500ms)",
+      "root_cause": "Frontend requests wrong endpoint",
+      "current_backend": "/api/sse/admin/system-status",
+      "current_frontend": "/api/sse/system/status",
+      "fix": "Update frontend to use correct SSE endpoint"
+    },
+    "articles_400_error": {
+      "problem": "GET /api/articles?includeAuthor=true&includeVenue=true 400",
+      "root_cause": "Backend doesn't support includeAuthor/includeVenue params",
+      "fix": "Add proper query parameter handling in articles API"
+    },
+    "modal_black_background": {
+      "problem": "Article modal has black background, looks broken",
+      "root_cause": "z-index/CSS overlay issue",
+      "fix": "Fix modal backdrop CSS and z-index stacking"
+    },
+    "controlled_input_warning": {
+      "problem": "React controlled/uncontrolled input warning in ArticleEditorForm",
+      "root_cause": "Value changing from undefined to defined",
+      "fix": "Initialize form values properly"
+    }
+  },
+  "database_architecture_analysis": {
+    "business_entity_distinction": {
+      "venues": "Physical locations where rooster competitions/tournaments occur",
+      "galleras": "Breeding/training facilities that raise fighting roosters and send them to venues",
+      "critical_difference": "Different business functions requiring separate entity management"
+    },
+    "architectural_inconsistency_identified": {
+      "current_state": "venues table exists, galleras table missing",
+      "problem": "Inconsistent architecture - both should have entity tables",
+      "venues_table": "EXISTS with location, images, verification, owner_id",
+      "galleras_table": "MISSING - only role in users table"
+    },
+    "recommended_solution": {
+      "action": "CREATE galleras table for architectural consistency",
+      "schema": {
+        "table": "galleras",
+        "fields": [
+          "id UUID PRIMARY KEY",
+          "name VARCHAR(255) - gallera name", 
+          "location VARCHAR(500) - breeding location",
+          "description TEXT - breeding specialty",
+          "owner_id UUID REFERENCES users(id)",
+          "specialties JSONB - rooster breeds, training methods",
+          "active_roosters INTEGER - current roster count",
+          "fight_record JSONB - historical win/loss record",
+          "images VARCHAR(255)[] - facility photos",
+          "status enum_galleras_status DEFAULT 'pending'",
+          "is_verified BOOLEAN DEFAULT false"
+        ]
+      },
+      "rationale": [
+        "Consistent architecture: users (auth) + venues (entities) + galleras (entities)",
+        "Business logic: galleras have specific data (breeds, record, roster)",
+        "Scalability: separate queries for venue vs gallera management",
+        "1:N relationship: user can own multiple galleras"
       ]
     },
-
-    "phase_2_fix_implementation": {
-      "name": "Optimize Auth Updates", 
-      "duration": "90 minutes",
-      "strategy": "Only update last_login on actual login, not every request",
-      "changes_required": [
-        "Modify auth middleware to NOT update last_login on token validation",
-        "Ensure last_login only updates on POST /auth/login",
-        "Add session-based update throttling (max 1 update per hour)"
+    "users_table_role": {
+      "purpose": "Authentication and account management for ALL users",
+      "roles": ["admin", "operator", "venue", "gallera", "user"],
+      "base_capabilities_all_roles": [
+        "View transmissions", 
+        "Manage wallet",
+        "Create/accept bets",
+        "Profile management"
       ],
-      "performance_target": "Reduce users table updates by 95%"
+      "additional_role_capabilities": {
+        "venue": "Manage venue entities + create articles + request events",
+        "gallera": "Manage gallera entities + create articles",
+        "user": "Base capabilities only"
+      },
+      "confirmed": "All inconsistencies resolved - venues CAN bet and create articles"
     },
-
-    "phase_3_testing": {
-      "name": "Validation & Testing",
-      "duration": "30 minutes", 
-      "tests": [
-        "Test login flow still updates last_login",
-        "Test authenticated requests do NOT update last_login",
-        "Verify pg_stat_user_tables improvements",
-        "Test multiple users concurrent login"
-      ],
-      "validation_sql": "SELECT n_tup_upd, n_tup_ins FROM pg_stat_user_tables WHERE relname = 'users'"
-    },
-
-    "phase_4_monitoring": {
-      "name": "Performance Verification",
-      "duration": "15 minutes",
-      "metrics": [
-        "Monitor update ratio after fix deployment", 
-        "Verify ratio drops to ~1:1 (1 update per login)",
-        "Test system performance improvement"
+    "roles_separation_ui": {
+      "current_problem": "Mixed roles in single admin pages",
+      "proposed_solution": "Separate admin pages by role",
+      "new_sidebar_structure": [
+        "Usuarios (role: user only)",
+        "Venues (role: venue + venue entity info)", 
+        "Galleras (role: gallera only)",
+        "Operadores (role: operator only)"
       ]
     }
   },
-
-  "critical_files": {
-    "backend/src/middleware/auth.ts": "Primary suspect - likely updates last_login on every request",
-    "backend/src/routes/auth.ts": "Login endpoint - should be only place updating last_login",
-    "backend/src/models/User.ts": "Check for hooks that auto-update last_login"
-  },
-
-  "expected_findings": {
-    "probable_issue": "auth middleware calls user.update({last_login: new Date()}) on token validation",
-    "correct_behavior": "last_login should only update on successful POST /auth/login",
-    "performance_gain": "95% reduction in users table write operations"
-  },
-
-  "implementation_strategy": {
-    "approach": "Conservative fix with session throttling",
-    "backup": "Store current auth middleware before changes",
-    "rollback_plan": "Revert to current version if login breaks",
-    "monitoring": "Track pg_stat_user_tables for update reduction"
-  },
-
-  "database_context": {
-    "current_stats": {
-      "users_updates": 842,
-      "users_inserts": 6, 
-      "ratio": "140:1 (critical)",
-      "other_tables": "0:1 (normal)"
+  "operator_assignment_simplification": {
+    "current_system": "Events assigned to specific operators",
+    "proposed_change": "Any operator can work with any event",
+    "architectural_impact": {
+      "database": "Remove operator_id from events table (optional FK)",
+      "backend": "Remove assignment validation logic",
+      "frontend": "Remove operator assignment UI",
+      "benefits": ["Simpler architecture", "More operational flexibility", "Fewer edge cases"]
     },
-    "target_stats": {
-      "expected_ratio": "1-2:1",
-      "acceptable_threshold": "Max 10:1"
+    "migration_required": false,
+    "breaking_changes": "Minimal - operator_id can remain as optional field"
+  },
+  "implementation_phases": {
+    "phase_1_critical_fixes": {
+      "priority": "P0",
+      "estimated_time": "3-4 hours",
+      "tasks": [
+        {
+          "task": "Fix SSE endpoint mismatch",
+          "files": [
+            "frontend/src/hooks/useSSEConnection.ts",
+            "frontend/src/pages/admin/Dashboard.tsx"
+          ],
+          "action": "Update frontend to use /api/sse/admin/system-status"
+        },
+        {
+          "task": "Create separate Operadores page (role: operator only)",
+          "files": ["frontend/src/pages/admin/Operators.tsx"],
+          "action": "Filter users by role='operator', add edit functionality"
+        },
+        {
+          "task": "Fix articles API 400 error",
+          "files": [
+            "backend/src/routes/articles.ts",
+            "frontend/src/config/api.ts"
+          ],
+          "action": "Add includeAuthor/includeVenue parameter support"
+        },
+        {
+          "task": "Fix modal black background",
+          "files": [
+            "frontend/src/pages/admin/Articles.tsx",
+            "frontend/src/components/articles/ArticleEditorForm.tsx"
+          ],
+          "action": "Fix CSS z-index and backdrop styling"
+        },
+        {
+          "task": "Fix controlled input warning",
+          "files": ["frontend/src/components/articles/ArticleEditorForm.tsx"],
+          "action": "Initialize all form values in useState"
+        }
+      ]
+    },
+    "phase_2_admin_sidebar_fixes": {
+      "priority": "P0",
+      "estimated_time": "2-3 hours",
+      "tasks": [
+        {
+          "task": "Reduce sidebar font size",
+          "files": ["frontend/src/components/admin/AdminSidebar.tsx"],
+          "action": "Update CSS classes for smaller, more compact text"
+        },
+        {
+          "task": "Add missing sidebar options",
+          "files": ["frontend/src/components/admin/AdminSidebar.tsx"],
+          "action": "Add Usuarios, Galleras navigation items"
+        },
+        {
+          "task": "Add 'galleras a aprobar' to dashboard",
+          "files": ["frontend/src/pages/admin/Dashboard.tsx"],
+          "action": "Add approval card for gallera role users"
+        }
+      ]
+    },
+    "phase_3_database_consistency": {
+      "priority": "P1",
+      "estimated_time": "3-4 hours",
+      "tasks": [
+        {
+          "task": "Create galleras table migration",
+          "files": ["backend/migrations/[timestamp]-create-galleras.js"],
+          "action": "Create migration script for galleras table with proper schema"
+        },
+        {
+          "task": "Create Gallera model",
+          "files": ["backend/src/models/Gallera.ts"],
+          "action": "Sequelize model with associations to users"
+        },
+        {
+          "task": "Create galleras API routes",
+          "files": ["backend/src/routes/galleras.ts"],
+          "action": "CRUD operations for galleras entities"
+        },
+        {
+          "task": "Update user associations",
+          "files": ["backend/src/models/User.ts"],
+          "action": "Add hasMany galleras association"
+        }
+      ]
+    },
+    "phase_4_role_separation": {
+      "priority": "P1",
+      "estimated_time": "4-5 hours",
+      "tasks": [
+        {
+          "task": "Create separate Users page (role: user only)",
+          "files": ["frontend/src/pages/admin/Users.tsx"],
+          "action": "Filter users by role='user', clean UI"
+        },
+        {
+          "task": "Create separate Venues page (venue users + venue entities)",
+          "files": ["frontend/src/pages/admin/Venues.tsx"],
+          "action": "Show users with role='venue' + their venue entities"
+        },
+        {
+          "task": "Create separate Galleras page (gallera users + gallera entities)",
+          "files": ["frontend/src/pages/admin/Galleras.tsx"],
+          "action": "Show users with role='gallera' + their gallera entities"
+        },
+        {
+          "task": "Add profile editing for venue/gallera users",
+          "files": [
+            "frontend/src/pages/admin/Venues.tsx",
+            "frontend/src/pages/admin/Galleras.tsx"
+          ],
+          "action": "Enable editing both user profile AND entity information for venue/gallera roles"
+        },
+        {
+          "task": "Create separate Operadores page (role: operator only)",
+          "files": ["frontend/src/pages/admin/Operators.tsx"],
+          "action": "Filter users by role='operator', add edit functionality"
+        }
+      ]
+    },
+    "phase_5_crud_verification": {
+      "priority": "P1",
+      "estimated_time": "2-3 hours",
+      "tasks": [
+        {
+          "task": "Verify CRUD permissions per role and entity",
+          "action": "Ensure admin can create/edit/delete users, venues, and galleras"
+        },
+        {
+          "task": "Add edit operator functionality",
+          "files": ["frontend/src/pages/admin/Operators.tsx"],
+          "action": "Add edit modal and update API calls"
+        },
+        {
+          "task": "Simplify operator assignment",
+          "files": [
+            "backend/src/routes/events.ts",
+            "frontend/src/pages/admin/Events.tsx"
+          ],
+          "action": "Make operator_id optional, remove assignment UI"
+        }
+      ]
+    },
+    "phase_6_articles_improvements": {
+      "priority": "P2",
+      "estimated_time": "1-2 hours", 
+      "tasks": [
+        {
+          "task": "Add gallera option to article venue selection",
+          "files": ["frontend/src/components/articles/ArticleEditorForm.tsx"],
+          "action": "Add dropdown for venues and galleras (both can create articles)"
+        },
+        {
+          "task": "Implement dual-profile editing for venues/galleras",
+          "files": [
+            "frontend/src/components/forms/UserProfileForm.tsx",
+            "frontend/src/components/forms/VenueEntityForm.tsx", 
+            "frontend/src/components/forms/GalleraEntityForm.tsx"
+          ],
+          "action": "Allow venues/galleras to edit both user.profile_info AND entity information"
+        }
+      ]
     }
   },
-
+  "file_modifications_required": {
+    "critical_backend_fixes": [
+      "backend/src/routes/articles.ts - Add includeAuthor/includeVenue support",
+      "backend/src/routes/events.ts - Make operator_id optional",
+      "backend/src/routes/users.ts - Add role-specific filtering"
+    ],
+    "critical_frontend_fixes": [
+      "frontend/src/hooks/useSSEConnection.ts - Fix endpoint URL",
+      "frontend/src/pages/admin/Dashboard.tsx - Add galleras approval",
+      "frontend/src/components/admin/AdminSidebar.tsx - Font size + new menu items",
+      "frontend/src/pages/admin/Articles.tsx - Fix modal styling",
+      "frontend/src/components/articles/ArticleEditorForm.tsx - Fix controlled inputs"
+    ],
+    "database_consistency_files": [
+      "backend/migrations/[timestamp]-create-galleras.js - Create galleras table",
+      "backend/src/models/Gallera.ts - Sequelize model for galleras",
+      "backend/src/routes/galleras.ts - CRUD API for galleras entities",
+      "backend/src/models/User.ts - Add galleras association",
+      "backend/src/models/index.ts - Export Gallera model"
+    ],
+    "new_pages_required": [
+      "frontend/src/pages/admin/Users.tsx - Role-specific user management",
+      "frontend/src/pages/admin/Venues.tsx - Venue users + venue entities management", 
+      "frontend/src/pages/admin/Galleras.tsx - Gallera users + gallera entities management",
+      "frontend/src/pages/admin/Operators.tsx - Operator management with edit"
+    ]
+  },
+  "testing_requirements": {
+    "sse_connection": {
+      "test": "Verify SSE connects without 404 errors",
+      "command": "curl -N -H 'Accept: text/event-stream' http://localhost:3001/api/sse/admin/system-status"
+    },
+    "articles_api": {
+      "test": "Verify articles load without 400 error",
+      "action": "Check admin articles page loads successfully"
+    },
+    "role_separation": {
+      "test": "Verify each role page shows only relevant users",
+      "action": "Check Users page shows only role='user'"
+    },
+    "modal_styling": {
+      "test": "Verify article modal has proper background",
+      "action": "Create new article modal should not have black background"
+    }
+  },
   "success_criteria": {
-    "primary": "users table update ratio drops below 10:1",
-    "secondary": "Login functionality preserved",
-    "tertiary": "System performance improvement measurable"
+    "sse_fixed": "Dashboard loads without console 404 errors",
+    "articles_working": "Articles page loads and create modal works properly",
+    "ui_clean": "Sidebar has proper font size, all navigation options present",
+    "database_consistent": "Galleras table created with same architecture pattern as venues",
+    "role_separation": "Clear separation of user and entity management by type",
+    "crud_complete": "All roles and entities can be created/edited/deleted by admin"
   },
-
-  "brain_updates_required": {
-    "backlog.json": "Mark critical_database_issue as resolved",
-    "sdd_system.json": "Update performance_optimizations with auth fix"
+  "architectural_decisions": {
+    "database_structure": "CREATE galleras table for architectural consistency with venues",
+    "entity_separation": "users (auth) + venues (locations) + galleras (breeding facilities)",
+    "operator_assignment": "REMOVE required assignment, make flexible",
+    "role_ui_separation": "SEPARATE admin pages by role AND entity type for clarity",
+    "sse_endpoints": "USE role-specific SSE endpoints"
+  },
+  "clean_and_lean_approach": {
+    "principles": [
+      "Simple, functional code over complex abstractions",
+      "Clear separation of concerns by role",
+      "Minimal but complete CRUD operations",
+      "Proper error handling without over-engineering",
+      "Clean UI with clear navigation"
+    ],
+    "avoid": [
+      "Over-complex role permission systems",
+      "Unnecessary database schema changes", 
+      "Complex operator assignment workflows",
+      "Redundant API endpoints"
+    ]
+  },
+  "next_phase_after_completion": {
+    "focus": "SSE architecture optimization and real-time features",
+    "rationale": "Admin environment must be stable before advancing to real-time betting"
   }
 }

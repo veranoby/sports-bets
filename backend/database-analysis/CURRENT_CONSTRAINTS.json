@@ -311,6 +311,36 @@
   "column_names": "id",
   "check_clause": null
 }, {
+  "constraint_name": "2200_860169_1_not_null",
+  "table_name": "galleras",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_860169_2_not_null",
+  "table_name": "galleras",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "name IS NOT NULL"
+}, {
+  "constraint_name": "2200_860169_3_not_null",
+  "table_name": "galleras",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "location IS NOT NULL"
+}, {
+  "constraint_name": "2200_860169_5_not_null",
+  "table_name": "galleras",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "owner_id IS NOT NULL"
+}, {
+  "constraint_name": "galleras_pkey",
+  "table_name": "galleras",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
   "constraint_name": "2200_819232_10_not_null",
   "table_name": "notifications",
   "constraint_type": "CHECK",

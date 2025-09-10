@@ -29,6 +29,9 @@
   "enum_name": "enum_fights_status",
   "enum_values": "{upcoming,betting,live,completed,cancelled}"
 }, {
+  "enum_name": "enum_galleras_status",
+  "enum_values": "{pending,active,inactive,rejected}"
+}, {
   "enum_name": "enum_notifications_status",
   "enum_values": "{unread,read,archived}"
 }, {

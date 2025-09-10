@@ -245,6 +245,27 @@
   "index_type": "btree"
 }, {
   "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "galleras_pkey",
+  "indexdef": "CREATE UNIQUE INDEX galleras_pkey ON public.galleras USING btree (id)",
+  "is_unique": true,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "idx_galleras_owner_id",
+  "indexdef": "CREATE INDEX idx_galleras_owner_id ON public.galleras USING btree (owner_id)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "idx_galleras_status",
+  "indexdef": "CREATE INDEX idx_galleras_status ON public.galleras USING btree (status)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
   "tablename": "notifications",
   "indexname": "idx_notifications_expires_at",
   "indexdef": "CREATE INDEX idx_notifications_expires_at ON public.notifications USING btree (expires_at)",

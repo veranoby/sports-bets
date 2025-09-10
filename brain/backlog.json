@@ -22,6 +22,16 @@
       "current_ratio": 93,
       "implementation_completed": "Auth middleware fixed, login endpoint preserved",
       "next_action": "Reset pg_stats for fresh measurement, verify no other update sources"
+    },
+    "roles_permissions_clarified": {
+      "all_roles_base_capabilities": "ALL roles (user, venue, gallera) can view streams, manage wallet, create/accept bets",
+      "additional_capabilities_by_role": {
+        "venue": "Manage venue entities + create articles + request events",
+        "gallera": "Manage gallera entities + create articles",
+        "user": "Base capabilities only"
+      },
+      "final_confirmation": "All roles confirmed - venues CAN bet and create articles, no inconsistencies remain",
+      "profile_editing_requirement": "Venues/galleras need dual editing: user.profile_info + entity table data"
     }
   },
   "phase_2b_completion": {
