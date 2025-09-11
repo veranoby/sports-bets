@@ -674,7 +674,6 @@ const AdminEventsPage: React.FC = () => {
                   onClick={() => navigate("/admin/events/create")}
                   className="btn-primary"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
                   Crear Primer Evento
                 </button>
               }

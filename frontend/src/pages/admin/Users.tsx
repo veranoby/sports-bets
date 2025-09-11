@@ -20,6 +20,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
+import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
 
 // APIs
@@ -191,28 +192,11 @@ const AdminUsersPage: React.FC = () => {
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {user.subscription ? (
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.subscription.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : user.subscription.status === 'expired'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {user.subscription.planType === 'daily' ? '📅 Diario' : '📆 Mensual'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {user.subscription.status}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          Sin suscripción
-                        </span>
-                      )}
-                    </div>
+                    <SubscriptionBadge 
+                      subscription={user.subscription} 
+                      size="sm"
+                      showStatus={true}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(user.createdAt).toLocaleDateString()}

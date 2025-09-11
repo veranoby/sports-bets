@@ -22,7 +22,8 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
     contactInfo: venue?.contactInfo || {
       phone: '',
       email: '',
-      website: ''
+      website: '',
+      address: ''
     },
     images: venue?.images || [],
     status: venue?.status || 'pending'
@@ -70,7 +71,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
       }
       onSave(result.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save venue');
+      setError(err instanceof Error ? err.message : 'Error al guardar la entidad');
     } finally {
       setLoading(false);
     }
@@ -81,14 +82,14 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
       <div className="flex items-center gap-2 mb-4">
         <Building2 className="w-5 h-5 text-blue-600" />
         <h3 className="text-lg font-semibold text-gray-800">
-          {venue?.id ? 'Edit Venue Information' : 'Create Venue Information'}
+          {venue?.id ? 'Editar Información de la Entidad' : 'Crear Información de la Entidad'}
         </h3>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Venue Name
+            Nombre de la Entidad
           </label>
           <input
             type="text"
@@ -103,7 +104,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             <MapPin className="w-4 h-4 inline mr-1" />
-            Location
+            Ubicación
           </label>
           <input
             type="text"
@@ -117,7 +118,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
+            Descripción
           </label>
           <textarea
             name="description"
@@ -132,7 +133,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <Phone className="w-4 h-4 inline mr-1" />
-              Phone
+              Teléfono
             </label>
             <input
               type="tel"
@@ -160,7 +161,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Website
+            Sitio Web
           </label>
           <input
             type="url"
@@ -173,7 +174,20 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
+            Dirección Completa
+          </label>
+          <input
+            type="text"
+            name="contactInfo.address"
+            value={formData.contactInfo.address}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Estado
           </label>
           <select
             name="status"
@@ -181,10 +195,10 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="pending">Pending</option>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-            <option value="rejected">Rejected</option>
+            <option value="pending">Pendiente</option>
+            <option value="active">Activo</option>
+            <option value="suspended">Suspendido</option>
+            <option value="rejected">Rechazado</option>
           </select>
         </div>
 
@@ -196,7 +210,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
             onClick={onCancel}
             className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
@@ -206,10 +220,10 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
             {loading ? (
               <>
                 <LoadingSpinner size="sm" />
-                Saving...
+                Guardando...
               </>
             ) : (
-              'Save Venue'
+              'Guardar Entidad'
             )}
           </button>
         </div>

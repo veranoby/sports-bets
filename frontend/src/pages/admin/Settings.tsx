@@ -46,7 +46,7 @@ const Settings: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/settings', {
+      const response = await fetch('http://localhost:3001/api/settings', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -54,11 +54,36 @@ const Settings: React.FC = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Handle authentication error
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          return;
+        }
         throw new Error('Error al cargar configuraciones');
       }
 
       const data = await response.json();
-      setSettings(data.data || {});
+      console.log('🔍 Raw API response:', data);
+      
+      const settingsData = data.data || data || {};
+      console.log('🔍 Extracted settings data:', settingsData);
+      
+      // If no data, use defaults
+      if (Object.keys(settingsData).length === 0) {
+        const defaultSettings = {
+          maintenance_mode: false,
+          enable_streaming: true,
+          enable_wallets: true,
+          enable_betting: true,
+          enable_push_notifications: true
+        };
+        console.log('🔧 Using default settings:', defaultSettings);
+        setSettings(defaultSettings);
+      } else {
+        console.log('🔧 Using API settings:', settingsData);
+        setSettings(settingsData);
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
       setError(error instanceof Error ? error.message : 'Error desconocido');
@@ -84,7 +109,7 @@ const Settings: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const response = await fetch('/api/settings', {
+      const response = await fetch('http://localhost:3001/api/settings', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -94,15 +119,16 @@ const Settings: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al guardar configuraciones');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al guardar configuraciones');
       }
 
       const data = await response.json();
       
       if (data.success) {
-        setSettings(data.data.settings);
+        setSettings(data.data.settings || data.data);
         setPendingChanges({});
-        setSuccess(`Configuraciones actualizadas: ${data.data.updateResults.successful} exitosas`);
+        setSuccess(`Configuraciones actualizadas exitosamente`);
         
         // Auto-clear success message
         setTimeout(() => setSuccess(null), 3000);
@@ -124,7 +150,9 @@ const Settings: React.FC = () => {
   };
 
   const getCurrentValue = (key: string) => {
-    return key in pendingChanges ? pendingChanges[key] : settings[key];
+    const value = key in pendingChanges ? pendingChanges[key] : settings[key];
+    console.log(`🔍 getCurrentValue(${key}):`, value, 'from', key in pendingChanges ? 'pendingChanges' : 'settings');
+    return value;
   };
 
   const renderSettingInput = (key: string, value: any, type: string) => {

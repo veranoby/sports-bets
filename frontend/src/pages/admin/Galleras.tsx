@@ -12,6 +12,7 @@ import {
   User,
   Mail,
   MapPin,
+  Trash2,
 } from "lucide-react";
 
 // Componentes
@@ -24,7 +25,7 @@ import CreateUserModal from "../../components/admin/CreateUserModal"; // Import 
 import VenueEntityForm from "../../components/forms/VenueEntityForm"; // Import venue entity form
 
 // APIs
-import { usersAPI, venuesAPI } from "../../config/api";
+import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
 
 // Tipos
 import type { User as UserType, Gallera as GalleraType } from "../../types";
@@ -105,6 +106,30 @@ const AdminGallerasPage: React.FC = () => {
     if (userData) {
       setEditingData({ user: userData.user, venue: userData.venue });
       setIsEditModalOpen(true);
+    }
+  };
+
+  // Handler para eliminación
+  const handleDelete = async (userId: string, galleraId?: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta gallera? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      
+      // Si hay gallera asociada, eliminarla primero
+      if (galleraId) {
+        await gallerasAPI.delete(galleraId);
+      }
+      
+      // Eliminar el usuario
+      await usersAPI.delete(userId);
+      
+      // Actualizar la lista
+      await fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error eliminando gallera');
     }
   };
 
@@ -199,7 +224,7 @@ const AdminGallerasPage: React.FC = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-sm font-medium text-gray-700">{user.username}</span>
-                    <StatusChip status={user.is_active ? 'active' : 'inactive'} size="sm" />
+                    <StatusChip status={user.isActive ? 'active' : 'inactive'} size="sm" />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Mail className="w-4 h-4" />
@@ -208,12 +233,20 @@ const AdminGallerasPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-3">
                  <button
                     onClick={() => handleEdit(user.id, venue?.id)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                   >
+                    <Edit className="w-4 h-4" />
                     Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.id, venue?.id)}
+                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
                   </button>
               </div>
             </div>

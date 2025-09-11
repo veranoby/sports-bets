@@ -79,7 +79,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
         profile_info: formData.profileInfo
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user profile');
+      setError(err instanceof Error ? err.message : 'Error al actualizar el perfil del usuario');
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
       <div className="flex items-center gap-2 mb-4">
         <User className="w-5 h-5 text-blue-600" />
         <h3 className="text-lg font-semibold text-gray-800">
-          Edit User Profile
+          Editar Perfil del Representante
         </h3>
       </div>
 
@@ -98,7 +98,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+              Nombre de Usuario
             </label>
             <input
               type="text"
@@ -129,7 +129,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name
+            Nombre del Representante
           </label>
           <input
             type="text"
@@ -144,7 +144,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <Phone className="w-4 h-4 inline mr-1" />
-              Phone Number
+              Teléfono
             </label>
             <input
               type="tel"
@@ -158,7 +158,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <CreditCard className="w-4 h-4 inline mr-1" />
-              ID Number
+              Cédula/ID
             </label>
             <input
               type="text"
@@ -173,7 +173,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             <MapPin className="w-4 h-4 inline mr-1" />
-            Address
+            Dirección
           </label>
           <input
             type="text"
@@ -188,7 +188,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
+                Rol
               </label>
               <select
                 name="role"
@@ -196,11 +196,11 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="user">User</option>
+                <option value="user">Usuario</option>
                 <option value="venue">Venue</option>
                 <option value="gallera">Gallera</option>
-                <option value="operator">Operator</option>
-                <option value="admin">Admin</option>
+                <option value="operator">Operador</option>
+                <option value="admin">Administrador</option>
               </select>
             </div>
 
@@ -213,7 +213,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label className="ml-2 text-sm font-medium text-gray-700">
-                Active User
+                Usuario Activo
               </label>
             </div>
           </div>
@@ -227,7 +227,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
             onClick={onCancel}
             className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
@@ -237,10 +237,10 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
             {loading ? (
               <>
                 <LoadingSpinner size="sm" />
-                Saving...
+                Guardando...
               </>
             ) : (
-              'Save Profile'
+              'Guardar Perfil'
             )}
           </button>
         </div>

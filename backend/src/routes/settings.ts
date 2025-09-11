@@ -119,13 +119,6 @@ router.get('/', authorize('admin'), async (req, res) => {
   try {
     const allSettings = await settingsService.getAllSettings();
     
-    if (!allSettings) {
-      return res.status(404).json({
-        success: false,
-        message: 'No settings found'
-      });
-    }
-    
     res.json({
       success: true,
       data: allSettings,

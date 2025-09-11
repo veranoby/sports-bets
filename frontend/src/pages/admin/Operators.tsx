@@ -196,7 +196,7 @@ const AdminOperatorsPage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusChip
-                      status={operator.is_active ? "active" : "inactive"}
+                      status={operator.isActive ? "active" : "inactive"}
                       size="sm"
                     />
                   </td>

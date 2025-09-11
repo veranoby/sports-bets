@@ -6,6 +6,7 @@ import { usersAPI, subscriptionAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import StatusChip from '../shared/StatusChip';
+import SubscriptionTabs from './SubscriptionTabs';
 import { User, Crown, Calendar, CreditCard, X } from 'lucide-react';
 import type { User as UserType } from '../../types';
 
@@ -44,13 +45,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     }
   });
 
-  // Subscription form data
-  const [subscriptionData, setSubscriptionData] = useState({
-    planType: user.subscription?.planType || 'daily',
-    status: user.subscription?.status || 'inactive',
-    action: 'none' as 'none' | 'create' | 'cancel' | 'renew'
-  });
-
   useEffect(() => {
     loadAvailablePlans();
   }, []);
@@ -84,14 +78,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     }
   };
 
-  const handleSubscriptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setSubscriptionData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -113,18 +99,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
         await usersAPI.updateStatus(user.id, profileData.isActive);
       }
 
-      // Handle subscription changes
-      if (subscriptionData.action !== 'none') {
-        await handleSubscriptionAction();
-      }
-
       // Update parent component
       onUserUpdated({
         ...user,
-        ...profileData,
-        subscription: subscriptionData.action === 'cancel' 
-          ? undefined 
-          : user.subscription
+        ...profileData
       });
 
       onClose();
@@ -132,25 +110,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
       setError(err instanceof Error ? err.message : 'Error updating user');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSubscriptionAction = async () => {
-    switch (subscriptionData.action) {
-      case 'create':
-        // This would typically involve payment processing
-        // For admin, we might create a subscription directly
-        console.log('Creating subscription for user:', user.id);
-        break;
-      case 'cancel':
-        if (user.subscription) {
-          await subscriptionAPI.cancelSubscription();
-        }
-        break;
-      case 'renew':
-        // Handle renewal logic
-        console.log('Renewing subscription for user:', user.id);
-        break;
     }
   };
 
@@ -164,7 +123,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -336,115 +295,18 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
           )}
 
           {activeTab === 'subscription' && (
-            <div className="space-y-6">
-              {/* Current Subscription */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Crown className="w-5 h-5 text-yellow-500" />
-                  Suscripción Actual
-                </h3>
-                
-                {user.subscription ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Plan:</span>
-                      <span className="font-medium">
-                        {user.subscription.planType === 'daily' ? '📅 Diario' : '📆 Mensual'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Estado:</span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(user.subscription.status)}`}>
-                        {user.subscription.status}
-                      </span>
-                    </div>
-                    {user.subscription.expiresAt && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Expira:</span>
-                        <span className="text-sm font-medium">
-                          {new Date(user.subscription.expiresAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-500">El usuario no tiene suscripción activa</p>
-                )}
-              </div>
-
-              {/* Subscription Actions */}
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-3">Gestionar Suscripción</h4>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Acción
-                    </label>
-                    <select
-                      name="action"
-                      value={subscriptionData.action}
-                      onChange={handleSubscriptionChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="none">Sin cambios</option>
-                      {!user.subscription && <option value="create">Crear suscripción</option>}
-                      {user.subscription && (
-                        <>
-                          <option value="renew">Renovar suscripción</option>
-                          <option value="cancel">Cancelar suscripción</option>
-                        </>
-                      )}
-                    </select>
-                  </div>
-
-                  {(subscriptionData.action === 'create' || subscriptionData.action === 'renew') && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tipo de Plan
-                      </label>
-                      <select
-                        name="planType"
-                        value={subscriptionData.planType}
-                        onChange={handleSubscriptionChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="daily">📅 Plan Diario</option>
-                        <option value="monthly">📆 Plan Mensual</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {subscriptionData.action === 'cancel' && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                      <p className="text-sm text-red-700">
-                        ⚠️ Esta acción cancelará la suscripción del usuario inmediatamente.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Available Plans Info */}
-              {availablePlans.length > 0 && (
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Planes Disponibles</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {availablePlans.map((plan) => (
-                      <div key={plan.id} className="border border-gray-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{plan.name}</span>
-                          <span className="text-sm font-bold text-green-600">
-                            ${plan.price}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600">{plan.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <SubscriptionTabs
+              userId={user.id}
+              subscription={user.subscription}
+              onSave={(subscriptionData) => {
+                // Actualizar los datos del usuario con la nueva suscripción
+                onUserUpdated({
+                  ...user,
+                  subscription: subscriptionData
+                });
+              }}
+              onCancel={onClose}
+            />
           )}
         </div>
 
@@ -457,20 +319,22 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
           >
             Cancelar
           </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {loading ? (
-              <>
-                <LoadingSpinner size="sm" />
-                Guardando...
-              </>
-            ) : (
-              'Guardar Cambios'
-            )}
-          </button>
+          {activeTab !== 'subscription' && (
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  Guardando...
+                </>
+              ) : (
+                'Guardar Cambios'
+              )}
+            </button>
+          )}
         </div>
 
         {error && (

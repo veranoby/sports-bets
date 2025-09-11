@@ -12,6 +12,7 @@ import {
   User,
   Mail,
   MapPin,
+  Trash2,
 } from "lucide-react";
 
 // Componentes
@@ -19,9 +20,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
-import UserProfileForm from "../../components/forms/UserProfileForm";
-import VenueEntityForm from "../../components/forms/VenueEntityForm";
-import SubscriptionForm from "../../components/forms/SubscriptionForm";
+import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal";
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
@@ -106,6 +105,30 @@ const AdminVenuesPage: React.FC = () => {
     if (userData) {
       setEditingData({ user: userData.user, venue: userData.venue });
       setIsEditModalOpen(true);
+    }
+  };
+
+  // Handler para eliminación
+  const handleDelete = async (userId: string, venueId?: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este venue? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      
+      // Si hay venue asociado, eliminarlo primero
+      if (venueId) {
+        await venuesAPI.delete(venueId);
+      }
+      
+      // Eliminar el usuario
+      await usersAPI.delete(userId);
+      
+      // Actualizar la lista
+      await fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error eliminando venue');
     }
   };
 
@@ -200,7 +223,7 @@ const AdminVenuesPage: React.FC = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-sm font-medium text-gray-700">{user.username}</span>
-                    <StatusChip status={user.is_active ? 'active' : 'inactive'} size="sm" />
+                    <StatusChip status={user.isActive ? 'active' : 'inactive'} size="sm" />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Mail className="w-4 h-4" />
@@ -209,12 +232,20 @@ const AdminVenuesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-3">
                  <button
                     onClick={() => handleEdit(user.id, venue?.id)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                   >
+                    <Edit className="w-4 h-4" />
                     Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.id, venue?.id)}
+                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
                   </button>
               </div>
             </div>
@@ -239,56 +270,15 @@ const AdminVenuesPage: React.FC = () => {
         />
       )}
 
-      {/* Modal de Edición Dual */}
+      {/* Modal de Edición Unificado */}
       {isEditModalOpen && editingData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900">
-                Editar Perfil de Venue y Entidad
-              </h2>
-            </div>
-            <div className="p-6 space-y-6">
-              {/* User Profile Form */}
-              <UserProfileForm
-                user={editingData.user}
-                onSave={(userData) => console.log('User saved:', userData)}
-                onCancel={() => {}}
-                showRoleChange={true}
-              />
-              
-              {/* Venue Entity Form */}
-              <VenueEntityForm
-                venue={editingData.venue}
-                userId={editingData.user.id}
-                onSave={(venueData) => console.log('Venue saved:', venueData)}
-                onCancel={() => {}}
-              />
-              
-              {/* Subscription Form */}
-              <SubscriptionForm
-                userId={editingData.user.id}
-                subscription={editingData.user.subscription}
-                onSave={(subscriptionData) => console.log('Subscription saved:', subscriptionData)}
-                onCancel={() => {}}
-              />
-            </div>
-            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cerrar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Guardar Cambios
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditVenueGalleraModal
+          user={editingData.user}
+          venue={editingData.venue}
+          role="venue"
+          onClose={handleCloseModal}
+          onSaved={handleSave}
+        />
       )}
     </div>
   );
