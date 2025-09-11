@@ -15,8 +15,8 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
-import EditOperatorModal from "../../components/admin/EditOperatorModal"; // Import new modal
-import CreateOperatorModal from "../../components/admin/CreateOperatorModal"; // Import create modal
+import EditOperatorModal from "../../components/admin/EditOperatorModal";
+import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
 import { usersAPI } from "../../config/api";
@@ -95,6 +95,14 @@ const AdminOperatorsPage: React.FC = () => {
     handleCloseCreateModal(); // Close the modal
   };
 
+  // Handler for delete operator
+  const handleDeleteOperator = (operator: User) => {
+    if (window.confirm(`¿Está seguro que desea eliminar al operador ${operator.username}? Esta acción no se puede deshacer.`)) {
+      // TODO: Implementar la eliminación del operador
+      console.log("Eliminar operador:", operator.id);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner text="Cargando operadores..." />;
   }
@@ -168,8 +176,8 @@ const AdminOperatorsPage: React.FC = () => {
                 >
                   Miembro Desde
                 </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Acciones</span>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -195,12 +203,18 @@ const AdminOperatorsPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(operator.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-2 justify-end">
                     <button
                       onClick={() => handleEditOperator(operator)}
                       className="text-blue-600 hover:text-blue-800"
                     >
                       Editar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteOperator(operator)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      Eliminar
                     </button>
                   </td>
                 </tr>
@@ -225,9 +239,10 @@ const AdminOperatorsPage: React.FC = () => {
       )}
 
       {isCreateModalOpen && (
-        <CreateOperatorModal
+        <CreateUserModal
+          role="operator"
           onClose={handleCloseCreateModal}
-          onOperatorCreated={handleOperatorCreated}
+          onUserCreated={handleOperatorCreated}
         />
       )}
     </div>

@@ -20,17 +20,18 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import UserProfileForm from "../../components/forms/UserProfileForm";
-import GalleraEntityForm from "../../components/forms/GalleraEntityForm";
+import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
+import VenueEntityForm from "../../components/forms/VenueEntityForm"; // Import venue entity form
 
 // APIs
-import { usersAPI, gallerasAPI } from "../../config/api";
+import { usersAPI, venuesAPI } from "../../config/api";
 
 // Tipos
 import type { User as UserType, Gallera as GalleraType } from "../../types";
 
 interface CombinedGalleraData {
   user: UserType;
-  gallera?: GalleraType;
+  venue?: VenueType;
 }
 
 const AdminGallerasPage: React.FC = () => {
@@ -48,24 +49,24 @@ const AdminGallerasPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [usersRes, gallerasRes] = await Promise.all([
+      const [usersRes, venuesRes] = await Promise.all([
         usersAPI.getAll({ role: "gallera", limit: 1000 }),
-        gallerasAPI.getAll({ limit: 1000 }),
+        venuesAPI.getAll({ limit: 1000 }),
       ]);
 
       const galleraUsers = usersRes.data?.users || [];
-      const allGalleras = gallerasRes.data?.galleras || [];
+      const allVenues = venuesRes.data?.venues || [];
 
-      const gallerasByOwner = new Map<string, GalleraType>();
-      allGalleras.forEach((gallera) => {
-        if (gallera.owner_id) {
-          gallerasByOwner.set(gallera.owner_id, gallera);
+      const venuesByOwner = new Map<string, VenueType>();
+      allVenues.forEach((venue) => {
+        if (venue.owner_id) {
+          venuesByOwner.set(venue.owner_id, venue);
         }
       });
 
       const combined = galleraUsers.map((user) => ({
         user,
-        gallera: gallerasByOwner.get(user.id),
+        venue: venuesByOwner.get(user.id),
       }));
 
       setCombinedData(combined);
@@ -83,29 +84,41 @@ const AdminGallerasPage: React.FC = () => {
   // Filtrado por búsqueda
   const filteredData = useMemo(() =>
     combinedData.filter(
-      ({ user, gallera }) =>
+      ({ user, venue }) =>
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (gallera && gallera.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (venue && venue.name.toLowerCase().includes(searchTerm.toLowerCase()))
     ),
     [combinedData, searchTerm]
   );
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<{ user: UserType; gallera?: GalleraType } | null>(null);
+  const [editingData, setEditingData] = useState<{ user: UserType; venue?: VenueType } | null>(null);
+  
+  // Estado para modal de creación
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Handlers para edición dual
-  const handleEdit = (userId: string, galleraId?: string) => {
+  const handleEdit = (userId: string, venueId?: string) => {
     const userData = combinedData.find(item => item.user.id === userId);
     if (userData) {
-      setEditingData({ user: userData.user, gallera: userData.gallera });
+      setEditingData({ user: userData.user, venue: userData.venue });
       setIsEditModalOpen(true);
     }
   };
 
   const handleCreate = () => {
-    alert("TODO: Abrir modal para crear nueva gallera y usuario asociado");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleUserCreated = () => {
+    fetchData(); // Refresh data
+    handleCloseCreateModal(); // Close the modal
   };
 
   const handleCloseModal = () => {
@@ -164,20 +177,20 @@ const AdminGallerasPage: React.FC = () => {
 
         {/* Grid de Galleras */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(({ user, gallera }) => (
+          {filteredData.map(({ user, venue }) => (
             <div key={user.id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {gallera ? gallera.name : "Gallera no asignada"}
+                    {venue ? venue.name : "Gallera no asignada"}
                   </h3>
-                  {gallera && <StatusChip status={gallera.status} size="sm" />}
+                  {venue && <StatusChip status={venue.status} size="sm" />}
                 </div>
 
-                {gallera && (
+                {venue && (
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{gallera.location}</span>
+                    <span>{venue.location}</span>
                   </div>
                 )}
 
@@ -197,7 +210,7 @@ const AdminGallerasPage: React.FC = () => {
 
               <div className="mt-4 flex justify-end">
                  <button
-                    onClick={() => handleEdit(user.id, gallera?.id)}
+                    onClick={() => handleEdit(user.id, venue?.id)}
                     className="text-sm text-blue-600 hover:text-blue-800"
                   >
                     Editar
@@ -234,11 +247,11 @@ const AdminGallerasPage: React.FC = () => {
                 showRoleChange={true}
               />
               
-              {/* Gallera Entity Form */}
-              <GalleraEntityForm
-                gallera={editingData.gallera}
+              {/* Venue Entity Form */}
+              <VenueEntityForm
+                venue={editingData.venue}
                 userId={editingData.user.id}
-                onSave={(galleraData) => console.log('Gallera saved:', galleraData)}
+                onSave={(venueData) => console.log('Venue saved:', venueData)}
                 onCancel={() => {}}
               />
             </div>
@@ -258,6 +271,15 @@ const AdminGallerasPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Creación */}
+      {isCreateModalOpen && (
+        <CreateUserModal
+          role="gallera"
+          onClose={handleCloseCreateModal}
+          onUserCreated={handleUserCreated}
+        />
       )}
     </div>
   );

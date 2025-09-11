@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2,
+  Users,
   Plus,
   Search,
   Edit,
@@ -21,6 +21,8 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import UserProfileForm from "../../components/forms/UserProfileForm";
 import VenueEntityForm from "../../components/forms/VenueEntityForm";
+import SubscriptionForm from "../../components/forms/SubscriptionForm";
+import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
 import { usersAPI, venuesAPI } from "../../config/api";
@@ -42,13 +44,15 @@ const AdminVenuesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Estado para modal de creación
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   // Fetch de datos combinados
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // 1. Fetch users with role 'venue' and all venue entities in parallel
       const [usersRes, venuesRes] = await Promise.all([
         usersAPI.getAll({ role: "venue", limit: 1000 }),
         venuesAPI.getAll({ limit: 1000 }),
@@ -57,7 +61,6 @@ const AdminVenuesPage: React.FC = () => {
       const venueUsers = usersRes.data?.users || [];
       const allVenues = venuesRes.data?.venues || [];
 
-      // 2. Create a map of venues by their owner_id for efficient lookup
       const venuesByOwner = new Map<string, VenueType>();
       allVenues.forEach((venue) => {
         if (venue.owner_id) {
@@ -65,7 +68,6 @@ const AdminVenuesPage: React.FC = () => {
         }
       });
 
-      // 3. Combine user data with their corresponding venue entity
       const combined = venueUsers.map((user) => ({
         user,
         venue: venuesByOwner.get(user.id),
@@ -108,7 +110,16 @@ const AdminVenuesPage: React.FC = () => {
   };
 
   const handleCreate = () => {
-    alert("TODO: Abrir modal para crear nuevo venue y usuario asociado");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleUserCreated = () => {
+    fetchData(); // Refresh data
+    handleCloseCreateModal(); // Close the modal
   };
 
   const handleCloseModal = () => {
@@ -134,7 +145,7 @@ const AdminVenuesPage: React.FC = () => {
             Gestión de Venues
           </h1>
           <p className="text-gray-600">
-            {combinedData.length} venues registrados
+            {combinedData.length} venues registradas
           </p>
         </div>
         <button
@@ -157,7 +168,7 @@ const AdminVenuesPage: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Buscar por usuario, email o nombre del venue..."
+              placeholder="Buscar por usuario, email o nombre de la venue..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full max-w-md"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -172,7 +183,7 @@ const AdminVenuesPage: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {venue ? venue.name : "Venue no asignado"}
+                    {venue ? venue.name : "Venue no asignada"}
                   </h3>
                   {venue && <StatusChip status={venue.status} size="sm" />}
                 </div>
@@ -212,20 +223,29 @@ const AdminVenuesPage: React.FC = () => {
 
         {filteredData.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-500">
-            <Building2 className="w-12 h-12 mx-auto mb-2" />
+            <Users className="w-12 h-12 mx-auto mb-2" />
             <h3 className="text-lg font-semibold">No se encontraron venues</h3>
             <p className="text-sm">No hay venues que coincidan con la búsqueda.</p>
           </div>
         )}
       </Card>
 
+      {/* Modal de Creación */}
+      {isCreateModalOpen && (
+        <CreateUserModal
+          role="venue"
+          onClose={handleCloseCreateModal}
+          onUserCreated={handleUserCreated}
+        />
+      )}
+
       {/* Modal de Edición Dual */}
       {isEditModalOpen && editingData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold text-gray-900">
-                Edit Venue Profile & Entity
+                Editar Perfil de Venue y Entidad
               </h2>
             </div>
             <div className="p-6 space-y-6">
@@ -244,19 +264,27 @@ const AdminVenuesPage: React.FC = () => {
                 onSave={(venueData) => console.log('Venue saved:', venueData)}
                 onCancel={() => {}}
               />
+              
+              {/* Subscription Form */}
+              <SubscriptionForm
+                userId={editingData.user.id}
+                subscription={editingData.user.subscription}
+                onSave={(subscriptionData) => console.log('Subscription saved:', subscriptionData)}
+                onCancel={() => {}}
+              />
             </div>
             <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
               <button
                 onClick={handleCloseModal}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Close
+                Cerrar
               </button>
               <button
                 onClick={handleSave}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Save All Changes
+                Guardar Cambios
               </button>
             </div>
           </div>

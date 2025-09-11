@@ -237,6 +237,14 @@ const AdminUsersPage: React.FC = () => {
           </div>
         )}
       </Card>
+      
+      {isEditModalOpen && editingUser && (
+        <EditUserModal 
+          user={editingUser}
+          onClose={handleCloseModal}
+          onUserUpdated={handleUserUpdated}
+        />
+      )}
     </div>
   );
 };
