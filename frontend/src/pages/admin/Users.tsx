@@ -22,6 +22,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
+import SubscriptionTabs from "../../components/admin/SubscriptionTabs";
 
 // APIs
 import { usersAPI } from "../../config/api";
@@ -86,6 +87,26 @@ const AdminUsersPage: React.FC = () => {
 
   const handleCreateUser = () => {
     navigate("/admin/users/create");
+  };
+
+  // Handler para eliminar usuario
+  const handleDeleteUser = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      await usersAPI.delete(userId);
+      
+      // Actualizar la lista eliminando el usuario
+      setUsers(users.filter(u => u.id !== userId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error eliminando usuario');
+    }
   };
 
   if (loading) {

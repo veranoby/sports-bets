@@ -102,16 +102,37 @@ router.put(
   })
 );
 
-// GET /api/users - Listar usuarios (solo admin)
+// GET /api/users - Listar usuarios (admin/operator for management, all users for social browsing)
 router.get(
   "/",
   authenticate, // Not optional anymore, operators need to be authenticated
-  authorize("admin", "operator"),
+  asyncHandler(async (req, res, next) => {
+    const { role } = req.query;
+    const userRole = req.user!.role;
+    
+    // Allow social browsing of galleras and venues by any authenticated user
+    if (role === "gallera" || role === "venue") {
+      // Social browsing allowed for everyone
+      next();
+    } else if (userRole === "admin" || userRole === "operator") {
+      // Admin/operator can access all users
+      next();
+    } else {
+      // Regular users can only browse galleras and venues
+      return res.status(403).json({
+        error: true,
+        message: "Insufficient permissions. Use /api/galleras or /api/venues for social browsing.",
+        statusCode: 403
+      });
+    }
+  }),
   asyncHandler(async (req, res) => {
     const { role, isActive, limit = 50, offset = 0 } = req.query;
     const where: any = {};
 
-    if (req.user!.role === "operator") {
+    const userRole = req.user!.role;
+    
+    if (userRole === "operator") {
       const operatorId = req.user!.id;
 
       const events = await Event.findAll({
@@ -159,32 +180,49 @@ router.get(
       } else {
         where.role = { [Op.in]: ["venue", "gallera"] };
       }
-    } else { // Admin
+    } else if (userRole === "admin") {
+      // Admin can access all users
       if (role) where.role = role;
+    } else {
+      // Regular users: social browsing - only galleras and venues, limited data
+      if (role === "gallera" || role === "venue") {
+        where.role = role;
+        where.isActive = true; // Only show active users for social browsing
+      } else {
+        return res.status(403).json({
+          error: true,
+          message: "Social browsing only available for galleras and venues",
+          statusCode: 403
+        });
+      }
     }
 
     if (isActive !== undefined) where.isActive = isActive === "true";
 
+    // Configure attributes and includes based on user role
+    const isSocialBrowsing = userRole !== "admin" && userRole !== "operator";
+    
+    const attributes = isSocialBrowsing 
+      ? ["id", "username", "role", "profileInfo", "createdAt"] // Limited public info
+      : [
+          "id", "username", "email", "role", "isActive", 
+          "profileInfo", "lastLogin", "createdAt", "updatedAt"
+        ];
+        
+    const include = isSocialBrowsing 
+      ? [] // No wallet info for social browsing
+      : [
+          {
+            model: Wallet,
+            as: "wallet",
+            attributes: ["balance", "frozenAmount"],
+          },
+        ];
+
     const users = await User.findAndCountAll({
       where,
-      attributes: [
-        "id",
-        "username",
-        "email",
-        "role",
-        "isActive",
-        "profileInfo",
-        "lastLogin",
-        "createdAt",
-        "updatedAt",
-      ],
-      include: [
-        {
-          model: Wallet,
-          as: "wallet",
-          attributes: ["balance", "frozenAmount"],
-        },
-      ],
+      attributes,
+      include,
       order: [["createdAt", "DESC"]],
       limit: parseInt(limit as string),
       offset: parseInt(offset as string),

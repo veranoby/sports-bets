@@ -56,17 +56,19 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
         // Aquí iría la lógica real de creación/renovación
       }
       
+      const expirationDate = selectedPlan === 'daily' 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+        : selectedPlan === 'monthly' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        : null;
+      
       onSave({
         ...subscription,
         planType: selectedPlan === 'free' ? null : selectedPlan,
         status: selectedPlan === 'free' ? 'cancelled' : 'active',
         // En una implementación real, estos valores vendrían del backend
         createdAt: new Date().toISOString(),
-        expiresAt: selectedPlan === 'daily' 
-          ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
-          : selectedPlan === 'monthly' 
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 días
-          : null
+        expiresAt: expirationDate ? expirationDate.toISOString() : null
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar la suscripción');
@@ -112,16 +114,16 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
       // Reactivar suscripción con el plan seleccionado
       console.log(`Reactivar suscripción ${selectedPlan} para usuario:`, userId);
       
+      const expirationDate = selectedPlan === 'daily' 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      
       onSave({
         ...subscription,
         planType: selectedPlan,
         status: 'active',
         createdAt: new Date().toISOString(),
-        expiresAt: selectedPlan === 'daily' 
-          ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-          : selectedPlan === 'monthly' 
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          : null
+        expiresAt: expirationDate.toISOString()
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al reactivar la suscripción');
@@ -171,9 +173,9 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
               </div>
               {activationDate && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Activada:</span>
+                  <span className="text-sm text-gray-600">Última activación:</span>
                   <span className="text-sm font-medium">
-                    {activationDate.toLocaleDateString()}
+                    {activationDate.toLocaleDateString('es-ES')}
                   </span>
                 </div>
               )}
@@ -181,7 +183,15 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Expira:</span>
                   <span className="text-sm font-medium">
-                    {expirationDate.toLocaleDateString()}
+                    {expirationDate.toLocaleDateString('es-ES')}
+                  </span>
+                </div>
+              )}
+              {isSubscriptionActive && expirationDate && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Días restantes:</span>
+                  <span className="text-sm font-medium text-blue-600">
+                    {Math.ceil((expirationDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días
                   </span>
                 </div>
               )}
@@ -231,7 +241,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
                 <div className="flex items-center">
                   <span className="font-medium">Acceso Diario</span>
                   <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    $1.99/día
+                    $2.50/día
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
@@ -253,7 +263,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
                 <div className="flex items-center">
                   <span className="font-medium">Acceso Mensual</span>
                   <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    $29.99/mes
+                    $10.00/mes
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">

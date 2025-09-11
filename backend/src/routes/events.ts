@@ -417,7 +417,7 @@ router.post(
     }
     
     try {
-        await notificationService.createStreamNotification('stream_started', event.id, {
+        await notificationService.createStreamNotification('stream_started', event.id, [], {
             streamUrl: event.streamUrl,
             rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
         });
@@ -475,7 +475,7 @@ router.post(
     }
     
     try {
-        await notificationService.createStreamNotification('stream_stopped', event.id);
+        await notificationService.createStreamNotification('stream_stopped', event.id, []);
     } catch (notificationError) {
         console.error('Error creating stream stop notification:', notificationError);
     }

@@ -1,333 +1,529 @@
 {
   "metadata": {
-    "project": "GalloBets Admin Environment Fixes",
+    "project": "GalloBets Admin Modal Enhancement",
     "created": "2025-09-09",
-    "priority": "P0 - Admin Environment Critical",
-    "estimated_time": "12-16 hours",
-    "phase": "Admin UI/UX Optimization"
+    "priority": "P0 - Admin UX Critical",
+    "estimated_time": "8-10 hours",
+    "phase": "Admin Modal Standardization & Subscription Integration"
   },
-  "critical_issues_identified": {
-    "sse_404_error": {
-      "problem": "GET /api/sse/system/status 404 (repeated every 500ms)",
-      "root_cause": "Frontend requests wrong endpoint",
-      "current_backend": "/api/sse/admin/system-status",
-      "current_frontend": "/api/sse/system/status",
-      "fix": "Update frontend to use correct SSE endpoint"
+  "current_state_analysis": {
+    "implemented_components": {
+      "EditVenueGalleraModal": "EXISTS - unified modal with tabs structure",
+      "SubscriptionTabs": "EXISTS - subscription management with prices",
+      "gallerasAPI": "EXISTS - complete CRUD operations",
+      "subscription_logic": "EXISTS - activation/cancellation logic"
     },
-    "articles_400_error": {
-      "problem": "GET /api/articles?includeAuthor=true&includeVenue=true 400",
-      "root_cause": "Backend doesn't support includeAuthor/includeVenue params",
-      "fix": "Add proper query parameter handling in articles API"
+    "critical_issues_identified": {
+      "mixed_language": "Modal text mixing English/Spanish - needs full Spanish",
+      "duplicate_concepts": "Active User checkbox vs Entity Status dropdown - confusing",
+      "multiple_save_buttons": "3 separate save buttons instead of unified save",
+      "inconsistent_modal_backgrounds": "Black, blurred, semi-transparent - need standardization",
+      "articles_fetch_error": "SW.js fetch error + API error on articles page"
     },
-    "modal_black_background": {
-      "problem": "Article modal has black background, looks broken",
-      "root_cause": "z-index/CSS overlay issue",
-      "fix": "Fix modal backdrop CSS and z-index stacking"
-    },
-    "controlled_input_warning": {
-      "problem": "React controlled/uncontrolled input warning in ArticleEditorForm",
-      "root_cause": "Value changing from undefined to defined",
-      "fix": "Initialize form values properly"
+    "subscription_pricing_confirmed": {
+      "daily": "$1.99/día (backend shows $2.50 - needs alignment)",
+      "monthly": "$29.99/mes (backend shows $10.00 - needs alignment)",
+      "free": "Limitado - confirmed working"
     }
   },
-  "database_architecture_analysis": {
-    "business_entity_distinction": {
-      "venues": "Physical locations where rooster competitions/tournaments occur",
-      "galleras": "Breeding/training facilities that raise fighting roosters and send them to venues",
-      "critical_difference": "Different business functions requiring separate entity management"
-    },
-    "architectural_inconsistency_identified": {
-      "current_state": "venues table exists, galleras table missing",
-      "problem": "Inconsistent architecture - both should have entity tables",
-      "venues_table": "EXISTS with location, images, verification, owner_id",
-      "galleras_table": "MISSING - only role in users table"
-    },
-    "recommended_solution": {
-      "action": "CREATE galleras table for architectural consistency",
-      "schema": {
-        "table": "galleras",
-        "fields": [
-          "id UUID PRIMARY KEY",
-          "name VARCHAR(255) - gallera name", 
-          "location VARCHAR(500) - breeding location",
-          "description TEXT - breeding specialty",
-          "owner_id UUID REFERENCES users(id)",
-          "specialties JSONB - rooster breeds, training methods",
-          "active_roosters INTEGER - current roster count",
-          "fight_record JSONB - historical win/loss record",
-          "images VARCHAR(255)[] - facility photos",
-          "status enum_galleras_status DEFAULT 'pending'",
-          "is_verified BOOLEAN DEFAULT false"
-        ]
-      },
-      "rationale": [
-        "Consistent architecture: users (auth) + venues (entities) + galleras (entities)",
-        "Business logic: galleras have specific data (breeds, record, roster)",
-        "Scalability: separate queries for venue vs gallera management",
-        "1:N relationship: user can own multiple galleras"
+  "specific_improvements_roadmap": {
+    "phase_1_language_standardization": {
+      "priority": "P0",
+      "estimated_time": "2 hours",
+      "scope": "Full Spanish translation for admin modals",
+      "dependencies": "None - can start immediately",
+      "tasks": [
+        {
+          "task": "Translate EditVenueGalleraModal to Spanish",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Line ~65: Modal title",
+              "current": "Edit {role === 'venue' ? 'Venue' : 'Gallera'}",
+              "new": "Editar {role === 'venue' ? 'Local' : 'Gallera'}",
+              "reasoning": "Spanish translation"
+            },
+            {
+              "location": "Line ~85: Tab labels",
+              "current": "Profile, Entity, Subscription",
+              "new": "Perfil, {role === 'venue' ? 'Local' : 'Gallera'}, Suscripción",
+              "reasoning": "Spanish tabs"
+            },
+            {
+              "location": "Line ~145: Profile section title",
+              "current": "Edit User Profile",
+              "new": "Perfil del Representante",
+              "reasoning": "Clarify this is representative profile"
+            },
+            {
+              "location": "Line ~165: Full Name field",
+              "current": "Full Name",
+              "new": "Nombre del Representante",
+              "reasoning": "Specific role clarification"
+            },
+            {
+              "location": "Line ~210: Active checkbox",
+              "current": "Active User",
+              "new": "Cuenta Activa",
+              "reasoning": "Clarify account vs entity status"
+            },
+            {
+              "location": "Line ~230: Entity section title",
+              "current": "Create venue information",
+              "new": "Información del {role === 'venue' ? 'Local' : 'Gallera'}",
+              "reasoning": "Dynamic Spanish title"
+            },
+            {
+              "location": "Line ~350: Save button",
+              "current": "Save All Changes",
+              "new": "Guardar Todos los Cambios",
+              "reasoning": "Spanish save button"
+            }
+          ],
+          "test_criteria": {
+            "acceptance": "Modal contains zero English text",
+            "specific_checks": [
+              "Modal title shows 'Editar Local' or 'Editar Gallera'",
+              "Tabs show 'Perfil', 'Local/Gallera', 'Suscripción'",
+              "Form labels all in Spanish",
+              "Buttons all in Spanish"
+            ]
+          }
+        }
       ]
     },
-    "users_table_role": {
-      "purpose": "Authentication and account management for ALL users",
-      "roles": ["admin", "operator", "venue", "gallera", "user"],
-      "base_capabilities_all_roles": [
-        "View transmissions", 
-        "Manage wallet",
-        "Create/accept bets",
-        "Profile management"
+    "phase_2_concept_unification": {
+      "priority": "P0",
+      "estimated_time": "1.5 hours",
+      "scope": "Resolve Active User vs Entity Status confusion",
+      "dependencies": "Must complete Phase 1 first",
+      "analysis": {
+        "current_problem": "User.is_active (account access) conflicts with Entity.status (admin approval)",
+        "business_logic": "Both needed but must be clearly differentiated",
+        "solution": "Group logically and add explanatory tooltips"
+      },
+      "tasks": [
+        {
+          "task": "Add tooltip to account status",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "After line ~210 (Cuenta Activa checkbox)",
+              "action": "add",
+              "code": "<div className=\"flex items-center gap-1\">\n  <input type=\"checkbox\" ... />\n  <label>Cuenta Activa</label>\n  <Tooltip content=\"Controla si el usuario puede iniciar sesión\">\n    <Info className=\"w-4 h-4 text-gray-400\" />\n  </Tooltip>\n</div>",
+              "reasoning": "Clarify account vs entity distinction"
+            }
+          ]
+        },
+        {
+          "task": "Enhance entity status clarity",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Entity status dropdown (~line 280)",
+              "current": "Status",
+              "new": "Estado de Aprobación",
+              "additional": "Add options: 'pending' → 'Pendiente de Aprobación', 'active' → 'Aprobado y Activo', 'rejected' → 'Rechazado'"
+            }
+          ]
+        }
       ],
-      "additional_role_capabilities": {
-        "venue": "Manage venue entities + create articles + request events",
-        "gallera": "Manage gallera entities + create articles",
-        "user": "Base capabilities only"
+      "test_criteria": {
+        "acceptance": "Clear visual separation between account and entity controls",
+        "specific_checks": [
+          "Tooltip appears on hover over Cuenta Activa",
+          "Entity status shows Spanish labels",
+          "No confusion between user account and entity approval"
+        ]
+      }
+    },
+    "phase_3_unified_save_system": {
+      "priority": "P0",
+      "estimated_time": "2 hours",
+      "scope": "Single save button for all modal sections",
+      "dependencies": "Must complete Phase 2 first",
+      "current_state": "3 separate save buttons in tabs",
+      "target_state": "1 unified save button at modal footer",
+      "tasks": [
+        {
+          "task": "Remove individual tab save buttons",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Profile tab save button (~line 220)",
+              "action": "remove",
+              "current": "<button onClick={handleProfileSave}>Save Profile</button>",
+              "reasoning": "Eliminate individual saves"
+            },
+            {
+              "location": "Entity tab save button (~line 320)",
+              "action": "remove", 
+              "current": "<button onClick={handleEntitySave}>Save Entity</button>",
+              "reasoning": "Eliminate individual saves"
+            },
+            {
+              "location": "Subscription tab save button (~line 380)",
+              "action": "remove",
+              "current": "<button onClick={handleSubscriptionSave}>Save Subscription</button>",
+              "reasoning": "Eliminate individual saves"
+            }
+          ]
+        },
+        {
+          "task": "Implement unified save handler",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Add new function before return statement",
+              "action": "add",
+              "code": "const handleSaveAll = async () => {\n  setLoading(true);\n  setSaveStatus({ profile: 'saving', entity: 'saving', subscription: 'saving' });\n  \n  try {\n    // Save profile\n    await usersAPI.updateProfile({ profileInfo: profileData.profileInfo });\n    setSaveStatus(prev => ({ ...prev, profile: 'success' }));\n    \n    // Save entity\n    const entityResult = venue?.id \n      ? await venuesAPI.update(venue.id, entityData)\n      : await venuesAPI.create({ ...entityData, ownerId: user.id });\n    setSaveStatus(prev => ({ ...prev, entity: 'success' }));\n    \n    // Save subscription\n    if (subscriptionData.planType !== currentSubscription?.type) {\n      await subscriptionAPI.updatePlan(subscriptionData);\n    }\n    setSaveStatus(prev => ({ ...prev, subscription: 'success' }));\n    \n    onSaved({ user: { ...user, ...profileData }, entity: entityResult.data });\n    onClose();\n  } catch (err) {\n    setError(err.message);\n    setSaveStatus({ profile: 'error', entity: 'error', subscription: 'error' });\n  } finally {\n    setLoading(false);\n  }\n};",
+              "reasoning": "Sequential save with status tracking"
+            }
+          ]
+        },
+        {
+          "task": "Add save status state",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Add to state declarations (~line 25)",
+              "action": "add",
+              "code": "const [saveStatus, setSaveStatus] = useState<{\n  profile: 'idle' | 'saving' | 'success' | 'error';\n  entity: 'idle' | 'saving' | 'success' | 'error';\n  subscription: 'idle' | 'saving' | 'success' | 'error';\n}>({ profile: 'idle', entity: 'idle', subscription: 'idle' });",
+              "reasoning": "Track individual section save progress"
+            }
+          ]
+        },
+        {
+          "task": "Update modal footer with unified save",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Modal footer (~line 400)",
+              "current": "<button onClick={handleSave}>Save All Changes</button>",
+              "new": "<button onClick={handleSaveAll} disabled={loading}>\n  {loading ? (\n    <div className='flex items-center gap-2'>\n      <Spinner className='w-4 h-4' />\n      Guardando...\n    </div>\n  ) : 'Guardar Todos los Cambios'}\n</button>",
+              "reasoning": "Show saving progress"
+            }
+          ]
+        }
+      ],
+      "test_criteria": {
+        "acceptance": "Single save button updates all sections successfully",
+        "specific_checks": [
+          "Only one save button visible in modal footer",
+          "Button shows 'Guardando...' during save process",
+          "User profile, entity, and subscription all update",
+          "Error handling shows which section failed",
+          "Success closes modal and refreshes parent data"
+        ],
+        "error_scenarios": [
+          "If profile save fails, show 'Error al guardar perfil'",
+          "If entity save fails, show 'Error al guardar entidad'",
+          "If subscription save fails, show 'Error al guardar suscripción'"
+        ]
+      }
+    },
+    "phase_4_subscription_tab_enhancement": {
+      "priority": "P0", 
+      "estimated_time": "2.5 hours",
+      "scope": "Enhanced subscription tab with correct prices and status",
+      "dependencies": "Must complete Phase 3 first",
+      "price_corrections_required": {
+        "current_frontend": "Daily $1.99, Monthly $29.99",
+        "correct_prices": "Daily $2.50, Monthly $10.00",
+        "source": "Backend API confirmed correct"
       },
-      "confirmed": "All inconsistencies resolved - venues CAN bet and create articles"
-    },
-    "roles_separation_ui": {
-      "current_problem": "Mixed roles in single admin pages",
-      "proposed_solution": "Separate admin pages by role",
-      "new_sidebar_structure": [
-        "Usuarios (role: user only)",
-        "Venues (role: venue + venue entity info)", 
-        "Galleras (role: gallera only)",
-        "Operadores (role: operator only)"
-      ]
-    }
-  },
-  "operator_assignment_simplification": {
-    "current_system": "Events assigned to specific operators",
-    "proposed_change": "Any operator can work with any event",
-    "architectural_impact": {
-      "database": "Remove operator_id from events table (optional FK)",
-      "backend": "Remove assignment validation logic",
-      "frontend": "Remove operator assignment UI",
-      "benefits": ["Simpler architecture", "More operational flexibility", "Fewer edge cases"]
-    },
-    "migration_required": false,
-    "breaking_changes": "Minimal - operator_id can remain as optional field"
-  },
-  "implementation_phases": {
-    "phase_1_critical_fixes": {
-      "priority": "P0",
-      "estimated_time": "3-4 hours",
       "tasks": [
         {
-          "task": "Fix SSE endpoint mismatch",
+          "task": "Fix subscription prices",
+          "files": ["frontend/src/components/admin/SubscriptionTabs.tsx"],
+          "specific_changes": [
+            {
+              "location": "Line ~47: Daily price display",
+              "current": "$1.99/día",
+              "new": "$2.50/día",
+              "reasoning": "Align with backend pricing"
+            },
+            {
+              "location": "Line ~65: Monthly price display", 
+              "current": "$29.99/mes",
+              "new": "$10.00/mes",
+              "reasoning": "Align with backend pricing"
+            },
+            {
+              "location": "Price calculation logic (~line 120)",
+              "current": "amount: selectedPlan === 'daily' ? 199 : 2999",
+              "new": "amount: selectedPlan === 'daily' ? 250 : 1000",
+              "reasoning": "API expects cents"
+            }
+          ]
+        },
+        {
+          "task": "Enhanced subscription status display",
+          "files": ["frontend/src/components/admin/SubscriptionTabs.tsx"],
+          "specific_changes": [
+            {
+              "location": "Add after current subscription display (~line 85)",
+              "action": "add",
+              "code": "<div className='space-y-2'>\n  <div className='flex justify-between'>\n    <span className='text-sm text-gray-600'>Última activación:</span>\n    <span className='text-sm font-medium'>\n      {subscription?.createdAt ? new Date(subscription.createdAt).toLocaleDateString('es-ES') : 'N/A'}\n    </span>\n  </div>\n  <div className='flex justify-between'>\n    <span className='text-sm text-gray-600'>Estado actual:</span>\n    <span className={`text-sm font-medium ${isActive ? 'text-green-600' : 'text-red-600'}`}>\n      {isActive ? 'Activa' : 'Inactiva'}\n    </span>\n  </div>\n  {subscription?.expiresAt && (\n    <div className='flex justify-between'>\n      <span className='text-sm text-gray-600'>Expira:</span>\n      <span className='text-sm font-medium'>\n        {new Date(subscription.expiresAt).toLocaleDateString('es-ES')}\n      </span>\n    </div>\n  )}\n  {isActive && remainingDays && (\n    <div className='flex justify-between'>\n      <span className='text-sm text-gray-600'>Días restantes:</span>\n      <span className='text-sm font-medium text-blue-600'>\n        {remainingDays} días\n      </span>\n    </div>\n  )}\n</div>",
+              "reasoning": "Comprehensive subscription status"
+            }
+          ]
+        },
+        {
+          "task": "Implement reactivate/cancel logic",
+          "files": ["frontend/src/components/admin/SubscriptionTabs.tsx"],
+          "specific_changes": [
+            {
+              "location": "Add functions before return (~line 180)",
+              "action": "add",
+              "code": "const handleReactivate = async () => {\n  if (!selectedPlan || selectedPlan === 'free') {\n    setError('Por favor selecciona un plan válido');\n    return;\n  }\n  \n  try {\n    setLoading(true);\n    const expirationDate = selectedPlan === 'daily' \n      ? new Date(Date.now() + 24 * 60 * 60 * 1000)\n      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);\n    \n    await subscriptionAPI.createSubscription({\n      planType: selectedPlan,\n      activationDate: new Date().toISOString(),\n      expiresAt: expirationDate.toISOString()\n    });\n    \n    onSave({\n      planType: selectedPlan,\n      status: 'active',\n      createdAt: new Date().toISOString(),\n      expiresAt: expirationDate.toISOString()\n    });\n  } catch (err) {\n    setError('Error al reactivar suscripción: ' + err.message);\n  } finally {\n    setLoading(false);\n  }\n};\n\nconst handleCancel = async () => {\n  try {\n    setLoading(true);\n    await subscriptionAPI.cancelSubscription();\n    onSave({\n      planType: 'free',\n      status: 'cancelled',\n      expiresAt: new Date().toISOString()\n    });\n  } catch (err) {\n    setError('Error al cancelar suscripción: ' + err.message);\n  } finally {\n    setLoading(false);\n  }\n};",
+              "reasoning": "Full reactivate/cancel functionality"
+            }
+          ]
+        },
+        {
+          "task": "Apply subscription tab to all user management pages",
           "files": [
-            "frontend/src/hooks/useSSEConnection.ts",
-            "frontend/src/pages/admin/Dashboard.tsx"
-          ],
-          "action": "Update frontend to use /api/sse/admin/system-status"
-        },
-        {
-          "task": "Create separate Operadores page (role: operator only)",
-          "files": ["frontend/src/pages/admin/Operators.tsx"],
-          "action": "Filter users by role='operator', add edit functionality"
-        },
-        {
-          "task": "Fix articles API 400 error",
-          "files": [
-            "backend/src/routes/articles.ts",
-            "frontend/src/config/api.ts"
-          ],
-          "action": "Add includeAuthor/includeVenue parameter support"
-        },
-        {
-          "task": "Fix modal black background",
-          "files": [
-            "frontend/src/pages/admin/Articles.tsx",
-            "frontend/src/components/articles/ArticleEditorForm.tsx"
-          ],
-          "action": "Fix CSS z-index and backdrop styling"
-        },
-        {
-          "task": "Fix controlled input warning",
-          "files": ["frontend/src/components/articles/ArticleEditorForm.tsx"],
-          "action": "Initialize all form values in useState"
-        }
-      ]
-    },
-    "phase_2_admin_sidebar_fixes": {
-      "priority": "P0",
-      "estimated_time": "2-3 hours",
-      "tasks": [
-        {
-          "task": "Reduce sidebar font size",
-          "files": ["frontend/src/components/admin/AdminSidebar.tsx"],
-          "action": "Update CSS classes for smaller, more compact text"
-        },
-        {
-          "task": "Add missing sidebar options",
-          "files": ["frontend/src/components/admin/AdminSidebar.tsx"],
-          "action": "Add Usuarios, Galleras navigation items"
-        },
-        {
-          "task": "Add 'galleras a aprobar' to dashboard",
-          "files": ["frontend/src/pages/admin/Dashboard.tsx"],
-          "action": "Add approval card for gallera role users"
-        }
-      ]
-    },
-    "database_consistency_completed": {
-      "status": "COMPLETED - galleras table already exists in Neon Tech",
-      "confirmed_schema": "id, name, location, description, owner_id, specialties, active_roosters, fight_record, images, status, is_verified",
-      "foreign_keys": "galleras_owner_id_fkey -> users.id (CASCADE DELETE)",
-      "next_steps": "Create Sequelize model and API routes only"
-    },
-    "phase_4_role_separation": {
-      "priority": "P1",
-      "estimated_time": "4-5 hours",
-      "tasks": [
-        {
-          "task": "Create separate Users page (role: user only)",
-          "files": ["frontend/src/pages/admin/Users.tsx"],
-          "action": "Filter users by role='user', clean UI"
-        },
-        {
-          "task": "Create separate Venues page (venue users + venue entities)",
-          "files": ["frontend/src/pages/admin/Venues.tsx"],
-          "action": "Show users with role='venue' + their venue entities"
-        },
-        {
-          "task": "Create separate Galleras page (gallera users + gallera entities)",
-          "files": ["frontend/src/pages/admin/Galleras.tsx"],
-          "action": "Show users with role='gallera' + their gallera entities"
-        },
-        {
-          "task": "Add profile editing for venue/gallera users",
-          "files": [
+            "frontend/src/pages/admin/Users.tsx",
             "frontend/src/pages/admin/Venues.tsx",
             "frontend/src/pages/admin/Galleras.tsx"
           ],
-          "action": "Enable editing both user profile AND entity information for venue/gallera roles"
-        },
-        {
-          "task": "Create separate Operadores page (role: operator only)",
-          "files": ["frontend/src/pages/admin/Operators.tsx"],
-          "action": "Filter users by role='operator', add edit functionality"
+          "specific_changes": [
+            {
+              "location": "Import SubscriptionTabs in each file",
+              "action": "add",
+              "code": "import SubscriptionTabs from '../../components/admin/SubscriptionTabs';",
+              "reasoning": "Make subscription management available"
+            },
+            {
+              "location": "Add subscription tab to edit modals",
+              "action": "modify",
+              "requirement": "Ensure all user edit modals include subscription management tab"
+            }
+          ]
         }
-      ]
+      ],
+      "test_criteria": {
+        "acceptance": "Subscription tab shows correct prices and full status information",
+        "specific_checks": [
+          "Daily plan shows '$2.50/día' exactly",
+          "Monthly plan shows '$10.00/mes' exactly",
+          "Shows 'Última activación' date",
+          "Shows 'Estado actual' as Activa/Inactiva",
+          "Shows 'Días restantes' for active subscriptions",
+          "Reactivar button creates new subscription with correct dates",
+          "Cancelar button sets subscription to free plan"
+        ],
+        "api_integration": [
+          "Price calculations send correct cents to backend (250, 1000)",
+          "Activation dates update correctly in database",
+          "Expiration dates calculate correctly (24h, 30d)"
+        ]
+      }
     },
-    "phase_5_crud_verification": {
+    "phase_5_modal_background_standardization": {
       "priority": "P1",
-      "estimated_time": "2-3 hours",
+      "estimated_time": "1 hour",
+      "scope": "Consistent semi-transparent modal backgrounds",
+      "dependencies": "Can run parallel with other phases",
+      "current_issues": [
+        "Articles modal: black background (bg-black)",
+        "User modals: blurred background (backdrop-blur)", 
+        "Some modals: semi-transparent (bg-black/50)"
+      ],
+      "target_standard": "bg-black/50 (50% transparent black) for all modals",
       "tasks": [
         {
-          "task": "Verify CRUD permissions per role and entity",
-          "action": "Ensure admin can create/edit/delete users, venues, and galleras"
+          "task": "Standardize Articles modal background",
+          "files": ["frontend/src/pages/admin/Articles.tsx"],
+          "specific_changes": [
+            {
+              "location": "Article modal backdrop (~line 450)",
+              "current": "fixed inset-0 bg-black",
+              "new": "fixed inset-0 bg-black/50",
+              "reasoning": "Consistent semi-transparent background"
+            }
+          ]
         },
         {
-          "task": "Add edit operator functionality",
-          "files": ["frontend/src/pages/admin/Operators.tsx"],
-          "action": "Add edit modal and update API calls"
+          "task": "Verify EditVenueGalleraModal background",
+          "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Modal backdrop (~line 45)",
+              "current": "Any variant",
+              "new": "fixed inset-0 bg-black/50",
+              "reasoning": "Ensure consistency"
+            }
+          ]
         },
         {
-          "task": "Simplify operator assignment",
-          "files": [
-            "backend/src/routes/events.ts",
-            "frontend/src/pages/admin/Events.tsx"
-          ],
-          "action": "Make operator_id optional, remove assignment UI"
+          "task": "Standardize CreateUserModal background",
+          "files": ["frontend/src/components/admin/CreateUserModal.tsx"],
+          "specific_changes": [
+            {
+              "location": "Modal backdrop",
+              "current": "Any variant", 
+              "new": "fixed inset-0 bg-black/50",
+              "reasoning": "Consistent across all modals"
+            }
+          ]
+        },
+        {
+          "task": "Verify z-index consistency",
+          "files": ["All modal components"],
+          "specific_changes": [
+            {
+              "requirement": "All modals must use z-50 for proper stacking",
+              "check": "Search for z-40, z-30 and update to z-50"
+            }
+          ]
         }
-      ]
+      ],
+      "test_criteria": {
+        "acceptance": "All admin modals have identical semi-transparent background",
+        "visual_checks": [
+          "Modal background allows seeing underlying content with 50% opacity",
+          "No modals have completely black or blurred backgrounds",
+          "All modals appear above other content (z-50)"
+        ],
+        "browser_testing": "Test in Chrome, Firefox, Safari for consistency"
+      }
     },
-    "phase_6_articles_improvements": {
-      "priority": "P2",
-      "estimated_time": "1-2 hours", 
+    "phase_6_articles_error_resolution": {
+      "priority": "P1",
+      "estimated_time": "1 hour",
+      "scope": "Fix SW.js and API errors in admin/articles",
+      "dependencies": "Independent - can run parallel",
+      "errors_identified": [
+        "sw.js:119 Uncaught TypeError: Failed to fetch",
+        "GET articles?includeAuthor=true&includeVenue=true net::ERR_FAILED"
+      ],
+      "root_cause_analysis": {
+        "sw_error": "Service worker fetch strategy failing on articles endpoint",
+        "api_error": "Backend doesn't handle includeAuthor/includeVenue parameters"
+      },
       "tasks": [
         {
-          "task": "Add gallera option to article venue selection",
-          "files": ["frontend/src/components/articles/ArticleEditorForm.tsx"],
-          "action": "Add dropdown for venues and galleras (both can create articles)"
+          "task": "Fix articles API parameters",
+          "files": ["backend/src/routes/articles.ts"],
+          "specific_changes": [
+            {
+              "location": "GET /articles route handler (~line 30)",
+              "current": "const { limit, offset, status, category } = req.query;",
+              "new": "const { limit, offset, status, category, includeAuthor, includeVenue } = req.query;",
+              "reasoning": "Handle frontend parameters"
+            },
+            {
+              "location": "Article query include options (~line 45)",
+              "action": "add",
+              "code": "const includeOptions = [];\nif (includeAuthor === 'true') {\n  includeOptions.push({\n    model: User,\n    as: 'author',\n    attributes: ['id', 'username', 'email']\n  });\n}\nif (includeVenue === 'true') {\n  includeOptions.push({\n    model: Venue,\n    as: 'venue',\n    attributes: ['id', 'name', 'location']\n  });\n}",
+              "reasoning": "Dynamic includes based on query params"
+            },
+            {
+              "location": "Article.findAndCountAll call (~line 65)",
+              "current": "include: [...]",
+              "new": "include: includeOptions",
+              "reasoning": "Use dynamic includes"
+            }
+          ]
         },
         {
-          "task": "Implement dual-profile editing for venues/galleras",
-          "files": [
-            "frontend/src/components/forms/UserProfileForm.tsx",
-            "frontend/src/components/forms/VenueEntityForm.tsx", 
-            "frontend/src/components/forms/GalleraEntityForm.tsx"
-          ],
-          "action": "Allow venues/galleras to edit both user.profile_info AND entity information"
+          "task": "Fix service worker fetch strategy",
+          "files": ["frontend/public/sw.js"],
+          "specific_changes": [
+            {
+              "location": "networkFirstStrategy function (~line 119)",
+              "current": "throw error without handling",
+              "action": "add",
+              "code": "catch (error) {\n  console.warn('Network request failed, trying cache:', error);\n  const cachedResponse = await caches.match(request);\n  if (cachedResponse) {\n    return cachedResponse;\n  }\n  // For articles API, return empty array instead of error\n  if (request.url.includes('/api/articles')) {\n    return new Response(JSON.stringify({\n      success: true,\n      data: { articles: [], total: 0 }\n    }), {\n      headers: { 'Content-Type': 'application/json' }\n    });\n  }\n  throw error;\n}",
+              "reasoning": "Graceful fallback for articles API"
+            }
+          ]
         }
-      ]
+      ],
+      "test_criteria": {
+        "acceptance": "Admin articles page loads without console errors",
+        "specific_checks": [
+          "No 'Failed to fetch' errors in console",
+          "Articles API responds to includeAuthor=true parameter",
+          "Articles API responds to includeVenue=true parameter", 
+          "Articles page shows author and venue information when requested",
+          "Service worker provides fallback when network fails"
+        ],
+        "api_testing": [
+          "GET /api/articles?includeAuthor=true returns author data",
+          "GET /api/articles?includeVenue=true returns venue data",
+          "GET /api/articles?includeAuthor=true&includeVenue=true returns both"
+        ]
+      }
     }
   },
-  "file_modifications_required": {
-    "critical_backend_fixes": [
-      "backend/src/routes/articles.ts - Add includeAuthor/includeVenue support",
-      "backend/src/routes/events.ts - Make operator_id optional",
-      "backend/src/routes/users.ts - Add role-specific filtering"
+  "implementation_sequence": {
+    "day_1": [
+      "Phase 1: Language standardization (2h)",
+      "Phase 2: Concept unification (1.5h)", 
+      "Phase 3: Unified save system (2h)"
     ],
-    "critical_frontend_fixes": [
-      "frontend/src/hooks/useSSEConnection.ts - Fix endpoint URL",
-      "frontend/src/pages/admin/Dashboard.tsx - Add galleras approval",
-      "frontend/src/components/admin/AdminSidebar.tsx - Font size + new menu items",
-      "frontend/src/pages/admin/Articles.tsx - Fix modal styling",
-      "frontend/src/components/articles/ArticleEditorForm.tsx - Fix controlled inputs"
-    ],
-    "database_consistency_files": [
-      "backend/src/models/Gallera.ts - Sequelize model for galleras (NEW)",
-      "backend/src/routes/galleras.ts - CRUD API for galleras entities (NEW)",
-      "backend/src/models/User.ts - Add galleras association (UPDATE)",
-      "backend/src/models/index.ts - Export Gallera model (UPDATE)"
-    ],
-    "new_pages_required": [
-      "frontend/src/pages/admin/Users.tsx - Role-specific user management",
-      "frontend/src/pages/admin/Venues.tsx - Venue users + venue entities management", 
-      "frontend/src/pages/admin/Galleras.tsx - Gallera users + gallera entities management",
-      "frontend/src/pages/admin/Operators.tsx - Operator management with edit"
+    "day_2": [
+      "Phase 4: Subscription tab enhancement (2.5h)",
+      "Phase 5: Modal background standardization (1h)",
+      "Phase 6: Articles error resolution (1h)"
     ]
   },
+  "critical_decisions_required": {
+    "subscription_pricing": {
+      "question": "¿Cuáles son los precios correctos de suscripción?",
+      "frontend_shows": "Diario $1.99, Mensual $29.99",
+      "backend_shows": "Diario $2.50, Mensual $10.00",
+      "recommendation": "Usar precios del backend ($2.50/$10.00) por ser más recientes"
+    },
+    "user_vs_entity_status": {
+      "question": "¿Mantener ambos campos o unificar?", 
+      "current": "User.is_active (cuenta) + Entity.status (aprobación)",
+      "recommendation": "Mantener ambos pero clarificar etiquetas y propósito"
+    }
+  },
   "testing_requirements": {
-    "sse_connection": {
-      "test": "Verify SSE connects without 404 errors",
-      "command": "curl -N -H 'Accept: text/event-stream' http://localhost:3001/api/sse/admin/system-status"
+    "modal_functionality": {
+      "test": "Verify unified save works for all tabs",
+      "expected": "Single save button updates user + entity + subscription"
     },
-    "articles_api": {
-      "test": "Verify articles load without 400 error",
-      "action": "Check admin articles page loads successfully"
+    "subscription_logic": {
+      "test": "Verify reactivate/cancel buttons work correctly",
+      "expected": "Reactivate sets new plan + date, Cancel sets to free"
     },
-    "role_separation": {
-      "test": "Verify each role page shows only relevant users",
-      "action": "Check Users page shows only role='user'"
+    "language_consistency": {
+      "test": "All admin modals should be in Spanish", 
+      "expected": "No English text in admin interface"
     },
-    "modal_styling": {
-      "test": "Verify article modal has proper background",
-      "action": "Create new article modal should not have black background"
+    "modal_backgrounds": {
+      "test": "All modals should have consistent semi-transparent background",
+      "expected": "bg-black/50 for all modal overlays"
     }
   },
   "success_criteria": {
-    "sse_fixed": "Dashboard loads without console 404 errors",
-    "articles_working": "Articles page loads and create modal works properly",
-    "ui_clean": "Sidebar has proper font size, all navigation options present",
-    "database_consistent": "Galleras table created with same architecture pattern as venues",
-    "role_separation": "Clear separation of user and entity management by type",
-    "crud_complete": "All roles and entities can be created/edited/deleted by admin"
+    "user_experience": "Admin can edit venue/gallera profiles with clear, unified Spanish interface",
+    "subscription_management": "Admin can manage user subscriptions with clear status and controls",
+    "visual_consistency": "All modals have consistent appearance and behavior",
+    "error_resolution": "Articles page loads without SW.js or API errors"
   },
-  "architectural_decisions": {
-    "database_structure": "CREATE galleras table for architectural consistency with venues",
-    "entity_separation": "users (auth) + venues (locations) + galleras (breeding facilities)",
-    "operator_assignment": "REMOVE required assignment, make flexible",
-    "role_ui_separation": "SEPARATE admin pages by role AND entity type for clarity",
-    "sse_endpoints": "USE role-specific SSE endpoints"
-  },
-  "clean_and_lean_approach": {
-    "principles": [
-      "Simple, functional code over complex abstractions",
-      "Clear separation of concerns by role",
-      "Minimal but complete CRUD operations",
-      "Proper error handling without over-engineering",
-      "Clean UI with clear navigation"
+  "files_to_modify": {
+    "high_priority": [
+      "frontend/src/components/admin/EditVenueGalleraModal.tsx - Language + unified save",
+      "frontend/src/components/admin/SubscriptionTabs.tsx - Price alignment + enhanced display", 
+      "frontend/src/pages/admin/Articles.tsx - Error resolution",
+      "backend/src/routes/articles.ts - API parameter support"
     ],
-    "avoid": [
-      "Over-complex role permission systems",
-      "Unnecessary database schema changes", 
-      "Complex operator assignment workflows",
-      "Redundant API endpoints"
+    "medium_priority": [
+      "frontend/src/pages/admin/Venues.tsx - Apply unified modal",
+      "frontend/src/pages/admin/Galleras.tsx - Apply unified modal",
+      "frontend/src/pages/admin/Users.tsx - Add subscription tab",
+      "frontend/public/sw.js - Fix fetch error handling"
     ]
   },
   "next_phase_after_completion": {
-    "focus": "SSE architecture optimization and real-time features",
-    "rationale": "Admin environment must be stable before advancing to real-time betting"
+    "focus": "Admin dashboard real-time updates and analytics",
+    "rationale": "Modal system must be perfected before advancing to real-time features"
   }
 }

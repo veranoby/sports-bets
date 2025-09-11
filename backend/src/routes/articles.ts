@@ -60,8 +60,18 @@ router.get(
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
     query("author_id").optional({ checkFalsy: true }).isUUID(),
-    query("includeAuthor").optional({ checkFalsy: true }).isBoolean().toBoolean(),
-    query("includeVenue").optional({ checkFalsy: true }).isBoolean().toBoolean(),
+    query("includeAuthor").optional({ checkFalsy: true }).isString().custom((value) => {
+      if (value === 'true' || value === 'false') {
+        return true;
+      }
+      throw new Error('includeAuthor must be true or false');
+    }),
+    query("includeVenue").optional({ checkFalsy: true }).isString().custom((value) => {
+      if (value === 'true' || value === 'false') {
+        return true;
+      }
+      throw new Error('includeVenue must be true or false');
+    }),
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
@@ -80,6 +90,11 @@ router.get(
       includeAuthor = true,
       includeVenue = true,
     } = req.query as any;
+    
+    // Convert string values to boolean
+    const includeAuthorBool = includeAuthor === 'true' || includeAuthor === true;
+    const includeVenueBool = includeVenue === 'true' || includeVenue === true;
+    
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
     const offset = (page - 1) * limit;
@@ -108,12 +123,12 @@ router.get(
       where: whereClause,
       attributes,
       include: [
-        includeAuthor && {
+        includeAuthorBool && {
           model: User,
           as: "author",
           attributes: ["id", "username"],
         },
-        includeVenue && {
+        includeVenueBool && {
           model: Venue,
           as: "venue",
           attributes: ["id", "name"],

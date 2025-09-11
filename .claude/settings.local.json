@@ -35,7 +35,8 @@
       "Bash(pkill:*)",
       "Bash(git push origin main)",
       "Bash(npm test:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []

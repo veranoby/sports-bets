@@ -20,9 +20,8 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
-import UserProfileForm from "../../components/forms/UserProfileForm";
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
-import VenueEntityForm from "../../components/forms/VenueEntityForm"; // Import venue entity form
+import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
 
 // APIs
 import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
@@ -151,7 +150,7 @@ const AdminGallerasPage: React.FC = () => {
     setEditingData(null);
   };
 
-  const handleSave = () => {
+  const handleSave = (updatedData: any) => {
     handleCloseModal();
     fetchData(); // Refresh data
   };
@@ -262,48 +261,15 @@ const AdminGallerasPage: React.FC = () => {
         )}
       </Card>
 
-      {/* Modal de Edición Dual */}
+      {/* Modal de Edición con Pestañas */}
       {isEditModalOpen && editingData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900">
-                Edit Gallera Profile & Entity
-              </h2>
-            </div>
-            <div className="p-6 space-y-6">
-              {/* User Profile Form */}
-              <UserProfileForm
-                user={editingData.user}
-                onSave={(userData) => console.log('User saved:', userData)}
-                onCancel={() => {}}
-                showRoleChange={true}
-              />
-              
-              {/* Venue Entity Form */}
-              <VenueEntityForm
-                venue={editingData.venue}
-                userId={editingData.user.id}
-                onSave={(venueData) => console.log('Venue saved:', venueData)}
-                onCancel={() => {}}
-              />
-            </div>
-            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Save All Changes
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditVenueGalleraModal
+          user={editingData.user}
+          venue={editingData.venue}
+          role="gallera"
+          onClose={handleCloseModal}
+          onSaved={handleSave}
+        />
       )}
 
       {/* Modal de Creación */}

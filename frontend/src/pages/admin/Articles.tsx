@@ -756,7 +756,7 @@ const AdminArticlesPage: React.FC = () => {
 
       {/* Modal Preview Artículo */}
       {previewArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -824,7 +824,7 @@ const AdminArticlesPage: React.FC = () => {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={closeArticleModal}
           ></div>
 

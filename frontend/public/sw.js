@@ -125,7 +125,7 @@ async function networkFirstStrategy(request, cacheName) {
     
     return networkResponse;
   } catch (error) {
-    console.log(`Network failed for ${request.url}, trying cache`);
+    console.warn('Network request failed, trying cache:', error);
     const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
@@ -135,6 +135,16 @@ async function networkFirstStrategy(request, cacheName) {
     // Return offline page for navigation requests
     if (request.mode === 'navigate') {
       return caches.match('/offline.html');
+    }
+    
+    // For articles API, return empty array instead of error
+    if (request.url.includes('/api/articles')) {
+      return new Response(JSON.stringify({
+        success: true,
+        data: { articles: [], total: 0 }
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     throw error;

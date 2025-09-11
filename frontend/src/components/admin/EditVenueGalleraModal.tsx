@@ -6,7 +6,7 @@ import { usersAPI, venuesAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import SubscriptionTabs from './SubscriptionTabs';
-import { User, Building2, CreditCard, X } from 'lucide-react';
+import { User, Building2, CreditCard, X, Info } from 'lucide-react';
 
 interface EditVenueGalleraModalProps {
   user: any;
@@ -26,6 +26,11 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
   const [activeTab, setActiveTab] = useState<'profile' | 'entity' | 'subscription'>('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{
+    profile: 'idle' | 'saving' | 'success' | 'error';
+    entity: 'idle' | 'saving' | 'success' | 'error';
+    subscription: 'idle' | 'saving' | 'success' | 'error';
+  }>({ profile: 'idle', entity: 'idle', subscription: 'idle' });
   
   // Profile form data
   const [profileData, setProfileData] = useState({
@@ -96,6 +101,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
   const handleSaveAll = async () => {
     setLoading(true);
+    setSaveStatus({ profile: 'saving', entity: 'saving', subscription: 'saving' });
     setError(null);
 
     try {
@@ -104,6 +110,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         profileInfo: profileData.profileInfo,
         isActive: profileData.is_active
       });
+      setSaveStatus(prev => ({ ...prev, profile: 'success' }));
 
       // Update user email
       if (profileData.email !== user.email) {
@@ -123,6 +130,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
           ownerId: user.id
         });
       }
+      setSaveStatus(prev => ({ ...prev, entity: 'success' }));
 
       onSaved({
         user: { ...user, ...profileData },
@@ -132,6 +140,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : `Error al actualizar ${role}`);
+      setSaveStatus({ profile: 'error', entity: 'error', subscription: 'error' });
     } finally {
       setLoading(false);
     }
@@ -144,7 +153,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              Editar {role === 'venue' ? 'Venue' : 'Gallera'}
+              Editar {role === 'venue' ? 'Local' : 'Gallera'}
             </h2>
             <p className="text-sm text-gray-500">
               {user.username} - {venue ? venue.name : 'Sin entidad asignada'}
@@ -170,7 +179,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
               }`}
             >
               <User className="w-4 h-4 inline mr-2" />
-              Perfil del Representante
+              Perfil
             </button>
             <button
               onClick={() => setActiveTab('entity')}
@@ -181,7 +190,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
               }`}
             >
               <Building2 className="w-4 h-4 inline mr-2" />
-              {role === 'venue' ? 'Información del Venue' : 'Información de la Gallera'}
+              {role === 'venue' ? 'Local' : 'Gallera'}
             </button>
             <button
               onClick={() => setActiveTab('subscription')}
@@ -284,7 +293,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                 />
               </div>
 
-              <div className="flex items-center">
+              <div className="flex items-center gap-1">
                 <input
                   type="checkbox"
                   name="is_active"
@@ -292,9 +301,15 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   onChange={(e) => setProfileData(prev => ({ ...prev, is_active: e.target.checked }))}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label className="ml-2 text-sm font-medium text-gray-700">
-                  Usuario Activo
+                <label className="text-sm font-medium text-gray-700">
+                  Cuenta Activa
                 </label>
+                <div className="group relative">
+                  <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">
+                    Controla si el usuario puede iniciar sesión
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -303,7 +318,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {role === 'venue' ? 'Nombre del Venue' : 'Nombre de la Gallera'}
+                  {role === 'venue' ? 'Nombre del Local' : 'Nombre de la Gallera'}
                 </label>
                 <input
                   type="text"
@@ -398,7 +413,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estado
+                  Estado de Aprobación
                 </label>
                 <select
                   name="status"
@@ -406,8 +421,8 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   onChange={handleEntityChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="pending">Pendiente</option>
-                  <option value="active">Activo</option>
+                  <option value="pending">Pendiente de Aprobación</option>
+                  <option value="active">Aprobado y Activo</option>
                   <option value="suspended">Suspendido</option>
                   <option value="rejected">Rechazado</option>
                 </select>
@@ -440,22 +455,20 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
           >
             Cerrar
           </button>
-          {activeTab !== 'subscription' && (
-            <button
-              onClick={handleSaveAll}
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  Guardando...
-                </>
-              ) : (
-                'Guardar Cambios'
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleSaveAll}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Guardando...
+              </>
+            ) : (
+              'Guardar Todos los Cambios'
+            )}
+          </button>
         </div>
 
         {error && (

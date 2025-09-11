@@ -11,7 +11,36 @@
     "critical_blocker_identified": "backend/src/routes/sse.ts missing causing server startup failure",
     "manual_del_operador_completed": "Updated with real state, no Docker, Node Media Server alternatives",
     "rtmp_solution_confirmed": "Node Media Server (no Docker) for local development",
-    "next_phase_priorities": ["Fix sse.ts blocker", "Complete SSE architecture", "Fight status transitions", "Operator dashboard"],
+    "admin_modal_enhancement_phase": {
+      "status": "active",
+      "phase_name": "Admin Modal Standardization & Subscription Integration",
+      "total_estimated_hours": 10,
+      "current_findings": {
+        "modal_system_implemented": "EditVenueGalleraModal with tabs structure already exists",
+        "subscription_system_implemented": "SubscriptionTabs component fully functional",
+        "galleras_api_complete": "gallerasAPI with full CRUD operations confirmed",
+        "critical_issues": [
+          "Mixed English/Spanish language in modals",
+          "Confusing Active User vs Entity Status concepts", 
+          "3 separate save buttons instead of unified",
+          "Inconsistent modal backgrounds (black/blurred/semi-transparent)",
+          "Articles page SW.js fetch errors"
+        ]
+      },
+      "pricing_discrepancy_identified": {
+        "frontend_shows": "Daily $1.99, Monthly $29.99",
+        "backend_shows": "Daily $2.50, Monthly $10.00",
+        "decision_required": "Which prices are authoritative?",
+        "recommendation": "Use backend prices as likely more recent"
+      },
+      "implementation_priority": [
+        "P0: Spanish translation + concept clarification (3.5h)",
+        "P0: Unified save system (2h)", 
+        "P0: Enhanced subscription tab (2.5h)",
+        "P1: Modal background standardization (1h)",
+        "P1: Articles error fixes (1h)"
+      ]
+    },
     "critical_database_issue_identified": {
       "table": "users",
       "problem": "842 updates vs 6 inserts (140 updates/user)",
