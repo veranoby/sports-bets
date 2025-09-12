@@ -38,7 +38,8 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(xargs -r kill -9)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(timeout 5 npm run dev)"
     ],
     "deny": [],
     "ask": []
