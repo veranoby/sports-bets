@@ -143,6 +143,18 @@
   "column_names": "id",
   "check_clause": null
 }, {
+  "constraint_name": "2200_876564_1_not_null",
+  "table_name": "event_connections",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "event_connections_pkey",
+  "table_name": "event_connections",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
   "constraint_name": "2200_811213_13_not_null",
   "table_name": "events",
   "constraint_type": "CHECK",

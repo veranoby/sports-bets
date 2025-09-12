@@ -239,6 +239,70 @@
   "column_default": "'{\"ratio\": 2, \"isOffer\": true}'::jsonb",
   "ordinal_position": 18
 }, {
+  "table_name": "event_connections",
+  "column_name": "id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "is_nullable": "NO",
+  "column_default": "nextval('event_connections_id_seq'::regclass)",
+  "ordinal_position": 1
+}, {
+  "table_name": "event_connections",
+  "column_name": "event_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 2
+}, {
+  "table_name": "event_connections",
+  "column_name": "user_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 3
+}, {
+  "table_name": "event_connections",
+  "column_name": "connected_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP",
+  "ordinal_position": 4
+}, {
+  "table_name": "event_connections",
+  "column_name": "disconnected_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 5
+}, {
+  "table_name": "event_connections",
+  "column_name": "duration_seconds",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 6
+}, {
+  "table_name": "event_connections",
+  "column_name": "created_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP",
+  "ordinal_position": 7
+}, {
+  "table_name": "event_connections",
+  "column_name": "updated_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP",
+  "ordinal_position": 8
+}, {
   "table_name": "events",
   "column_name": "id",
   "data_type": "uuid",
@@ -1310,6 +1374,30 @@
   "is_nullable": "NO",
   "column_default": null,
   "ordinal_position": 10
+}, {
+  "table_name": "users",
+  "column_name": "email_verified",
+  "data_type": "boolean",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": "false",
+  "ordinal_position": 14
+}, {
+  "table_name": "users",
+  "column_name": "verification_token",
+  "data_type": "character varying",
+  "character_maximum_length": 255,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 15
+}, {
+  "table_name": "users",
+  "column_name": "verification_expires",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": null,
+  "ordinal_position": 16
 }, {
   "table_name": "venues",
   "column_name": "id",

@@ -1,7 +1,7 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "224 kB",
+  "total_size": "240 kB",
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
@@ -45,18 +45,23 @@
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "articles",
-  "total_size": "56 kB",
-  "table_size": "0 bytes"
-}, {
-  "schemaname": "public",
   "tablename": "wallets",
   "total_size": "56 kB",
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
+  "tablename": "articles",
+  "total_size": "56 kB",
+  "table_size": "0 bytes"
+}, {
+  "schemaname": "public",
   "tablename": "notifications",
   "total_size": "48 kB",
+  "table_size": "0 bytes"
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "total_size": "32 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",

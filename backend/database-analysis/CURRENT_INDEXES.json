@@ -119,6 +119,34 @@
   "index_type": "btree"
 }, {
   "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "event_connections_pkey",
+  "indexdef": "CREATE UNIQUE INDEX event_connections_pkey ON public.event_connections USING btree (id)",
+  "is_unique": true,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_connected_at",
+  "indexdef": "CREATE INDEX idx_event_connections_connected_at ON public.event_connections USING btree (connected_at)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_event_id",
+  "indexdef": "CREATE INDEX idx_event_connections_event_id ON public.event_connections USING btree (event_id)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_user_id",
+  "indexdef": "CREATE INDEX idx_event_connections_user_id ON public.event_connections USING btree (user_id)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
   "tablename": "events",
   "indexname": "events_operator_id",
   "indexdef": "CREATE INDEX events_operator_id ON public.events USING btree (operator_id)",
@@ -542,6 +570,13 @@
   "tablename": "users",
   "indexname": "idx_users_role_active",
   "indexdef": "CREATE INDEX idx_users_role_active ON public.users USING btree (role, is_active)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_verification_token",
+  "indexdef": "CREATE INDEX idx_users_verification_token ON public.users USING btree (verification_token)",
   "is_unique": false,
   "index_type": "btree"
 }, {
