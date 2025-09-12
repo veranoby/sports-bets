@@ -1,11 +1,46 @@
-[plugin:vite:import-analysis] Failed to resolve import "./pages/operator/Dashboard" from "src/App.tsx". Does the file exist?
-/home/veranoby/sports-bets/frontend/src/App.tsx:59:44
-66 |  const CreateEvent = lazy(_c21 = () => import("./pages/admin/CreateEvent"));
-67 |  _c22 = CreateEvent;
-68 |  const OperatorDashboard = lazy(_c23 = () => import("./pages/operator/Dashboard"));
-   |                                                     ^
-69 |  _c24 = OperatorDashboard;
-70 |  const OperatorEvents = lazy(_c25 = () => import("./pages/operator/Events"));
+analiza, confirma, y optimiza estos cambios sugeridos:
+1) para admin/venues y admin/galleras , el modal de "editar perfil" , todo debe pasar a español. la seccion "edit user profile", el campo "full name" debe ser "nombre del representante". Existe ahi una opcion "active user". Porque? no es contradictorio con el campo "status" de la seccion de "create venue information"?. analiza y de ser posible, unifica los conceptos.
+2) para admin/venues y admin/galleras , el modal de "editar perfil" tiene 3 botones de "save". deja solo uno, que grabe las actualizaciones en todas las secciones involucradas.
+3) para admin/venues y admin/galleras , el modal de "editar perfil" , en lugar de tener 3 secciones, implementa 3 pestañas. la tercera pestaña seria la de "suscripcion". Recuerda que el rol galleras tambien requiere esa pestaña. aqui vamois a cambiar la presentacion: debe haber unicamente 3 radiobuttons, con "gratis","acceso diario" y "acceso mensual". cada uno con su valor, que puedes consultar de tu conocimiento y brain. En esta pestaña debe salir tambien la ultima fecha de activacion de la suscripcion actual. tambien debe salir si la suscripcion esta activa. recuerda que una suscripcion se desactiva (pasa a gratis con sus limitaciones), si supera el tiempo establecido de sus suscripcion relativo a su ultima fecha de activacion. si no entiendes este punto, realiza las preguntas concernientes para aclarartelo.
+4) sobre esta pestaña de suscripcion, a lado de los radiobuttons de las opciones de suscripciones, debe haber un boton de "reactivar" y "cancelar". "Cancelar" pasa la suscripcion a gratuita. "reactivar" graba la nueva suscripcion elegida, y actualiza la fecha de activacion. 
+5) sobre esta pestaña de suscripcion, debe ser aplicada igual para la opcion de editar usuarios en admin/users
 
 
+anotaciones samuel:
+- requerimientos de presentacion: pedazo redaccion y link a externos (fb y tiktok). 
+- nombre definitivo: gallero.net
+- articulos pueden tener videos? editor wysiwyg?
+- obtener logo
+- creacion de instagram , tiktok y facebook. se puede integrar compartir de articulos de la plataforma a estas redes directo?
+- compartir un link de la plataforma, un articulo, para que exteriores lo vean, se puede? requeriria login previo? que recomiendas?
 
+- creacion de articulos, tanto entorno admin y users, pueden tener videos? editor wysiwyg?
+- sobre creacion de contenidos parainstagram , tiktok y facebook. se puede integrar compartir de articulos de la plataforma a estas redes, directo?
+- en la logica del ingreso/registro: analizar proceso de inscripcion: veo que se crea correcto el usuario en la base de datos. pero no hay algun elemento de "confirmacion" tipo email, para confirmar que los datos sean reales o algo asi? analiza, confirma, y optimiza
+- en entorno usuarios, /galleras y /venues tienen funcionalidades similares (correcto), pero esquemas visuales diferentes. normaliza a un solo esquema visual.
+- se puede ver y tener registrado en la base de datos, los usuarios que se conectaron a un evento en vivo?
+
+api.ts:35 API Error: Network Error
+(anonymous)	@	api.ts:35
+Promise.then		
+getAll	@	api.ts:78
+(anonymous)	@	AdminDashboard.tsx:70
+(anonymous)	@	AdminDashboard.tsx:112
+
+api.ts:78  GET http://localhost:3001/api/events?today=true net::ERR_CONNECTION_REFUSED
+
+api.ts:423  GET http://localhost:3001/api/users?status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+
+api.ts:423  GET http://localhost:3001/api/users?role=venue&status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+
+api.ts:423  GET http://localhost:3001/api/users?role=gallera&status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+
+api.ts:469  GET http://localhost:3001/api/articles?status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+
+api.ts:198  GET http://localhost:3001/api/wallet/transactions?type=withdrawal&status=pending&limit=1000 net::ERR_CONNECTION_REFUSED
+
+api.ts:215  GET http://localhost:3001/api/wallet/stats net::ERR_CONNECTION_REFUSED
+
+Settings.tsx:49  GET http://localhost:3001/api/settings net::ERR_CONNECTION_REFUSED
+
+ 
