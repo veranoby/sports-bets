@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sin conexión - GalloBets</title>
+  <title>Sin conexión - Galleros.Net</title>
   <style>
     * {
       margin: 0;
@@ -300,7 +300,7 @@
       // Verificar si hay datos en cache para mostrar mensaje optimista
       if ('caches' in window) {
         caches.keys().then(cacheNames => {
-          const hasCache = cacheNames.some(name => name.includes('gallobets'));
+          const hasCache = cacheNames.some(name => name.includes('galleros.net'));
           
           if (hasCache) {
             const cachedDataDiv = document.getElementById('cached-data');

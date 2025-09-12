@@ -121,7 +121,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
           
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 mb-1">
-              Instalar GalloBets
+              Instalar Galleros<span className="text-red-500">.Net</span>
             </h3>
             <p className="text-sm text-gray-600 mb-3">
               Para instalar esta app en tu iPhone:
@@ -156,7 +156,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
           </div>
           
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">Instalar GalloBets</h3>
+            <h3 className="font-semibold text-gray-900">Instalar Galleros<span className="text-red-500">.Net</span></h3>
             <p className="text-sm text-gray-600">
               Acceso rápido desde tu pantalla de inicio
             </p>

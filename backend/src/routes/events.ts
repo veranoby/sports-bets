@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth, filterByOperatorAssignment } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Event, Venue, User, Fight } from "../models";
+import { Event, Venue, User, Fight, EventConnection } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
@@ -631,5 +631,57 @@ async function init() {
   await invalidateEventCache();
 }
 init();
+
+// Get live viewer count
+router.get('/:id/viewers', asyncHandler(async (req, res) => {
+  const eventId = req.params.id;
+  
+  const activeConnections = await EventConnection.count({
+    where: {
+      event_id: eventId,
+      disconnected_at: null
+    }
+  });
+  
+  res.json({
+    success: true,
+    data: {
+      currentViewers: activeConnections,
+      eventId
+    }
+  });
+}));
+
+// Get event analytics
+router.get('/:id/analytics', authorize('admin', 'operator'), asyncHandler(async (req, res) => {
+  const eventId = req.params.id;
+  
+  const analytics = await EventConnection.findAll({
+    where: { event_id: eventId },
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'username']
+      }
+    ],
+    order: [['connected_at', 'DESC']]
+  });
+  
+  const totalConnections = analytics.length;
+  const uniqueViewers = new Set(analytics.map(a => a.user_id)).size;
+  const avgDuration = analytics
+    .filter(a => a.duration_seconds)
+    .reduce((sum, a) => sum + a.duration_seconds, 0) / analytics.filter(a => a.duration_seconds).length;
+  
+  res.json({
+    success: true,
+    data: {
+      totalConnections,
+      uniqueViewers,
+      averageDurationSeconds: Math.round(avgDuration || 0),
+      connections: analytics
+    }
+  });
+}));
 
 export default router;

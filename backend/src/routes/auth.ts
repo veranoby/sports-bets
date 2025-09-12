@@ -7,6 +7,8 @@ import { authenticate } from "../middleware/auth";
 import { logger } from "../config/logger";
 import { transaction } from "../config/database";
 import { Op } from "sequelize";
+import crypto from "crypto";
+import * as emailService from "../services/emailService";
 
 const router = Router();
 
@@ -81,6 +83,7 @@ router.post(
 
     // Crear usuario y wallet en una transacción
     await transaction(async (t) => {
+      const verificationToken = crypto.randomBytes(32).toString('hex');
       // Crear usuario
       const user = await User.create(
         {
@@ -88,8 +91,11 @@ router.post(
           email,
           passwordHash: password, // Se hashea automáticamente en el hook
           role,
+          email_verified: false,
+          verification_token: verificationToken,
+          verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           profileInfo: {
-            verificationLevel: "none",
+            verificationLevel: "pending",
           },
         },
         { transaction: t }
@@ -105,19 +111,16 @@ router.post(
         { transaction: t }
       );
 
-      // Generar token
-      const token = generateToken(user.id);
+      // Enviar email de verificación
+      await emailService.sendVerificationEmail(email, verificationToken);
+
 
       logger.info(`New user registered: ${user.username} (${user.email})`);
 
       // Respuesta
       res.status(201).json({
         success: true,
-        message: "User registered successfully",
-        data: {
-          user: user.toPublicJSON(),
-          token,
-        },
+        message: "User registered successfully. Please check your email to verify your account.",
       });
     });
   })
@@ -303,5 +306,7 @@ router.post(
     });
   })
 );
+
+router.get('/verify/:token', asyncHandler(async (req, res) => {  const { token } = req.params;  const user = await User.findOne({    where: {      verification_token: token,      verification_expires: { [Op.gt]: new Date() }    }  });  if (!user) {    throw errors.badRequest('Token de verificación inválido o expirado');  }  user.email_verified = true;  user.verification_token = null;  user.verification_expires = null;  await user.save();  res.json({    success: true,    message: 'Email verificado exitosamente'  });}));
 
 export default router;

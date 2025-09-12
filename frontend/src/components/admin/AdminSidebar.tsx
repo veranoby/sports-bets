@@ -44,7 +44,7 @@ const AdminSidebar = memo(() => {
   return (
     <aside className="w-64 bg-gray-300 min-h-screen flex flex-col">
       <div className="p-4 flex-1">
-        <h2 className="text-gray-600 text-lg font-bold mb-2">GalloBets Admin</h2>
+        <h2 className="text-gray-600 text-lg font-bold mb-2">Galleros<span className="text-red-500">.Net</span> Admin</h2>
         <div className={`mb-6 text-white px-2 py-1 rounded-md text-center ${
           user?.role === 'admin' ? 'bg-red-600' : 'bg-blue-600'
         }`}>

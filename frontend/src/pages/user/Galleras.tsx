@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Shield, Users, Calendar } from 'lucide-react';
+import { Search, Shield } from 'lucide-react';
 import { articlesAPI, usersAPI } from '../../config/api';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
+import UserEntityCard from '../../components/shared/UserEntityCard';
 
 interface GalleraProfile {
   id: string;
@@ -85,28 +86,18 @@ const GallerasPage = () => {
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {filteredGalleras.map(gallera => (
-            <div
+            <UserEntityCard
               key={gallera.id}
-              className='card-background p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer hover:bg-[#2a325c]/30'
+              id={gallera.id}
+              name={gallera.name}
+              description={gallera.description}
+              location={gallera.location}
+              imageUrl={gallera.imageUrl || '/placeholder.svg'}
+              articlesCount={gallera.articlesCount}
+              establishedDate={gallera.establishedDate}
+              type="gallera"
               onClick={() => navigate(`/galleras/${gallera.id}`)}
-            >
-              <div className='flex items-center mb-4'>
-                <img 
-                  src={gallera.imageUrl || '/placeholder.svg'}
-                  alt={gallera.name}
-                  className='w-16 h-16 rounded-full object-cover mr-4 border-2 border-red-500'
-                />
-                <div>
-                  <h2 className='text-xl font-bold text-theme-primary'>{gallera.name}</h2>
-                  <p className='text-sm text-theme-light'>{gallera.location}</p>
-                </div>
-              </div>
-              <p className='text-theme-secondary mb-4 text-sm'>{gallera.description}</p>
-              <div className='flex justify-between text-sm text-theme-light'>
-                <div className='flex items-center'><Users size={16} className='mr-2' /> {gallera.articlesCount} artículos</div>
-                {gallera.establishedDate && <div className='flex items-center'><Calendar size={16} className='mr-2' /> Fundada en {new Date(gallera.establishedDate).getFullYear()}</div>}
-              </div>
-            </div>
+            />
           ))}
         </div>
       )}

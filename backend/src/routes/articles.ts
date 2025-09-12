@@ -201,7 +201,7 @@ router.get(
 router.post(
   "/",
   authenticate,
-  authorize("admin", "gallera"),
+  authorize("admin", "gallera", "user"),
   [
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
@@ -225,7 +225,7 @@ router.post(
       "published";
     let publishedAt = new Date();
 
-    if (req.user!.role === "gallera") {
+    if (req.user!.role === "gallera" || req.user!.role === "user") {
       articleStatus = "pending";
       publishedAt = undefined as any;
     }

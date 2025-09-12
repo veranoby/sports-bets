@@ -503,4 +503,98 @@ router.get(
   })
 );
 
+// PUT /api/users/:id - Actualizar usuario (solo admin)
+router.put(
+  "/:id",
+  authenticate,
+  authorize("admin"),
+  [
+    body("username")
+      .optional()
+      .isLength({ min: 3, max: 50 })
+      .withMessage("Username must be between 3 and 50 characters")
+      .isAlphanumeric()
+      .withMessage("Username must contain only letters and numbers"),
+    body("email")
+      .optional()
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+    body("role")
+      .optional()
+      .isIn(["admin", "operator", "venue", "user", "gallera"])
+      .withMessage("Invalid role"),
+    body("profileInfo")
+      .optional()
+      .isObject()
+      .withMessage("Profile info must be an object"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    // Update allowed fields
+    const allowedFields = ["username", "email", "role", "profileInfo"];
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        (user as any)[field] = req.body[field];
+      }
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      data: user.toPublicJSON(),
+    });
+  })
+);
+
+// DELETE /api/users/:id - Eliminar usuario (solo admin)
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    // No permitir eliminar admin users
+    if (user.role === "admin") {
+      throw errors.forbidden("Cannot delete admin users");
+    }
+
+    // Soft delete - desactivar en lugar de eliminar completamente
+    user.isActive = false;
+    await user.save();
+
+    // Log de auditoría
+    require("../config/logger").logger.info(
+      `User ${user.username} (${user.id}) deactivated by admin ${
+        req.user!.username
+      }`
+    );
+
+    res.json({
+      success: true,
+      message: "User deactivated successfully",
+    });
+  })
+);
+
 export default router;

@@ -6,10 +6,11 @@
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, Users, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usersAPI } from "../../config/api";
+import { usersAPI, articlesAPI } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
+import UserEntityCard from "../../components/shared/UserEntityCard";
 
 interface VenueProfile {
   id: string;
@@ -17,6 +18,8 @@ interface VenueProfile {
   description: string;
   location: string;
   imageUrl?: string;
+  articlesCount?: number;
+  establishedDate?: string;
 }
 
 const VenuesPage: React.FC = () => {
@@ -32,13 +35,20 @@ const VenuesPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await usersAPI.getAll({ role: 'venue' });
-        const venueProfiles = response.data.users.map(user => ({
-          id: user.id,
-          name: user.profileInfo?.venueName || user.username,
-          description: user.profileInfo?.description || 'Local para eventos de gallos',
-          location: user.profileInfo?.location || 'Ubicación no especificada',
-          imageUrl: user.profileInfo?.imageUrl,
-        }));
+        const venueProfiles = await Promise.all(
+          response.data.users.map(async (user: any) => {
+            const articles = await articlesAPI.getAll({ author_id: user.id });
+            return {
+              id: user.id,
+              name: user.profileInfo?.venueName || user.username,
+              description: user.profileInfo?.description || 'Local para eventos de gallos',
+              location: user.profileInfo?.location || 'Ubicación no especificada',
+              imageUrl: user.profileInfo?.imageUrl,
+              articlesCount: articles.data.total || 0,
+              establishedDate: user.profileInfo?.establishedDate
+            };
+          })
+        );
         setVenues(venueProfiles);
       } catch (err) {
         setError("Error al cargar los locales. Inténtalo de nuevo más tarde.");
@@ -106,55 +116,44 @@ const VenuesPage: React.FC = () => {
     );
   }
 
-  // Vista lista (optimizada)
+  // Vista lista (normalizada)
   return (
-    <div className="page-background space-y-4 p-4">
-      {/* Búsqueda simple */}
-      <Card className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-light" />
-          <input
-            type="text"
-            placeholder="Buscar locales por nombre o ubicación..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#1a1f37]/50 border border-gray-600/50 rounded-lg text-theme-primary"
-          />
-        </div>
-      </Card>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4 text-theme-primary">Locales</h1>
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input 
+          type="text"
+          placeholder="Buscar por nombre o ubicación..."
+          className="input pl-10 w-full"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
-      {/* Lista eficiente */}
       {error ? (
         <Card variant="error">{error}</Card>
       ) : !filteredVenues.length ? (
         <EmptyState
           title="No se encontraron locales"
+          description="No hay locales que coincidan con tu búsqueda."
           icon={<Users className="w-12 h-12" />}
         />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVenues.map((venue) => (
-            <Card
+            <UserEntityCard
               key={venue.id}
+              id={venue.id}
+              name={venue.name}
+              description={venue.description}
+              location={venue.location}
+              imageUrl={venue.imageUrl}
+              articlesCount={venue.articlesCount}
+              establishedDate={venue.establishedDate}
+              type="venue"
               onClick={() => navigate(`/venues/${venue.id}`)}
-              className="p-4 cursor-pointer hover:bg-[#2a325c]/50"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h2 className="font-semibold text-theme-primary">
-                    {venue.name}
-                  </h2>
-                  <div className="flex items-center gap-1 text-sm text-theme-light mt-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>{venue.location}</span>
-                  </div>
-                  <p className="text-xs text-theme-light mt-2 line-clamp-2">
-                    {venue.description}
-                  </p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-theme-light ml-4" />
-              </div>
-            </Card>
+            />
           ))}
         </div>
       )}

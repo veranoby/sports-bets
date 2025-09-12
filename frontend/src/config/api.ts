@@ -438,10 +438,21 @@ export const usersAPI = {
   updateRole: (id: string, role: string, reason?: string) =>
     apiClient.put(`/users/${id}/role`, { role, reason }),
 
+  // General update method (admin only)
+  update: (id: string, data: {
+    username?: string;
+    email?: string;
+    role?: string;
+    profileInfo?: any;
+  }) => apiClient.put(`/users/${id}`, data),
+
   getAvailableOperators: () => apiClient.get("/users/operators/available"),
 
   // Get operators with active status
   getOperators: () => apiClient.get("/users?role=operator&isActive=true"),
+
+  // Delete/deactivate user (admin only)
+  delete: (id: string) => apiClient.delete(`/users/${id}`),
 };
 
 export const articlesAPI = {

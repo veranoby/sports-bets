@@ -138,11 +138,11 @@ const LoginPage: React.FC = () => {
           <div className="flex justify-center items-center gap-2">
             <img
               src="/src/assets/logo.png"
-              alt="Logo GalloBets"
+              alt="Logo Galleros.Net"
               className="h-12 w-12 object-contain"
             />
             <h1 className="text-4xl font-bold text-theme-primary">
-              Gallo<span className="text-[#cd6263]">Bets</span>
+              Galleros<span className="text-[#cd6263]">.Net</span>
             </h1>
           </div>
           <h2 className="mt-6 text-2xl font-bold text-theme-primary">

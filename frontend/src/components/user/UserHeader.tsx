@@ -2,7 +2,7 @@
 // ================================================================
 // ELIMINADO: Botón refresh, mock data, fetchHeaderData custom
 // IMPLEMENTADO: useWallet(), useNotifications(), useBets() hooks
-// MEJORADO: Variables CSS globales, degradado elegante, GalloBets logo
+// MEJORADO: Variables CSS globales, degradado elegante, Galleros.Net logo
 
 import React, { memo, useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -158,12 +158,11 @@ const UserHeader = memo(() => {
             {/* Oculta en móvil, muestra en desktop */}
             <img
               src="/src/assets/logo.png"
-              alt="Logo GalloBets"
+              alt="Logo Galleros.Net"
               className="h-10 w-10 object-contain hidden md:block"
             />
             <h1 className="text-xl md:text-2xl font-bold">
-              <span className="text-red-400">Gallo</span>
-              <span>Bets</span>
+              Galleros<span className="text-[#cd6263]">.Net</span>
             </h1>
             <div className="w-px h-6 bg-theme-primary opacity-30"></div>
             <span className="hidden md:text-lg font-medium">

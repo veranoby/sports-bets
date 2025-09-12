@@ -15,7 +15,7 @@ interface NewsItem {
 const fallbackNews: NewsItem[] = [
   {
     id: "fallback-1",
-    title: "¡Bienvenido a GalloBets!",
+    title: <>¡Bienvenido a Galleros<span className="text-red-500">.Net</span>!</>,
     content: "Disfruta de la mejor experiencia de apuestas en vivo.",
     published_at: new Date().toISOString(),
   },

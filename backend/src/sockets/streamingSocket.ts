@@ -1,6 +1,38 @@
 import { Server, Socket } from 'socket.io';
 import { rtmpService } from '../services/rtmpService';
 import jwt from 'jsonwebtoken';
+import { EventConnection } from '../models';
+
+const trackConnection = async (eventId: string, userId: string) => {
+  try {
+    const connection = await EventConnection.create({
+      event_id: eventId,
+      user_id: userId,
+      connected_at: new Date()
+    });
+    return connection.id;
+  } catch (error) {
+    console.error('Error tracking connection:', error);
+    return null;
+  }
+};
+
+const trackDisconnection = async (connectionId: number) => {
+  try {
+    const connection = await EventConnection.findByPk(connectionId);
+    if (connection) {
+      const disconnectedAt = new Date();
+      const duration = Math.floor((disconnectedAt.getTime() - new Date(connection.connected_at).getTime()) / 1000);
+      
+      await connection.update({
+        disconnected_at: disconnectedAt,
+        duration_seconds: duration
+      });
+    }
+  } catch (error) {
+    console.error('Error tracking disconnection:', error);
+  }
+};
 
 interface StreamSocketData {
   userId?: string;
@@ -17,6 +49,7 @@ const activeViewers = new Map<string, {
   streamId?: string;
   joinedAt: Date;
   lastActivity: Date;
+  connectionId?: number;
 }>();
 
 export const setupStreamingSocket = (io: Server) => {
@@ -47,7 +80,7 @@ export const setupStreamingSocket = (io: Server) => {
   });
 
   // Handle streaming namespace connections
-  io.of('/stream').on('connection', (socket) => {
+  io.of('/stream').on('connection', async (socket) => {
     const { userId, eventId, streamId, role } = socket.data as StreamSocketData;
     
     console.log(`Stream viewer connected: ${userId} for event ${eventId}`);
@@ -63,13 +96,15 @@ export const setupStreamingSocket = (io: Server) => {
 
     // Track viewer join
     if (userId && eventId) {
+      const connectionId = await trackConnection(eventId, userId);
       activeViewers.set(socket.id, {
         socketId: socket.id,
         userId,
         eventId,
         streamId,
         joinedAt: new Date(),
-        lastActivity: new Date()
+        lastActivity: new Date(),
+        connectionId
       });
 
       // Update RTMP service with viewer count
@@ -185,6 +220,9 @@ export const setupStreamingSocket = (io: Server) => {
 
       const viewer = activeViewers.get(socket.id);
       if (viewer) {
+        if (viewer.connectionId) {
+          await trackDisconnection(viewer.connectionId);
+        }
         const watchTime = Date.now() - viewer.joinedAt.getTime();
 
         // Track viewer leave

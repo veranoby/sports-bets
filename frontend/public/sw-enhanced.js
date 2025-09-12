@@ -1,8 +1,8 @@
 // 🚀 ENHANCED SERVICE WORKER - PWA Optimization Phase 3
-const CACHE_NAME = 'gallobets-cache-v2';
-const STATIC_CACHE = 'gallobets-static-v2';
-const API_CACHE = 'gallobets-api-v2';
-const IMAGES_CACHE = 'gallobets-images-v2';
+const CACHE_NAME = 'galleros-net-cache-v2';
+const STATIC_CACHE = 'galleros-net-static-v2';
+const API_CACHE = 'galleros-net-api-v2';
+const IMAGES_CACHE = 'galleros-net-images-v2';
 
 // Comprehensive caching strategy
 const urlsToCache = [
@@ -63,7 +63,7 @@ self.addEventListener('activate', (event) => {
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (!['gallobets-static-v2', 'gallobets-api-v2', 'gallobets-images-v2'].includes(cacheName)) {
+            if (!['galleros-net-static-v2', 'galleros-net-api-v2', 'galleros-net-images-v2'].includes(cacheName)) {
               console.log('🗑️ Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
