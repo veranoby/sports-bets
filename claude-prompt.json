@@ -1,443 +1,151 @@
 {
   "metadata": {
-    "project": "GalloBets Platform - Optimized Implementation Plan",
-    "created": "2025-01-15",
-    "updated": "2025-01-15",
-    "priority": "P0 - Platform Enhancement",
-    "estimated_time": "20-25 hours remaining after visual normalization completion",
-    "phase": "Post-Visual Normalization - Core Features Implementation"
+    "created": "2025-09-11",
+    "version": "3.0-performance-optimizations",
+    "purpose": "Backend performance optimizations for 1000+ user scaling",
+    "priority": "P0 CRITICAL",
+    "estimated_completion_time": "3-4 hours",
+    "brain_reference": "/home/veranoby/sports-bets/brain/backlog.json",
+    "target_performance": "Support 500+ concurrent users without degradation"
   },
-  "comprehensive_analysis_results": {
-    "1_article_creation_system": {
-      "status": "IMPLEMENTED - ReactQuill WYSIWYG with video support",
-      "admin_capability": "ArticleEditor.tsx with full toolbar, video support",
-      "user_capability": "View only - no creation interface exists",
-      "api_endpoint": "POST /api/articles - admin/gallera roles only",
-      "gaps": "Users cannot create articles, no social sharing integration"
+  
+  "context": {
+    "current_situation": {
+      "database_issues": "Duplicate constraints causing INSERT/UPDATE performance degradation",
+      "scaling_target": "1000 users, 8 events/month, 4 hours each = 32k hours streaming",
+      "concurrent_load": "500+ simultaneous users during peak events",
+      "current_bottlenecks": ["Unlimited database connections", "No query performance monitoring", "Inefficient EventService queries", "Unmanaged WebSocket connections"]
     },
-    "2_social_media_integration": {
-      "status": "NOT IMPLEMENTED",
-      "current_search": "No Instagram, TikTok, Facebook API integration found",
-      "dependencies_missing": "react-share, social API SDKs, authentication tokens",
-      "database_gaps": "No social connections or share tracking tables"
-    },
-    "3_email_verification": {
-      "status": "NOT IMPLEMENTED", 
-      "current_registration": "User created immediately with JWT token",
-      "verification_level": "Set to 'none' - no email confirmation required",
-      "missing_infrastructure": "No SMTP service, no verification tokens, no email templates"
-    },
-    "4_visual_schema_normalization": {
-      "status": "✅ COMPLETADO - 2025-01-15",
-      "implementation": "UserEntityCard component created and integrated",
-      "galleras_page": "Updated to use shared UserEntityCard with unified grid layout",
-      "venues_page": "Updated to use shared UserEntityCard with consistent styling", 
-      "achievement": "Both pages now use identical layout and styling patterns"
-    },
-    "5_live_event_tracking": {
-      "database_infrastructure": "Events table exists with stream_key, no connection tracking",
-      "websocket_exists": "streamingSocket.ts has basic infrastructure",
-      "missing_capability": "No event_connections table, no viewer analytics",
-      "gap": "Cannot track who connects to live events or duration"
-    }
+    "database_cleanup_status": "P0 CRITICAL - Execute SQL cleanup in Neon.tech editor FIRST",
+    "architecture_confirmed": "Hybrid SSE (admin) + WebSocket (betting minimal) + Bunny.net CDN"
   },
-  "optimized_implementation_roadmap": {
-    "phase_1_email_verification_system": {
+
+  "implementation_phases": {
+    "phase_1_database_connection_optimization": {
+      "priority": "P0 CRITICAL",
+      "description": "Implement connection pooling to prevent database overload",
+      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/config/database.ts"],
+      "current_problem": "Unlimited connections will crash with 100+ concurrent users",
+      "target_solution": "Max 20 connections with proper pooling and timeouts"
+    },
+    "phase_2_performance_monitoring": {
+      "priority": "P0 CRITICAL", 
+      "description": "Add middleware to track query performance and bottlenecks",
+      "files_to_create": ["/home/veranoby/sports-bets/backend/src/middleware/performanceMonitoring.ts"],
+      "target_solution": "Track queries >200ms, alert on >500ms, log slow operations"
+    },
+    "phase_3_service_optimization": {
+      "priority": "P0 CRITICAL",
+      "description": "Optimize EventService with eager loading and query reduction", 
+      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/services/eventService.ts"],
+      "current_problem": "N+1 query problems loading events with venues/fights",
+      "target_solution": "Single queries with includes, proper pagination"
+    },
+    "phase_4_websocket_management": {
       "priority": "P1",
-      "estimated_time": "4-6 hours",
-      "scope": "Implement email verification for new user registrations",
-      "status": "NOT_IMPLEMENTED",
-      "dependencies": "None - can start immediately",
-      "tasks": [
-        {
-          "task": "Add email verification database columns",
-          "files": ["backend/migrations/add_email_verification.sql"],
-          "specific_changes": [
-            {
-              "action": "create",
-              "code": "ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE;\nALTER TABLE users ADD COLUMN verification_token VARCHAR(255) NULL;\nALTER TABLE users ADD COLUMN verification_expires TIMESTAMP NULL;\nCREATE INDEX idx_users_verification_token ON users(verification_token);",
-              "reasoning": "Database schema for email verification"
-            }
-          ]
-        },
-        {
-          "task": "Install and configure nodemailer",
-          "files": ["backend/package.json", "backend/src/services/emailService.ts"],
-          "specific_changes": [
-            {
-              "action": "add_dependency",
-              "code": "npm install nodemailer @types/nodemailer",
-              "reasoning": "Email service dependency"
-            },
-            {
-              "action": "create",
-              "code": "import nodemailer from 'nodemailer';\nimport { logger } from '../config/logger';\n\nconst transporter = nodemailer.createTransporter({\n  host: process.env.SMTP_HOST,\n  port: parseInt(process.env.SMTP_PORT || '587'),\n  secure: false,\n  auth: {\n    user: process.env.SMTP_USER,\n    pass: process.env.SMTP_PASS\n  }\n});\n\nexport const sendVerificationEmail = async (email: string, token: string) => {\n  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;\n  \n  const mailOptions = {\n    from: process.env.SMTP_FROM,\n    to: email,\n    subject: 'Verifica tu cuenta - GalloBets',\n    html: `\n      <h1>Verifica tu cuenta</h1>\n      <p>Haz clic en el siguiente enlace para verificar tu cuenta:</p>\n      <a href=\"${verificationUrl}\">Verificar cuenta</a>\n      <p>Este enlace expira en 24 horas.</p>\n    `\n  };\n  \n  await transporter.sendMail(mailOptions);\n  logger.info(`Verification email sent to ${email}`);\n};",
-              "reasoning": "Email service implementation"
-            }
-          ]
-        },
-        {
-          "task": "Update registration endpoint",
-          "files": ["backend/src/routes/auth.ts"],
-          "specific_changes": [
-            {
-              "location": "User creation (~line 85)",
-              "current": "const user = await User.create({...})",
-              "new": "const verificationToken = crypto.randomBytes(32).toString('hex');\nconst user = await User.create({\n  username,\n  email,\n  passwordHash: password,\n  role,\n  email_verified: false,\n  verification_token: verificationToken,\n  verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),\n  profileInfo: { verificationLevel: \"pending\" }\n});",
-              "reasoning": "Create unverified user with token"
-            },
-            {
-              "location": "After user creation",
-              "action": "add",
-              "code": "await emailService.sendVerificationEmail(email, verificationToken);",
-              "reasoning": "Send verification email"
-            }
-          ]
-        },
-        {
-          "task": "Create email verification endpoint",
-          "files": ["backend/src/routes/auth.ts"],
-          "specific_changes": [
-            {
-              "location": "Add new route after existing routes",
-              "action": "add",
-              "code": "router.get('/verify/:token', asyncHandler(async (req, res) => {\n  const { token } = req.params;\n  \n  const user = await User.findOne({\n    where: {\n      verification_token: token,\n      verification_expires: { [Op.gt]: new Date() }\n    }\n  });\n  \n  if (!user) {\n    throw errors.badRequest('Token de verificación inválido o expirado');\n  }\n  \n  user.email_verified = true;\n  user.verification_token = null;\n  user.verification_expires = null;\n  await user.save();\n  \n  res.json({\n    success: true,\n    message: 'Email verificado exitosamente'\n  });\n}));",
-              "reasoning": "Email verification endpoint"
-            }
-          ]
-        }
-      ],
-      "test_criteria": {
-        "acceptance": "New users must verify email before full platform access",
-        "specific_checks": [
-          "Registration sends verification email",
-          "Unverified users have limited access",
-          "Verification link activates account",
-          "Expired tokens are rejected"
-        ]
+      "description": "Add connection pooling and cleanup for WebSocket betting system",
+      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/sockets/bettingSocket.ts"],
+      "target_solution": "Max 100 active connections, auto-cleanup inactive clients"
+    }
+  },
+
+  "specific_implementation_instructions": {
+    "database_connection_pooling": {
+      "file": "/home/veranoby/sports-bets/backend/src/config/database.ts",
+      "current_code_problem": "Sequelize connection without limits",
+      "exact_implementation": {
+        "add_after_line": "const sequelize = new Sequelize(DATABASE_URL, {",
+        "insert_code": "  pool: {\n    max: 20,        // Maximum connections in pool\n    min: 5,         // Minimum connections to maintain\n    acquire: 30000, // Maximum time (ms) to wait for connection\n    idle: 10000,    // Maximum time (ms) connection can be idle\n    evict: 1000     // Run eviction every 1 second\n  },\n  logging: process.env.NODE_ENV === 'development' ? console.log : false,",
+        "reasoning": "Prevents connection exhaustion under high load, maintains baseline connections for performance"
       }
     },
-    "phase_2_user_article_creation": {
-      "priority": "P0", 
-      "estimated_time": "2-3 hours",
-      "scope": "Create frontend components for user article creation (backend API ready)",
-      "status": "PARTIALLY_IMPLEMENTED_BACKEND_READY",
-      "dependencies": "Backend API already supports user role authorization - frontend missing",
-      "tasks": [
-        {
-          "task": "✅ ALREADY IMPLEMENTED - Backend API supports user creation",
-          "files": ["backend/src/routes/articles.ts:204"],
-          "current_status": "authorize('admin', 'gallera', 'user') allows user role, articles.ts:228-231 sets pending status for users",
-            {
-              "location": "POST /articles authorization (~line 204)",
-              "current": "authorize(\"admin\", \"gallera\")",
-              "new": "authorize(\"admin\", \"gallera\", \"user\")",
-              "reasoning": "Allow users to create articles"
-            },
-            {
-              "location": "Article creation status logic (~line 224)",
-              "current": "let articleStatus = \"published\";\nif (req.user!.role === \"gallera\") {\n  articleStatus = \"pending\";\n}",
-              "new": "let articleStatus = \"published\";\nif (req.user!.role === \"gallera\" || req.user!.role === \"user\") {\n  articleStatus = \"pending\";\n}",
-              "reasoning": "User articles need approval like gallera articles"
-            }
-          ]
-        },
-        {
-          "task": "Create user article creation interface",
-          "files": ["frontend/src/pages/user/CreateArticle.tsx"],
-          "specific_changes": [
-            {
-              "action": "create",
-              "code": "import React, { useState } from 'react';\nimport { useNavigate } from 'react-router-dom';\nimport ArticleEditor from '../../components/admin/ArticleEditor';\nimport { articlesAPI } from '../../config/api';\nimport { useAuth } from '../../hooks/useAuth';\n\nconst CreateArticlePage: React.FC = () => {\n  const navigate = useNavigate();\n  const { user } = useAuth();\n  const [loading, setLoading] = useState(false);\n\n  const handleSave = async (data: { title: string; content: string; summary: string }) => {\n    try {\n      setLoading(true);\n      await articlesAPI.create({\n        title: data.title,\n        content: data.content,\n        excerpt: data.summary,\n        status: 'pending'\n      });\n      navigate('/user/articles?created=true');\n    } catch (error) {\n      console.error('Error creating article:', error);\n      throw error;\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const handleCancel = () => {\n    navigate('/user/articles');\n  };\n\n  if (!user) {\n    return <div>Debes iniciar sesión para crear artículos</div>;\n  }\n\n  return (\n    <div className=\"container mx-auto p-4\">\n      <h1 className=\"text-2xl font-bold mb-4\">Crear Artículo</h1>\n      <p className=\"text-gray-600 mb-6\">\n        Tu artículo será revisado por los administradores antes de ser publicado.\n      </p>\n      <ArticleEditor\n        onSave={handleSave}\n        onCancel={handleCancel}\n        isLoading={loading}\n      />\n    </div>\n  );\n};\n\nexport default CreateArticlePage;",
-              "reasoning": "User interface for article creation with approval flow"
-            }
-          ]
-        },
-        {
-          "task": "Add user articles management page",
-          "files": ["frontend/src/pages/user/MyArticles.tsx"],
-          "specific_changes": [
-            {
-              "action": "create",
-              "code": "import React, { useState, useEffect } from 'react';\nimport { Link } from 'react-router-dom';\nimport { articlesAPI } from '../../config/api';\nimport { useAuth } from '../../hooks/useAuth';\nimport LoadingSpinner from '../../components/shared/LoadingSpinner';\nimport EmptyState from '../../components/shared/EmptyState';\nimport { Edit, Eye, Clock, CheckCircle, XCircle } from 'lucide-react';\n\nconst MyArticlesPage: React.FC = () => {\n  const { user } = useAuth();\n  const [articles, setArticles] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    const fetchMyArticles = async () => {\n      if (!user) return;\n      try {\n        const response = await articlesAPI.getAll({ author_id: user.id });\n        setArticles(response.data.articles);\n      } catch (error) {\n        console.error('Error loading articles:', error);\n      } finally {\n        setLoading(false);\n      }\n    };\n\n    fetchMyArticles();\n  }, [user]);\n\n  const getStatusIcon = (status: string) => {\n    switch (status) {\n      case 'published': return <CheckCircle className=\"w-4 h-4 text-green-600\" />;\n      case 'pending': return <Clock className=\"w-4 h-4 text-yellow-600\" />;\n      case 'rejected': return <XCircle className=\"w-4 h-4 text-red-600\" />;\n      default: return <Clock className=\"w-4 h-4 text-gray-600\" />;\n    }\n  };\n\n  if (loading) return <LoadingSpinner text=\"Cargando tus artículos...\" />;\n\n  return (\n    <div className=\"container mx-auto p-4\">\n      <div className=\"flex justify-between items-center mb-6\">\n        <h1 className=\"text-2xl font-bold\">Mis Artículos</h1>\n        <Link\n          to=\"/user/articles/create\"\n          className=\"bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700\"\n        >\n          Crear Artículo\n        </Link>\n      </div>\n\n      {articles.length === 0 ? (\n        <EmptyState\n          title=\"No tienes artículos\"\n          description=\"Crea tu primer artículo para compartir con la comunidad\"\n          icon={<Edit className=\"w-12 h-12\" />}\n        />\n      ) : (\n        <div className=\"space-y-4\">\n          {articles.map((article: any) => (\n            <div key={article.id} className=\"bg-white rounded-lg shadow p-6\">\n              <div className=\"flex justify-between items-start\">\n                <div className=\"flex-1\">\n                  <h3 className=\"text-lg font-semibold mb-2\">{article.title}</h3>\n                  <p className=\"text-gray-600 mb-4\">{article.excerpt}</p>\n                  <div className=\"flex items-center gap-4 text-sm text-gray-500\">\n                    <div className=\"flex items-center gap-1\">\n                      {getStatusIcon(article.status)}\n                      <span className=\"capitalize\">{article.status}</span>\n                    </div>\n                    <span>{new Date(article.createdAt).toLocaleDateString()}</span>\n                  </div>\n                </div>\n                <div className=\"flex gap-2\">\n                  {article.status === 'published' && (\n                    <Link\n                      to={`/articles/${article.id}`}\n                      className=\"flex items-center gap-1 px-3 py-1 bg-gray-100 rounded hover:bg-gray-200\"\n                    >\n                      <Eye className=\"w-4 h-4\" />\n                      Ver\n                    </Link>\n                  )}\n                </div>\n              </div>\n            </div>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default MyArticlesPage;",
-              "reasoning": "User dashboard for managing their articles"
-            }
-          ]
-        }
-      ],
-      "test_criteria": {
-        "acceptance": "Users can create articles with proper approval workflow",
-        "specific_checks": [
-          "Users can access article creation interface",
-          "User-created articles start with 'pending' status",
-          "Articles appear in user's personal dashboard",
-          "Admin can approve/reject user articles",
-          "Approved articles appear in public feed"
-        ]
-      }
+    
+    "performance_monitoring_middleware": {
+      "file": "/home/veranoby/sports-bets/backend/src/middleware/performanceMonitoring.ts",
+      "create_new_file": true,
+      "complete_implementation": "import { Request, Response, NextFunction } from 'express';\nimport { performance } from 'perf_hooks';\n\n// Track slow queries and performance metrics\nconst queryMetrics = new Map<string, {count: number, totalTime: number, slowQueries: number}>();\n\nexport const performanceMonitoring = (req: Request, res: Response, next: NextFunction) => {\n  const startTime = performance.now();\n  const originalUrl = req.originalUrl;\n  \n  // Hook into response finish to calculate total time\n  res.on('finish', () => {\n    const endTime = performance.now();\n    const duration = endTime - startTime;\n    \n    // Track metrics by route\n    const metrics = queryMetrics.get(originalUrl) || {count: 0, totalTime: 0, slowQueries: 0};\n    metrics.count++;\n    metrics.totalTime += duration;\n    \n    // Flag slow queries (>200ms)\n    if (duration > 200) {\n      metrics.slowQueries++;\n      console.warn(`⚠️ Slow query detected: ${originalUrl} took ${duration.toFixed(2)}ms`);\n    }\n    \n    // Alert on very slow queries (>500ms)\n    if (duration > 500) {\n      console.error(`🚨 CRITICAL: Very slow query: ${originalUrl} took ${duration.toFixed(2)}ms`);\n    }\n    \n    queryMetrics.set(originalUrl, metrics);\n    \n    // Add performance headers for monitoring\n    res.set('X-Response-Time', `${duration.toFixed(2)}ms`);\n  });\n  \n  next();\n};\n\n// Export metrics for admin monitoring\nexport const getPerformanceMetrics = () => {\n  const metrics: any[] = [];\n  queryMetrics.forEach((data, route) => {\n    metrics.push({\n      route,\n      avgTime: data.totalTime / data.count,\n      totalRequests: data.count,\n      slowQueries: data.slowQueries,\n      slowQueryPercentage: ((data.slowQueries / data.count) * 100).toFixed(2)\n    });\n  });\n  return metrics.sort((a, b) => b.avgTime - a.avgTime);\n};",
+      "integration_point": "Add to main app.ts: app.use(performanceMonitoring);"
     },
-    "phase_3_live_event_connection_tracking": {
-      "priority": "P2",
-      "estimated_time": "6-8 hours", 
-      "scope": "Track user connections to live events for analytics",
-      "status": "NOT_IMPLEMENTED",
-      "dependencies": "WebSocket infrastructure exists - extend for tracking",
-      "tasks": [
+
+    "event_service_optimization": {
+      "file": "/home/veranoby/sports-bets/backend/src/services/eventService.ts",
+      "specific_optimizations": [
         {
-          "task": "Create event_connections database table",
-          "files": ["backend/migrations/add_event_connections.sql"],
-          "specific_changes": [
-            {
-              "action": "create",
-              "code": "CREATE TABLE event_connections (\n  id SERIAL PRIMARY KEY,\n  event_id INTEGER REFERENCES events(id),\n  user_id INTEGER REFERENCES users(id),\n  connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  disconnected_at TIMESTAMP NULL,\n  duration_seconds INTEGER NULL,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE INDEX idx_event_connections_event_id ON event_connections(event_id);\nCREATE INDEX idx_event_connections_user_id ON event_connections(user_id);\nCREATE INDEX idx_event_connections_connected_at ON event_connections(connected_at);",
-              "reasoning": "Track who watches events and for how long"
-            }
-          ]
+          "method": "getAllEvents",
+          "current_problem": "Separate queries for venue, fights, operator data",
+          "optimization": "Single query with eager loading includes",
+          "find_and_replace": {
+            "find": "Event.findAll({",
+            "replace": "Event.findAll({\n  include: [\n    { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },\n    { model: User, as: 'operator', attributes: ['id', 'username'] },\n    { model: User, as: 'creator', attributes: ['id', 'username'] },\n    { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }\n  ],"
+          }
         },
         {
-          "task": "Update WebSocket to track connections",
-          "files": ["backend/src/sockets/streamingSocket.ts"],
-          "specific_changes": [
-            {
-              "location": "Connection handling",
-              "action": "add",
-              "code": "import { EventConnection } from '../models';\n\nconst trackConnection = async (eventId: string, userId: string) => {\n  try {\n    const connection = await EventConnection.create({\n      event_id: eventId,\n      user_id: userId,\n      connected_at: new Date()\n    });\n    return connection.id;\n  } catch (error) {\n    console.error('Error tracking connection:', error);\n    return null;\n  }\n};\n\nconst trackDisconnection = async (connectionId: number) => {\n  try {\n    const connection = await EventConnection.findByPk(connectionId);\n    if (connection) {\n      const disconnectedAt = new Date();\n      const duration = Math.floor((disconnectedAt.getTime() - new Date(connection.connected_at).getTime()) / 1000);\n      \n      await connection.update({\n        disconnected_at: disconnectedAt,\n        duration_seconds: duration\n      });\n    }\n  } catch (error) {\n    console.error('Error tracking disconnection:', error);\n  }\n};",
-              "reasoning": "Track connection start and end times"
-            }
-          ]
-        },
-        {
-          "task": "Add event analytics endpoints",
-          "files": ["backend/src/routes/events.ts"],
-          "specific_changes": [
-            {
-              "location": "Add after existing routes",
-              "action": "add",
-              "code": "// Get live viewer count\nrouter.get('/:id/viewers', asyncHandler(async (req, res) => {\n  const eventId = req.params.id;\n  \n  const activeConnections = await EventConnection.count({\n    where: {\n      event_id: eventId,\n      disconnected_at: null\n    }\n  });\n  \n  res.json({\n    success: true,\n    data: {\n      currentViewers: activeConnections,\n      eventId\n    }\n  });\n}));\n\n// Get event analytics\nrouter.get('/:id/analytics', authorize('admin', 'operator'), asyncHandler(async (req, res) => {\n  const eventId = req.params.id;\n  \n  const analytics = await EventConnection.findAll({\n    where: { event_id: eventId },\n    include: [\n      {\n        model: User,\n        attributes: ['id', 'username']\n      }\n    ],\n    order: [['connected_at', 'DESC']]\n  });\n  \n  const totalConnections = analytics.length;\n  const uniqueViewers = new Set(analytics.map(a => a.user_id)).size;\n  const avgDuration = analytics\n    .filter(a => a.duration_seconds)\n    .reduce((sum, a) => sum + a.duration_seconds, 0) / analytics.filter(a => a.duration_seconds).length;\n  \n  res.json({\n    success: true,\n    data: {\n      totalConnections,\n      uniqueViewers,\n      averageDurationSeconds: Math.round(avgDuration || 0),\n      connections: analytics\n    }\n  });\n}));",
-              "reasoning": "Provide real-time and historical analytics"
-            }
-          ]
+          "method": "getEventById", 
+          "current_problem": "Multiple database hits for related data",
+          "optimization": "Single query with full includes",
+          "find_and_replace": {
+            "find": "Event.findByPk(eventId",
+            "replace": "Event.findByPk(eventId, {\n  include: [\n    { model: Venue, as: 'venue' },\n    { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },\n    { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },\n    { \n      model: Fight, \n      as: 'fights',\n      include: [{ model: Bet, as: 'bets', attributes: ['id', 'amount', 'status'] }]\n    }\n  ]"
+          }
         }
       ],
-      "test_criteria": {
-        "acceptance": "Event connections are tracked and analytics are available",
-        "specific_checks": [
-          "User connections to events are logged in database",
-          "Disconnection times and durations are recorded",
-          "Real-time viewer count is available via API",
-          "Event analytics show total/unique viewers and average duration",
-          "Admin can view detailed connection logs"
-        ]
-      }
+      "add_pagination_method": "export const getEventsPaginated = async (page: number = 1, limit: number = 20, filters?: any) => {\n  const offset = (page - 1) * limit;\n  return Event.findAndCountAll({\n    offset,\n    limit,\n    include: [/* same includes as above */],\n    where: filters || {},\n    order: [['scheduled_date', 'DESC']]\n  });\n};"
     },
-    "phase_4_social_media_integration": {
-      "priority": "P3",
-      "estimated_time": "12-16 hours",
-      "scope": "Direct sharing to Instagram, TikTok, and Facebook",
-      "status": "NOT_IMPLEMENTED", 
-      "dependencies": "Requires social media API credentials and setup",
-      "tasks": [
-        {
-          "task": "Install social media dependencies",
-          "files": ["frontend/package.json"],
-          "specific_changes": [
-            {
-              "action": "add_dependencies",
-              "code": "npm install react-share @types/react-share",
-              "reasoning": "Social sharing functionality"
-            }
-          ]
-        },
-        {
-          "task": "Create social sharing component",
-          "files": ["frontend/src/components/shared/SocialShare.tsx"],
-          "specific_changes": [
-            {
-              "action": "create",
-              "code": "import React from 'react';\nimport {\n  FacebookShareButton,\n  TwitterShareButton,\n  WhatsappShareButton,\n  FacebookIcon,\n  TwitterIcon,\n  WhatsappIcon\n} from 'react-share';\n\ninterface SocialShareProps {\n  url: string;\n  title: string;\n  description?: string;\n}\n\nconst SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) => {\n  return (\n    <div className=\"flex gap-2\">\n      <FacebookShareButton url={url} quote={title}>\n        <FacebookIcon size={32} round />\n      </FacebookShareButton>\n      \n      <TwitterShareButton url={url} title={title}>\n        <TwitterIcon size={32} round />\n      </TwitterShareButton>\n      \n      <WhatsappShareButton url={url} title={title}>\n        <WhatsappIcon size={32} round />\n      </WhatsappShareButton>\n    </div>\n  );\n};\n\nexport default SocialShare;",
-              "reasoning": "Basic social sharing component for articles"
-            }
-          ]
-        },
-        {
-          "task": "Add sharing to article pages",
-          "files": ["frontend/src/pages/ArticleDetail.tsx"],
-          "specific_changes": [
-            {
-              "location": "Add to article display",
-              "action": "add",
-              "code": "import SocialShare from '../components/shared/SocialShare';\n\n// In article display component:\n<div className=\"mt-6 pt-6 border-t\">\n  <h3 className=\"text-lg font-semibold mb-3\">Compartir artículo</h3>\n  <SocialShare\n    url={window.location.href}\n    title={article.title}\n    description={article.excerpt}\n  />\n</div>",
-              "reasoning": "Enable sharing of individual articles"
-            }
-          ]
-        }
-      ],
-      "test_criteria": {
-        "acceptance": "Users can share articles to major social media platforms",
-        "specific_checks": [
-          "Social share buttons appear on article pages",
-          "Facebook sharing works with proper title/description",
-          "Twitter sharing includes article title and URL",
-          "WhatsApp sharing includes formatted message",
-          "Shared content displays correctly on target platforms"
-        ]
+
+    "websocket_connection_management": {
+      "file": "/home/veranoby/sports-bets/backend/src/sockets/bettingSocket.ts",
+      "add_connection_registry": {
+        "add_at_top": "// WebSocket connection management\nconst activeConnections = new Map<string, { socket: any, lastActivity: Date, userId?: string }>();\nconst MAX_CONNECTIONS = 100;\nconst CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes",
+        "add_connection_tracking": "// Track new connections\nio.on('connection', (socket) => {\n  const connectionId = socket.id;\n  \n  // Check connection limit\n  if (activeConnections.size >= MAX_CONNECTIONS) {\n    console.warn(`🚨 WebSocket connection limit reached: ${activeConnections.size}`);\n    socket.emit('error', { message: 'Server capacity reached, please try again later' });\n    socket.disconnect();\n    return;\n  }\n  \n  // Register connection\n  activeConnections.set(connectionId, {\n    socket,\n    lastActivity: new Date(),\n    userId: undefined\n  });\n  \n  console.log(`✅ WebSocket connected: ${connectionId} (Total: ${activeConnections.size})`);\n  \n  // Update last activity on any event\n  socket.onAny(() => {\n    const conn = activeConnections.get(connectionId);\n    if (conn) {\n      conn.lastActivity = new Date();\n    }\n  });\n  \n  // Cleanup on disconnect\n  socket.on('disconnect', () => {\n    activeConnections.delete(connectionId);\n    console.log(`❌ WebSocket disconnected: ${connectionId} (Total: ${activeConnections.size})`);\n  });",
+        "add_cleanup_interval": "// Cleanup inactive connections every 5 minutes\nsetInterval(() => {\n  const now = new Date();\n  let cleanedUp = 0;\n  \n  activeConnections.forEach((conn, connectionId) => {\n    const inactiveTime = now.getTime() - conn.lastActivity.getTime();\n    if (inactiveTime > 10 * 60 * 1000) { // 10 minutes inactive\n      conn.socket.disconnect();\n      activeConnections.delete(connectionId);\n      cleanedUp++;\n    }\n  });\n  \n  if (cleanedUp > 0) {\n    console.log(`🧹 Cleaned up ${cleanedUp} inactive WebSocket connections`);\n  }\n}, CLEANUP_INTERVAL);"
       }
     }
   },
-  "implementation_sequence": {
-    "immediate_priorities": [
-      "Phase 2: User article creation (2-3h) - Frontend missing, backend ready",
-      "Phase 1: Email verification system (4-6h) - Security enhancement"
+
+  "testing_validation": {
+    "performance_testing": [
+      "Test with 50+ concurrent users hitting event endpoints",
+      "Monitor query times in performance middleware logs", 
+      "Verify connection pool doesn't exceed 20 connections",
+      "Test WebSocket cleanup with multiple connections"
     ],
-    "medium_term": [
-      "Phase 3: Live event connection tracking (6-8h) - Analytics capability"
+    "database_verification": [
+      "Check pg_stat_activity for connection count during load",
+      "Monitor slow query log for queries >200ms",
+      "Verify no duplicate constraints remain after cleanup"
     ],
-    "long_term": [
-      "Phase 4: Social media integration (12-16h) - Marketing enhancement"
+    "success_criteria": [
+      "Event loading <200ms with full includes",
+      "Database connections stable under load",
+      "WebSocket connections auto-cleanup working",
+      "No duplicate constraint errors in logs"
     ]
   },
-  "completed_implementations": {
-    "visual_normalization": {
-      "status": "✅ COMPLETADO - 2025-01-15",
-      "achievement": "UserEntityCard component created, both galleras and venues pages unified",
-      "impact": "Consistent user experience across entity listings"
+
+  "integration_checklist": [
+    "✅ Execute SQL cleanup in Neon.tech editor FIRST",
+    "⏳ Implement database.ts connection pooling",
+    "⏳ Add performanceMonitoring.ts middleware",
+    "⏳ Optimize eventService.ts queries", 
+    "⏳ Add WebSocket connection management",
+    "⏳ Test with simulated high load",
+    "⏳ Monitor performance metrics in production"
+  ],
+
+  "deployment_notes": {
+    "environment_variables": {
+      "NODE_ENV": "production (disables query logging)",
+      "DATABASE_MAX_CONNECTIONS": "20",
+      "WEBSOCKET_MAX_CONNECTIONS": "100"
     },
-    "pricing_alignment": {
-      "status": "✅ VERIFIED - Prices already correct",
-      "current": "SubscriptionTabs shows $2.50/día and $10.00/mes",
-      "impact": "No changes needed - already aligned with backend"
-    },
-    "spanish_translation": {
-      "status": "✅ VERIFIED - Already implemented",
-      "current": "All admin modals already in Spanish",
-      "impact": "No additional translation work needed"
-    }
-  },
-  "testing_requirements": {
-    "email_verification": {
-      "test": "Verify email verification flow works end-to-end",
-      "expected": "New users must verify email before platform access"
-    },
-    "user_article_creation": {
-      "test": "Verify users can create articles with approval workflow",
-      "expected": "User articles start as pending, admin can approve/reject"
-    },
-    "event_connection_tracking": {
-      "test": "Verify live event connections are tracked",
-      "expected": "Database records user connections with duration"
-    },
-    "social_media_sharing": {
-      "test": "Verify article sharing to social platforms",
-      "expected": "Share buttons work for Facebook, Twitter, WhatsApp"
-    }
-  },
-  "success_criteria": {
-    "security_enhancement": "All new users must verify email addresses before platform access",
-    "user_engagement": "Regular users can create and manage their own articles",
-    "analytics_capability": "Platform tracks and reports live event viewer analytics",
-    "marketing_integration": "Users can share platform content directly to social media",
-    "visual_consistency": "✅ ACHIEVED - Unified galleras/venues visual schema"
-  },
-  "files_to_modify": {
-    "phase_1_email_verification": [
-      "backend/migrations/add_email_verification.sql - Database schema",
-      "backend/src/services/emailService.ts - SMTP integration",
-      "backend/src/routes/auth.ts - Registration + verification endpoints"
+    "monitoring_endpoints": [
+      "GET /api/admin/performance-metrics (requires admin auth)",
+      "GET /api/admin/database-stats (connection pool status)"
     ],
-    "phase_2_user_articles": [
-      "backend/src/routes/articles.ts - Extend API for user role",
-      "frontend/src/pages/user/CreateArticle.tsx - User article creation",
-      "frontend/src/pages/user/MyArticles.tsx - User article management"
-    ],
-    "phase_3_event_tracking": [
-      "backend/migrations/add_event_connections.sql - Analytics schema",
-      "backend/src/sockets/streamingSocket.ts - Connection tracking",
-      "backend/src/routes/events.ts - Analytics endpoints"
-    ],
-    "phase_4_social_sharing": [
-      "frontend/src/components/shared/SocialShare.tsx - Sharing component",
-      "frontend/src/pages/ArticleDetail.tsx - Integration",
-      "frontend/package.json - Social dependencies"
+    "alerts_to_setup": [
+      "Query times >500ms consistently",
+      "Database connection pool exhaustion", 
+      "WebSocket connection limit reached"
     ]
-  },
-  "comprehensive_feature_analysis": {
-    "article_system_enhancement": {
-      "current_wysiwyg": "ReactQuill with full toolbar including video support",
-      "missing_user_creation": "Regular users cannot create articles",
-      "social_sharing_gap": "No direct Instagram/TikTok/Facebook integration",
-      "implementation_priority": "HIGH",
-      "estimated_effort": "6-8 hours for user creation + 12-16 hours for social integration"
-    },
-    "email_verification_system": {
-      "current_gap": "Users created immediately without email confirmation",
-      "security_risk": "No validation of real email addresses", 
-      "required_infrastructure": "SMTP service, verification tokens, email templates",
-      "database_changes": "Add email_verified, verification_token, verification_expires to users",
-      "implementation_priority": "MEDIUM-HIGH",
-      "estimated_effort": "4-6 hours"
-    },
-    "visual_schema_normalization": {
-      "status": "✅ COMPLETADO - 2025-01-15",
-      "solution_implemented": "UserEntityCard component created and integrated",
-      "impact_achieved": "Unified UX consistency across galleras and venues pages",
-      "effort_actual": "~2 hours (as estimated)"
-    },
-    "live_event_connection_tracking": {
-      "missing_analytics": "No tracking of who watches live events",
-      "database_addition": "event_connections table needed",
-      "websocket_enhancement": "Track joins/leaves in streamingSocket.ts",
-      "business_value": "Viewer analytics and engagement metrics",
-      "implementation_priority": "MEDIUM-HIGH",
-      "estimated_effort": "6-8 hours"
-    }
-  },
-  "technical_implementation_details": {
-    "social_media_apis": {
-      "instagram": "Instagram Basic Display API + Graph API for business",
-      "tiktok": "TikTok Marketing API + Developers Platform", 
-      "facebook": "Facebook Graph API + Meta for Developers",
-      "required_packages": ["react-share", "passport-facebook", "passport-instagram"],
-      "environment_vars": ["INSTAGRAM_CLIENT_ID", "FACEBOOK_APP_ID", "TIKTOK_CLIENT_KEY"]
-    },
-    "email_verification_flow": {
-      "registration_change": "Create user as unverified",
-      "email_service": "nodemailer with SMTP configuration",
-      "verification_endpoint": "GET /api/auth/verify/:token",
-      "email_templates": "HTML templates for verification emails",
-      "middleware": "requireEmailVerification for protected routes"
-    },
-    "connection_tracking_schema": {
-      "table": "event_connections",
-      "columns": ["event_id", "user_id", "connected_at", "disconnected_at", "duration_seconds"],
-      "indexes": ["event_id,connected_at", "user_id,connected_at"],
-      "analytics_endpoints": ["POST /api/events/:id/connect", "GET /api/events/:id/viewers"]
-    }
-  },
-  "optimized_implementation_phases": {
-    "completed": [
-      "✅ Visual schema normalization (2h actual)"
-    ],
-    "phase_1_security": [
-      "Email verification system (4-6h) - High priority security enhancement"
-    ],
-    "phase_2_engagement": [
-      "User article creation (3-4h) - Core user engagement feature"
-    ],
-    "phase_3_analytics": [
-      "Live event connection tracking (6-8h) - Business intelligence capability"
-    ],
-    "phase_4_marketing": [
-      "Social media integration (12-16h) - Marketing and growth feature"
-    ]
-  },
-  "success_metrics": {
-    "user_engagement": "Users can create and share articles directly to social media",
-    "security_improvement": "All new users must verify email addresses",
-    "analytics_capability": "Real-time viewer counts and session analytics for live events",
-    "ux_consistency": "✅ ACHIEVED - Unified visual design across galleras and venues pages"
-  },
-  "next_phase_after_completion": {
-    "focus": "Advanced analytics dashboard and real-time betting notifications",
-    "rationale": "Core platform features must be complete before advanced real-time features"
   }
 }

@@ -14,6 +14,7 @@ import Notification from "./Notification";
 import { Article } from "./Article";
 import { SystemSetting } from './SystemSetting';
 import { Gallera } from "./Gallera";
+import { EventConnection } from "./EventConnection";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -188,6 +189,7 @@ export {
   Article,
   SystemSetting,
   Gallera,
+  EventConnection,
   connectDatabase,
 };
 
@@ -254,6 +256,7 @@ export default {
   Article,
   SystemSetting,
   Gallera,
+  EventConnection,
   syncModels,
   checkAssociations,
   ModelUtils,

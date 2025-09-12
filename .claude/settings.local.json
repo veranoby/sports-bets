@@ -36,7 +36,9 @@
       "Bash(git push origin main)",
       "Bash(npm test:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(xargs -r kill -9)",
+      "Bash(fuser:*)"
     ],
     "deny": [],
     "ask": []

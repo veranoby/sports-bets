@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth, filterByOperatorAssignment } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Event, Venue, User, Fight, EventConnection } from "../models";
+import { Event, Venue, User, Fight, Bet, EventConnection } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
@@ -49,6 +49,23 @@ function getEventAttributes(role: UserRole | undefined, type: "list" | "detail")
 
 const router = Router();
 
+// Add pagination method for events
+export const getEventsPaginated = async (page: number = 1, limit: number = 20, filters?: any) => {
+  const offset = (page - 1) * limit;
+  return Event.findAndCountAll({
+    offset,
+    limit,
+    include: [
+      { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
+      { model: User, as: 'operator', attributes: ['id', 'username'] },
+      { model: User, as: 'creator', attributes: ['id', 'username'] },
+      { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
+    ],
+    where: filters || {},
+    order: [['scheduledDate', 'DESC']]
+  });
+};
+
 // GET /api/events - Listar eventos con filtros
 router.get(
   "/",
@@ -82,16 +99,10 @@ router.get(
       where,
       attributes,
       include: [
-        {
-          model: Venue,
-          as: "venue",
-          attributes: ["id", "name", "location"],
-        },
-        {
-          model: User,
-          as: "operator",
-          attributes: ["id", "username"],
-        },
+        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
+        { model: User, as: 'operator', attributes: ['id', 'username'] },
+        { model: User, as: 'creator', attributes: ['id', 'username'] },
+        { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
       ],
       order: [["scheduledDate", "ASC"]],
       limit: parseInt(limit as string),
@@ -123,20 +134,18 @@ router.get(
   asyncHandler(async (req, res) => {
     const attributes = getEventAttributes(req.user?.role, "detail");
 
-    const event = await Event.findOne({
-      where: { id: req.params.id, ...req.queryFilter },
-      attributes,
-      include: [
-        { model: Venue, as: "venue" },
-        { model: User, as: "operator", attributes: ["id", "username"] },
-        { model: User, as: "creator", attributes: ["id", "username"] },
-        {
-          model: Fight,
-          as: "fights",
-          order: [["number", "ASC"]],
-        },
-      ],
-    });
+    const event = await Event.findByPk(req.params.id, {
+  include: [
+    { model: Venue, as: 'venue' },
+    { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },
+    { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },
+    { 
+      model: Fight, 
+      as: 'fights',
+      include: [{ model: Bet, as: 'bets', attributes: ['id', 'amount', 'status'] }]
+    }
+  ]
+});
 
     if (!event) {
       throw errors.notFound("Event not found");

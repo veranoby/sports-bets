@@ -91,9 +91,9 @@ router.post(
           email,
           passwordHash: password, // Se hashea automáticamente en el hook
           role,
-          email_verified: false,
-          verification_token: verificationToken,
-          verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          emailVerified: false,
+          verificationToken: verificationToken,
+          verificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           profileInfo: {
             verificationLevel: "pending",
           },
@@ -307,6 +307,29 @@ router.post(
   })
 );
 
-router.get('/verify/:token', asyncHandler(async (req, res) => {  const { token } = req.params;  const user = await User.findOne({    where: {      verification_token: token,      verification_expires: { [Op.gt]: new Date() }    }  });  if (!user) {    throw errors.badRequest('Token de verificación inválido o expirado');  }  user.email_verified = true;  user.verification_token = null;  user.verification_expires = null;  await user.save();  res.json({    success: true,    message: 'Email verificado exitosamente'  });}));
+router.get('/verify/:token', asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  
+  const user = await User.findOne({
+    where: {
+      verificationToken: token,
+      verificationExpires: { [Op.gt]: new Date() }
+    }
+  });
+  
+  if (!user) {
+    throw errors.badRequest('Token de verificación inválido o expirado');
+  }
+  
+  user.emailVerified = true;
+  user.verificationToken = null;
+  user.verificationExpires = null;
+  await user.save();
+  
+  res.json({
+    success: true,
+    message: 'Email verificado exitosamente'
+  });
+}));
 
 export default router;

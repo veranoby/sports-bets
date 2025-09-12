@@ -6,8 +6,8 @@ import { EventConnection } from '../models';
 const trackConnection = async (eventId: string, userId: string) => {
   try {
     const connection = await EventConnection.create({
-      event_id: eventId,
-      user_id: userId,
+      event_id: parseInt(eventId),
+      user_id: parseInt(userId),
       connected_at: new Date()
     });
     return connection.id;

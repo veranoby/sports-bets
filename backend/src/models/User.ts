@@ -25,7 +25,7 @@ interface UserProfile {
   phoneNumber?: string;
   address?: string;
   identificationNumber?: string;
-  verificationLevel: "none" | "basic" | "full";
+  verificationLevel: "none" | "basic" | "full" | "pending";
 }
 
 // Definición del modelo User
@@ -42,6 +42,9 @@ export class User extends Model<
   declare isActive: CreationOptional<boolean>; // → is_active
   declare profileInfo: CreationOptional<UserProfile>; // → profile_info
   declare lastLogin: CreationOptional<Date>; // → last_login
+  declare emailVerified: CreationOptional<boolean>; // → email_verified
+  declare verificationToken: CreationOptional<string>; // → verification_token
+  declare verificationExpires: CreationOptional<Date>; // → verification_expires
   declare createdAt: CreationOptional<Date>; // → created_at
   declare updatedAt: CreationOptional<Date>; // → updated_at
 
@@ -200,6 +203,22 @@ User.init(
       type: DataTypes.DATE,
       allowNull: true,
       field: "last_login",
+    },
+    emailVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "email_verified",
+    },
+    verificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: "verification_token",
+    },
+    verificationExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "verification_expires",
     },
     createdAt: {
       type: DataTypes.DATE,

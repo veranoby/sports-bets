@@ -19,6 +19,11 @@ interface PendingBet {
   timeout?: NodeJS.Timeout;
 }
 
+// WebSocket connection management
+const activeConnections = new Map<string, { socket: any, lastActivity: Date, userId?: string }>();
+const MAX_CONNECTIONS = 100;
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 // Store active betting connections and pending bets
 const activeBettors = new Map<string, {
   socketId: string;
@@ -57,6 +62,33 @@ export const setupBettingSocket = (io: Server) => {
 
   // Handle betting namespace connections
   io.of('/betting').on('connection', (socket) => {
+    const connectionId = socket.id;
+    
+    // Check connection limit
+    if (activeConnections.size >= MAX_CONNECTIONS) {
+      console.warn(`🚨 WebSocket connection limit reached: ${activeConnections.size}`);
+      socket.emit('error', { message: 'Server capacity reached, please try again later' });
+      socket.disconnect();
+      return;
+    }
+    
+    // Register connection
+    activeConnections.set(connectionId, {
+      socket,
+      lastActivity: new Date(),
+      userId: undefined
+    });
+    
+    console.log(`✅ WebSocket connected: ${connectionId} (Total: ${activeConnections.size})`);
+    
+    // Update last activity on any event
+    socket.onAny(() => {
+      const conn = activeConnections.get(connectionId);
+      if (conn) {
+        conn.lastActivity = new Date();
+      }
+    });
+    
     const { userId, fightId, role } = socket.data as BettingSocketData;
     
     logger.info(`Betting user connected: ${userId} for fight ${fightId || 'none'}`);
@@ -76,6 +108,12 @@ export const setupBettingSocket = (io: Server) => {
         joinedAt: new Date(),
         lastActivity: new Date()
       });
+      
+      // Update connection with userId
+      const conn = activeConnections.get(connectionId);
+      if (conn) {
+        conn.userId = userId;
+      }
     }
 
     // Handle PAGO bet creation (bidirectional timeout workflow)
@@ -291,7 +329,7 @@ export const setupBettingSocket = (io: Server) => {
             // Notify fight room
             if (bet.fightId) {
               socket.to(`fight:${bet.fightId}`).emit('bet_cancelled', {
-                betId,
+                betId: betId,
                 userId,
                 reason: 'user_disconnected',
                 timestamp: new Date()
@@ -302,27 +340,30 @@ export const setupBettingSocket = (io: Server) => {
 
         activeBettors.delete(socket.id);
       }
+      
+      activeConnections.delete(connectionId);
+      console.log(`❌ WebSocket disconnected: ${connectionId} (Total: ${activeConnections.size})`);
     });
   });
 
-  // Cleanup function for expired bets (run periodically)
-  setInterval(() => {
-    const now = Date.now();
-    
-    for (const [betId, bet] of pendingBets.entries()) {
-      const elapsed = now - bet.timestamp.getTime();
-      
-      // Auto-expire bets older than 2 minutes regardless of timeout
-      if (elapsed > 120000) {
-        if (bet.timeout) {
-          clearTimeout(bet.timeout);
-        }
-        pendingBets.delete(betId);
-        
-        logger.info(`Auto-expired old pending bet: ${betId}`);
-      }
+  // Cleanup inactive connections every 5 minutes
+setInterval(() => {
+  const now = new Date();
+  let cleanedUp = 0;
+  
+  activeConnections.forEach((conn, connectionId) => {
+    const inactiveTime = now.getTime() - conn.lastActivity.getTime();
+    if (inactiveTime > 10 * 60 * 1000) { // 10 minutes inactive
+      conn.socket.disconnect();
+      activeConnections.delete(connectionId);
+      cleanedUp++;
     }
-  }, 30000); // Run every 30 seconds
+  });
+  
+  if (cleanedUp > 0) {
+    console.log(`🧹 Cleaned up ${cleanedUp} inactive WebSocket connections`);
+  }
+}, CLEANUP_INTERVAL);
 };
 
 // Export functions for external use

@@ -6,11 +6,11 @@ import { logger } from "./logger";
 
 // Configuración optimizada para Neon.tech
 const poolSettings = {
-  max: 5, // Máximo conexiones (Neon free tier - reducido)
-  min: 0, // Mínimo conexiones activas
-  acquire: 30000, // 30s máximo para obtener conexión
-  idle: 10000, // 10s antes de cerrar conexión inactiva
-  evict: 5000, // Intervalo de validación (5s)
+  max: 10,        // Maximum connections in pool (reduced for Neon.tech)
+  min: 1,         // Minimum connections to maintain (reduced)
+  acquire: 60000, // Maximum time (ms) to wait for connection (increased)
+  idle: 30000,    // Maximum time (ms) connection can be idle (increased)
+  evict: 10000    // Run eviction every 10 seconds (increased)
 };
 
 const sequelize = process.env.DATABASE_URL
@@ -25,11 +25,7 @@ const sequelize = process.env.DATABASE_URL
         connectionTimeoutMillis: 5000,
         idle_in_transaction_session_timeout: 10000,
       },
-      logging: (msg) => {
-        if (msg.startsWith("Executing") || msg.startsWith("Pool")) {
-          logger.debug(msg); // Log queries y pool activity
-        }
-      },
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
       define: {
         timestamps: true,
         underscored: true,
@@ -57,13 +53,7 @@ const sequelize = process.env.DATABASE_URL
           connectionTimeoutMillis: 5000,
         }),
       },
-      logging: (msg) => {
-        if (process.env.NODE_ENV === "development") {
-          logger.debug(msg);
-        } else if (msg.includes("ERROR") || msg.startsWith("Pool")) {
-          logger.warn(msg); // Solo logs importantes en producción
-        }
-      },
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
       define: {
         timestamps: true,
         underscored: true,

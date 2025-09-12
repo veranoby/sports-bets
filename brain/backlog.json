@@ -1,8 +1,8 @@
 {
   "metadata": {
     "purpose": "Granular task tracking and Vibe Coding session management",
-    "updated": "2025-01-15",
-    "version": "2.0",
+    "updated": "2025-09-11",
+    "version": "2.1",
     "cross_references": ["priorities_memory_index.json", "sdd_system.json"],
     "work_instructions_file": "/home/veranoby/sports-bets/claude-prompt.json",
     "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
@@ -11,6 +11,19 @@
     "critical_blocker_identified": "backend/src/routes/sse.ts missing causing server startup failure",
     "manual_del_operador_completed": "Updated with real state, no Docker, Node Media Server alternatives",
     "rtmp_solution_confirmed": "Node Media Server (no Docker) for local development",
+    "production_streaming_architecture_finalized": {
+      "vps_rtmp_server": "$5-10/month VPS with nginx-rtmp for 480p streaming",
+      "cdn_provider": "Bunny.net selected - $0.005/GB, $15-25/month for projected usage",
+      "architecture_flow": "OBS Studio → VPS RTMP → Bunny.net CDN → 1000 viewers",
+      "cost_analysis": "Total $25-35/month operational cost vs revenue projection",
+      "implementation_timeline": "3-5 days for production deployment"
+    },
+    "database_optimization_critical_issues": {
+      "duplicate_indexes_identified": "events.stream_key (4 duplicates), users.email (4 duplicates), subscriptions.kushki_subscription_id (3 duplicates)",
+      "constraint_vs_index_issue": "Cannot DROP INDEX when backed by CONSTRAINT - must DROP CONSTRAINT instead",
+      "performance_impact": "Memory waste + INSERT/UPDATE degradation under load",
+      "immediate_action_required": "Execute SQL cleanup in Neon.tech editor before production launch"
+    },
     "platform_enhancement_analysis_2025": {
       "status": "FULLY_IMPLEMENTED",
       "phase_name": "Comprehensive Platform Feature Analysis & Enhancement Planning",
@@ -84,7 +97,7 @@
   },
   "phase_4_priorities": {
     "status": "active",
-    "phase_name": "Global Settings System + Production PWA Deployment", 
+    "phase_name": "Database Performance Optimization + Production Streaming Infrastructure", 
     "total_estimated_hours": 14,
     "operator_admin_confirmed": "✅ YA IMPLEMENTADO - Operators use admin environment with role hierarchy. AdminSidebar filtering + Users.tsx data filtering + Articles access working correctly",
     "P0_global_settings_system": {
@@ -97,12 +110,25 @@
       "features": ["✅ system_settings table", "✅ admin interface", "✅ feature toggles", "✅ Redis caching"],
       "success_criteria_met": "5/5 - Testing report confirms full functionality"
     },
-    "P0_production_pwa_deployment": {
+    "P0_database_performance_optimization": {
+      "status": "active",
+      "priority": "P0",
+      "description": "Critical database optimizations for 1000+ user scaling",
+      "estimated_hours": 3,
+      "immediate_actions": [
+        "Drop duplicate constraints/indexes in Neon.tech",
+        "Implement connection pooling (max 20 connections)",
+        "Add performance monitoring middleware",
+        "Optimize EventService queries with eager loading"
+      ],
+      "performance_target": "Support 500+ concurrent users without degradation"
+    },
+    "P0_production_streaming_infrastructure": {
       "status": "planned",
       "priority": "P0",
-      "description": "Deploy PWA to production with HTTPS, VAPID keys, full functionality",
-      "estimated_hours": 4,
-      "requirements": ["HTTPS mandatory", "Production VAPID keys", "Real device testing"]
+      "description": "VPS + Bunny.net CDN production setup",
+      "estimated_hours": 8,
+      "requirements": ["VPS nginx-rtmp setup", "Bunny.net integration", "OBS Studio testing"]
     },
     "P1_settings_integration": {
       "status": "planned", 
@@ -566,10 +592,11 @@
       }
     },
     "immediate_work_priorities": [
-      "Complete SSE architecture implementation",
-      "WebSocket cleanup - remove streaming complexity", 
-      "Operator dashboard completion",
-      "Notification system finalization"
+      "P0 CRITICAL: Database constraint cleanup (SQL execution)",
+      "P0 CRITICAL: Backend connection pooling implementation",
+      "P0 CRITICAL: Performance monitoring middleware",
+      "P1: VPS + Bunny.net CDN setup for production streaming",
+      "P1: WebSocket connection management optimization"
     ],
     "brain_update_triggers": {
     "task_status_changes": {

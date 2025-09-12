@@ -21,7 +21,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "echo \"Linting not configured yet\"",
-    "clean": "powershell -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }\"",
+    "clean": "rm -rf dist",
     "prebuild": "npm run clean"
   },
   "keywords": [

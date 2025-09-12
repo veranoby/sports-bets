@@ -6,6 +6,7 @@ import { connectDatabase } from "./config/database";
 import { logger } from "./config/logger";
 import { errorHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
+import { performanceMonitoring } from "./middleware/performanceMonitoring";
 
 // Importar rutas
 import authRoutes from "./routes/auth";
@@ -93,6 +94,9 @@ class Server {
 
     // Logger de requests
     this.app.use(requestLogger);
+
+    // Performance monitoring middleware
+    this.app.use(performanceMonitoring);
 
     // Global settings middleware
     this.app.use(checkMaintenanceMode);
