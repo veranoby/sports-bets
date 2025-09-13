@@ -1,357 +1,336 @@
 {
-    "project": "GalloBets Frontend - TypeScript Error Resolution",
-    "total_errors": 180,
-    "estimated_time": "4-6 hours",
-    "risk_level": "MEDIO",
-    "execution_strategy": "sequential_phases_with_checkpoints",
-    
-    "phases": [
-      {
-        "phase_id": "F1",
-        "name": "FUNDAMENTOS CRÍTICOS",
-        "priority": "MÁXIMA",
-        "estimated_time": "45-60 min",
-        "risk": "ALTO",
-        "description": "Resolver imports faltantes y dependencias bloqueantes",
-        
-        "activities": [
-          {
-            "id": "F1.A1",
-            "name": "Instalar Ant Design libraries",
-            "command": "npm install antd @ant-design/icons --legacy-peer-deps",
-            "files_affected": ["package.json"],
-            "acceptance_criteria": "npm list antd muestra versión instalada",
-            "estimated_time": "5 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F1.A2", 
-            "name": "Crear src/services/api.ts base",
-            "files_affected": ["src/services/api.ts"],
-            "references": ["FightControl.tsx:11"],
-            "acceptance_criteria": "Import sin errores en archivos que lo usan",
-            "estimated_time": "15 min",
-            "risk": "ALTO",
-            "implementation": "Estructura base con axios instance y métodos CRUD"
-          },
-          {
-            "id": "F1.A3",
-            "name": "Crear src/hooks/useAuth.ts hook faltante", 
-            "files_affected": ["src/hooks/useAuth.ts"],
-            "references": ["MyArticles.tsx:4"],
-            "acceptance_criteria": "Import sin errores",
-            "estimated_time": "10 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F1.A4",
-            "name": "Verificar imports en FightControl.tsx",
-            "files_affected": ["src/components/admin/FightControl.tsx"],
-            "lines": ["L2", "L10", "L11"],
-            "acceptance_criteria": "No errores TS2307 en este archivo",
-            "estimated_time": "5 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F1.A5",
-            "name": "Checkpoint compilación FASE 1",
-            "command": "npx tsc --noEmit",
-            "acceptance_criteria": "Reducción de ~15-20 errores críticos",
-            "estimated_time": "10 min",
-            "risk": "BAJO"
-          }
-        ]
+    "metadata": {
+      "created": "2025-09-11",
+      "version": "4.0-production-deployment",
+      "purpose": "DigitalOcean VPS + nginx-rtmp + Bunny.net CDN setup for production streaming",
+      "priority": "P0 CRITICAL",
+      "estimated_completion_time": "6-8 hours",
+      "architecture": "OBS Studio → VPS RTMP → Bunny.net CDN → 1000 viewers",
+      "cost_target": "$25-35/month operational"
+    },
+  
+    "context": {
+      "current_situation": {
+        "backend_optimizations": "✅ COMPLETED - Connection pooling, performance monitoring, EventService",
+        "database_cleanup": "✅ COMPLETED - Reset stats executed",
+        "frontend_work": "✅ COMPLETED - TypeScript optimizations completed successfully",
+        "next_phase": "Production deployment infrastructure"
       },
-      
-      {
-        "phase_id": "F2", 
-        "name": "ARQUITECTURA DE TIPOS",
-        "priority": "ALTA",
-        "estimated_time": "90-120 min", 
-        "risk": "ALTO",
-        "description": "Actualizar y sincronizar interfaces TypeScript",
-        
-        "activities": [
-          {
-            "id": "F2.A1",
-            "name": "Analizar y documentar conflictos de tipos",
-            "files_affected": ["src/types/"],
-            "conflicts_identified": [
-              "BetData vs Bet (LiveEvent.tsx:513)",
-              "EventData vs Event (Events.tsx:412, 433)", 
-              "User interface propiedades faltantes"
-            ],
-            "estimated_time": "20 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F2.A2",
-            "name": "Crear interfaces unificadas en src/types/unified.ts",
-            "files_affected": ["src/types/unified.ts"],
-            "acceptance_criteria": "Interfaces compatibles con ambos usos",
-            "estimated_time": "30 min",
-            "risk": "ALTO",
-            "implementation": "export interface UnifiedBet extends BetData, Bet; export interface UnifiedEvent extends EventData, Event; export interface UnifiedUser extends User"
-          },
-          {
-            "id": "F2.A3",
-            "name": "Fixear ErrorMessageProps interface",
-            "files_affected": ["src/components/admin/CreateOperatorModal.tsx", "src/components/admin/CreateUserModal.tsx"],
-            "lines": ["89", "122"],
-            "action": "Agregar onClose?: () => void a interface",
-            "estimated_time": "10 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F2.A4", 
-            "name": "Fixear EmptyStateProps interface",
-            "files_affected": ["src/pages/user/LiveEvent.tsx", "src/pages/user/MyArticles.tsx"],
-            "lines": ["125", "57"],
-            "action": "Agregar props faltantes: message?, buttonText?, buttonLink?",
-            "estimated_time": "15 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F2.A5",
-            "name": "Fixear ToastContext interface",
-            "files_affected": ["src/components/admin/CreateOperatorModal.tsx", "src/components/admin/CreateUserModal.tsx"],
-            "lines": ["13", "14"],
-            "problem": "addToast no existe en type",
-            "action": "Revisar y corregir interface del contexto",
-            "estimated_time": "15 min",
-            "risk": "ALTO"
-          },
-          {
-            "id": "F2.A6",
-            "name": "Extender User interface",
-            "missing_props": ["emailVerified", "passwordUpdatedAt"],
-            "files_affected": ["src/types/User.ts"],
-            "references": ["Profile.tsx:368", "Profile.tsx:391"],
-            "estimated_time": "10 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F2.A7",
-            "name": "Extender FightData interface",
-            "missing_props": ["weight"],
-            "references": ["LiveEvent.tsx:438", "LiveEvent.tsx:634"],
-            "estimated_time": "10 min",
-            "risk": "MEDIO"
-          },
-          {
-            "id": "F2.A8",
-            "name": "Extender BetData interface",
-            "missing_props": ["result", "choice", "odds", "createdBy"],
-            "references": ["Profile.tsx:67", "LiveEvent.tsx:322", "LiveEvent.tsx:536", "LiveEvent.tsx:539"],
-            "estimated_time": "15 min",
-            "risk": "ALTO"
-          },
-          {
-            "id": "F2.A9",
-            "name": "Validación de tipos actualizados",
-            "command": "npx tsc --noEmit | grep -E \"(missing|not assignable)\"",
-            "acceptance_criteria": "Reducción de ~50-70 errores de tipos",
-            "estimated_time": "15 min",
-            "risk": "BAJO"
-          }
-        ]
-      },
-      
-      {
-        "phase_id": "F3",
-        "name": "LIMPIEZA DE CÓDIGO", 
-        "priority": "MEDIA",
-        "estimated_time": "45-60 min",
-        "risk": "BAJO",
-        "description": "Eliminar código muerto y optimizar",
-        
-        "activities": [
-          {
-            "id": "F3.A1",
-            "name": "Batch cleanup: React imports no utilizados",
-            "files_affected": ["src/components/admin/AdminHeader.tsx", "src/components/admin/AdminSidebar.tsx"],
-            "lines": ["2", "2"],
-            "action": "Remover import React donde no se usa JSX explícito",
-            "estimated_time": "10 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F3.A2",
-            "name": "Cleanup: Variables e imports específicos por archivo",
-            "cleanup_targets": [
-              "EditUserModal.tsx: Remover StatusChip, Crown, Calendar, CreditCard (L8-10)",
-              "EditVenueGalleraModal.tsx: Remover saveStatus (L29)",
-              "Subscriptions.tsx: Remover X, CreditCard (L10-12)"
-            ],
-            "estimated_time": "15 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F3.A3",
-            "name": "Cleanup sistemático de variables no utilizadas",
-            "command": "grep -n \"is declared but.*never used\" build_errors.log",
-            "files_affected": "~25 archivos con variables no utilizadas",
-            "action": "Remover declaraciones o agregar // eslint-disable-next-line",
-            "estimated_time": "20 min",
-            "risk": "BAJO"
-          }
-        ]
-      },
-      
-      {
-        "phase_id": "F4",
-        "name": "VALIDACIÓN Y TESTING",
-        "priority": "MEDIA",
-        "estimated_time": "30-45 min",
-        "risk": "BAJO", 
-        "description": "Verificar que todo compile y funcione",
-        
-        "activities": [
-          {
-            "id": "F4.A1",
-            "name": "Build completo sin errores",
-            "command": "npm run build",
-            "acceptance_criteria": "0 errores TypeScript",
-            "estimated_time": "10 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F4.A2",
-            "name": "Validación desarrollo",
-            "command": "npm run dev",
-            "acceptance_criteria": "Servidor inicia sin errores críticos",
-            "estimated_time": "5 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F4.A3",
-            "name": "Verificación de componentes críticos",
-            "components": ["FightControl", "CreateOperatorModal", "LiveEvent"],
-            "action": "Navegación manual y verificación de funcionalidad básica",
-            "estimated_time": "15 min",
-            "risk": "BAJO"
-          },
-          {
-            "id": "F4.A4",
-            "name": "Validación ESLint",
-            "command": "npm run lint",
-            "acceptance_criteria": "Solo warnings menores permitidos",
-            "estimated_time": "5 min",
-            "risk": "BAJO"
-          }
-        ]
-      }
-    ],
-    
-    "success_metrics": {
-      "quantitative": {
-        "typescript_errors": "180 → 0",
-        "eslint_warnings": "<50 (aceptable)",
-        "build_time": "<30 segundos",
-        "bundle_size": "Sin incremento >10%"
-      },
-      "functional_validations": [
-        "Todos los imports resueltos",
-        "Componentes renderizan sin errores", 
-        "Funcionalidad WebSocket preservada",
-        "Navegación entre páginas funcional"
-      ],
-      "checkpoints": {
-        "post_phase_1": "~20% errores resueltos, compilación parcial",
-        "post_phase_2": "~80% errores resueltos, tipos coherentes",
-        "post_phase_3": "~95% errores resueltos, código limpio",
-        "post_phase_4": "100% errores resueltos, aplicación funcional"
+      "performance_targets": {
+        "concurrent_users": "500+ simultaneous viewers",
+        "streaming_quality": "480p (cost-optimized)",
+        "latency_target": "<5 seconds end-to-end",
+        "uptime_requirement": "99.5% during events"
       }
     },
-    
-    "contingency_plan": {
-      "blocking_errors": [
-        "Rollback inmediato: git checkout .",
-        "Análisis específico: Aislar cambio problemático",
-        "Corrección targeted: Fix específico sin afectar resto",
-        "Re-validación: Checkpoint específico"
+  
+    "implementation_phases": {
+      "phase_1_vps_setup": {
+        "priority": "P0 CRITICAL",
+        "description": "DigitalOcean VPS provisioning and basic nginx-rtmp setup",
+        "estimated_time": "2-3 hours",
+        "provider": "DigitalOcean",
+        "specifications": {
+          "plan": "Basic Droplet $4/month",
+          "specs": "1GB RAM, 1 CPU, 25GB SSD, 1TB bandwidth",
+          "location": "Miami datacenter (closest to Ecuador)",
+          "os": "Ubuntu 22.04 LTS"
+        },
+        "activities": [
+          {
+            "id": "P1.A1",
+            "name": "Create DigitalOcean Droplet",
+            "duration": "10 minutes",
+            "actions": [
+              "Sign up DigitalOcean account with 2FA enabled",
+              "Generate Ed25519 SSH key pair (more secure than RSA)",
+              "Deploy Ubuntu 22.04 droplet in Miami with automated backups",
+              "Configure UFW firewall: deny all, allow 22/tcp (SSH), 80/tcp, 443/tcp, 1935/tcp (RTMP), 8080/tcp",
+              "Set up fail2ban for SSH brute force protection"
+            ]
+          },
+          {
+            "id": "P1.A2", 
+            "name": "Basic server setup",
+            "duration": "30 minutes",
+            "commands": [
+              "apt update && apt upgrade -y",
+              "apt install nginx libnginx-mod-rtmp build-essential fail2ban ufw certbot python3-certbot-nginx -y",
+              "ufw default deny incoming && ufw default allow outgoing",
+              "ufw allow OpenSSH && ufw allow 'Nginx Full' && ufw allow 1935/tcp && ufw allow 8080/tcp",
+              "ufw --force enable",
+              "systemctl enable nginx fail2ban",
+              "mkdir -p /var/recordings /var/www/html/hls",
+              "chown -R www-data:www-data /var/www/html/hls /var/recordings"
+            ]
+          },
+          {
+            "id": "P1.A3",
+            "name": "Configure nginx-rtmp",
+            "duration": "45 minutes",
+            "file": "/etc/nginx/nginx.conf",
+            "configuration": "rtmp {\n  server {\n    listen 1935;\n    chunk_size 4096;\n    timeout 60s;\n    \n    application live {\n      live on;\n      \n      # Stream authentication via backend\n      on_publish http://localhost:3000/api/stream/auth;\n      on_publish_done http://localhost:3000/api/stream/end;\n      \n      # Record streams with rotation\n      record all;\n      record_path /var/recordings;\n      record_suffix .flv;\n      record_max_size 1000M;\n      record_max_frames 30000;\n      \n      # HLS output for CDN\n      hls on;\n      hls_path /var/www/html/hls;\n      hls_fragment 3;\n      hls_playlist_length 60;\n      hls_cleanup on;\n      hls_sync 100ms;\n      \n      # Security: Only allow authenticated streams\n      allow publish 127.0.0.1;\n      deny publish all;\n      \n      # Push to Bunny.net CDN (will be configured per stream)\n      # push rtmp://ingest.bunnycdn.com/live/$name;\n    }\n  }\n}\n\nhttp {\n  # Rate limiting\n  limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;\n  \n  server {\n    listen 8080;\n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n    \n    location /hls {\n      types {\n        application/vnd.apple.mpegurl m3u8;\n        video/mp2t ts;\n      }\n      root /var/www/html;\n      add_header Cache-Control no-cache;\n      add_header Access-Control-Allow-Origin *;\n      add_header Access-Control-Allow-Methods \"GET, HEAD\";\n    }\n    \n    location /stat {\n      # Restrict stats access to local admin\n      allow 127.0.0.1;\n      deny all;\n      rtmp_stat all;\n      rtmp_stat_stylesheet stat.xsl;\n    }\n    \n    location /control {\n      # RTMP control endpoint (local only)\n      allow 127.0.0.1;\n      deny all;\n      rtmp_control all;\n    }\n  }\n}"
+          },
+          {
+            "id": "P1.A4",
+            "name": "Test RTMP server",
+            "duration": "30 minutes",
+            "validation": [
+              "nginx -t (config syntax validation)",
+              "systemctl restart nginx && systemctl status nginx",
+              "netstat -tulpn | grep :1935 (RTMP listening on port 1935)",
+              "netstat -tulpn | grep :8080 (HTTP stats listening)",
+              "curl http://localhost:8080/stat (local stats page test)",
+              "ufw status verbose (firewall configuration)",
+              "fail2ban-client status (security service)",
+              "ls -la /var/www/html/hls /var/recordings (directory permissions)"
+            ]
+          }
+        ]
+      },
+  
+      "phase_2_bunny_cdn_integration": {
+        "priority": "P0 CRITICAL", 
+        "description": "Bunny.net CDN setup and RTMP relay configuration",
+        "estimated_time": "1-2 hours",
+        "activities": [
+          {
+            "id": "P2.A1",
+            "name": "Create Bunny.net account",
+            "duration": "15 minutes",
+            "actions": [
+              "Sign up at bunny.net",
+              "Create Stream Zone",
+              "Get RTMP ingest URL and stream key",
+              "Configure allowed origins and security"
+            ]
+          },
+          {
+            "id": "P2.A2",
+            "name": "Configure VPS → Bunny.net relay",
+            "duration": "30 minutes",
+            "nginx_config_update": "application live {\n  live on;\n  \n  # Enhanced authentication\n  on_publish http://localhost:3000/api/stream/auth;\n  on_publish_done http://localhost:3000/api/stream/end;\n  on_record_done http://localhost:3000/api/stream/recorded;\n  \n  # Relay to Bunny.net with authentication\n  push rtmp://ingest.bunnycdn.com/live/$name?auth=YOUR_BUNNY_STREAM_KEY;\n  \n  # Local HLS with security\n  hls on;\n  hls_path /var/www/html/hls;\n  hls_fragment 3;\n  hls_playlist_length 30;\n  hls_cleanup on;\n  hls_nested on;\n  \n  # Stream limits and security\n  max_connections 10;\n  allow publish 127.0.0.1;\n  deny publish all;\n}"
+          },
+          {
+            "id": "P2.A3",
+            "name": "Test CDN distribution",
+            "duration": "45 minutes",
+            "test_procedure": [
+              "Stream test content from OBS to VPS",
+              "Verify VPS receives stream (check /stat)",
+              "Verify Bunny.net receives relay",
+              "Test playback from multiple locations",
+              "Measure latency: OBS → VPS → CDN → Player"
+            ]
+          }
+        ]
+      },
+  
+      "phase_3_obs_studio_integration": {
+        "priority": "P0 CRITICAL",
+        "description": "Configure OBS Studio for production streaming to VPS",
+        "estimated_time": "1 hour",
+        "activities": [
+          {
+            "id": "P3.A1",
+            "name": "OBS Studio streaming configuration",
+            "duration": "30 minutes",
+            "settings": {
+              "stream_type": "Custom Streaming Server",
+              "server": "rtmp://your_vps_ip:1935/live",
+              "stream_key": "gallobets_event_001",
+              "video_bitrate": "1500 kbps (480p optimized)",
+              "audio_bitrate": "128 kbps",
+              "keyframe_interval": "2 seconds",
+              "preset": "veryfast (for low latency)"
+            }
+          },
+          {
+            "id": "P3.A2",
+            "name": "Test complete streaming workflow",
+            "duration": "30 minutes",
+            "workflow": [
+              "OBS → Start Streaming to VPS",
+              "VPS → Relay to Bunny.net CDN",
+              "CDN → Distribute globally",
+              "Test viewers in Ecuador/LATAM",
+              "Verify 480p quality and <5s latency"
+            ]
+          }
+        ]
+      },
+  
+      "phase_4_backend_integration": {
+        "priority": "P1 HIGH",
+        "description": "Integrate streaming infrastructure with GalloBets backend",
+        "estimated_time": "2-3 hours",
+        "activities": [
+          {
+            "id": "P4.A1",
+            "name": "Update backend streaming configuration",
+            "duration": "45 minutes",
+            "files_to_modify": [
+              "/backend/src/config/streaming.ts",
+              "/backend/src/services/rtmpService.ts"
+            ],
+            "environment_variables": {
+              "RTMP_SERVER_URL": "rtmp://your_vps_ip:1935/live",
+              "CDN_PLAYBACK_URL": "https://your_bunny_zone.b-cdn.net/hls",
+              "STREAM_AUTH_ENDPOINT": "http://your_backend_url/api/stream/auth"
+            }
+          },
+          {
+            "id": "P4.A2",
+            "name": "Implement stream authentication",
+            "duration": "60 minutes",
+            "endpoint": "/api/stream/auth",
+            "functionality": "Validate stream keys against events table, check operator permissions",
+            "implementation": "export const streamAuth = async (req: Request, res: Response) => {\n  const { name: streamKey } = req.body;\n  \n  try {\n    const event = await Event.findOne({ where: { stream_key: streamKey } });\n    if (!event) return res.status(401).send('Unauthorized');\n    \n    if (event.status !== 'in-progress') return res.status(403).send('Event not active');\n    \n    res.status(200).send('OK');\n  } catch (error) {\n    res.status(500).send('Server error');\n  }\n};"
+          },
+          {
+            "id": "P4.A3",
+            "name": "Update admin streaming controls",
+            "duration": "45 minutes",
+            "components": [
+              "Update RTMPConfig component with VPS URLs",
+              "Add stream status monitoring",
+              "Update OBS configuration generator"
+            ]
+          }
+        ]
+      },
+  
+      "phase_5_production_testing": {
+        "priority": "P1 HIGH",
+        "description": "End-to-end testing with simulated load",
+        "estimated_time": "1-2 hours",
+        "activities": [
+          {
+            "id": "P5.A1",
+            "name": "Load testing streaming infrastructure",
+            "duration": "60 minutes",
+            "tests": [
+              "Single stream: OBS → VPS → CDN → Multiple viewers",
+              "Stress test: 50+ concurrent viewers via CDN",
+              "Failover test: VPS restart during stream",
+              "Latency measurement: End-to-end timing"
+            ]
+          },
+          {
+            "id": "P5.A2",
+            "name": "GalloBets integration testing",
+            "duration": "45 minutes",
+            "scenarios": [
+              "Admin creates event → generates stream key",
+              "Operator starts stream via OBS",
+              "Users access stream via subscription validation",
+              "Event status updates reflect streaming state"
+            ]
+          }
+        ]
+      }
+    },
+  
+    "technical_specifications": {
+      "streaming_architecture": {
+        "input": "OBS Studio (RTMP client)",
+        "ingestion": "DigitalOcean VPS nginx-rtmp (port 1935)",
+        "distribution": "Bunny.net CDN (global edge servers)",
+        "delivery": "HLS streams to end users",
+        "quality": "480p @ 1500kbps + 128kbps audio"
+      },
+      
+      "security_configuration": {
+        "stream_authentication": "Backend validation against event stream_key",
+        "firewall_rules": "Only required ports open (22, 80, 443, 1935, 8080)",
+        "ssl_certificates": "Let's Encrypt for web interfaces",
+        "access_control": "IP whitelisting for admin endpoints"
+      },
+  
+      "monitoring_setup": {
+        "rtmp_stats": "http://vps_ip:8080/stat (nginx-rtmp built-in)",
+        "cdn_analytics": "Bunny.net dashboard (bandwidth, viewers)",
+        "backend_metrics": "Performance monitoring middleware",
+        "alerts": "Stream down, high latency, bandwidth spikes"
+      }
+    },
+  
+    "cost_analysis": {
+      "monthly_operational_costs": {
+        "digitalocean_vps": "$4/month (Basic droplet)",
+        "bunny_net_cdn": "$15-25/month (32k hours @ $0.005/GB)",
+        "ssl_certificates": "$0 (Let's Encrypt)", 
+        "total_estimated": "$19-29/month"
+      },
+      "scaling_considerations": {
+        "current_capacity": "500+ concurrent viewers via CDN",
+        "upgrade_triggers": "Sustained >80% bandwidth usage",
+        "next_tier": "$10/month VPS + higher CDN limits"
+      }
+    },
+  
+    "deployment_checklist": {
+      "pre_deployment": [
+        "✅ Backend optimizations completed",
+        "✅ Database stats reset",
+        "✅ EventService implemented",
+        "⏳ DigitalOcean account setup",
+        "⏳ Bunny.net account setup"
       ],
-      "time_overrun": [
-        "Priorizar Fase 1 y 2: Funcionalidad sobre limpieza",
-        "Diferir Fase 3: Limpieza puede posponerse", 
-        "Validación mínima: Solo build success en Fase 4"
+      "deployment_day": [
+        "⏳ VPS provisioning (Miami datacenter)",
+        "⏳ nginx-rtmp configuration",
+        "⏳ CDN integration testing",
+        "⏳ OBS Studio setup",
+        "⏳ End-to-end testing"
+      ],
+      "post_deployment": [
+        "⏳ Performance monitoring setup",
+        "⏳ Backup/recovery procedures",
+        "⏳ Scaling plan documentation",
+        "⏳ 24/7 monitoring alerts"
       ]
     },
-    
-    "error_categories": {
-      "A_IMPORTS_FALTANTES": {
-        "priority": "CRÍTICO",
-        "description": "antd/ant-design imports, services/api imports, hooks/useAuth import",
-        "blocking": true
-      },
-      "B_IMPORTS_NO_UTILIZADOS": {
-        "priority": "LIMPIEZA", 
-        "description": "React imports no utilizados, iconos importados pero no usados, variables declaradas pero no utilizadas",
-        "blocking": false
-      },
-      "C_INCOMPATIBILIDAD_TIPOS": {
-        "priority": "FUNCIONAL",
-        "description": "Props faltantes en componentes, tipos incompatibles entre interfaces, propiedades que no existen en tipos",
-        "blocking": true
-      },
-      "D_CONFIGURACION_TIPOS": {
-        "priority": "ESTRUCTURA",
-        "description": "Parámetros con tipos implícitos any, tipos de componentes mal definidos, interfaces incompletas",
-        "blocking": false
+  
+    "troubleshooting_guide": {
+      "common_issues": {
+        "stream_connection_failed": [
+          "Check VPS firewall (port 1935 open)",
+          "Verify nginx-rtmp service running",
+          "Test RTMP URL with VLC player"
+        ],
+        "high_latency": [
+          "Check OBS keyframe interval (should be 2s)",
+          "Verify VPS → CDN relay working",
+          "Test direct VPS playback vs CDN"
+        ],
+        "stream_auth_failing": [
+          "Check backend /api/stream/auth endpoint",
+          "Verify event.stream_key matches OBS key",
+          "Check event status is 'in-progress'"
+        ]
       }
     },
-    
-    "execution_context": {
-      "project_path": "/home/veranoby/sports-bets/frontend",
-      "framework": "React + TypeScript + Tailwind CSS",
-      "build_tool": "Vite",
-      "package_manager": "npm",
-      "node_version": "24.7.0",
-      "dependencies_manager": "npm with --legacy-peer-deps flag"
-    },
-    
-    "task_decomposition": {
-      "total_activities": 23,
-      "critical_path": ["F1.A1", "F1.A2", "F1.A3", "F2.A2", "F2.A8", "F4.A1"],
-      "parallel_opportunities": [
-        "F2.A3, F2.A4, F2.A5 can run in parallel",
-        "F2.A6, F2.A7, F2.A8 can run in parallel",
-        "F3.A1, F3.A2 can run in parallel"
+  
+    "success_criteria": {
+      "technical_validation": [
+        "OBS successfully streams to VPS (no errors)",
+        "VPS successfully relays to Bunny.net CDN",
+        "CDN delivers to 50+ concurrent test viewers",
+        "End-to-end latency <5 seconds",
+        "480p quality maintained throughout"
       ],
-      "dependencies": {
-        "F2 depends on": "F1 completion",
-        "F3 depends on": "F2 completion", 
-        "F4 depends on": "F3 completion"
-      }
-    },
-    
-    "tdd_specification": {
-      "test_first_activities": [
-        "F1.A5: Checkpoint compilación",
-        "F2.A9: Validación tipos actualizados", 
-        "F4.A1: Build completo sin errores",
-        "F4.A4: Validación ESLint"
+      "integration_validation": [
+        "GalloBets admin can generate stream keys",
+        "Stream authentication working via backend",
+        "Event status reflects streaming state",
+        "Subscription validation controls access"
       ],
-      "validation_commands": [
-        "npx tsc --noEmit",
-        "npm run build", 
-        "npm run lint",
-        "npm run dev"
+      "performance_validation": [
+        "Total cost <$30/month operational",
+        "99%+ uptime during test period",
+        "Minimal VPS resource usage (<80%)",
+        "CDN bandwidth usage as projected"
       ]
-    },
-    
-    "context_injection": {
-      "gallobets_patterns": {
-        "betting_temporal_logic": "upcoming → betting → live → completed",
-        "websocket_minimal": "Solo PAGO/DOY proposals (3min timeout)",
-        "sse_for_admin": "auto-matching notifications",
-        "manual_wallet_refresh": "no WebSocket wallet ops"
-      },
-      "react_conventions": {
-        "components": "Functional components REQUIRED",
-        "types": "TypeScript interfaces for all props",
-        "imports": "Named imports preferred",
-        "file_structure": "components/, pages/, hooks/, services/"
-      }
     }
   }
