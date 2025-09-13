@@ -13,7 +13,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import type { BetSide, BetStatus, BetResult, Bet } from "../../types";
+import type { Bet } from "../../types";
 import StatusChip from "../shared/StatusChip";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";

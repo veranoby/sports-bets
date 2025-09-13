@@ -82,14 +82,6 @@ interface UserData {
   profileInfo?: any;
 }
 
-interface SubscriptionData {
-  id: string;
-  plan: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  autoRenew: boolean;
-}
 
 // ====================== BASE HOOK ======================
 function useAsyncOperation<T = any>() {

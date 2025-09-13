@@ -11,19 +11,6 @@ import {
   Activity
 } from 'lucide-react';
 
-interface Setting {
-  key: string;
-  value: any;
-  type: 'boolean' | 'string' | 'number' | 'json';
-  category: string;
-  description?: string;
-  is_public: boolean;
-}
-
-interface SettingsUpdate {
-  key: string;
-  value: any;
-}
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<Record<string, any>>({});

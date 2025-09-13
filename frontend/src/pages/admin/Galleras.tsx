@@ -27,7 +27,7 @@ import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"
 import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
 
 // Tipos
-import type { User as UserType, Gallera as GalleraType } from "../../types";
+import type { User as UserType } from "../../types";
 
 interface CombinedGalleraData {
   user: UserType;

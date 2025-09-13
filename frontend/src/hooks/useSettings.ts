@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
 
-interface Setting {
-  key: string;
-  value: any;
-  type: 'boolean' | 'string' | 'number' | 'json';
-  category: string;
-  description?: string;
-  is_public: boolean;
-}
 
 interface UseSettingsReturn {
   settings: Record<string, any>;
