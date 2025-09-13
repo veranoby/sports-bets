@@ -1,151 +1,357 @@
 {
-  "metadata": {
-    "created": "2025-09-11",
-    "version": "3.0-performance-optimizations",
-    "purpose": "Backend performance optimizations for 1000+ user scaling",
-    "priority": "P0 CRITICAL",
-    "estimated_completion_time": "3-4 hours",
-    "brain_reference": "/home/veranoby/sports-bets/brain/backlog.json",
-    "target_performance": "Support 500+ concurrent users without degradation"
-  },
-  
-  "context": {
-    "current_situation": {
-      "database_issues": "Duplicate constraints causing INSERT/UPDATE performance degradation",
-      "scaling_target": "1000 users, 8 events/month, 4 hours each = 32k hours streaming",
-      "concurrent_load": "500+ simultaneous users during peak events",
-      "current_bottlenecks": ["Unlimited database connections", "No query performance monitoring", "Inefficient EventService queries", "Unmanaged WebSocket connections"]
-    },
-    "database_cleanup_status": "P0 CRITICAL - Execute SQL cleanup in Neon.tech editor FIRST",
-    "architecture_confirmed": "Hybrid SSE (admin) + WebSocket (betting minimal) + Bunny.net CDN"
-  },
-
-  "implementation_phases": {
-    "phase_1_database_connection_optimization": {
-      "priority": "P0 CRITICAL",
-      "description": "Implement connection pooling to prevent database overload",
-      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/config/database.ts"],
-      "current_problem": "Unlimited connections will crash with 100+ concurrent users",
-      "target_solution": "Max 20 connections with proper pooling and timeouts"
-    },
-    "phase_2_performance_monitoring": {
-      "priority": "P0 CRITICAL", 
-      "description": "Add middleware to track query performance and bottlenecks",
-      "files_to_create": ["/home/veranoby/sports-bets/backend/src/middleware/performanceMonitoring.ts"],
-      "target_solution": "Track queries >200ms, alert on >500ms, log slow operations"
-    },
-    "phase_3_service_optimization": {
-      "priority": "P0 CRITICAL",
-      "description": "Optimize EventService with eager loading and query reduction", 
-      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/services/eventService.ts"],
-      "current_problem": "N+1 query problems loading events with venues/fights",
-      "target_solution": "Single queries with includes, proper pagination"
-    },
-    "phase_4_websocket_management": {
-      "priority": "P1",
-      "description": "Add connection pooling and cleanup for WebSocket betting system",
-      "files_to_modify": ["/home/veranoby/sports-bets/backend/src/sockets/bettingSocket.ts"],
-      "target_solution": "Max 100 active connections, auto-cleanup inactive clients"
-    }
-  },
-
-  "specific_implementation_instructions": {
-    "database_connection_pooling": {
-      "file": "/home/veranoby/sports-bets/backend/src/config/database.ts",
-      "current_code_problem": "Sequelize connection without limits",
-      "exact_implementation": {
-        "add_after_line": "const sequelize = new Sequelize(DATABASE_URL, {",
-        "insert_code": "  pool: {\n    max: 20,        // Maximum connections in pool\n    min: 5,         // Minimum connections to maintain\n    acquire: 30000, // Maximum time (ms) to wait for connection\n    idle: 10000,    // Maximum time (ms) connection can be idle\n    evict: 1000     // Run eviction every 1 second\n  },\n  logging: process.env.NODE_ENV === 'development' ? console.log : false,",
-        "reasoning": "Prevents connection exhaustion under high load, maintains baseline connections for performance"
+    "project": "GalloBets Frontend - TypeScript Error Resolution",
+    "total_errors": 180,
+    "estimated_time": "4-6 hours",
+    "risk_level": "MEDIO",
+    "execution_strategy": "sequential_phases_with_checkpoints",
+    
+    "phases": [
+      {
+        "phase_id": "F1",
+        "name": "FUNDAMENTOS CRÍTICOS",
+        "priority": "MÁXIMA",
+        "estimated_time": "45-60 min",
+        "risk": "ALTO",
+        "description": "Resolver imports faltantes y dependencias bloqueantes",
+        
+        "activities": [
+          {
+            "id": "F1.A1",
+            "name": "Instalar Ant Design libraries",
+            "command": "npm install antd @ant-design/icons --legacy-peer-deps",
+            "files_affected": ["package.json"],
+            "acceptance_criteria": "npm list antd muestra versión instalada",
+            "estimated_time": "5 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F1.A2", 
+            "name": "Crear src/services/api.ts base",
+            "files_affected": ["src/services/api.ts"],
+            "references": ["FightControl.tsx:11"],
+            "acceptance_criteria": "Import sin errores en archivos que lo usan",
+            "estimated_time": "15 min",
+            "risk": "ALTO",
+            "implementation": "Estructura base con axios instance y métodos CRUD"
+          },
+          {
+            "id": "F1.A3",
+            "name": "Crear src/hooks/useAuth.ts hook faltante", 
+            "files_affected": ["src/hooks/useAuth.ts"],
+            "references": ["MyArticles.tsx:4"],
+            "acceptance_criteria": "Import sin errores",
+            "estimated_time": "10 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F1.A4",
+            "name": "Verificar imports en FightControl.tsx",
+            "files_affected": ["src/components/admin/FightControl.tsx"],
+            "lines": ["L2", "L10", "L11"],
+            "acceptance_criteria": "No errores TS2307 en este archivo",
+            "estimated_time": "5 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F1.A5",
+            "name": "Checkpoint compilación FASE 1",
+            "command": "npx tsc --noEmit",
+            "acceptance_criteria": "Reducción de ~15-20 errores críticos",
+            "estimated_time": "10 min",
+            "risk": "BAJO"
+          }
+        ]
+      },
+      
+      {
+        "phase_id": "F2", 
+        "name": "ARQUITECTURA DE TIPOS",
+        "priority": "ALTA",
+        "estimated_time": "90-120 min", 
+        "risk": "ALTO",
+        "description": "Actualizar y sincronizar interfaces TypeScript",
+        
+        "activities": [
+          {
+            "id": "F2.A1",
+            "name": "Analizar y documentar conflictos de tipos",
+            "files_affected": ["src/types/"],
+            "conflicts_identified": [
+              "BetData vs Bet (LiveEvent.tsx:513)",
+              "EventData vs Event (Events.tsx:412, 433)", 
+              "User interface propiedades faltantes"
+            ],
+            "estimated_time": "20 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F2.A2",
+            "name": "Crear interfaces unificadas en src/types/unified.ts",
+            "files_affected": ["src/types/unified.ts"],
+            "acceptance_criteria": "Interfaces compatibles con ambos usos",
+            "estimated_time": "30 min",
+            "risk": "ALTO",
+            "implementation": "export interface UnifiedBet extends BetData, Bet; export interface UnifiedEvent extends EventData, Event; export interface UnifiedUser extends User"
+          },
+          {
+            "id": "F2.A3",
+            "name": "Fixear ErrorMessageProps interface",
+            "files_affected": ["src/components/admin/CreateOperatorModal.tsx", "src/components/admin/CreateUserModal.tsx"],
+            "lines": ["89", "122"],
+            "action": "Agregar onClose?: () => void a interface",
+            "estimated_time": "10 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F2.A4", 
+            "name": "Fixear EmptyStateProps interface",
+            "files_affected": ["src/pages/user/LiveEvent.tsx", "src/pages/user/MyArticles.tsx"],
+            "lines": ["125", "57"],
+            "action": "Agregar props faltantes: message?, buttonText?, buttonLink?",
+            "estimated_time": "15 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F2.A5",
+            "name": "Fixear ToastContext interface",
+            "files_affected": ["src/components/admin/CreateOperatorModal.tsx", "src/components/admin/CreateUserModal.tsx"],
+            "lines": ["13", "14"],
+            "problem": "addToast no existe en type",
+            "action": "Revisar y corregir interface del contexto",
+            "estimated_time": "15 min",
+            "risk": "ALTO"
+          },
+          {
+            "id": "F2.A6",
+            "name": "Extender User interface",
+            "missing_props": ["emailVerified", "passwordUpdatedAt"],
+            "files_affected": ["src/types/User.ts"],
+            "references": ["Profile.tsx:368", "Profile.tsx:391"],
+            "estimated_time": "10 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F2.A7",
+            "name": "Extender FightData interface",
+            "missing_props": ["weight"],
+            "references": ["LiveEvent.tsx:438", "LiveEvent.tsx:634"],
+            "estimated_time": "10 min",
+            "risk": "MEDIO"
+          },
+          {
+            "id": "F2.A8",
+            "name": "Extender BetData interface",
+            "missing_props": ["result", "choice", "odds", "createdBy"],
+            "references": ["Profile.tsx:67", "LiveEvent.tsx:322", "LiveEvent.tsx:536", "LiveEvent.tsx:539"],
+            "estimated_time": "15 min",
+            "risk": "ALTO"
+          },
+          {
+            "id": "F2.A9",
+            "name": "Validación de tipos actualizados",
+            "command": "npx tsc --noEmit | grep -E \"(missing|not assignable)\"",
+            "acceptance_criteria": "Reducción de ~50-70 errores de tipos",
+            "estimated_time": "15 min",
+            "risk": "BAJO"
+          }
+        ]
+      },
+      
+      {
+        "phase_id": "F3",
+        "name": "LIMPIEZA DE CÓDIGO", 
+        "priority": "MEDIA",
+        "estimated_time": "45-60 min",
+        "risk": "BAJO",
+        "description": "Eliminar código muerto y optimizar",
+        
+        "activities": [
+          {
+            "id": "F3.A1",
+            "name": "Batch cleanup: React imports no utilizados",
+            "files_affected": ["src/components/admin/AdminHeader.tsx", "src/components/admin/AdminSidebar.tsx"],
+            "lines": ["2", "2"],
+            "action": "Remover import React donde no se usa JSX explícito",
+            "estimated_time": "10 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F3.A2",
+            "name": "Cleanup: Variables e imports específicos por archivo",
+            "cleanup_targets": [
+              "EditUserModal.tsx: Remover StatusChip, Crown, Calendar, CreditCard (L8-10)",
+              "EditVenueGalleraModal.tsx: Remover saveStatus (L29)",
+              "Subscriptions.tsx: Remover X, CreditCard (L10-12)"
+            ],
+            "estimated_time": "15 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F3.A3",
+            "name": "Cleanup sistemático de variables no utilizadas",
+            "command": "grep -n \"is declared but.*never used\" build_errors.log",
+            "files_affected": "~25 archivos con variables no utilizadas",
+            "action": "Remover declaraciones o agregar // eslint-disable-next-line",
+            "estimated_time": "20 min",
+            "risk": "BAJO"
+          }
+        ]
+      },
+      
+      {
+        "phase_id": "F4",
+        "name": "VALIDACIÓN Y TESTING",
+        "priority": "MEDIA",
+        "estimated_time": "30-45 min",
+        "risk": "BAJO", 
+        "description": "Verificar que todo compile y funcione",
+        
+        "activities": [
+          {
+            "id": "F4.A1",
+            "name": "Build completo sin errores",
+            "command": "npm run build",
+            "acceptance_criteria": "0 errores TypeScript",
+            "estimated_time": "10 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F4.A2",
+            "name": "Validación desarrollo",
+            "command": "npm run dev",
+            "acceptance_criteria": "Servidor inicia sin errores críticos",
+            "estimated_time": "5 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F4.A3",
+            "name": "Verificación de componentes críticos",
+            "components": ["FightControl", "CreateOperatorModal", "LiveEvent"],
+            "action": "Navegación manual y verificación de funcionalidad básica",
+            "estimated_time": "15 min",
+            "risk": "BAJO"
+          },
+          {
+            "id": "F4.A4",
+            "name": "Validación ESLint",
+            "command": "npm run lint",
+            "acceptance_criteria": "Solo warnings menores permitidos",
+            "estimated_time": "5 min",
+            "risk": "BAJO"
+          }
+        ]
+      }
+    ],
+    
+    "success_metrics": {
+      "quantitative": {
+        "typescript_errors": "180 → 0",
+        "eslint_warnings": "<50 (aceptable)",
+        "build_time": "<30 segundos",
+        "bundle_size": "Sin incremento >10%"
+      },
+      "functional_validations": [
+        "Todos los imports resueltos",
+        "Componentes renderizan sin errores", 
+        "Funcionalidad WebSocket preservada",
+        "Navegación entre páginas funcional"
+      ],
+      "checkpoints": {
+        "post_phase_1": "~20% errores resueltos, compilación parcial",
+        "post_phase_2": "~80% errores resueltos, tipos coherentes",
+        "post_phase_3": "~95% errores resueltos, código limpio",
+        "post_phase_4": "100% errores resueltos, aplicación funcional"
       }
     },
     
-    "performance_monitoring_middleware": {
-      "file": "/home/veranoby/sports-bets/backend/src/middleware/performanceMonitoring.ts",
-      "create_new_file": true,
-      "complete_implementation": "import { Request, Response, NextFunction } from 'express';\nimport { performance } from 'perf_hooks';\n\n// Track slow queries and performance metrics\nconst queryMetrics = new Map<string, {count: number, totalTime: number, slowQueries: number}>();\n\nexport const performanceMonitoring = (req: Request, res: Response, next: NextFunction) => {\n  const startTime = performance.now();\n  const originalUrl = req.originalUrl;\n  \n  // Hook into response finish to calculate total time\n  res.on('finish', () => {\n    const endTime = performance.now();\n    const duration = endTime - startTime;\n    \n    // Track metrics by route\n    const metrics = queryMetrics.get(originalUrl) || {count: 0, totalTime: 0, slowQueries: 0};\n    metrics.count++;\n    metrics.totalTime += duration;\n    \n    // Flag slow queries (>200ms)\n    if (duration > 200) {\n      metrics.slowQueries++;\n      console.warn(`⚠️ Slow query detected: ${originalUrl} took ${duration.toFixed(2)}ms`);\n    }\n    \n    // Alert on very slow queries (>500ms)\n    if (duration > 500) {\n      console.error(`🚨 CRITICAL: Very slow query: ${originalUrl} took ${duration.toFixed(2)}ms`);\n    }\n    \n    queryMetrics.set(originalUrl, metrics);\n    \n    // Add performance headers for monitoring\n    res.set('X-Response-Time', `${duration.toFixed(2)}ms`);\n  });\n  \n  next();\n};\n\n// Export metrics for admin monitoring\nexport const getPerformanceMetrics = () => {\n  const metrics: any[] = [];\n  queryMetrics.forEach((data, route) => {\n    metrics.push({\n      route,\n      avgTime: data.totalTime / data.count,\n      totalRequests: data.count,\n      slowQueries: data.slowQueries,\n      slowQueryPercentage: ((data.slowQueries / data.count) * 100).toFixed(2)\n    });\n  });\n  return metrics.sort((a, b) => b.avgTime - a.avgTime);\n};",
-      "integration_point": "Add to main app.ts: app.use(performanceMonitoring);"
-    },
-
-    "event_service_optimization": {
-      "file": "/home/veranoby/sports-bets/backend/src/services/eventService.ts",
-      "specific_optimizations": [
-        {
-          "method": "getAllEvents",
-          "current_problem": "Separate queries for venue, fights, operator data",
-          "optimization": "Single query with eager loading includes",
-          "find_and_replace": {
-            "find": "Event.findAll({",
-            "replace": "Event.findAll({\n  include: [\n    { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },\n    { model: User, as: 'operator', attributes: ['id', 'username'] },\n    { model: User, as: 'creator', attributes: ['id', 'username'] },\n    { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }\n  ],"
-          }
-        },
-        {
-          "method": "getEventById", 
-          "current_problem": "Multiple database hits for related data",
-          "optimization": "Single query with full includes",
-          "find_and_replace": {
-            "find": "Event.findByPk(eventId",
-            "replace": "Event.findByPk(eventId, {\n  include: [\n    { model: Venue, as: 'venue' },\n    { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },\n    { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },\n    { \n      model: Fight, \n      as: 'fights',\n      include: [{ model: Bet, as: 'bets', attributes: ['id', 'amount', 'status'] }]\n    }\n  ]"
-          }
-        }
+    "contingency_plan": {
+      "blocking_errors": [
+        "Rollback inmediato: git checkout .",
+        "Análisis específico: Aislar cambio problemático",
+        "Corrección targeted: Fix específico sin afectar resto",
+        "Re-validación: Checkpoint específico"
       ],
-      "add_pagination_method": "export const getEventsPaginated = async (page: number = 1, limit: number = 20, filters?: any) => {\n  const offset = (page - 1) * limit;\n  return Event.findAndCountAll({\n    offset,\n    limit,\n    include: [/* same includes as above */],\n    where: filters || {},\n    order: [['scheduled_date', 'DESC']]\n  });\n};"
+      "time_overrun": [
+        "Priorizar Fase 1 y 2: Funcionalidad sobre limpieza",
+        "Diferir Fase 3: Limpieza puede posponerse", 
+        "Validación mínima: Solo build success en Fase 4"
+      ]
     },
-
-    "websocket_connection_management": {
-      "file": "/home/veranoby/sports-bets/backend/src/sockets/bettingSocket.ts",
-      "add_connection_registry": {
-        "add_at_top": "// WebSocket connection management\nconst activeConnections = new Map<string, { socket: any, lastActivity: Date, userId?: string }>();\nconst MAX_CONNECTIONS = 100;\nconst CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes",
-        "add_connection_tracking": "// Track new connections\nio.on('connection', (socket) => {\n  const connectionId = socket.id;\n  \n  // Check connection limit\n  if (activeConnections.size >= MAX_CONNECTIONS) {\n    console.warn(`🚨 WebSocket connection limit reached: ${activeConnections.size}`);\n    socket.emit('error', { message: 'Server capacity reached, please try again later' });\n    socket.disconnect();\n    return;\n  }\n  \n  // Register connection\n  activeConnections.set(connectionId, {\n    socket,\n    lastActivity: new Date(),\n    userId: undefined\n  });\n  \n  console.log(`✅ WebSocket connected: ${connectionId} (Total: ${activeConnections.size})`);\n  \n  // Update last activity on any event\n  socket.onAny(() => {\n    const conn = activeConnections.get(connectionId);\n    if (conn) {\n      conn.lastActivity = new Date();\n    }\n  });\n  \n  // Cleanup on disconnect\n  socket.on('disconnect', () => {\n    activeConnections.delete(connectionId);\n    console.log(`❌ WebSocket disconnected: ${connectionId} (Total: ${activeConnections.size})`);\n  });",
-        "add_cleanup_interval": "// Cleanup inactive connections every 5 minutes\nsetInterval(() => {\n  const now = new Date();\n  let cleanedUp = 0;\n  \n  activeConnections.forEach((conn, connectionId) => {\n    const inactiveTime = now.getTime() - conn.lastActivity.getTime();\n    if (inactiveTime > 10 * 60 * 1000) { // 10 minutes inactive\n      conn.socket.disconnect();\n      activeConnections.delete(connectionId);\n      cleanedUp++;\n    }\n  });\n  \n  if (cleanedUp > 0) {\n    console.log(`🧹 Cleaned up ${cleanedUp} inactive WebSocket connections`);\n  }\n}, CLEANUP_INTERVAL);"
+    
+    "error_categories": {
+      "A_IMPORTS_FALTANTES": {
+        "priority": "CRÍTICO",
+        "description": "antd/ant-design imports, services/api imports, hooks/useAuth import",
+        "blocking": true
+      },
+      "B_IMPORTS_NO_UTILIZADOS": {
+        "priority": "LIMPIEZA", 
+        "description": "React imports no utilizados, iconos importados pero no usados, variables declaradas pero no utilizadas",
+        "blocking": false
+      },
+      "C_INCOMPATIBILIDAD_TIPOS": {
+        "priority": "FUNCIONAL",
+        "description": "Props faltantes en componentes, tipos incompatibles entre interfaces, propiedades que no existen en tipos",
+        "blocking": true
+      },
+      "D_CONFIGURACION_TIPOS": {
+        "priority": "ESTRUCTURA",
+        "description": "Parámetros con tipos implícitos any, tipos de componentes mal definidos, interfaces incompletas",
+        "blocking": false
+      }
+    },
+    
+    "execution_context": {
+      "project_path": "/home/veranoby/sports-bets/frontend",
+      "framework": "React + TypeScript + Tailwind CSS",
+      "build_tool": "Vite",
+      "package_manager": "npm",
+      "node_version": "24.7.0",
+      "dependencies_manager": "npm with --legacy-peer-deps flag"
+    },
+    
+    "task_decomposition": {
+      "total_activities": 23,
+      "critical_path": ["F1.A1", "F1.A2", "F1.A3", "F2.A2", "F2.A8", "F4.A1"],
+      "parallel_opportunities": [
+        "F2.A3, F2.A4, F2.A5 can run in parallel",
+        "F2.A6, F2.A7, F2.A8 can run in parallel",
+        "F3.A1, F3.A2 can run in parallel"
+      ],
+      "dependencies": {
+        "F2 depends on": "F1 completion",
+        "F3 depends on": "F2 completion", 
+        "F4 depends on": "F3 completion"
+      }
+    },
+    
+    "tdd_specification": {
+      "test_first_activities": [
+        "F1.A5: Checkpoint compilación",
+        "F2.A9: Validación tipos actualizados", 
+        "F4.A1: Build completo sin errores",
+        "F4.A4: Validación ESLint"
+      ],
+      "validation_commands": [
+        "npx tsc --noEmit",
+        "npm run build", 
+        "npm run lint",
+        "npm run dev"
+      ]
+    },
+    
+    "context_injection": {
+      "gallobets_patterns": {
+        "betting_temporal_logic": "upcoming → betting → live → completed",
+        "websocket_minimal": "Solo PAGO/DOY proposals (3min timeout)",
+        "sse_for_admin": "auto-matching notifications",
+        "manual_wallet_refresh": "no WebSocket wallet ops"
+      },
+      "react_conventions": {
+        "components": "Functional components REQUIRED",
+        "types": "TypeScript interfaces for all props",
+        "imports": "Named imports preferred",
+        "file_structure": "components/, pages/, hooks/, services/"
       }
     }
-  },
-
-  "testing_validation": {
-    "performance_testing": [
-      "Test with 50+ concurrent users hitting event endpoints",
-      "Monitor query times in performance middleware logs", 
-      "Verify connection pool doesn't exceed 20 connections",
-      "Test WebSocket cleanup with multiple connections"
-    ],
-    "database_verification": [
-      "Check pg_stat_activity for connection count during load",
-      "Monitor slow query log for queries >200ms",
-      "Verify no duplicate constraints remain after cleanup"
-    ],
-    "success_criteria": [
-      "Event loading <200ms with full includes",
-      "Database connections stable under load",
-      "WebSocket connections auto-cleanup working",
-      "No duplicate constraint errors in logs"
-    ]
-  },
-
-  "integration_checklist": [
-    "✅ Execute SQL cleanup in Neon.tech editor FIRST",
-    "⏳ Implement database.ts connection pooling",
-    "⏳ Add performanceMonitoring.ts middleware",
-    "⏳ Optimize eventService.ts queries", 
-    "⏳ Add WebSocket connection management",
-    "⏳ Test with simulated high load",
-    "⏳ Monitor performance metrics in production"
-  ],
-
-  "deployment_notes": {
-    "environment_variables": {
-      "NODE_ENV": "production (disables query logging)",
-      "DATABASE_MAX_CONNECTIONS": "20",
-      "WEBSOCKET_MAX_CONNECTIONS": "100"
-    },
-    "monitoring_endpoints": [
-      "GET /api/admin/performance-metrics (requires admin auth)",
-      "GET /api/admin/database-stats (connection pool status)"
-    ],
-    "alerts_to_setup": [
-      "Query times >500ms consistently",
-      "Database connection pool exhaustion", 
-      "WebSocket connection limit reached"
-    ]
   }
-}

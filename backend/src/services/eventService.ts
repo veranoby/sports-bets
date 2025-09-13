@@ -17,7 +17,7 @@ export class EventService {
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
       ],
       where: filters || {},
-      order: [['scheduled_date', 'DESC']],
+      order: [['scheduledDate', 'DESC']],
       limit: 50 // Default limit to prevent large queries
     });
   }
@@ -50,7 +50,7 @@ export class EventService {
         { model: User, as: 'creator', attributes: ['id', 'username'] }
       ],
       where: filters || {},
-      order: [['scheduled_date', 'DESC']]
+      order: [['scheduledDate', 'DESC']]
     });
   }
 
@@ -59,14 +59,14 @@ export class EventService {
     return Event.findAll({
       where: {
         status: 'scheduled',
-        scheduled_date: {
+        scheduledDate: {
           [Op.gte]: new Date()
         }
       },
       include: [
         { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] }
       ],
-      order: [['scheduled_date', 'ASC']],
+      order: [['scheduledDate', 'ASC']],
       limit
     });
   }
@@ -84,7 +84,7 @@ export class EventService {
           required: false
         }
       ],
-      order: [['scheduled_date', 'ASC']]
+      order: [['scheduledDate', 'ASC']]
     });
   }
 
@@ -94,7 +94,7 @@ export class EventService {
   }
 
   // Update event status (for streaming workflow)
-  static async updateEventStatus(eventId: string, status: string) {
+  static async updateEventStatus(eventId: string, status: "scheduled" | "in-progress" | "completed" | "cancelled") {
     return Event.update(
       { status },
       { where: { id: eventId } }
@@ -104,12 +104,12 @@ export class EventService {
   // Get events by operator (for operator dashboard)
   static async getEventsByOperator(operatorId: string) {
     return Event.findAll({
-      where: { operator_id: operatorId },
+      where: { operatorId: operatorId },
       include: [
         { model: Venue, as: 'venue', attributes: ['id', 'name'] },
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status'] }
       ],
-      order: [['scheduled_date', 'DESC']]
+      order: [['scheduledDate', 'DESC']]
     });
   }
 }
