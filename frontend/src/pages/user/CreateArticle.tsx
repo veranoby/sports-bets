@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ArticleEditor from '../../components/admin/ArticleEditor';
 import { articlesAPI } from '../../config/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CreateArticlePage: React.FC = () => {
   const navigate = useNavigate();
