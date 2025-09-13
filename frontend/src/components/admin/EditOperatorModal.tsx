@@ -57,8 +57,7 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
           fullName: formData.fullName,
           phoneNumber: formData.phoneNumber,
           address: formData.address,
-          identificationNumber: formData.identificationNumber || operator.profileInfo?.identificationNumber,
-          verificationLevel: operator.profileInfo?.verificationLevel || "none"
+          identificationNumber: formData.identificationNumber || operator.profileInfo?.identificationNumber
         }
       });
       
@@ -69,7 +68,6 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
       onOperatorUpdated({
         ...operator,
         profileInfo: {
-          ...operator.profileInfo,
           fullName: formData.fullName,
           phoneNumber: formData.phoneNumber,
           address: formData.address,
@@ -79,7 +77,7 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
         isActive: formData.is_active
       });
       onClose();
-    } catch (err) {
+    } catch {
       setError('Failed to update operator. Please try again.');
     } finally {
       setLoading(false);

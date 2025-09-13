@@ -153,26 +153,26 @@ const FinancialStats: React.FC = () => {
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card
-          variant="data"
+          variant="stat"
           title="Ingresos Totales"
-          value={`$${data.totalRevenue?.toLocaleString?.() ?? 0}`}
+          value={`${data?.totalRevenue?.toLocaleString?.() ?? 0}`}
           color="blue"
           trend={{
-            value: data.totalRevenue && data.totalRevenue > 0 ? 10 : -5,
+            value: data?.totalRevenue && data.totalRevenue > 0 ? 10 : -5,
             direction:
-              data.totalRevenue && data.totalRevenue > 0 ? "up" : "down",
+              data?.totalRevenue && data.totalRevenue > 0 ? "up" : "down",
           }}
         />
         <Card
           title="Active Users"
-          value={data.activeWallets?.toLocaleString?.() ?? 0}
+          value={data?.activeWallets?.toLocaleString?.() ?? 0}
           icon={<Users />}
-          trend={data.activeWallets && data.activeWallets > 0 ? "up" : "down"}
+          trend={data?.activeWallets && data.activeWallets > 0 ? "up" : "down"}
           color="green"
         />
         <Card
           title="Avg. Bet Amount"
-          value={`$${data.averageDeposit?.toFixed?.(2) ?? 0}`}
+          value={`${data?.averageDeposit?.toFixed?.(2) ?? 0}`}
           icon={<Activity />}
           color="red"
         />
@@ -184,11 +184,11 @@ const FinancialStats: React.FC = () => {
           Transacciones por Día
         </h4>
         <div className="h-64 flex items-end justify-between space-x-2">
-          {data.transactionsByDay && data.transactionsByDay.length > 0 ? (
+          {data?.transactionsByDay && data.transactionsByDay.length > 0 ? (
             data.transactionsByDay.map((day, index) => {
               const height =
                 (day.amount /
-                  Math.max(...data.transactionsByDay.map((d) => d.amount))) *
+                  Math.max(...data.transactionsByDay!.map((d) => d.amount))) *
                 100;
               return (
                 <div key={index} className="flex flex-col items-center flex-1">
@@ -241,7 +241,7 @@ const FinancialStats: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data.transactionsByType && data.transactionsByType.length > 0 ? (
+              {data?.transactionsByType && data.transactionsByType.length > 0 ? (
                 data.transactionsByType.map((type, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

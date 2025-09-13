@@ -1,5 +1,5 @@
 // frontend/src/components/admin/AdminHeader.tsx
-import React, { memo } from "react";
+import { memo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { LogOut, Bell } from "lucide-react";
 

@@ -73,11 +73,10 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
     try {
       let result;
       if (gallera?.id) {
-        result = await gallerasAPI.update(gallera.id, {
-          ...formData,
-          ownerId: userId
-        });
+        // Para actualizaciones, no pasamos ownerId
+        result = await gallerasAPI.update(gallera.id, formData);
       } else {
+        // Para creaciones, sí pasamos ownerId
         result = await gallerasAPI.create({
           ...formData,
           ownerId: userId

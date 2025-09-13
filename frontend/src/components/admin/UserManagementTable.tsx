@@ -500,7 +500,7 @@ const UserManagementTable: React.FC = () => {
           }
           isOpen={!!confirmAction}
           onConfirm={handleConfirmAction}
-          onCancel={() => setConfirmAction(null)}
+          onClose={() => setConfirmAction(null)}
           confirmText="Confirmar"
           cancelText="Cancelar"
           variant={confirmAction.type === "status" ? "warning" : "info"}

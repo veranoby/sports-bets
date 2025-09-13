@@ -10,7 +10,7 @@ const StreamStatusMonitor: React.FC<StreamStatusMonitorProps> = ({
   eventId, 
   onStatusUpdate 
 }) => {
-  const sseData = useSSE(`/api/sse/events/${eventId}/stream`, [eventId]);
+  const sseData = useSSE(`/api/sse/events/${eventId}/stream`);
 
   useEffect(() => {
     if (sseData.data) {

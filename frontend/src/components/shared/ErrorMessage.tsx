@@ -5,6 +5,7 @@ interface ErrorMessageProps {
   error: string;
   onRetry?: () => void;
   className?: string;
+  onClose?: () => void;
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({
@@ -59,4 +60,5 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   );
 };
 
+export { ErrorMessage };
 export default ErrorMessage;

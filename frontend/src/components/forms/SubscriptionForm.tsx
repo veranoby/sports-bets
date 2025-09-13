@@ -1,11 +1,10 @@
 // frontend/src/components/forms/SubscriptionForm.tsx
 // Formulario para editar suscripciones de usuarios
 
-import React, { useState, useEffect } from 'react';
-import { subscriptionAPI } from '../../config/api';
+import React, { useState } from 'react';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
-import { CreditCard, Calendar, Crown } from 'lucide-react';
+import { CreditCard, Crown } from 'lucide-react';
 
 interface SubscriptionFormProps {
   userId: string;
@@ -37,7 +36,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
     setError(null);
 
     try {
-      let result;
+      
       switch (formData.action) {
         case 'create':
         case 'renew':

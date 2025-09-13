@@ -36,7 +36,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({ article, onClose,
         ]);
         setVenues(venuesRes.data?.venues || []);
         setGalleras(gallerasRes.data?.galleras || []);
-      } catch (err) {
+      } catch {
         setError('Failed to load venues and galleras.');
       }
     };
@@ -65,7 +65,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({ article, onClose,
       }
       onArticleSaved(response.data);
       onClose();
-    } catch (err) {
+    } catch {
       setError('Failed to save article. Please try again.');
     } finally {
       setLoading(false);

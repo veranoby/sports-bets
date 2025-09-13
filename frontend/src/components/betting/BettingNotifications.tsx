@@ -1,22 +1,23 @@
 import React from 'react';
 import useSSE from '../../hooks/useSSE';
 
-interface BettingNotification {
-  type: 'pago_proposed' | 'proposal_accepted' | 'bet_matched';
-  data: {
-    betId?: string;
-    amount?: number;
-    fighter?: string;
-    odds?: number;
-    timestamp?: string;
+interface BettingNotificationData {
+  type: string;
+  data?: {
+    amount: number;
+    fighter: string;
   };
+}
+
+interface BettingNotificationsResponse {
+  data: BettingNotificationData;
 }
 
 const BettingNotifications: React.FC = () => {
   // Usar SSE para obtener notificaciones de apuestas
   // Esta funcionalidad está deshabilitada por la feature flag
   const bettingNotifications = process.env.REACT_APP_FEATURES_BETTING === 'true' 
-    ? useSSE('/api/sse/users/me/betting') 
+    ? useSSE<BettingNotificationsResponse>('/api/sse/users/me/betting') 
     : null;
 
   // No renderizar nada si las notificaciones están deshabilitadas
@@ -27,7 +28,7 @@ const BettingNotifications: React.FC = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Aquí se mostrarían las notificaciones de apuestas */}
-      {bettingNotifications.data && (
+      {bettingNotifications?.data && (
         <div className="bg-blue-500 text-white p-4 rounded-lg shadow-lg">
           <h4 className="font-semibold">Notificación de Apuesta</h4>
           <p>Tipo: {bettingNotifications.data.type}</p>

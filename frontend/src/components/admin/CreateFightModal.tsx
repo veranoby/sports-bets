@@ -53,7 +53,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, o
       const response = await fightsAPI.create(fightData);
       onFightCreated(response.data);
       onClose();
-    } catch (err) {
+    } catch {
       setError('Failed to create fight. Please try again.');
     } finally {
       setLoading(false);

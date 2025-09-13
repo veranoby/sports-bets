@@ -1,13 +1,13 @@
 // frontend/src/components/admin/EditUserModal.tsx
 // Modal completo para editar usuarios incluyendo gestión de suscripciones
 
-import React, { useState, useEffect } from 'react';
-import { usersAPI, subscriptionAPI } from '../../config/api';
+import React, { useState } from 'react';
+import { usersAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
-import StatusChip from '../shared/StatusChip';
+
 import SubscriptionTabs from './SubscriptionTabs';
-import { User, Crown, Calendar, CreditCard, X } from 'lucide-react';
+import { User, X } from 'lucide-react';
 import type { User as UserType } from '../../types';
 
 interface EditUserModalProps {
@@ -16,19 +16,11 @@ interface EditUserModalProps {
   onUserUpdated: (updatedUser: UserType) => void;
 }
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  type: 'daily' | 'monthly';
-  price: number;
-  description: string;
-}
-
 const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpdated }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'subscription'>('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
+  
   
   // Profile form data
   const [profileData, setProfileData] = useState({
@@ -45,18 +37,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     }
   });
 
-  useEffect(() => {
-    loadAvailablePlans();
-  }, []);
-
-  const loadAvailablePlans = async () => {
-    try {
-      const response = await subscriptionAPI.getPlans();
-      setAvailablePlans(response.data || []);
-    } catch (err) {
-      console.error('Error loading plans:', err);
-    }
-  };
+  
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
@@ -113,14 +94,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     }
   };
 
-  const getSubscriptionStatusColor = (status?: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-yellow-100 text-yellow-800';
-    }
-  };
+  
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

@@ -1,7 +1,7 @@
 // frontend/src/components/layouts/UserLayout.tsx
 // Layout wrapper que mantiene UserHeader entre navegaciones
 
-import React, { memo } from "react";
+import { memo } from "react";
 import { Outlet } from "react-router-dom";
 import UserHeader from "../user/UserHeader";
 import Navigation from "../user/Navigation";

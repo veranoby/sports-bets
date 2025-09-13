@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
 import LoadingSpinner from "../shared/LoadingSpinner";
-import Card from "../shared/Card";
+
 import useSSE from "../../hooks/useSSE";
 
 interface SystemStatus {
@@ -53,13 +53,7 @@ interface SystemStatus {
   }[];
 }
 
-// Configuración de la API
-const systemAPI = {
-  getStatus: async () => {
-    const response = await fetch("/api/system/status");
-    return response.json();
-  },
-};
+
 
 // Niveles de error con colores oficiales
 const errorLevels = {

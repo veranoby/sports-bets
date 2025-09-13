@@ -1,5 +1,5 @@
 // frontend/src/components/admin/AdminSidebar.tsx
-import React, { memo } from "react";
+import { memo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { NavLink } from "react-router-dom";
 import {

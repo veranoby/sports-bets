@@ -47,7 +47,7 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenue
       const response = await venuesAPI.update(venue.id, formData);
       onVenueUpdated(response.data);
       onClose();
-    } catch (err) {
+    } catch {
       setError('Failed to update venue. Please try again.');
     } finally {
       setLoading(false);

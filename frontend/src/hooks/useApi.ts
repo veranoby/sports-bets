@@ -30,6 +30,10 @@ interface BetData {
   amount: number;
   status: string;
   createdAt: string;
+  result?: string;
+  choice?: string;
+  odds?: number;
+  createdBy?: string;
 }
 
 interface EventData {
@@ -47,6 +51,7 @@ interface FightData {
   number: number;
   redCorner: string;
   blueCorner: string;
+  weight: number;
   status: string;
   result?: string;
 }

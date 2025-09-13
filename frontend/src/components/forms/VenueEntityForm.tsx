@@ -1,7 +1,7 @@
 // frontend/src/components/forms/VenueEntityForm.tsx
 // Formulario para editar información específica de la entidad Venue
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { venuesAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
@@ -59,11 +59,10 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
     try {
       let result;
       if (venue?.id) {
-        result = await venuesAPI.update(venue.id, {
-          ...formData,
-          ownerId: userId
-        });
+        // Para actualizaciones, no pasamos ownerId
+        result = await venuesAPI.update(venue.id, formData);
       } else {
+        // Para creaciones, sí pasamos ownerId
         result = await venuesAPI.create({
           ...formData,
           ownerId: userId

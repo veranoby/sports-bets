@@ -20,7 +20,6 @@ import {
   XCircle,
   MapPin,
   Calendar,
-  AlertCircle,
 } from "lucide-react";
 import StatusChip from "../shared/StatusChip";
 import LoadingSpinner from "../shared/LoadingSpinner";
@@ -163,7 +162,7 @@ const VenueApprovalPanel: React.FC = () => {
             ],
           },
         ]}
-        onReset={() => {}}
+        onClearFilters={() => {}}
       />
 
       {/* ✅ CORREGIDO: Grid de cards sin elementos de tabla */}

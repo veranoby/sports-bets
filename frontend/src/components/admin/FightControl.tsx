@@ -26,14 +26,13 @@ interface Fight {
 
 interface FightControlProps {
   fight: Fight;
-  eventId: string;
+  
   onFightUpdate: (updatedFight: Fight) => void;
   onError: (message: string) => void;
 }
 
 const FightControl: React.FC<FightControlProps> = ({
   fight,
-  eventId,
   onFightUpdate,
   onError
 }) => {

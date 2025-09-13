@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface NavigationItemProps {
   to: string;

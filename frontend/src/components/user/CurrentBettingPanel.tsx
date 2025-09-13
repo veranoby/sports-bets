@@ -22,7 +22,7 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import useSSE from '../../hooks/useSSE';
-import { eventsAPI, betsAPI } from '../../services/api';
+import { eventsAPI, betsAPI } from '../../config/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -81,9 +81,7 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
   const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
 
   // SSE connection for real-time updates
-  const eventSSE = useSSE(`/api/sse/events/${eventId}/fights`, {
-    dependencies: [eventId]
-  });
+  const eventSSE = useSSE(`/api/sse/events/${eventId}/fights`);
 
   // Fetch current betting data
   const fetchBettingData = useCallback(async () => {

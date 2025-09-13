@@ -7,25 +7,29 @@ import { type ToastMessage, type ToastType } from "../components/shared/Toast";
 
 let toastId = 0;
 
+interface AddToastPayload {
+  type: ToastType;
+  title: string;
+  message?: string;
+  description?: string;
+  options?: {
+    duration?: number;
+    persistent?: boolean;
+  };
+}
+
 export const useToast = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = useCallback(
-    (
-      type: ToastType,
-      title: string,
-      description?: string,
-      options?: {
-        duration?: number;
-        persistent?: boolean;
-      }
-    ) => {
+    (payload: AddToastPayload) => {
+      const { type, title, description, message, options } = payload;
       const id = `toast-${++toastId}`;
       const newToast: ToastMessage = {
         id,
         type,
         title,
-        description,
+        description: description || message,
         duration: options?.duration,
         persistent: options?.persistent,
       };
@@ -51,30 +55,31 @@ export const useToast = () => {
       title: string,
       description?: string,
       options?: { duration?: number; persistent?: boolean }
-    ) => addToast("success", title, description, options),
+    ) => addToast({ type: "success", title, description, options }),
 
     error: (
       title: string,
       description?: string,
       options?: { duration?: number; persistent?: boolean }
-    ) => addToast("error", title, description, options),
+    ) => addToast({ type: "error", title, description, options }),
 
     warning: (
       title: string,
       description?: string,
       options?: { duration?: number; persistent?: boolean }
-    ) => addToast("warning", title, description, options),
+    ) => addToast({ type: "warning", title, description, options }),
 
     info: (
       title: string,
       description?: string,
       options?: { duration?: number; persistent?: boolean }
-    ) => addToast("info", title, description, options),
+    ) => addToast({ type: "info", title, description, options }),
   };
 
   return {
     toasts,
     toast,
+    addToast,
     removeToast,
     clearAllToasts,
   };

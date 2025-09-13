@@ -1,6 +1,6 @@
 // frontend/src/components/admin/EditEventModal.tsx
 import React, { useState, useEffect } from 'react';
-import { eventsAPI, usersAPI } from '../../config/api';
+import { eventsAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 
@@ -36,7 +36,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEvent
       const response = await eventsAPI.update(event.id, formData);
       onEventUpdated(response.data);
       onClose();
-    } catch (err) {
+    } catch {
       setError('Failed to update event. Please try again.');
     } finally {
       setLoading(false);

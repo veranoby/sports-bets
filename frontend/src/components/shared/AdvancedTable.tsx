@@ -1,11 +1,12 @@
+// import React, { useState } from "react";
 import React from "react";
 import { useState } from "react";
-import { Pagination } from "./Pagination"; // Import your pagination component
-import { LoadingSpinner } from "./LoadingSpinner"; // Import your loading spinner component
-import { ArrowDown, ArrowUp, Filter, Download } from "lucide-react"; // Importar íconos de Lucide
-import { ActionButton } from "./ActionButton";
-import { Modal } from "./Modal";
-import { TableLoadingRow } from "./TableLoadingRow";
+// import { Pagination } from "./Pagination"; // Import your pagination component
+// import { LoadingSpinner } from "./LoadingSpinner"; // Import your loading spinner component
+import { Filter, Download } from "lucide-react"; // Importar íconos de Lucide
+// import { ActionButton } from "./ActionButton";
+// import Modal from "./Modal";
+// import TableLoadingRow from "./TableLoadingRow";
 
 interface AdvancedTableProps<T> {
   data: T[];
@@ -52,26 +53,26 @@ interface FilterConfig {
 }
 
 const AdvancedTable = <T,>({
-  data,
-  columns,
-  loading,
-  pagination,
-  filters,
-  onFiltersChange,
-  actions,
-  exportable,
-  onExport,
-  selectable,
-  onSelectionChange,
-  onSort,
+  // data,
+  // columns,
+  // loading,
+  // pagination,
+  // filters,
+  // onFiltersChange,
+  // actions,
+  // exportable,
+  // onExport,
+  // selectable,
+  // onSelectionChange,
+  // onSort,
 }: AdvancedTableProps<T>) => {
-  const [selectedRows, setSelectedRows] = useState<T[]>([]);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof T;
-    direction: "asc" | "desc";
-  } | null>(null);
-  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  // const [selectedRows, setSelectedRows] = useState<T[]>([]);
+  // const [sortConfig, setSortConfig] = useState<{
+  //   key: keyof T;
+  //   direction: "asc" | "desc";
+  // } | null>(null);
+  // const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  // const [editModalOpen, setEditModalOpen] = useState(false);
 
   const handleRowSelect = (row: T) => {
     if (selectable) {
@@ -83,15 +84,15 @@ const AdvancedTable = <T,>({
     }
   };
 
-  const handleSort = (key: keyof T) => {
-    let direction: "asc" | "desc" = "asc";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
-      direction = "desc";
-    }
+  // const handleSort = (key: keyof T) => {
+//    let direction: "asc" | "desc" = "asc";
+//    if (
+//      sortConfig &&
+//      sortConfig.key === key &&
+//      sortConfig.direction === "asc"
+//    ) {
+//      direction = "desc";
+//    }
     setSortConfig({ key, direction });
     onSort?.(key, direction);
   };
@@ -234,6 +235,5 @@ const AdvancedTable = <T,>({
       )}
     </div>
   );
-};
 
 export default AdvancedTable;

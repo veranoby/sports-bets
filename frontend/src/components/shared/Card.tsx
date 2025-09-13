@@ -3,6 +3,7 @@
 
 import React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface TrendData {
   value: number;

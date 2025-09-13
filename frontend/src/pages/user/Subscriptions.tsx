@@ -7,9 +7,7 @@ import React, { useState, useEffect } from "react";
 import {
   Crown,
   Check,
-  X,
   Calendar,
-  CreditCard,
   ToggleLeft,
   ToggleRight,
   AlertCircle,

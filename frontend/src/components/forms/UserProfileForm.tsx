@@ -56,10 +56,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
     setError(null);
 
     try {
-      let result;
-      
-      // Update profile info
-      result = await usersAPI.updateProfile({
+      await usersAPI.updateProfile({
         profileInfo: formData.profileInfo
       });
       

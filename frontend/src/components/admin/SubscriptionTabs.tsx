@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { subscriptionAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
-import { CreditCard, Calendar, Crown, RotateCcw, XCircle } from 'lucide-react';
+import { CreditCard, Crown, RotateCcw, XCircle } from 'lucide-react';
 
 interface SubscriptionTabsProps {
   userId: string;
@@ -42,11 +42,11 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
     setError(null);
 
     try {
-      let result;
+      
       
       // Si se selecciona "gratis", cancelar suscripción existente
       if (selectedPlan === 'free' && subscription) {
-        result = await subscriptionAPI.cancelSubscription();
+        await subscriptionAPI.cancelSubscription();
       } 
       // Si se selecciona un plan de pago, crear/renovar suscripción
       else if (selectedPlan !== 'free') {

@@ -122,7 +122,7 @@ const BettingPanel = memo(
       <h3 className="font-semibold text-theme-primary">Apuestas Disponibles</h3>
       {availableBets.length === 0 ? (
         <EmptyState
-          message="No hay apuestas disponibles"
+          title="No hay apuestas disponibles"
           description="Sé el primero en crear una apuesta"
         />
       ) : (
@@ -309,7 +309,7 @@ const LiveEvent = () => {
     return (
       <div className="min-h-screen page-background flex items-center justify-center p-4">
         <EmptyState
-          message="Evento no encontrado"
+          title="Evento no encontrado"
           description="El evento que buscas no existe o ha sido eliminado"
         />
       </div>
@@ -520,7 +520,7 @@ const LiveEvent = () => {
               <h3 className="font-semibold text-theme-primary">Mis Apuestas</h3>
               {myBets.length === 0 ? (
                 <EmptyState
-                  message="No tienes apuestas activas"
+                  title="No tienes apuestas activas"
                   description="Crea tu primera apuesta o acepta una existente"
                 />
               ) : (

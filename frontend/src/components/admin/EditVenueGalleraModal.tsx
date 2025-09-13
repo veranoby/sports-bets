@@ -26,11 +26,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
   const [activeTab, setActiveTab] = useState<'profile' | 'entity' | 'subscription'>('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<{
-    profile: 'idle' | 'saving' | 'success' | 'error';
-    entity: 'idle' | 'saving' | 'success' | 'error';
-    subscription: 'idle' | 'saving' | 'success' | 'error';
-  }>({ profile: 'idle', entity: 'idle', subscription: 'idle' });
+  
   
   // Profile form data
   const [profileData, setProfileData] = useState({
@@ -101,16 +97,15 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
   const handleSaveAll = async () => {
     setLoading(true);
-    setSaveStatus({ profile: 'saving', entity: 'saving', subscription: 'saving' });
+    
     setError(null);
 
     try {
       // Update user profile
       await usersAPI.updateProfile({
-        profileInfo: profileData.profileInfo,
-        isActive: profileData.is_active
+        profileInfo: profileData.profileInfo
       });
-      setSaveStatus(prev => ({ ...prev, profile: 'success' }));
+      
 
       // Update user email
       if (profileData.email !== user.email) {
@@ -121,16 +116,14 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       let result;
       if (venue?.id) {
         result = await venuesAPI.update(venue.id, {
-          ...entityData,
-          ownerId: user.id
+          ...entityData
         });
       } else {
         result = await venuesAPI.create({
-          ...entityData,
-          ownerId: user.id
+          ...entityData
         });
       }
-      setSaveStatus(prev => ({ ...prev, entity: 'success' }));
+      
 
       onSaved({
         user: { ...user, ...profileData },
@@ -140,7 +133,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : `Error al actualizar ${role}`);
-      setSaveStatus({ profile: 'error', entity: 'error', subscription: 'error' });
+      
     } finally {
       setLoading(false);
     }

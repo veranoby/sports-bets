@@ -12,6 +12,8 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  emailVerified?: boolean;
+  passwordUpdatedAt?: string;
   role: "admin" | "operator" | "venue" | "user" | "gallera";
   isActive: boolean;
   profileInfo?: {

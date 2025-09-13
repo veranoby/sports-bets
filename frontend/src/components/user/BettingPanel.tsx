@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets, useWallet } from "../../hooks/useApi";
 import { useWebSocketRoom } from "../../hooks/useWebSocket";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
-import { Plus, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 

@@ -180,10 +180,7 @@ const AdminEventsPage: React.FC = () => {
   }, []);
 
   // Usar SSE para obtener actualizaciones del sistema en tiempo real
-  const systemSSE = useSSE('/api/sse/admin/system-status', {
-    dependencies: [],
-    reconnectInterval: 5000
-  });
+  const systemSSE = useSSE('/api/sse/admin/system-status');
 
   // Manejar actualizaciones SSE del sistema
   useEffect(() => {
