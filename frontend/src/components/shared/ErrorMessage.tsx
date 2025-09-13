@@ -2,20 +2,32 @@ import React from "react";
 import { AlertCircle, RefreshCw, Settings, Lock } from "lucide-react";
 
 interface ErrorMessageProps {
-  error: string;
+  error?: string;
+  message?: string; // Alternative prop name used in Notifications.tsx
   onRetry?: () => void;
   className?: string;
   onClose?: () => void;
+  variant?: string; // Used in LoginPage.tsx
+  closeable?: boolean; // Used in LoginPage.tsx  
+  showIcon?: boolean; // Used in LoginPage.tsx
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
+  message,
   onRetry,
   className = "",
+  onClose,
+  variant,
+  closeable,
+  showIcon,
 }) => {
+  // Use either error or message prop
+  const displayMessage = error || message || '';
+  
   // Check if this is a feature disabled error
-  const isFeatureDisabled = error.toLowerCase().includes('currently disabled') || 
-                           error.toLowerCase().includes('wallet system is currently disabled');
+  const isFeatureDisabled = displayMessage.toLowerCase().includes('currently disabled') || 
+                           displayMessage.toLowerCase().includes('wallet system is currently disabled');
 
   if (isFeatureDisabled) {
     return (
@@ -44,7 +56,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
       <div className="flex items-start">
         <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm text-red-700 mb-3">{error}</p>
+          <p className="text-sm text-red-700 mb-3">{displayMessage}</p>
           {onRetry && (
             <button
               onClick={onRetry}
