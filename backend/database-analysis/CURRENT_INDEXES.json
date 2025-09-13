@@ -183,27 +183,6 @@
 }, {
   "schemaname": "public",
   "tablename": "events",
-  "indexname": "events_stream_key_key",
-  "indexdef": "CREATE UNIQUE INDEX events_stream_key_key ON public.events USING btree (stream_key)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "events",
-  "indexname": "events_stream_key_key1",
-  "indexdef": "CREATE UNIQUE INDEX events_stream_key_key1 ON public.events USING btree (stream_key)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "events",
-  "indexname": "events_stream_key_unique",
-  "indexdef": "CREATE UNIQUE INDEX events_stream_key_unique ON public.events USING btree (stream_key)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "events",
   "indexname": "events_venue_id",
   "indexdef": "CREATE INDEX events_venue_id ON public.events USING btree (venue_id)",
   "is_unique": false,
@@ -220,6 +199,13 @@
   "tablename": "events",
   "indexname": "idx_events_scheduled_date",
   "indexdef": "CREATE INDEX idx_events_scheduled_date ON public.events USING btree (scheduled_date)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_status_date_optimized",
+  "indexdef": "CREATE INDEX idx_events_status_date_optimized ON public.events USING btree (status, scheduled_date, venue_id)",
   "is_unique": false,
   "index_type": "btree"
 }, {
@@ -442,6 +428,13 @@
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_user_active",
+  "indexdef": "CREATE INDEX idx_subscriptions_user_active ON public.subscriptions USING btree (user_id, status, expires_at)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_id",
   "indexdef": "CREATE INDEX idx_subscriptions_user_id ON public.subscriptions USING btree (user_id)",
   "is_unique": false,
@@ -451,20 +444,6 @@
   "tablename": "subscriptions",
   "indexname": "subscriptions_kushki_subscription_id_key",
   "indexdef": "CREATE UNIQUE INDEX subscriptions_kushki_subscription_id_key ON public.subscriptions USING btree (kushki_subscription_id)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "subscriptions",
-  "indexname": "subscriptions_kushki_subscription_id_key1",
-  "indexdef": "CREATE UNIQUE INDEX subscriptions_kushki_subscription_id_key1 ON public.subscriptions USING btree (kushki_subscription_id)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "subscriptions",
-  "indexname": "subscriptions_kushki_subscription_id_key2",
-  "indexdef": "CREATE UNIQUE INDEX subscriptions_kushki_subscription_id_key2 ON public.subscriptions USING btree (kushki_subscription_id)",
   "is_unique": true,
   "index_type": "btree"
 }, {
@@ -568,8 +547,22 @@
 }, {
   "schemaname": "public",
   "tablename": "users",
+  "indexname": "idx_users_email_login_optimized",
+  "indexdef": "CREATE INDEX idx_users_email_login_optimized ON public.users USING btree (email, is_active, last_login)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
   "indexname": "idx_users_role_active",
   "indexdef": "CREATE INDEX idx_users_role_active ON public.users USING btree (role, is_active)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_active_optimized",
+  "indexdef": "CREATE INDEX idx_users_role_active_optimized ON public.users USING btree (role, is_active, created_at)",
   "is_unique": false,
   "index_type": "btree"
 }, {
@@ -584,27 +577,6 @@
   "tablename": "users",
   "indexname": "users_email",
   "indexdef": "CREATE UNIQUE INDEX users_email ON public.users USING btree (email)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_email_key",
-  "indexdef": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_email_key1",
-  "indexdef": "CREATE UNIQUE INDEX users_email_key1 ON public.users USING btree (email)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_email_unique",
-  "indexdef": "CREATE UNIQUE INDEX users_email_unique ON public.users USING btree (email)",
   "is_unique": true,
   "index_type": "btree"
 }, {
@@ -633,27 +605,6 @@
   "tablename": "users",
   "indexname": "users_username",
   "indexdef": "CREATE UNIQUE INDEX users_username ON public.users USING btree (username)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_username_key",
-  "indexdef": "CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_username_key1",
-  "indexdef": "CREATE UNIQUE INDEX users_username_key1 ON public.users USING btree (username)",
-  "is_unique": true,
-  "index_type": "btree"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_username_unique",
-  "indexdef": "CREATE UNIQUE INDEX users_username_unique ON public.users USING btree (username)",
   "is_unique": true,
   "index_type": "btree"
 }, {

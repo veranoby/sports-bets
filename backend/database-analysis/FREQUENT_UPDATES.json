@@ -1,0 +1,61 @@
+[{
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "created_at",
+  "n_distinct": -0.33333334,
+  "most_common_vals": "{\"2025-08-23 00:58:31.733495+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "email",
+  "n_distinct": -1,
+  "most_common_vals": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "id",
+  "n_distinct": -1,
+  "most_common_vals": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "is_active",
+  "n_distinct": -0.16666667,
+  "most_common_vals": "{t}"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "last_login",
+  "n_distinct": -1,
+  "most_common_vals": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "password_hash",
+  "n_distinct": -1,
+  "most_common_vals": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "profile_info",
+  "n_distinct": -0.16666667,
+  "most_common_vals": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "role",
+  "n_distinct": -0.8333333,
+  "most_common_vals": "{user}"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "updated_at",
+  "n_distinct": -1,
+  "most_common_vals": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "username",
+  "n_distinct": -1,
+  "most_common_vals": null
+}]

@@ -1,7 +1,7 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "240 kB",
+  "total_size": "176 kB",
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
@@ -10,23 +10,23 @@
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "events",
-  "total_size": "104 kB",
-  "table_size": "0 bytes"
-}, {
-  "schemaname": "public",
   "tablename": "bets",
   "total_size": "96 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "subscriptions",
+  "tablename": "events",
   "total_size": "88 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "total_size": "88 kB",
+  "table_size": "0 bytes"
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "total_size": "80 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",

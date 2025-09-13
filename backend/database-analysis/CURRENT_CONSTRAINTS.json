@@ -233,24 +233,6 @@
   "column_names": "id",
   "check_clause": null
 }, {
-  "constraint_name": "events_stream_key_key",
-  "table_name": "events",
-  "constraint_type": "UNIQUE",
-  "column_names": "stream_key",
-  "check_clause": null
-}, {
-  "constraint_name": "events_stream_key_key1",
-  "table_name": "events",
-  "constraint_type": "UNIQUE",
-  "column_names": "stream_key",
-  "check_clause": null
-}, {
-  "constraint_name": "events_stream_key_unique",
-  "table_name": "events",
-  "constraint_type": "UNIQUE",
-  "column_names": "stream_key",
-  "check_clause": null
-}, {
   "constraint_name": "2200_811226_13_not_null",
   "table_name": "fights",
   "constraint_type": "CHECK",
@@ -629,18 +611,6 @@
   "column_names": "kushki_subscription_id",
   "check_clause": null
 }, {
-  "constraint_name": "subscriptions_kushki_subscription_id_key1",
-  "table_name": "subscriptions",
-  "constraint_type": "UNIQUE",
-  "column_names": "kushki_subscription_id",
-  "check_clause": null
-}, {
-  "constraint_name": "subscriptions_kushki_subscription_id_key2",
-  "table_name": "subscriptions",
-  "constraint_type": "UNIQUE",
-  "column_names": "kushki_subscription_id",
-  "check_clause": null
-}, {
   "constraint_name": "2200_843776_1_not_null",
   "table_name": "system_settings",
   "constraint_type": "CHECK",
@@ -789,42 +759,6 @@
   "table_name": "users",
   "constraint_type": "PRIMARY KEY",
   "column_names": "id",
-  "check_clause": null
-}, {
-  "constraint_name": "users_email_key",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "email",
-  "check_clause": null
-}, {
-  "constraint_name": "users_email_key1",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "email",
-  "check_clause": null
-}, {
-  "constraint_name": "users_email_unique",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "email",
-  "check_clause": null
-}, {
-  "constraint_name": "users_username_key",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "username",
-  "check_clause": null
-}, {
-  "constraint_name": "users_username_key1",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "username",
-  "check_clause": null
-}, {
-  "constraint_name": "users_username_unique",
-  "table_name": "users",
-  "constraint_type": "UNIQUE",
-  "column_names": "username",
   "check_clause": null
 }, {
   "constraint_name": "2200_811199_10_not_null",

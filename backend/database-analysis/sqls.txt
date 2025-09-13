@@ -120,7 +120,7 @@ FROM information_schema.columns
 WHERE table_schema = 'public'
 ORDER BY table_name, ordinal_position;
 
--- 4. Conteo de registros estimado por tabla
+-- 4. REGISTROS_ESTIMADOS.json
 
 SELECT 
     schemaname,
@@ -148,7 +148,7 @@ FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 
--- Investigar qué campos se actualizan frecuentemente
+-- FREQUENT_UPDATES.json
 SELECT 
     schemaname,
     tablename,
