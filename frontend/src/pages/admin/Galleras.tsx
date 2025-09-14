@@ -225,9 +225,16 @@ const AdminGallerasPage: React.FC = () => {
                     <span className="text-sm font-medium text-gray-700">{user.username}</span>
                     <StatusChip status={user.isActive ? 'active' : 'inactive'} size="sm" />
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                     <Mail className="w-4 h-4" />
                     <span>{user.email}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">Membresía expira:</span> {
+                      user.subscription?.manual_expires_at 
+                        ? new Date(user.subscription.manual_expires_at).toLocaleDateString('es-ES')
+                        : 'Gratuita'
+                    }
                   </div>
                 </div>
               </div>

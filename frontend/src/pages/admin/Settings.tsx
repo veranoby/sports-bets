@@ -389,26 +389,29 @@ const Settings: React.FC = () => {
         })}
       </div>
 
-      {/* Feature Status Summary */}
-      <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Estado de Características</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {['enable_wallets', 'enable_betting', 'enable_streaming', 'maintenance_mode'].map(key => {
-            const isEnabled = getCurrentValue(key);
-            return (
-              <div key={key} className={`p-3 rounded-lg border ${isEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    {key.replace(/^enable_/, '').replace(/_/g, ' ').replace(/^maintenance/, 'mantenimiento')}
-                  </span>
-                  <div className={`w-3 h-3 rounded-full ${isEnabled ? 'bg-green-500' : 'bg-gray-400'}`} />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {isEnabled ? 'Activo' : 'Inactivo'}
-                </div>
-              </div>
-            );
-          })}
+      {/* Referencia al Dashboard */}
+      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <SettingsIcon className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-medium text-blue-900">Estado de Características</h3>
+            <p className="text-sm text-blue-700 mt-1">
+              El resumen del estado de características del sistema ahora se muestra en el{' '}
+              <a 
+                href="/admin/dashboard" 
+                className="font-medium underline hover:text-blue-800"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/admin/dashboard';
+                }}
+              >
+                Panel Principal
+              </a>
+              {' '}para acceso rápido y mejor visibilidad.
+            </p>
+          </div>
         </div>
       </div>
     </div>

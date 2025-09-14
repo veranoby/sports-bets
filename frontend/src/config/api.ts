@@ -514,6 +514,28 @@ export const systemAPI = {
   getLogs: () => apiClient.get("/system/logs"),
 };
 
+// Settings API for system configuration
+export const settingsAPI = {
+  getAll: () => apiClient.get("/settings"),
+  update: (data: Record<string, any>) => apiClient.put("/settings", data),
+  get: (key: string) => apiClient.get(`/settings/${key}`),
+  set: (key: string, value: any) => apiClient.put(`/settings/${key}`, { value })
+};
+
+// Admin API for membership management
+export const adminAPI = {
+  updateUserMembership: (userId: string, data: {
+    membership_type: string;
+    assigned_username: string;
+  }) => apiClient.put(`/admin/users/${userId}/membership`, data),
+
+  getUserMembership: (userId: string) => 
+    apiClient.get(`/admin/users/${userId}/membership`),
+    
+  getMembershipStats: () => 
+    apiClient.get("/admin/membership/stats")
+};
+
 // WebSocket configuration
 export const WEBSOCKET_URL =
   import.meta.env.VITE_WS_URL || "http://localhost:3001";

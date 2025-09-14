@@ -8,7 +8,6 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
-import UserMembershipPanel from "../../components/admin/UserMembershipPanel"; // IMPORT ADDED
 import { usersAPI } from "../../config/api";
 import type { User } from "../../types";
 
@@ -122,9 +121,8 @@ const AdminUsersPage: React.FC = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suscripción</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expira</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Miembro Desde</th>
-                {/* HEADER ADDED */}
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gestión de Membresía</th>
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>
               </tr>
             </thead>
@@ -135,11 +133,10 @@ const AdminUsersPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-600">{user.email}</div></td>
                   <td className="px-6 py-4 whitespace-nowrap"><StatusChip status={user.isActive ? "active" : "inactive"} size="sm" /></td>
                   <td className="px-6 py-4 whitespace-nowrap"><SubscriptionBadge subscription={user.subscription} size="sm" showStatus={true} /></td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
-                  {/* CELL ADDED */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <UserMembershipPanel userId={user.id} currentMembership={user.subscription} onMembershipUpdated={fetchUsers} />
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {user.subscription?.manual_expires_at ? new Date(user.subscription.manual_expires_at).toLocaleDateString() : 'N/A'}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-3">
                       <button onClick={() => handleEditUser(user.id)} className="text-blue-600 hover:text-blue-800 flex items-center gap-1"><Edit className="w-4 h-4" />Editar</button>
