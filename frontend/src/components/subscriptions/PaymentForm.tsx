@@ -72,7 +72,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   // Handle input changes with formatting and validation
   const handleInputChange = useCallback((field: string, value: string) => {
     let formattedValue = value;
-    let newErrors = { ...errors };
+    const newErrors = { ...errors };
 
     // Clear error for this field when user starts typing
     delete newErrors[field as keyof CardErrors];
