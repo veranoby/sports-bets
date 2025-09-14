@@ -84,7 +84,6 @@ ORDER BY tc.table_name, tc.constraint_type;
 
 6. DATABASE_STATS.json
 
--- Estadísticas de tablas
 SELECT 
     schemaname,
     tablename,

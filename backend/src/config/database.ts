@@ -4,13 +4,13 @@ config(); // ← CRÍTICO: DEBE IR AQUÍ
 import { Sequelize } from "sequelize";
 import { logger } from "./logger";
 
-// Configuración optimizada para Neon.tech
+// Configuración optimizada para Neon.tech con timeouts extendidos
 const poolSettings = {
-  max: 10,        // Maximum connections in pool (reduced for Neon.tech)
-  min: 1,         // Minimum connections to maintain (reduced)
-  acquire: 60000, // Maximum time (ms) to wait for connection (increased)
-  idle: 30000,    // Maximum time (ms) connection can be idle (increased)
-  evict: 10000    // Run eviction every 10 seconds (increased)
+  max: 5,         // Maximum connections in pool (reduced for Neon.tech)
+  min: 0,         // Minimum connections to maintain (reduced to prevent timeout issues)
+  acquire: 120000, // Maximum time (ms) to wait for connection (2 minutes)
+  idle: 60000,    // Maximum time (ms) connection can be idle (1 minute)
+  evict: 30000    // Run eviction every 30 seconds
 };
 
 const sequelize = process.env.DATABASE_URL
@@ -21,9 +21,9 @@ const sequelize = process.env.DATABASE_URL
           require: true,
           rejectUnauthorized: false,
         },
-        // Neon-specific optimizations
-        connectionTimeoutMillis: 5000,
-        idle_in_transaction_session_timeout: 10000,
+        // Neon-specific optimizations - extended timeouts for dev
+        connectionTimeoutMillis: 30000,  // 30 seconds
+        idle_in_transaction_session_timeout: 30000,  // 30 seconds
       },
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       define: {

@@ -4,6 +4,9 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { User, Wallet, Event, Venue, Fight } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
 
@@ -596,5 +599,57 @@ router.delete(
     });
   })
 );
+
+// Configure multer for payment proof uploads
+const paymentProofStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../../uploads/payment_proofs');
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const timestamp = Date.now();
+    const originalName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    cb(null, `payment_proof_${timestamp}_${originalName}`);
+  }
+});
+
+const uploadPaymentProof = multer({
+  storage: paymentProofStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
+// POST /api/users/upload-payment-proof
+router.post('/upload-payment-proof', authenticate, uploadPaymentProof.single('payment_proof'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw errors.badRequest('Payment proof image is required');
+  }
+  
+  const { assigned_username, payment_description, payment_method } = req.body;
+  
+  if (!assigned_username || assigned_username.trim().length === 0) {
+    throw errors.badRequest('Username assignment is required');
+  }
+  
+  const proofUrl = `/uploads/payment_proofs/${req.file.filename}`;
+  
+  // Create notification for admin (could be email/system notification)
+  console.log(`New payment proof uploaded by user ${req.user!.id} for username: ${assigned_username}`);
+  
+  res.json({
+    success: true,
+    message: 'Payment proof uploaded successfully',
+    proof_url: proofUrl,
+    assigned_username: assigned_username.trim(),
+    payment_method: payment_method || 'bank_transfer'
+  });
+}));
 
 export default router;

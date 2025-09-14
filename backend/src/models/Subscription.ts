@@ -5,8 +5,8 @@ import { sequelize } from '../config/database';
 export interface SubscriptionAttributes {
   id: string;
   userId: string;
-  type: 'daily' | 'monthly' | null; // Temporarily allow null for migration
-  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  type: 'daily' | 'monthly' | null;
+  status: 'active' | 'cancelled' | 'expired' | 'pending' | 'free';
   kushkiSubscriptionId?: string;
   paymentMethod: 'card' | 'cash' | 'transfer';
   autoRenew: boolean;
@@ -22,6 +22,10 @@ export interface SubscriptionAttributes {
   metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  manual_expires_at?: Date;
+  payment_proof_url?: string;
+  assigned_by_admin_id?: string;
+  assigned_username?: string;
 }
 
 // Optional attributes for creation
@@ -36,7 +40,7 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   public id!: string;
   public userId!: string; // → user_id
   public type!: 'daily' | 'monthly' | null;
-  public status!: 'active' | 'cancelled' | 'expired' | 'pending';
+  public status!: 'active' | 'cancelled' | 'expired' | 'pending' | 'free';
   public kushkiSubscriptionId?: string; // → kushki_subscription_id
   public paymentMethod!: 'card' | 'cash' | 'transfer'; // → payment_method
   public autoRenew!: boolean; // → auto_renew
@@ -52,6 +56,10 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   public metadata?: Record<string, any>;
   public createdAt!: Date;
   public updatedAt!: Date;
+  public manual_expires_at?: Date;
+  public payment_proof_url?: string;
+  public assigned_by_admin_id?: string;
+  public assigned_username?: string;
 
   // Instance methods
   public isActive(): boolean {
@@ -221,6 +229,29 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
       createdAt: this.createdAt
     };
   }
+
+  // Manual membership management methods
+  async assignManualMembership(membershipType: 'free' | '24h' | 'monthly', adminId: string, assignedUsername: string) {
+    const now = new Date();
+    let expiresAt: Date | null = null;
+    
+    if (membershipType === '24h') {
+      expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    } else if (membershipType === 'monthly') {
+      expiresAt = new Date(now);
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+    }
+    
+    await this.update({
+      status: membershipType === 'free' ? 'free' : 'active',
+      manual_expires_at: expiresAt,
+      assigned_by_admin_id: adminId,
+      assigned_username: assignedUsername,
+      expiresAt: expiresAt
+    });
+    
+    return this;
+  }
 }
 
 // Define the model
@@ -247,7 +278,7 @@ Subscription.init(
       defaultValue: 'daily'
     },
     status: {
-      type: DataTypes.ENUM('active', 'cancelled', 'expired', 'pending'),
+      type: DataTypes.ENUM('active', 'cancelled', 'expired', 'pending', 'free'),
       allowNull: false,
       defaultValue: 'pending'
     },
@@ -342,6 +373,26 @@ Subscription.init(
       allowNull: false,
       defaultValue: DataTypes.NOW,
       field: "updated_at",
+    },
+    manual_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Manual expiration for admin-assigned memberships'
+    },
+    payment_proof_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: 'URL to uploaded payment proof image'
+    },
+    assigned_by_admin_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: 'Admin who assigned this membership'
+    },
+    assigned_username: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: 'Username specified in payment proof'
     },
   },
   {

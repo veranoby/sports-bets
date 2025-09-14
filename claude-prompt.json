@@ -2,9 +2,9 @@
   "metadata": {
     "phase_name": "FREEMIUM MANUAL MEMBERSHIP SYSTEM",
     "priority": "P0_CRITICAL", 
-    "estimated_total_hours": 16,
+    "estimated_total_hours": 15,
     "implementation_approach": "LOGIN_VERIFICATION + LIVE_EVENT_CHECK (no cron jobs)",
-    "cost_analysis": "$0 payment processing + 16h development = IMMEDIATE ROI",
+    "cost_analysis": "$0 payment processing + 15h development + 15min manual SQL = IMMEDIATE ROI",
     "success_criteria": [
       "Admin manually assigns memberships via dropdown (free/24h/monthly)",
       "Automatic expiration detection on login + live-event access",
@@ -12,7 +12,7 @@
       "Zero payment gateway dependencies"
     ],
     "technical_stack": "Existing backend + localStorage verification + drag-drop upload",
-    "database_modifications": "4 columns added to existing subscriptions table",
+    "database_modifications": "4 columns added to existing subscriptions table (USER EXECUTES SQL MANUALLY)",
     "compliance_with_brain_lessons": {
       "file_specificity": "✅ Exact file paths and line modifications specified",
       "before_after_examples": "✅ Current vs expected code provided", 
@@ -22,53 +22,38 @@
   },
   
   "phase_1_backend_implementation": {
-    "estimated_hours": 6,
+    "estimated_hours": 5,
     "priority": "P0",
     "tool": "claude_code",
-    "dependencies": [],
+    "dependencies": ["manual_sql_execution_by_user"],
     "tasks": {
-      "task_1_database_migration": {
-        "file_to_create": "backend/migrations/20250913000000-add-manual-membership-fields.js", 
-        "description": "Add manual membership fields to existing subscriptions table",
-        "estimated_time": "1h",
-        "exact_implementation": [
-          "module.exports = {",
-          "  up: async (queryInterface, Sequelize) => {",
-          "    await queryInterface.addColumn('subscriptions', 'manual_expires_at', {",
-          "      type: Sequelize.DATE,",
-          "      allowNull: true,",
-          "      comment: 'Manual expiration for admin-assigned memberships'",
-          "    });",
-          "    await queryInterface.addColumn('subscriptions', 'payment_proof_url', {",
-          "      type: Sequelize.STRING(500),", 
-          "      allowNull: true,",
-          "      comment: 'URL to uploaded payment proof image'",
-          "    });",
-          "    await queryInterface.addColumn('subscriptions', 'assigned_by_admin_id', {",
-          "      type: Sequelize.INTEGER,",
-          "      allowNull: true,",
-          "      references: { model: 'users', key: 'id' },",
-          "      comment: 'Admin who assigned this membership'",
-          "    });",
-          "    await queryInterface.addColumn('subscriptions', 'assigned_username', {",
-          "      type: Sequelize.STRING(255),",
-          "      allowNull: true,",
-          "      comment: 'Username specified in payment proof'",
-          "    });",
-          "  },",
-          "  down: async (queryInterface) => {",
-          "    await queryInterface.removeColumn('subscriptions', 'assigned_username');",
-          "    await queryInterface.removeColumn('subscriptions', 'assigned_by_admin_id');",
-          "    await queryInterface.removeColumn('subscriptions', 'payment_proof_url');",
-          "    await queryInterface.removeColumn('subscriptions', 'manual_expires_at');",
-          "  }",
-          "};"
+      "task_0_manual_database_schema": {
+        "execution": "MANUAL_BY_USER",
+        "location": "Neon.tech SQL Editor",
+        "description": "User executes SQL manually in Neon.tech before backend development",
+        "estimated_time": "15min",
+        "sql_to_execute": [
+          "-- Add manual membership fields to subscriptions table",
+          "ALTER TABLE subscriptions ADD COLUMN manual_expires_at TIMESTAMP NULL;",
+          "ALTER TABLE subscriptions ADD COLUMN payment_proof_url VARCHAR(500) NULL;",
+          "ALTER TABLE subscriptions ADD COLUMN assigned_by_admin_id INT NULL;",
+          "ALTER TABLE subscriptions ADD COLUMN assigned_username VARCHAR(255) NULL;",
+          "",
+          "-- Add foreign key constraint",
+          "ALTER TABLE subscriptions ADD CONSTRAINT fk_subscriptions_admin",
+          "  FOREIGN KEY (assigned_by_admin_id) REFERENCES users(id);",
+          "",
+          "-- Add helpful comments",
+          "COMMENT ON COLUMN subscriptions.manual_expires_at IS 'Manual expiration for admin-assigned memberships';",
+          "COMMENT ON COLUMN subscriptions.payment_proof_url IS 'URL to uploaded payment proof image';",
+          "COMMENT ON COLUMN subscriptions.assigned_by_admin_id IS 'Admin who assigned this membership';",
+          "COMMENT ON COLUMN subscriptions.assigned_username IS 'Username specified in payment proof';"
         ],
-        "validation_command": "npx sequelize-cli db:migrate",
-        "current_subscriptions_model": "backend/src/models/Subscription.ts - EXTEND this file, don't replace"
+        "validation_query": "SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name IN ('manual_expires_at', 'payment_proof_url', 'assigned_by_admin_id', 'assigned_username');",
+        "success_criteria": "4 new columns visible in subscriptions table"
       },
       
-      "task_2_subscription_model_extension": {
+      "task_1_subscription_model_extension": {
         "file_to_modify": "backend/src/models/Subscription.ts",
         "description": "Add new fields to existing Subscription model",
         "estimated_time": "30min",
@@ -123,7 +108,7 @@
         }
       },
       
-      "task_3_membership_check_endpoint": {
+      "task_2_membership_check_endpoint": {
         "file_to_modify": "backend/src/routes/auth.js",
         "description": "Add membership verification endpoint", 
         "estimated_time": "2h",
@@ -174,7 +159,7 @@
         "import_additions": "const { Subscription } = require('../models');"
       },
       
-      "task_4_admin_assignment_endpoint": {
+      "task_3_admin_assignment_endpoint": {
         "file_to_modify": "backend/src/routes/admin.js",
         "description": "Admin endpoint for manual membership assignment",
         "estimated_time": "2h",
@@ -230,7 +215,7 @@
         ]
       },
       
-      "task_5_payment_proof_upload": {
+      "task_4_payment_proof_upload": {
         "file_to_modify": "backend/src/routes/users.js",
         "description": "User endpoint for payment proof upload",
         "estimated_time": "1h",
@@ -306,7 +291,7 @@
     "estimated_hours": 8,
     "priority": "P0",
     "tool": "gemini_cli", 
-    "dependencies": ["phase_1_backend_implementation"],
+    "dependencies": ["manual_sql_execution_by_user"],
     "tasks": {
       "task_1_admin_membership_panel": {
         "file_to_create": "frontend/src/components/admin/UserMembershipPanel.tsx",

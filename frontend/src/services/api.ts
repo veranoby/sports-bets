@@ -50,9 +50,26 @@ export const fightsAPI = {
 };
 
 
-/**
- * Example of a function following the project's API call pattern.
- */
-export const fetchSomething = async (endpoint: string) => {
-  return apiCall('get', endpoint);
+
+export const adminAPI = {
+  updateUserMembership: async (userId: string, data: { membership_type: string, assigned_username: string }) => {
+    const response = await api.put(`/admin/users/${userId}/membership`, data);
+    return response.data;
+  },
+};
+
+export const userAPI = {
+  uploadPaymentProof: async (formData: FormData) => {
+    const response = await api.post('/users/upload-payment-proof', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+};
+
+export const authAPI = {
+  checkMembershipStatus: async () => {
+    const response = await api.post('/auth/check-membership-status');
+    return response;
+  },
 };
