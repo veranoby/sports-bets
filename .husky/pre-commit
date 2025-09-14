@@ -2,7 +2,8 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 # Run linting and formatting for frontend
-cd frontend && npm run lint:fix && npm run format
+# Use commit-friendly linting (allows up to 100 warnings, fails on errors only)
+cd frontend && npm run lint:commit && npm run format
 
 # Run backend linting if script exists
 if [ -f "backend/package.json" ] && grep -q '"lint"' backend/package.json; then

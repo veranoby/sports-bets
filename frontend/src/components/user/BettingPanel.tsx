@@ -28,9 +28,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { addListener, removeListener } = useWebSocketContext();
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
 
-  if (!isBettingEnabled) return null; // Conditional rendering
-
-  // Referencia estable para fetchAvailableBets
+  // Referencia estable para fetchAvailableBets - TODOS los hooks deben ir antes del return condicional
   const fetchAvailableBetsRef = useRef(fetchAvailableBets);
   useEffect(() => {
     fetchAvailableBetsRef.current = fetchAvailableBets;
@@ -67,6 +65,9 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
       }
     };
   }, [isConnected]);
+
+  // Return condicional DESPUÉS de todos los hooks
+  if (!isBettingEnabled) return null;
 
   const renderQuickMode = () => (
     <div className="space-y-3">

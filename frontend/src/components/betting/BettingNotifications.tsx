@@ -14,14 +14,14 @@ interface BettingNotificationsResponse {
 }
 
 const BettingNotifications: React.FC = () => {
-  // Usar SSE para obtener notificaciones de apuestas
-  // Esta funcionalidad está deshabilitada por la feature flag
-  const bettingNotifications = process.env.REACT_APP_FEATURES_BETTING === 'true' 
-    ? useSSE<BettingNotificationsResponse>('/api/sse/users/me/betting') 
-    : null;
+  // Siempre llamar useSSE para respetar las reglas de React Hooks
+  // Pero solo usar los datos si la feature está habilitada
+  const bettingNotifications = useSSE<BettingNotificationsResponse>('/api/sse/users/me/betting');
+  
+  const isBettingEnabled = process.env.REACT_APP_FEATURES_BETTING === 'true';
 
-  // No renderizar nada si las notificaciones están deshabilitadas
-  if (process.env.REACT_APP_FEATURES_BETTING !== 'true' || !bettingNotifications) {
+  // No renderizar nada si las notificaciones están deshabilitadas o no hay datos
+  if (!isBettingEnabled || !bettingNotifications) {
     return null;
   }
 
