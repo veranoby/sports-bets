@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linting and formatting for frontend
+cd frontend && npm run lint:fix && npm run format
+
+# Run backend linting if script exists
+if [ -f "backend/package.json" ] && grep -q '"lint"' backend/package.json; then
+  cd backend && npm run lint:fix
+fi
+
+echo "✅ Pre-commit checks completed"

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { config } from "dotenv";
+import { validateEnvironment, logEnvironmentStatus } from "./config/envValidator";
 import { connectDatabase } from "./config/database";
 import { logger } from "./config/logger";
 import { errorHandler } from "./middleware/errorHandler";
@@ -27,6 +28,10 @@ import settingsRoutes from "./routes/settings";
 
 // Cargar variables de entorno
 config();
+
+// Validate environment variables before starting server
+validateEnvironment();
+logEnvironmentStatus();
 
 // Importar Redis
 import { initRedis } from "./config/redis";

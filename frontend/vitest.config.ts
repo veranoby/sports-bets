@@ -6,7 +6,23 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./src/tests/setup.ts'],
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/tests/',
+        '**/*.d.ts',
+        '**/*.config.{js,ts}',
+        '**/vite.config.ts'
+      ]
+    }
   },
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
+  }
 })

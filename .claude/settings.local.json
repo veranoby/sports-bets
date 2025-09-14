@@ -41,7 +41,9 @@
       "Bash(fuser:*)",
       "Bash(timeout 5 npm run dev)",
       "Bash(timeout 8 npm run dev)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npx husky:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
