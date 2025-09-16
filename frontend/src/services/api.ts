@@ -20,7 +20,7 @@ api.interceptors.request.use(config => {
 
 export default api;
 
-const apiCall = async (method: 'get' | 'post' | 'put' | 'delete', endpoint: string, data?: any) => {
+const apiCall = async (method: 'get' | 'post' | 'put' | 'delete', endpoint: string, data?: unknown) => {
     try {
       let response;
       if (method === 'get' || method === 'delete') {
@@ -29,10 +29,14 @@ const apiCall = async (method: 'get' | 'post' | 'put' | 'delete', endpoint: stri
         response = await api[method](endpoint, data);
       }
       return { success: true, data: response.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error at ${endpoint}:`, error);
-      const errorMessage = error.response?.data?.message || error.message;
-      return { success: false, error: errorMessage, code: error.response?.status };
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        return { success: false, error: errorMessage, code: error.response?.status };
+      } else {
+        return { success: false, error: 'An unexpected error occurred', code: 500 };
+      }
     }
 }
 

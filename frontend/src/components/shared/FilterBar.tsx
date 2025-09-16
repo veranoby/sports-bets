@@ -41,7 +41,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onClearFilters,
   className = "",
   compact = false,
-  showFilterCount: _showFilterCount = true,
+  showFilterCount = true,
   exportable = false,
   exportOptions,
   onExport,

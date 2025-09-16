@@ -14,7 +14,7 @@ interface SocialShareProps {
   description?: string;
 }
 
-const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) => {
+const SocialShare: React.FC<SocialShareProps> = ({ url, title, description: _description }) => {
   return (
     <div className="flex gap-2">
       <FacebookShareButton url={url} quote={title}>

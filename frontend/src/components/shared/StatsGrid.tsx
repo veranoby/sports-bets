@@ -1,7 +1,6 @@
 import React from "react";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Card } from "./Card";
-import { LoadingSpinner } from "./LoadingSpinner";
 import { Line, Bar, Pie } from "react-chartjs-2"; // Asume instalación de Chart.js
 import { StatCard, ChartDataset } from "@/types";
 

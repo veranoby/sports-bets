@@ -40,7 +40,7 @@ const CreateBetModal = ({
         maxAmount: Number(amount) + range,
       }).then(setSuggestions);
     }
-  }, [amount, side, fightId]);
+  }, [amount, side, fightId, getCompatibleBets]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

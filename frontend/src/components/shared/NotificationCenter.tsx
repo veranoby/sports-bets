@@ -146,7 +146,7 @@ const NotificationCenter: React.FC = memo(() => {
     if (isOpen && notifications.length === 0) {
       fetchNotifications();
     }
-  }, [isOpen, fetchNotifications]); // fetchNotifications es estable
+  }, [isOpen, notifications.length, fetchNotifications]); // fetchNotifications es estable
 
   // ✅ ACCIONES DE NOTIFICACIÓN MEMOIZADAS
   const markAsRead = useCallback(async (id: string) => {

@@ -31,8 +31,6 @@ type TabType = "my_bets" | "available" | "history" | "stats";
 
 const UserBets: React.FC = () => {
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
-  if (!isBettingEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
-
   const navigate = useNavigate();
 
   // Estados principales
@@ -166,6 +164,8 @@ const UserBets: React.FC = () => {
       console.error("Error al aceptar apuesta:", error);
     }
   };
+
+  if (!isBettingEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
 
   if (loading) return <LoadingSpinner text="Cargando apuestas..." />;
 

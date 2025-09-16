@@ -6,9 +6,9 @@ module.exports = {
     node: true
   },
   extends: [
-    'eslint:recommended'
-    // '@typescript-eslint/recommended', // TEMPORARILY DISABLED for build fix
-    // 'plugin:react-hooks/recommended'  // TEMPORARILY DISABLED for build fix
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended'
   ],
   ignorePatterns: [
     'dist',
@@ -38,17 +38,17 @@ module.exports = {
       { allowConstantExport: true }
     ],
     
-    // TypeScript rules - TEMPORARILY DISABLED for build fix
-    '@typescript-eslint/no-unused-vars': 'off',
+    // TypeScript rules
+    '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/prefer-const': 'error',
     '@typescript-eslint/no-var-requires': 'error',
     
-    // React Hooks rules - TEMPORARILY DISABLED for build fix
-    'react-hooks/rules-of-hooks': 'off',
-    'react-hooks/exhaustive-deps': 'off',
+    // React Hooks rules
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
     
     // General JavaScript/TypeScript rules
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',

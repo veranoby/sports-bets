@@ -59,7 +59,6 @@ Chart.register(
 
 const WalletPage: React.FC = () => {
   const { isWalletEnabled } = useFeatureFlags(); // Added feature flag check
-  if (!isWalletEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
 
   // ❌ ELIMINADO: const theme = getUserThemeClasses();
   const {
@@ -133,7 +132,7 @@ const WalletPage: React.FC = () => {
         borderWidth: 1,
         callbacks: {
           label: function (context: any) {
-            return `Balance: $${context.parsed.y.toFixed(2)}`;
+            return `Balance: ${context.parsed.y.toFixed(2)}`;
           },
         },
       },
@@ -197,11 +196,13 @@ const WalletPage: React.FC = () => {
       fetchTransactions();
       const message =
         transaction.type === "deposit"
-          ? `Depósito completado: $${transaction.amount}`
-          : `Retiro completado: $${transaction.amount}`;
+          ? `Depósito completado: ${transaction.amount}`
+          : `Retiro completado: ${transaction.amount}`;
       console.log("Transacción completada:", message);
     }
   });
+
+  if (!isWalletEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
 
   if (loading && !refreshing) {
     return (

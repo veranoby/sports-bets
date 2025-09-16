@@ -64,7 +64,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         removeListener("bet_matched", handleBetMatched);
       }
     };
-  }, [isConnected]);
+  }, [isConnected, addListener, removeListener, handleNewBet, handleBettingWindowClosed, handleBetMatched, onBetPlaced]);
 
   // Return condicional DESPUÉS de todos los hooks
   if (!isBettingEnabled) return null;

@@ -88,8 +88,12 @@ class StreamingService {
     try {
       const response = await api.post('/streaming/start', config);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to start stream');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to start stream');
+      } else {
+        throw new Error('Failed to start stream');
+      }
     }
   }
 
@@ -100,8 +104,12 @@ class StreamingService {
     try {
       const response = await api.post('/streaming/stop', { streamId });
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to stop stream');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to stop stream');
+      } else {
+        throw new Error('Failed to stop stream');
+      }
     }
   }
 
@@ -112,8 +120,12 @@ class StreamingService {
     try {
       const response = await api.get('/streaming/status');
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream status');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get stream status');
+      } else {
+        throw new Error('Failed to get stream status');
+      }
     }
   }
 
@@ -125,8 +137,12 @@ class StreamingService {
       const url = streamId ? `/streaming/analytics/${streamId}` : '/streaming/analytics';
       const response = await api.get(url);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream analytics');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get stream analytics');
+      } else {
+        throw new Error('Failed to get stream analytics');
+      }
     }
   }
 
@@ -137,8 +153,12 @@ class StreamingService {
     try {
       const response = await api.get(`/events/${eventId}/stream-access`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream access');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get stream access');
+      } else {
+        throw new Error('Failed to get stream access');
+      }
     }
   }
 
@@ -149,15 +169,19 @@ class StreamingService {
     try {
       const response = await api.post('/streaming/validate-token', { token });
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to validate stream token');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to validate stream token');
+      } else {
+        throw new Error('Failed to validate stream token');
+      }
     }
   }
 
   /**
    * Report stream viewing analytics
    */
-  async reportViewingEvent(eventId: string, event: string, data?: any): Promise<void> {
+  async reportViewingEvent(eventId: string, event: string, data?: Record<string, unknown>): Promise<void> {
     try {
       await api.post('/streaming/analytics/event', {
         eventId,
@@ -185,8 +209,12 @@ class StreamingService {
     try {
       const response = await api.get(`/streaming/${streamId}/health`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream health');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get stream health');
+      } else {
+        throw new Error('Failed to get stream health');
+      }
     }
   }
 
@@ -196,8 +224,12 @@ class StreamingService {
   async updateStreamConfig(streamId: string, config: Partial<StreamConfig>): Promise<void> {
     try {
       await api.patch(`/streaming/${streamId}/config`, config);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update stream config');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update stream config');
+      } else {
+        throw new Error('Failed to update stream config');
+      }
     }
   }
 
@@ -214,8 +246,12 @@ class StreamingService {
     try {
       const response = await api.post('/streaming/keys/generate', config);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to generate stream key');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to generate stream key');
+      } else {
+        throw new Error('Failed to generate stream key');
+      }
     }
   }
 
@@ -230,8 +266,12 @@ class StreamingService {
     try {
       const response = await api.delete(`/streaming/keys/${streamKey}`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to revoke stream key');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to revoke stream key');
+      } else {
+        throw new Error('Failed to revoke stream key');
+      }
     }
   }
 
@@ -252,8 +292,12 @@ class StreamingService {
     try {
       const response = await api.get(`/streaming/obs-config/${streamKey}`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get OBS configuration');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get OBS configuration');
+      } else {
+        throw new Error('Failed to get OBS configuration');
+      }
     }
   }
 
@@ -278,8 +322,12 @@ class StreamingService {
     try {
       const response = await api.get('/streaming/health');
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get system health');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to get system health');
+      } else {
+        throw new Error('Failed to get system health');
+      }
     }
   }
 
@@ -304,22 +352,22 @@ class StreamingService {
    * Subscribe to stream events via WebSocket
    */
   subscribeToStreamEvents(streamId: string, callbacks: {
-    onViewerJoin?: (data: any) => void;
-    onViewerLeave?: (data: any) => void;
-    onQualityChange?: (data: any) => void;
-    onHealthUpdate?: (data: any) => void;
-    onError?: (error: any) => void;
+    onViewerJoin?: (data: Record<string, unknown>) => void;
+    onViewerLeave?: (data: Record<string, unknown>) => void;
+    onQualityChange?: (data: Record<string, unknown>) => void;
+    onHealthUpdate?: (data: Record<string, unknown>) => void;
+    onError?: (error: unknown) => void;
   }): () => void {
     // This would typically use WebSocket or Server-Sent Events
     // For now, we'll implement polling as fallback
     let polling = true;
-    let intervalId: NodeJS.Timeout;
+    const intervalId: NodeJS.Timeout = setInterval(poll, 5000); // Poll every 5 seconds
 
     const poll = async () => {
       if (!polling) return;
 
       try {
-        const analytics = await this.getAnalytics(streamId);
+        // const analytics = await this.getAnalytics(streamId);
         // Trigger callbacks based on analytics changes
         // This is simplified - in production we'd use real-time events
       } catch (error) {
@@ -327,14 +375,10 @@ class StreamingService {
       }
     };
 
-    intervalId = setInterval(poll, 5000); // Poll every 5 seconds
-
     // Return cleanup function
     return () => {
       polling = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      clearInterval(intervalId);
     };
   }
 

@@ -33,7 +33,7 @@ const FinancialStats: React.FC = () => {
   );
 
   // Cargar datos financieros (sin mock)
-  const loadFinancialData = async (): Promise<void> => {
+  const loadFinancialData = React.useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({ range: dateRange });
@@ -46,11 +46,11 @@ const FinancialStats: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dateRange]);
 
   useEffect(() => {
     loadFinancialData();
-  }, [dateRange]);
+  }, [dateRange, loadFinancialData]);
 
   // Formatear valores monetarios
   const formatCurrency = (value: number) =>

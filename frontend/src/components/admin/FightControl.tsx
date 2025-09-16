@@ -49,7 +49,7 @@ const FightControl: React.FC<FightControlProps> = ({
     };
 
     const config = statusConfig[status];
-    return <Badge status={config.color as any} text={config.text} />;
+    return <Badge status={config.color as "default" | "processing" | "warning" | "success" | "error"} text={config.text} />;
   };
 
   const getStatusIcon = (status: Fight['status']) => {
@@ -75,8 +75,12 @@ const FightControl: React.FC<FightControlProps> = ({
           bettingOpenedAt: response.data.bettingOpenedAt
         });
       }
-    } catch (error: any) {
-      onError(error.response?.data?.message || 'Error opening betting window');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        onError(error.message || 'Error opening betting window');
+      } else {
+        onError('Error opening betting window');
+      }
     } finally {
       setLoading(null);
     }
@@ -94,8 +98,12 @@ const FightControl: React.FC<FightControlProps> = ({
           bettingClosedAt: response.data.bettingClosedAt
         });
       }
-    } catch (error: any) {
-      onError(error.response?.data?.message || 'Error closing betting window');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        onError(error.message || 'Error closing betting window');
+      } else {
+        onError('Error closing betting window');
+      }
     } finally {
       setLoading(null);
     }
@@ -118,8 +126,12 @@ const FightControl: React.FC<FightControlProps> = ({
         });
         setShowResultModal(false);
       }
-    } catch (error: any) {
-      onError(error.response?.data?.message || 'Error recording fight result');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        onError(error.message || 'Error recording fight result');
+      } else {
+        onError('Error recording fight result');
+      }
     } finally {
       setLoading(null);
     }

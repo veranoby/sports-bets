@@ -69,7 +69,7 @@ const UserManagementTable: React.FC = () => {
   const [confirmAction, setConfirmAction] = useState<null | {
     type: "status" | "role" | "delete";
     user: User;
-    newValue?: any;
+    newValue?: boolean | "admin" | "operator" | "venue" | "user" | "gallera";
   }>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -390,7 +390,7 @@ const UserManagementTable: React.FC = () => {
                                 <button
                                   key={role}
                                   onClick={() =>
-                                    handleChangeRole(user, role as any)
+                                    handleChangeRole(user, role as "admin" | "operator" | "venue" | "user" | "gallera")
                                   }
                                   disabled={user.role === role || isUpdating}
                                   className={`w-full text-left px-4 py-2 text-sm ${

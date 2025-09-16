@@ -1,7 +1,7 @@
 // frontend/src/pages/user/ArticlePage.tsx - Ver artículo específico
 // ================================================================
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Calendar, User, MapPin } from "lucide-react";
 import { apiClient } from "../../config/api";
@@ -29,6 +29,11 @@ const ArticlePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const execute = async () => {
+    // This is a placeholder for the actual execute function
+    // In a real implementation, this would contain the logic to fetch the article
+  };
+
   useEffect(() => {
     if (articleId) {
       const fetchArticle = async () => {
@@ -45,7 +50,7 @@ const ArticlePage: React.FC = () => {
       };
       fetchArticle();
     }
-  }, [articleId, execute]);
+  }, [articleId]);
 
   if (loading) return <LoadingSpinner text="Cargando artículo..." />;
 

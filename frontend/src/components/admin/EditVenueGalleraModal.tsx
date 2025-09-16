@@ -10,11 +10,11 @@ import { User, Building2, CreditCard, X, Info } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 
 interface EditVenueGalleraModalProps {
-  user: any;
+  user: User;
   venue?: any;
   role: 'venue' | 'gallera';
   onClose: () => void;
-  onSaved: (updatedData: any) => void;
+  onSaved: (updatedData: { user: User; venue: any }) => void;
 }
 
 const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({ 

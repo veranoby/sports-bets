@@ -46,7 +46,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       loadPlans();
       fetchCurrent();
     }
-  }, [isOpen, fetchCurrent]);
+  }, [isOpen, fetchCurrent, loadPlans]);
 
   const loadPlans = async () => {
     try {
