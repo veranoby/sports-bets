@@ -58,7 +58,7 @@ router.get(
     query("venueId").optional({ checkFalsy: true }).isUUID(),
     query("status").optional({ checkFalsy: true }).isIn(["published", "pending", "draft", "archived"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
-    query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 1000 }).toInt(),
     query("author_id").optional({ checkFalsy: true }).isUUID(),
     query("includeAuthor").optional({ checkFalsy: true }).isString().custom((value) => {
       if (value === 'true' || value === 'false') {

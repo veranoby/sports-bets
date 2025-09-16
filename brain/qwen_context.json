@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "purpose": "Specific context and guidelines for Qwen Coder CLI when working on GalloBets",
+    "created": "2025-09-16",
+    "project": "GalloBets - Professional Cockfighting Streaming Platform",
+    "workflow_pattern": "Independent Qwen CLI + Claude Validator (NO MCP coordination)"
+  },
+
+  "qwen_critical_instructions": {
+    "workflow_approach": {
+      "NEVER_use_mcp": "MCP integration fails for file creation. Always work independently via CLI",
+      "read_claude_prompt_first": "ALWAYS read /home/veranoby/sports-bets/claude-prompt.json completely before starting",
+      "database_source_of_truth": "Reference /home/veranoby/sports-bets/backend/database-analysis/CURRENT_TABLES.json for exact field names",
+      "verification_pattern": "Test every change with real data, check database persistence"
+    },
+
+    "common_field_name_pitfalls": {
+      "frontend_to_backend_mapping": {
+        "profileInfo": "profile_info",
+        "contactInfo": "contact_info",
+        "camelCase_frontend": "snake_case_database",
+        "JSONB_structures": "Must match exact database schema in CURRENT_TABLES.json"
+      },
+      "debugging_approach": [
+        "1. Check actual database column names first",
+        "2. Add console.log to trace data flow",
+        "3. Verify API request/response in browser Network tab",
+        "4. Test database queries directly to confirm persistence",
+        "5. Check for silent validation failures in backend"
+      ]
+    }
+  },
+
+  "galllobets_architecture_key_points": {
+    "technology_stack": {
+      "database": "PostgreSQL on Neon.tech (schema in database-analysis/)",
+      "backend": "Node.js + Express + Sequelize + TypeScript",
+      "frontend": "React + TypeScript + Tailwind CSS",
+      "real_time": "SSE for admin, WebSocket minimal for betting only"
+    },
+
+    "critical_business_logic": {
+      "fight_temporal_logic": "upcoming → betting → live → completed (strict progression)",
+      "betting_windows": "Only allowed during status='betting'",
+      "user_roles": "admin > operator > venue/gallera > user hierarchy",
+      "pago_doy_timeout": "WebSocket proposals expire after 3 minutes"
+    },
+
+    "file_structure_patterns": {
+      "backend_routes": "src/routes/{entity}.ts - RESTful patterns",
+      "frontend_admin": "src/pages/admin/ and src/components/admin/",
+      "frontend_user": "src/pages/user/ and src/components/user/",
+      "api_config": "src/config/api.ts - centralized API calls",
+      "types": "src/types/index.ts - shared TypeScript interfaces"
+    }
+  },
+
+  "current_task_specific_context": {
+    "venues_galleras_crud_issue": {
+      "problem": "EditVenueGalleraModal.tsx tabs not persisting to database",
+      "root_cause": "Field name mismatches between frontend and backend",
+      "key_files_to_modify": [
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "backend/src/routes/users.ts (profile updates)",
+        "backend/src/routes/venues.ts (entity updates)",
+        "backend/src/routes/galleras.ts (may need creation)"
+      ],
+      "database_tables_involved": [
+        "users (profile_info JSONB)",
+        "venues (contact_info JSONB)",
+        "galleras (specialties JSONB)"
+      ]
+    },
+
+    "testing_requirements": {
+      "must_verify": [
+        "Profile tab saves to users.profile_info in database",
+        "Entity tab saves to venues/galleras table in database",
+        "Modal shows proper success/error feedback",
+        "Admin can edit others, users can edit themselves only"
+      ],
+      "debugging_tools": [
+        "Browser Network tab for API calls",
+        "Database query tool to check actual values",
+        "Console.log in both frontend and backend",
+        "curl commands to test API endpoints directly"
+      ]
+    }
+  },
+
+  "success_criteria": {
+    "functional_requirements": [
+      "Profile tab edits persist to database correctly",
+      "Entity tab edits persist to database correctly",
+      "Modal provides clear success/error feedback",
+      "Permission system works (admin vs self-edit)",
+      "Both venues and galleras modals work identically"
+    ],
+    "technical_requirements": [
+      "TypeScript compilation clean (npx tsc --noEmit)",
+      "No console errors during operation",
+      "API calls return proper status codes",
+      "Database queries show updated values",
+      "Frontend state updates reflect database changes"
+    ]
+  },
+
+  "qwen_workflow_checklist": {
+    "before_starting": [
+      "☐ Read claude-prompt.json completely",
+      "☐ Check database-analysis/CURRENT_TABLES.json for exact schema",
+      "☐ Verify current servers are running (3001, 5174)",
+      "☐ Test current modal behavior to understand the issue"
+    ],
+    "during_implementation": [
+      "☐ Map every frontend field to correct database field name",
+      "☐ Add console.log debugging throughout data flow",
+      "☐ Test each change with real data immediately",
+      "☐ Check browser Network tab for API call success/failure",
+      "☐ Verify database persistence with actual queries"
+    ],
+    "before_completion": [
+      "☐ All TypeScript compilation passes",
+      "☐ Both servers start without errors",
+      "☐ Modal saves work for both venues and galleras",
+      "☐ Database queries confirm data persistence",
+      "☐ User sees appropriate success/error messages"
+    ]
+  }
+}

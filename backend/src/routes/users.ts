@@ -87,19 +87,24 @@ router.put(
     const user = req.user!;
     const { profileInfo } = req.body;
 
+    console.log('Received profileInfo:', profileInfo);
+    console.log('Current user profileInfo:', user.profileInfo);
+
     if (profileInfo) {
       // Actualizar información del perfil manteniendo datos existentes
       user.profileInfo = {
         ...user.profileInfo,
         ...profileInfo,
       };
+      console.log('Updated user profileInfo:', user.profileInfo);
     }
 
     await user.save();
+    console.log('User saved successfully');
 
     res.json({
       success: true,
-      message: "Profile updated successfully",
+      message: "Perfil actualizado exitosamente",
       data: user.toPublicJSON(),
     });
   })
@@ -548,15 +553,19 @@ router.put(
       throw errors.notFound("User not found");
     }
 
+    console.log('Updating user with data:', req.body);
+
     // Update allowed fields
     const allowedFields = ["username", "email", "role", "profileInfo"];
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         (user as any)[field] = req.body[field];
+        console.log(`Updated field ${field}:`, (user as any)[field]);
       }
     });
 
     await user.save();
+    console.log('User saved successfully');
 
     res.json({
       success: true,

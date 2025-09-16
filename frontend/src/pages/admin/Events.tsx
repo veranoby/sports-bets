@@ -41,6 +41,8 @@ import EmptyState from "../../components/shared/EmptyState";
 import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditEventModal from "../../components/admin/EditEventModal";
 import StreamStatusMonitor from "../../components/admin/StreamStatusMonitor";
+import EventWorkflowControls from "../../components/admin/EventWorkflowControls";
+import FightStatusManager from "../../components/admin/FightStatusManager";
 
 // APIs
 import {
@@ -787,6 +789,19 @@ const AdminEventsPage: React.FC = () => {
                   {/* Tab Info General */}
                   {activeTab === "general" && (
                     <div className="space-y-6">
+                      {/* Event Workflow Controls - NEW */}
+                      <EventWorkflowControls
+                        event={eventDetailData.event}
+                        onEventUpdated={(updatedEvent) => {
+                          setEventDetailData({
+                            ...eventDetailData,
+                            event: updatedEvent
+                          });
+                          setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+                        }}
+                        disabled={operationInProgress !== null}
+                      />
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -1033,152 +1048,20 @@ const AdminEventsPage: React.FC = () => {
                           />
                         ) : (
                           eventDetailData.fights.map((fight) => (
-                            <div
+                            <FightStatusManager
                               key={fight.id}
-                              className="p-4 border border-gray-200 rounded-lg"
-                            >
-                              <div className="flex items-center justify-between mb-3">
-                                <div>
-                                  <h4 className="font-medium text-gray-900">
-                                    Pelea #{fight.number}: {fight.redCorner} vs{" "}
-                                    {fight.blueCorner}
-                                  </h4>
-                                  <p className="text-sm text-gray-600">
-                                    Peso: {fight.weight}kg • {fight.totalBets}{" "}
-                                    apuestas • $
-                                    {fight.totalAmount.toLocaleString()}
-                                  </p>
-                                </div>
-                                <FightStatusBadge status={fight.status} />
-                              </div>
-
-                              {/* Controles operativos críticos */}
-                              <div className="flex items-center gap-2">
-                                {fight.status === "upcoming" && (
-                                  <button
-                                    onClick={() =>
-                                      handleFightAction(
-                                        fight.id,
-                                        "open-betting"
-                                      )
-                                    }
-                                    disabled={operationInProgress?.includes(
-                                      fight.id
-                                    )}
-                                    className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 flex items-center gap-1"
-                                  >
-                                    <DollarSign className="w-4 h-4" />
-                                    Abrir Apuestas
-                                  </button>
-                                )}
-
-                                {fight.status === "betting" && (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        handleFightAction(
-                                          fight.id,
-                                          "start-fight"
-                                        )
-                                      }
-                                      disabled={operationInProgress?.includes(
-                                        fight.id
-                                      )}
-                                      className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                                    >
-                                      <Play className="w-4 h-4" />
-                                      Iniciar Pelea
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleFightAction(
-                                          fight.id,
-                                          "close-betting"
-                                        )
-                                      }
-                                      disabled={operationInProgress?.includes(
-                                        fight.id
-                                      )}
-                                      className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                                    >
-                                      <Square className="w-4 h-4" />
-                                      Cerrar Apuestas
-                                    </button>
-                                  </>
-                                )}
-
-                                {fight.status === "live" && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() =>
-                                        handleFightAction(
-                                          fight.id,
-                                          "record-result",
-                                          "red"
-                                        )
-                                      }
-                                      disabled={operationInProgress?.includes(
-                                        fight.id
-                                      )}
-                                      className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
-                                    >
-                                      Gana Rojo
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleFightAction(
-                                          fight.id,
-                                          "record-result",
-                                          "blue"
-                                        )
-                                      }
-                                      disabled={operationInProgress?.includes(
-                                        fight.id
-                                      )}
-                                      className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-                                    >
-                                      Gana Azul
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleFightAction(
-                                          fight.id,
-                                          "record-result",
-                                          "draw"
-                                        )
-                                      }
-                                      disabled={operationInProgress?.includes(
-                                        fight.id
-                                      )}
-                                      className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-                                    >
-                                      Empate
-                                    </button>
-                                  </div>
-                                )}
-
-                                {fight.status === "completed" &&
-                                  fight.result && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <CheckCircle className="w-4 h-4 text-green-600" />
-                                      <span className="text-green-600 font-medium">
-                                        Resultado:{" "}
-                                        {fight.result === "red"
-                                          ? "Rojo"
-                                          : fight.result === "blue"
-                                          ? "Azul"
-                                          : "Empate"}
-                                      </span>
-                                    </div>
-                                  )}
-                              </div>
-
-                              {fight.notes && (
-                                <p className="text-xs text-gray-500 mt-2">
-                                  {fight.notes}
-                                </p>
-                              )}
-                            </div>
+                              fight={fight}
+                              onFightUpdated={(updatedFight) => {
+                                setEventDetailData({
+                                  ...eventDetailData,
+                                  fights: eventDetailData.fights.map(f =>
+                                    f.id === updatedFight.id ? updatedFight : f
+                                  )
+                                });
+                              }}
+                              disabled={operationInProgress !== null}
+                              className="mb-4"
+                            />
                           ))
                         )}
                       </div>

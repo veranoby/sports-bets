@@ -657,6 +657,337 @@ ls backend/media/live/[tu_stream_key]/
 
 ---
 
-**🎯 TIEMPO ESTIMADO DE SETUP: 2-3 horas**
-**🎯 DIFICULTAD: Intermedia (requiere instalación OBS)**
-**🎯 RESULTADO: Sistema de streaming completamente funcional en laptop local**
+## 🎮 FASE 5: FLUJO COMPLETO DEL OPERADOR
+
+### **🎯 OBJETIVO FASE 5**
+Simular el workflow completo: **Admin/Operador** crea evento → peleas → gestiona transmisión en vivo
+
+### **Prerequisitos Fase 5:**
+- ✅ Streaming técnico funcionando (Fases 1-4)
+- ✅ Admin interface accesible en `/admin`
+- ✅ Usuario con rol `admin` o `operator`
+
+---
+
+## 🚀 PASO 5.1: CREAR EVENTO DESDE ADMIN
+
+### **5.1.1: Acceder al Admin Dashboard**
+```bash
+# Asegurar que backend y frontend están corriendo
+cd backend && npm run dev  # Puerto 3001
+cd frontend && npm run dev # Puerto 5174
+```
+
+### **5.1.2: Login y Navegación**
+1. Abrir: `http://localhost:5174/login`
+2. Login con usuario `admin` o `operator`
+3. Navegar a: `http://localhost:5174/admin/events`
+4. Click **"+ Crear Evento"**
+
+### **5.1.3: Configurar Evento de Prueba**
+```json
+{
+  "name": "Gallera Test Event 2024",
+  "scheduledDate": "2024-09-16T19:00:00", 
+  "venueId": "[seleccionar_venue_existente]",
+  "operatorId": "[tu_user_id]",
+  "description": "Evento de prueba para testing streaming",
+  "status": "scheduled"
+}
+```
+
+### **5.1.4: Verificar Evento Creado**
+- ✅ Evento aparece en lista con status `scheduled`
+- ✅ Datos correctos: fecha, venue, operador
+- ✅ Botón **"Gestionar"** disponible
+
+---
+
+## 🚀 PASO 5.2: CREAR PELEAS (ROOSTER FIGHTS)
+
+### **5.2.1: Acceder a Gestión de Evento**
+1. En `/admin/events`, click **"Gestionar"** en tu evento
+2. Se abre modal **"Gestión Completa del Evento"**
+3. Navegar a tab **"Peleas"**
+
+### **5.2.2: Crear Primera Pelea**
+Click **"+ Crear Pelea"** y configurar:
+```json
+{
+  "number": 1,
+  "redCorner": "Gallo Rojo Campeón",
+  "blueCorner": "Gallo Azul Retador", 
+  "weight": 2.5,
+  "status": "upcoming",
+  "notes": "Pelea estelar - testing streaming"
+}
+```
+
+### **5.2.3: Crear Múltiples Peleas**
+Repetir para crear al menos 3 peleas:
+```json
+[
+  {
+    "number": 1,
+    "redCorner": "Gallo Rojo Campeón",
+    "blueCorner": "Gallo Azul Retador",
+    "weight": 2.5,
+    "status": "upcoming"
+  },
+  {
+    "number": 2, 
+    "redCorner": "Tornado Negro",
+    "blueCorner": "Relámpago Dorado",
+    "weight": 2.8,
+    "status": "upcoming"
+  },
+  {
+    "number": 3,
+    "redCorner": "Furia Salvaje",
+    "blueCorner": "Martillo Feroz",
+    "weight": 3.0,
+    "status": "upcoming"
+  }
+]
+```
+
+### **5.2.4: Verificar Peleas Creadas**
+- ✅ 3 peleas en estado `upcoming`
+- ✅ Orden numérico correcto (1, 2, 3)
+- ✅ Detalles completos de cada pelea
+
+---
+
+## 🚀 PASO 5.3: ACTIVAR EVENTO Y PREPARAR TRANSMISIÓN
+
+### **5.3.1: Cambiar Estado Evento**
+1. En modal de gestión, tab **"General"**
+2. Click **"Activar Evento"** 
+3. Status cambia: `scheduled` → `in-progress`
+4. Se genera **stream_key** automáticamente
+
+### **5.3.2: Configurar OBS para Evento**
+```bash
+# OBS Settings → Stream:
+Service: Custom...
+Server: rtmp://localhost:1935/live  
+Stream Key: [copiar_del_evento_activo]
+# Ejemplo: gallera_test_event_2024_001
+```
+
+### **5.3.3: Verificar Preparación**
+- ✅ Stream key generado y visible
+- ✅ Evento en estado `in-progress`
+- ✅ OBS configurado con stream key correcto
+
+---
+
+## 🚀 PASO 5.4: GESTIÓN WORKFLOW: PELEAS → TRANSMISIÓN
+
+### **5.4.1: Preparar Primera Pelea**
+1. En tab **"Peleas"**, seleccionar **Pelea #1**
+2. Click **"Cambiar Estado"** → `betting`
+3. Confirmar: Pelea acepta apuestas
+4. **NO iniciar stream aún**
+
+### **5.4.2: Iniciar Transmisión**
+1. En OBS Studio: Click **"Start Streaming"**
+2. Verificar: OBS muestra estado "LIVE"
+3. En admin: tab **"Streaming"**
+4. Verificar: Stream status = `live`
+
+### **5.4.3: Cambiar Pelea a Estado Live**
+1. En tab **"Peleas"**, Pelea #1
+2. Click **"Cambiar Estado"** → `live`
+3. **RESULTADO**: Pelea live + Stream live simultáneo
+
+### **5.4.4: Simular Progreso de Pelea**
+```json
+// Secuencia de estados por pelea:
+"upcoming" → "betting" → "live" → "completed"
+
+// Timeline ejemplo:
+00:00 - Pelea #1: betting (2 minutos)
+02:00 - Pelea #1: live (5 minutos)
+07:00 - Pelea #1: completed + resultado
+07:30 - Pelea #2: betting (2 minutos)
+09:30 - Pelea #2: live (5 minutos)
+14:30 - Pelea #2: completed + resultado
+// ... continuar con Pelea #3
+```
+
+---
+
+## 🚀 PASO 5.5: WORKFLOW COMPLETO DE TRANSMISIÓN
+
+### **5.5.1: Ciclo Completo Por Pelea**
+
+#### **🔄 Para cada pelea (repetir 3 veces):**
+
+**A. Preparación (30 segundos):**
+1. Seleccionar próxima pelea
+2. Cambiar estado: `upcoming` → `betting`
+3. Anunciar en stream: "Aceptando apuestas"
+
+**B. Periodo de Apuestas (2 minutos):**
+1. Mantener estado `betting`
+2. Stream continúa - mostrar información pelea
+3. Simular: usuarios haciendo apuestas
+
+**C. Pelea en Vivo (5 minutos):**
+1. Cambiar estado: `betting` → `live`
+2. Stream principal: mostrar "pelea" en vivo
+3. Simular: acción de gallos peleando
+
+**D. Finalización (30 segundos):**
+1. Cambiar estado: `live` → `completed`
+2. Agregar resultado: `red`, `blue`, o `draw`
+3. Anunciar ganador en stream
+
+### **5.5.2: Transición Entre Peleas**
+```json
+// Entre pelea N y pelea N+1:
+{
+  "current_fight_end": "Pelea #N completed con resultado",
+  "transition_period": "1-2 minutos de análisis/entrevistas", 
+  "next_fight_prep": "Preparar Pelea #N+1 para betting",
+  "stream_continuity": "Stream NUNCA se detiene entre peleas"
+}
+```
+
+### **5.5.3: Finalización Completa**
+1. Todas las peleas en estado `completed`
+2. Click **"Finalizar Evento"**
+3. Estado evento: `in-progress` → `completed`
+4. En OBS: **"Stop Streaming"**
+
+---
+
+## 🚀 PASO 5.6: MONITOREO Y ANALYTICS EN VIVO
+
+### **5.6.1: Panel de Control en Tiempo Real**
+Durante el evento, monitorear en tab **"Analytics"**:
+```json
+{
+  "stream_status": "live | offline | error",
+  "current_viewers": "número_actual",
+  "peak_viewers": "máximo_alcanzado",
+  "fight_status": "betting | live | completed",
+  "total_bets": "cantidad_apuestas_activas",
+  "stream_quality": "720p @ 2500kbps",
+  "uptime": "tiempo_total_transmitiendo"
+}
+```
+
+### **5.6.2: Verificación Multinavegador**
+1. Abrir stream en múltiples navegadores
+2. Verificar sincronización de estados
+3. Confirmar: cambios se reflejan en tiempo real
+
+### **5.6.3: Testing de Interrupción**
+```bash
+# Testing de recuperación:
+1. Detener OBS por 30 segundos
+2. Reiniciar stream con misma key
+3. Verificar: reconexión automática
+4. Confirmar: viewers se reconectan
+```
+
+---
+
+## 🎯 PASO 5.7: CRITERIOS DE ÉXITO WORKFLOW COMPLETO
+
+### **✅ Checklist de Validación:**
+
+#### **Gestión de Eventos:**
+- [ ] Evento creado desde admin con datos completos
+- [ ] 3+ peleas creadas en orden secuencial
+- [ ] Estado evento: `scheduled` → `in-progress` → `completed`
+- [ ] Stream key generado automáticamente
+
+#### **Workflow de Peleas:**
+- [ ] Estados correctos: `upcoming` → `betting` → `live` → `completed`
+- [ ] Transiciones fluidas entre peleas
+- [ ] Resultados asignados correctamente
+- [ ] Timeline realista de duración
+
+#### **Transmisión Técnica:**
+- [ ] OBS conecta y mantiene stream estable
+- [ ] Calidad: 720p, latencia <15 segundos
+- [ ] Stream nunca se interrumpe entre peleas
+- [ ] Reconexión automática funciona
+
+#### **Monitoreo Admin:**
+- [ ] Analytics en tiempo real funcionando
+- [ ] Estados se sincronizan entre admin y stream
+- [ ] Multiple viewers simultáneos soportados
+- [ ] Control completo desde interface admin
+
+#### **Experiencia Operador:**
+- [ ] Workflow intuitivo y sin complejidad técnica
+- [ ] Controles claros para gestión de estado
+- [ ] Información crítica visible en todo momento
+- [ ] Capacidad de recuperarse de errores
+
+---
+
+## 🚨 TROUBLESHOOTING DEL WORKFLOW
+
+### **Problema: Estado de pelea no cambia**
+```bash
+# Verificar API endpoint:
+curl -X PATCH http://localhost:3001/api/fights/[fight_id]/status \
+  -H "Authorization: Bearer [tu_token]" \
+  -d '{"status": "live"}'
+
+# Verificar logs backend:
+tail -f backend/logs/app.log
+```
+
+### **Problema: Stream key no se genera**
+```sql
+-- Verificar en base de datos:
+SELECT id, name, status, stream_key 
+FROM events 
+WHERE status = 'in-progress';
+
+-- Si NULL, generar manualmente:
+UPDATE events 
+SET stream_key = 'gallera_test_event_2024_001' 
+WHERE id = '[event_id]';
+```
+
+### **Problema: Admin interface no responde**
+```bash
+# Verificar SSE connections:
+curl -H "Authorization: Bearer [token]" \
+  http://localhost:3001/api/sse/admin/system-status
+
+# Verificar WebSocket connections:
+# Abrir browser dev tools → Network → WS
+```
+
+---
+
+## 🎉 RESULTADOS ESPERADOS - WORKFLOW COMPLETO
+
+### **Al completar Fase 5 exitosamente:**
+- ✅ **Evento completo simulado**: 3 peleas con estados reales
+- ✅ **Transmisión profesional**: Stream continuo de 20+ minutos 
+- ✅ **Control operativo**: Gestión fluida desde admin interface
+- ✅ **Analytics en vivo**: Monitoreo completo de métricas
+- ✅ **Experiencia realista**: Simula evento real de gallera
+
+### **Métricas de éxito del workflow:**
+- **Duración total**: 20-30 minutos de evento completo
+- **Transiciones**: <5 segundos entre estados de pelea
+- **Estabilidad stream**: 0 desconexiones durante evento
+- **Usabilidad admin**: Operador gestiona sin dificultad técnica
+- **Sincronización**: Estados admin ↔ stream perfectamente alineados
+
+---
+
+**🎯 TIEMPO ESTIMADO SETUP TÉCNICO: 2-3 horas (Fases 1-4)**
+**🎯 TIEMPO ESTIMADO WORKFLOW COMPLETO: 1-2 horas (Fase 5)**
+**🎯 DIFICULTAD TOTAL: Avanzada (streaming + workflow + admin)**
+**🎯 RESULTADO FINAL: Sistema completo de transmisión de eventos con gestión operativa profesional**

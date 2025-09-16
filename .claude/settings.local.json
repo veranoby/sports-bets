@@ -43,7 +43,10 @@
       "Bash(timeout 8 npm run dev)",
       "Bash(timeout:*)",
       "Bash(npx husky:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Read(//home/veranoby/.claude/**)",
+      "Read(//home/veranoby/**)",
+      "mcp__qwen__ask-qwen"
     ],
     "deny": [],
     "ask": []

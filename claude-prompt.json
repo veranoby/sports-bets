@@ -1,336 +1,254 @@
 {
   "metadata": {
-    "phase_name": "MEMBERSHIP MANAGEMENT OPTIMIZATION",
-    "priority": "P0_CRITICAL", 
-    "estimated_total_hours": 12,
-    "implementation_approach": "MODAL_INTEGRATION + UNIFIED_UI_PATTERN",
-    "success_criteria": [
-      "Remove UserMembershipPanel from Users table, integrate into modal tabs",
-      "Extend EditUserModal subscription tab with Gemini freemium logic",
-      "Implement membership management for Galleras and Venues in their modals",
-      "Display membership expiration dates in tables and modals",
-      "Move features status widget from Settings to Dashboard"
-    ],
-    "technical_stack": "Existing modal architecture + enhanced SubscriptionTabs component",
-    "lessons_learned_applied": {
-      "dependency_management": " All required dependencies already installed (no new deps needed)",
-      "file_targeting": " Target .tsx source files explicitly",
-      "verification_requirements": " Include npm run dev startup verification"
+    "project": "GalloBets - Professional Cockfighting Streaming Platform",
+    "objective": "Event/Fight workflow system validation and optimization",
+    "target_ai": "Qwen Independent CLI",
+    "execution_mode": "validation_and_optimization",
+    "estimated_total_time": "2-4 hours",
+    "created_date": "2025-09-16",
+    "created_by": "Claude Code - Independent Qwen CLI + Claude Validator Pattern"
+  },
+
+  "brain_context": {
+    "development_lessons": {
+      "optimal_workflow_established": "Independent Qwen CLI + Claude Validator is the permanent pattern",
+      "mcp_hybrid_failed": "MCP tools have filesystem limitations, independent CLI superior",
+      "dependency_first": "ALWAYS install dependencies as Task 0",
+      "source_file_targeting": "Target .ts/.tsx source files, NEVER .js",
+      "verification_required": "TypeScript compilation + dev servers must work"
+    },
+    "project_architecture": {
+      "database": "PostgreSQL on Neon.tech",
+      "backend": "Node.js + Express + Sequelize + SSE",
+      "frontend": "React + TypeScript + Tailwind CSS",
+      "real_time": "SSE for admin, WebSocket minimal for betting",
+      "temporal_logic": "Fight status transitions: upcoming → betting → live → completed"
     }
   },
-  
-  "phase_1_cleanup_inappropriate_implementation": {
-    "estimated_hours": 2,
-    "priority": "P0",
-    "tool": "claude_code",
-    "dependencies": [],
-    "tasks": {
-      "task_1_remove_membership_from_tables": {
-        "file_to_modify": "frontend/src/pages/admin/Users.tsx",
-        "description": "Remove UserMembershipPanel from users table and add expiration date column",
-        "estimated_time": "30min",
-        "exact_modifications": {
-          "remove_import": "import UserMembershipPanel from \"../../components/admin/UserMembershipPanel\";",
-          "remove_table_cell": [
-            "<!-- Remove this cell from table -->",
-            "<td className=\"px-6 py-4 whitespace-nowrap\">",
-            "  <UserMembershipPanel userId={user.id} currentMembership={user.subscription} onMembershipUpdated={fetchUsers} />",
-            "</td>"
-          ],
-          "add_expiration_column": [
-            "<!-- Add after subscription column -->",
-            "<td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-600\">",
-            "  {user.subscription?.manual_expires_at ? new Date(user.subscription.manual_expires_at).toLocaleDateString() : 'N/A'}",
-            "</td>"
-          ],
-          "update_table_headers": [
-            "<!-- Add header after Membership column -->",
-            "<th className=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Expires</th>"
-          ]
-        }
-      },
-      
-      "task_2_update_galleras_venues_tables": {
-        "files_to_modify": [
+
+  "current_implementation_state": {
+    "status": "WORKFLOW SYSTEM COMPLETED - Need validation and optimization",
+    "backend_implemented": {
+      "events_api": "PATCH /api/events/:id/status with action: activate|complete|cancel",
+      "fights_api": "PATCH /api/fights/:id/status with status and optional result",
+      "event_service": "Enhanced with stream key generation and workflow logic",
+      "compilation": "TypeScript passes, server running on localhost:3001"
+    },
+    "frontend_implemented": {
+      "EventWorkflowControls": "Event status management with SSE integration",
+      "FightStatusManager": "Fight workflow with result recording and timeline",
+      "Events_page": "Updated to use new workflow components",
+      "compilation": "TypeScript passes, server running on localhost:5174"
+    },
+    "integration_status": "Components integrated, servers running successfully"
+  },
+
+  "validation_tasks": {
+    "task_0_system_verification": {
+      "description": "Verify current system is working properly",
+      "mandatory_first_step": true,
+      "estimated_time": "30 minutes",
+      "validation_steps": [
+        "Verify backend server responds: curl http://localhost:3001/api/events",
+        "Verify frontend loads: curl -I http://localhost:5174/",
+        "Check TypeScript compilation: cd backend && npx tsc --noEmit",
+        "Check frontend compilation: cd frontend && npx tsc --noEmit",
+        "Verify new endpoints work: curl -X PATCH http://localhost:3001/api/events/test-id/status"
+      ],
+      "success_criteria": [
+        "Both servers running without errors",
+        "API endpoints respond correctly",
+        "TypeScript compilation clean",
+        "No console errors in browser"
+      ]
+    },
+
+    "task_1_crud_venues_galleras_fix": {
+      "description": "Fix venue and gallera CRUD operations in admin modals",
+      "priority": "HIGH - Critical user data persistence issue",
+      "estimated_time": "2-3 hours",
+      "problem_analysis": {
+        "issue_identified": "Modal tabs 1 and 2 (Profile and Entity) not saving to database",
+        "root_cause": "Mismatch between frontend expectations and backend field names/structure",
+        "affected_components": [
+          "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+          "frontend/src/pages/admin/Venues.tsx",
           "frontend/src/pages/admin/Galleras.tsx",
-          "frontend/src/pages/admin/Venues.tsx"
-        ],
-        "description": "Add membership expiration column to Galleras and Venues tables",
-        "estimated_time": "45min",
-        "exact_modifications": {
-          "add_expiration_columns": [
-            "<!-- Add column after existing columns -->",
-            "<td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-600\">",
-            "  {entity.user?.subscription?.manual_expires_at ? new Date(entity.user.subscription.manual_expires_at).toLocaleDateString() : 'Free'}",
-            "</td>"
-          ],
-          "add_headers": [
-            "<th className=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Membership Expires</th>"
-          ]
-        }
-      }
-    }
-  },
-
-  "phase_2_enhanced_subscription_tabs": {
-    "estimated_hours": 4,
-    "priority": "P0",
-    "tool": "claude_code",
-    "dependencies": ["phase_1_cleanup_inappropriate_implementation"],
-    "tasks": {
-      "task_3_enhance_subscription_tabs": {
-        "file_to_modify": "frontend/src/components/admin/SubscriptionTabs.tsx",
-        "description": "Replace existing SubscriptionTabs with enhanced version including Gemini freemium logic",
-        "estimated_time": "2h",
-        "current_implementation_analysis": "Existing SubscriptionTabs component needs Gemini UserMembershipPanel functionality integrated",
-        "exact_modifications": {
-          "add_imports": [
-            "import { adminAPI } from '../../services/api';",
-            "import { Crown, Clock, User } from 'lucide-react';"
-          ],
-          "replace_subscription_content": [
-            "// Replace existing subscription content with freemium management",
-            "const [selectedType, setSelectedType] = useState<string>('free');",
-            "const [assignedUsername, setAssignedUsername] = useState<string>('');",
-            "const [loading, setLoading] = useState<boolean>(false);",
-            "",
-            "const membershipOptions = [",
-            "  { value: 'free', label: 'Free', icon: <User className=\"w-4 h-4\" /> },",
-            "  { value: '24h', label: '24 Hours Premium', icon: <Clock className=\"w-4 h-4\" /> },",
-            "  { value: 'monthly', label: '1 Month Premium', icon: <Crown className=\"w-4 h-4\" /> }",
-            "];",
-            "",
-            "const handleMembershipUpdate = async () => {",
-            "  if (!assignedUsername.trim()) {",
-            "    notification.error({ message: 'Username assignment is required' });",
-            "    return;",
-            "  }",
-            "  setLoading(true);",
-            "  try {",
-            "    await adminAPI.updateUserMembership(userId, {",
-            "      membership_type: selectedType,",
-            "      assigned_username: assignedUsername.trim()",
-            "    });",
-            "    notification.success({ message: `Membership updated to ${selectedType}` });",
-            "    onSave?.();",
-            "  } catch (error) {",
-            "    notification.error({ message: 'Failed to update membership' });",
-            "  }",
-            "  setLoading(false);",
-            "};"
-          ],
-          "add_membership_status_display": [
-            "// Add current membership status and dates",
-            "<div className=\"mb-6 p-4 bg-gray-50 rounded-lg\">",
-            "  <h4 className=\"font-medium text-gray-900 mb-2\">Current Membership Status</h4>",
-            "  <div className=\"grid grid-cols-2 gap-4 text-sm\">",
-            "    <div>",
-            "      <span className=\"text-gray-500\">Status:</span> {subscription?.status || 'free'}",
-            "    </div>",
-            "    <div>",
-            "      <span className=\"text-gray-500\">Type:</span> {subscription?.type || 'N/A'}",
-            "    </div>",
-            "    <div>",
-            "      <span className=\"text-gray-500\">Last Activated:</span> {subscription?.createdAt ? new Date(subscription.createdAt).toLocaleDateString() : 'N/A'}",
-            "    </div>",
-            "    <div>",
-            "      <span className=\"text-gray-500\">Expires:</span> {subscription?.manual_expires_at ? new Date(subscription.manual_expires_at).toLocaleDateString() : 'N/A'}",
-            "    </div>",
-            "  </div>",
-            "</div>"
-          ]
+          "backend/src/routes/venues.ts",
+          "backend/src/routes/galleras.ts",
+          "backend/src/routes/users.ts"
+        ]
+      },
+      "database_structure_reference": {
+        "users_table": {
+          "profile_info": "JSONB field containing: fullName, phoneNumber, address, identificationNumber",
+          "basic_fields": "username, email, role, is_active"
+        },
+        "venues_table": {
+          "fields": "name, location, description, contact_info(JSONB), owner_id, status, is_verified, images(array)",
+          "contact_info_structure": "JSONB with phone, email, website, address"
+        },
+        "galleras_table": {
+          "fields": "name, location, description, owner_id, specialties(JSONB), active_roosters, fight_record(JSONB), images(array), status, is_verified"
         }
       },
-      
-      "task_4_extend_edit_modals": {
-        "files_to_modify": [
-          "frontend/src/components/admin/EditVenueModal.tsx",
-          "frontend/src/components/admin/EditGalleraModal.tsx"
-        ],
-        "description": "Add membership tab to Venue and Gallera edit modals",
-        "estimated_time": "2h",
-        "exact_modifications": {
-          "add_membership_tab": [
-            "// Add membership tab state",
-            "const [activeTab, setActiveTab] = useState<'profile' | 'membership'>('profile');",
-            "",
-            "// Add tab buttons",
-            "<div className=\"border-b border-gray-200 mb-6\">",
-            "  <nav className=\"-mb-px flex space-x-8\">",
-            "    <button onClick={() => setActiveTab('profile')} className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'profile' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Profile</button>",
-            "    <button onClick={() => setActiveTab('membership')} className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'membership' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Membership</button>",
-            "  </nav>",
-            "</div>",
-            "",
-            "// Add membership tab content",
-            "{activeTab === 'membership' && (",
-            "  <SubscriptionTabs",
-            "    userId={entity.userId || entity.user?.id}",
-            "    subscription={entity.user?.subscription}",
-            "    onSave={() => { /* refresh entity data */ }}",
-            "    onCancel={onClose}",
-            "  />",
-            ")}"
-          ]
-        }
-      }
-    }
-  },
+      "implementation_tasks": [
+        "1. Verify EditVenueGalleraModal.tsx field mappings match database structure",
+        "2. Check users.ts PUT /profile endpoint handles profileInfo correctly",
+        "3. Check users.ts PUT /:id endpoint for admin email updates",
+        "4. Verify venues.ts PUT /:id endpoint processes all modal fields",
+        "5. Create equivalent galleras.ts routes if missing",
+        "6. Test Profile tab saves: username, email, profileInfo.* fields",
+        "7. Test Entity tab saves: name, location, description, contactInfo.* fields",
+        "8. Add proper error handling and validation feedback",
+        "9. Ensure UI shows save success/error messages",
+        "10. Test admin vs self-edit permission logic"
+      ],
+      "specific_fixes_needed": [
+        "Verify profileInfo vs profile_info field name consistency",
+        "Ensure contactInfo vs contact_info JSONB structure matches",
+        "Check if galleras API endpoints exist and match venues pattern",
+        "Fix any snake_case vs camelCase mismatches",
+        "Add proper error handling in modal save operations",
+        "Ensure database transactions for multi-table updates"
+      ],
+      "testing_requirements": [
+        "Create test venue user and edit Profile tab - verify database save",
+        "Edit Entity tab information - verify database save",
+        "Test admin editing other users vs self-editing",
+        "Test error scenarios - invalid data, network failures",
+        "Verify modal shows success/error feedback to user"
+      ]
+    },
 
-  "phase_3_dashboard_features_integration": {
-    "estimated_hours": 3,
-    "priority": "P1",
-    "tool": "claude_code", 
-    "dependencies": ["phase_2_enhanced_subscription_tabs"],
-    "tasks": {
-      "task_5_move_features_to_dashboard": {
-        "file_to_modify": "frontend/src/pages/admin/AdminDashboard.tsx",
-        "description": "Add features status widget to top of dashboard",
-        "estimated_time": "1.5h",
-        "exact_modifications": {
-          "add_imports": [
-            "import { settingsAPI } from '../../config/api';",
-            "import { Shield, Wallet, Users, Settings } from 'lucide-react';"
-          ],
-          "add_features_state": [
-            "const [features, setFeatures] = useState({",
-            "  betting_enabled: false,",
-            "  wallet_enabled: false,",
-            "  user_registration: false,",
-            "  event_creation: false,",
-            "  loading: true",
-            "});",
-            "",
-            "const fetchFeatures = async () => {",
-            "  try {",
-            "    const response = await settingsAPI.getAll();",
-            "    const settingsMap = response.data.reduce((acc, setting) => {",
-            "      acc[setting.key] = setting.value === 'true';",
-            "      return acc;",
-            "    }, {});",
-            "    setFeatures({ ...settingsMap, loading: false });",
-            "  } catch (error) {",
-            "    console.error('Error loading features:', error);",
-            "    setFeatures(prev => ({ ...prev, loading: false }));",
-            "  }",
-            "};"
-          ],
-          "add_features_widget": [
-            "// Add features status widget at top of dashboard",
-            "<Card title=\"System Features Status\" className=\"mb-6\">",
-            "  <div className=\"grid grid-cols-2 md:grid-cols-4 gap-4\">",
-            "    <div className=\"flex items-center space-x-3\">",
-            "      <Shield className={`w-5 h-5 ${features.betting_enabled ? 'text-green-500' : 'text-red-500'}`} />",
-            "      <div>",
-            "        <p className=\"text-sm font-medium\">Betting</p>",
-            "        <p className={`text-xs ${features.betting_enabled ? 'text-green-600' : 'text-red-600'}`}>",
-            "          {features.betting_enabled ? 'Enabled' : 'Disabled'}",
-            "        </p>",
-            "      </div>",
-            "    </div>",
-            "    <div className=\"flex items-center space-x-3\">",
-            "      <Wallet className={`w-5 h-5 ${features.wallet_enabled ? 'text-green-500' : 'text-red-500'}`} />",
-            "      <div>",
-            "        <p className=\"text-sm font-medium\">Wallet</p>",
-            "        <p className={`text-xs ${features.wallet_enabled ? 'text-green-600' : 'text-red-600'}`}>",
-            "          {features.wallet_enabled ? 'Enabled' : 'Disabled'}",
-            "        </p>",
-            "      </div>",
-            "    </div>",
-            "    <div className=\"flex items-center space-x-3\">",
-            "      <Users className={`w-5 h-5 ${features.user_registration ? 'text-green-500' : 'text-red-500'}`} />",
-            "      <div>",
-            "        <p className=\"text-sm font-medium\">Registration</p>",
-            "        <p className={`text-xs ${features.user_registration ? 'text-green-600' : 'text-red-600'}`}>",
-            "          {features.user_registration ? 'Open' : 'Closed'}",
-            "        </p>",
-            "      </div>",
-            "    </div>",
-            "    <div className=\"flex items-center space-x-3\">",
-            "      <Settings className={`w-5 h-5 ${features.event_creation ? 'text-green-500' : 'text-red-500'}`} />",
-            "      <div>",
-            "        <p className=\"text-sm font-medium\">Events</p>",
-            "        <p className={`text-xs ${features.event_creation ? 'text-green-600' : 'text-red-600'}`}>",
-            "          {features.event_creation ? 'Enabled' : 'Disabled'}",
-            "        </p>",
-            "      </div>",
-            "    </div>",
-            "  </div>",
-            "</Card>"
-          ]
-        }
-      },
-      
-      "task_6_update_settings_page": {
-        "file_to_modify": "frontend/src/pages/admin/Settings.tsx", 
-        "description": "Remove features status table from Settings page (moved to Dashboard)",
-        "estimated_time": "30min",
-        "exact_modifications": {
-          "remove_features_section": [
-            "// Remove the features status table section",
-            "// Keep only the settings modification functionality"
-          ],
-          "add_dashboard_reference": [
-            "// Add note pointing to dashboard",
-            "<div className=\"mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg\">",
-            "  <p className=\"text-sm text-blue-800\">",
-            "    <strong>Note:</strong> View current features status on the <a href=\"/admin/dashboard\" className=\"underline\">Dashboard</a>.",
-            "  </p>",
-            "</div>"
-          ]
-        }
-      }
-    }
-  },
+    "task_2_workflow_testing": {
+      "description": "Test complete event and fight workflow functionality",
+      "estimated_time": "60 minutes",
+      "testing_scenarios": [
+        "Create test event and fights through admin interface",
+        "Test event status transitions: scheduled → in-progress → completed",
+        "Test fight status transitions: upcoming → betting → live → completed",
+        "Verify stream key generation on event activation",
+        "Test fight result recording (red/blue/draw)",
+        "Verify SSE real-time updates work correctly"
+      ],
+      "validation_focus": [
+        "All status transitions work according to business logic",
+        "UI components respond correctly to state changes",
+        "SSE notifications are received and displayed",
+        "Error handling works for invalid transitions",
+        "Loading states and user feedback function properly"
+      ]
+    },
 
-  "phase_4_verification_and_testing": {
-    "estimated_hours": 3,
-    "priority": "P0",
-    "tool": "claude_code",
-    "dependencies": ["phase_3_dashboard_features_integration"],
-    "tasks": {
-      "task_7_comprehensive_verification": {
-        "execution": "MANDATORY_FINAL_STEP",
-        "description": "Verify complete membership management implementation works correctly",
-        "verification_commands": [
-          "cd frontend && npm run build",
-          "cd backend && npm run dev"
-        ],
-        "manual_testing_checklist": [
-          " Users table shows expiration dates, no UserMembershipPanel",
-          " EditUserModal > Membership tab shows current status and allows updates",
-          " Galleras table shows membership expiration dates",
-          " EditGalleraModal > Membership tab functional",
-          " Venues table shows membership expiration dates", 
-          " EditVenueModal > Membership tab functional",
-          " Dashboard shows features status widget at top",
-          " Settings page no longer has features status table"
-        ],
-        "success_criteria": [
-          "No UserMembershipPanel components in table views",
-          "All edit modals have functional membership tabs",
-          "Membership expiration dates visible in all user-related tables",
-          "Dashboard displays features status prominently",
-          "All functionality accessible and responsive"
-        ],
-        "failure_protocol": "If any verification fails, report specific issue and request debugging assistance",
-        "estimated_time": "2h"
-      }
+    "task_3_optimization_opportunities": {
+      "description": "Identify and implement optimizations in the workflow system",
+      "estimated_time": "90 minutes",
+      "optimization_areas": [
+        "Error handling enhancement - better user messages",
+        "Loading states improvement - more responsive UI feedback",
+        "Type safety enhancements - stricter TypeScript types",
+        "Performance optimizations - reduce unnecessary re-renders",
+        "Code organization - clean up any duplicated logic",
+        "Accessibility improvements - better keyboard navigation",
+        "User experience refinements - smoother interactions"
+      ],
+      "implementation_guidelines": [
+        "Only make improvements that add clear value",
+        "Maintain existing functionality and patterns",
+        "Test each optimization before proceeding to next",
+        "Document any significant changes or patterns discovered"
+      ]
     }
   },
 
   "technical_specifications": {
-    "architectural_pattern": "Modal-based membership management with unified UX",
-    "component_reuse": "Single SubscriptionTabs component for all user types (users, venues, galleras)",
-    "data_flow": "AdminAPI � Modal Components � User Feedback � Table Refresh",
-    "responsive_design": "Mobile-first approach with collapsible sections",
-    "accessibility": "ARIA labels, keyboard navigation, screen reader support"
+    "backend_apis": {
+      "event_workflow": {
+        "endpoint": "PATCH /api/events/:id/status",
+        "authentication": "Bearer token required",
+        "body": {"action": "activate|complete|cancel"},
+        "validation": "Enforces scheduled → in-progress → completed transitions",
+        "stream_key_generation": "Auto-generates on activation: [venue]_[date]_[eventId]"
+      },
+      "fight_workflow": {
+        "endpoint": "PATCH /api/fights/:id/status",
+        "body": {"status": "betting|live|completed", "result": "red|blue|draw (optional)"},
+        "validation": "Enforces upcoming → betting → live → completed transitions",
+        "result_recording": "Required when status changes to completed"
+      }
+    },
+    "frontend_components": {
+      "EventWorkflowControls": {
+        "location": "frontend/src/components/admin/EventWorkflowControls.tsx",
+        "features": ["Status transition buttons", "SSE integration", "Error handling", "Progress indicator"],
+        "props": {"event": "Event", "onEventUpdated": "Function", "disabled": "boolean"}
+      },
+      "FightStatusManager": {
+        "location": "frontend/src/components/admin/FightStatusManager.tsx",
+        "features": ["Timeline visualization", "Result recording", "Real-time updates", "Status validation"],
+        "props": {"fight": "Fight", "onFightUpdated": "Function", "disabled": "boolean"}
+      }
+    }
   },
 
-  "quality_assurance": {
-    "code_standards": "Follow existing TypeScript patterns and component structure",
-    "error_handling": "Comprehensive try-catch blocks with user-friendly notifications",
-    "performance": "Lazy loading of subscription data, optimistic UI updates",
-    "security": "Admin-only access to membership management functionality"
+  "success_criteria": {
+    "system_stability": [
+      "Backend and frontend servers start without errors",
+      "TypeScript compilation passes with zero errors",
+      "API endpoints respond with correct status codes",
+      "No console errors during normal operation"
+    ],
+    "workflow_functionality": [
+      "Event status transitions work correctly",
+      "Fight status transitions follow business logic",
+      "Stream key generation works on event activation",
+      "Fight result recording functions properly",
+      "SSE real-time updates synchronize correctly"
+    ],
+    "user_experience": [
+      "Components render without visual issues",
+      "Button interactions provide immediate feedback",
+      "Error messages are clear and helpful",
+      "Loading states indicate progress appropriately",
+      "Real-time updates appear smoothly"
+    ]
+  },
+
+  "validation_protocol": {
+    "for_claude_validator": [
+      "Read all files modified during optimization",
+      "Run TypeScript compilation: npx tsc --noEmit",
+      "Test API endpoints with curl commands",
+      "Verify component integration in browser",
+      "Check for any breaking changes or regressions",
+      "Ensure all success criteria are met",
+      "Document any patterns or improvements for future reference"
+    ]
+  },
+
+  "file_locations": {
+    "backend_base": "/home/veranoby/sports-bets/backend",
+    "frontend_base": "/home/veranoby/sports-bets/frontend",
+    "brain_files": [
+      "/home/veranoby/sports-bets/brain/backlog.json",
+      "/home/veranoby/sports-bets/brain/development_lessons.json",
+      "/home/veranoby/sports-bets/brain/sdd_system.json"
+    ],
+    "key_implementation_files": [
+      "backend/src/routes/events.ts",
+      "backend/src/routes/fights.ts",
+      "backend/src/services/eventService.ts",
+      "frontend/src/components/admin/EventWorkflowControls.tsx",
+      "frontend/src/components/admin/FightStatusManager.tsx",
+      "frontend/src/pages/admin/Events.tsx"
+    ]
+  },
+
+  "execution_notes": {
+    "approach": "Validation first, then careful optimization",
+    "safety": "Use git commits before major changes for easy rollback",
+    "testing": "Test each change before proceeding to next optimization",
+    "documentation": "Document any new patterns discovered for future use"
   }
 }

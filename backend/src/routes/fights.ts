@@ -293,7 +293,186 @@ router.put(
   })
 );
 
-// POST /api/fights/:id/open-betting - Abrir apuestas para una pelea
+// PATCH /api/fights/:id/status - Fight status transitions with workflow logic
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    body("status")
+      .isIn(["upcoming", "betting", "live", "completed"])
+      .withMessage("Status must be upcoming, betting, live, or completed"),
+    body("result")
+      .optional()
+      .isIn(["red", "blue", "draw"])
+      .withMessage("Result must be red, blue, or draw")
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { status, result } = req.body;
+
+    await transaction(async (t) => {
+      const fight = await Fight.findByPk(req.params.id, {
+        include: [
+          {
+            model: Event,
+            as: "event",
+          },
+          {
+            model: Bet,
+            as: "bets",
+            required: false
+          }
+        ],
+        transaction: t
+      });
+
+      if (!fight) {
+        throw errors.notFound("Fight not found");
+      }
+
+      // Verify permissions
+      const fightData = fight.toJSON() as any;
+      if (
+        req.user!.role === "operator" &&
+        fightData.event.operatorId !== req.user!.id
+      ) {
+        throw errors.forbidden("You are not assigned to this event");
+      }
+
+      // Verify event is in-progress
+      if (fightData.event.status !== "in-progress") {
+        throw errors.badRequest("Event must be in progress to manage fights");
+      }
+
+      // Validate status transition
+      const currentStatus = fight.status;
+      const validTransitions = {
+        "upcoming": ["betting"],
+        "betting": ["live"],
+        "live": ["completed"],
+        "completed": [] // No transitions from completed
+      };
+
+      if (!validTransitions[currentStatus]?.includes(status)) {
+        throw errors.badRequest(
+          `Invalid transition from ${currentStatus} to ${status}`
+        );
+      }
+
+      // Handle specific status logic
+      switch (status) {
+        case "betting":
+          fight.bettingStartTime = new Date();
+          break;
+
+        case "live":
+          fight.bettingEndTime = new Date();
+          fight.startTime = new Date();
+
+          // Auto-cancel any pending unmatched bets
+          await Bet.update(
+            { status: "cancelled" },
+            {
+              where: {
+                fightId: fight.id,
+                status: "pending"
+              },
+              transaction: t
+            }
+          );
+          break;
+
+        case "completed":
+          if (!result) {
+            throw errors.badRequest("Result is required when completing a fight");
+          }
+
+          fight.result = result;
+          fight.endTime = new Date();
+
+          // Update event completed fights count
+          const event = await Event.findByPk(fight.eventId, { transaction: t });
+          if (event) {
+            event.completedFights += 1;
+            await event.save({ transaction: t });
+          }
+
+          // Process bet results
+          const activeBets = await Bet.findAll({
+            where: {
+              fightId: fight.id,
+              status: "active"
+            },
+            transaction: t
+          });
+
+          for (const bet of activeBets) {
+            let betResult: "win" | "loss" | "draw" = "loss";
+
+            if (result === "draw") {
+              betResult = "draw";
+            } else if (
+              (result === "red" && bet.side === "red") ||
+              (result === "blue" && bet.side === "blue")
+            ) {
+              betResult = "win";
+            }
+
+            bet.result = betResult;
+            bet.status = "completed";
+            await bet.save({ transaction: t });
+          }
+          break;
+      }
+
+      // Update fight status
+      fight.status = status;
+      await fight.save({ transaction: t });
+
+      // Broadcast via SSE
+      const sseService = req.app.get("sseService");
+      if (sseService) {
+        const eventType = status === "betting" ? "BETTING_OPENED" :
+                         status === "live" ? "BETTING_CLOSED" :
+                         status === "completed" ? "FIGHT_COMPLETED" : "FIGHT_STATUS_CHANGED";
+
+        sseService.broadcastToSystem(eventType.toLowerCase(), {
+          fightId: fight.id,
+          eventId: fight.eventId,
+          fightNumber: fight.number,
+          status: status,
+          result: result,
+          redCorner: fight.redCorner,
+          blueCorner: fight.blueCorner,
+          timestamp: new Date()
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Fight status updated to ${status} successfully`,
+        data: {
+          fight: fight.toPublicJSON(),
+          result: result,
+          statusTransition: `${currentStatus} → ${status}`
+        }
+      });
+    });
+  })
+);
+
+// POST /api/fights/:id/open-betting - Abrir apuestas para una pelea (DEPRECATED - use PATCH /api/fights/:id/status)
 router.post(
   "/:id/open-betting",
   authenticate,

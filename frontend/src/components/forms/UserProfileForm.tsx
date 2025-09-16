@@ -73,7 +73,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
       onSave({
         ...user,
         ...formData,
-        profile_info: formData.profileInfo
+        profileInfo: formData.profileInfo
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar el perfil del usuario');

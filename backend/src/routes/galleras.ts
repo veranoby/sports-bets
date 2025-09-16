@@ -5,6 +5,7 @@ import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Gallera, User } from "../models";
+import { body, validationResult } from "express-validator";
 
 const router = Router();
 
@@ -74,8 +75,41 @@ router.get(
 router.post(
   "/",
   authenticate,
+  [
+    body("name")
+      .isLength({ min: 3, max: 255 })
+      .withMessage("Name must be between 3 and 255 characters"),
+    body("location")
+      .isLength({ min: 5, max: 500 })
+      .withMessage("Location must be between 5 and 500 characters"),
+    body("description")
+      .optional()
+      .isLength({ max: 2000 })
+      .withMessage("Description must not exceed 2000 characters"),
+    body("contactInfo")
+      .optional()
+      .isObject()
+      .withMessage("Contact info must be an object"),
+    body("ownerId")
+      .optional()
+      .isUUID()
+      .withMessage("Owner ID must be a valid UUID"),
+  ],
   asyncHandler(async (req, res) => {
-    const { name, location, description, specialties, activeRoosters, fightRecord, ownerId } = req.body;
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { name, location, description, specialties, activeRoosters, fightRecord, ownerId, contactInfo } = req.body;
+    
+    console.log('Creating gallera with data:', req.body);
     
     // Admin can create for any user, others only for themselves
     const finalOwnerId = req.user!.role === 'admin' ? (ownerId || req.user!.id) : req.user!.id;
@@ -88,11 +122,15 @@ router.post(
       specialties,
       activeRoosters: activeRoosters || 0,
       fightRecord,
+      contactInfo: contactInfo || {},
       status: req.user!.role === 'admin' ? 'active' : 'pending'
     });
 
+    console.log('Gallera created successfully:', gallera.toJSON());
+
     res.status(201).json({
       success: true,
+      message: "Gallera creada exitosamente",
       data: gallera,
     });
   })
@@ -102,7 +140,40 @@ router.post(
 router.put(
   "/:id",
   authenticate,
+  [
+    body("name")
+      .optional()
+      .isLength({ min: 3, max: 255 })
+      .withMessage("Name must be between 3 and 255 characters"),
+    body("location")
+      .optional()
+      .isLength({ min: 5, max: 500 })
+      .withMessage("Location must be between 5 and 500 characters"),
+    body("description")
+      .optional()
+      .isLength({ max: 2000 })
+      .withMessage("Description must not exceed 2000 characters"),
+    body("contactInfo")
+      .optional()
+      .isObject()
+      .withMessage("Contact info must be an object"),
+    body("status")
+      .optional()
+      .isIn(["pending", "active", "suspended", "rejected"])
+      .withMessage("Invalid status"),
+  ],
   asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
     const gallera = await Gallera.findByPk(req.params.id);
     
     if (!gallera) {
@@ -117,7 +188,9 @@ router.put(
       throw errors.forbidden("You can only edit your own gallera");
     }
 
-    const allowedFields = ["name", "location", "description", "specialties", "activeRoosters", "fightRecord", "images"];
+    console.log('Updating gallera with data:', req.body);
+
+    const allowedFields = ["name", "location", "description", "specialties", "activeRoosters", "fightRecord", "images", "contactInfo"];
     if (isAdmin) {
       allowedFields.push("status", "isVerified");
     }
@@ -125,13 +198,16 @@ router.put(
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         (gallera as any)[field] = req.body[field];
+        console.log(`Updated field ${field}:`, (gallera as any)[field]);
       }
     });
 
     await gallera.save();
+    console.log('Gallera saved successfully');
 
     res.json({
       success: true,
+      message: "Información de la gallera actualizada exitosamente",
       data: gallera,
     });
   })
@@ -154,6 +230,56 @@ router.delete(
     res.json({
       success: true,
       message: "Gallera deleted successfully",
+    });
+  })
+);
+
+// PUT /api/galleras/:id/status - Cambiar estado de gallera (solo admin)
+router.put(
+  "/:id/status",
+  authenticate,
+  authorize("admin"),
+  [
+    body("status")
+      .isIn(["pending", "active", "suspended", "rejected"])
+      .withMessage("Invalid status"),
+    body("reason")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Reason must not exceed 500 characters"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { status, reason } = req.body;
+
+    const gallera = await Gallera.findByPk(req.params.id);
+    if (!gallera) {
+      throw errors.notFound("Gallera not found");
+    }
+
+    const oldStatus = gallera.status;
+    gallera.status = status;
+    await gallera.save();
+
+    // Log de auditoría
+    require("../config/logger").logger.info(
+      `Gallera ${gallera.name} (${gallera.id}) status changed from ${oldStatus} to ${status} by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
+    );
+
+    res.json({
+      success: true,
+      message: `Gallera status updated to ${status}`,
+      data: gallera,
     });
   })
 );

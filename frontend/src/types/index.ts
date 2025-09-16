@@ -126,6 +126,8 @@ export interface Venue {
   contactInfo?: {
     email?: string;
     phone?: string;
+    website?: string;
+    address?: string;
   };
   ownerId: string;
   status: "pending" | "active" | "suspended";
@@ -143,6 +145,12 @@ export interface Gallera {
   description?: string;
   ownerId: string;
   owner_id?: string;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+    address?: string;
+  };
   specialties?: {
     breeds?: string[];
     trainingMethods?: string[];

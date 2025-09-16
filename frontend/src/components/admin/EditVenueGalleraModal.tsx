@@ -2,11 +2,12 @@
 // Modal unificado para editar venues y galleras con pestañas
 
 import React, { useState } from 'react';
-import { usersAPI, venuesAPI } from '../../config/api';
+import { usersAPI, venuesAPI, gallerasAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import SubscriptionTabs from './SubscriptionTabs';
 import { User, Building2, CreditCard, X, Info } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 interface EditVenueGalleraModalProps {
   user: any;
@@ -26,6 +27,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
   const [activeTab, setActiveTab] = useState<'profile' | 'entity' | 'subscription'>('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   
   // Profile form data
@@ -33,10 +35,10 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     username: user?.username || '',
     email: user?.email || '',
     profileInfo: {
-      fullName: user?.profile_info?.fullName || '',
-      phoneNumber: user?.profile_info?.phoneNumber || '',
-      address: user?.profile_info?.address || '',
-      identificationNumber: user?.profile_info?.identificationNumber || ''
+      fullName: user?.profileInfo?.fullName || '',
+      phoneNumber: user?.profileInfo?.phoneNumber || '',
+      address: user?.profileInfo?.address || '',
+      identificationNumber: user?.profileInfo?.identificationNumber || ''
     },
     is_active: user?.is_active !== false
   });
@@ -102,6 +104,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
     try {
       // Update user profile
+      console.log('Updating user profile with data:', profileData.profileInfo);
       await usersAPI.updateProfile({
         profileInfo: profileData.profileInfo
       });
@@ -109,19 +112,34 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
       // Update user email
       if (profileData.email !== user.email) {
+        console.log('Updating user email to:', profileData.email);
         await usersAPI.update(user.id, { email: profileData.email });
       }
 
       // Update entity (venue or gallera)
       let result;
       if (venue?.id) {
-        result = await venuesAPI.update(venue.id, {
-          ...entityData
-        });
+        console.log('Updating entity with data:', entityData);
+        if (role === 'venue') {
+          result = await venuesAPI.update(venue.id, {
+            ...entityData
+          });
+        } else {
+          result = await gallerasAPI.update(venue.id, {
+            ...entityData
+          });
+        }
       } else {
-        result = await venuesAPI.create({
-          ...entityData
-        });
+        console.log('Creating new entity with data:', entityData);
+        if (role === 'venue') {
+          result = await venuesAPI.create({
+            ...entityData
+          });
+        } else {
+          result = await gallerasAPI.create({
+            ...entityData
+          });
+        }
       }
       
 
@@ -130,9 +148,15 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         venue: result.data
       });
       
+      // Show success message
+      toast.success('¡Éxito!', 'Los cambios se han guardado exitosamente');
+      
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Error al actualizar ${role}`);
+      console.error('Error saving data:', err);
+      const errorMessage = err instanceof Error ? err.message : `Error al actualizar ${role}`;
+      setError(errorMessage);
+      toast.error('Error', errorMessage);
       
     } finally {
       setLoading(false);

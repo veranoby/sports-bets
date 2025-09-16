@@ -26,6 +26,8 @@ export class Venue extends Model<
   declare contactInfo: CreationOptional<{
     email?: string;
     phone?: string;
+    website?: string;
+    address?: string;
   }>;
   declare ownerId: ForeignKey<User["id"]>;
   declare status: CreationOptional<"pending" | "active" | "suspended" | "approved" | "rejected">;
@@ -139,6 +141,7 @@ Venue.init(
     modelName: "Venue",
     tableName: "venues",
     timestamps: true,
+    underscored: true,
     indexes: [
       {
         fields: ["owner_id"],

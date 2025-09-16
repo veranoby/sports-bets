@@ -304,7 +304,141 @@ router.put(
   })
 );
 
-// POST /api/events/:id/activate - Activar evento para transmisión
+// PATCH /api/events/:id/status - Event status transitions with workflow logic
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    body("action")
+      .isIn(["activate", "complete", "cancel"])
+      .withMessage("Action must be activate, complete, or cancel")
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { action } = req.body;
+    const event = await Event.findByPk(req.params.id, {
+      include: [
+        { model: Fight, as: "fights" },
+        { model: Venue, as: "venue" },
+        { model: User, as: "operator", attributes: ["id", "username"] }
+      ],
+    });
+
+    if (!event) {
+      throw errors.notFound("Event not found");
+    }
+
+    if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
+      throw errors.forbidden("You are not assigned to this event");
+    }
+
+    // Validate transition logic
+    const currentStatus = event.status;
+    let newStatus: string;
+
+    switch (action) {
+      case "activate":
+        if (currentStatus !== "scheduled") {
+          throw errors.badRequest("Only scheduled events can be activated");
+        }
+
+        const eventData = event.toJSON() as any;
+        if (!eventData.fights || eventData.fights.length === 0) {
+          throw errors.badRequest("Event must have at least one fight scheduled");
+        }
+
+        newStatus = "in-progress";
+
+        // Generate stream key with improved format
+        if (!event.streamKey) {
+          event.streamKey = event.generateStreamKey();
+        }
+        event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
+        break;
+
+      case "complete":
+        if (currentStatus !== "in-progress") {
+          throw errors.badRequest("Only active events can be completed");
+        }
+        newStatus = "completed";
+        event.endDate = new Date();
+        if (event.streamUrl) {
+          event.streamUrl = null;
+        }
+        event.streamKey = null;
+        break;
+
+      case "cancel":
+        if (currentStatus === "completed") {
+          throw errors.badRequest("Completed events cannot be cancelled");
+        }
+        newStatus = "cancelled";
+        if (event.streamUrl) {
+          event.streamUrl = null;
+        }
+        event.streamKey = null;
+        break;
+
+      default:
+        throw errors.badRequest("Invalid action");
+    }
+
+    event.status = newStatus as any;
+    await event.save();
+
+    // Broadcast via SSE
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      sseService.broadcastToEvent(event.id, {
+        type: `EVENT_${action.toUpperCase()}D`,
+        data: {
+          eventId: event.id,
+          status: newStatus,
+          streamUrl: event.streamUrl,
+          streamKey: event.streamKey,
+          timestamp: new Date()
+        }
+      });
+    }
+
+    // Create notification
+    try {
+      const notificationType = action === "activate" ? "event_activated" :
+                              action === "complete" ? "event_completed" : "event_cancelled";
+      const metadata = {
+        eventName: event.name,
+        ...(event.streamUrl && { streamUrl: event.streamUrl })
+      };
+
+      await notificationService.createEventNotification(notificationType, event.id, [], metadata);
+    } catch (notificationError) {
+      console.error(`Error creating ${action} notification:`, notificationError);
+    }
+
+    res.json({
+      success: true,
+      message: `Event ${action}d successfully`,
+      data: {
+        event: event.toJSON(),
+        streamKey: event.streamKey,
+        streamUrl: event.streamUrl
+      },
+    });
+  })
+);
+
+// POST /api/events/:id/activate - Activar evento para transmisión (DEPRECATED - use PATCH /api/events/:id/status)
 router.post(
   "/:id/activate",
   authenticate,

@@ -295,7 +295,12 @@ export const venuesAPI = {
     name: string;
     location: string;
     description?: string;
-    contactInfo?: any;
+    contactInfo?: {
+      email?: string;
+      phone?: string;
+      website?: string;
+      address?: string;
+    };
     ownerId?: string;
   }) => apiClient.post("/venues", data),
 
@@ -305,7 +310,12 @@ export const venuesAPI = {
       name?: string;
       location?: string;
       description?: string;
-      contactInfo?: any;
+      contactInfo?: {
+        email?: string;
+        phone?: string;
+        website?: string;
+        address?: string;
+      };
       status?: string;
     }
   ) => apiClient.put(`/venues/${id}`, data),
@@ -332,6 +342,12 @@ export const gallerasAPI = {
     activeRoosters?: number;
     fightRecord?: any;
     ownerId?: string;
+    contactInfo?: {
+      email?: string;
+      phone?: string;
+      website?: string;
+      address?: string;
+    };
   }) => apiClient.post("/galleras", data),
 
   update: (
@@ -346,8 +362,17 @@ export const gallerasAPI = {
       images?: string[];
       status?: string;
       isVerified?: boolean;
+      contactInfo?: {
+        email?: string;
+        phone?: string;
+        website?: string;
+        address?: string;
+      };
     }
   ) => apiClient.put(`/galleras/${id}`, data),
+
+  updateStatus: (id: string, status: string, reason?: string) =>
+    apiClient.put(`/galleras/${id}/status`, { status, reason }),
 
   delete: (id: string) => apiClient.delete(`/galleras/${id}`),
 };

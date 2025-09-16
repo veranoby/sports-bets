@@ -4,7 +4,8 @@
     "cypress": "^15.0.0"
   },
   "dependencies": {
-    "node-media-server": "^4.0.21"
+    "node-media-server": "^4.0.21",
+    "pg": "^8.16.3"
   },
   "scripts": {
     "prepare": "husky"

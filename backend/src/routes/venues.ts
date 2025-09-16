@@ -136,6 +136,8 @@ router.post(
 
     const { name, location, description, contactInfo, ownerId } = req.body;
 
+    console.log('Creating venue with data:', req.body);
+
     // Determinar el propietario
     let finalOwnerId = ownerId;
     if (req.user!.role === "venue") {
@@ -164,6 +166,8 @@ router.post(
       status: req.user!.role === "admin" ? "active" : "pending", // Admin aprueba automáticamente
     });
 
+    console.log('Venue created successfully:', venue.toJSON());
+
     // Recargar con asociaciones
     await venue.reload({
       include: [
@@ -177,7 +181,7 @@ router.post(
 
     res.status(201).json({
       success: true,
-      message: "Venue created successfully",
+      message: "Local creado exitosamente",
       data: venue.toJSON(),
     });
   })
@@ -232,6 +236,8 @@ router.put(
       throw errors.forbidden("You can only edit your own venues");
     }
 
+    console.log('Updating venue with data:', req.body);
+
     // Actualizar campos permitidos
     const allowedFields = ["name", "location", "description", "contactInfo"];
     if (req.user!.role === "admin") {
@@ -241,10 +247,12 @@ router.put(
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         (venue as any)[field] = req.body[field];
+        console.log(`Updated field ${field}:`, (venue as any)[field]);
       }
     });
 
     await venue.save();
+    console.log('Venue saved successfully');
 
     // Recargar con asociaciones
     await venue.reload({
@@ -259,7 +267,7 @@ router.put(
 
     res.json({
       success: true,
-      message: "Venue updated successfully",
+      message: "Información del local actualizada exitosamente",
       data: venue.toJSON(),
     });
   })

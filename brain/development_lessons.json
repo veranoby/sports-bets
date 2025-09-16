@@ -118,6 +118,64 @@
         "visual_indicators": "Role-based styling (admin=red, operator=blue badges)",
         "access_control": "Filter navigation items based on user.role inclusion in roles array"
       }
+    },
+    "qwen_mcp_hybrid_workflow_failure": {
+      "date": "2025-09-16",
+      "error_description": "Attempted hybrid workflow where Claude coordinated and Qwen executed via MCP. Qwen reported successful completion but files were not created, causing implementation to fail.",
+      "correct_approach": "Use Independent Qwen CLI workflow - separate terminal execution with Claude validation afterwards",
+      "root_cause_analysis": [
+        "MCP integration has filesystem limitations that prevent reliable file creation",
+        "Qwen through MCP cannot consistently create .tsx/.ts files",
+        "Coordination overhead outweighs benefits of hybrid approach",
+        "File system permissions and MCP isolation cause silent failures"
+      ],
+      "prevention_strategy": {
+        "optimal_workflow_established": [
+          "PERMANENT PATTERN: Independent Qwen CLI + Claude Validator",
+          "Claude creates claude-prompt.json with detailed specifications",
+          "User runs Qwen independently in separate terminal",
+          "Claude validates results and handles integration",
+          "No MCP coordination - pure handoff approach"
+        ]
+      }
+    },
+    "crud_venues_galleras_modal_data_persistence_issue": {
+      "date": "2025-09-16",
+      "issue_description": "Admin modal tabs 1 (Profile) and 2 (Entity) appear to save but data not persisting to database",
+      "affected_components": [
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "frontend/src/pages/admin/Venues.tsx",
+        "frontend/src/pages/admin/Galleras.tsx",
+        "backend/src/routes/venues.ts",
+        "backend/src/routes/galleras.ts",
+        "backend/src/routes/users.ts"
+      ],
+      "database_field_mappings": {
+        "critical_mismatch_patterns": [
+          "Frontend: profileInfo vs Backend: profile_info (snake_case)",
+          "Frontend: contactInfo vs Backend: contact_info (snake_case)",
+          "JSONB structure inconsistencies in contact_info field",
+          "Field name casing between camelCase (frontend) and snake_case (database)"
+        ],
+        "database_structure_reference": {
+          "users_table_profile_info": "JSONB containing: fullName, phoneNumber, address, identificationNumber",
+          "venues_table_contact_info": "JSONB containing: phone, email, website, address",
+          "galleras_table_specialties": "JSONB containing gallera-specific metadata"
+        }
+      },
+      "debugging_approach_for_qwen": {
+        "step_1": "Check EditVenueGalleraModal.tsx field mappings match exact database structure",
+        "step_2": "Verify users.ts PUT /profile endpoint processes profileInfo → profile_info correctly",
+        "step_3": "Ensure venues.ts PUT /:id endpoint handles contactInfo → contact_info transformation",
+        "step_4": "Add console.log debugging to track data flow from modal → API → database",
+        "step_5": "Test with real data and verify database queries show updated values"
+      },
+      "common_pitfalls": [
+        "Assuming field names match between frontend/backend without verification",
+        "Not checking actual database column names vs. ORM model definitions",
+        "Missing error handling that would reveal validation failures",
+        "Frontend showing 'success' even when backend operations fail silently"
+      ]
     }
   },
   "development_principles": {
@@ -279,6 +337,148 @@
       "bad_example": "file_to_modify: 'backend/src/routes/users.js'",
       "good_dependencies": "npm install multer @types/multer",
       "bad_dependencies": "[assumed multer is already installed]"
+    },
+    "qwen_mcp_hybrid_workflow_failure": {
+      "date": "2025-09-16",
+      "error_description": "Hybrid MCP workflow with Qwen Executor failed due to MCP filesystem limitations and unreliable file creation",
+      "experiment_results": {
+        "claude_coordinator_success": [
+          "Excellent codebase analysis and technical specifications",
+          "Immediate TypeScript validation and error detection",
+          "Effective integration and optimization of final results",
+          "Precise problem identification and solution design"
+        ],
+        "qwen_executor_failures": [
+          "EventService.ts: Created duplicate functions, ignored REPLACE instructions",
+          "EventWorkflowControls.tsx: Reported success but failed to create file",
+          "FightStatusManager.tsx: Claimed complete implementation but created empty file",
+          "Pattern: Qwen MCP changeMode cannot reliably create new files"
+        ],
+        "actual_implementation": "Claude had to manually create both frontend components to complete the task"
+      },
+      "root_cause_analysis": [
+        "MCP tools have filesystem access limitations compared to native CLI",
+        "Qwen changeMode designed for modifications, not reliable file creation",
+        "MCP server restrictions prevent full filesystem operations",
+        "Token overhead of continuous validation negated efficiency gains"
+      ],
+      "conclusion": {
+        "hybrid_mcp_verdict": "FAILED - MCP limitations make this approach inefficient",
+        "recommendation": "Return to independent Qwen CLI + Claude validation pattern",
+        "efficiency_comparison": "Independent Qwen CLI >> Hybrid MCP > Full Claude implementation"
+      }
+    },
+    "optimal_workflow_established": {
+      "date": "2025-09-16",
+      "pattern_name": "Independent Qwen CLI + Claude Validator",
+      "established_by_experiment": "qwen_mcp_hybrid_workflow_failure",
+      "workflow_phases": [
+        "Phase 1: Claude prepares comprehensive claude-prompt.json with project context",
+        "Phase 2: User executes independent Qwen CLI: qwen -s @claude-prompt.json",
+        "Phase 3: Claude performs final validation, optimization, and integration testing"
+      ],
+      "claude_preparation_responsibilities": [
+        "Analyze current codebase state and requirements",
+        "Generate comprehensive claude-prompt.json with complete context",
+        "Include brain system context, project patterns, and technical specifications",
+        "Specify exact file locations, dependencies, and integration requirements",
+        "Document expected outcomes and validation criteria"
+      ],
+      "qwen_independent_execution": [
+        "Full filesystem access for reliable file creation and modification",
+        "Access to complete project context via claude-prompt.json",
+        "No MCP tool limitations or restrictions",
+        "Sandbox mode (-s) for safe testing and validation",
+        "Complete autonomy for complex multi-file implementations"
+      ],
+      "claude_validation_protocol": [
+        "Read all files created/modified by Qwen implementation",
+        "Compile TypeScript and run linting to catch errors",
+        "Test API endpoints and component integration",
+        "Verify adherence to project patterns and requirements",
+        "Optimize implementations and fix any issues detected",
+        "Document successful patterns for future claude-prompt.json files"
+      ],
+      "efficiency_benefits": [
+        "Maximum token efficiency: Single Claude preparation + single validation",
+        "Qwen operates without MCP restrictions or limitations",
+        "Reliable file operations and complex implementations",
+        "Faster execution without continuous validation overhead",
+        "Better error handling and recovery in independent mode"
+      ]
+    }
+  },
+  "optimal_ai_coordination": {
+    "permanent_workflow_established": {
+      "pattern_name": "Independent Qwen CLI + Claude Validator",
+      "implementation_date": "2025-09-16",
+      "established_by_experiment": "qwen_mcp_hybrid_workflow_failure",
+      "supersedes": "Claude Coordinator + Qwen Executor (MCP failed)",
+      "workflow_phases": [
+        "Phase 1: Claude prepares comprehensive claude-prompt.json with project context",
+        "Phase 2: User executes independent Qwen CLI: qwen -s @claude-prompt.json",
+        "Phase 3: Claude performs final validation, optimization, and integration testing"
+      ],
+      "claude_preparation_responsibilities": [
+        "Analyze current codebase state and requirements comprehensively",
+        "Generate detailed claude-prompt.json with complete project context",
+        "Include brain system knowledge and project patterns",
+        "Specify dependencies, file locations, and integration requirements",
+        "Document expected outcomes and validation criteria",
+        "Provide comprehensive task decomposition with clear success criteria"
+      ],
+      "claude_validation_protocol": {
+        "mandatory_steps": [
+          "1. Read ALL files created/modified by Qwen to understand implementation",
+          "2. Run TypeScript compilation: 'npx tsc --noEmit' and fix any errors",
+          "3. Run linting: 'npm run lint' to ensure code quality standards",
+          "4. Test API endpoints with curl or similar to verify functionality",
+          "5. Test component integration by starting dev servers",
+          "6. Verify adherence to project patterns and architectural decisions",
+          "7. Optimize implementations: clean up code, improve error handling",
+          "8. Document successful patterns for future claude-prompt.json files"
+        ],
+        "validation_focus_areas": [
+          "TypeScript compilation and type safety",
+          "Integration with existing codebase patterns",
+          "API endpoint functionality and error handling",
+          "Component rendering and user interaction flows",
+          "Real-time features (SSE, WebSocket) operational validation",
+          "Database integration and transaction handling"
+        ],
+        "optimization_opportunities": [
+          "Code organization and structure improvements",
+          "Error handling enhancement and user feedback",
+          "Performance optimizations and best practices",
+          "Security considerations and input validation",
+          "Accessibility and user experience refinements"
+        ]
+      },
+      "efficiency_benefits": [
+        "Maximum token efficiency: Single preparation + single validation",
+        "Qwen operates with full filesystem access and capabilities",
+        "Reliable file creation and complex multi-file implementations",
+        "No MCP tool limitations or restrictions",
+        "Faster execution without continuous validation overhead"
+      ],
+      "claude_prompt_json_template": {
+        "required_sections": [
+          "metadata: Project info, context, and objectives",
+          "brain_context: Include relevant brain/*.json knowledge",
+          "current_codebase_state: File structure and existing implementations",
+          "task_decomposition: Detailed step-by-step implementation plan",
+          "technical_specifications: APIs, interfaces, patterns to follow",
+          "validation_criteria: How to verify successful implementation",
+          "integration_requirements: How components should work together"
+        ],
+        "best_practices": [
+          "Include complete file paths and directory structure",
+          "Specify exact dependencies and installation commands",
+          "Provide code examples and patterns to follow",
+          "Document expected behavior and user interactions",
+          "Include error scenarios and handling requirements"
+        ]
+      }
     }
   }
 }

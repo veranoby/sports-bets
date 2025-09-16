@@ -25,6 +25,12 @@ export class Gallera extends Model<
   declare location: string;
   declare description: CreationOptional<string>;
   declare ownerId: ForeignKey<User["id"]>;
+  declare contactInfo: CreationOptional<{
+    email?: string;
+    phone?: string;
+    website?: string;
+    address?: string;
+  }>;
   declare specialties: CreationOptional<any>; // JSONB
   declare activeRoosters: CreationOptional<number>; // INTEGER
   declare fightRecord: CreationOptional<any>; // JSONB
@@ -83,6 +89,12 @@ Gallera.init(
         type: DataTypes.JSONB,
         field: "fight_record",
         allowNull: true,
+    },
+    contactInfo: {
+        type: DataTypes.JSONB,
+        field: "contact_info",
+        allowNull: true,
+        defaultValue: {},
     },
     images: {
       type: DataTypes.ARRAY(DataTypes.STRING),
