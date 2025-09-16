@@ -1,9 +1,9 @@
 import React from 'react';
 import { Badge, Tooltip } from 'antd';
-import { 
+import {
   ClockCircleOutlined,
   PlayCircleOutlined,
-  LiveTvOutlined,
+  VideoCameraOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined
 } from '@ant-design/icons';
@@ -57,7 +57,7 @@ const FightStatusIndicator: React.FC<FightStatusIndicatorProps> = ({
         return {
           color: 'warning' as const,
           text: 'En Vivo',
-          icon: <LiveTvOutlined />,
+          icon: <VideoCameraOutlined />,
           bgColor: '#fff7e6',
           textColor: '#faad14',
           tooltip: bettingClosedAt ? 

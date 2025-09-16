@@ -1,7 +1,7 @@
 // 🔧 COMPONENTE OPTIMIZADO - Expandir funcionalidad
 
 import React, { useState } from "react";
-import { Filter, ChevronDown, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import SearchInput from "./SearchInput";
 
 interface FilterOption {
@@ -41,7 +41,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onClearFilters,
   className = "",
   compact = false,
-  showFilterCount = true,
+  showFilterCount: _showFilterCount = true,
   exportable = false,
   exportOptions,
   onExport,

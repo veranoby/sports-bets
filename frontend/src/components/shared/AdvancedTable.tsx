@@ -1,12 +1,21 @@
-// import React, { useState } from "react";
 import React from "react";
-import { useState } from "react";
-// import { Pagination } from "./Pagination"; // Import your pagination component
-// import { LoadingSpinner } from "./LoadingSpinner"; // Import your loading spinner component
-import { Filter, Download } from "lucide-react"; // Importar íconos de Lucide
-// import { ActionButton } from "./ActionButton";
-// import Modal from "./Modal";
-// import TableLoadingRow from "./TableLoadingRow";
+
+interface TableColumn<T> {
+  key: keyof T;
+  title: string;
+  render?: (value: any, record: T) => React.ReactNode;
+}
+
+interface FilterConfig {
+  key: string;
+  type: string;
+  label: string;
+}
+
+interface TableAction<T> {
+  label: string;
+  onClick: (record: T) => void;
+}
 
 interface AdvancedTableProps<T> {
   data: T[];
@@ -28,212 +37,59 @@ interface AdvancedTableProps<T> {
   onSort?: (key: keyof T, direction: "asc" | "desc") => void;
 }
 
-interface TableColumn<T> {
-  key: keyof T;
-  label: string;
-  render?: (value: any, row: T) => React.ReactNode;
-  sortable?: boolean;
-  width?: string;
-  align?: "left" | "center" | "right";
-}
-
-interface TableAction<T> {
-  label: string;
-  icon?: React.ReactNode;
-  onClick: (row: T) => void;
-  variant?: "primary" | "secondary" | "danger";
-  disabled?: (row: T) => boolean;
-}
-
-interface FilterConfig {
-  key: string;
-  label: string;
-  type: "text" | "select" | "date";
-  options?: { value: string; label: string }[];
-}
-
-const AdvancedTable = <T,>({
-  // data,
-  // columns,
-  // loading,
-  // pagination,
-  // filters,
-  // onFiltersChange,
-  // actions,
-  // exportable,
-  // onExport,
-  // selectable,
-  // onSelectionChange,
-  // onSort,
-}: AdvancedTableProps<T>) => {
-  // const [selectedRows, setSelectedRows] = useState<T[]>([]);
-  // const [sortConfig, setSortConfig] = useState<{
-  //   key: keyof T;
-  //   direction: "asc" | "desc";
-  // } | null>(null);
-  // const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  // const [editModalOpen, setEditModalOpen] = useState(false);
-
-  const handleRowSelect = (row: T) => {
-    if (selectable) {
-      const newSelectedRows = selectedRows.includes(row)
-        ? selectedRows.filter((r) => r !== row)
-        : [...selectedRows, row];
-      setSelectedRows(newSelectedRows);
-      onSelectionChange?.(newSelectedRows);
-    }
-  };
-
-  // const handleSort = (key: keyof T) => {
-//    let direction: "asc" | "desc" = "asc";
-//    if (
-//      sortConfig &&
-//      sortConfig.key === key &&
-//      sortConfig.direction === "asc"
-//    ) {
-//      direction = "desc";
-//    }
-    setSortConfig({ key, direction });
-    onSort?.(key, direction);
-  };
-
-  const handleFilterChange = (key: string, value: any) => {
-    const newFilters = { ...activeFilters, [key]: value };
-    setActiveFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
+function AdvancedTable<T>({
+  data,
+  columns,
+  loading = false
+}: AdvancedTableProps<T>) {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
-      {exportable && (
-        <div className="flex justify-end gap-2 mb-4">
-          <button
-            onClick={() => onExport?.("pdf")}
-            className="flex items-center gap-1 p-2 bg-blue-500 text-white rounded"
-          >
-            <Download size={16} />
-            <ActionButton variant="primary">Exportar PDF</ActionButton>
-          </button>
-          <button
-            onClick={() => onExport?.("excel")}
-            className="flex items-center gap-1 p-2 bg-green-500 text-white rounded"
-          >
-            <Download size={16} />
-            <ActionButton variant="primary">Exportar Excel</ActionButton>
-          </button>
-        </div>
-      )}
-      {filters && (
-        <div className="flex gap-2 mb-4 p-2 bg-gray-50 rounded">
-          {filters.map((filter) => (
-            <div key={filter.key} className="flex items-center gap-1">
-              <Filter size={16} className="text-gray-500" />
-              <input
-                type={filter.type}
-                placeholder={filter.label}
-                onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                className="p-1 border rounded"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-      {loading ? (
-        <TableLoadingRow
-          colSpan={columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}
-          text="Cargando datos..."
-        />
-      ) : data.length === 0 ? (
-        <div className="text-center p-8 text-gray-500">
-          No se encontraron datos.
-        </div>
-      ) : (
-        <table className="min-w-full border border-gray-200">
-          <thead>
-            <tr>
-              {selectable && (
-                <th className="p-2">
-                  <input type="checkbox" />
-                </th>
-              )}
-              {columns.map((column) => (
-                <th
-                  key={column.key as string}
-                  className={`p-2 ${column.align}`}
-                >
-                  {column.label}
-                  {column.sortable && <span> 🔼🔽</span>}{" "}
-                  {/* Add sorting icons */}
-                </th>
-              ))}
-              {actions && <th className="p-2">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row) => (
-              <tr
-                key={row[columns[0].key] as string}
-                onClick={() => handleRowSelect(row)}
-                className="hover:bg-gray-50 border-b border-gray-100 transition-colors"
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((column) => (
+              <th
+                key={String(column.key)}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                {selectable && (
-                  <td className="p-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(row)}
-                      onChange={() => handleRowSelect(row)}
-                    />
-                  </td>
-                )}
-                {columns.map((column) => (
-                  <td
-                    key={column.key as string}
-                    className={`p-2 ${column.align}`}
-                  >
-                    {column.render
-                      ? column.render(row[column.key], row)
-                      : row[column.key]}
-                  </td>
-                ))}
-                {actions && (
-                  <td className="p-2">
-                    {actions.map((action) => (
-                      <button
-                        key={action.label}
-                        onClick={() => action.onClick(row)}
-                        disabled={
-                          action.disabled ? action.disabled(row) : false
-                        }
-                        className={`btn-${action.variant}`}
-                      >
-                        {action.icon} {action.label}
-                      </button>
-                    ))}
-                  </td>
-                )}
-              </tr>
+                {column.title}
+              </th>
             ))}
-          </tbody>
-        </table>
-      )}
-      {pagination && (
-        <Pagination
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          total={pagination.total}
-          onPageChange={pagination.onPageChange}
-        />
-      )}
-      {editModalOpen && (
-        <Modal
-          isOpen={editModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          title="Editar Fila"
-        >
-          {/* Modal content */}
-        </Modal>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              {columns.map((column) => (
+                <td
+                  key={String(column.key)}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                >
+                  {column.render
+                    ? column.render(row[column.key], row)
+                    : String(row[column.key] || '')
+                  }
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {data.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No hay datos disponibles
+        </div>
       )}
     </div>
   );
+}
 
 export default AdvancedTable;

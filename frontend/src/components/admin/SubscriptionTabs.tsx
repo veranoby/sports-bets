@@ -2,7 +2,7 @@
 // Componente para gestionar suscripciones con radio buttons
 
 import React, { useState } from 'react';
-import { subscriptionAPI, adminAPI } from '../../config/api';
+import { adminAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import { notification } from 'antd';
@@ -49,7 +49,10 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({ userId, subscriptio
         description: selectedType !== 'free' ? `Asignada por: ${assignedUsername}` : 'Revocada a gratuita'
       });
       
-      if (onSave) onSave();
+      if (onSave) onSave({
+        membership_type: selectedType,
+        assigned_username: assignedUsername.trim()
+      });
       onCancel();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al actualizar membresía';

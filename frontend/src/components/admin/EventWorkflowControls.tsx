@@ -57,7 +57,16 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // SSE for real-time event updates
-  const eventSSE = useSSE(`/api/sse/events/${event.id}/status`);
+  interface EventSSEData {
+    eventId: string;
+    data: {
+      status: string;
+      streamUrl?: string;
+      streamKey?: string;
+    };
+  }
+
+  const eventSSE = useSSE<EventSSEData>(`/api/sse/events/${event.id}/status`);
 
   // Handle SSE updates
   React.useEffect(() => {
@@ -65,7 +74,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       const { status, streamUrl, streamKey } = eventSSE.data.data;
       onEventUpdated({
         ...event,
-        status,
+        status: status as "scheduled" | "in-progress" | "completed" | "cancelled",
         streamUrl,
         streamKey
       });

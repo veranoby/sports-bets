@@ -10,10 +10,14 @@ vi.mock('./config/env', () => ({
 }));
 
 // Mock IntersectionObserver (required for some UI components)
-global.IntersectionObserver = vi.fn(() => ({
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
   observe: vi.fn(),
-  unobserve: vi.fn()
+  unobserve: vi.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+  takeRecords: vi.fn().mockReturnValue([])
 }));
 
 // Mock ResizeObserver (required for charts and responsive components)

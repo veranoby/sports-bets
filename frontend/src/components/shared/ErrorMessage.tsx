@@ -17,10 +17,10 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   message,
   onRetry,
   className = "",
-  onClose,
-  variant,
-  closeable,
-  showIcon,
+  onClose: _onClose,
+  variant: _variant,
+  closeable: _closeable,
+  showIcon: _showIcon
 }) => {
   // Use either error or message prop
   const displayMessage = error || message || '';

@@ -50,7 +50,14 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
   const [showResultSelector, setShowResultSelector] = useState(false);
 
   // SSE for real-time fight updates
-  const fightSSE = useSSE(`/api/sse/fights/${fight.id}/status`);
+  interface FightSSEData {
+    fightId: string;
+    status: string;
+    result?: string;
+    [key: string]: any;
+  }
+
+  const fightSSE = useSSE<FightSSEData>(`/api/sse/fights/${fight.id}/status`);
 
   // Handle SSE updates
   React.useEffect(() => {
@@ -58,8 +65,8 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
       const { status, result, ...otherData } = fightSSE.data;
       onFightUpdated({
         ...fight,
-        status,
-        result,
+        status: status as "completed" | "cancelled" | "live" | "upcoming" | "betting",
+        result: result as "cancelled" | "red" | "blue" | "draw" | undefined,
         ...otherData
       });
     }
