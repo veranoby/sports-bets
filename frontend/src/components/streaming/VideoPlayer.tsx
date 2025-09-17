@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useRef, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import '@videojs/http-streaming';
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, RotateCcw, Crown } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import useStreamAnalytics from '../../hooks/useStreamAnalytics';
 import useMembershipCheck from '../../hooks/useMembershipCheck';
 import { Modal, notification } from 'antd';
@@ -121,7 +121,6 @@ const Player: React.FC<VideoPlayerProps> = ({
   src,
   streamId,
   eventId,
-  qualities = [],
   autoplay = false,
   controls = true,
   responsive = true,
@@ -135,23 +134,8 @@ const Player: React.FC<VideoPlayerProps> = ({
 }) => {
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [currentQuality, setCurrentQuality] = useState<string>('auto');
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const watchTimeRef = useRef(0);
-  const bufferStartRef = useRef<number | null>(null);
 
-  const analytics = useStreamAnalytics({
-    streamId,
-    eventId,
-    realtime: enableAnalytics,
-    autoRefresh: false
-  });
 
   useEffect(() => {
     if (!videoRef.current) return;

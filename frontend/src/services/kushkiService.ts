@@ -22,7 +22,7 @@ interface KushkiConfig {
 }
 
 interface KushkiInstance {
-  requestToken: (params: any) => Promise<KushkiTokenResponse>;
+  requestToken: (params: unknown) => Promise<KushkiTokenResponse>;
 }
 
 // Declare global Kushki
@@ -62,9 +62,9 @@ export const initializeKushki = async (): Promise<boolean> => {
 
     console.log(`Kushki initialized in ${environment} mode`);
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to initialize Kushki:', error);
-    throw new Error(`Failed to initialize Kushki: ${error.message}`);
+    throw new Error(`Failed to initialize Kushki: ${(error as Error).message}`);
   }
 };
 
@@ -118,12 +118,12 @@ export const tokenizeCard = async (cardData: CardData): Promise<KushkiTokenRespo
     });
 
     return tokenResponse;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Card tokenization failed:', error);
     
     // Handle specific Kushki error codes
-    if (error.code) {
-      switch (error.code) {
+    if ((error as { code?: string }).code) {
+      switch ((error as { code?: string }).code) {
         case 'E100':
           throw new Error('Invalid card number');
         case 'E101':
@@ -141,11 +141,11 @@ export const tokenizeCard = async (cardData: CardData): Promise<KushkiTokenRespo
         case 'E107':
           throw new Error('Card is blocked');
         default:
-          throw new Error(error.message || 'Payment processing failed');
+          throw new Error((error as Error).message || 'Payment processing failed');
       }
     }
 
-    throw new Error(error.message || 'Payment processing failed');
+    throw new Error((error as Error).message || 'Payment processing failed');
   }
 };
 

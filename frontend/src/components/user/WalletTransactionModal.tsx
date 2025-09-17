@@ -125,9 +125,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           }
         }, 1500 + Math.random() * 1000);
       }
-    } catch (err) {
+    } catch (error) {
       setLoading(false);
-      setError(err instanceof Error ? err.message : "Error procesando la transacción");
+      setError(error instanceof Error ? error.message : "Error procesando la transacción");
     }
   };
 
@@ -137,7 +137,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
       await onWithdraw?.(amount, accountNumber, accountType, bankName);
       setLoading(false);
       setConfirmationStep(2);
-    } catch (err) {
+    } catch (_error) {
       setLoading(false);
       setError("Error en verificación de identidad");
     }

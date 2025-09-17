@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { CreditCard, Lock, Check, AlertCircle, X } from 'lucide-react';
+import React from 'react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Form, Input, Button, Alert, Spin, Row, Col, Typography, Divider } from 'antd';
+import { Check, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import kushkiService from '../../services/kushkiService';
+import { subscriptionAPI } from '../../config/api';
 
 interface PaymentFormProps {
   planType: 'daily' | 'monthly';
@@ -29,7 +30,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   className = ''
 }) => {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   
   // Form state
   const [cardData, setCardData] = useState({

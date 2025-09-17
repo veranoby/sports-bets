@@ -58,7 +58,11 @@ const MAX_LISTENERS_PER_EVENT = 10;
 const MAX_TOTAL_EVENTS = 50;
 const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutos
 
-export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
+interface WebSocketProviderProps {
+  children: ReactNode;
+}
+
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
   const { isAuthenticated, token, user } = useAuth();

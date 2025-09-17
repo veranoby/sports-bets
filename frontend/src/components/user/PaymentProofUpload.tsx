@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Upload, Button, Select, Input, notification } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { Upload as UploadIcon, CreditCard, DollarSign } from 'lucide-react';
@@ -62,6 +62,7 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({ onUploadSuccess
       onUploadSuccess?.();
 
     } catch (error) {
+      console.error('Upload error:', error);
       notification.error({ message: 'Failed to upload payment proof' });
     }
     setUploading(false);

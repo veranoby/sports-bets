@@ -12,7 +12,6 @@ const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
   position = "top",
-  delay = 0,
   className,
 }) => {
   return (

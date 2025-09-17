@@ -1,5 +1,4 @@
 import React from "react";
-import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Card } from "./Card";
 import { Line, Bar, Pie } from "react-chartjs-2"; // Asume instalación de Chart.js
 import { StatCard, ChartDataset } from "@/types";
@@ -57,30 +56,6 @@ export const StatsGrid: React.FC<StatsGridProps> = ({
       default:
         return null;
     }
-  };
-
-  // 3. Renderizar trend indicator
-  const renderTrend = (change: StatCard["change"]) => {
-    if (!change) return null;
-    const TrendIcon =
-      change.direction === "up"
-        ? ArrowUp
-        : change.direction === "down"
-        ? ArrowDown
-        : Minus;
-    const color =
-      change.direction === "up"
-        ? "text-green-500"
-        : change.direction === "down"
-        ? "text-red-500"
-        : "text-gray-500";
-    return (
-      <div className={`flex items-center gap-1 text-sm ${color}`}>
-        <TrendIcon size={14} />
-        <span>{Math.abs(change.value)}%</span>
-        <span className="text-gray-400">{change.period}</span>
-      </div>
-    );
   };
 
   return (

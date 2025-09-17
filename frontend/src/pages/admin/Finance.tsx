@@ -122,7 +122,7 @@ const AdminFinancePage: React.FC = () => {
       setTransactions(transactionsRes.data?.transactions || []);
       setRevenueBySource(revenueRes.data || null);
       setTrendData(trendsRes.data || []);
-    } catch (err) {
+    } catch (_err) {
       setError("Error al cargar datos financieros");
       setMetrics(null);
       setTransactions([]);

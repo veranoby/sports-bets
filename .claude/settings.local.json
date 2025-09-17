@@ -46,7 +46,8 @@
       "Bash(chmod:*)",
       "Read(//home/veranoby/.claude/**)",
       "Read(//home/veranoby/**)",
-      "mcp__qwen__ask-qwen"
+      "mcp__qwen__ask-qwen",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

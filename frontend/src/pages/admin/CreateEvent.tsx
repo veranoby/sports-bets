@@ -25,7 +25,7 @@ const CreateEvent: React.FC = () => {
         setLoading(true);
         const venuesRes = await venuesAPI.getAll({ status: 'active', limit: 1000 });
         setVenues(venuesRes.data?.venues || []);
-      } catch (err) {
+      } catch (_err) {
         setError('Failed to load necessary data. Please try again.');
       } finally {
         setLoading(false);
@@ -67,7 +67,7 @@ const CreateEvent: React.FC = () => {
       };
       await eventsAPI.create(eventData);
       navigate('/admin/events');
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to create event. Please try again.');
     } finally {
       setLoading(false);

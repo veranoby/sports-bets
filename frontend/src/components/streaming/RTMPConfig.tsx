@@ -54,7 +54,6 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const [streamKey, setStreamKey] = useState<StreamKey | null>(null);
   const [obsConfig, setOBSConfig] = useState<OBSConfig | null>(null);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [streamStatus, setStreamStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);

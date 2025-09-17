@@ -23,18 +23,18 @@ interface TestWrapperProps {
 // Test wrapper with common providers
 const TestWrapper: React.FC<TestWrapperProps> = ({ 
   children, 
-  initialEntries = ['/'],
+  // initialEntries = ['/'],  // Unused variable removed
   user = null 
 }) => {
   // Mock auth context
-  const mockAuthContext = {
-    user,
-    login: vi.fn(),
-    logout: vi.fn(),
-    register: vi.fn(),
-    loading: false,
-    error: null
-  };
+  // const mockAuthContext = {  // Unused variable removed
+  //   user,
+  //   login: vi.fn(),
+  //   logout: vi.fn(),
+  //   register: vi.fn(),
+  //   loading: false,
+  //   error: null
+  // };
 
   return (
     <BrowserRouter>
@@ -142,7 +142,7 @@ export const mockApi = {
 };
 
 // Helper to mock successful API responses
-export const mockApiSuccess = (data: any) => {
+export const mockApiSuccess = (data: unknown) => {
   mockApi.get.mockResolvedValue({ data });
   mockApi.post.mockResolvedValue({ data });
   mockApi.put.mockResolvedValue({ data });

@@ -19,7 +19,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   fallback,
   showUpgradePrompt = true,
 }) => {
-  const { subscription, loading, error, checkAccess, fetchCurrent } =
+  const { loading, error, checkAccess, fetchCurrent } =
     useSubscriptions();
   const [hasAccess, setHasAccess] = useState(false);
   const [showModal, setShowModal] = useState(false);

@@ -160,7 +160,7 @@ const AdminMonitoringPage: React.FC = () => {
       }
       
       setLastUpdate(new Date());
-    } catch (err) {
+    } catch (_err) {
       setError("Error al cargar datos de monitoreo");
       setServices([]);
       setSystemMetrics(null);

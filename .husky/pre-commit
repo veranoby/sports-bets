@@ -1,16 +1,19 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# TEMPORARILY DISABLED for TypeScript error resolution
-# Pre-commit hooks temporarily bypassed to allow commit of error analysis and fixes
+# Pre-commit hooks restored after TypeScript error resolution
+# Enforce strict quality gates before commit
 
-echo "⚠️  Pre-commit checks TEMPORARILY DISABLED"
-echo "🔧 TypeScript error analysis and fixes in progress"
-echo "📝 See brain/development_lessons.json for detailed analysis"
-echo "✅ Commit allowed for error resolution work"
+# Frontend linting and formatting
+cd frontend && npm run lint:commit && npm run format
 
-# Original commands (temporarily disabled):
-# cd frontend && npm run lint:commit && npm run format
-# if [ -f "backend/package.json" ] && grep -q '"lint"' backend/package.json; then
-#   cd backend && npm run lint:fix
-# fi
+# Backend linting (if backend has lint script)
+if [ -f "backend/package.json" ] && grep -q '"lint"' backend/package.json; then
+  cd backend && npm run lint:fix
+fi
+
+# Frontend build verification
+cd frontend && npm run build
+
+# Backend type checking
+cd backend && npx tsc --noEmit

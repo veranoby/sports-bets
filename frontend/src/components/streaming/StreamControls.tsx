@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Square, Settings, Users, Activity, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import Card from '../shared/Card';
-import LoadingSpinner from '../shared/LoadingSpinner';
 import { streamingAPI } from '../../config/api';
 
 interface StreamStatus {

@@ -343,8 +343,8 @@ class StreamingService {
     try {
       const response = await api.get(`/streaming/${streamId}/qualities`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream qualities');
+    } catch (error: unknown) {
+      throw new Error((error as Error).response?.data?.message || 'Failed to get stream qualities');
     }
   }
 
@@ -394,8 +394,8 @@ class StreamingService {
     try {
       const response = await api.get(`/streaming/${streamId}/recording`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get recording status');
+    } catch (error: unknown) {
+      throw new Error((error as Error).response?.data?.message || 'Failed to get recording status');
     }
   }
 
@@ -405,8 +405,8 @@ class StreamingService {
   async toggleRecording(streamId: string, start: boolean): Promise<void> {
     try {
       await api.post(`/streaming/${streamId}/recording`, { action: start ? 'start' : 'stop' });
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to toggle recording');
+    } catch (error: unknown) {
+      throw new Error((error as Error).response?.data?.message || 'Failed to toggle recording');
     }
   }
 
@@ -417,8 +417,8 @@ class StreamingService {
     try {
       const response = await api.get(`/streaming/${streamId}/thumbnail`);
       return response.data.data.thumbnailUrl;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to get stream thumbnail');
+    } catch (error: unknown) {
+      throw new Error((error as Error).response?.data?.message || 'Failed to get stream thumbnail');
     }
   }
 
@@ -437,8 +437,8 @@ class StreamingService {
         streamKey
       });
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to test RTMP connection');
+    } catch (error: unknown) {
+      throw new Error((error as Error).response?.data?.message || 'Failed to test RTMP connection');
     }
   }
 }

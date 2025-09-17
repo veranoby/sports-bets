@@ -201,7 +201,7 @@ const AdminArticlesPage: React.FC = () => {
             : a
         )
       );
-    } catch (err) {
+    } catch (_err) {
       setError("Error al aprobar artículo");
     }
   };
@@ -214,7 +214,7 @@ const AdminArticlesPage: React.FC = () => {
           a.id === articleId ? { ...a, status: "archived" } : a
         )
       );
-    } catch (err) {
+    } catch (_err) {
       setError("Error al rechazar artículo");
     }
   };
@@ -241,7 +241,7 @@ const AdminArticlesPage: React.FC = () => {
             : a
         )
       );
-    } catch (err) {
+    } catch (_err) {
       setError("Error al cambiar estado");
     }
   };
@@ -282,7 +282,7 @@ const AdminArticlesPage: React.FC = () => {
       );
       setSelectedArticles([]);
       setShowBulkActions(false);
-    } catch (err) {
+    } catch (_err) {
       setError("Error en rechazo masivo");
     }
   };

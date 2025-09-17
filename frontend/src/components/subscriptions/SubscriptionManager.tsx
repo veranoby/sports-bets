@@ -1,22 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, 
-  Calendar, 
-  DollarSign, 
-  AlertCircle, 
-  CheckCircle, 
-  X, 
-  Settings, 
-  History,
-  Crown,
-  RefreshCw,
-  ExternalLink,
-  Download
-} from 'lucide-react';
-import { subscriptionAPI } from '../../config/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { CreditCard, Calendar, DollarSign, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import SubscriptionPlans from './SubscriptionPlans';
+import { subscriptionAPI } from '../../config/api';
+import { Card, Button, Tabs, Spin, Alert, Empty, Typography, List, Avatar, Tag, Modal, Form, Input, Select, DatePicker, Space, Pagination, Badge } from 'antd';
+import { formatDate, formatCurrency } from '../../utils/formatters';
+import './SubscriptionManager.css';
 
 interface Subscription {
   id: string;
@@ -57,7 +45,7 @@ interface PaginationInfo {
 }
 
 const SubscriptionManager: React.FC = () => {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({

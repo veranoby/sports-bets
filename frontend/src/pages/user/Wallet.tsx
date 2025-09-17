@@ -112,7 +112,7 @@ const WalletPage: React.FC = () => {
         grid: { color: "rgba(89, 108, 149, 0.2)" },
         ticks: {
           color: "#94a3b8",
-          callback: function (value: any) {
+          callback: function (value: unknown) {
             return "$" + value;
           },
         },
@@ -131,7 +131,7 @@ const WalletPage: React.FC = () => {
         borderColor: "#596c95",
         borderWidth: 1,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: unknown) {
             return `Balance: ${context.parsed.y.toFixed(2)}`;
           },
         },
@@ -164,7 +164,7 @@ const WalletPage: React.FC = () => {
   const handleDeposit = async (
     amount: number,
     paymentMethod: string,
-    paymentData?: any
+    paymentData?: unknown
   ) => {
     try {
       await deposit(amount, paymentMethod, paymentData);

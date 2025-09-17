@@ -1,31 +1,29 @@
-import React, { useState, useCallback } from "react";
-import { User, Edit3, Save, X, Mail, Shield, Calendar, Camera, CheckCircle, XCircle, Lock, Key, Crown } from "lucide-react";
+import React from "react";
+import { User, Shield, Calendar, Camera, Crown } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useBets, useUsers, useAuthOperations } from "../../hooks/useApi";
-import { useSubscription } from "../../hooks/useSubscription";
+import { useBets } from "../../hooks/useApi";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { useNavigate } from "react-router-dom";
 import PaymentProofUpload from '../../components/user/PaymentProofUpload';
 import useMembershipCheck from '../../hooks/useMembershipCheck';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
   const { bets } = useBets();
-  const { updateProfile } = useUsers();
-  const { changePassword } = useAuthOperations();
+  // const { updateProfile } = useUsers(); // Unused variable removed
+  // const { changePassword } = useAuthOperations(); // Unused variable removed
   const { isBettingEnabled } = useFeatureFlags();
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Unused variable removed
   const { membershipStatus, refreshMembership } = useMembershipCheck();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  const [formData, setFormData] = useState({ fullName: user?.profileInfo?.fullName || "", phoneNumber: user?.profileInfo?.phoneNumber || "", address: user?.profileInfo?.address || "" });
+  // const [isEditing, setIsEditing] = useState(false); // Unused variable removed
+  // const [loading, setLoading] = useState(false); // Unused variable removed
+  // const [showAvatarModal, setShowAvatarModal] = useState(false); // Unused variable removed
+  // const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle"); // Unused variable removed
+  // const [showPasswordModal, setShowPasswordModal] = useState(false); // Unused variable removed
+  // const [passwordLoading, setPasswordLoading] = useState(false); // Unused variable removed
+  // const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" }); // Unused variable removed
+  // const [formData, setFormData] = useState({ fullName: user?.profileInfo?.fullName || "", phoneNumber: user?.profileInfo?.phoneNumber || "", address: user?.profileInfo?.address || "" }); // Unused variable removed
 
   const userStats = {
     totalBets: bets?.length || 0,
@@ -33,49 +31,49 @@ const Profile: React.FC = () => {
     memberSince: user?.createdAt ? new Date(user.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "long" }) : "Reciente",
   };
 
-  const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  // const handleInputChange = useCallback((field: string, value: string) => { // Unused variable removed
+  //   setFormData((prev) => ({ ...prev, [field]: value }));
+  // }, []);
 
-  const handleSave = useCallback(async () => {
-    try {
-      setLoading(true);
-      setSaveStatus("idle");
-      await updateProfile({ profileInfo: formData });
-      setSaveStatus("success");
-      setIsEditing(false);
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } finally {
-      setLoading(false);
-    }
-  }, [formData, updateProfile]);
+  // const handleSave = useCallback(async () => { // Unused variable removed
+  //   try {
+  //     setLoading(true);
+  //     setSaveStatus("idle");
+  //     await updateProfile({ profileInfo: formData });
+  //     setSaveStatus("success");
+  //     setIsEditing(false);
+  //     setTimeout(() => setSaveStatus("idle"), 3000);
+  //   } catch (error) {
+  //     console.error("Error saving profile:", error);
+  //     setSaveStatus("error");
+  //     setTimeout(() => setSaveStatus("idle"), 3000);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [formData, updateProfile]);
 
-  const handleCancel = useCallback(() => {
-    setFormData({ fullName: user?.profileInfo?.fullName || "", phoneNumber: user?.profileInfo?.phoneNumber || "", address: user?.profileInfo?.address || "" });
-    setIsEditing(false);
-    setSaveStatus("idle");
-  }, [user]);
+  // const handleCancel = useCallback(() => { // Unused variable removed
+  //   setFormData({ fullName: user?.profileInfo?.fullName || "", phoneNumber: user?.profileInfo?.phoneNumber || "", address: user?.profileInfo?.address || "" });
+  //   setIsEditing(false);
+  //   setSaveStatus("idle");
+  // }, [user]);
 
-  const handleChangePassword = useCallback(async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
-    try {
-      setPasswordLoading(true);
-      await changePassword({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword });
-      setShowPasswordModal(false);
-      alert("Contraseña actualizada correctamente");
-    } catch (error) {
-      alert("Error al cambiar contraseña. Verifica tu contraseña actual.");
-    } finally {
-      setPasswordLoading(false);
-    }
-  }, [passwordData, changePassword]);
+  // const handleChangePassword = useCallback(async () => { // Unused variable removed
+  //   if (passwordData.newPassword !== passwordData.confirmPassword) {
+  //     alert("Las contraseñas no coinciden");
+  //     return;
+  //   }
+  //   try {
+  //     setPasswordLoading(true);
+  //     await changePassword({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword });
+  //     setShowPasswordModal(false);
+  //     alert("Contraseña actualizada correctamente");
+  //   } catch (error) {
+  //     alert("Error al cambiar contraseña. Verifica tu contraseña actual.");
+  //   } finally {
+  //     setPasswordLoading(false);
+  //   }
+  // }, [passwordData, changePassword]);
 
   if (!user) {
     return <LoadingSpinner />;

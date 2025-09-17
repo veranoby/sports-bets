@@ -6,21 +6,13 @@ interface ErrorMessageProps {
   message?: string; // Alternative prop name used in Notifications.tsx
   onRetry?: () => void;
   className?: string;
-  onClose?: () => void;
-  variant?: string; // Used in LoginPage.tsx
-  closeable?: boolean; // Used in LoginPage.tsx  
-  showIcon?: boolean; // Used in LoginPage.tsx
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
   message,
   onRetry,
-  className = "",
-  onClose,
-  variant,
-  closeable,
-  showIcon
+  className = ""
 }) => {
   // Use either error or message prop
   const displayMessage = error || message || '';

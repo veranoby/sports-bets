@@ -43,6 +43,7 @@ const UserMembershipPanel: React.FC<UserMembershipPanelProps> = ({
       setConfirmVisible(false);
       onMembershipUpdated();
     } catch (error) {
+      console.error('Membership update error:', error);
       notification.error({ message: 'Failed to update membership' });
     }
     setLoading(false);
