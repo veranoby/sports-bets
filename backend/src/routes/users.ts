@@ -7,6 +7,7 @@ import { Op } from "sequelize";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { retryOperation, sequelize } from "../config/database";
 
 const router = Router();
 
@@ -227,13 +228,19 @@ router.get(
           },
         ];
 
-    const users = await User.findAndCountAll({
-      where,
-      attributes,
-      include,
-      order: [["createdAt", "DESC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
+    // Optimized query with caching for user listings
+    const cacheKey = `users_list_${role || 'all'}_${isActive || 'all'}_${limit}_${offset}`;
+    const users = await retryOperation(async () => {
+      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+        return await User.findAndCountAll({
+          where,
+          attributes,
+          include,
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        });
+      }, 60); // Cache for 1 minute
     });
 
     res.json({

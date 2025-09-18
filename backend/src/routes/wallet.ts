@@ -4,7 +4,7 @@ import { authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
-import { transaction } from "../config/database";
+import { transaction, retryOperation, sequelize } from "../config/database";
 import { Op, fn, col } from "sequelize";
 import { requireWallets, injectCommissionSettings } from "../middleware/settingsMiddleware";
 
@@ -84,14 +84,20 @@ router.get(
       throw errors.notFound("Wallet not found");
     }
 
-    const transactions = await Transaction.findAndCountAll({
-      where: {
-        walletId: wallet.id,
-        ...where,
-      },
-      order: [["createdAt", "DESC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
+    // Optimized query with caching for wallet transactions
+    const cacheKey = `wallet_transactions_${wallet.id}_${limit}_${offset}`;
+    const transactions = await retryOperation(async () => {
+      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+        return await Transaction.findAndCountAll({
+          where: {
+            walletId: wallet.id,
+            ...where,
+          },
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        });
+      }, 30); // Cache for 30 seconds
     });
 
     res.json({

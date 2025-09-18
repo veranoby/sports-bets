@@ -2,7 +2,7 @@
 // 🧪 TESTS EXHAUSTIVOS PWA FUNCTIONALITY - Phase 3 Validation
 
 const request = require('supertest');
-const app = require('../src/index.js').default?.getApp() || require('../src/index.js');
+const app = require('../src/index.ts').default.getApp();
 
 describe('PWA Functionality Tests - Exhaustive Validation', () => {
   

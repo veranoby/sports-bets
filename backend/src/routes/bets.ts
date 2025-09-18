@@ -3,7 +3,8 @@ import { authenticate } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Bet, Fight, Event, User, Wallet, Transaction } from "../models";
 import { body, validationResult } from "express-validator";
-import { transaction } from "../config/database";
+import { transaction, retryOperation } from "../config/database";
+import { sequelize } from "../config/database";
 import { Op } from "sequelize";
 import { requireBetting, enforceBetLimits, injectCommissionSettings } from "../middleware/settingsMiddleware";
 
@@ -23,24 +24,32 @@ router.get(
     if (status) where.status = status;
     if (fightId) where.fightId = fightId;
 
-    const bets = await Bet.findAndCountAll({
-      where,
-      include: [
-        {
-          model: Fight,
-          as: "fight",
+    // Optimized query with caching for frequently accessed data
+    const cacheKey = `user_bets_${req.user!.id}_${status || 'all'}_${eventId || 'all'}_${limit}_${offset}`;
+    const bets = await retryOperation(async () => {
+      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+        return await Bet.findAndCountAll({
+          where,
           include: [
             {
-              model: Event,
-              as: "event",
-              where: eventId ? { id: eventId } : {},
+              model: Fight,
+              as: "fight",
+              include: [
+                {
+                  model: Event,
+                  as: "event",
+                  where: eventId ? { id: eventId } : {},
+                  attributes: ['id', 'title', 'status', 'scheduledDate'] // Only select needed fields
+                },
+              ],
+              attributes: ['id', 'number', 'status', 'redCorner', 'blueCorner'] // Only select needed fields
             },
           ],
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        });
+      }, 60); // Cache for 1 minute
     });
 
     res.json({
@@ -69,25 +78,30 @@ router.get(
       throw errors.badRequest("Betting is not open for this fight");
     }
 
-    // Buscar apuestas pendientes que el usuario puede aceptar
-    const availableBets = await Bet.findAll({
-      where: {
-        fightId: req.params.fightId,
-        status: "pending",
-        userId: { [Op.ne]: req.user!.id }, // No mostrar propias apuestas
-        matchedWith: null,
-        terms: {
-          isOffer: true,
-        },
-      },
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "username"],
-        },
-      ],
-      order: [["createdAt", "DESC"]],
+    // Buscar apuestas pendientes que el usuario puede aceptar with caching
+    const cacheKey = `available_bets_${req.params.fightId}_${req.user!.id}`;
+    const availableBets = await retryOperation(async () => {
+      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+        return await Bet.findAll({
+          where: {
+            fightId: req.params.fightId,
+            status: "pending",
+            userId: { [Op.ne]: req.user!.id }, // No mostrar propias apuestas
+            matchedWith: null,
+            terms: {
+              isOffer: true,
+            },
+          },
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+        });
+      }, 30); // Cache for 30 seconds
     });
 
     res.json({
