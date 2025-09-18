@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "purpose": "Universal instructions for ANY AI working on GalloBets project",
+    "created": "2025-09-18",
+    "project": "GalloBets - Professional Cockfighting Streaming Platform",
+    "applicable_to": ["Claude", "Gemini", "Qwen", "GPT-4", "Any AI system"]
+  },
+
+  "CRITICAL_SAFETY_PROTOCOLS": {
+    "NEVER_MODIFY_THESE_FILES": [
+      "frontend/src/pages/user/Profile.tsx (JUST RESTORED - WORKING)",
+      "backend/src/routes/auth.ts (HAS NEW ENDPOINT - WORKING)",
+      "frontend/src/contexts/AuthContext.tsx (FIXED - WORKING)",
+      "frontend/src/services/api.ts (FIXED - WORKING)"
+    ],
+    "FORBIDDEN_PATTERNS": [
+      "NEVER replace working code with placeholder comments",
+      "NEVER use patterns like '{/* ... (content remains the same) ... */}'",
+      "NEVER remove functional UI components or business logic",
+      "NEVER comment out working imports or hooks",
+      "NEVER modify authentication or API structure without explicit permission"
+    ],
+    "REQUIRED_TESTING": [
+      "Test login flow BEFORE making any changes",
+      "Test profile edit functionality BEFORE making any changes",
+      "Verify no console errors BEFORE making any changes",
+      "Validate all changes immediately after implementation"
+    ]
+  },
+
+  "PROJECT_ARCHITECTURE": {
+    "technology_stack": {
+      "database": "PostgreSQL on Neon.tech",
+      "backend": "Node.js + Express + Sequelize + TypeScript",
+      "frontend": "React + TypeScript + Tailwind CSS",
+      "streaming": "RTMP + WebSocket minimal",
+      "real_time": "SSE for admin, WebSocket only for betting proposals"
+    },
+    "critical_business_logic": {
+      "fight_temporal_logic": "upcoming → betting → live → completed (strict progression)",
+      "betting_windows": "Only allowed during status='betting'",
+      "user_roles": "admin > operator > venue/gallera > user hierarchy",
+      "pago_doy_timeout": "WebSocket proposals expire after 3 minutes"
+    }
+  },
+
+  "CURRENT_SYSTEM_STATUS": {
+    "WORKING_FUNCTIONALITY": [
+      "✅ Authentication system (login/logout/JWT)",
+      "✅ Profile edit functionality (fullName, phoneNumber, address)",
+      "✅ Backend endpoint /auth/check-membership-status",
+      "✅ User dashboard and navigation",
+      "✅ Admin panel basic functionality"
+    ],
+    "REMAINING_ISSUES": [
+      "🚨 Database performance: Queries taking 1-3+ seconds",
+      "⚠️ ETIMEDOUT errors from Neon.tech connection",
+      "⚠️ 400+ TypeScript @typescript-eslint/no-explicit-any errors",
+      "⚠️ Pre-commit hooks path configuration"
+    ]
+  },
+
+  "WORK_PRIORITIES": {
+    "P0_CRITICAL": [
+      "Database connection pool optimization",
+      "Query performance optimization (target <500ms)",
+      "Connection timeout error resolution"
+    ],
+    "P1_IMPORTANT": [
+      "Error monitoring and logging improvements",
+      "TypeScript error cleanup (gradual)",
+      "Pre-commit hook path fixes"
+    ],
+    "P2_NICE_TO_HAVE": [
+      "Performance monitoring dashboard",
+      "Advanced error boundaries",
+      "Code quality improvements"
+    ]
+  },
+
+  "DEVELOPMENT_PATTERNS": {
+    "file_structure": {
+      "backend_routes": "src/routes/{entity}.ts - RESTful patterns",
+      "frontend_admin": "src/pages/admin/ and src/components/admin/",
+      "frontend_user": "src/pages/user/ and src/components/user/",
+      "api_config": "src/config/api.ts - centralized API calls",
+      "types": "src/types/index.ts - shared TypeScript interfaces"
+    },
+    "code_standards": {
+      "react_components": "Functional components with TypeScript",
+      "api_responses": "Standard {success, data/error, message} format",
+      "error_handling": "Try-catch with proper logging",
+      "database_queries": "Use Sequelize ORM with proper relations"
+    }
+  },
+
+  "DEBUGGING_TOOLS": {
+    "frontend": [
+      "Browser Network tab for API calls",
+      "React Developer Tools",
+      "Console.log for state debugging"
+    ],
+    "backend": [
+      "Database query logging",
+      "Performance monitoring logs",
+      "API response time measurement"
+    ]
+  },
+
+  "SUCCESS_CRITERIA": {
+    "functional_requirements": [
+      "All authentication flows working correctly",
+      "Profile edit saves persist to database",
+      "API endpoints respond within acceptable time",
+      "No console errors on critical user flows"
+    ],
+    "performance_requirements": [
+      "Database queries < 500ms average",
+      "API endpoints < 200ms response time",
+      "Reduced ETIMEDOUT connection errors",
+      "Stable connection pool management"
+    ]
+  },
+
+  "EMERGENCY_PROCEDURES": {
+    "if_something_breaks": [
+      "STOP all changes immediately",
+      "Use 'git checkout -- filename' to restore working version",
+      "Test restored functionality before continuing",
+      "Report exactly what was attempted and what broke"
+    ],
+    "rollback_commands": [
+      "git stash (save current changes)",
+      "git checkout HEAD~1 -- filename (restore specific file)",
+      "git reset --hard HEAD (nuclear option - lose all changes)"
+    ]
+  },
+
+  "BRAIN_SYSTEM_USAGE": {
+    "key_files_to_reference": [
+      "brain/sdd_system.json (technical architecture)",
+      "brain/prd_system.json (business requirements)",
+      "brain/backlog.json (current tasks)",
+      "CLAUDE.md (development guidelines)"
+    ],
+    "before_starting_work": [
+      "Read brain/sdd_system.json for technical context",
+      "Check brain/backlog.json for current task status",
+      "Review CLAUDE.md for coding standards",
+      "Understand business context from brain/prd_system.json"
+    ]
+  },
+
+  "TOKEN_EFFICIENCY": {
+    "for_large_operations": [
+      "Use symbol-enhanced communication (✅❌⚠️🔍🔧)",
+      "Abbreviate common terms (auth, impl, perf, cfg)",
+      "Focus on essential information only",
+      "Use bullet points over paragraphs"
+    ]
+  }
+}

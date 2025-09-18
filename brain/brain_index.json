@@ -26,6 +26,11 @@
     }
   },
   "file_purposes": {
+    "AI_UNIVERSAL_INSTRUCTIONS.json": {
+      "purpose": "Universal safety protocols and instructions for ANY AI system",
+      "update_frequency": "When critical safety protocols change",
+      "primary_use": "MANDATORY reading for any AI starting work on this project"
+    },
     "brain_index.json": {
       "purpose": "System navigation and decision framework",
       "update_frequency": "Weekly or when major system changes",
@@ -160,10 +165,12 @@
       "auto_update": "Update brain after significant conversations about progress/decisions"
     },
     "tool_coordination": {
+      "ANY_AI_SYSTEM": "MUST read AI_UNIVERSAL_INSTRUCTIONS.json first",
       "claude_code": "Reference backlog.json + sdd_system.json for context",
-      "gemini_cli": "Use claude-prompt-critical-remaining.json for performance optimization tasks",
+      "gemini_cli": "Use claude-prompt-critical-remaining.json for performance tasks",
+      "qwen_cli": "Follow AI_UNIVERSAL_INSTRUCTIONS.json safety protocols",
       "cursor_windsurf": "Coordinate via brain system for consistency",
-      "planning_sessions": "Use Gemini 2.5 Pro + Claude with brain context"
+      "planning_sessions": "Use any AI with brain context + universal instructions"
     }
   },
   "success_indicators": {
