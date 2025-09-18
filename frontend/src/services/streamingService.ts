@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { type AxiosError, type Method, type AxiosRequestConfig } from 'axios';
+import { type ApiResponse, type ApiError } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -34,6 +35,29 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Local, typed apiCall function for this service
+const apiCall = async <T>(method: Method, endpoint: string, data?: unknown, headers?: AxiosRequestConfig['headers']): Promise<ApiResponse<T>> => {
+    try {
+      const response = await api.request<T>({
+        method,
+        url: endpoint,
+        data: method.toLowerCase() !== 'get' && method.toLowerCase() !== 'delete' ? data : undefined,
+        params: method.toLowerCase() === 'get' || method.toLowerCase() === 'delete' ? data : undefined,
+        headers,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error(`Error at ${endpoint}:`, error);
+      const err = error as AxiosError<unknown>;
+      const apiError: ApiError = {
+        name: 'ApiError',
+        message: (err.response?.data as { message?: string })?.message || err.message || 'An error occurred',
+        status: err.response?.status,
+      };
+      return { success: false, data: null as T, error: apiError.message, code: apiError.status };
+    }
+}
 
 export interface StreamConfig {
   eventId: string;
@@ -81,204 +105,94 @@ export interface StreamAccessToken {
 }
 
 class StreamingService {
-  /**
-   * Start a new RTMP stream
-   */
-  async startStream(config: StreamConfig): Promise<StreamResponse> {
-    try {
-      const response = await api.post('/streaming/start', config);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to start stream');
-      } else {
-        throw new Error('Failed to start stream');
-      }
-    }
+  async startStream(config: StreamConfig): Promise<ApiResponse<StreamResponse>> {
+    return apiCall<StreamResponse>('post', '/streaming/start', config);
   }
 
-  /**
-   * Stop an active stream
-   */
-  async stopStream(streamId: string): Promise<{ success: boolean; duration: number; viewerCount: number }> {
-    try {
-      const response = await api.post('/streaming/stop', { streamId });
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to stop stream');
-      } else {
-        throw new Error('Failed to stop stream');
-      }
-    }
+  async stopStream(streamId: string): Promise<ApiResponse<{ success: boolean; duration: number; viewerCount: number }>> {
+    return apiCall<{ success: boolean; duration: number; viewerCount: number }>('post', '/streaming/stop', { streamId });
   }
 
-  /**
-   * Get overall streaming system status
-   */
-  async getStatus(): Promise<StreamStatus> {
-    try {
-      const response = await api.get('/streaming/status');
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get stream status');
-      } else {
-        throw new Error('Failed to get stream status');
-      }
-    }
+  async getStatus(): Promise<ApiResponse<StreamStatus>> {
+    return apiCall<StreamStatus>('get', '/streaming/status');
   }
 
-  /**
-   * Get real-time analytics for a stream
-   */
-  async getAnalytics(streamId?: string): Promise<StreamAnalytics> {
-    try {
-      const url = streamId ? `/streaming/analytics/${streamId}` : '/streaming/analytics';
-      const response = await api.get(url);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get stream analytics');
-      } else {
-        throw new Error('Failed to get stream analytics');
-      }
-    }
+  async getAnalytics(streamId?: string): Promise<ApiResponse<StreamAnalytics>> {
+    const url = streamId ? `/streaming/analytics/${streamId}` : '/streaming/analytics';
+    return apiCall<StreamAnalytics>('get', url);
   }
 
-  /**
-   * Get signed stream access URL for viewing
-   */
-  async getStreamAccess(eventId: string): Promise<StreamAccessToken> {
-    try {
-      const response = await api.get(`/events/${eventId}/stream-access`);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get stream access');
-      } else {
-        throw new Error('Failed to get stream access');
-      }
-    }
+  async getStreamAccess(eventId: string): Promise<ApiResponse<StreamAccessToken>> {
+    return apiCall<StreamAccessToken>('get', `/events/${eventId}/stream-access`);
   }
 
-  /**
-   * Validate stream access token
-   */
-  async validateStreamToken(token: string): Promise<{ valid: boolean; userId: number; eventId: string }> {
-    try {
-      const response = await api.post('/streaming/validate-token', { token });
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to validate stream token');
-      } else {
-        throw new Error('Failed to validate stream token');
-      }
-    }
+  async validateStreamToken(token: string): Promise<ApiResponse<{ valid: boolean; userId: number; eventId: string }>> {
+    return apiCall<{ valid: boolean; userId: number; eventId: string }>('post', '/streaming/validate-token', { token });
   }
 
-  /**
-   * Report stream viewing analytics
-   */
-  async reportViewingEvent(eventId: string, event: string, data?: Record<string, unknown>): Promise<void> {
-    try {
-      await api.post('/streaming/analytics/event', {
-        eventId,
-        event,
-        data,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      // Silently fail analytics to not interrupt stream
-      console.warn('Failed to report viewing event:', error);
-    }
+  async reportViewingEvent(eventId: string, event: string, data?: Record<string, unknown>): Promise<ApiResponse<void>> {
+    return apiCall<void>('post', '/streaming/analytics/event', {
+      eventId,
+      event,
+      data,
+      timestamp: new Date().toISOString()
+    });
   }
 
-  /**
-   * Get stream health metrics
-   */
-  async getStreamHealth(streamId: string): Promise<{
+  async getStreamHealth(streamId: string): Promise<ApiResponse<{
     bitrate: number;
     fps: number;
     resolution: string;
     droppedFrames: number;
     latency: number;
     bufferHealth: number;
-  }> {
-    try {
-      const response = await api.get(`/streaming/${streamId}/health`);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get stream health');
-      } else {
-        throw new Error('Failed to get stream health');
-      }
-    }
+  }>> {
+    type HealthData = {
+      bitrate: number;
+      fps: number;
+      resolution: string;
+      droppedFrames: number;
+      latency: number;
+      bufferHealth: number;
+    };
+    return apiCall<HealthData>('get', `/streaming/${streamId}/health`);
   }
 
-  /**
-   * Update stream configuration during live stream
-   */
-  async updateStreamConfig(streamId: string, config: Partial<StreamConfig>): Promise<void> {
-    try {
-      await api.patch(`/streaming/${streamId}/config`, config);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to update stream config');
-      } else {
-        throw new Error('Failed to update stream config');
-      }
-    }
+  async updateStreamConfig(streamId: string, config: Partial<StreamConfig>): Promise<ApiResponse<void>> {
+    return apiCall<void>('patch', `/streaming/${streamId}/config`, config);
   }
 
-  /**
-   * Generate stream key for OBS
-   */
-  async generateStreamKey(config: { eventId: string }): Promise<{ 
+  async generateStreamKey(config: { eventId: string }): Promise<ApiResponse<{ 
     streamKey: string; 
     rtmpUrl: string; 
     eventId: string;
     generatedAt: string;
     validFor: string;
-  }> {
-    try {
-      const response = await api.post('/streaming/keys/generate', config);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to generate stream key');
-      } else {
-        throw new Error('Failed to generate stream key');
-      }
-    }
+  }>> {
+    type KeyData = { 
+      streamKey: string; 
+      rtmpUrl: string; 
+      eventId: string;
+      generatedAt: string;
+      validFor: string;
+    };
+    return apiCall<KeyData>('post', '/streaming/keys/generate', config);
   }
 
-  /**
-   * Revoke stream key
-   */
-  async revokeStreamKey(streamKey: string): Promise<{
+  async revokeStreamKey(streamKey: string): Promise<ApiResponse<{
     streamKey: string;
     revokedAt: string;
     revokedBy: string;
-  }> {
-    try {
-      const response = await api.delete(`/streaming/keys/${streamKey}`);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to revoke stream key');
-      } else {
-        throw new Error('Failed to revoke stream key');
-      }
-    }
+  }>> {
+    type RevokeData = {
+      streamKey: string;
+      revokedAt: string;
+      revokedBy: string;
+    };
+    return apiCall<RevokeData>('delete', `/streaming/keys/${streamKey}`);
   }
 
-  /**
-   * Get OBS Studio configuration
-   */
-  async getOBSConfig(streamKey: string): Promise<{
+  async getOBSConfig(streamKey: string): Promise<ApiResponse<{
     server: string;
     streamKey: string;
     settings: {
@@ -288,23 +202,22 @@ class StreamingService {
       recommendedBitrate: number;
     };
     instructions: string[];
-  }> {
-    try {
-      const response = await api.get(`/streaming/obs-config/${streamKey}`);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get OBS configuration');
-      } else {
-        throw new Error('Failed to get OBS configuration');
-      }
-    }
+  }>> {
+    type ObsConfig = {
+      server: string;
+      streamKey: string;
+      settings: {
+        keyframeInterval: number;
+        videoCodec: string;
+        audioCodec: string;
+        recommendedBitrate: number;
+      };
+      instructions: string[];
+    };
+    return apiCall<ObsConfig>('get', `/streaming/obs-config/${streamKey}`);
   }
 
-  /**
-   * Get streaming system health
-   */
-  async getSystemHealth(): Promise<{
+  async getSystemHealth(): Promise<ApiResponse<{
     status: 'healthy' | 'degraded' | 'error';
     activeStreams: number;
     totalViewers: number;
@@ -318,39 +231,40 @@ class StreamingService {
         currentStreams: number;
       };
     };
-  }> {
-    try {
-      const response = await api.get('/streaming/health');
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to get system health');
-      } else {
-        throw new Error('Failed to get system health');
-      }
-    }
+  }>> {
+    type SystemHealth = {
+      status: 'healthy' | 'degraded' | 'error';
+      activeStreams: number;
+      totalViewers: number;
+      serverLoad: number;
+      uptime: number;
+      rtmpServer: {
+        url: string;
+        status: string;
+        capacity: {
+          maxStreams: number;
+          currentStreams: number;
+        };
+      };
+    };
+    return apiCall<SystemHealth>('get', '/streaming/health');
   }
 
-  /**
-   * Get available stream qualities
-   */
-  async getAvailableQualities(streamId: string): Promise<Array<{
+  async getAvailableQualities(streamId: string): Promise<ApiResponse<Array<{
     label: string;
     src: string;
     bitrate: number;
     resolution: string;
-  }>> {
-    try {
-      const response = await api.get(`/streaming/${streamId}/qualities`);
-      return response.data.data;
-    } catch (error: unknown) {
-      throw new Error((error as Error).response?.data?.message || 'Failed to get stream qualities');
-    }
+  }>>> {
+    type Quality = {
+      label: string;
+      src: string;
+      bitrate: number;
+      resolution: string;
+    };
+    return apiCall<Quality[]>('get', `/streaming/${streamId}/qualities`);
   }
 
-  /**
-   * Subscribe to stream events via WebSocket
-   */
   subscribeToStreamEvents(streamId: string, callbacks: {
     onViewerJoin?: (data: Record<string, unknown>) => void;
     onViewerLeave?: (data: Record<string, unknown>) => void;
@@ -361,7 +275,6 @@ class StreamingService {
     // This would typically use WebSocket or Server-Sent Events
     // For now, we'll implement polling as fallback
     let polling = true;
-    const intervalId: NodeJS.Timeout = setInterval(poll, 5000); // Poll every 5 seconds
 
     const poll = async () => {
       if (!polling) return;
@@ -375,6 +288,8 @@ class StreamingService {
       }
     };
 
+    const intervalId: NodeJS.Timeout = setInterval(poll, 5000); // Poll every 5 seconds
+
     // Return cleanup function
     return () => {
       polling = false;
@@ -382,64 +297,45 @@ class StreamingService {
     };
   }
 
-  /**
-   * Get stream recording status
-   */
-  async getRecordingStatus(streamId: string): Promise<{
+  async getRecordingStatus(streamId: string): Promise<ApiResponse<{
     isRecording: boolean;
     recordingId?: string;
     duration: number;
     fileSize: number;
-  }> {
-    try {
-      const response = await api.get(`/streaming/${streamId}/recording`);
-      return response.data.data;
-    } catch (error: unknown) {
-      throw new Error((error as Error).response?.data?.message || 'Failed to get recording status');
-    }
+  }>> {
+    type RecordingStatus = {
+      isRecording: boolean;
+      recordingId?: string;
+      duration: number;
+      fileSize: number;
+    };
+    return apiCall<RecordingStatus>('get', `/streaming/${streamId}/recording`);
   }
 
-  /**
-   * Start/stop stream recording
-   */
-  async toggleRecording(streamId: string, start: boolean): Promise<void> {
-    try {
-      await api.post(`/streaming/${streamId}/recording`, { action: start ? 'start' : 'stop' });
-    } catch (error: unknown) {
-      throw new Error((error as Error).response?.data?.message || 'Failed to toggle recording');
-    }
+  async toggleRecording(streamId: string, start: boolean): Promise<ApiResponse<void>> {
+    return apiCall<void>('post', `/streaming/${streamId}/recording`, { action: start ? 'start' : 'stop' });
   }
 
-  /**
-   * Get stream thumbnail/preview image
-   */
-  async getStreamThumbnail(streamId: string): Promise<string> {
-    try {
-      const response = await api.get(`/streaming/${streamId}/thumbnail`);
-      return response.data.data.thumbnailUrl;
-    } catch (error: unknown) {
-      throw new Error((error as Error).response?.data?.message || 'Failed to get stream thumbnail');
-    }
+  async getStreamThumbnail(streamId: string): Promise<ApiResponse<string>> {
+    return apiCall<string>('get', `/streaming/${streamId}/thumbnail`);
   }
 
-  /**
-   * Test RTMP connection
-   */
-  async testRTMPConnection(rtmpUrl: string, streamKey: string): Promise<{
+  async testRTMPConnection(rtmpUrl: string, streamKey: string): Promise<ApiResponse<{
     connected: boolean;
     latency: number;
     bitrate: number;
     errors?: string[];
-  }> {
-    try {
-      const response = await api.post('/streaming/test-connection', {
-        rtmpUrl,
-        streamKey
-      });
-      return response.data.data;
-    } catch (error: unknown) {
-      throw new Error((error as Error).response?.data?.message || 'Failed to test RTMP connection');
-    }
+  }>> {
+    type RtmpStatus = {
+      connected: boolean;
+      latency: number;
+      bitrate: number;
+      errors?: string[];
+    };
+    return apiCall<RtmpStatus>('post', '/streaming/test-connection', {
+      rtmpUrl,
+      streamKey
+    });
   }
 }
 

@@ -10,21 +10,16 @@ import { Subscription } from "../models/Subscription";
 import { rtmpService } from "../services/rtmpService";
 import rateLimit from "express-rate-limit";
 import { sseService } from "../services/sseService";
+import { StreamingSecurityService } from "../services/streamingSecurityService";
 
 const router = Router();
 
 // Apply streaming feature flag check to all routes
 router.use(requireFeature('streaming'));
 
-// Rate limiting for stream access
-const streamAccessLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 requests per windowMs
-  message: {
-    success: false,
-    message: "Too many stream access requests, please try again later"
-  }
-});
+// Apply security middleware
+router.use(StreamingSecurityService.ipBlocker);
+router.use(StreamingSecurityService.rateLimiter);
 
 // Rate limiting for stream control (start/stop)
 const streamControlLimit = rateLimit({
@@ -42,8 +37,8 @@ const streamControlLimit = rateLimit({
  */
 router.get(
   "/events/:eventId/stream-access",
-  streamAccessLimit,
   authenticate,
+  StreamingSecurityService.concurrentStreamLimit,
   [
     param("eventId").isUUID().withMessage("Invalid event ID")
   ],
@@ -101,17 +96,8 @@ router.get(
       });
     }
 
-    // Generate signed stream token
-    const tokenData = {
-      userId: userId,
-      eventId: eventId,
-      streamUrl: event.streamUrl,
-      subscriptionId: subscription.id,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 minutes
-    };
-
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET!);
+    // Generate signed stream token using StreamingSecurityService
+    const { token, expiresAt } = StreamingSecurityService.generateSignedToken(userId, eventId);
 
     // Track analytics
     try {
@@ -132,7 +118,7 @@ router.get(
       data: {
         streamUrl: event.streamUrl,
         token: token,
-        expiresAt: new Date(tokenData.exp * 1000).toISOString(),
+        expiresAt: expiresAt.toISOString(),
         quality: '720p',
         availableQualities: ['720p', '480p', '360p']
       }
@@ -439,47 +425,26 @@ router.post(
   asyncHandler(async (req, res) => {
     const { token } = req.body;
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      
-      // Check if token is not expired
-      if (decoded.exp < Math.floor(Date.now() / 1000)) {
-        return res.status(401).json({
-          success: false,
-          message: "Token has expired"
-        });
-      }
+    // Validate token using StreamingSecurityService
+    const validation = await StreamingSecurityService.validateSignedToken(token);
 
-      // Verify user still has valid subscription
-      const subscription = await Subscription.findOne({
-        where: {
-          id: decoded.subscriptionId,
-          status: 'active'
-        }
-      });
-
-      if (!subscription || new Date(subscription.expiresAt) <= new Date()) {
-        return res.status(401).json({
-          success: false,
-          message: "Subscription is no longer valid"
-        });
-      }
-
-      res.json({
-        success: true,
-        data: {
-          valid: true,
-          userId: decoded.userId,
-          eventId: decoded.eventId,
-          subscriptionId: decoded.subscriptionId
-        }
-      });
-    } catch (error) {
-      res.status(401).json({
+    if (!validation.valid) {
+      return res.status(401).json({
         success: false,
-        message: "Invalid token"
+        message: validation.error || "Invalid token"
       });
     }
+
+    // If we get here, the token is valid
+    res.json({
+      success: true,
+      data: {
+        valid: true,
+        userId: validation.userId,
+        eventId: validation.eventId,
+        subscriptionValid: validation.subscriptionValid
+      }
+    });
   })
 );
 

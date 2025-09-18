@@ -1,18 +1,31 @@
 import React, { useState } from "react";
-import { usersAPI } from "../../config/api";
+import { userAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import { Loader2, UserPlus } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
 
+type UserRole = "operator" | "venue" | "gallera" | "user";
+
+interface CreateUserData {
+  username: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  profileInfo: {
+    fullName: string;
+    phoneNumber: string;
+  };
+}
+
 interface CreateUserModalProps {
-  role: "operator" | "venue" | "gallera" | "user";
+  role: UserRole;
   onClose: () => void;
   onUserCreated: () => void;
 }
 
 const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUserCreated }) => {
   const { addToast } = useToast();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateUserData>({
     username: "",
     email: "",
     password: "",
@@ -83,16 +96,26 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
     setError(null);
 
     try {
-      await usersAPI.create(formData);
-      addToast({
-        type: "success",
-        title: "Usuario Creado",
-        message: getSuccessMessage(formData.username),
-      });
-      onUserCreated(); // Notify parent to refresh list
-    } catch (err: any) {
+      const res = await userAPI.create(formData);
+      if (res.success) {
+        addToast({
+          type: "success",
+          title: "Usuario Creado",
+          message: getSuccessMessage(formData.username),
+        });
+        onUserCreated(); // Notify parent to refresh list
+      } else {
+        const errorMessage = res.error || "Ocurrió un error al crear el usuario.";
+        setError(errorMessage);
+        addToast({
+          type: "error",
+          title: "Error al Crear",
+          message: errorMessage,
+        });
+      }
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || "Ocurrió un error al crear el usuario.";
+        err instanceof Error ? err.message : "Ocurrió un error al crear el usuario.";
       setError(errorMessage);
       addToast({
         type: "error",
@@ -119,7 +142,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
         <div className="p-6 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <ErrorMessage error={error} onClose={() => setError(null)} />
+              <ErrorMessage error={error} />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,86 +1,104 @@
 // frontend/src/components/admin/AdminSidebar.tsx
-import { memo } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  FileText,
-  Calendar,
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Users, 
+  FileText, 
+  Settings, 
   DollarSign,
-  TrendingUp,
-  Server,
-  Settings,
+  User,
+  Building2,
+  Radio,
+  BarChart3,
+  MessageSquare,
+  Ticket,
+  HelpCircle,
   LogOut,
-} from "lucide-react";
+  Shield,
+  Eye,
+  Monitor
+} from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
-const AdminSidebar = memo(() => {
+interface SidebarItem {
+  path: string;
+  icon: React.ElementType;
+  label: string;
+  roles: Array<'admin' | 'operator'>; // Roles that can access this item
+}
+
+const AdminSidebar: React.FC = () => {
+  const location = useLocation();
   const { user, logout } = useAuth();
 
-  const allNavItems = [
-    { path: "/admin", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "operator"] },
-    { path: "/admin/users", icon: Users, label: "Usuarios", roles: ["admin"] },
-    { path: "/admin/operators", icon: Users, label: "Operadores", roles: ["admin"] },
-    { path: "/admin/galleras", icon: Users, label: "Galleras", roles: ["admin"] },
-    { path: "/admin/venues", icon: Building2, label: "Locales/Coliseos", roles: ["admin", "operator"] },
-    { path: "/admin/articles", icon: FileText, label: "Noticias", roles: ["admin", "operator"] },
-    { path: "/admin/events", icon: Calendar, label: "Eventos ⭐", roles: ["admin", "operator"] },
-    { path: "/admin/requests", icon: DollarSign, label: "Solicitudes", roles: ["admin"] },
-    { path: "/admin/finance", icon: TrendingUp, label: "Finanzas", roles: ["admin"] },
-    { path: "/admin/monitoring", icon: Server, label: "Monitoreo", roles: ["admin", "operator"] },
-    { path: "/admin/settings", icon: Settings, label: "Configuración", roles: ["admin"] },
+  const sidebarItems: SidebarItem[] = [
+    { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'operator'] },
+    { path: '/admin/events', icon: Calendar, label: 'Eventos', roles: ['admin', 'operator'] },
+    { path: '/admin/users', icon: Users, label: 'Usuarios', roles: ['admin'] },
+    { path: '/admin/venues', icon: Building2, label: 'Galleras', roles: ['admin'] },
+    { path: '/admin/bets', icon: DollarSign, label: 'Apuestas', roles: ['admin'] },
+    { path: '/admin/reports', icon: BarChart3, label: 'Reportes', roles: ['admin'] },
+    { path: '/admin/monitoring', icon: Monitor, label: 'Monitoreo', roles: ['admin', 'operator'] },
+    { path: '/admin/streaming', icon: Radio, label: 'Streaming', roles: ['admin', 'operator'] },
+    { path: '/admin/support', icon: HelpCircle, label: 'Soporte', roles: ['admin'] },
+    { path: '/admin/settings', icon: Settings, label: 'Configuración', roles: ['admin'] },
   ];
 
-  const navItems = (() => {
-    if (!user?.role) return [];
-    
-    // Filter items based on role permissions
-    return allNavItems.filter(item => item.roles.includes(user.role));
-  })();
+  // Filter items based on user role
+  const filteredItems = sidebarItems.filter(item => 
+    item.roles.includes(user?.role as 'admin' | 'operator')
+  );
 
-  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Invitado';
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
-    <aside className="w-64 bg-gray-300 min-h-screen flex flex-col">
-      <div className="p-4 flex-1">
-        <h2 className="text-gray-600 text-lg font-bold mb-2">Galleros<span className="text-red-500">.Net</span> Admin</h2>
-        <div className={`mb-6 text-white px-2 py-1 rounded-md text-center ${
-          user?.role === 'admin' ? 'bg-red-600' : 'bg-blue-600'
-        }`}>
-          <span className="font-semibold">{userRole}</span>
+    <div className="bg-gray-900 text-white w-64 min-h-screen flex flex-col">
+      <div className="p-4 border-b border-gray-800">
+        <h1 className="text-xl font-bold">GalloBets Admin</h1>
+        <div className="flex items-center mt-2 text-sm">
+          <Shield className="w-4 h-4 mr-2" />
+          <span className="capitalize">{user?.role}</span>
         </div>
-        <nav className="space-y-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/admin"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm ${
-                  isActive
-                    ? "bg-gray-700 text-white font-medium"
-                    : "text-gray-500 hover:bg-gray-700 hover:text-white"
-                }`
-              }
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
       </div>
-      <div className="p-4 border-t border-gray-700">
+      
+      <nav className="flex-1 p-4">
+        <ul className="space-y-2">
+          {filteredItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center p-2 rounded-lg ${
+                    isActive 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      
+      <div className="p-4 border-t border-gray-800">
         <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-2 text-gray-500 hover:bg-gray-700 hover:text-white rounded-lg transition-colors"
+          onClick={handleLogout}
+          className="flex items-center w-full p-2 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white"
         >
-          <LogOut className="w-5 h-5" />
-          <span>Cerrar Sesión</span>
+          <LogOut className="w-5 h-5 mr-3" />
+          Cerrar Sesión
         </button>
       </div>
-    </aside>
+    </div>
   );
-});
+};
 
 export default AdminSidebar;

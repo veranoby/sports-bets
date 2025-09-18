@@ -39,7 +39,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const isControlled = controlledValue !== undefined;
   const searchValue = isControlled ? controlledValue : internalValue;
@@ -108,7 +108,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
     const newValue = e.target.value.slice(0, maxLength);
 
     if (isControlled) {
-      onSearch(e); // En modo controlado, notificar inmediatamente
+      onSearch(newValue); // En modo controlado, notificar inmediatamente
     } else {
       setInternalValue(newValue);
     }

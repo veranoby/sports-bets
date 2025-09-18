@@ -10,6 +10,20 @@ import SubscriptionTabs from './SubscriptionTabs';
 import { User, X } from 'lucide-react';
 import type { User as UserType } from '../../types';
 
+interface EditUserFormData {
+  username: string;
+  email: string;
+  isActive: boolean;
+  role: UserType['role'];
+  profileInfo: {
+    fullName: string;
+    phoneNumber: string;
+    address: string;
+    identificationNumber: string;
+    verificationLevel: "none" | "basic" | "full";
+  };
+}
+
 interface EditUserModalProps {
   user: UserType;
   onClose: () => void;
@@ -23,7 +37,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
   
   
   // Profile form data
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<EditUserFormData>({
     username: user.username,
     email: user.email,
     isActive: user.isActive,

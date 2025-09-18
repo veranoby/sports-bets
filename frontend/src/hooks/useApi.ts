@@ -5,7 +5,7 @@
 // SOLUCIONADO: Balance $0 con estructura backend real
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { apiClient, betsAPI } from "../config/api";
+import { apiClient, betsAPI } from "../services/api";
 
 // ====================== TYPES ======================
 interface WalletData {
@@ -151,29 +151,33 @@ export function useWallet() {
       console.log("🔍 Fetching wallet from /wallet endpoint...");
       const response = await apiClient.get("/wallet");
 
-      console.log("📦 Raw wallet response:", response.data);
+      if (response.success) {
+        console.log("📦 Raw wallet response:", response.data);
 
-      // ✅ ESTRUCTURA REAL BACKEND: response.data.wallet (NO response.data.data.wallet)
-      const walletData = response.data?.wallet;
-      const transactionsData = response.data?.recentTransactions || [];
+        // ✅ ESTRUCTURA REAL BACKEND: response.data.wallet (NO response.data.wallet)
+        const walletData = response.data?.wallet;
+        const transactionsData = response.data?.recentTransactions || [];
 
-      console.log("💰 Parsed wallet data:", walletData);
+        console.log("💰 Parsed wallet data:", walletData);
 
-      if (mountedRef.current && walletData) {
-        const newWallet = {
-          balance: Number(walletData.balance || 0),
-          frozenAmount: Number(walletData.frozenAmount || 0),
-          availableBalance: Number(
-            walletData.availableBalance || walletData.balance || 0
-          ),
-        };
+        if (mountedRef.current && walletData) {
+          const newWallet = {
+            balance: Number(walletData.balance || 0),
+            frozenAmount: Number(walletData.frozenAmount || 0),
+            availableBalance: Number(
+              walletData.availableBalance || walletData.balance || 0
+            ),
+          };
 
-        console.log("✅ Setting wallet state:", newWallet);
-        setWallet(newWallet);
-        setTransactions(transactionsData);
+          console.log("✅ Setting wallet state:", newWallet);
+          setWallet(newWallet);
+          setTransactions(transactionsData);
+        }
+
+        return response.data;
+      } else {
+        throw new Error(response.error || "Error loading wallet");
       }
-
-      return response.data;
     } catch (err: any) {
       console.error("❌ Error fetching wallet:", err);
       if (mountedRef.current) {
@@ -202,13 +206,17 @@ export function useWallet() {
           params,
         });
 
-        // ✅ ESTRUCTURA: response.data.data.transactions (para este endpoint específico)
-        const transactionsData = response.data?.data?.transactions || [];
-        if (mountedRef.current) {
-          setTransactions(transactionsData);
-        }
+        if (response.success) {
+          // ✅ ESTRUCTURA: response.data.transactions (para este endpoint específico)
+          const transactionsData = response.data?.data?.transactions || [];
+          if (mountedRef.current) {
+            setTransactions(transactionsData);
+          }
 
-        return response.data;
+          return response.data;
+        } else {
+          throw new Error(response.error || "Error loading transactions");
+        }
       } catch (err: any) {
         if (mountedRef.current) {
           setError(err.response?.data?.message || "Error loading transactions");
@@ -381,7 +389,12 @@ export function useBets() {
     try {
       setLoading(true);
       const response = await betsAPI.getPendingProposals();
-      return response.data?.proposals || [];
+      if (response.success) {
+        return response.data?.proposals || [];
+      } else {
+        setError(response.error || "Error loading proposals");
+        return [];
+      }
     } catch (err) {
       setError((err as Error).message || "Error loading proposals");
       return [];

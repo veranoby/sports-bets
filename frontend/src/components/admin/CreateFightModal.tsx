@@ -1,13 +1,18 @@
 // frontend/src/components/admin/CreateFightModal.tsx
 import React, { useState } from 'react';
-import { fightsAPI } from '../../config/api';
+import { fightsAPI } from '../../services/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
+import { type Fight } from '../../types';
+
+type FormErrors = {
+  [key: string]: string;
+};
 
 interface CreateFightModalProps {
   eventId: string;
   onClose: () => void;
-  onFightCreated: (newFight: any) => void;
+  onFightCreated: (newFight: Fight) => void;
 }
 
 const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, onFightCreated }) => {
@@ -19,10 +24,10 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, o
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formErrors, setFormErrors] = useState<any>({});
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const validateForm = () => {
-    const errors: any = {};
+    const errors: FormErrors = {};
     if (!redCorner) errors.redCorner = 'Red corner is required.';
     if (!blueCorner) errors.blueCorner = 'Blue corner is required.';
     if (redCorner === blueCorner && redCorner !== '') {
@@ -42,6 +47,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, o
 
     try {
       setLoading(true);
+      setError(null);
       const fightData = {
         eventId,
         redCorner,
@@ -51,10 +57,18 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({ eventId, onClose, o
         notes,
       };
       const response = await fightsAPI.create(fightData);
-      onFightCreated(response.data);
+      if (response.success && response.data) {
+        onFightCreated(response.data as Fight);
+      } else {
+        throw new Error(response.error || 'Failed to create fight');
+      }
       onClose();
-    } catch {
-      setError('Failed to create fight. Please try again.');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred while creating the fight.');
+      }
     } finally {
       setLoading(false);
     }

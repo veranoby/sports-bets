@@ -55,6 +55,7 @@ import {
 
 // Hooks
 import useSSE from "../../hooks/useSSE";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Event {
   id: string;
@@ -121,6 +122,7 @@ interface EventDetailData {
 const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
 
   // Estados principales
   const [events, setEvents] = useState<Event[]>([]);
@@ -171,7 +173,14 @@ const AdminEventsPage: React.FC = () => {
         venuesAPI.getAll({ status: "active", limit: 100 }),
       ]);
 
-      setEvents(eventsRes.data?.events || []);
+      let eventData = eventsRes.data?.events || [];
+      
+      // If user is an operator, only show events assigned to them
+      if (user?.role === 'operator') {
+        eventData = eventData.filter(event => event.operatorId === user.id);
+      }
+
+      setEvents(eventData);
       setOperators(operatorsRes.data || []);
       setVenues(venuesRes.data?.venues || []);
     } catch (err) {
@@ -179,7 +188,7 @@ const AdminEventsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Usar SSE para obtener actualizaciones del sistema en tiempo real
   const systemSSE = useSSE('/api/sse/admin/system-status');
@@ -1087,7 +1096,7 @@ const AdminEventsPage: React.FC = () => {
                         <Card
                           variant="stat"
                           title="Volumen Total"
-                          value={`$${eventDetailData.stats.revenue.toLocaleString()}`}
+                          value={`${eventDetailData.stats.revenue.toLocaleString()}`}
                           color="green"
                         />
                       </div>

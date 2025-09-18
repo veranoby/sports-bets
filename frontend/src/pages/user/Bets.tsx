@@ -39,12 +39,8 @@ const UserBets: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // API Hooks
-  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet, setBets } =
+  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet } =
     useBets();
-  const setBetsRef = useRef(setBets);
-  useEffect(() => {
-    setBetsRef.current = setBets;
-  }, [setBets]);
 
   const { wallet } = useWallet();
 
@@ -61,7 +57,7 @@ const UserBets: React.FC = () => {
   });
 
   // WebSocket para actualizaciones
-  const { addListener, removeListener, isConnected } = useWebSocketContext();
+  const { addListener, isConnected } = useWebSocketContext();
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
   const handleProposalReceived = useCallback((data: any) => {
@@ -366,8 +362,7 @@ const UserBets: React.FC = () => {
       {showCreateModal && (
         <CreateBetModal
           fightId="current-fight-id"
-          onClose={() => setShowCreateModal(false)}
-          onBetCreated={() => {
+          onClose={() => {
             fetchMyBets();
             setShowCreateModal(false);
           }}

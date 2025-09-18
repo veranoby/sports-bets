@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, Users, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../config/api";
+import { usersAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
@@ -35,21 +35,25 @@ const VenuesPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await usersAPI.getAll({ role: 'venue' });
-        const venueProfiles = await Promise.all(
-          response.data.users.map(async (user: any) => {
-            const articles = await articlesAPI.getAll({ author_id: user.id });
-            return {
-              id: user.id,
-              name: user.profileInfo?.venueName || user.username,
-              description: user.profileInfo?.description || 'Local para eventos de gallos',
-              location: user.profileInfo?.location || 'Ubicación no especificada',
-              imageUrl: user.profileInfo?.imageUrl,
-              articlesCount: articles.data.total || 0,
-              establishedDate: user.profileInfo?.establishedDate
-            };
-          })
-        );
-        setVenues(venueProfiles);
+        if (response.success) {
+          const venueProfiles = await Promise.all(
+            response.data.users.map(async (user: any) => {
+              const articles = await articlesAPI.getAll({ author_id: user.id });
+              return {
+                id: user.id,
+                name: user.profileInfo?.venueName || user.username,
+                description: user.profileInfo?.description || 'Local para eventos de gallos',
+                location: user.profileInfo?.location || 'Ubicación no especificada',
+                imageUrl: user.profileInfo?.imageUrl,
+                articlesCount: articles.success ? articles.data.total || 0 : 0,
+                establishedDate: user.profileInfo?.establishedDate
+              };
+            })
+          );
+          setVenues(venueProfiles);
+        } else {
+          setError("Error al cargar los locales. Inténtalo de nuevo más tarde.");
+        }
       } catch (err) {
         setError("Error al cargar los locales. Inténtalo de nuevo más tarde.");
         console.error('Error loading venues:', err);

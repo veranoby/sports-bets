@@ -5,26 +5,36 @@ import React, { useState } from 'react';
 import { usersAPI } from '../../config/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
-import { User, Phone, MapPin, CreditCard, Mail } from 'lucide-react';
+import { User as UserIcon, Phone, MapPin, CreditCard, Mail } from 'lucide-react';
+import type { User } from '../../types';
+
+interface UserProfileFormData {
+  username: string;
+  email: string;
+  role: User['role'];
+  isActive: boolean;
+  profileInfo: NonNullable<User['profileInfo']>;
+}
 
 interface UserProfileFormProps {
-  user: any;
-  onSave: (userData: any) => void;
+  user: User;
+  onSave: (userData: Partial<User>) => void;
   onCancel: () => void;
   showRoleChange?: boolean;
 }
 
 const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCancel, showRoleChange = false }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserProfileFormData>({
     username: user?.username || '',
     email: user?.email || '',
     role: user?.role || 'user',
-    is_active: user?.is_active !== false,
+    isActive: user?.isActive !== false,
     profileInfo: {
-      fullName: user?.profile_info?.fullName || '',
-      phoneNumber: user?.profile_info?.phoneNumber || '',
-      address: user?.profile_info?.address || '',
-      identificationNumber: user?.profile_info?.identificationNumber || ''
+      fullName: user?.profileInfo?.fullName || '',
+      phoneNumber: user?.profileInfo?.phoneNumber || '',
+      address: user?.profileInfo?.address || '',
+      identificationNumber: user?.profileInfo?.identificationNumber || '',
+      verificationLevel: user?.profileInfo?.verificationLevel || 'none',
     }
   });
   const [loading, setLoading] = useState(false);
@@ -66,8 +76,8 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
       }
       
       // Update status if needed (admin only)
-      if (formData.is_active !== user.is_active) {
-        await usersAPI.updateStatus(user.id, formData.is_active);
+      if (formData.isActive !== user.isActive) {
+        await usersAPI.updateStatus(user.id, formData.isActive);
       }
       
       onSave({
@@ -85,7 +95,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
       <div className="flex items-center gap-2 mb-4">
-        <User className="w-5 h-5 text-blue-600" />
+        <UserIcon className="w-5 h-5 text-blue-600" />
         <h3 className="text-lg font-semibold text-gray-800">
           Editar Perfil del Representante
         </h3>
@@ -204,8 +214,8 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ user, onSave, onCance
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="is_active"
-                checked={formData.is_active}
+                name="isActive"
+                checked={formData.isActive}
                 onChange={handleChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />

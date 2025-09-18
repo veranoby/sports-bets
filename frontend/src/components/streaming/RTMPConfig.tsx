@@ -60,12 +60,12 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Use SSE hook for stream status updates
-  const streamStatusData = useSSE(eventId ? `/api/sse/events/${eventId}/stream` : null, [eventId]);
+  const streamStatusData = useSSE(eventId ? `/api/sse/events/${eventId}/stream` : null);
 
   // Update stream status when SSE data changes
   useEffect(() => {
     if (streamStatusData.data) {
-      setStreamStatus(streamStatusData.data.status);
+      // setStreamStatus(streamStatusData.data.status); // TODO: Add setStreamStatus state
     }
   }, [streamStatusData.data]);
 

@@ -105,23 +105,19 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
 
     switch (role) {
       case "user": {
-        const userItems = [...commonItems];
-
-        userItems.push(
-         
-        );
-        return userItems;
+        // For regular users, return common items (they get all standard navigation)
+        return commonItems;
       }
-        case "venue":
-          return [
-            ...commonItems,
-         
-          ];
-                        case "gallera":
-                  return [
-                    ...commonItems,
-                   
-                  ];
+      case "venue":
+        return [
+          ...commonItems,
+          // Venue-specific items can be added here if needed
+        ];
+      case "gallera":
+        return [
+          ...commonItems,
+          // Gallera-specific items can be added here if needed
+        ];
       case "admin":
         return [
           {

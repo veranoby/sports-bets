@@ -2,6 +2,7 @@ import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import { User, Wallet } from "../models";
+import { Subscription } from "../models/Subscription";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
 import { logger } from "../config/logger";
@@ -309,27 +310,73 @@ router.post(
 
 router.get('/verify/:token', asyncHandler(async (req, res) => {
   const { token } = req.params;
-  
+
   const user = await User.findOne({
     where: {
       verificationToken: token,
       verificationExpires: { [Op.gt]: new Date() }
     }
   });
-  
+
   if (!user) {
     throw errors.badRequest('Token de verificación inválido o expirado');
   }
-  
+
   user.emailVerified = true;
   user.verificationToken = null;
   user.verificationExpires = null;
   await user.save();
-  
+
   res.json({
     success: true,
     message: 'Email verificado exitosamente'
   });
 }));
+
+// POST /api/auth/check-membership-status - Check user membership status
+router.post(
+  "/check-membership-status",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+
+    // Find active subscription for user
+    const subscription = await Subscription.findOne({
+      where: {
+        userId: userId,
+        status: 'active',
+        expiresAt: { [Op.gt]: new Date() }
+      },
+      order: [['expiresAt', 'DESC']]
+    });
+
+    let membershipStatus;
+
+    if (subscription) {
+      membershipStatus = {
+        current_status: 'active',
+        membership_type: subscription.type,
+        expires_at: subscription.expiresAt,
+        features: subscription.features || [],
+        subscription_id: subscription.id
+      };
+    } else {
+      membershipStatus = {
+        current_status: 'inactive',
+        membership_type: 'free',
+        expires_at: null,
+        features: [],
+        subscription_id: null
+      };
+    }
+
+    logger.info(`Membership status checked for user: ${req.user!.username}`);
+
+    res.json({
+      success: true,
+      data: membershipStatus
+    });
+  })
+);
 
 export default router;

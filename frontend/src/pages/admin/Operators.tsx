@@ -19,7 +19,7 @@ import EditOperatorModal from "../../components/admin/EditOperatorModal";
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
-import { usersAPI } from "../../config/api";
+import { usersAPI } from "../../services/api";
 
 // Tipos
 import type { User } from "../../types";
@@ -40,18 +40,17 @@ const AdminOperatorsPage: React.FC = () => {
 
   // Fetch de operadores
   const fetchOperators = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await usersAPI.getAll({ role: "operator", limit: 1000 });
-      console.log("API Response for operators:", res); // Debug log
-      console.log("Users data from API:", res.data?.users); // Debug log
+    setLoading(true);
+    setError(null);
+    const res = await usersAPI.getAll({ role: "operator", limit: 1000 });
+    console.log("API Response for operators:", res); // Debug log
+    console.log("Users data from API:", res.data?.users); // Debug log
+    if (res.success) {
       setOperators(res.data?.users || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading operators");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(res.error || "Error loading operators");
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -96,10 +95,19 @@ const AdminOperatorsPage: React.FC = () => {
   };
 
   // Handler for delete operator
-  const handleDeleteOperator = (operator: User) => {
-    if (window.confirm(`¿Está seguro que desea eliminar al operador ${operator.username}? Esta acción no se puede deshacer.`)) {
-      // TODO: Implementar la eliminación del operador
-      console.log("Eliminar operador:", operator.id);
+  const handleDeleteOperator = async (operatorId: string) => {
+    const operator = operators.find(u => u.id === operatorId);
+    if (!operator) return;
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar al operador "${operator.username}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    
+    setError(null);
+    const res = await usersAPI.delete(operatorId);
+    if (res.success) {
+      setOperators(operators.filter(u => u.id !== operatorId));
+    } else {
+      setError(res.error || 'Error eliminando operador');
     }
   };
 

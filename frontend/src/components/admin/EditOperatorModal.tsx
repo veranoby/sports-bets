@@ -13,8 +13,16 @@ interface EditOperatorModalProps {
   onOperatorUpdated: (updatedOperator: User) => void;
 }
 
+interface EditOperatorFormData {
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+  identificationNumber: string;
+  is_active: boolean;
+}
+
 const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose, onOperatorUpdated }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EditOperatorFormData>({
     fullName: operator.profileInfo?.fullName || '',
     phoneNumber: operator.profileInfo?.phoneNumber || '',
     address: operator.profileInfo?.address || '',
@@ -39,7 +47,7 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
     const isCheckbox = type === 'checkbox';
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: isCheckbox ? checked : value,
     }));
@@ -77,8 +85,9 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({ operator, onClose
         isActive: formData.is_active
       });
       onClose();
-    } catch {
-      setError('Failed to update operator. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update operator. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

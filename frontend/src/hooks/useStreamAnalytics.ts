@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { streamingAPI } from '../config/api';
+import { streamingAPI } from '../services/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 
 interface StreamAnalytics {
@@ -47,9 +47,22 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
   const { socket, isConnected: wsConnected } = useWebSocket();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const eventBuffer = useRef<ViewerEvent[]>([]);
+  const componentMountedRef = useRef(true); // Track if component is mounted
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      componentMountedRef.current = false;
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Fetch analytics data
   const fetchAnalytics = useCallback(async (timeRange?: '1h' | '24h' | '7d' | '30d') => {
+    if (!componentMountedRef.current) return;
+
     try {
       setLoading(true);
       setError(null);
@@ -58,12 +71,18 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
         timeRange: timeRange || '1h'
       });
 
-      setAnalytics(response.data);
+      if (componentMountedRef.current) {
+        setAnalytics(response.data);
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to load analytics');
-      console.error('Analytics fetch error:', err);
+      if (componentMountedRef.current) {
+        setError(err.message || 'Failed to load analytics');
+        console.error('Analytics fetch error:', err);
+      }
     } finally {
-      setLoading(false);
+      if (componentMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [streamId]);
 
@@ -108,7 +127,12 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
 
     for (const event of events) {
       try {
-        await streamingAPI.trackViewerEvent(event);
+        const res = await streamingAPI.trackViewerEvent(event);
+        if (!res.success) {
+          console.error('Failed to send buffered event:', res.error);
+          // Re-buffer failed events
+          eventBuffer.current.push(event);
+        }
       } catch (err) {
         console.error('Failed to send buffered event:', err);
         // Re-buffer failed events
@@ -122,50 +146,62 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     if (!realtime || !socket || !eventId) return;
 
     const handleAnalyticsUpdate = (data: Partial<StreamAnalytics>) => {
-      setAnalytics(prev => prev ? { ...prev, ...data } : null);
+      if (componentMountedRef.current) {
+        setAnalytics(prev => prev ? { ...prev, ...data } : null);
+      }
     };
 
     const handleViewerJoin = (data: { userId: string; viewerCount: number }) => {
-      setAnalytics(prev => prev ? {
-        ...prev,
-        currentViewers: data.viewerCount,
-        peakViewers: Math.max(prev.peakViewers, data.viewerCount)
-      } : null);
+      if (componentMountedRef.current) {
+        setAnalytics(prev => prev ? {
+          ...prev,
+          currentViewers: data.viewerCount,
+          peakViewers: Math.max(prev.peakViewers, data.viewerCount)
+        } : null);
+      }
     };
 
     const handleViewerLeave = (data: { userId: string; viewerCount: number }) => {
-      setAnalytics(prev => prev ? {
-        ...prev,
-        currentViewers: data.viewerCount
-      } : null);
+      if (componentMountedRef.current) {
+        setAnalytics(prev => prev ? {
+          ...prev,
+          currentViewers: data.viewerCount
+        } : null);
+      }
     };
 
     const handleQualityChange = (data: { quality: string; viewerCount: number }) => {
-      setAnalytics(prev => prev ? {
-        ...prev,
-        qualityDistribution: {
-          ...prev.qualityDistribution,
-          [data.quality]: (prev.qualityDistribution[data.quality] || 0) + 1
-        }
-      } : null);
+      if (componentMountedRef.current) {
+        setAnalytics(prev => prev ? {
+          ...prev,
+          qualityDistribution: {
+            ...prev.qualityDistribution,
+            [data.quality]: (prev.qualityDistribution[data.quality] || 0) + 1
+          }
+        } : null);
+      }
     };
 
     const handleStreamStatus = (data: { status: string; duration?: number }) => {
-      if (data.duration !== undefined) {
+      if (data.duration !== undefined && componentMountedRef.current) {
         setAnalytics(prev => prev ? { ...prev, duration: data.duration } : null);
       }
     };
 
     const handleConnection = () => {
-      setIsConnected(true);
-      // Subscribe to stream-specific events
-      socket.emit('join_stream', { eventId, streamId });
-      // Flush buffered events
-      flushEventBuffer();
+      if (componentMountedRef.current) {
+        setIsConnected(true);
+        // Subscribe to stream-specific events
+        socket.emit('join_stream', { eventId, streamId });
+        // Flush buffered events
+        flushEventBuffer();
+      }
     };
 
     const handleDisconnection = () => {
-      setIsConnected(false);
+      if (componentMountedRef.current) {
+        setIsConnected(false);
+      }
     };
 
     // WebSocket event listeners

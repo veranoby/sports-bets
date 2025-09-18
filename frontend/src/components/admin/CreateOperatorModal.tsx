@@ -1,8 +1,19 @@
 import React, { useState } from "react";
-import { usersAPI } from "../../config/api";
+import { userAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import { Loader2, UserPlus } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
+
+interface CreateOperatorData {
+  username: string;
+  email: string;
+  password: string;
+  role: "operator";
+  profileInfo: {
+    fullName: string;
+    phoneNumber: string;
+  };
+}
 
 interface CreateOperatorModalProps {
   onClose: () => void;
@@ -11,7 +22,7 @@ interface CreateOperatorModalProps {
 
 const CreateOperatorModal: React.FC<CreateOperatorModalProps> = ({ onClose, onOperatorCreated }) => {
   const { addToast } = useToast();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateOperatorData>({
     username: "",
     email: "",
     password: "",
@@ -50,22 +61,19 @@ const CreateOperatorModal: React.FC<CreateOperatorModalProps> = ({ onClose, onOp
     setError(null);
 
     try {
-      await usersAPI.create(formData);
-      addToast({
-        type: "success",
-        title: "Operador Creado",
-        message: `El operador ${formData.username} ha sido creado exitosamente.`, 
-      });
-      onOperatorCreated(); // Notify parent to refresh list
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Ocurrió un error al crear el operador.";
-      setError(errorMessage);
-      addToast({
-        type: "error",
-        title: "Error al Crear",
-        message: errorMessage,
-      });
+      const res = await userAPI.create(formData);
+      if (res.success) {
+        addToast({
+          type: "success",
+          title: "Operador Creado",
+          message: `Operador ${formData.username} creado exitosamente`,
+        });
+        onOperatorCreated(); // Notify parent to refresh list
+      } else {
+        setError(res.error || "Error al crear operador");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al crear operador");
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +94,7 @@ const CreateOperatorModal: React.FC<CreateOperatorModalProps> = ({ onClose, onOp
         <div className="p-6 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <ErrorMessage error={error} onClose={() => setError(null)} />
+              <ErrorMessage error={error} />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

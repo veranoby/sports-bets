@@ -58,11 +58,16 @@ claude-desktop-arch/
 cursor_workspace/
 .gemini-session/
 .gemini/
+.qwen/
 .ai-context/
 .cursorrules
 claude-prompt.json
+gemini-prompt.json
+qwen-prompt.json
+
 .brain/
 .brain/*
+brain/
 CLAUDE.md
 QWEN.md
 GEMINI.md

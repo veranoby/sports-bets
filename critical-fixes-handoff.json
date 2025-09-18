@@ -1,0 +1,158 @@
+{
+  "session_type": "critical_error_resolution",
+  "priority": "URGENT",
+  "context": {
+    "platform": "GalloBets - Sports Betting & Streaming Platform",
+    "crisis_background": "Qwen AI made destructive changes that broke core functionality. Previous AI session fixed API structure issues but critical errors remain.",
+    "status": "Partially recovered - Authentication working, but Profile edit functionality destroyed and backend endpoints missing"
+  },
+
+  "critical_errors_to_fix": [
+    {
+      "id": "profile_edit_functionality",
+      "priority": "HIGH",
+      "description": "Profile.tsx edit functionality completely removed by Qwen AI",
+      "location": "/home/veranoby/sports-bets/frontend/src/pages/user/Profile.tsx",
+      "specific_issues": [
+        "Lines 110, 115: Functional code replaced with placeholder comments '{/* ... (content remains the same) ... */}'",
+        "Missing edit form inputs, save handlers, validation logic",
+        "User cannot edit personal information, phone number, address"
+      ],
+      "solution_approach": "Restore from git commit 95aab1a where Profile functionality was working",
+      "files_to_restore": [
+        "src/pages/user/Profile.tsx (restore edit sections)",
+        "Check if any hooks/services were also removed"
+      ],
+      "git_recovery_commands": [
+        "git show 95aab1a:frontend/src/pages/user/Profile.tsx > /tmp/profile_backup.tsx",
+        "Compare with current Profile.tsx",
+        "Restore missing edit functionality sections"
+      ]
+    },
+
+    {
+      "id": "missing_membership_endpoint",
+      "priority": "HIGH",
+      "description": "Backend endpoint /auth/check-membership-status does not exist",
+      "location": "Backend API routes",
+      "error_details": {
+        "frontend_call": "useMembershipCheck.ts calls POST /api/auth/check-membership-status",
+        "backend_response": "404 Not Found",
+        "console_error": "Cannot read properties of null (reading 'expires_at')"
+      },
+      "solution_options": [
+        "Option A: Create missing backend endpoint in /routes/auth.js",
+        "Option B: Modify frontend to use existing subscription endpoint",
+        "Option C: Remove membership check if not core feature"
+      ],
+      "recommended_solution": "Option A - Create backend endpoint to match frontend expectations"
+    },
+
+    {
+      "id": "database_connection_issues",
+      "priority": "MEDIUM",
+      "description": "Intermittent SequelizeConnectionError preventing proper API responses",
+      "symptoms": [
+        "Random 500 errors on API calls",
+        "Database connection timeouts",
+        "Inconsistent authentication behavior"
+      ],
+      "investigation_steps": [
+        "Check backend console for Sequelize errors",
+        "Verify Neon.tech database connection string",
+        "Review connection pool settings"
+      ]
+    }
+  ],
+
+  "prevention_measures": {
+    "mandatory_checks": [
+      "NEVER allow placeholder comments like '{/* ... remains the same ... */}' in functional code",
+      "Always verify backend endpoints exist before frontend implementation",
+      "Test critical user flows (login, profile edit, betting) after any changes",
+      "Use git diff to review ALL changes before committing"
+    ],
+    "ai_safety_rules": [
+      "If asked to 'clean up' or 'optimize', only remove unused imports/variables",
+      "NEVER remove functional UI components or business logic",
+      "NEVER replace working code with TODO comments or placeholders",
+      "Always maintain existing API contracts and endpoint expectations"
+    ]
+  },
+
+  "task_execution_plan": {
+    "phase_1_assessment": {
+      "step_1": "Run TypeScript check to see current error count",
+      "step_2": "Test user login flow to confirm authentication still works",
+      "step_3": "Navigate to /profile and confirm missing edit functionality",
+      "step_4": "Check browser console for 404 membership endpoint error"
+    },
+
+    "phase_2_profile_restoration": {
+      "step_1": "Backup current Profile.tsx",
+      "step_2": "Extract working Profile.tsx from git commit 95aab1a",
+      "step_3": "Compare files to identify what Qwen removed",
+      "step_4": "Restore missing edit form sections, handlers, validation",
+      "step_5": "Test profile edit functionality works completely",
+      "step_6": "Ensure membership display still works after restoration"
+    },
+
+    "phase_3_backend_fixes": {
+      "step_1": "Create /auth/check-membership-status endpoint",
+      "step_2": "Implement proper membership status response format",
+      "step_3": "Test endpoint returns expected data structure",
+      "step_4": "Verify frontend useMembershipCheck works without errors"
+    },
+
+    "phase_4_validation": {
+      "step_1": "Complete user flow test: login → profile → edit → save",
+      "step_2": "Check TypeScript errors reduced to <50",
+      "step_3": "Verify no console errors on critical pages",
+      "step_4": "Document any remaining issues for future resolution"
+    }
+  },
+
+  "technical_constraints": {
+    "forbidden_patterns": [
+      "response.data.data.*",
+      "Placeholder comments in functional code",
+      "TODO comments for core features",
+      "Removing existing API endpoints without replacement"
+    ],
+    "required_patterns": [
+      "response.data.* for API access",
+      "Proper error handling with try/catch",
+      "TypeScript interfaces for all API responses",
+      "Git commits with descriptive messages"
+    ]
+  },
+
+  "success_criteria": {
+    "must_have": [
+      "User can edit and save profile information",
+      "No 404 errors on membership status checks",
+      "TypeScript errors <50 total",
+      "Authentication flow works completely",
+      "No console errors on /profile page"
+    ],
+    "validation_tests": [
+      "Login as user → navigate to profile → click edit → modify info → save successfully",
+      "Profile page loads without console errors",
+      "Membership status displays correctly",
+      "npm run build completes without critical errors"
+    ]
+  },
+
+  "emergency_contacts": {
+    "git_recovery": "All changes are in git history - use git show/git checkout to recover",
+    "database_backup": "Neon.tech PostgreSQL - connection string in .env",
+    "api_documentation": "Check /brain/api_structure_lessons.md for API patterns"
+  },
+
+  "final_instructions": {
+    "approach": "Be EXTREMELY careful not to break existing functionality",
+    "testing": "Test every change immediately - don't batch multiple risky changes",
+    "communication": "Document what you're doing before major changes",
+    "rollback_plan": "Use git to rollback if anything breaks further"
+  }
+}

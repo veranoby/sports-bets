@@ -159,11 +159,11 @@ const Card: React.FC<CardProps> = ({
     if (React.isValidElement(icon)) {
       return React.cloneElement(icon as React.ReactElement, {
         className: `${iconSize} ${colors.icon}`,
-      });
+      } as any);
     }
 
     // Si es un componente de icono de Lucide
-    const IconComponent = icon as LucideIcon;
+    const IconComponent = icon as any;
     return <IconComponent className={`${iconSize} ${colors.icon}`} />;
   };
 

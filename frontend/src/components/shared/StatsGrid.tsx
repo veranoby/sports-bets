@@ -1,7 +1,7 @@
 import React from "react";
-import { Card } from "./Card";
+import Card from "./Card";
 import { Line, Bar, Pie } from "react-chartjs-2"; // Asume instalación de Chart.js
-import { StatCard, ChartDataset } from "@/types";
+import type { StatCard, ChartDataset } from "../../types";
 
 interface StatsGridProps {
   stats: StatCard[];

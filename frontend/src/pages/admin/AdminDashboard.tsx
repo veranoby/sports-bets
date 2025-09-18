@@ -25,7 +25,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // Hooks API existentes
 import { useEvents } from "../../hooks/useApi";
-import { eventsAPI, usersAPI, articlesAPI, walletAPI, apiClient } from "../../config/api";
+import { eventsAPI, usersAPI, articlesAPI, walletAPI, apiClient } from "../../services/api";
 
 interface DashboardMetrics {
   eventsToday: number;
@@ -108,32 +108,30 @@ const AdminDashboard: React.FC = () => {
 
   // Fetch inicial de métricas
   const fetchDashboardMetrics = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      const [
-        eventsData,
-        pendingUsersData,
-        pendingVenuesData,
-        pendingGallerasData,
-        pendingArticlesData,
-        withdrawalsData,
-        financeData,
-      ] = await Promise.all([
-        eventsAPI.getAll({ today: true }),
-        usersAPI.getAll({ status: "pending", limit: 1 }),
-        usersAPI.getAll({ role: "venue", status: "pending", limit: 1 }),
-        usersAPI.getAll({ role: "gallera", status: "pending", limit: 1 }),
-        articlesAPI.getAll({ status: "pending", limit: 1 }),
-        walletAPI.getTransactions({
-          type: "withdrawal",
-          status: "pending",
-          limit: 1000, // Para obtener todas las solicitudes pendientes
-        }),
-        walletAPI.getStats({ period: "today" }),
-      ]);
+    const eventsData = await eventsAPI.getAll({ today: true });
+    const pendingUsersData = await usersAPI.getAll({ status: "pending", limit: 1 });
+    const pendingVenuesData = await usersAPI.getAll({ role: "venue", status: "pending", limit: 1 });
+    const pendingGallerasData = await usersAPI.getAll({ role: "gallera", status: "pending", limit: 1 });
+    const pendingArticlesData = await articlesAPI.getAll({ status: "pending", limit: 1 });
+    const withdrawalsData = await walletAPI.getTransactions({
+      type: "withdrawal",
+      status: "pending",
+      limit: 1000, // Para obtener todas las solicitudes pendientes
+    });
+    const financeData = await walletAPI.getStats({ period: "today" });
 
+    if (
+      eventsData.success &&
+      pendingUsersData.success &&
+      pendingVenuesData.success &&
+      pendingGallerasData.success &&
+      pendingArticlesData.success &&
+      withdrawalsData.success &&
+      financeData.success
+    ) {
       const liveEvents =
         eventsData.data?.events?.filter((e) => e.status === "live") || [];
       const withdrawals = withdrawalsData.data?.requests || [];
@@ -154,11 +152,19 @@ const AdminDashboard: React.FC = () => {
       });
 
       setLastRefresh(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading metrics");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(
+        eventsData.error ||
+        pendingUsersData.error ||
+        pendingVenuesData.error ||
+        pendingGallerasData.error ||
+        pendingArticlesData.error ||
+        withdrawalsData.error ||
+        financeData.error ||
+        "Error loading metrics"
+      );
     }
+    setLoading(false);
   }, []);
 
   // Fetch inicial + refresh opcional cada 5min

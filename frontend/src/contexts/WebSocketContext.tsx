@@ -57,6 +57,7 @@ const WebSocketContext = createContext<WebSocketContextType | null>(null);
 const MAX_LISTENERS_PER_EVENT = 10;
 const MAX_TOTAL_EVENTS = 50;
 const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutos
+const MAX_CLEANUP_ATTEMPTS = 3; // Prevent infinite cleanup loops
 
 interface WebSocketProviderProps {
   children: ReactNode;
@@ -75,8 +76,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const pendingRoomsRef = useRef<Set<string>>(new Set());
   const connectionPromiseRef = useRef<Promise<void> | null>(null);
   const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const cleanupAttemptsRef = useRef(0); // Track cleanup attempts
 
-  // ✅ REGISTRY OPTIMIZADO
+  // ✅ REGISTRY OPTIMIZED
   const listenersRegistryRef = useRef<
     Map<
       string,
@@ -90,9 +92,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     >
   >(new Map());
 
-  // 🧹 FUNCIÓN DE LIMPIEZA DE LISTENERS HUÉRFANOS
+  // 🧹 FUNCTION TO CLEAN UP ORPHANED LISTENERS
   const cleanupOrphanedListeners = useCallback(() => {
     if (!socketRef.current) return 0;
+
+    // Prevent infinite cleanup loops
+    if (cleanupAttemptsRef.current >= MAX_CLEANUP_ATTEMPTS) {
+      console.warn("⚠️ WebSocket: Max cleanup attempts reached, stopping");
+      return 0;
+    }
 
     const cutoffTime = Date.now() - 10 * 60 * 1000; // 10 minutos
     let cleanedCount = 0;
@@ -119,14 +127,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     if (cleanedCount > 0) {
       console.log(
-        `🧹 WebSocket: Limpiados ${cleanedCount} listeners huérfanos`
+        `🧹 WebSocket: Cleaned up ${cleanedCount} orphaned listeners`
       );
+      cleanupAttemptsRef.current++; // Increment attempts
+    } else {
+      cleanupAttemptsRef.current = 0; // Reset if nothing to clean
     }
 
     return cleanedCount;
   }, []);
 
-  // 📊 ESTADÍSTICAS DE LISTENERS
+  // 📊 LISTENER STATISTICS
   const getListenerStats = useCallback(() => {
     const events: Record<string, number> = {};
     let totalListeners = 0;
@@ -143,34 +154,34 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
   }, []);
 
-  // 🎧 AGREGAR LISTENER CON LÍMITES
+  // 🎧 ADD LISTENER WITH LIMITS
   const addListener = useCallback(
     (event: string, handler: (data: any) => void, componentId?: string) => {
       if (!socketRef.current) {
-        console.warn("⚠️ WebSocket: No hay conexión activa");
+        console.warn("⚠️ WebSocket: No active connection");
         return () => {};
       }
 
-      // Verificar límite total de eventos
+      // Check total event limit
       if (listenersRegistryRef.current.size >= MAX_TOTAL_EVENTS) {
-        console.warn(`⚠️ WebSocket: Demasiados eventos registrados`);
+        console.warn(`⚠️ WebSocket: Too many events registered`);
         cleanupOrphanedListeners();
       }
 
-      // Obtener o crear lista de listeners para el evento
+      // Get or create listener list for the event
       let eventListeners = listenersRegistryRef.current.get(event);
       if (!eventListeners) {
         eventListeners = new Map();
         listenersRegistryRef.current.set(event, eventListeners);
       }
 
-      // Verificar límite por evento
+      // Check per-event limit
       if (eventListeners.size >= MAX_LISTENERS_PER_EVENT) {
         console.warn(
-          `⚠️ WebSocket: Demasiados listeners para evento '${event}' (${eventListeners.size})`
+          `⚠️ WebSocket: Too many listeners for event '${event}' (${eventListeners.size})`
         );
 
-        // Intentar cleanup antes de agregar
+        // Try cleanup before adding
         const oldestEntry = Array.from(eventListeners.entries()).sort(
           (a, b) => a[1].addedAt - b[1].addedAt
         )[0];
@@ -180,20 +191,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           socketRef.current.off(event, oldHandler);
           eventListeners.delete(oldHandler);
           console.log(
-            `🧹 WebSocket: Removido listener más antiguo para '${event}'`
+            `🧹 WebSocket: Removed oldest listener for '${event}'`
           );
         }
       }
 
-      // Verificar si ya está registrado
+      // Check if already registered
       if (eventListeners.has(handler)) {
         console.warn(
-          `⚠️ WebSocket: Listener ya registrado para evento '${event}'`
+          `⚠️ WebSocket: Listener already registered for event '${event}'`
         );
         return () => {};
       }
 
-      // ✅ REGISTRAR LISTENER con metadata
+      // ✅ REGISTER LISTENER with metadata
       eventListeners.set(handler, {
         addedAt: Date.now(),
         componentId,
@@ -202,34 +213,34 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       socketRef.current.on(event, handler);
 
       console.log(
-        `🎧 WebSocket: Listener agregado para '${event}' (total: ${eventListeners.size})`
+        `🎧 WebSocket: Listener added for '${event}' (total: ${eventListeners.size})`
       );
 
-      // ✅ RETORNAR FUNCIÓN DE CLEANUP
+      // ✅ RETURN CLEANUP FUNCTION
       return () => {
         if (socketRef.current && eventListeners.has(handler)) {
           socketRef.current.off(event, handler);
           eventListeners.delete(handler);
 
-          // Limpiar evento si no tiene listeners
+          // Clean up event if no listeners remain
           if (eventListeners.size === 0) {
             listenersRegistryRef.current.delete(event);
           }
 
-          console.log(`🧹 WebSocket: Listener removido para '${event}'`);
+          console.log(`🧹 WebSocket: Listener removed for '${event}'`);
         }
       };
     },
     [cleanupOrphanedListeners]
   );
 
-  // 🔗 CREAR CONEXIÓN - CORREGIDO
+  // 🔗 CREATE CONNECTION - FIXED
   const createConnection = useCallback(async () => {
     if (connectionPromiseRef.current) {
       return connectionPromiseRef.current;
     }
 
-    // ✅ VERIFICAR ESTADO ANTES DE CONECTAR
+    // ✅ CHECK STATE BEFORE CONNECTING
     if (socketRef.current?.connected) {
       return Promise.resolve();
     }
@@ -242,7 +253,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         const WEBSOCKET_URL =
           import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
-        // ✅ LIMPIAR SOCKET ANTERIOR SOLO SI EXISTE Y ESTÁ DESCONECTADO
+        // ✅ CLEAN UP PREVIOUS SOCKET ONLY IF EXISTS AND IS DISCONNECTED
         if (socketRef.current && !socketRef.current.connected) {
           socketRef.current.removeAllListeners();
           socketRef.current = null;
@@ -258,14 +269,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         });
 
         socket.on("connect", () => {
-          console.log("🟢 WebSocket conectado exitosamente");
+          console.log("🟢 WebSocket connected successfully");
           setIsConnected(true);
           setIsConnecting(false);
           setConnectionError(null);
           socketRef.current = socket;
           connectionPromiseRef.current = null;
+          cleanupAttemptsRef.current = 0; // Reset cleanup attempts on successful connection
 
-          // Reconectar a rooms pendientes
+          // Reconnect to pending rooms
           pendingRoomsRef.current.forEach((roomId) => {
             socket.emit("join_room", roomId);
           });
@@ -274,24 +286,24 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         });
 
         socket.on("disconnect", (reason) => {
-          console.log("🔴 WebSocket desconectado:", reason);
+          console.log("🔴 WebSocket disconnected:", reason);
           setIsConnected(false);
 
-          // ✅ NO limpiar socket en disconnect automático
+          // ✅ DON'T clean up socket on automatic disconnect
           if (reason !== "io client disconnect") {
             setConnectionError(`Disconnected: ${reason}`);
           }
         });
 
         socket.on("connect_error", (error) => {
-          console.error("🚨 Error de conexión:", error.message);
+          console.error("🚨 Connection error:", error.message);
           setConnectionError(error.message);
           setIsConnecting(false);
           connectionPromiseRef.current = null;
           reject(error);
         });
       } catch (error: any) {
-        console.error("❌ Error creando WebSocket:", error);
+        console.error("❌ Error creating WebSocket:", error);
         setConnectionError(error.message);
         setIsConnecting(false);
         connectionPromiseRef.current = null;
@@ -300,12 +312,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     });
 
     return connectionPromiseRef.current;
-  }, [token]); // ✅ Solo token como dependencia
+  }, [token]); // ✅ Only token as dependency
 
-  // 📤 EMIT OPTIMIZADO
+  // 📤 OPTIMIZED EMIT
   const emit = useCallback((event: string, data?: any): boolean => {
     if (!socketRef.current?.connected) {
-      console.warn("⚠️ Socket no conectado");
+      console.warn("⚠️ Socket not connected");
       return false;
     }
     socketRef.current.emit(event, data);
@@ -329,38 +341,39 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     }
   }, []);
 
-  // 🏗️ EFECTO PRINCIPAL DE CONEXIÓN - CORREGIDO
+  // 🏗️ MAIN CONNECTION EFFECT - FIXED
   useEffect(() => {
     let mounted = true;
     let connectTimer: NodeJS.Timeout;
 
     if (isAuthenticated && token && user?.hasActiveSubscription) {
-      // Pequeño delay para evitar reconexiones rápidas
+      // Small delay to avoid rapid reconnections
       connectTimer = setTimeout(() => {
         if (mounted && !socketRef.current?.connected && !isConnecting) {
           createConnection().catch((error) => {
             if (mounted) {
-              console.error("Error conectando:", error);
+              console.error("Connection error:", error);
             }
           });
         }
       }, 100);
 
-      // Inicializar cleanup automático
+      // Initialize automatic cleanup
       if (!cleanupIntervalRef.current) {
         cleanupIntervalRef.current = setInterval(() => {
           cleanupOrphanedListeners();
         }, CLEANUP_INTERVAL);
       }
     } else if (socketRef.current) {
-      // Desconectar si no cumple los requisitos
+      // Disconnect if requirements are not met
       socketRef.current.disconnect();
       socketRef.current = null;
       listenersRegistryRef.current.clear();
       pendingRoomsRef.current.clear();
       setIsConnected(false);
+      cleanupAttemptsRef.current = 0; // Reset cleanup attempts
 
-      // Limpiar intervalo
+      // Clean up interval
       if (cleanupIntervalRef.current) {
         clearInterval(cleanupIntervalRef.current);
         cleanupIntervalRef.current = null;
@@ -380,9 +393,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     isConnecting,
     cleanupOrphanedListeners,
     createConnection,
-  ]); // ✅ Dependencias corregidas
+  ]); // ✅ Fixed dependencies
 
-  // 🧹 CLEANUP AL DESMONTAR
+  // 🧹 CLEANUP ON UNMOUNT
   useEffect(() => {
     return () => {
       if (socketRef.current) {
@@ -394,10 +407,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       }
       listenersRegistryRef.current.clear();
       pendingRoomsRef.current.clear();
+      cleanupAttemptsRef.current = 0; // Reset cleanup attempts
     };
   }, []);
 
-  // ✅ VALOR MEMOIZADO
+  // ✅ MEMOIZED VALUE
   const value = useMemo<WebSocketContextType>(
     () => ({
       isConnected,
@@ -430,18 +444,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   );
 };
 
-// ✅ HOOK BASE
+// ✅ BASE HOOK
 export const useWebSocketContext = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
     throw new Error(
-      "useWebSocketContext debe usarse dentro de WebSocketProvider"
+      "useWebSocketContext must be used within WebSocketProvider"
     );
   }
   return context;
 };
 
-// 🎯 HOOK PARA SOLO EMITIR (sin listeners)
+// 🎯 HOOK FOR EMITTING ONLY (no listeners)
 export const useWebSocketEmit = () => {
   const { emit, isConnected } = useWebSocketContext();
 
@@ -458,7 +472,7 @@ export const useWebSocketEmit = () => {
   );
 };
 
-// 🎧 HOOK PARA UN SOLO LISTENER
+// 🎧 HOOK FOR A SINGLE LISTENER
 export const useWebSocketListener = <T = any,>(
   event: string,
   handler: (data: T) => void,
@@ -494,7 +508,7 @@ export const useWebSocketListener = <T = any,>(
   return { isConnected };
 };
 
-// 🏠 HOOK PARA GESTIÓN DE ROOMS
+// 🏠 HOOK FOR ROOM MANAGEMENT
 export const useWebSocketRoom = (roomId: string) => {
   const { joinRoom, leaveRoom, isConnected } = useWebSocketContext();
 
@@ -509,4 +523,4 @@ export const useWebSocketRoom = (roomId: string) => {
   }, [roomId, isConnected, joinRoom, leaveRoom]);
 
   return { isConnected, roomId };
-};
+};;

@@ -1,17 +1,6 @@
 import React from 'react';
 import useSSE from '../../hooks/useSSE';
-
-interface BettingNotificationData {
-  type: string;
-  data?: {
-    amount: number;
-    fighter: string;
-  };
-}
-
-interface BettingNotificationsResponse {
-  data: BettingNotificationData;
-}
+import { type BettingNotificationData, type BettingNotificationsResponse } from '../../types';
 
 const BettingNotifications: React.FC = () => {
   // Siempre llamar useSSE para respetar las reglas de React Hooks
@@ -34,8 +23,8 @@ const BettingNotifications: React.FC = () => {
           <p>Tipo: {bettingNotifications.data.type}</p>
           {bettingNotifications.data.data && (
             <div>
-              <p>Monto: ${bettingNotifications.data.data.amount}</p>
-              <p>Peleador: {bettingNotifications.data.data.fighter}</p>
+              <p>Monto: ${bettingNotifications.data.amount}</p>
+              <p>Peleador: {bettingNotifications.data.fighter}</p>
             </div>
           )}
         </div>

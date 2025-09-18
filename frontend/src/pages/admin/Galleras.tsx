@@ -24,7 +24,7 @@ import CreateUserModal from "../../components/admin/CreateUserModal"; // Import 
 import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
 
 // APIs
-import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
+import { usersAPI, venuesAPI, gallerasAPI } from "../../services/api";
 
 // Tipos
 import type { User as UserType } from "../../types";
@@ -45,17 +45,17 @@ const AdminGallerasPage: React.FC = () => {
 
   // Fetch de datos combinados
   const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      const [usersRes, venuesRes] = await Promise.all([
-        usersAPI.getAll({ role: "gallera", limit: 1000 }),
-        venuesAPI.getAll({ limit: 1000 }),
-      ]);
+    const usersRes = await usersAPI.getAll({ role: "gallera", limit: 1000 });
+    const venuesRes = await venuesAPI.getAll({ limit: 1000 });
+    const gallerasRes = await gallerasAPI.getAll({ limit: 1000 });
 
+    if (usersRes.success && venuesRes.success && gallerasRes.success) {
       const galleraUsers = usersRes.data?.users || [];
       const allVenues = venuesRes.data?.venues || [];
+      const allGalleras = gallerasRes.data?.galleras || [];
 
       const venuesByOwner = new Map<string, VenueType>();
       allVenues.forEach((venue) => {
@@ -64,17 +64,24 @@ const AdminGallerasPage: React.FC = () => {
         }
       });
 
+      const gallerasByOwner = new Map<string, GalleraType>();
+      allGalleras.forEach((gallera) => {
+        if (gallera.owner_id) {
+          gallerasByOwner.set(gallera.owner_id, gallera);
+        }
+      });
+
       const combined = galleraUsers.map((user) => ({
         user,
         venue: venuesByOwner.get(user.id),
+        gallera: gallerasByOwner.get(user.id),
       }));
 
       setCombinedData(combined);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading gallera data");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(usersRes.error || venuesRes.error || gallerasRes.error || "Error loading gallera data");
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -114,22 +121,26 @@ const AdminGallerasPage: React.FC = () => {
       return;
     }
 
-    try {
-      setError(null);
-      
-      // Si hay gallera asociada, eliminarla primero
-      if (galleraId) {
-        await gallerasAPI.delete(galleraId);
+    setError(null);
+    
+    // Si hay gallera asociada, eliminarla primero
+    if (galleraId) {
+      const galleraRes = await gallerasAPI.delete(galleraId);
+      if (!galleraRes.success) {
+        setError(galleraRes.error || 'Error eliminando gallera');
+        return;
       }
-      
-      // Eliminar el usuario
-      await usersAPI.delete(userId);
-      
-      // Actualizar la lista
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error eliminando gallera');
     }
+    
+    // Eliminar el usuario
+    const userRes = await usersAPI.delete(userId);
+    if (!userRes.success) {
+      setError(userRes.error || 'Error eliminando usuario');
+      return;
+    }
+    
+    // Actualizar la lista
+    fetchData();
   };
 
   const handleCreate = () => {

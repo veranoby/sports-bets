@@ -2,20 +2,21 @@
 // Formulario para editar información específica de la entidad Venue
 
 import React, { useState } from 'react';
-import { venuesAPI } from '../../config/api';
+import { venuesAPI } from '../../services/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import { MapPin, Building2, Phone, Mail } from 'lucide-react';
+import type { Venue } from '../../types';
 
 interface VenueEntityFormProps {
-  venue?: any;
+  venue?: Venue;
   userId: string;
-  onSave: (venueData: any) => void;
+  onSave: (venueData: Venue) => void;
   onCancel: () => void;
 }
 
 const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Venue>>({
     name: venue?.name || '',
     location: venue?.location || '',
     description: venue?.description || '',
@@ -57,18 +58,23 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
     setError(null);
 
     try {
-      let result;
+      let result: Venue;
       if (venue?.id) {
         // Para actualizaciones, no pasamos ownerId
-        result = await venuesAPI.update(venue.id, formData);
+        const response = await venuesAPI.update(venue.id, formData);
+        result = response.data as Venue;
       } else {
         // Para creaciones, sí pasamos ownerId
-        result = await venuesAPI.create({
-          ...formData,
-          ownerId: userId
+        const response = await venuesAPI.create({
+          name: formData.name || 'New Venue',
+          location: formData.location || 'Location TBD',
+          description: formData.description,
+          ownerId: userId,
+          contactInfo: formData.contactInfo
         });
+        result = response.data as Venue;
       }
-      onSave(result.data);
+      onSave(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar la entidad');
     } finally {

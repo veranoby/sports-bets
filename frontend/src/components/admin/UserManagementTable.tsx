@@ -164,12 +164,12 @@ const UserManagementTable: React.FC = () => {
       if (confirmAction.type === "status") {
         await usersAPI.updateStatus(
           confirmAction.user.id,
-          confirmAction.newValue
+          confirmAction.newValue as boolean
         );
         setUsers(
           users.map((u) =>
             u.id === confirmAction.user.id
-              ? { ...u, isActive: confirmAction.newValue }
+              ? { ...u, isActive: confirmAction.newValue as boolean }
               : u
           )
         );
@@ -177,12 +177,12 @@ const UserManagementTable: React.FC = () => {
       } else if (confirmAction.type === "role") {
         await usersAPI.updateRole(
           confirmAction.user.id,
-          confirmAction.newValue
+          confirmAction.newValue as string
         );
         setUsers(
           users.map((u) =>
             u.id === confirmAction.user.id
-              ? { ...u, role: confirmAction.newValue }
+              ? { ...u, role: confirmAction.newValue as typeof u.role }
               : u
           )
         );

@@ -32,7 +32,7 @@ import StatusChip from "../../components/shared/StatusChip";
 import ArticleEditorForm from "../../components/admin/ArticleEditorForm";
 
 // APIs
-import { articlesAPI, venuesAPI } from "../../config/api";
+import { articlesAPI, venuesAPI } from "../../services/api";
 
 interface Article {
   id: string;
@@ -92,27 +92,23 @@ const AdminArticlesPage: React.FC = () => {
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
 
   // Fetch data
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchArticles = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const articlesRes = await articlesAPI.getAll({
+      limit: 1000,
+      includeAuthor: true,
+      includeVenue: true,
+    });
+    const venuesRes = await venuesAPI.getAll({ status: "active", limit: 100 });
 
-      const [articlesRes, venuesRes] = await Promise.all([
-        articlesAPI.getAll({
-          limit: 1000,
-          includeAuthor: true,
-          includeVenue: true,
-        }),
-        venuesAPI.getAll({ status: "active", limit: 100 }),
-      ]);
-
+    if (articlesRes.success && venuesRes.success) {
       setArticles(articlesRes.data?.articles || []);
       setVenues(venuesRes.data?.venues || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading articles");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(articlesRes.error || venuesRes.error || "Error loading articles");
     }
+    setLoading(false);
   }, []);
 
   // Filtrado y paginación
@@ -188,8 +184,8 @@ const AdminArticlesPage: React.FC = () => {
 
   // Acciones individuales
   const handleApproveArticle = async (articleId: string) => {
-    try {
-      await articlesAPI.updateStatus(articleId, "published");
+    const res = await articlesAPI.updateStatus(articleId, "published");
+    if (res.success) {
       setArticles(
         articles.map((a) =>
           a.id === articleId
@@ -201,48 +197,52 @@ const AdminArticlesPage: React.FC = () => {
             : a
         )
       );
-    } catch (_err) {
-      setError("Error al aprobar artículo");
+    } else {
+      setError(res.error || "Error aprobando artículo");
     }
   };
 
   const handleRejectArticle = async (articleId: string) => {
-    try {
-      await articlesAPI.updateStatus(articleId, "archived");
+    const res = await articlesAPI.updateStatus(articleId, "archived");
+    if (res.success) {
       setArticles(
         articles.map((a) =>
           a.id === articleId ? { ...a, status: "archived" } : a
         )
       );
-    } catch (_err) {
-      setError("Error al rechazar artículo");
+    } else {
+      setError(res.error || "Error rechazando artículo");
     }
   };
 
-  const handleToggleStatus = async (
-    articleId: string,
-    currentStatus: string
-  ) => {
-    try {
-      const newStatus =
-        currentStatus === "published" ? "archived" : "published";
-      await articlesAPI.updateStatus(articleId, newStatus);
+  const handleDeleteArticle = async (articleId: string) => {
+    if (
+      !window.confirm(
+        "¿Estás seguro de que quieres eliminar este artículo? Esta acción no se puede deshacer."
+      )
+    ) {
+      return;
+    }
+
+    const res = await articlesAPI.delete(articleId);
+    if (res.success) {
+      setArticles(articles.filter((a) => a.id !== articleId));
+    } else {
+      setError(res.error || "Error eliminando artículo");
+    }
+  };
+
+  const handleEditArticle = async (articleId: string, data: any) => {
+    const res = await articlesAPI.update(articleId, data);
+    if (res.success) {
       setArticles(
         articles.map((a) =>
-          a.id === articleId
-            ? {
-                ...a,
-                status: newStatus,
-                published_at:
-                  newStatus === "published"
-                    ? new Date().toISOString()
-                    : a.published_at,
-              }
-            : a
+          a.id === articleId ? { ...a, ...res.data?.article } : a
         )
       );
-    } catch (_err) {
-      setError("Error al cambiar estado");
+      setEditingArticle(null);
+    } else {
+      setError(res.error || "Error actualizando artículo");
     }
   };
 

@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from "../../config/api";
+import { articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
@@ -38,20 +38,22 @@ const NewsPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get("/articles", {
-        params: {
-          search,
-          venueId: venueFilter,
-          page,
-          limit: 10,
-          status: "published",
-        },
+      const response = await articlesAPI.getAll({
+        search,
+        venueId: venueFilter,
+        page,
+        limit: 10,
+        status: "published",
       });
-      setArticles(response.data.articles || []);
-      setTotal(response.data.total || 0);
-      setTotalPages(response.data.totalPages || 1);
-    } catch (err: any) {
-      setError(err?.message || "Error al cargar noticias");
+      if (response.success) {
+        setArticles(response.data.articles || []);
+        setTotal(response.data.total || 0);
+        setTotalPages(response.data.totalPages || 1);
+      } else {
+        setError(response.error || "Error al cargar artículos");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cargar artículos");
     } finally {
       setLoading(false);
     }

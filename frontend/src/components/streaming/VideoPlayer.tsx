@@ -176,7 +176,7 @@ const Player: React.FC<VideoPlayerProps> = ({
 
   // ... (all other useEffects and control handlers remain the same)
 
-  if (hasError) {
+  if (error) {
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${className}`} data-testid="video-player">
         {/* ... Error UI ... */}
@@ -187,7 +187,7 @@ const Player: React.FC<VideoPlayerProps> = ({
   return (
     <div className={`relative bg-black rounded-lg overflow-hidden ${className}`} data-testid="video-player">
         <div data-vjs-player>
-          <video ref={videoRef} className="video-js vjs-default-skin w-full" playsInline data-testid="video-element" />
+          <video ref={playerRef} className="video-js vjs-default-skin w-full" playsInline data-testid="video-element" />
         </div>
         {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75" data-testid="buffering-indicator">

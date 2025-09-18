@@ -1,17 +1,18 @@
 // frontend/src/components/admin/EditVenueModal.tsx
 import React, { useState, useEffect } from 'react';
-import { venuesAPI } from '../../config/api';
+import { venuesAPI } from '../../services/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
+import type { Venue } from '../../types';
 
 interface EditVenueModalProps {
-  venue: any;
+  venue: Venue;
   onClose: () => void;
-  onVenueUpdated: (updatedVenue: any) => void;
+  onVenueUpdated: (updatedVenue: Venue) => void;
 }
 
 const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenueUpdated }) => {
-  const [formData, setFormData] = useState(venue);
+  const [formData, setFormData] = useState<Partial<Venue>>(venue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +22,7 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenue
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -29,10 +30,10 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenue
 
   const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       contactInfo: {
-        ...prev.contactInfo,
+        ...(prev.contactInfo || {}),
         [name]: value,
       },
     }));
@@ -45,10 +46,15 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenue
 
     try {
       const response = await venuesAPI.update(venue.id, formData);
-      onVenueUpdated(response.data);
+      if (response.success && response.data) {
+        onVenueUpdated(response.data as Venue);
+      } else {
+        throw new Error(response.error || 'Failed to update venue');
+      }
       onClose();
-    } catch {
-      setError('Failed to update venue. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update venue. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -70,10 +76,6 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({ venue, onClose, onVenue
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
             <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-          </div>
-          <div>
-            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">Capacity</label>
-            <input type="number" id="capacity" name="capacity" value={formData.capacity} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
           <h4 className="text-md font-medium text-gray-900">Contact Info</h4>
           <div>

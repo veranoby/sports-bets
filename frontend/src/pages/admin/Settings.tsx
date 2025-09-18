@@ -113,7 +113,7 @@ const Settings: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        setSettings(data.data.settings || data.data);
+        setSettings(data.settings || data.data);
         setPendingChanges({});
         setSuccess(`Configuraciones actualizadas exitosamente`);
         

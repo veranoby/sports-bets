@@ -28,7 +28,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // APIs
-import { walletAPI, usersAPI } from "../../config/api";
+import { walletAPI, usersAPI } from "../../services/api";
 
 interface WithdrawalRequest {
   id: string;
@@ -94,21 +94,19 @@ const AdminRequestsPage: React.FC = () => {
 
   // Fetch requests
   const fetchRequests = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
+    const response = await walletAPI.getWithdrawalRequests({
+      includeUser: true,
+      limit: 1000,
+    });
 
-      const response = await walletAPI.getWithdrawalRequests({
-        includeUser: true,
-        limit: 1000,
-      });
-
+    if (response.success) {
       setRequests(response.data?.requests || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading requests");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(response.error || "Error loading requests");
     }
+    setLoading(false);
   }, []);
 
   // Filtrado por categorías

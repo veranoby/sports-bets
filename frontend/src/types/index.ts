@@ -2,10 +2,17 @@ import React from 'react';
 
 // Tipos centralizados para evitar importaciones circulares
 
-export interface APIResponse<T = unknown> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
-  message?: string;
   data: T;
+  error?: string;
+  code?: number;
+  message?: string; // Mantengo message por retrocompatibilidad temporal
+}
+
+export interface ApiError extends Error {
+  status?: number;
+  code?: string;
 }
 
 export interface User {
@@ -52,6 +59,10 @@ export interface Event {
   creator?: User;
   fights?: Fight[];
   startTime: string;
+  // Additional properties for UI
+  currentViewers?: number;
+  activeBets?: number;
+  description?: string;
 }
 
 export interface Fight {
@@ -66,6 +77,10 @@ export interface Fight {
   createdAt: string;
   updatedAt: string;
   event?: Event;
+  // Additional properties for admin components
+  number?: number;
+  rooster_1?: string;
+  rooster_2?: string;
   bets?: Bet[];
 }
 
@@ -224,7 +239,7 @@ export interface UserSubscription {
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
 
 // 4. FIGHT TYPES (verificar que existan)
-export type FightStatus = "scheduled" | "live" | "finished" | "cancelled";
+export type FightStatus = "upcoming" | "betting" | "live" | "completed" | "cancelled";
 export type FightResult = "red" | "blue" | "draw" | "no_contest";
 
 // 5. STREAMING TYPES (agregar si faltan)
@@ -255,5 +270,20 @@ export interface ChartDataset {
     data: number[];
     backgroundColor?: string | string[];
     borderColor?: string;
+  };
+}
+
+// Betting Notifications Types
+export interface BettingNotificationData {
+  type: string;
+  amount: number;
+  fighter: string;
+}
+
+export interface BettingNotificationsResponse {
+  type: string;
+  data?: {
+    amount: number;
+    fighter: string;
   };
 }

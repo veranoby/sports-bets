@@ -2,20 +2,21 @@
 // Formulario para editar información específica de la entidad Gallera
 
 import React, { useState } from 'react';
-import { gallerasAPI } from '../../config/api';
+import { gallerasAPI } from '../../services/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import { MapPin, Trophy, Users } from 'lucide-react';
+import type { Gallera } from '../../types';
 
 interface GalleraEntityFormProps {
-  gallera?: any;
+  gallera?: Gallera;
   userId: string;
-  onSave: (galleraData: any) => void;
+  onSave: (galleraData: Gallera) => void;
   onCancel: () => void;
 }
 
 const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Gallera>>({
     name: gallera?.name || '',
     location: gallera?.location || '',
     description: gallera?.description || '',
@@ -24,8 +25,8 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
       trainingMethods: [],
       experience: ''
     },
-    activeRoosters: gallera?.active_roosters || 0,
-    fightRecord: gallera?.fight_record || {
+    activeRoosters: gallera?.activeRoosters || 0,
+    fightRecord: gallera?.fightRecord || {
       wins: 0,
       losses: 0,
       draws: 0
@@ -71,18 +72,26 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
     setError(null);
 
     try {
-      let result;
+      let result: Gallera;
       if (gallera?.id) {
         // Para actualizaciones, no pasamos ownerId
-        result = await gallerasAPI.update(gallera.id, formData);
+        const response = await gallerasAPI.update(gallera.id, formData);
+        result = response.data as Gallera;
       } else {
         // Para creaciones, sí pasamos ownerId
-        result = await gallerasAPI.create({
-          ...formData,
-          ownerId: userId
+        const response = await gallerasAPI.create({
+          name: formData.name || 'New Gallera',
+          location: formData.location || 'Location TBD',
+          description: formData.description,
+          ownerId: userId,
+          contactInfo: formData.contactInfo,
+          specialties: formData.specialties,
+          activeRoosters: formData.activeRoosters,
+          fightRecord: formData.fightRecord
         });
+        result = response.data as Gallera;
       }
-      onSave(result.data);
+      onSave(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save gallera');
     } finally {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usersAPI } from "../../config/api";
+import { usersAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
 import Card from "../../components/shared/Card";
@@ -50,23 +50,19 @@ const CreateUser: React.FC = () => {
     setError(null);
 
     try {
-      // The role is already set to 'user' in the state
-      await usersAPI.create(formData);
-      addToast({
-        type: "success",
-        title: "Usuario Creado",
-        message: `El usuario ${formData.username} ha sido creado exitosamente.`,
-      });
-      navigate("/admin/users");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Ocurrió un error al crear el usuario.";
-      setError(errorMessage);
-      addToast({
-        type: "error",
-        title: "Error al Crear",
-        message: errorMessage,
-      });
+      const res = await usersAPI.create(formData);
+      if (res.success) {
+        addToast({
+          type: "success",
+          title: "Usuario creado",
+          message: `Usuario ${formData.username} creado exitosamente`,
+        });
+        navigate("/admin/users");
+      } else {
+        setError(res.error || "Error al crear usuario");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al crear usuario");
     } finally {
       setIsLoading(false);
     }

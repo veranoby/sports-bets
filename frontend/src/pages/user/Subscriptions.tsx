@@ -76,7 +76,7 @@ const SubscriptionsPage: React.FC = () => {
   const handleSubscribe = async (planId: string) => {
     try {
       await createSubscription({
-        plan: planId,
+        plan: planId as "daily" | "monthly",
         autoRenew: true,
       });
       await loadData(); // Recargar datos

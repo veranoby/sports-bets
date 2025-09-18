@@ -32,7 +32,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // APIs (con fallback a mock)
-import { systemAPI } from "../../config/api";
+import { systemAPI } from "../../services/api";
 
 interface ServiceStatus {
   service: string;
@@ -109,66 +109,61 @@ const AdminMonitoringPage: React.FC = () => {
 
   // Fetch datos de monitoreo con restricciones por rol
   const fetchMonitoringData = useCallback(async () => {
-    try {
-      setError(null);
-      
-      if (isOperator) {
-        // Operadores solo ven monitoreo de streaming según claude-prompt.json
-        const [alertsRes, statsRes] = await Promise.all([
-          systemAPI.getAlerts().catch(() => ({ data: [] })),
-          systemAPI.getLiveStats().catch(() => ({ data: null })),
-        ]);
+    setError(null);
+    
+    if (isOperator) {
+      // Operadores solo ven monitoreo de streaming según claude-prompt.json
+      const alertsRes = await systemAPI.getAlerts().catch(() => ({ success: true, data: [] }));
+      const statsRes = await systemAPI.getLiveStats().catch(() => ({ success: true, data: null }));
 
-        // Filtrar solo servicios de streaming para operadores
-        setServices([
-          { 
-            service: "Streaming Service", 
-            status: "healthy", 
-            uptime: 99.5, 
-            responseTime: 45,
-            lastCheck: new Date().toISOString() 
-          }
-        ]);
-        setSystemMetrics(null); // Operadores no ven métricas del sistema
-        setAlerts(alertsRes.data?.filter((alert: any) => 
-          alert.service.toLowerCase().includes('stream') || 
-          alert.service.toLowerCase().includes('rtmp')
-        ) || []);
-        setLiveStats({
-          ...statsRes.data,
-          // Solo mostrar stats relacionadas con streaming
-          activeUsers: statsRes.data?.activeUsers || 0,
-          liveEvents: statsRes.data?.liveEvents || 0,
-          activeBets: 0, // Operadores no ven info de apuestas
-          connectionCount: statsRes.data?.connectionCount || 0,
-          requestsPerMinute: 0,
-          errorRate: 0
-        });
-      } else {
-        // Admin ve todo el monitoreo completo
-        const [servicesRes, metricsRes, alertsRes, statsRes] = await Promise.all([
-          systemAPI.getServicesStatus(),
-          systemAPI.getSystemMetrics(),
-          systemAPI.getAlerts(),
-          systemAPI.getLiveStats(),
-        ]);
+      // Filtrar solo servicios de streaming para operadores
+      setServices([
+        { 
+          service: "Streaming Service", 
+          status: "healthy", 
+          uptime: 99.5, 
+          responseTime: 45,
+          lastCheck: new Date().toISOString() 
+        }
+      ]);
+      setSystemMetrics(null); // Operadores no ven métricas del sistema
+      setAlerts(alertsRes.success ? alertsRes.data?.filter((alert: any) => 
+        alert.service.toLowerCase().includes('stream') || 
+        alert.service.toLowerCase().includes('rtmp')
+      ) || [] : []);
+      setLiveStats({
+        ...(statsRes.success ? statsRes.data : {}),
+        // Solo mostrar stats relacionadas con streaming
+        activeUsers: statsRes.success ? statsRes.data?.activeUsers || 0 : 0,
+        liveEvents: statsRes.success ? statsRes.data?.liveEvents || 0 : 0,
+        activeBets: 0, // Operadores no ven info de apuestas
+        connectionCount: statsRes.success ? statsRes.data?.connectionCount || 0 : 0,
+        requestsPerMinute: 0,
+        errorRate: 0
+      });
+    } else {
+      // Admin ve todo el monitoreo completo
+      const servicesRes = await systemAPI.getServicesStatus();
+      const metricsRes = await systemAPI.getSystemMetrics();
+      const alertsRes = await systemAPI.getAlerts();
+      const statsRes = await systemAPI.getLiveStats();
 
+      if (servicesRes.success && metricsRes.success && alertsRes.success && statsRes.success) {
         setServices(servicesRes.data);
         setSystemMetrics(metricsRes.data);
         setAlerts(alertsRes.data);
         setLiveStats(statsRes.data);
+      } else {
+        setError("Error al cargar datos de monitoreo");
+        setServices([]);
+        setSystemMetrics(null);
+        setAlerts([]);
+        setLiveStats(null);
       }
-      
-      setLastUpdate(new Date());
-    } catch (_err) {
-      setError("Error al cargar datos de monitoreo");
-      setServices([]);
-      setSystemMetrics(null);
-      setAlerts([]);
-      setLiveStats(null);
-    } finally {
-      setLoading(false);
     }
+    
+    setLastUpdate(new Date());
+    setLoading(false);
   }, [isOperator]);
 
   // Auto refresh

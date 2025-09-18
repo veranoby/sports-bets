@@ -2,6 +2,8 @@ import { Server, Socket } from 'socket.io';
 import { rtmpService } from '../services/rtmpService';
 import jwt from 'jsonwebtoken';
 import { EventConnection } from '../models';
+import { SafetyLimits } from '../utils/safetyLimits';
+import { DatabaseOptimizer } from '../services/databaseOptimizer';
 
 const trackConnection = async (eventId: string, userId: string) => {
   try {
@@ -53,6 +55,11 @@ const activeViewers = new Map<string, {
 }>();
 
 export const setupStreamingSocket = (io: Server) => {
+  // Register shutdown handler for cleanup
+  SafetyLimits.registerShutdownHandler(() => {
+    console.log('Cleaning up streaming sockets...');
+    // Any additional cleanup logic can go here
+  });
   // Middleware for stream authentication
   io.of('/stream').use(async (socket, next) => {
     try {
@@ -94,7 +101,7 @@ export const setupStreamingSocket = (io: Server) => {
       }
     }
 
-    // Track viewer join
+    // Track viewer join using DatabaseOptimizer
     if (userId && eventId) {
       const connectionId = await trackConnection(eventId, userId);
       activeViewers.set(socket.id, {
@@ -107,22 +114,14 @@ export const setupStreamingSocket = (io: Server) => {
         connectionId
       });
 
-      // Update RTMP service with viewer count
-      rtmpService.trackViewerJoin({
-        eventId,
-        userId,
-        subscriptionType: 'premium', // This would come from user data
-        userAgent: socket.handshake.headers['user-agent'],
-        ip: socket.handshake.address,
-        timestamp: new Date()
-      }).catch(err => console.warn('Failed to track viewer join:', err));
-
-      // Broadcast viewer join to event room (for operators/admins)
-      socket.to(`event:${eventId}`).emit('viewer_join', {
-        userId,
-        eventId,
-        viewerCount: Array.from(activeViewers.values()).filter(v => v.eventId === eventId).length,
-        timestamp: new Date()
+      // Queue analytics event for batch processing
+      DatabaseOptimizer.queueAnalyticsEvent({
+        event_id: parseInt(eventId),
+        user_id: parseInt(userId),
+        session_id: socket.id,
+        connected_at: new Date(),
+        ip_address: socket.handshake.address,
+        user_agent: socket.handshake.headers['user-agent']
       });
     }
 
@@ -369,8 +368,8 @@ export const setupStreamingSocket = (io: Server) => {
     });
   });
 
-  // Periodic cleanup of inactive viewers
-  setInterval(() => {
+  // Periodic cleanup of inactive viewers using SafetyLimits
+  const cleanupInterval = SafetyLimits.createSafeInterval(() => {
     const now = Date.now();
     const inactiveThreshold = 5 * 60 * 1000; // 5 minutes
 
@@ -386,10 +385,10 @@ export const setupStreamingSocket = (io: Server) => {
         }
       }
     }
-  }, 60 * 1000); // Run every minute
+  }, 60 * 1000, 3, 'inactive_viewer_cleanup'); // Run every minute, max 3 errors
 
-  // Periodic analytics broadcast
-  setInterval(async () => {
+  // Periodic analytics broadcast using SafetyLimits
+  const analyticsInterval = SafetyLimits.createSafeInterval(async () => {
     try {
       // Group viewers by event
       const viewersByEvent = new Map<string, any[]>();
@@ -426,7 +425,7 @@ export const setupStreamingSocket = (io: Server) => {
     } catch (error) {
       console.error('Failed to broadcast periodic analytics:', error);
     }
-  }, 10 * 1000); // Every 10 seconds
+  }, 10 * 1000, 3, 'periodic_analytics_broadcast'); // Every 10 seconds, max 3 errors
 };
 
 export default setupStreamingSocket;

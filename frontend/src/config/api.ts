@@ -1,7 +1,5 @@
-// frontend/src/config/api.ts - VERSIÓN COMPLETA CON MÉTODOS PAGO/DOY
-// ========================================================================
-
 import axios from "axios";
+import type { Event, Venue, Gallera } from "../types";
 
 // Configuración base de la API
 export const API_BASE_URL =
@@ -86,7 +84,7 @@ export const eventsAPI = {
     operatorId?: string;
   }) => apiClient.post("/events", data),
 
-  update: (id: string, data: any) => apiClient.put(`/events/${id}`, data),
+  update: (id: string, data: Partial<Event>) => apiClient.put(`/events/${id}`, data),
 
   activate: (id: string) => apiClient.post(`/events/${id}/activate`),
 
@@ -200,7 +198,7 @@ export const walletAPI = {
   deposit: (data: {
     amount: number;
     paymentMethod: "card" | "transfer";
-    paymentData?: any;
+    paymentData?: Record<string, unknown>;
   }) => apiClient.post("/wallet/deposit", data),
 
   withdraw: (data: {
@@ -237,10 +235,10 @@ export const walletAPI = {
     dateTo?: string;
   }) => apiClient.get("/wallet/financial-metrics", { params }),
 
-  getRevenueBySource: (params?: any) =>
+  getRevenueBySource: (params?: Record<string, unknown>) =>
     apiClient.get("/wallet/revenue-by-source", { params }),
 
-  getRevenueTrends: (params?: any) =>
+  getRevenueTrends: (params?: Record<string, unknown>) =>
     apiClient.get("/wallet/revenue-trends", { params }),
   
   // Get wallet for specific user (admin only)
@@ -304,21 +302,7 @@ export const venuesAPI = {
     ownerId?: string;
   }) => apiClient.post("/venues", data),
 
-  update: (
-    id: string,
-    data: {
-      name?: string;
-      location?: string;
-      description?: string;
-      contactInfo?: {
-        email?: string;
-        phone?: string;
-        website?: string;
-        address?: string;
-      };
-      status?: string;
-    }
-  ) => apiClient.put(`/venues/${id}`, data),
+  update: (id: string, data: Partial<Venue>) => apiClient.put(`/venues/${id}`, data),
 
   updateStatus: (id: string, status: string, reason?: string) =>
     apiClient.put(`/venues/${id}/status`, { status, reason }),
@@ -338,9 +322,9 @@ export const gallerasAPI = {
     name: string;
     location: string;
     description?: string;
-    specialties?: any;
+    specialties?: Gallera['specialties'];
     activeRoosters?: number;
-    fightRecord?: any;
+    fightRecord?: Gallera['fightRecord'];
     ownerId?: string;
     contactInfo?: {
       email?: string;
@@ -350,26 +334,7 @@ export const gallerasAPI = {
     };
   }) => apiClient.post("/galleras", data),
 
-  update: (
-    id: string,
-    data: {
-      name?: string;
-      location?: string;
-      description?: string;
-      specialties?: any;
-      activeRoosters?: number;
-      fightRecord?: any;
-      images?: string[];
-      status?: string;
-      isVerified?: boolean;
-      contactInfo?: {
-        email?: string;
-        phone?: string;
-        website?: string;
-        address?: string;
-      };
-    }
-  ) => apiClient.put(`/galleras/${id}`, data),
+  update: (id: string, data: Partial<Gallera>) => apiClient.put(`/galleras/${id}`, data),
 
   updateStatus: (id: string, status: string, reason?: string) =>
     apiClient.put(`/galleras/${id}/status`, { status, reason }),
@@ -423,7 +388,7 @@ export const streamingAPI = {
   trackViewerEvent: (data: {
     eventId: string;
     event: string;
-    data?: any;
+    data?: Record<string, unknown>;
     timestamp: string;
   }) => apiClient.post("/streaming/analytics/event", data),
 };
@@ -454,7 +419,10 @@ export const usersAPI = {
     email: string;
     password: string;
     role: string;
-    profileInfo?: any;
+    profileInfo?: {
+      fullName?: string;
+      phoneNumber?: string;
+    };
   }) => apiClient.post("/users", data),
 
   updateStatus: (id: string, status: boolean, reason?: string) =>
@@ -464,11 +432,11 @@ export const usersAPI = {
     apiClient.put(`/users/${id}/role`, { role, reason }),
 
   // General update method (admin only)
-  update: (id: string, data: {
+  update: (id: string, data: { 
     username?: string;
     email?: string;
     role?: string;
-    profileInfo?: any;
+    profileInfo?: Record<string, unknown>;
   }) => apiClient.put(`/users/${id}`, data),
 
   getAvailableOperators: () => apiClient.get("/users/operators/available"),
@@ -542,9 +510,9 @@ export const systemAPI = {
 // Settings API for system configuration
 export const settingsAPI = {
   getAll: () => apiClient.get("/settings"),
-  update: (data: Record<string, any>) => apiClient.put("/settings", data),
+  update: (data: Record<string, unknown>) => apiClient.put("/settings", data),
   get: (key: string) => apiClient.get(`/settings/${key}`),
-  set: (key: string, value: any) => apiClient.put(`/settings/${key}`, { value })
+  set: (key: string, value: unknown) => apiClient.put(`/settings/${key}`, { value })
 };
 
 // Admin API for membership management

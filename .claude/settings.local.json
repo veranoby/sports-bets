@@ -47,7 +47,22 @@
       "Read(//home/veranoby/.claude/**)",
       "Read(//home/veranoby/**)",
       "mcp__qwen__ask-qwen",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "WebFetch(domain:github.com)",
+      "Read(//usr/**)",
+      "Bash(gemini:*)",
+      "Bash(qwen:*)",
+      "Bash(npm search:*)",
+      "Bash(ls:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_install",
+      "Bash(xargs sed:*)",
+      "Read(//tmp/**)",
+      "mcp__serena__write_memory",
+      "mcp__serena__activate_project",
+      "mcp__serena__read_file",
+      "mcp__serena__replace_regex",
+      "mcp__serena__find_file"
     ],
     "deny": [],
     "ask": []

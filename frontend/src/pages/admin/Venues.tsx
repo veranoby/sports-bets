@@ -24,7 +24,7 @@ import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
-import { usersAPI, venuesAPI } from "../../config/api";
+import { usersAPI, venuesAPI } from "../../services/api";
 
 // Tipos
 import type { User as UserType, Venue as VenueType } from "../../types";
@@ -48,15 +48,13 @@ const AdminVenuesPage: React.FC = () => {
 
   // Fetch de datos combinados
   const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      const [usersRes, venuesRes] = await Promise.all([
-        usersAPI.getAll({ role: "venue", limit: 1000 }),
-        venuesAPI.getAll({ limit: 1000 }),
-      ]);
+    const usersRes = await usersAPI.getAll({ role: "venue", limit: 1000 });
+    const venuesRes = await venuesAPI.getAll({ limit: 1000 });
 
+    if (usersRes.success && venuesRes.success) {
       const venueUsers = usersRes.data?.users || [];
       const allVenues = venuesRes.data?.venues || [];
 
@@ -73,11 +71,10 @@ const AdminVenuesPage: React.FC = () => {
       }));
 
       setCombinedData(combined);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading venue data");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(usersRes.error || venuesRes.error || "Error loading venue data");
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -114,22 +111,26 @@ const AdminVenuesPage: React.FC = () => {
       return;
     }
 
-    try {
-      setError(null);
-      
-      // Si hay venue asociado, eliminarlo primero
-      if (venueId) {
-        await venuesAPI.delete(venueId);
+    setError(null);
+    
+    // Si hay venue asociado, eliminarlo primero
+    if (venueId) {
+      const venueRes = await venuesAPI.delete(venueId);
+      if (!venueRes.success) {
+        setError(venueRes.error || 'Error eliminando venue');
+        return;
       }
-      
-      // Eliminar el usuario
-      await usersAPI.delete(userId);
-      
-      // Actualizar la lista
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error eliminando venue');
     }
+    
+    // Eliminar el usuario
+    const userRes = await usersAPI.delete(userId);
+    if (!userRes.success) {
+      setError(userRes.error || 'Error eliminando usuario');
+      return;
+    }
+    
+    // Actualizar la lista
+    fetchData();
   };
 
   const handleCreate = () => {

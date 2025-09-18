@@ -15,7 +15,7 @@ interface NewsItem {
 const fallbackNews: NewsItem[] = [
   {
     id: "fallback-1",
-    title: <>¡Bienvenido a Galleros<span className="text-red-500">.Net</span>!</>,
+    title: "¡Bienvenido a Galleros.Net!",
     content: "Disfruta de la mejor experiencia de apuestas en vivo.",
     published_at: new Date().toISOString(),
   },
@@ -40,7 +40,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         setLoading(true);
         const response = await articlesAPI.getFeatured({ limit: 5, type: 'banner' });
         
-        if (response?.data?.articles && response.data.articles.length > 0) {
+        if (response?.data?.data?.articles && response.data.articles.length > 0) {
           const articles = response.data.articles.map((article: any) => ({
             id: article.id,
             title: article.title,

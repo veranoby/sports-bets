@@ -72,7 +72,7 @@ const FightControl: React.FC<FightControlProps> = ({
         onFightUpdate({
           ...fight,
           status: 'betting',
-          bettingOpenedAt: response.data.bettingOpenedAt
+          bettingOpenedAt: (response.data as any)?.bettingOpenedAt || new Date().toISOString()
         });
       }
     } catch (error: unknown) {
@@ -95,7 +95,7 @@ const FightControl: React.FC<FightControlProps> = ({
         onFightUpdate({
           ...fight,
           status: 'live',
-          bettingClosedAt: response.data.bettingClosedAt
+          bettingClosedAt: (response.data as any)?.bettingClosedAt || new Date().toISOString()
         });
       }
     } catch (error: unknown) {

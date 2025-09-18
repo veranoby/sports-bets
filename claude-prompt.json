@@ -1,147 +1,51 @@
 {
-  "meta": {
-    "created_by": "Claude Code",
-    "timestamp": "2025-09-16T16:00:00Z",
-    "task_type": "typescript_error_correction_optimized",
-    "priority": "HIGH",
-    "estimated_time": "30-45 minutes",
-    "complexity": "MEDIUM",
-    "previous_results": "Reduced 499→436 errors (13% improvement) in 6 hours - Need optimization"
-  },
-  "context": {
-    "project": "GalloBets Frontend",
-    "current_state": "436 TypeScript/ESLint problems (407 errors, 29 warnings)",
-    "problem_analysis": {
-      "pattern_breakdown": {
-        "typescript_any_errors": "~300 occurrences - 75% of total errors",
-        "unused_variables": "~100 occurrences - 25% of total errors",
-        "react_hook_warnings": "~30 occurrences - dependency issues",
-        "fast_refresh_warnings": "~20 occurrences - export violations"
-      },
-      "efficiency_issue": "Previous 6-hour execution was too broad - need targeted micro-batches"
-    }
-  },
-  "task_specification": {
-    "objective": "SYSTEMATIC ERROR REDUCTION - Target 436→100 errors in 45 minutes",
-    "approach": "MICRO-BATCH STRATEGY - Small focused batches with immediate commits",
-    "success_criteria": {
-      "error_reduction": "Minimum 75% error reduction (436→109 or better)",
-      "time_efficiency": "Maximum 45 minutes execution time",
-      "progress_tracking": "Commit every 50 errors fixed",
-      "quality_gates": "Maintain existing functionality while fixing types"
-    }
-  },
-  "execution_phases": {
-    "phase_1": {
-      "name": "Quick Wins - Unused Variables (15 min)",
-      "target": "100 unused variable errors",
-      "method": "Remove unused imports and variables",
-      "files_to_focus": [
-        "src/pages/user/*.tsx",
-        "src/components/admin/*.tsx",
-        "src/components/forms/*.tsx"
+  "task": "Claude Strategic TypeScript Architecture & API Method Creation",
+  "priority": "critical",
+  "context": "After Qwen completes import standardization, Claude handles complex business logic and missing API methods",
+  "dependencies": ["qwen-prompt.json completion"],
+
+  "strategic_tasks": [
+    {
+      "task_id": "C1",
+      "description": "Create missing API methods in services/api.ts",
+      "methods_needed": [
+        "eventsAPI.update(id, data) -> ApiResponse<Event>",
+        "venuesAPI.update(id, data) -> ApiResponse<Venue>",
+        "venuesAPI.create(data) -> ApiResponse<Venue>",
+        "gallerasAPI.update(id, data) -> ApiResponse<Gallera>",
+        "gallerasAPI.create(data) -> ApiResponse<Gallera>"
       ],
-      "expected_reduction": "100 errors → 80 errors remaining",
-      "commit_point": "After completing this phase"
+      "business_logic": "Ensure proper validation, required fields, and error handling"
     },
-    "phase_2": {
-      "name": "TypeScript Any Types - High Impact Files (20 min)",
-      "target": "150 'any' type errors in critical files",
-      "method": "Replace 'any' with proper TypeScript interfaces",
-      "priority_files": [
-        "src/services/streamingService.ts",
-        "src/services/kushkiService.ts",
-        "src/services/api.ts",
-        "src/components/admin/CreateFightModal.tsx",
-        "src/components/admin/EditEventModal.tsx"
-      ],
-      "type_patterns": {
-        "api_responses": "Define response interfaces",
-        "form_data": "Use FormData or specific interfaces",
-        "event_handlers": "Use React.FormEvent, React.MouseEvent",
-        "error_objects": "Use Error or custom error interfaces"
-      },
-      "expected_reduction": "150 errors → 50 errors remaining",
-      "commit_point": "After completing this phase"
+    {
+      "task_id": "C2",
+      "description": "Fix complex interface mismatches",
+      "focus_areas": [
+        "Event interface extensions (currentViewers, activeBets, description)",
+        "User profile verification level requirements",
+        "Subscription type union fixes"
+      ]
     },
-    "phase_3": {
-      "name": "React Hook Dependencies (5 min)",
-      "target": "30 React Hook warnings",
-      "method": "Add missing dependencies or use useCallback",
-      "expected_reduction": "30 warnings → 5 warnings remaining",
-      "commit_point": "After completing this phase"
-    },
-    "phase_4": {
-      "name": "Fast Refresh Warnings (5 min)",
-      "target": "20 fast refresh warnings",
-      "method": "Move non-component exports to separate files",
-      "expected_reduction": "20 warnings → 0 warnings remaining",
-      "commit_point": "Final commit with clean build"
+    {
+      "task_id": "C3",
+      "description": "Navigation and hook fixes",
+      "areas": [
+        "useNavigate scope issues",
+        "WebSocket context type mismatches",
+        "Missing hook return properties"
+      ]
     }
-  },
-  "specific_instructions": {
-    "coding_standards": {
-      "typescript_interfaces": "Create proper interfaces instead of 'any'",
-      "react_best_practices": "Use proper event types and dependency arrays",
-      "import_optimization": "Remove unused imports, organize remaining",
-      "error_handling": "Use proper Error types instead of 'any'"
-    },
-    "efficiency_rules": {
-      "micro_batches": "Work on 15-20 files maximum per phase",
-      "immediate_commits": "Commit after each phase completion",
-      "progress_reporting": "Report error count reduction after each phase",
-      "time_boxing": "Stop phase after time limit, commit progress"
-    },
-    "quality_preservation": {
-      "no_functionality_changes": "Only fix types, don't change business logic",
-      "test_safety": "Don't modify any test files unless blocking build",
-      "component_structure": "Preserve existing component architecture"
-    }
-  },
-  "file_priority_matrix": {
-    "critical_services": [
-      "src/services/streamingService.ts",
-      "src/services/kushkiService.ts",
-      "src/services/api.ts"
-    ],
-    "high_impact_components": [
-      "src/components/admin/CreateFightModal.tsx",
-      "src/components/admin/EditEventModal.tsx",
-      "src/components/admin/FightStatusManager.tsx"
-    ],
-    "user_facing_pages": [
-      "src/pages/user/Profile.tsx",
-      "src/pages/user/Wallet.tsx",
-      "src/pages/user/Subscriptions.tsx"
-    ],
-    "forms_and_inputs": [
-      "src/components/forms/*.tsx"
-    ]
-  },
-  "commit_strategy": {
-    "commit_frequency": "Every phase completion (4 commits total)",
-    "commit_messages": [
-      "Phase 1: Remove unused variables and imports (100 errors fixed)",
-      "Phase 2: Replace 'any' types with proper interfaces (150 errors fixed)",
-      "Phase 3: Fix React Hook dependencies (30 warnings fixed)",
-      "Phase 4: Resolve fast refresh warnings (20 warnings fixed)"
-    ],
-    "final_validation": "Run 'npm run lint:commit' to confirm < 100 total problems"
-  },
-  "expected_outcomes": {
-    "error_reduction": "436 problems → ~75 problems (82% improvement)",
-    "build_status": "Clean TypeScript compilation",
-    "commit_readiness": "Pre-commit hooks pass without bypass",
-    "development_velocity": "Restored normal development workflow"
-  },
-  "prevention_measures": {
-    "future_ai_sessions": "Always run type check before declaring completion",
-    "development_workflow": "Enable 'strict' mode in tsconfig.json after cleanup",
-    "code_quality": "Establish 'any' type limits in ESLint configuration"
-  },
-  "rollback_plan": {
-    "if_stuck": "Commit partial progress and report specific blocker",
-    "if_time_exceeded": "Commit current phase and create reduced scope plan",
-    "if_build_broken": "Revert last commit and fix compilation first"
-  }
+  ],
+
+  "success_criteria": [
+    "Build errors <50 (safe for commit)",
+    "All critical business logic APIs functional",
+    "No breaking changes to existing functionality"
+  ],
+
+  "architecture_decisions": [
+    "Maintain ApiResponse<T> wrapper pattern",
+    "Preserve existing business logic flows",
+    "Ensure type safety for financial operations (betting)"
+  ]
 }

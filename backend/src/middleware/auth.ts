@@ -26,7 +26,12 @@ export const authenticate = async (
       throw errors.unauthorized('No token provided');
     }
 
+    console.log('Token received:', token);
+    console.log('JWT Secret:', process.env.JWT_SECRET);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    console.log('Decoded token:', decoded);
+    
     const user = await User.findByPk(decoded.userId);
     
     if (!user || !user.isActive) {
@@ -39,6 +44,7 @@ export const authenticate = async (
     req.user = user;
     next();
   } catch (error: any) {
+    console.log('Authentication error:', error.name, error.message);
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
       next(errors.unauthorized('Invalid or expired token'));
     } else {
@@ -64,17 +70,18 @@ export const authorize = (...roles: string[]) => {
 
 // Función para extraer token del header
 const extractToken = (req: Request): string | null => {
-  const authHeader = req.headers.authorization;
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  // Check for authorization header in multiple possible formats
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
-  
+
   // También buscar en cookies si es necesario
   if (req.cookies && req.cookies.token) {
     return req.cookies.token;
   }
-  
+
   return null;
 };
 

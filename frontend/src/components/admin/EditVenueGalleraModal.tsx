@@ -8,14 +8,29 @@ import ErrorMessage from '../shared/ErrorMessage';
 import SubscriptionTabs from './SubscriptionTabs';
 import { User, Building2, CreditCard, X, Info } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
+import type { User as UserType, Venue, Gallera } from '../../types';
 
 interface EditVenueGalleraModalProps {
-  user: User;
-  venue?: any;
+  user: UserType;
+  venue?: Venue | Gallera;
   role: 'venue' | 'gallera';
   onClose: () => void;
-  onSaved: (updatedData: { user: User; venue: any }) => void;
+  onSaved: (updatedData: { user: UserType; venue: Venue | Gallera }) => void;
 }
+
+type ProfileData = {
+  username: string;
+  email: string;
+  profileInfo: {
+      fullName: string;
+      phoneNumber: string;
+      address: string;
+      identificationNumber: string;
+  };
+  is_active: boolean;
+};
+
+type EntityData = Partial<Venue & Gallera>;
 
 const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({ 
   user, 
@@ -31,7 +46,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
   
   
   // Profile form data
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileData>({
     username: user?.username || '',
     email: user?.email || '',
     profileInfo: {
@@ -40,11 +55,11 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       address: user?.profileInfo?.address || '',
       identificationNumber: user?.profileInfo?.identificationNumber || ''
     },
-    is_active: user?.is_active !== false
+    is_active: user?.isActive !== false
   });
 
   // Entity form data
-  const [entityData, setEntityData] = useState({
+  const [entityData, setEntityData] = useState<EntityData>({
     name: venue?.name || '',
     location: venue?.location || '',
     description: venue?.description || '',
@@ -54,7 +69,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       website: '',
       address: ''
     },
-    status: venue?.status || 'pending'
+    status: (venue?.status || 'pending') as any
   });
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,19 +148,38 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         console.log('Creating new entity with data:', entityData);
         if (role === 'venue') {
           result = await venuesAPI.create({
-            ...entityData
+            name: entityData.name || 'New Venue',
+            location: entityData.location || 'Location TBD',
+            description: entityData.description,
+            contactInfo: entityData.contactInfo,
+            ownerId: user.id
           });
         } else {
           result = await gallerasAPI.create({
-            ...entityData
+            name: entityData.name || 'New Gallera',
+            location: entityData.location || 'Location TBD',
+            description: entityData.description,
+            contactInfo: entityData.contactInfo,
+            ownerId: user.id
           });
         }
       }
       
 
+      const updatedUser = {
+        ...user,
+        username: profileData.username,
+        email: profileData.email,
+        isActive: profileData.is_active,
+        profileInfo: {
+          ...profileData.profileInfo,
+          verificationLevel: user.profileInfo?.verificationLevel || 'none'
+        }
+      } as UserType;
+
       onSaved({
-        user: { ...user, ...profileData },
-        venue: result.data
+        user: updatedUser,
+        venue: result
       });
       
       // Show success message

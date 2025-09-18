@@ -39,7 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Verificar rol si se especifica
   const roles = allowedRoles || (requiredRole ? [requiredRole] : []);
   
-  if (roles.length > 0 && user?.role && !roles.includes(user.role as any)) {
+  if (roles.length > 0 && user?.role && !roles.includes(user.role)) {
     // Redirigir según el rol del usuario
     const roleRedirects = {
       admin: '/admin',

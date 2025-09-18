@@ -1,27 +1,30 @@
 // frontend/src/components/admin/EditEventModal.tsx
 import React, { useState, useEffect } from 'react';
-import { eventsAPI } from '../../config/api';
+import { eventsAPI } from '../../services/api';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
+import { type Event } from '../../types';
 
 interface EditEventModalProps {
-  event: any;
+  event: Event;
   onClose: () => void;
-  onEventUpdated: (updatedEvent: any) => void;
+  onEventUpdated: (updatedEvent: Event) => void;
 }
 
 const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEventUpdated }) => {
-  const [formData, setFormData] = useState(event);
+  const [formData, setFormData] = useState<Partial<Event>>(event);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setFormData(event);
+    // Format date for datetime-local input which requires 'YYYY-MM-DDTHH:mm'
+    const localDate = event.scheduledDate ? new Date(new Date(event.scheduledDate).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : '';
+    setFormData({ ...event, scheduledDate: localDate });
   }, [event]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -33,11 +36,20 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ event, onClose, onEvent
     setError(null);
 
     try {
-      const response = await eventsAPI.update(event.id, formData);
-      onEventUpdated(response.data);
+      const submissionData = {
+        ...formData,
+        scheduledDate: formData.scheduledDate ? new Date(formData.scheduledDate).toISOString() : undefined,
+      };
+      const response = await eventsAPI.update(event.id, submissionData);
+      if (response.success && response.data) {
+        onEventUpdated(response.data as Event);
+      } else {
+        throw new Error(response.error || 'Failed to update event');
+      }
       onClose();
-    } catch {
-      setError('Failed to update event. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update event. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

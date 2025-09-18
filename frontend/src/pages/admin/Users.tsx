@@ -8,7 +8,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
-import { usersAPI } from "../../config/api";
+import { usersAPI } from "../../services/api";
 import type { User } from "../../types";
 
 const AdminUsersPage: React.FC = () => {
@@ -21,16 +21,15 @@ const AdminUsersPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await usersAPI.getAll({ role: "user", limit: 1000 });
+    setLoading(true);
+    setError(null);
+    const res = await usersAPI.getAll({ role: "user", limit: 1000 });
+    if (res.success) {
       setUsers(res.data?.users || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading users");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(res.error || "Error loading users");
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -71,12 +70,13 @@ const AdminUsersPage: React.FC = () => {
     if (!window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
       return;
     }
-    try {
-      setError(null);
-      await usersAPI.delete(userId);
+    
+    setError(null);
+    const res = await usersAPI.delete(userId);
+    if (res.success) {
       setUsers(users.filter(u => u.id !== userId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error eliminando usuario');
+    } else {
+      setError(res.error || 'Error eliminando usuario');
     }
   };
 

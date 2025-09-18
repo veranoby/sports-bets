@@ -4,12 +4,17 @@ config(); // ← CRÍTICO: DEBE IR AQUÍ
 import { Sequelize } from "sequelize";
 import { logger } from "./logger";
 
+// Configuration for database optimization as per task_3_database_optimization
+const MAX_CONNECTIONS = 15; // As specified in qwen-prompt.json
+const CONNECTION_TIMEOUT_MS = 30000; // 30 seconds
+const IDLE_CONNECTION_CLEANUP_MS = 10000; // 10 seconds
+
 // Configuración optimizada para Neon.tech con timeouts extendidos
 const poolSettings = {
-  max: 5,         // Maximum connections in pool (reduced for Neon.tech)
+  max: MAX_CONNECTIONS,         // Maximum connections in pool (reduced for Neon.tech)
   min: 0,         // Minimum connections to maintain (reduced to prevent timeout issues)
-  acquire: 120000, // Maximum time (ms) to wait for connection (2 minutes)
-  idle: 60000,    // Maximum time (ms) connection can be idle (1 minute)
+  acquire: CONNECTION_TIMEOUT_MS, // Maximum time (ms) to wait for connection (2 minutes)
+  idle: IDLE_CONNECTION_CLEANUP_MS,    // Maximum time (ms) connection can be idle (1 minute)
   evict: 30000    // Run eviction every 30 seconds
 };
 

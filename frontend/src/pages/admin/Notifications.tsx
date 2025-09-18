@@ -26,7 +26,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 
 // APIs
-import { notificationsAPI } from "../../config/api";
+import { notificationsAPI } from "../../services/api";
 
 interface Notification {
   id: string;

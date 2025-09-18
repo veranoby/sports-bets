@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Square, Settings, Users, Activity, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import Card from '../shared/Card';
-import { streamingAPI } from '../../config/api';
+import { streamingAPI } from '../../services/api';
 
 interface StreamStatus {
   isLive: boolean;
@@ -65,11 +65,11 @@ const StreamControls: React.FC<StreamControlsProps> = ({
   // Fetch stream status
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await streamingAPI.getStatus();
+      const response = await streamingAPI.getStatus('default-stream');
       // Update status based on API response
       setStatus(prev => ({
         ...prev,
-        ...response.data
+        ...(response.data || {})
       }));
     } catch (err) {
       console.error('Failed to fetch stream status:', err);
@@ -100,18 +100,15 @@ const StreamControls: React.FC<StreamControlsProps> = ({
     setError(null);
 
     try {
-      const response = await streamingAPI.startStream({
-        ...config,
-        eventId
-      });
+      const response = await streamingAPI.startStream(eventId);
 
       setStatus(prev => ({
         ...prev,
         isLive: true,
-        streamId: response.data.streamId,
-        rtmpUrl: response.data.rtmpUrl,
-        streamKey: response.data.streamKey,
-        hlsUrl: response.data.hlsUrl,
+        streamId: response.data?.streamId || '',
+        rtmpUrl: response.data?.rtmpUrl || '',
+        streamKey: response.data?.streamKey || '',
+        hlsUrl: response.data?.hlsUrl || '',
         health: 'healthy'
       }));
 
@@ -131,7 +128,7 @@ const StreamControls: React.FC<StreamControlsProps> = ({
     setError(null);
 
     try {
-      await streamingAPI.stopStream(status.streamId);
+      await streamingAPI.stopStream(status.streamId || 'default-stream');
       
       setStatus(prev => ({
         ...prev,

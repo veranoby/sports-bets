@@ -1,304 +1,430 @@
-// frontend/src/components/admin/EventWorkflowControls.tsx
-// Event Workflow Controls - Uses new PATCH endpoints for event status transitions
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Card, Space, Tag, Typography, message, Modal, Select, Input } from 'antd';
+import { 
+  PlayCircleOutlined, 
+  PauseCircleOutlined, 
+  CheckCircleOutlined, 
+  ClockCircleOutlined,
+  ExclamationCircleOutlined,
+  UserOutlined,
+  TeamOutlined
+} from '@ant-design/icons';
+import { eventAPI, fightAPI } from '../../services/api';
+import { useWebSocketContext } from '../../contexts/WebSocketContext';
+import type { Event, Fight } from '../../types';
 
-import React, { useState } from 'react';
-import {
-  Play,
-  CheckCircle,
-  XCircle,
-  Activity,
-  AlertTriangle,
-  Clock,
-  Loader2
-} from 'lucide-react';
-import useSSE from '../../hooks/useSSE';
-
-interface Event {
-  id: string;
-  name: string;
-  scheduledDate: string;
-  status: "scheduled" | "in-progress" | "completed" | "cancelled";
-  venueId: string;
-  operatorId?: string;
-  totalFights: number;
-  completedFights: number;
-  totalBets: number;
-  totalPrizePool: number;
-  streamUrl?: string;
-  streamKey?: string;
-  streamStatus?: "offline" | "live" | "error";
-  venue?: {
-    name: string;
-    location: string;
-  };
-  operator?: {
-    username: string;
-    email: string;
-  };
-  creator?: {
-    username: string;
-  };
-}
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 interface EventWorkflowControlsProps {
   event: Event;
-  onEventUpdated: (updatedEvent: Event) => void;
-  disabled?: boolean;
-  className?: string;
+  onEventUpdate: (updatedEvent: Event) => void;
 }
 
-const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
-  event,
-  onEventUpdated,
-  disabled = false,
-  className = ""
-}) => {
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, onEventUpdate }) => {
+  const { isConnected, emit } = useWebSocketContext();
+  const [loading, setLoading] = useState(false);
+  const [selectedFight, setSelectedFight] = useState<string>('');
+  const [fightResult, setFightResult] = useState<'red' | 'blue' | 'draw' | null>(null);
+  const [isAssigningOperator, setIsAssigningOperator] = useState(false);
+  const [operatorId, setOperatorId] = useState<string>('');
+  const [fights, setFights] = useState<Fight[]>([]);
 
-  // SSE for real-time event updates
-  interface EventSSEData {
-    eventId: string;
-    data: {
-      status: string;
-      streamUrl?: string;
-      streamKey?: string;
-    };
-  }
-
-  const eventSSE = useSSE<EventSSEData>(`/api/sse/events/${event.id}/status`);
-
-  // Handle SSE updates
-  React.useEffect(() => {
-    if (eventSSE.data && eventSSE.data.eventId === event.id) {
-      const { status, streamUrl, streamKey } = eventSSE.data.data;
-      onEventUpdated({
-        ...event,
-        status: status as "scheduled" | "in-progress" | "completed" | "cancelled",
-        streamUrl,
-        streamKey
-      });
-    }
-  }, [eventSSE.data, event, onEventUpdated]);
-
-  // Handle event status actions using new PATCH endpoints
-  const handleEventAction = async (action: 'activate' | 'complete' | 'cancel') => {
-    try {
-      setOperationInProgress(action);
-      setError(null);
-
-      // Use new PATCH endpoint
-      const response = await fetch(`/api/events/${event.id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ action })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${action} event`);
+  // Load fights for the event
+  useEffect(() => {
+    const loadFights = async () => {
+      try {
+        const response = await fightAPI.getFightsByEvent(event.id);
+        setFights(response.data);
+      } catch (error) {
+        console.error('Failed to load fights:', error);
+        message.error('Failed to load fights');
       }
+    };
 
-      const result = await response.json();
+    if (event.id) {
+      loadFights();
+    }
+  }, [event.id]);
 
-      // Update event with response data
-      if (result.success && result.data) {
-        onEventUpdated({
-          ...event,
-          ...result.data.event,
-          streamKey: result.data.streamKey,
-          streamUrl: result.data.streamUrl
+  // Handle real-time updates
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const handleEventUpdate = (data: any) => {
+      if (data.eventId === event.id) {
+        onEventUpdate({ ...event, ...data });
+      }
+    };
+
+    const handleFightUpdate = (data: any) => {
+      if (data.eventId === event.id) {
+        setFights(prev => prev.map(fight => 
+          fight.id === data.fightId ? { ...fight, ...data } : fight
+        ));
+      }
+    };
+
+    // In a real implementation, you would use the WebSocket context's addListener method
+    // For this example, we'll use a simplified approach
+    // const cleanupEvent = addListener('event_status_update', handleEventUpdate);
+    // const cleanupFight = addListener('fight_status_update', handleFightUpdate);
+
+    // return () => {
+    //   cleanupEvent();
+    //   cleanupFight();
+    // };
+  }, [event.id, isConnected, onEventUpdate]);
+
+  const updateEventStatus = useCallback(async (status: Event['status']) => {
+    setLoading(true);
+    try {
+      const response = await eventAPI.updateEventStatus(event.id, status);
+      onEventUpdate(response.data);
+      message.success(`Event status updated to ${status}`);
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('event_status_update', {
+          eventId: event.id,
+          status,
+          timestamp: new Date().toISOString()
         });
       }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : `Error during ${action}`;
-      setError(errorMessage);
-      console.error(`Error during ${action}:`, err);
+    } catch (error) {
+      console.error('Failed to update event status:', error);
+      message.error('Failed to update event status');
     } finally {
-      setOperationInProgress(null);
+      setLoading(false);
     }
-  };
+  }, [event.id, onEventUpdate, isConnected, emit]);
 
-  // Validate if transition is allowed
-  const canActivate = event.status === "scheduled" && event.totalFights > 0;
-  const canComplete = event.status === "in-progress";
-  const canCancel = event.status !== "completed";
-
-  const StatusBadge = ({ status }: { status: string }) => {
-    const configs = {
-      scheduled: {
-        bg: "bg-gray-100",
-        text: "text-gray-800",
-        icon: Clock,
-        label: "Programado"
-      },
-      "in-progress": {
-        bg: "bg-blue-100",
-        text: "text-blue-800",
-        icon: Activity,
-        label: "En Progreso"
-      },
-      completed: {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        icon: CheckCircle,
-        label: "Completado"
-      },
-      cancelled: {
-        bg: "bg-red-100",
-        text: "text-red-800",
-        icon: XCircle,
-        label: "Cancelado"
+  const createFight = useCallback(async (fightData: Partial<Fight>) => {
+    setLoading(true);
+    try {
+      const response = await fightAPI.createFight({
+        eventId: event.id,
+        ...fightData
+      });
+      setFights(prev => [...prev, response.data]);
+      message.success('Fight created successfully');
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('fight_created', {
+          eventId: event.id,
+          fight: response.data,
+          timestamp: new Date().toISOString()
+        });
       }
-    };
+    } catch (error) {
+      console.error('Failed to create fight:', error);
+      message.error('Failed to create fight');
+    } finally {
+      setLoading(false);
+    }
+  }, [event.id, isConnected, emit]);
 
-    const config = configs[status as keyof typeof configs] || configs.scheduled;
-    const Icon = config.icon;
+  const updateFightStatus = useCallback(async (fightId: string, status: Fight['status']) => {
+    setLoading(true);
+    try {
+      const response = await fightAPI.updateFightStatus(fightId, status);
+      setFights(prev => prev.map(fight => 
+        fight.id === fightId ? response.data : fight
+      ));
+      message.success(`Fight status updated to ${status}`);
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('fight_status_update', {
+          eventId: event.id,
+          fightId,
+          status,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update fight status:', error);
+      message.error('Failed to update fight status');
+    } finally {
+      setLoading(false);
+    }
+  }, [event.id, isConnected, emit]);
 
-    return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </span>
-    );
+  const assignFightResult = useCallback(async (fightId: string, result: 'red' | 'blue' | 'draw') => {
+    setLoading(true);
+    try {
+      const response = await fightAPI.assignFightResult(fightId, result);
+      setFights(prev => prev.map(fight => 
+        fight.id === fightId ? response.data : fight
+      ));
+      message.success('Fight result assigned');
+      setFightResult(null);
+      setSelectedFight('');
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('fight_result_assigned', {
+          eventId: event.id,
+          fightId,
+          result,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Failed to assign fight result:', error);
+      message.error('Failed to assign fight result');
+    } finally {
+      setLoading(false);
+    }
+  }, [event.id, isConnected, emit]);
+
+  const assignOperator = useCallback(async () => {
+    if (!operatorId) {
+      message.error('Please select an operator');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await eventAPI.assignOperator(event.id, operatorId);
+      onEventUpdate(response.data);
+      message.success('Operator assigned successfully');
+      setIsAssigningOperator(false);
+      setOperatorId('');
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('operator_assigned', {
+          eventId: event.id,
+          operatorId,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Failed to assign operator:', error);
+      message.error('Failed to assign operator');
+    } finally {
+      setLoading(false);
+    }
+  }, [event.id, operatorId, onEventUpdate, isConnected, emit]);
+
+  const generateStreamKey = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await eventAPI.generateStreamKey(event.id);
+      onEventUpdate(response.data);
+      message.success('Stream key generated successfully');
+      
+      // Emit real-time update
+      if (isConnected) {
+        emit('stream_key_generated', {
+          eventId: event.id,
+          streamKey: response.data.streamKey,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Failed to generate stream key:', error);
+      message.error('Failed to generate stream key');
+    } finally {
+      setLoading(false);
+    }
+  }, [event.id, onEventUpdate, isConnected, emit]);
+
+  const getStatusTag = (status: string) => {
+    switch (status) {
+      case 'scheduled':
+        return <Tag icon={<ClockCircleOutlined />} color="default">Scheduled</Tag>;
+      case 'in-progress':
+        return <Tag icon={<PlayCircleOutlined />} color="processing">In Progress</Tag>;
+      case 'completed':
+        return <Tag icon={<CheckCircleOutlined />} color="success">Completed</Tag>;
+      default:
+        return <Tag>{status}</Tag>;
+    }
   };
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+    <Card title="Event Workflow Controls" size="small">
+      <Space direction="vertical" style={{ width: '100%' }}>
+        {/* Event Status Controls */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Control de Workflow</h3>
-          <p className="text-sm text-gray-600">
-            Gestiona las transiciones de estado del evento
-          </p>
+          <Title level={5}>Event Status</Title>
+          <Space>
+            {getStatusTag(event.status)}
+            {event.status === 'scheduled' && (
+              <Button 
+                type="primary" 
+                icon={<PlayCircleOutlined />}
+                onClick={() => updateEventStatus('in-progress')}
+                loading={loading}
+              >
+                Start Event
+              </Button>
+            )}
+            {event.status === 'in-progress' && (
+              <Button 
+                type="primary" 
+                icon={<CheckCircleOutlined />}
+                onClick={() => updateEventStatus('completed')}
+                loading={loading}
+              >
+                Complete Event
+              </Button>
+            )}
+          </Space>
         </div>
-        <StatusBadge status={event.status} />
-      </div>
 
-      {/* Transition Flow Indicator */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-          <span>Programado</span>
-          <span>En Progreso</span>
-          <span>Completado</span>
+        {/* Stream Key */}
+        <div>
+          <Title level={5}>Stream Key</Title>
+          <Space>
+            <Text code>{event.streamKey || 'Not generated'}</Text>
+            {!event.streamKey && event.status === 'in-progress' && (
+              <Button onClick={generateStreamKey} loading={loading}>
+                Generate Key
+              </Button>
+            )}
+          </Space>
         </div>
-        <div className="flex items-center">
-          <div className={`flex-1 h-2 rounded-l ${
-            event.status === "scheduled" ? "bg-gray-300" : "bg-blue-500"
-          }`}></div>
-          <div className={`w-3 h-3 rounded-full border-2 ${
-            event.status === "scheduled" ? "bg-gray-300 border-gray-400" :
-            event.status === "in-progress" ? "bg-blue-500 border-blue-600" :
-            "bg-green-500 border-green-600"
-          }`}></div>
-          <div className={`flex-1 h-2 ${
-            event.status === "completed" ? "bg-green-500" :
-            event.status === "in-progress" ? "bg-blue-500" : "bg-gray-300"
-          }`}></div>
-          <div className={`w-3 h-3 rounded-full border-2 ${
-            event.status === "completed" ? "bg-green-500 border-green-600" :
-            "bg-gray-300 border-gray-400"
-          }`}></div>
-          <div className={`flex-1 h-2 rounded-r ${
-            event.status === "completed" ? "bg-green-500" : "bg-gray-300"
-          }`}></div>
-        </div>
-      </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-3">
-        {/* Activate Button */}
-        {canActivate && (
-          <button
-            onClick={() => handleEventAction('activate')}
-            disabled={disabled || operationInProgress === 'activate' || !canActivate}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {operationInProgress === 'activate' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+        {/* Operator Assignment */}
+        <div>
+          <Title level={5}>Operator</Title>
+          <Space>
+            {event.operator ? (
+              <Tag icon={<UserOutlined />} color="blue">
+                {event.operator.username}
+              </Tag>
             ) : (
-              <Play className="w-4 h-4" />
+              <Tag icon={<ExclamationCircleOutlined />} color="warning">
+                Not assigned
+              </Tag>
             )}
-            {operationInProgress === 'activate' ? 'Activando...' : 'Activar Evento'}
-          </button>
-        )}
-
-        {/* Complete Button */}
-        {canComplete && (
-          <button
-            onClick={() => handleEventAction('complete')}
-            disabled={disabled || operationInProgress === 'complete' || !canComplete}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {operationInProgress === 'complete' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-            {operationInProgress === 'complete' ? 'Finalizando...' : 'Finalizar Evento'}
-          </button>
-        )}
-
-        {/* Cancel Button */}
-        {canCancel && (
-          <button
-            onClick={() => handleEventAction('cancel')}
-            disabled={disabled || operationInProgress === 'cancel' || !canCancel}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {operationInProgress === 'cancel' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <XCircle className="w-4 h-4" />
-            )}
-            {operationInProgress === 'cancel' ? 'Cancelando...' : 'Cancelar Evento'}
-          </button>
-        )}
-      </div>
-
-      {/* Stream Info */}
-      {event.status === "in-progress" && event.streamUrl && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-blue-600" />
-            <p className="text-sm font-medium text-blue-800">Evento Activo</p>
-          </div>
-          <div className="text-xs text-blue-700">
-            <p><strong>Stream URL:</strong> {event.streamUrl}</p>
-            {event.streamKey && (
-              <p><strong>Stream Key:</strong> {event.streamKey}</p>
-            )}
-          </div>
+            <Button onClick={() => setIsAssigningOperator(true)}>
+              Assign Operator
+            </Button>
+          </Space>
         </div>
-      )}
 
-      {/* Validation Messages */}
-      {event.status === "scheduled" && event.totalFights === 0 && (
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-yellow-600" />
-            <p className="text-sm text-yellow-700">
-              Se requiere al menos una pelea para activar el evento
-            </p>
-          </div>
+        {/* Fight Controls */}
+        <div>
+          <Title level={5}>Fights</Title>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {fights.map(fight => (
+              <Card 
+                key={fight.id} 
+                size="small" 
+                title={`Fight #${fight.number}`}
+                extra={getStatusTag(fight.status)}
+              >
+                <Space>
+                  {fight.status === 'upcoming' && (
+                    <Button 
+                      size="small"
+                      onClick={() => updateFightStatus(fight.id, 'betting')}
+                    >
+                      Open Betting
+                    </Button>
+                  )}
+                  {fight.status === 'betting' && (
+                    <Button 
+                      size="small"
+                      type="primary"
+                      onClick={() => updateFightStatus(fight.id, 'live')}
+                    >
+                      Start Fight
+                    </Button>
+                  )}
+                  {fight.status === 'live' && (
+                    <Button 
+                      size="small"
+                      type="primary"
+                      danger
+                      onClick={() => {
+                        setSelectedFight(fight.id);
+                        setFightResult(null);
+                      }}
+                    >
+                      End Fight
+                    </Button>
+                  )}
+                  {fight.result && (
+                    <Tag icon={<CheckCircleOutlined />} color="success">
+                      Result: {fight.result}
+                    </Tag>
+                  )}
+                </Space>
+              </Card>
+            ))}
+            <Button 
+              type="dashed" 
+              onClick={() => createFight({})}
+              disabled={event.status !== 'in-progress'}
+            >
+              Add New Fight
+            </Button>
+          </Space>
         </div>
-      )}
-    </div>
+      </Space>
+
+      {/* Assign Operator Modal */}
+      <Modal
+        title="Assign Operator"
+        open={isAssigningOperator}
+        onOk={assignOperator}
+        onCancel={() => setIsAssigningOperator(false)}
+        confirmLoading={loading}
+      >
+        <Select
+          style={{ width: '100%' }}
+          placeholder="Select operator"
+          value={operatorId}
+          onChange={setOperatorId}
+        >
+          {/* In a real implementation, you would fetch operators from the API */}
+          <Option value="operator1">Operator 1</Option>
+          <Option value="operator2">Operator 2</Option>
+        </Select>
+      </Modal>
+
+      {/* Assign Fight Result Modal */}
+      <Modal
+        title="Assign Fight Result"
+        open={!!selectedFight}
+        onOk={() => fightResult && assignFightResult(selectedFight, fightResult)}
+        onCancel={() => {
+          setSelectedFight('');
+          setFightResult(null);
+        }}
+        confirmLoading={loading}
+      >
+        <Space direction="vertical">
+          <Text>Select the winner:</Text>
+          <Space>
+            <Button 
+              type={fightResult === 'red' ? 'primary' : 'default'}
+              onClick={() => setFightResult('red')}
+            >
+              Red Wins
+            </Button>
+            <Button 
+              type={fightResult === 'blue' ? 'primary' : 'default'}
+              onClick={() => setFightResult('blue')}
+            >
+              Blue Wins
+            </Button>
+            <Button 
+              type={fightResult === 'draw' ? 'primary' : 'default'}
+              onClick={() => setFightResult('draw')}
+            >
+              Draw
+            </Button>
+          </Space>
+        </Space>
+      </Modal>
+    </Card>
   );
 };
 

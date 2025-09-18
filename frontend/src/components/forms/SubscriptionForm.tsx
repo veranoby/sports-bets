@@ -5,19 +5,26 @@ import React, { useState } from 'react';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import ErrorMessage from '../shared/ErrorMessage';
 import { CreditCard, Crown } from 'lucide-react';
+import type { UserSubscription } from '../../types';
+
+interface SubscriptionFormData {
+  planType: 'daily' | 'monthly';
+  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  action: 'none' | 'create' | 'cancel' | 'renew';
+}
 
 interface SubscriptionFormProps {
   userId: string;
-  subscription?: any;
-  onSave: (subscriptionData: any) => void;
+  subscription?: UserSubscription;
+  onSave: (subscriptionData: Partial<UserSubscription>) => void;
   onCancel: () => void;
 }
 
 const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscription, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    planType: subscription?.planType || 'daily',
-    status: subscription?.status || 'inactive',
-    action: 'none' as 'none' | 'create' | 'cancel' | 'renew'
+  const [formData, setFormData] = useState<SubscriptionFormData>({
+    planType: (subscription?.type === 'free' ? 'daily' : subscription?.type) || 'daily',
+    status: 'cancelled' as const,
+    action: 'none'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +62,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
       // Simular guardado
       onSave({
         ...subscription,
-        planType: formData.planType,
+        type: formData.planType,
         status: formData.action === 'cancel' ? 'cancelled' : formData.status
       });
     } catch (err) {
@@ -94,7 +101,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Plan:</span>
               <span className="font-medium">
-                {subscription.planType === 'daily' ? '📅 Diario' : '📆 Mensual'}
+                {subscription.type === 'daily' ? '📅 Diario' : '📆 Mensual'}
               </span>
             </div>
             <div className="flex items-center justify-between">

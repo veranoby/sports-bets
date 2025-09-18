@@ -10,7 +10,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { authAPI, usersAPI } from "../config/api";
+import { authAPI, usersAPI } from "../services/api";
 import type { User } from "../types";
 
 // Tipos locales para respuestas del backend
@@ -101,24 +101,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 🔧 MEJORA: No setear isLoading inmediatamente para evitar re-renders
         // que puedan interfierir con el manejo de errores en el componente
 
-        const response = (await authAPI.login(credentials)) as unknown as {
-          success: boolean;
-          data: { user: User; token: string };
-        };
+        const response = await authAPI.login(credentials);
 
-        const { token: authToken } = response.data;
+        if (response.success) {
+          const { token: authToken } = response.data; // Backend response now direct
 
-        // Guardar token y luego cargar perfil unificado (incluye subscription)
-        setToken(authToken);
-        localStorage.setItem("token", authToken);
+          // Guardar token y luego cargar perfil unificado (incluye subscription)
+          localStorage.setItem("token", authToken);
+          setToken(authToken);
 
-        try {
-          const me = (await usersAPI.getProfile()) as unknown as ProfileResponse;
-          const u = me.data.user as User;
-          setUser({ ...u, subscription: me.data.subscription });
-        } catch {
-          // Si falla el fetch del perfil, al menos mantener usuario básico del login
-          setUser(response.data.user);
+          // Small delay to ensure axios interceptor can pick up the token
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          try {
+            const me = await usersAPI.getProfile();
+            if (me.success) {
+              const u = me.data.user as User;
+              setUser({ ...u, subscription: me.data.subscription });
+            }
+          } catch {
+            // Si falla el fetch del perfil, al menos mantener usuario básico del login
+            setUser(response.data.user); // Fixed: user is in data.data, not data
+          }
+        } else {
+          throw new Error(response.error || "Error al iniciar sesión");
         }
       } catch (error: unknown) {
         console.error("Login error:", error);
@@ -143,23 +149,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isOperatingRef.current = true;
 
       try {
-        const response = (await authAPI.register(userData)) as unknown as {
-          success: boolean;
-          data: { user: User; token: string };
-        };
+        const response = await authAPI.register(userData);
 
-        const { token: authToken } = response.data;
+        if (response.success) {
+          const { token: authToken } = response.data; // Backend response now direct
 
-        setToken(authToken);
-        localStorage.setItem("token", authToken);
+          setToken(authToken);
+          localStorage.setItem("token", authToken);
 
-        try {
-          const me = (await usersAPI.getProfile()) as unknown as ProfileResponse;
-          const u = me.data.user as User;
-          setUser({ ...u, subscription: me.data.subscription });
-        } catch {
-          // fallback a user devuelto por register
-          setUser(response.data.user);
+          try {
+            const me = await usersAPI.getProfile();
+            if (me.success) {
+              const u = me.data.user as User;
+              setUser({ ...u, subscription: me.data.subscription });
+            }
+          } catch {
+            // fallback a user devuelto por register
+            setUser(response.data.user); // Fixed: user is in data.data
+          }
+        } else {
+          throw new Error(response.error || "Error al registrarse");
         }
       } catch (error: unknown) {
         console.error("Register error:", error);
@@ -188,9 +197,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!token || isOperatingRef.current) return;
 
     try {
-      const response = (await usersAPI.getProfile()) as unknown as ProfileResponse;
-      const u = response.data.user as User;
-      setUser({ ...u, subscription: response.data.subscription });
+      const response = await usersAPI.getProfile();
+      if (response.success) {
+        const u = response.data.user as User;
+        setUser({ ...u, subscription: response.data.subscription });
+      }
     } catch (error) {
       console.error("Error refreshing user:", error);
       logout();
