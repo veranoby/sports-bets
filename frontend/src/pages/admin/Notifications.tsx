@@ -57,7 +57,9 @@ const NotificationsAdminPage: React.FC = () => {
   // Estados para creación/edición
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentNotification, setCurrentNotification] = useState<Partial<Notification>>({});
+  const [currentNotification, setCurrentNotification] = useState<
+    Partial<Notification>
+  >({});
 
   // Estados para filtrado
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +68,9 @@ const NotificationsAdminPage: React.FC = () => {
   const [priorityFilter, setPriorityFilter] = useState("");
 
   // Estados operativos
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  );
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
@@ -81,7 +85,9 @@ const NotificationsAdminPage: React.FC = () => {
 
       setNotifications(response.data?.notifications || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading notifications");
+      setError(
+        err instanceof Error ? err.message : "Error loading notifications",
+      );
     } finally {
       setLoading(false);
     }
@@ -97,14 +103,14 @@ const NotificationsAdminPage: React.FC = () => {
       setSuccessMsg("Notificación enviada exitosamente");
       setIsCreateModalOpen(false);
       setCurrentNotification({});
-      
+
       // Recargar lista
       fetchNotifications();
     } catch (err) {
       setError(
         `Error al enviar notificación: ${
           err instanceof Error ? err.message : "Error desconocido"
-        }`
+        }`,
       );
     } finally {
       setOperationInProgress(null);
@@ -112,26 +118,28 @@ const NotificationsAdminPage: React.FC = () => {
   };
 
   // Programar notificación
-  const scheduleNotification = async (notificationData: Partial<Notification>) => {
+  const scheduleNotification = async (
+    notificationData: Partial<Notification>,
+  ) => {
     try {
       setOperationInProgress("scheduling");
 
       const response = await notificationsAPI.create({
         ...notificationData,
-        status: "scheduled"
+        status: "scheduled",
       });
 
       setSuccessMsg("Notificación programada exitosamente");
       setIsCreateModalOpen(false);
       setCurrentNotification({});
-      
+
       // Recargar lista
       fetchNotifications();
     } catch (err) {
       setError(
         `Error al programar notificación: ${
           err instanceof Error ? err.message : "Error desconocido"
-        }`
+        }`,
       );
     } finally {
       setOperationInProgress(null);
@@ -146,14 +154,14 @@ const NotificationsAdminPage: React.FC = () => {
       await notificationsAPI.delete(notificationId);
 
       setSuccessMsg("Notificación eliminada exitosamente");
-      
+
       // Recargar lista
       fetchNotifications();
     } catch (err) {
       setError(
         `Error al eliminar notificación: ${
           err instanceof Error ? err.message : "Error desconocido"
-        }`
+        }`,
       );
     } finally {
       setOperationInProgress(null);
@@ -161,12 +169,14 @@ const NotificationsAdminPage: React.FC = () => {
   };
 
   // Filtrar notificaciones
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification) => {
     // Filtrar por término de búsqueda
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      if (!notification.title.toLowerCase().includes(term) && 
-          !notification.message.toLowerCase().includes(term)) {
+      if (
+        !notification.title.toLowerCase().includes(term) &&
+        !notification.message.toLowerCase().includes(term)
+      ) {
         return false;
       }
     }
@@ -230,9 +240,12 @@ const NotificationsAdminPage: React.FC = () => {
       failed: { text: "Fallida", color: "bg-red-100 text-red-800" },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
+      >
         {config.text}
       </span>
     );
@@ -247,9 +260,13 @@ const NotificationsAdminPage: React.FC = () => {
       urgent: { text: "Urgente", color: "bg-red-100 text-red-800" },
     };
 
-    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.low;
+    const config =
+      priorityConfig[priority as keyof typeof priorityConfig] ||
+      priorityConfig.low;
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
+      >
         {config.text}
       </span>
     );
@@ -283,9 +300,12 @@ const NotificationsAdminPage: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Notificaciones</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Gestión de Notificaciones
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Envía notificaciones del sistema, programa anuncios y monitorea el historial
+            Envía notificaciones del sistema, programa anuncios y monitorea el
+            historial
           </p>
         </div>
         <button
@@ -345,7 +365,7 @@ const NotificationsAdminPage: React.FC = () => {
                 </dt>
                 <dd className="flex items-baseline">
                   <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.filter(n => n.status === "sent").length}
+                    {notifications.filter((n) => n.status === "sent").length}
                   </div>
                 </dd>
               </dl>
@@ -365,7 +385,10 @@ const NotificationsAdminPage: React.FC = () => {
                 </dt>
                 <dd className="flex items-baseline">
                   <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.filter(n => n.status === "scheduled").length}
+                    {
+                      notifications.filter((n) => n.status === "scheduled")
+                        .length
+                    }
                   </div>
                 </dd>
               </dl>
@@ -385,7 +408,7 @@ const NotificationsAdminPage: React.FC = () => {
                 </dt>
                 <dd className="flex items-baseline">
                   <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.filter(n => n.status === "failed").length}
+                    {notifications.filter((n) => n.status === "failed").length}
                   </div>
                 </dd>
               </dl>
@@ -463,7 +486,10 @@ const NotificationsAdminPage: React.FC = () => {
           ) : (
             <ul className="divide-y divide-gray-200">
               {filteredNotifications.map((notification) => (
-                <li key={notification.id} className="px-6 py-4 hover:bg-gray-50">
+                <li
+                  key={notification.id}
+                  className="px-6 py-4 hover:bg-gray-50"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center min-w-0">
                       <div className="flex-shrink-0">
@@ -529,8 +555,11 @@ const NotificationsAdminPage: React.FC = () => {
       {isCreateModalOpen && (
         <div className="fixed inset-0 overflow-y-auto z-50">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div 
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div
                 className="absolute inset-0 bg-gray-500 opacity-75"
                 onClick={() => {
                   setIsCreateModalOpen(false);
@@ -540,7 +569,12 @@ const NotificationsAdminPage: React.FC = () => {
               ></div>
             </div>
 
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
 
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
@@ -549,22 +583,31 @@ const NotificationsAdminPage: React.FC = () => {
                     {isEditing ? "Editar Notificación" : "Nueva Notificación"}
                   </h3>
                   <div className="mt-4">
-                    <form 
+                    <form
                       onSubmit={(e) => {
                         e.preventDefault();
-                        const formData = new FormData(e.target as HTMLFormElement);
+                        const formData = new FormData(
+                          e.target as HTMLFormElement,
+                        );
                         const notificationData = {
                           title: formData.get("title") as string,
                           message: formData.get("message") as string,
                           type: formData.get("type") as Notification["type"],
-                          priority: formData.get("priority") as Notification["priority"],
-                          targetRoles: formData.getAll("targetRoles") as string[],
+                          priority: formData.get(
+                            "priority",
+                          ) as Notification["priority"],
+                          targetRoles: formData.getAll(
+                            "targetRoles",
+                          ) as string[],
                           scheduledAt: formData.get("scheduledAt") as string,
                         };
-                        
+
                         if (isEditing) {
                           // Actualizar notificación existente
-                          sendNotification({...currentNotification, ...notificationData});
+                          sendNotification({
+                            ...currentNotification,
+                            ...notificationData,
+                          });
                         } else {
                           // Crear nueva notificación
                           if (notificationData.scheduledAt) {
@@ -577,7 +620,10 @@ const NotificationsAdminPage: React.FC = () => {
                       className="space-y-4"
                     >
                       <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="title"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Título
                         </label>
                         <input
@@ -591,7 +637,10 @@ const NotificationsAdminPage: React.FC = () => {
                       </div>
 
                       <div>
-                        <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="message"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Mensaje
                         </label>
                         <textarea
@@ -606,7 +655,10 @@ const NotificationsAdminPage: React.FC = () => {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                          <label
+                            htmlFor="type"
+                            className="block text-sm font-medium text-gray-700"
+                          >
                             Tipo
                           </label>
                           <select
@@ -624,13 +676,18 @@ const NotificationsAdminPage: React.FC = () => {
                         </div>
 
                         <div>
-                          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+                          <label
+                            htmlFor="priority"
+                            className="block text-sm font-medium text-gray-700"
+                          >
                             Prioridad
                           </label>
                           <select
                             name="priority"
                             id="priority"
-                            defaultValue={currentNotification.priority || "medium"}
+                            defaultValue={
+                              currentNotification.priority || "medium"
+                            }
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           >
                             <option value="low">Baja</option>
@@ -646,14 +703,22 @@ const NotificationsAdminPage: React.FC = () => {
                           Roles Destino
                         </label>
                         <div className="mt-2 space-y-2">
-                          {["admin", "operator", "venue", "user", "gallera"].map((role) => (
+                          {[
+                            "admin",
+                            "operator",
+                            "venue",
+                            "user",
+                            "gallera",
+                          ].map((role) => (
                             <div key={role} className="flex items-center">
                               <input
                                 id={`targetRoles-${role}`}
                                 name="targetRoles"
                                 type="checkbox"
                                 value={role}
-                                defaultChecked={currentNotification.targetRoles?.includes(role)}
+                                defaultChecked={currentNotification.targetRoles?.includes(
+                                  role,
+                                )}
                                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                               />
                               <label
@@ -668,15 +733,23 @@ const NotificationsAdminPage: React.FC = () => {
                       </div>
 
                       <div>
-                        <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="scheduledAt"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Programar para (opcional)
                         </label>
                         <input
                           type="datetime-local"
                           name="scheduledAt"
                           id="scheduledAt"
-                          defaultValue={currentNotification.scheduledAt ? 
-                            new Date(currentNotification.scheduledAt).toISOString().slice(0, 16) : ""}
+                          defaultValue={
+                            currentNotification.scheduledAt
+                              ? new Date(currentNotification.scheduledAt)
+                                  .toISOString()
+                                  .slice(0, 16)
+                              : ""
+                          }
                           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
@@ -692,8 +765,10 @@ const NotificationsAdminPage: React.FC = () => {
                               <LoadingSpinner className="h-4 w-4 mr-2" />
                               {isEditing ? "Actualizando..." : "Enviando..."}
                             </span>
+                          ) : isEditing ? (
+                            "Actualizar"
                           ) : (
-                            isEditing ? "Actualizar" : "Enviar"
+                            "Enviar"
                           )}
                         </button>
                         <button

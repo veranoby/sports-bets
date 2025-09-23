@@ -8,7 +8,7 @@ import App from "./App";
 import "./index.css";
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 
 // 🚨 STRICTMODE DESHABILITADO PARA ELIMINAR DOUBLE MOUNTING
@@ -19,7 +19,7 @@ root.render(
   // <React.StrictMode>  // ← COMENTADO TEMPORALMENTE
   <BrowserRouter>
     <App />
-  </BrowserRouter>
+  </BrowserRouter>,
   // </React.StrictMode>
 );
 

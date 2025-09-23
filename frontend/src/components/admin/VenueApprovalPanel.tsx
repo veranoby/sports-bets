@@ -83,7 +83,7 @@ const VenueApprovalPanel: React.FC = () => {
       await venuesAPI.updateStatus(
         selectedVenue.id,
         "rejected",
-        rejectionReason
+        rejectionReason,
       );
       setVenues(venues.filter((venue) => venue.id !== selectedVenue.id));
       setShowRejectModal(false);

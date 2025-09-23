@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Select, Button, Modal, notification } from 'antd';
-import { Crown, Clock, User } from 'lucide-react';
-import { adminAPI } from '../../services/api';
-import type { UserSubscription } from '../../types'; // CORRECTED: Added 'type'
+import React, { useState } from "react";
+import { Select, Button, Modal, notification } from "antd";
+import { Crown, Clock, User } from "lucide-react";
+import { adminAPI } from "../../services/api";
+import type { UserSubscription } from "../../types"; // CORRECTED: Added 'type'
 
 interface UserMembershipPanelProps {
   userId: string;
@@ -12,23 +12,31 @@ interface UserMembershipPanelProps {
 
 const UserMembershipPanel: React.FC<UserMembershipPanelProps> = ({
   userId,
-  currentMembership, 
-  onMembershipUpdated
+  currentMembership,
+  onMembershipUpdated,
 }) => {
-  const [selectedType, setSelectedType] = useState<string>('free');
-  const [assignedUsername, setAssignedUsername] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>("free");
+  const [assignedUsername, setAssignedUsername] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmVisible, setConfirmVisible] = useState<boolean>(false);
 
   const membershipOptions = [
-    { value: 'free', label: 'Free', icon: <User className="w-4 h-4" /> },
-    { value: '24h', label: '24 Hours Premium', icon: <Clock className="w-4 h-4" /> },
-    { value: 'monthly', label: '1 Month Premium', icon: <Crown className="w-4 h-4" /> }
+    { value: "free", label: "Free", icon: <User className="w-4 h-4" /> },
+    {
+      value: "24h",
+      label: "24 Hours Premium",
+      icon: <Clock className="w-4 h-4" />,
+    },
+    {
+      value: "monthly",
+      label: "1 Month Premium",
+      icon: <Crown className="w-4 h-4" />,
+    },
   ];
 
   const handleUpdate = async () => {
     if (!assignedUsername.trim()) {
-      notification.error({ message: 'Username assignment is required' });
+      notification.error({ message: "Username assignment is required" });
       return;
     }
 
@@ -36,15 +44,17 @@ const UserMembershipPanel: React.FC<UserMembershipPanelProps> = ({
     try {
       await adminAPI.updateUserMembership(userId, {
         membership_type: selectedType,
-        assigned_username: assignedUsername.trim()
+        assigned_username: assignedUsername.trim(),
       });
 
-      notification.success({ message: `Membership updated to ${selectedType}` });
+      notification.success({
+        message: `Membership updated to ${selectedType}`,
+      });
       setConfirmVisible(false);
       onMembershipUpdated();
     } catch (error) {
-      console.error('Membership update error:', error);
-      notification.error({ message: 'Failed to update membership' });
+      console.error("Membership update error:", error);
+      notification.error({ message: "Failed to update membership" });
     }
     setLoading(false);
   };
@@ -55,29 +65,42 @@ const UserMembershipPanel: React.FC<UserMembershipPanelProps> = ({
 
       {currentMembership && (
         <div className="mb-4 text-sm">
-          <p><strong>Current:</strong> {currentMembership.status}</p>
+          <p>
+            <strong>Current:</strong> {currentMembership.status}
+          </p>
           {currentMembership.expiresAt && (
-            <p><strong>Expires:</strong> {new Date(currentMembership.expiresAt).toLocaleString()}</p>
+            <p>
+              <strong>Expires:</strong>{" "}
+              {new Date(currentMembership.expiresAt).toLocaleString()}
+            </p>
           )}
         </div>
       )}
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium mb-1">New Membership Type</label>
+          <label className="block text-sm font-medium mb-1">
+            New Membership Type
+          </label>
           <Select
             value={selectedType}
             onChange={setSelectedType}
             className="w-full"
-            options={membershipOptions.map(opt => ({
+            options={membershipOptions.map((opt) => ({
               ...opt,
-              label: <span className="flex items-center gap-2">{opt.icon} {opt.label}</span>
+              label: (
+                <span className="flex items-center gap-2">
+                  {opt.icon} {opt.label}
+                </span>
+              ),
             }))}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Assigned Username</label>
+          <label className="block text-sm font-medium mb-1">
+            Assigned Username
+          </label>
           <input
             type="text"
             value={assignedUsername}
@@ -104,7 +127,10 @@ const UserMembershipPanel: React.FC<UserMembershipPanelProps> = ({
         onCancel={() => setConfirmVisible(false)}
         confirmLoading={loading}
       >
-        <p>Update membership to <strong>{selectedType}</strong> for user <strong>{assignedUsername}</strong>?</p>
+        <p>
+          Update membership to <strong>{selectedType}</strong> for user{" "}
+          <strong>{assignedUsername}</strong>?
+        </p>
       </Modal>
     </div>
   );

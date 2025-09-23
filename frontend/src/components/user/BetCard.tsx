@@ -5,8 +5,19 @@
  */
 "use client";
 
-import React, { memo } from 'react';
-import { ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Users, Trophy, Target, Zap } from 'lucide-react';
+import React, { memo } from "react";
+import {
+  ChevronRight,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  DollarSign,
+  Users,
+  Trophy,
+  Target,
+  Zap,
+} from "lucide-react";
 import type { Bet } from "../../types";
 import StatusChip from "../shared/StatusChip";
 import LoadingSpinner from "../shared/LoadingSpinner";
@@ -101,8 +112,8 @@ const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
             bet.status === "pending"
               ? "pending"
               : bet.status === "active"
-              ? "active"
-              : "settled"
+                ? "active"
+                : "settled"
           }
           size="sm"
         />{" "}

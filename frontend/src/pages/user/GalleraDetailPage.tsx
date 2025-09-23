@@ -2,13 +2,13 @@
 // ================================================================
 // Dedicated gallera detail page component with premium tiers and specialties
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, articlesAPI } from '../../services/api';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import Card from '../../components/shared/Card';
-import type { User } from '../../types';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { usersAPI, articlesAPI } from "../../services/api";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import Card from "../../components/shared/Card";
+import type { User } from "../../types";
 import {
   MapPin,
   ChevronLeft,
@@ -20,8 +20,8 @@ import {
   Sparkles,
   Crown,
   Award,
-  Clock
-} from 'lucide-react';
+  Clock,
+} from "lucide-react";
 
 interface ArticleLite {
   id: string;
@@ -43,7 +43,7 @@ const GalleraDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) {
-      setError('No se proporcionó un ID de institución.');
+      setError("No se proporcionó un ID de institución.");
       setLoading(false);
       return;
     }
@@ -53,7 +53,7 @@ const GalleraDetailPage: React.FC = () => {
         setLoading(true);
         const userResponse = await usersAPI.getById(id);
         if (!userResponse.success) {
-          throw new Error(userResponse.error || 'Error al cargar institución');
+          throw new Error(userResponse.error || "Error al cargar institución");
         }
         setGallera(userResponse.data);
 
@@ -61,10 +61,9 @@ const GalleraDetailPage: React.FC = () => {
         if (articlesResponse.success) {
           setArticles(articlesResponse.data.articles || []);
         }
-
       } catch (err) {
-        console.error('Error fetching gallera data:', err);
-        setError('No se pudo cargar la institución. Inténtalo de nuevo.');
+        console.error("Error fetching gallera data:", err);
+        setError("No se pudo cargar la institución. Inténtalo de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -75,80 +74,94 @@ const GalleraDetailPage: React.FC = () => {
 
   const getPremiumColor = (level?: string) => {
     switch (level) {
-      case 'platinum': return 'text-purple-400 bg-purple-500/20 border-purple-500/50';
-      case 'gold': return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/50';
-      case 'silver': return 'text-gray-400 bg-gray-500/20 border-gray-500/50';
-      case 'bronze': return 'text-orange-400 bg-orange-500/20 border-orange-500/50';
-      default: return 'text-green-400 bg-green-500/20 border-green-500/50';
+      case "platinum":
+        return "text-purple-400 bg-purple-500/20 border-purple-500/50";
+      case "gold":
+        return "text-yellow-400 bg-yellow-500/20 border-yellow-500/50";
+      case "silver":
+        return "text-gray-400 bg-gray-500/20 border-gray-500/50";
+      case "bronze":
+        return "text-orange-400 bg-orange-500/20 border-orange-500/50";
+      default:
+        return "text-green-400 bg-green-500/20 border-green-500/50";
     }
   };
 
   const getPremiumIcon = (level?: string) => {
     switch (level) {
-      case 'platinum': case 'gold': return <Crown className="w-4 h-4" />;
-      case 'silver': case 'bronze': return <Award className="w-4 h-4" />;
-      default: return <Shield className="w-4 h-4" />;
+      case "platinum":
+      case "gold":
+        return <Crown className="w-4 h-4" />;
+      case "silver":
+      case "bronze":
+        return <Award className="w-4 h-4" />;
+      default:
+        return <Shield className="w-4 h-4" />;
     }
   };
 
-  if (loading) return (
-    <div className="page-background">
-      <LoadingSpinner text="Cargando institución..." className="mt-20" />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="page-background">
+        <LoadingSpinner text="Cargando institución..." className="mt-20" />
+      </div>
+    );
 
-  if (error) return (
-    <div className="page-background p-4">
-      <Card variant="error" className="p-6">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/galleras')}
-            className="btn-primary"
-          >
-            Volver a Instituciones
-          </button>
-        </div>
-      </Card>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="page-background p-4">
+        <Card variant="error" className="p-6">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">{error}</p>
+            <button
+              onClick={() => navigate("/galleras")}
+              className="btn-primary"
+            >
+              Volver a Instituciones
+            </button>
+          </div>
+        </Card>
+      </div>
+    );
 
-  if (!gallera) return (
-    <div className="page-background p-4">
-      <EmptyState
-        title="Institución no encontrada"
-        description="La institución que buscas no existe o ha sido eliminada."
-        icon={<Shield className="w-12 h-12" />}
-        action={
-          <button
-            onClick={() => navigate('/galleras')}
-            className="btn-primary"
-          >
-            Volver a Instituciones
-          </button>
-        }
-      />
-    </div>
-  );
+  if (!gallera)
+    return (
+      <div className="page-background p-4">
+        <EmptyState
+          title="Institución no encontrada"
+          description="La institución que buscas no existe o ha sido eliminada."
+          icon={<Shield className="w-12 h-12" />}
+          action={
+            <button
+              onClick={() => navigate("/galleras")}
+              className="btn-primary"
+            >
+              Volver a Instituciones
+            </button>
+          }
+        />
+      </div>
+    );
 
   const galleraName = gallera.profileInfo?.galleraName || gallera.username;
-  const location = gallera.profileInfo?.location || 'Ubicación no especificada';
-  const description = gallera.profileInfo?.description || 'Institución criadora profesional';
+  const location = gallera.profileInfo?.location || "Ubicación no especificada";
+  const description =
+    gallera.profileInfo?.description || "Institución criadora profesional";
   const establishedDate = gallera.profileInfo?.establishedDate;
   const isCertified = gallera.profileInfo?.certified || false;
   const rating = gallera.profileInfo?.rating || 0;
   const premiumLevel = gallera.profileInfo?.premiumLevel;
   const specialties = gallera.profileInfo?.specialties || [];
 
-  const publishedArticles = articles.filter(a => a.status === 'published');
-  const draftArticles = articles.filter(a => a.status === 'draft');
+  const publishedArticles = articles.filter((a) => a.status === "published");
+  const draftArticles = articles.filter((a) => a.status === "draft");
 
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
         {/* Back Navigation */}
         <button
-          onClick={() => navigate('/galleras')}
+          onClick={() => navigate("/galleras")}
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -163,13 +176,19 @@ const GalleraDetailPage: React.FC = () => {
                 src={gallera.profileInfo.imageUrl}
                 alt={galleraName}
                 className={`w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 ${
-                  premiumLevel ? getPremiumColor(premiumLevel).split(' ')[2] : 'border-green-500'
+                  premiumLevel
+                    ? getPremiumColor(premiumLevel).split(" ")[2]
+                    : "border-green-500"
                 }`}
               />
             ) : (
-              <div className={`w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br ${
-                premiumLevel ? getPremiumColor(premiumLevel) : 'from-green-500/20 to-teal-500/20'
-              } flex items-center justify-center`}>
+              <div
+                className={`w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br ${
+                  premiumLevel
+                    ? getPremiumColor(premiumLevel)
+                    : "from-green-500/20 to-teal-500/20"
+                } flex items-center justify-center`}
+              >
                 <Shield className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
               </div>
             )}
@@ -182,7 +201,9 @@ const GalleraDetailPage: React.FC = () => {
                   <Sparkles className="w-5 h-5 text-yellow-400" />
                 )}
                 {premiumLevel && (
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getPremiumColor(premiumLevel)}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getPremiumColor(premiumLevel)}`}
+                  >
                     {getPremiumIcon(premiumLevel)}
                     {premiumLevel.toUpperCase()}
                   </span>
@@ -192,7 +213,9 @@ const GalleraDetailPage: React.FC = () => {
                 <MapPin className="w-4 h-4" />
                 <span className="text-base md:text-lg">{location}</span>
               </div>
-              <p className="text-theme-light leading-relaxed mb-3">{description}</p>
+              <p className="text-theme-light leading-relaxed mb-3">
+                {description}
+              </p>
 
               {/* Specialties */}
               {specialties.length > 0 && (
@@ -216,18 +239,24 @@ const GalleraDetailPage: React.FC = () => {
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <BookOpen className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-blue-400 font-medium">Artículos</span>
+              <span className="text-xs text-blue-400 font-medium">
+                Artículos
+              </span>
             </div>
-            <span className="text-lg font-bold text-theme-primary">{publishedArticles.length}</span>
+            <span className="text-lg font-bold text-theme-primary">
+              {publishedArticles.length}
+            </span>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Star className="w-4 h-4 text-yellow-400" />
-              <span className="text-xs text-yellow-400 font-medium">Rating</span>
+              <span className="text-xs text-yellow-400 font-medium">
+                Rating
+              </span>
             </div>
             <span className="text-lg font-bold text-theme-primary">
-              {rating > 0 ? rating.toFixed(1) : 'N/A'}
+              {rating > 0 ? rating.toFixed(1) : "N/A"}
             </span>
           </Card>
 
@@ -237,17 +266,21 @@ const GalleraDetailPage: React.FC = () => {
               <span className="text-xs text-purple-400 font-medium">Nivel</span>
             </div>
             <span className="text-lg font-bold text-theme-primary capitalize">
-              {premiumLevel || 'Estándar'}
+              {premiumLevel || "Estándar"}
             </span>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-green-400 font-medium">Fundada</span>
+              <span className="text-xs text-green-400 font-medium">
+                Fundada
+              </span>
             </div>
             <span className="text-lg font-bold text-theme-primary">
-              {establishedDate ? new Date(establishedDate).getFullYear() : 'N/A'}
+              {establishedDate
+                ? new Date(establishedDate).getFullYear()
+                : "N/A"}
             </span>
           </Card>
         </div>
@@ -255,30 +288,38 @@ const GalleraDetailPage: React.FC = () => {
         {/* Articles Section */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-400"/>
+            <BookOpen className="w-5 h-5 text-blue-400" />
             Artículos y Conocimientos
           </h2>
 
           {publishedArticles.length > 0 ? (
             <div className="space-y-4">
-              {publishedArticles.map(article => (
+              {publishedArticles.map((article) => (
                 <div
                   key={article.id}
                   className="p-4 rounded-lg bg-[#1a1f37]/50 hover:bg-[#2a325c]/50 cursor-pointer transition-colors"
                 >
-                  <h3 className="font-semibold text-theme-primary mb-1">{article.title}</h3>
+                  <h3 className="font-semibold text-theme-primary mb-1">
+                    {article.title}
+                  </h3>
                   {article.summary && (
-                    <p className="text-sm text-theme-light line-clamp-2 mb-2">{article.summary}</p>
+                    <p className="text-sm text-theme-light line-clamp-2 mb-2">
+                      {article.summary}
+                    </p>
                   )}
                   <div className="flex items-center gap-4 text-xs text-theme-light">
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3"/>
+                      <Calendar className="w-3 h-3" />
                       <span>
-                        {new Date(article.published_at || article.created_at || Date.now()).toLocaleDateString('es-ES')}
+                        {new Date(
+                          article.published_at ||
+                            article.created_at ||
+                            Date.now(),
+                        ).toLocaleDateString("es-ES")}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3"/>
+                      <Clock className="w-3 h-3" />
                       <span>Publicado</span>
                     </div>
                   </div>
@@ -302,33 +343,38 @@ const GalleraDetailPage: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Estado de certificación:</span>
-              <span className={`font-medium ${isCertified ? 'text-green-400' : 'text-amber-400'}`}>
-                {isCertified ? 'Certificada' : 'En certificación'}
+              <span
+                className={`font-medium ${isCertified ? "text-green-400" : "text-amber-400"}`}
+              >
+                {isCertified ? "Certificada" : "En certificación"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Especialidades:</span>
               <span className="font-medium text-theme-primary">
-                {specialties.length > 0 ? specialties.length : 'No especificadas'}
+                {specialties.length > 0
+                  ? specialties.length
+                  : "No especificadas"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Artículos en borrador:</span>
-              <span className="font-medium text-theme-primary">{draftArticles.length}</span>
+              <span className="font-medium text-theme-primary">
+                {draftArticles.length}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Experiencia:</span>
               <span className="font-medium text-theme-primary">
                 {establishedDate
                   ? `${new Date().getFullYear() - new Date(establishedDate).getFullYear()} años`
-                  : 'No especificada'
-                }
+                  : "No especificada"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Miembro desde:</span>
               <span className="font-medium text-theme-primary">
-                {new Date(gallera.created_at).toLocaleDateString('es-ES')}
+                {new Date(gallera.created_at).toLocaleDateString("es-ES")}
               </span>
             </div>
           </div>

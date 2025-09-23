@@ -52,7 +52,7 @@ const EventCard: React.FC<EventCardProps> = memo(
 
     // Handle image loading errors
     const handleImageError = (
-      e: React.SyntheticEvent<HTMLImageElement, Event>
+      e: React.SyntheticEvent<HTMLImageElement, Event>,
     ) => {
       e.currentTarget.src = "/placeholder.svg";
     };
@@ -152,7 +152,7 @@ const EventCard: React.FC<EventCardProps> = memo(
       // Comparación profunda para función onSelect (si es estable)
       prevProps.onSelect.toString() === nextProps.onSelect.toString()
     );
-  }
+  },
 );
 
 export default EventCard;

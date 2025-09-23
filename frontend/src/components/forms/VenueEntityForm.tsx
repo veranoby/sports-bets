@@ -1,12 +1,12 @@
 // frontend/src/components/forms/VenueEntityForm.tsx
 // Formulario para editar información específica de la entidad Venue
 
-import React, { useState } from 'react';
-import { venuesAPI } from '../../services/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import ErrorMessage from '../shared/ErrorMessage';
-import { MapPin, Building2, Phone, Mail } from 'lucide-react';
-import type { Venue } from '../../types';
+import React, { useState } from "react";
+import { venuesAPI } from "../../services/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
+import { MapPin, Building2, Phone, Mail } from "lucide-react";
+import type { Venue } from "../../types";
 
 interface VenueEntityFormProps {
   venue?: Venue;
@@ -15,39 +15,48 @@ interface VenueEntityFormProps {
   onCancel: () => void;
 }
 
-const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave, onCancel }) => {
+const VenueEntityForm: React.FC<VenueEntityFormProps> = ({
+  venue,
+  userId,
+  onSave,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<Partial<Venue>>({
-    name: venue?.name || '',
-    location: venue?.location || '',
-    description: venue?.description || '',
+    name: venue?.name || "",
+    location: venue?.location || "",
+    description: venue?.description || "",
     contactInfo: venue?.contactInfo || {
-      phone: '',
-      email: '',
-      website: '',
-      address: ''
+      phone: "",
+      email: "",
+      website: "",
+      address: "",
     },
     images: venue?.images || [],
-    status: venue?.status || 'pending'
+    status: venue?.status || "pending",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('contactInfo.')) {
-      const field = name.split('.')[1];
-      setFormData(prev => ({
+
+    if (name.startsWith("contactInfo.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
         ...prev,
         contactInfo: {
           ...prev.contactInfo,
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -66,17 +75,19 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
       } else {
         // Para creaciones, sí pasamos ownerId
         const response = await venuesAPI.create({
-          name: formData.name || 'New Venue',
-          location: formData.location || 'Location TBD',
+          name: formData.name || "New Venue",
+          location: formData.location || "Location TBD",
           description: formData.description,
           ownerId: userId,
-          contactInfo: formData.contactInfo
+          contactInfo: formData.contactInfo,
         });
         result = response.data as Venue;
       }
       onSave(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar la entidad');
+      setError(
+        err instanceof Error ? err.message : "Error al guardar la entidad",
+      );
     } finally {
       setLoading(false);
     }
@@ -87,7 +98,9 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
       <div className="flex items-center gap-2 mb-4">
         <Building2 className="w-5 h-5 text-blue-600" />
         <h3 className="text-lg font-semibold text-gray-800">
-          {venue?.id ? 'Editar Información de la Entidad' : 'Crear Información de la Entidad'}
+          {venue?.id
+            ? "Editar Información de la Entidad"
+            : "Crear Información de la Entidad"}
         </h3>
       </div>
 
@@ -228,7 +241,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({ venue, userId, onSave
                 Guardando...
               </>
             ) : (
-              'Guardar Entidad'
+              "Guardar Entidad"
             )}
           </button>
         </div>

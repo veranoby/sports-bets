@@ -1,6 +1,6 @@
 import React from "react";
 import { Calendar } from "lucide-react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 interface EmptyStateProps {
   title: string;
@@ -31,7 +31,10 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     }
     if (buttonText && buttonLink) {
       return (
-        <Link to={buttonLink} className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+        <Link
+          to={buttonLink}
+          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
           {buttonText}
         </Link>
       );
@@ -43,7 +46,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     <div className={`text-center p-8 ${className}`}>
       <div className="mx-auto w-12 h-12 text-gray-400 mb-4">
         {React.isValidElement(icon)
-          ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-12 h-12" })
+          ? React.cloneElement(icon as React.ReactElement<any>, {
+              className: "w-12 h-12",
+            })
           : icon || <Calendar className="w-12 h-12" />}
       </div>
 

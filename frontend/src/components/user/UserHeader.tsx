@@ -59,7 +59,7 @@ const UserHeader = memo(() => {
     "wallet_updated",
     useCallback(() => {
       fetchWallet();
-    }, [fetchWallet])
+    }, [fetchWallet]),
   );
 
   // 🎯 BET UPDATES - Para contador apuestas en header
@@ -67,14 +67,14 @@ const UserHeader = memo(() => {
     "bet_matched",
     useCallback(() => {
       fetchMyBets();
-    }, [fetchMyBets])
+    }, [fetchMyBets]),
   );
 
   useWebSocketListener(
     "bet_result",
     useCallback(() => {
       fetchMyBets();
-    }, [fetchMyBets])
+    }, [fetchMyBets]),
   );
 
   // 🔔 NOTIFICATIONS - Para contador notificaciones en header
@@ -82,7 +82,7 @@ const UserHeader = memo(() => {
     "new_notification",
     useCallback(() => {
       fetchNotifications();
-    }, [fetchNotifications])
+    }, [fetchNotifications]),
   );
 
   // 📄 Published articles count for venue/gallera
@@ -199,7 +199,7 @@ const UserHeader = memo(() => {
               <span>Apuestas Activas: {activeBetsCount}</span>
             </span>
           )}
-   
+
           {(user.role === "gallera" || user.role === "venue") && (
             <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center gap-1">
               <Newspaper className="w-3 h-3" />
@@ -209,7 +209,8 @@ const UserHeader = memo(() => {
           {user.role === "admin" && (
             <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full flex items-center gap-1">
               <Settings className="w-3 h-3" />
-              <span>Estado del Sistema: OK</span> {/* Placeholder for system status */}
+              <span>Estado del Sistema: OK</span>{" "}
+              {/* Placeholder for system status */}
               {/* <span>Aprobaciones Pendientes: P</span> Placeholder for pending approvals */}
             </span>
           )}

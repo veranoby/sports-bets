@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Copy, Check, Server, Key, Monitor, RefreshCw, AlertTriangle } from 'lucide-react';
-import { streamingAPI } from '../../config/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import useSSE from '../../hooks/useSSE';
+import React, { useState, useEffect } from "react";
+import {
+  Copy,
+  Check,
+  Server,
+  Key,
+  Monitor,
+  RefreshCw,
+  AlertTriangle,
+} from "lucide-react";
+import { streamingAPI } from "../../config/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import useSSE from "../../hooks/useSSE";
 
 interface RTMPConfigProps {
   eventId?: string;
@@ -31,7 +39,7 @@ interface OBSConfig {
 }
 
 interface SystemHealth {
-  status: 'healthy' | 'degraded' | 'error';
+  status: "healthy" | "degraded" | "error";
   activeStreams: number;
   totalViewers: number;
   serverLoad: number;
@@ -49,7 +57,7 @@ interface SystemHealth {
 const RTMPConfig: React.FC<RTMPConfigProps> = ({
   eventId,
   onStreamKeyGenerated,
-  className = ''
+  className = "",
 }) => {
   const [streamKey, setStreamKey] = useState<StreamKey | null>(null);
   const [obsConfig, setOBSConfig] = useState<OBSConfig | null>(null);
@@ -60,7 +68,9 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Use SSE hook for stream status updates
-  const streamStatusData = useSSE(eventId ? `/api/sse/events/${eventId}/stream` : null);
+  const streamStatusData = useSSE(
+    eventId ? `/api/sse/events/${eventId}/stream` : null,
+  );
 
   // Update stream status when SSE data changes
   useEffect(() => {
@@ -79,14 +89,14 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       const response = await streamingAPI.getSystemStatus();
       setSystemHealth(response.data);
     } catch (err: any) {
-      console.error('Failed to fetch system health:', err);
-      setError('Failed to load system status');
+      console.error("Failed to fetch system health:", err);
+      setError("Failed to load system status");
     }
   };
 
   const generateStreamKey = async () => {
     if (!eventId) {
-      setError('Event ID is required to generate stream key');
+      setError("Event ID is required to generate stream key");
       return;
     }
 
@@ -96,7 +106,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
 
       const response = await streamingAPI.generateStreamKey({ eventId });
       setStreamKey(response.data);
-      
+
       if (onStreamKeyGenerated) {
         onStreamKeyGenerated(response.data.streamKey);
       }
@@ -104,7 +114,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       // Fetch OBS configuration for the new key
       await fetchOBSConfig(response.data.streamKey);
     } catch (err: any) {
-      setError(err.message || 'Failed to generate stream key');
+      setError(err.message || "Failed to generate stream key");
     } finally {
       setGenerating(false);
     }
@@ -115,7 +125,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       const response = await streamingAPI.getOBSConfig(key);
       setOBSConfig(response.data);
     } catch (err: any) {
-      console.error('Failed to fetch OBS config:', err);
+      console.error("Failed to fetch OBS config:", err);
     }
   };
 
@@ -129,11 +139,11 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       await streamingAPI.revokeStreamKey(streamKey.streamKey);
       setStreamKey(null);
       setOBSConfig(null);
-      
+
       // Refresh system health
       await fetchSystemHealth();
     } catch (err: any) {
-      setError(err.message || 'Failed to revoke stream key');
+      setError(err.message || "Failed to revoke stream key");
     } finally {
       setLoading(false);
     }
@@ -145,16 +155,20 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
+      console.error("Failed to copy to clipboard:", err);
     }
   };
 
   const getHealthStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-400 bg-green-500/10 border-green-500/20';
-      case 'degraded': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-      case 'error': return 'text-red-400 bg-red-500/10 border-red-500/20';
-      default: return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+      case "healthy":
+        return "text-green-400 bg-green-500/10 border-green-500/20";
+      case "degraded":
+        return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
+      case "error":
+        return "text-red-400 bg-red-500/10 border-red-500/20";
+      default:
+        return "text-gray-400 bg-gray-500/10 border-gray-500/20";
     }
   };
 
@@ -178,26 +192,35 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className={`p-3 rounded border ${getHealthStatusColor(systemHealth.status)}`}>
+            <div
+              className={`p-3 rounded border ${getHealthStatusColor(systemHealth.status)}`}
+            >
               <div className="text-sm font-medium">Server Status</div>
-              <div className="text-lg font-semibold capitalize">{systemHealth.status}</div>
+              <div className="text-lg font-semibold capitalize">
+                {systemHealth.status}
+              </div>
             </div>
 
             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-blue-400">
               <div className="text-sm font-medium">Active Streams</div>
               <div className="text-lg font-semibold">
-                {systemHealth.activeStreams} / {systemHealth.rtmpServer.capacity.maxStreams}
+                {systemHealth.activeStreams} /{" "}
+                {systemHealth.rtmpServer.capacity.maxStreams}
               </div>
             </div>
 
             <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded text-purple-400">
               <div className="text-sm font-medium">Total Viewers</div>
-              <div className="text-lg font-semibold">{systemHealth.totalViewers.toLocaleString()}</div>
+              <div className="text-lg font-semibold">
+                {systemHealth.totalViewers.toLocaleString()}
+              </div>
             </div>
 
             <div className="p-3 bg-gray-500/10 border border-gray-500/20 rounded text-gray-400">
               <div className="text-sm font-medium">Server Load</div>
-              <div className="text-lg font-semibold">{Math.round(systemHealth.serverLoad * 100)}%</div>
+              <div className="text-lg font-semibold">
+                {Math.round(systemHealth.serverLoad * 100)}%
+              </div>
             </div>
           </div>
         </div>
@@ -210,14 +233,14 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
             <Key className="w-5 h-5 mr-2" />
             Stream Key Management
           </h3>
-          
+
           {streamKey && (
             <button
               onClick={revokeStreamKey}
               disabled={loading}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Revoking...' : 'Revoke Key'}
+              {loading ? "Revoking..." : "Revoke Key"}
             </button>
           )}
         </div>
@@ -225,7 +248,9 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
         {!streamKey ? (
           <div className="text-center py-8">
             <Key className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400 mb-4">Generate a stream key to start streaming</p>
+            <p className="text-gray-400 mb-4">
+              Generate a stream key to start streaming
+            </p>
             <button
               onClick={generateStreamKey}
               disabled={generating || !eventId}
@@ -237,7 +262,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                   Generating...
                 </>
               ) : (
-                'Generate Stream Key'
+                "Generate Stream Key"
               )}
             </button>
             {!eventId && (
@@ -260,11 +285,13 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     className="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white font-mono text-sm"
                   />
                   <button
-                    onClick={() => copyToClipboard(streamKey.streamKey, 'streamKey')}
+                    onClick={() =>
+                      copyToClipboard(streamKey.streamKey, "streamKey")
+                    }
                     className="p-2 text-gray-400 hover:text-white transition-colors"
                     title="Copy stream key"
                   >
-                    {copiedField === 'streamKey' ? (
+                    {copiedField === "streamKey" ? (
                       <Check className="w-4 h-4 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4" />
@@ -285,11 +312,13 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     className="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white font-mono text-sm"
                   />
                   <button
-                    onClick={() => copyToClipboard(streamKey.rtmpUrl, 'rtmpUrl')}
+                    onClick={() =>
+                      copyToClipboard(streamKey.rtmpUrl, "rtmpUrl")
+                    }
                     className="p-2 text-gray-400 hover:text-white transition-colors"
                     title="Copy RTMP URL"
                   >
-                    {copiedField === 'rtmpUrl' ? (
+                    {copiedField === "rtmpUrl" ? (
                       <Check className="w-4 h-4 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4" />
@@ -300,7 +329,9 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-400">
-              <span>Generated: {new Date(streamKey.generatedAt).toLocaleString()}</span>
+              <span>
+                Generated: {new Date(streamKey.generatedAt).toLocaleString()}
+              </span>
               <span>Valid for: {streamKey.validFor}</span>
             </div>
           </div>
@@ -330,10 +361,10 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     className="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white font-mono text-sm"
                   />
                   <button
-                    onClick={() => copyToClipboard(obsConfig.server, 'server')}
+                    onClick={() => copyToClipboard(obsConfig.server, "server")}
                     className="p-2 text-gray-400 hover:text-white transition-colors"
                   >
-                    {copiedField === 'server' ? (
+                    {copiedField === "server" ? (
                       <Check className="w-4 h-4 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4" />
@@ -357,7 +388,9 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
 
             {/* Setup Instructions */}
             <div>
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Setup Instructions:</h4>
+              <h4 className="text-sm font-medium text-gray-300 mb-2">
+                Setup Instructions:
+              </h4>
               <ol className="space-y-1 text-sm text-gray-400">
                 {obsConfig.instructions.map((instruction, index) => (
                   <li key={index} className="flex items-start">
@@ -370,19 +403,27 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
 
             {/* Advanced Settings */}
             <div className="pt-4 border-t border-gray-600">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Recommended Settings:</h4>
+              <h4 className="text-sm font-medium text-gray-300 mb-2">
+                Recommended Settings:
+              </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-400">Video Codec:</span>
-                  <div className="text-white font-medium">{obsConfig.settings.videoCodec}</div>
+                  <div className="text-white font-medium">
+                    {obsConfig.settings.videoCodec}
+                  </div>
                 </div>
                 <div>
                   <span className="text-gray-400">Audio Codec:</span>
-                  <div className="text-white font-medium">{obsConfig.settings.audioCodec}</div>
+                  <div className="text-white font-medium">
+                    {obsConfig.settings.audioCodec}
+                  </div>
                 </div>
                 <div>
                   <span className="text-gray-400">Keyframe Interval:</span>
-                  <div className="text-white font-medium">{obsConfig.settings.keyframeInterval}s</div>
+                  <div className="text-white font-medium">
+                    {obsConfig.settings.keyframeInterval}s
+                  </div>
                 </div>
                 <div>
                   <span className="text-gray-400">Quality:</span>

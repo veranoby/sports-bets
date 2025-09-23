@@ -53,8 +53,6 @@ interface SystemStatus {
   }[];
 }
 
-
-
 // Niveles de error con colores oficiales
 const errorLevels = {
   error: "bg-red-100 text-red-800",
@@ -69,7 +67,9 @@ const SystemMonitoring: React.FC = () => {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
   // Usar SSE para obtener el estado del sistema en tiempo real
-  const { data: systemStatus, error: sseError } = useSSE<SystemStatus>('/api/sse/admin/system-status');
+  const { data: systemStatus, error: sseError } = useSSE<SystemStatus>(
+    "/api/sse/admin/system-status",
+  );
 
   // Actualizar la fecha de última actualización cuando se reciben datos
   useEffect(() => {
@@ -230,25 +230,29 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {systemStatus.api ? renderStatusChip(systemStatus.api.status) : renderStatusChip('down')}
+                {systemStatus.api
+                  ? renderStatusChip(systemStatus.api.status)
+                  : renderStatusChip("down")}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tiempo de respuesta:</span>
                   <span className="font-medium">
-                    {systemStatus.api?.responseTime || 'N/A'} ms
+                    {systemStatus.api?.responseTime || "N/A"} ms
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Uptime:</span>
                   <span className="font-medium">
-                    {systemStatus.api?.uptime || 'N/A'}%
+                    {systemStatus.api?.uptime || "N/A"}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Último reinicio:</span>
                   <span className="font-medium">
-                    {systemStatus.api?.lastRestart ? new Date(systemStatus.api.lastRestart).toLocaleString() : 'N/A'}
+                    {systemStatus.api?.lastRestart
+                      ? new Date(systemStatus.api.lastRestart).toLocaleString()
+                      : "N/A"}
                   </span>
                 </div>
               </div>
@@ -268,25 +272,27 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {systemStatus.database ? renderStatusChip(systemStatus.database.status) : renderStatusChip('down')}
+                {systemStatus.database
+                  ? renderStatusChip(systemStatus.database.status)
+                  : renderStatusChip("down")}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Conexiones:</span>
                   <span className="font-medium">
-                    {systemStatus.database?.connections || 'N/A'}
+                    {systemStatus.database?.connections || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tiempo de consulta:</span>
                   <span className="font-medium">
-                    {systemStatus.database?.queryTime || 'N/A'} ms
+                    {systemStatus.database?.queryTime || "N/A"} ms
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Uso de disco:</span>
                   <span className="font-medium">
-                    {systemStatus.database?.diskUsage || 'N/A'}%
+                    {systemStatus.database?.diskUsage || "N/A"}%
                   </span>
                 </div>
               </div>
@@ -304,25 +310,27 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {systemStatus.streaming ? renderStatusChip(systemStatus.streaming.status) : renderStatusChip('down')}
+                {systemStatus.streaming
+                  ? renderStatusChip(systemStatus.streaming.status)
+                  : renderStatusChip("down")}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Streams activos:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming?.activeStreams || 'N/A'}
+                    {systemStatus.streaming?.activeStreams || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Ancho de banda:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming?.bandwidth || 'N/A'} Mbps
+                    {systemStatus.streaming?.bandwidth || "N/A"} Mbps
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Errores:</span>
                   <span className="font-medium">
-                    {systemStatus.streaming?.errors || 'N/A'}
+                    {systemStatus.streaming?.errors || "N/A"}
                   </span>
                 </div>
               </div>
@@ -340,25 +348,29 @@ const SystemMonitoring: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center mb-2">
-                {systemStatus.cache ? renderStatusChip(systemStatus.cache.status) : renderStatusChip('down')}
+                {systemStatus.cache
+                  ? renderStatusChip(systemStatus.cache.status)
+                  : renderStatusChip("down")}
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Hit rate:</span>
                   <span className="font-medium">
-                    {systemStatus.cache?.hitRate || 'N/A'}%
+                    {systemStatus.cache?.hitRate || "N/A"}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tamaño:</span>
                   <span className="font-medium">
-                    {systemStatus.cache?.size || 'N/A'} MB
+                    {systemStatus.cache?.size || "N/A"} MB
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Items:</span>
                   <span className="font-medium">
-                    {systemStatus.cache?.items ? systemStatus.cache.items.toLocaleString() : 'N/A'}
+                    {systemStatus.cache?.items
+                      ? systemStatus.cache.items.toLocaleString()
+                      : "N/A"}
                   </span>
                 </div>
               </div>

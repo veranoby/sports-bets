@@ -3,34 +3,414 @@
   "priority": "CRITICAL - Production errors blocking user functionality",
   "token_savings_target": "25-35% through focused React/TypeScript expertise",
 
-  "critical_fixes": {
-    "1_reactquill_finddomnode_error": {
-      "problem": "TypeError: react_dom_1.default.findDOMNode is not a function in ArticleEditor.tsx",
-      "root_cause": "ReactQuill 2.0.0 compatibility issues with React 18",
-      "solution_approach": "Upgrade to ReactQuill 3.x or implement ref-based solution",
-      "files_to_modify": [
-        "frontend/src/components/articles/ArticleEditor.tsx",
-        "frontend/src/components/articles/StandaloneArticleEditor.tsx"
-      ],
-      "testing_required": "Verify crear articulo button works without console errors"
+  "recommended_agents": {
+    "primary_agent": "--frontend-architect --focus accessibility --safe-mode",
+    "support_agent": "--quality-engineer --validate --scope module",
+    "testing_agent": "--quality-engineer --focus testing --validate",
+    "agent_rationale": {
+      "frontend_architect": "Expert in React/TypeScript frontend issues, ReactQuill compatibility, component interfaces",
+      "quality_engineer": "Validates component functionality and form handling without breaking existing patterns",
+      "focus_accessibility": "Ensures form enhancements maintain accessibility standards for venue/gallera users"
     },
+    "forbidden_agents": [
+      "--backend-architect (frontend-only task)",
+      "--security-engineer (could over-secure forms)",
+      "--performance-engineer (not performance issue)",
+      "--system-architect (too broad for component fixes)"
+    ]
+  },
 
-    "2_profile_enhancement_venue_gallera": {
-      "problem": "Profile.tsx doesn't handle venue/gallera additional fields causing 400 errors",
-      "current_limitation": "Profile component only uses basic user profileInfo fields",
-      "enhancement_needed": "Extended profile interface for venue/gallera roles",
-      "reference_pattern": "Use EditVenueGalleraModal.tsx patterns for additional fields",
-      "files_to_modify": [
-        "frontend/src/pages/user/Profile.tsx",
-        "frontend/src/components/forms/UserProfileForm.tsx"
-      ],
-      "additional_fields_needed": [
-        "identificationNumber (for venue/gallera)",
-        "Entity-specific contact info",
-        "Business registration details",
-        "Venue/Gallera status display"
-      ]
+  "agent_workflow": {
+    "phase_1_reactquill_fix": "--frontend-architect --focus accessibility --safe-mode",
+    "phase_2_profile_enhancement": "--frontend-architect --quality-engineer --scope module",
+    "phase_3_form_validation": "--quality-engineer --focus testing --validate",
+    "execution_pattern": "Fix ReactQuill first, then enhance Profile component with proper form validation"
+  },
+
+  "knowledge_verification": {
+    "consulted_project_knowledge": [
+      "frontend/src/components/articles/ArticleEditor.tsx - Current ReactQuill 2.0.0 implementation with findDOMNode errors",
+      "frontend/src/components/articles/StandaloneArticleEditor.tsx - Duplicate ArticleEditor causing import conflicts",
+      "frontend/src/pages/user/Profile.tsx - Current basic user profile form without venue/gallera fields",
+      "frontend/src/components/admin/EditVenueGalleraModal.tsx - Reference pattern for venue/gallera field handling",
+      "frontend/src/components/forms/UserProfileForm.tsx - Base form component for profile updates",
+      "package.json - ReactQuill 2.0.0 dependency causing React 18 compatibility issues"
+    ],
+    "existing_components_affecting_task": [
+      "ArticleEditor.tsx (ReactQuill integration)",
+      "StandaloneArticleEditor.tsx (duplicate component)",
+      "Profile.tsx (basic user profile)",
+      "UserProfileForm.tsx (form validation)",
+      "EditVenueGalleraModal.tsx (venue/gallera patterns)"
+    ],
+    "knowledge_gaps_identified": [
+      "Backend API validation requirements for venue/gallera profile fields",
+      "ReactQuill 3.x migration breaking changes",
+      "CSS conflicts between multiple ReactQuill imports",
+      "Profile API endpoint response structure for venue/gallera users"
+    ]
+  },
+
+  "task_decomposition": {
+    "subtasks": [
+      {
+        "id": "1",
+        "task": "Fix ReactQuill findDOMNode compatibility error",
+        "duration": "10 minutes",
+        "success_criteria": "ArticleEditor component loads without console errors, crear articulo button functional",
+        "technical_approach": "Upgrade ReactQuill to 3.x or implement ref-based solution",
+        "dependencies": []
+      },
+      {
+        "id": "2",
+        "task": "Remove duplicate StandaloneArticleEditor component",
+        "duration": "5 minutes",
+        "success_criteria": "No import conflicts, single ArticleEditor source of truth",
+        "technical_approach": "Delete duplicate file, update import references",
+        "dependencies": ["1"]
+      },
+      {
+        "id": "3",
+        "task": "Analyze venue/gallera profile requirements",
+        "duration": "8 minutes",
+        "success_criteria": "Clear specification of additional fields needed for venue/gallera profiles",
+        "technical_approach": "Review EditVenueGalleraModal patterns, identify missing Profile fields",
+        "dependencies": []
+      },
+      {
+        "id": "4",
+        "task": "Extend Profile.tsx for venue/gallera roles",
+        "duration": "10 minutes",
+        "success_criteria": "Profile component handles venue/gallera fields, no 400 errors on save",
+        "technical_approach": "Conditional field rendering based on user role, extend form validation",
+        "dependencies": ["3"]
+      },
+      {
+        "id": "5",
+        "task": "Update UserProfileForm validation",
+        "duration": "7 minutes",
+        "success_criteria": "Form validation accepts venue/gallera specific fields, proper error handling",
+        "technical_approach": "Extend validation schema, add role-specific field validation",
+        "dependencies": ["4"]
+      }
+    ],
+    "total_estimated_duration": "40 minutes",
+    "execution_order": "Sequential: 1→2→3→4→5"
+  },
+
+  "purpose_and_requirements": {
+    "specific_purpose": "Fix critical ReactQuill findDOMNode errors blocking article creation and extend Profile component to handle venue/gallera additional fields preventing 400 errors on profile updates",
+    "functional_requirements": [
+      "Article creation modal (crear articulo) works without console errors",
+      "ReactQuill editor loads and functions correctly with React 18",
+      "Profile form accepts and saves venue-specific fields (businessName, businessAddress, businessPhone, taxId, licenseNumber)",
+      "Profile form accepts and saves gallera-specific fields (identificationNumber, entity contact info, registration details)",
+      "Profile updates return 200 status for venue/gallera users instead of 400 errors"
+    ],
+    "non_functional_requirements": [
+      "ReactQuill component performance: <200ms load time",
+      "Profile form validation: <100ms response time",
+      "Backward compatibility: existing user profiles unaffected",
+      "Accessibility: form fields properly labeled and keyboard navigable",
+      "Error handling: clear validation messages for venue/gallera fields"
+    ]
+  },
+
+  "inputs_and_outputs": {
+    "inputs": {
+      "reactquill_fix": {
+        "type": "Component enhancement",
+        "validation": "Must not break existing article creation functionality",
+        "example": "ArticleEditor component with ReactQuill 3.x integration"
+      },
+      "profile_enhancement": {
+        "type": "Form extension",
+        "validation": "Must preserve existing user profile functionality",
+        "parameters": {
+          "user_role": "string ('user' | 'venue' | 'gallera')",
+          "profile_data": "UserProfile interface extended with venue/gallera fields"
+        },
+        "example": "Profile form with conditional venue fields: businessName, businessAddress, etc."
+      }
+    },
+    "expected_outputs": {
+      "reactquill_component": {
+        "format": "React functional component with ReactQuill 3.x",
+        "structure": "ArticleEditor.tsx with proper React 18 compatibility",
+        "validation": "No console errors, crear articulo functional"
+      },
+      "enhanced_profile": {
+        "format": "Extended Profile.tsx component",
+        "structure": "Conditional rendering based on user role, integrated venue/gallera fields",
+        "api_compatibility": "Profile updates return 200 for all user roles"
+      }
+    },
+    "edge_cases": [
+      "User switches roles while editing profile",
+      "ReactQuill CSS conflicts with existing styles",
+      "Profile form validation with partial venue/gallera data",
+      "Network errors during profile save for venue/gallera users"
+    ]
+  },
+
+  "constraints_and_restrictions": {
+    "technical_limitations": [
+      "React 18 strict mode compatibility required for ReactQuill",
+      "Existing UserProfileForm component architecture must be preserved",
+      "No breaking changes to Profile API contract",
+      "CSS imports must not conflict with existing ReactQuill components"
+    ],
+    "business_restrictions": [
+      "Venue users require businessName, businessAddress, businessPhone fields",
+      "Gallera users require identificationNumber and entity-specific contact info",
+      "Regular users must not see venue/gallera specific fields",
+      "Profile updates must maintain audit trail for venue/gallera entities"
+    ],
+    "compatibility_requirements": [
+      "Must work with existing authentication system",
+      "Must integrate with current form validation patterns",
+      "Must support existing CSS/Tailwind styling approach",
+      "Must maintain TypeScript type safety"
+    ]
+  },
+
+  "apis_and_integrations": {
+    "internal_apis": [
+      {
+        "endpoint": "PUT /api/users/profile",
+        "purpose": "Update user profile with venue/gallera fields",
+        "current_issue": "Returns 400 for venue/gallera profile updates",
+        "required_fields": "businessName, businessAddress, businessPhone, taxId, licenseNumber, identificationNumber",
+        "expected_response": "200 status with updated profile data"
+      }
+    ],
+    "external_dependencies": [
+      {
+        "library": "ReactQuill 3.x",
+        "purpose": "WYSIWYG editor for article creation",
+        "migration_required": "Upgrade from 2.0.0 to fix findDOMNode compatibility",
+        "css_imports": "react-quill/dist/quill.snow.css (single import location)"
+      }
+    ],
+    "database_schema": {
+      "users_table": "Contains profileInfo JSONB field for venue/gallera additional data",
+      "profile_fields": "businessName, businessAddress, businessPhone, taxId, licenseNumber for venues; identificationNumber for galleras",
+      "validation": "Backend validates role-specific required fields"
     }
+  },
+
+  "test_driven_development": {
+    "unit_tests_before_implementation": [
+      {
+        "test": "ArticleEditor renders without console errors",
+        "file": "src/tests/components/ArticleEditor.test.tsx",
+        "assertion": "expect(console.error).not.toHaveBeenCalled()",
+        "setup": "Mock ReactQuill component, render ArticleEditor"
+      },
+      {
+        "test": "Profile form shows venue fields for venue users",
+        "file": "src/tests/pages/Profile.test.tsx",
+        "assertion": "expect(screen.getByLabelText('Business Name')).toBeInTheDocument()",
+        "setup": "Mock user with role='venue', render Profile component"
+      },
+      {
+        "test": "Profile form hides venue fields for regular users",
+        "file": "src/tests/pages/Profile.test.tsx",
+        "assertion": "expect(screen.queryByLabelText('Business Name')).not.toBeInTheDocument()",
+        "setup": "Mock user with role='user', render Profile component"
+      },
+      {
+        "test": "Profile update succeeds for venue users",
+        "file": "src/tests/pages/Profile.test.tsx",
+        "assertion": "expect(mockApiCall).toHaveBeenCalledWith(expect.objectContaining({ businessName: 'Test Business' }))",
+        "setup": "Mock successful API response, submit venue profile form"
+      }
+    ],
+    "integration_tests": [
+      {
+        "test": "Article creation flow works end-to-end",
+        "scenario": "Click crear articulo → ReactQuill loads → Type content → Save article",
+        "success_criteria": "Article saved without errors, redirects to article list"
+      },
+      {
+        "test": "Venue profile update flow works end-to-end",
+        "scenario": "Venue user → Profile page → Fill business fields → Save → Success message",
+        "success_criteria": "Profile updated, no 400 errors, success notification shown"
+      }
+    ],
+    "mock_data": {
+      "venue_user": {
+        "id": "test-venue-001",
+        "role": "venue",
+        "email": "venue@test.com",
+        "profileInfo": {
+          "fullName": "Test Venue Owner",
+          "businessName": "Test Venue",
+          "businessAddress": "123 Test St",
+          "businessPhone": "+1234567890"
+        }
+      },
+      "gallera_user": {
+        "id": "test-gallera-001",
+        "role": "gallera",
+        "email": "gallera@test.com",
+        "profileInfo": {
+          "fullName": "Test Gallera Owner",
+          "identificationNumber": "ID123456789"
+        }
+      }
+    },
+    "coverage_criteria": "Minimum 80% test coverage for modified components"
+  },
+
+  "development_phases": {
+    "phase_1_setup_and_tests": {
+      "duration": "10 minutes",
+      "tasks": [
+        "Create failing unit tests for ReactQuill compatibility",
+        "Create failing tests for venue/gallera profile fields",
+        "Set up test mocks for user roles and API responses"
+      ],
+      "checkpoint": "All tests written and failing as expected"
+    },
+    "phase_2_minimal_implementation": {
+      "duration": "20 minutes",
+      "tasks": [
+        "Fix ReactQuill findDOMNode error (upgrade to 3.x or ref-based solution)",
+        "Add conditional venue/gallera fields to Profile component",
+        "Extend UserProfileForm validation for new fields"
+      ],
+      "checkpoint": "All unit tests passing, components compile without errors"
+    },
+    "phase_3_integration_and_refinement": {
+      "duration": "10 minutes",
+      "tasks": [
+        "Test end-to-end article creation flow",
+        "Test end-to-end venue/gallera profile update flow",
+        "Refine error handling and validation messages"
+      ],
+      "checkpoint": "Integration tests passing, no console errors, 400 errors resolved"
+    }
+  },
+
+  "coding_conventions": {
+    "react_patterns": [
+      "Use functional components with hooks",
+      "Implement proper TypeScript interfaces for props",
+      "Use conditional rendering for role-specific fields: {user.role === 'venue' && <VenueFields />}",
+      "Follow existing form validation patterns from EditVenueGalleraModal.tsx"
+    ],
+    "styling_approach": [
+      "Use existing Tailwind CSS classes",
+      "Maintain consistent form field spacing and layout",
+      "Follow existing modal and form styling patterns",
+      "Ensure responsive design for all form fields"
+    ],
+    "file_structure": [
+      "Keep ArticleEditor.tsx in components/articles/",
+      "Profile.tsx remains in pages/user/",
+      "UserProfileForm.tsx in components/forms/",
+      "Tests in src/tests/ matching component structure"
+    ]
+  },
+
+  "context_injection": {
+    "existing_patterns_to_follow": [
+      {
+        "file": "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "pattern": "Venue/gallera field handling and validation",
+        "specific_code": "businessName, businessAddress, businessPhone, taxId, licenseNumber fields",
+        "usage": "Copy validation patterns and field structure for Profile extension"
+      },
+      {
+        "file": "frontend/src/components/forms/UserProfileForm.tsx",
+        "pattern": "Form validation and submission",
+        "specific_code": "Form validation using react-hook-form or similar",
+        "usage": "Extend existing validation schema for venue/gallera fields"
+      },
+      {
+        "file": "frontend/src/components/articles/ArticleEditor.tsx",
+        "pattern": "Current ReactQuill integration",
+        "specific_code": "ReactQuill component usage and configuration",
+        "usage": "Understand current implementation before fixing compatibility issues"
+      }
+    ],
+    "architectural_decisions": [
+      "Role-based conditional rendering established in admin components",
+      "Form validation using consistent patterns across the app",
+      "TypeScript interfaces defined in types/index.ts",
+      "API calls using services/api.ts with proper error handling"
+    ],
+    "technical_constraints": [
+      "React 18 strict mode requires ReactQuill 3.x compatibility",
+      "Existing CSS classes should not be modified",
+      "ProfileInfo JSONB structure in database must be respected",
+      "Authentication context provides user role information"
+    ]
+  },
+
+  "risk_mitigation": {
+    "gemini_specific_failure_patterns": [
+      {
+        "pattern": "Over-engineering simple fixes",
+        "prevention": "Focus on minimal changes to fix ReactQuill compatibility, don't redesign entire component",
+        "detection": "If implementation includes >20 lines of new code for ReactQuill fix, it's over-engineered"
+      },
+      {
+        "pattern": "Breaking existing functionality",
+        "prevention": "Test existing article creation flow before and after changes",
+        "rollback": "git checkout -- components/articles/ if article creation breaks"
+      },
+      {
+        "pattern": "Incorrect form validation logic",
+        "prevention": "Follow exact patterns from EditVenueGalleraModal.tsx for field validation",
+        "detection": "If venue users can save profiles without required business fields, validation is wrong"
+      },
+      {
+        "pattern": "CSS conflicts with ReactQuill styles",
+        "prevention": "Import react-quill/dist/quill.snow.css only once, check for conflicts",
+        "detection": "If editor styling breaks, CSS conflict occurred"
+      }
+    ],
+    "system_integration_risks": [
+      {
+        "risk": "Profile API returns 400 after changes",
+        "mitigation": "Test with actual API calls, ensure backend expects new fields",
+        "fallback": "Revert to original Profile.tsx if API integration fails"
+      },
+      {
+        "risk": "ReactQuill upgrade breaks other components",
+        "mitigation": "Search for other ReactQuill usage before upgrading",
+        "fallback": "Use ref-based solution instead of library upgrade"
+      }
+    ],
+    "rollback_plan": [
+      "Phase 1: Revert specific component files if tests fail",
+      "Phase 2: Rollback package.json changes if ReactQuill upgrade breaks build",
+      "Phase 3: Full git checkout if system integration fails"
+    ]
+  },
+
+  "success_criteria": {
+    "objective_metrics": [
+      "ReactQuill findDOMNode errors: 0 console errors (currently: multiple errors)",
+      "Article creation success rate: 100% (currently: fails due to console errors)",
+      "Venue profile update success: HTTP 200 response (currently: HTTP 400)",
+      "Gallera profile update success: HTTP 200 response (currently: HTTP 400)",
+      "Test coverage: ≥80% for modified components"
+    ],
+    "functional_validation": [
+      "Click 'crear articulo' button → ReactQuill editor loads without errors",
+      "Venue user → Profile page → sees business fields → can save successfully",
+      "Gallera user → Profile page → sees identification fields → can save successfully",
+      "Regular user → Profile page → sees only basic fields → existing functionality preserved"
+    ],
+    "integration_checks": [
+      "Article creation end-to-end flow works without console errors",
+      "Profile updates work for all user roles (user, venue, gallera)",
+      "No regression in existing user profile functionality",
+      "Backend API receives properly formatted venue/gallera profile data"
+    ]
   },
 
   "recommended_agents": {
@@ -57,23 +437,23 @@
     "execution_pattern": "Fix ReactQuill first, then enhance Profile component with proper form validation"
   },
 
-  "technical_constraints": {
-    "reactquill_approach": "Upgrade to ReactQuill 3.x with proper React 18 compatibility",
-    "profile_enhancement": "Extend existing UserProfileForm without breaking current user profile functionality",
-    "form_validation": "Use existing validation patterns from EditVenueGalleraModal.tsx",
-    "testing_requirements": [
-      "Test article creation for all user roles",
-      "Test profile updates for venue/gallera users",
-      "Verify no regression in basic user profile functionality"
-    ]
-  },
-
-  "success_criteria": {
-    "critical_fixes": [
-      "ReactQuill crear articulo works without errors",
-      "Venue/Gallera profile saves return 200 instead of 400",
-      "No console errors in article creation",
-      "Profile updates work for all user roles"
+  "final_deliverables": {
+    "code_components": [
+      "Fixed ArticleEditor.tsx with ReactQuill 3.x compatibility",
+      "Enhanced Profile.tsx with venue/gallera conditional fields",
+      "Updated UserProfileForm.tsx with extended validation",
+      "Comprehensive test suite with ≥80% coverage"
+    ],
+    "documentation": [
+      "Implementation summary with changes made",
+      "Test results showing all success criteria met",
+      "Migration notes for ReactQuill upgrade (if applicable)"
+    ],
+    "validation_evidence": [
+      "Screenshot/video of working 'crear articulo' functionality",
+      "API response logs showing 200 status for venue/gallera profile updates",
+      "Test coverage report showing ≥80% coverage",
+      "Console log showing zero ReactQuill errors"
     ]
   }
 }

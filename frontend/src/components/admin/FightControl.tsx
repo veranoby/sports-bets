@@ -1,14 +1,14 @@
-import React, { useState, useCallback } from 'react';
-import { Card, Button, Badge, Modal, Alert, Tooltip, Spin } from 'antd';
-import { 
-  PlayCircleOutlined, 
-  PauseCircleOutlined, 
+import React, { useState, useCallback } from "react";
+import { Card, Button, Badge, Modal, Alert, Tooltip, Spin } from "antd";
+import {
+  PlayCircleOutlined,
+  PauseCircleOutlined,
   CheckCircleOutlined,
   TrophyOutlined,
   InfoCircleOutlined,
-  ClockCircleOutlined
-} from '@ant-design/icons';
-import { fightsAPI } from '../../services/api';
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+import { fightsAPI } from "../../services/api";
 
 interface Fight {
   id: string;
@@ -16,17 +16,17 @@ interface Fight {
   redCorner: string;
   blueCorner: string;
   weight?: number;
-  status: 'upcoming' | 'betting' | 'live' | 'completed' | 'cancelled';
+  status: "upcoming" | "betting" | "live" | "completed" | "cancelled";
   bettingOpenedAt?: string;
   bettingClosedAt?: string;
   completedAt?: string;
-  winner?: 'red' | 'blue' | 'draw';
+  winner?: "red" | "blue" | "draw";
   notes?: string;
 }
 
 interface FightControlProps {
   fight: Fight;
-  
+
   onFightUpdate: (updatedFight: Fight) => void;
   onError: (message: string) => void;
 }
@@ -34,52 +34,71 @@ interface FightControlProps {
 const FightControl: React.FC<FightControlProps> = ({
   fight,
   onFightUpdate,
-  onError
+  onError,
 }) => {
   const [loading, setLoading] = useState<string | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
 
-  const getStatusBadge = (status: Fight['status']) => {
+  const getStatusBadge = (status: Fight["status"]) => {
     const statusConfig = {
-      upcoming: { color: 'default', text: 'Próximamente' },
-      betting: { color: 'processing', text: 'Apuestas Abiertas' },
-      live: { color: 'warning', text: 'En Vivo' },
-      completed: { color: 'success', text: 'Finalizada' },
-      cancelled: { color: 'error', text: 'Cancelada' }
+      upcoming: { color: "default", text: "Próximamente" },
+      betting: { color: "processing", text: "Apuestas Abiertas" },
+      live: { color: "warning", text: "En Vivo" },
+      completed: { color: "success", text: "Finalizada" },
+      cancelled: { color: "error", text: "Cancelada" },
     };
 
     const config = statusConfig[status];
-    return <Badge status={config.color as "default" | "processing" | "warning" | "success" | "error"} text={config.text} />;
+    return (
+      <Badge
+        status={
+          config.color as
+            | "default"
+            | "processing"
+            | "warning"
+            | "success"
+            | "error"
+        }
+        text={config.text}
+      />
+    );
   };
 
-  const getStatusIcon = (status: Fight['status']) => {
+  const getStatusIcon = (status: Fight["status"]) => {
     switch (status) {
-      case 'upcoming': return <ClockCircleOutlined />;
-      case 'betting': return <PlayCircleOutlined style={{ color: '#1890ff' }} />;
-      case 'live': return <PlayCircleOutlined style={{ color: '#faad14' }} />;
-      case 'completed': return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-      case 'cancelled': return <PauseCircleOutlined style={{ color: '#ff4d4f' }} />;
-      default: return <InfoCircleOutlined />;
+      case "upcoming":
+        return <ClockCircleOutlined />;
+      case "betting":
+        return <PlayCircleOutlined style={{ color: "#1890ff" }} />;
+      case "live":
+        return <PlayCircleOutlined style={{ color: "#faad14" }} />;
+      case "completed":
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      case "cancelled":
+        return <PauseCircleOutlined style={{ color: "#ff4d4f" }} />;
+      default:
+        return <InfoCircleOutlined />;
     }
   };
 
   const handleOpenBetting = useCallback(async () => {
     try {
-      setLoading('opening');
+      setLoading("opening");
       const response = await fightsAPI.openBetting(fight.id);
-      
+
       if (response.success) {
         onFightUpdate({
           ...fight,
-          status: 'betting',
-          bettingOpenedAt: (response.data as any)?.bettingOpenedAt || new Date().toISOString()
+          status: "betting",
+          bettingOpenedAt:
+            (response.data as any)?.bettingOpenedAt || new Date().toISOString(),
         });
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        onError(error.message || 'Error opening betting window');
+        onError(error.message || "Error opening betting window");
       } else {
-        onError('Error opening betting window');
+        onError("Error opening betting window");
       }
     } finally {
       setLoading(null);
@@ -88,77 +107,81 @@ const FightControl: React.FC<FightControlProps> = ({
 
   const handleCloseBetting = useCallback(async () => {
     try {
-      setLoading('closing');
+      setLoading("closing");
       const response = await fightsAPI.closeBetting(fight.id);
-      
+
       if (response.success) {
         onFightUpdate({
           ...fight,
-          status: 'live',
-          bettingClosedAt: (response.data as any)?.bettingClosedAt || new Date().toISOString()
+          status: "live",
+          bettingClosedAt:
+            (response.data as any)?.bettingClosedAt || new Date().toISOString(),
         });
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        onError(error.message || 'Error closing betting window');
+        onError(error.message || "Error closing betting window");
       } else {
-        onError('Error closing betting window');
+        onError("Error closing betting window");
       }
     } finally {
       setLoading(null);
     }
   }, [fight, onFightUpdate, onError]);
 
-  const handleRecordResult = useCallback(async (winner: 'red' | 'blue' | 'draw') => {
-    try {
-      setLoading('recording');
-      const response = await fightsAPI.recordResult(fight.id, {
-        winner,
-        method: 'decision'
-      });
-      
-      if (response.success) {
-        onFightUpdate({
-          ...fight,
-          status: 'completed',
+  const handleRecordResult = useCallback(
+    async (winner: "red" | "blue" | "draw") => {
+      try {
+        setLoading("recording");
+        const response = await fightsAPI.recordResult(fight.id, {
           winner,
-          completedAt: new Date().toISOString()
+          method: "decision",
         });
-        setShowResultModal(false);
+
+        if (response.success) {
+          onFightUpdate({
+            ...fight,
+            status: "completed",
+            winner,
+            completedAt: new Date().toISOString(),
+          });
+          setShowResultModal(false);
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          onError(error.message || "Error recording fight result");
+        } else {
+          onError("Error recording fight result");
+        }
+      } finally {
+        setLoading(null);
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        onError(error.message || 'Error recording fight result');
-      } else {
-        onError('Error recording fight result');
-      }
-    } finally {
-      setLoading(null);
-    }
-  }, [fight, onFightUpdate, onError]);
+    },
+    [fight, onFightUpdate, onError],
+  );
 
   const getActionButtons = () => {
     switch (fight.status) {
-      case 'upcoming':
+      case "upcoming":
         return (
           <Button
             type="primary"
             icon={<PlayCircleOutlined />}
             onClick={handleOpenBetting}
-            loading={loading === 'opening'}
+            loading={loading === "opening"}
             disabled={!!loading}
           >
             Abrir Apuestas
           </Button>
         );
 
-      case 'betting':
+      case "betting":
         return (
           <Button
             type="default"
             icon={<PauseCircleOutlined />}
             onClick={handleCloseBetting}
-            loading={loading === 'closing'}
+            loading={loading === "closing"}
             disabled={!!loading}
             danger
           >
@@ -166,20 +189,20 @@ const FightControl: React.FC<FightControlProps> = ({
           </Button>
         );
 
-      case 'live':
+      case "live":
         return (
           <Button
             type="primary"
             icon={<TrophyOutlined />}
             onClick={() => setShowResultModal(true)}
-            loading={loading === 'recording'}
+            loading={loading === "recording"}
             disabled={!!loading}
           >
             Registrar Resultado
           </Button>
         );
 
-      case 'completed':
+      case "completed":
         return (
           <Button disabled icon={<CheckCircleOutlined />}>
             Finalizada
@@ -192,13 +215,13 @@ const FightControl: React.FC<FightControlProps> = ({
   };
 
   const formatTimestamp = (timestamp?: string) => {
-    if (!timestamp) return 'N/A';
-    return new Date(timestamp).toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!timestamp) return "N/A";
+    return new Date(timestamp).toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -207,7 +230,7 @@ const FightControl: React.FC<FightControlProps> = ({
       <Card
         size="small"
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {getStatusIcon(fight.status)}
             <span>Pelea #{fight.number}</span>
             {getStatusBadge(fight.status)}
@@ -217,47 +240,57 @@ const FightControl: React.FC<FightControlProps> = ({
         style={{ marginBottom: 16 }}
         bodyStyle={{ paddingTop: 12, paddingBottom: 12 }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ 
-                backgroundColor: '#ff4d4f', 
-                color: 'white', 
-                padding: '2px 8px', 
-                borderRadius: 4, 
-                fontSize: '12px',
-                fontWeight: 'bold',
-                marginRight: 12,
-                minWidth: 40,
-                textAlign: 'center'
-              }}>
+            <div
+              style={{ display: "flex", alignItems: "center", marginBottom: 8 }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#ff4d4f",
+                  color: "white",
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  marginRight: 12,
+                  minWidth: 40,
+                  textAlign: "center",
+                }}
+              >
                 ROJO
               </div>
               <span style={{ fontWeight: 600 }}>{fight.redCorner}</span>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ 
-                backgroundColor: '#1890ff', 
-                color: 'white', 
-                padding: '2px 8px', 
-                borderRadius: 4, 
-                fontSize: '12px',
-                fontWeight: 'bold',
-                marginRight: 12,
-                minWidth: 40,
-                textAlign: 'center'
-              }}>
+
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div
+                style={{
+                  backgroundColor: "#1890ff",
+                  color: "white",
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  marginRight: 12,
+                  minWidth: 40,
+                  textAlign: "center",
+                }}
+              >
                 AZUL
               </div>
               <span style={{ fontWeight: 600 }}>{fight.blueCorner}</span>
             </div>
           </div>
 
-          <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
-            {fight.weight && (
-              <div>Peso: {fight.weight} lbs</div>
-            )}
+          <div style={{ textAlign: "right", fontSize: "12px", color: "#666" }}>
+            {fight.weight && <div>Peso: {fight.weight} lbs</div>}
             {fight.bettingOpenedAt && (
               <div>
                 <Tooltip title="Apuestas abiertas">
@@ -273,26 +306,33 @@ const FightControl: React.FC<FightControlProps> = ({
               </div>
             )}
             {fight.winner && (
-              <div style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                Ganador: {fight.winner === 'red' ? 'Rojo' : fight.winner === 'blue' ? 'Azul' : 'Empate'}
+              <div style={{ color: "#52c41a", fontWeight: "bold" }}>
+                Ganador:{" "}
+                {fight.winner === "red"
+                  ? "Rojo"
+                  : fight.winner === "blue"
+                    ? "Azul"
+                    : "Empate"}
               </div>
             )}
           </div>
         </div>
 
         {loading && (
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0, 
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 6
-          }}>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 6,
+            }}
+          >
             <Spin />
           </div>
         )}
@@ -305,13 +345,17 @@ const FightControl: React.FC<FightControlProps> = ({
         footer={null}
         width={400}
       >
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
           <h3>Pelea #{fight.number}</h3>
-          <div style={{ margin: '20px 0' }}>
-            <div><strong>Rojo:</strong> {fight.redCorner}</div>
-            <div><strong>Azul:</strong> {fight.blueCorner}</div>
+          <div style={{ margin: "20px 0" }}>
+            <div>
+              <strong>Rojo:</strong> {fight.redCorner}
+            </div>
+            <div>
+              <strong>Azul:</strong> {fight.blueCorner}
+            </div>
           </div>
-          
+
           <Alert
             message="Selecciona el ganador de la pelea"
             type="info"
@@ -319,39 +363,39 @@ const FightControl: React.FC<FightControlProps> = ({
             style={{ marginBottom: 20 }}
           />
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
             <Button
               size="large"
-              style={{ 
-                backgroundColor: '#ff4d4f', 
-                borderColor: '#ff4d4f', 
-                color: 'white',
-                minWidth: 100
+              style={{
+                backgroundColor: "#ff4d4f",
+                borderColor: "#ff4d4f",
+                color: "white",
+                minWidth: 100,
               }}
-              onClick={() => handleRecordResult('red')}
-              loading={loading === 'recording'}
+              onClick={() => handleRecordResult("red")}
+              loading={loading === "recording"}
             >
               Rojo Gana
             </Button>
-            
+
             <Button
               size="large"
-              style={{ 
-                backgroundColor: '#1890ff', 
-                borderColor: '#1890ff', 
-                color: 'white',
-                minWidth: 100
+              style={{
+                backgroundColor: "#1890ff",
+                borderColor: "#1890ff",
+                color: "white",
+                minWidth: 100,
               }}
-              onClick={() => handleRecordResult('blue')}
-              loading={loading === 'recording'}
+              onClick={() => handleRecordResult("blue")}
+              loading={loading === "recording"}
             >
               Azul Gana
             </Button>
-            
+
             <Button
               size="large"
-              onClick={() => handleRecordResult('draw')}
-              loading={loading === 'recording'}
+              onClick={() => handleRecordResult("draw")}
+              loading={loading === "recording"}
               style={{ minWidth: 100 }}
             >
               Empate

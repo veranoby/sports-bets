@@ -1,20 +1,20 @@
 // frontend/src/components/admin/EditUserModal.tsx
 // Modal completo para editar usuarios incluyendo gestión de suscripciones
 
-import React, { useState } from 'react';
-import { usersAPI } from '../../config/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import ErrorMessage from '../shared/ErrorMessage';
+import React, { useState } from "react";
+import { usersAPI } from "../../config/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
 
-import SubscriptionTabs from './SubscriptionTabs';
-import { User, X } from 'lucide-react';
-import type { User as UserType } from '../../types';
+import SubscriptionTabs from "./SubscriptionTabs";
+import { User, X } from "lucide-react";
+import type { User as UserType } from "../../types";
 
 interface EditUserFormData {
   username: string;
   email: string;
   isActive: boolean;
-  role: UserType['role'];
+  role: UserType["role"];
   profileInfo: {
     fullName: string;
     phoneNumber: string;
@@ -30,12 +30,17 @@ interface EditUserModalProps {
   onUserUpdated: (updatedUser: UserType) => void;
 }
 
-const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpdated }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'subscription'>('profile');
+const EditUserModal: React.FC<EditUserModalProps> = ({
+  user,
+  onClose,
+  onUserUpdated,
+}) => {
+  const [activeTab, setActiveTab] = useState<"profile" | "subscription">(
+    "profile",
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  
+
   // Profile form data
   const [profileData, setProfileData] = useState<EditUserFormData>({
     username: user.username,
@@ -43,32 +48,32 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     isActive: user.isActive,
     role: user.role,
     profileInfo: {
-      fullName: user.profileInfo?.fullName || '',
-      phoneNumber: user.profileInfo?.phoneNumber || '',
-      address: user.profileInfo?.address || '',
-      identificationNumber: user.profileInfo?.identificationNumber || '',
-      verificationLevel: user.profileInfo?.verificationLevel || 'none'
-    }
+      fullName: user.profileInfo?.fullName || "",
+      phoneNumber: user.profileInfo?.phoneNumber || "",
+      address: user.profileInfo?.address || "",
+      identificationNumber: user.profileInfo?.identificationNumber || "",
+      verificationLevel: user.profileInfo?.verificationLevel || "none",
+    },
   });
 
-  
-
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleProfileChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
-    
-    if (name.startsWith('profileInfo.')) {
-      const field = name.split('.')[1];
-      setProfileData(prev => ({
+
+    if (name.startsWith("profileInfo.")) {
+      const field = name.split(".")[1];
+      setProfileData((prev) => ({
         ...prev,
         profileInfo: {
           ...prev.profileInfo,
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: type === "checkbox" ? checked : value,
       }));
     }
   };
@@ -81,7 +86,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
     try {
       // Update user profile
       await usersAPI.updateProfile({
-        profileInfo: profileData.profileInfo
+        profileInfo: profileData.profileInfo,
       });
 
       // Update user role if changed (admin only)
@@ -97,18 +102,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
       // Update parent component
       onUserUpdated({
         ...user,
-        ...profileData
+        ...profileData,
       });
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error updating user');
+      setError(err instanceof Error ? err.message : "Error updating user");
     } finally {
       setLoading(false);
     }
   };
-
-  
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -138,21 +141,21 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             <button
-              onClick={() => setActiveTab('profile')}
+              onClick={() => setActiveTab("profile")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'profile'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === "profile"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               👤 Perfil
             </button>
             <button
-              onClick={() => setActiveTab('subscription')}
+              onClick={() => setActiveTab("subscription")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'subscription'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === "subscription"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               💳 Suscripción
@@ -162,7 +165,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
 
         {/* Content */}
         <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-          {activeTab === 'profile' && (
+          {activeTab === "profile" && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -282,7 +285,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
             </div>
           )}
 
-          {activeTab === 'subscription' && (
+          {activeTab === "subscription" && (
             <SubscriptionTabs
               userId={user.id}
               subscription={user.subscription}
@@ -290,7 +293,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
                 // Actualizar los datos del usuario con la nueva suscripción
                 onUserUpdated({
                   ...user,
-                  subscription: subscriptionData
+                  subscription: subscriptionData,
                 });
               }}
               onCancel={onClose}
@@ -307,7 +310,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
           >
             Cancelar
           </button>
-          {activeTab !== 'subscription' && (
+          {activeTab !== "subscription" && (
             <button
               onClick={handleSubmit}
               disabled={loading}
@@ -319,7 +322,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUserUpda
                   Guardando...
                 </>
               ) : (
-                'Guardar Cambios'
+                "Guardar Cambios"
               )}
             </button>
           )}

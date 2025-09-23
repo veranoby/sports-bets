@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import {
   Calendar,
   Activity,
-  
   Webcam,
   Zap,
   Dices,
@@ -48,21 +47,21 @@ const Dashboard: React.FC = () => {
     "new_event",
     useCallback(() => {
       fetchEvents();
-    }, [fetchEvents])
+    }, [fetchEvents]),
   );
 
   useWebSocketListener(
     "event_started",
     useCallback(() => {
       fetchEvents();
-    }, [fetchEvents])
+    }, [fetchEvents]),
   );
 
   useWebSocketListener(
     "event_ended",
     useCallback(() => {
       fetchEvents();
-    }, [fetchEvents])
+    }, [fetchEvents]),
   );
 
   // ✅ Datos computados simplificados (solo eventos)
@@ -121,14 +120,19 @@ const Dashboard: React.FC = () => {
         {/* ROLE-SPECIFIC SECTIONS */}
         {user?.role === "user" && isBettingEnabled && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-theme-primary">Mis Apuestas</h2>
+            <h2 className="text-2xl font-bold text-theme-primary">
+              Mis Apuestas
+            </h2>
             <div className="card-background p-6">
-              <p>Aquí irán las secciones de Mis Apuestas y Historial de Apuestas (BettingSection).</p>
-              {/* <BettingSection /> */} {/* Placeholder for actual component */}
+              <p>
+                Aquí irán las secciones de Mis Apuestas y Historial de Apuestas
+                (BettingSection).
+              </p>
+              {/* <BettingSection /> */}{" "}
+              {/* Placeholder for actual component */}
             </div>
           </div>
         )}
-
 
         {/* ArticleManagement component moved to News.tsx for venue and gallera roles */}
 
@@ -318,7 +322,7 @@ const Dashboard: React.FC = () => {
                           {
                             day: "2-digit",
                             month: "short",
-                          }
+                          },
                         )}
                         variant="secondary"
                         size="md"
@@ -331,7 +335,7 @@ const Dashboard: React.FC = () => {
                         {
                           hour: "2-digit",
                           minute: "2-digit",
-                        }
+                        },
                       )}
                     </p>
                   </div>

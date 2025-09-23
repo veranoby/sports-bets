@@ -1,13 +1,15 @@
-import React from 'react';
-import useSSE from '../../hooks/useSSE';
-import { type BettingNotificationData, type BettingNotificationsResponse } from '../../types';
+import React from "react";
+import useSSE from "../../hooks/useSSE";
+import { type BettingNotificationsResponse } from "../../types";
 
 const BettingNotifications: React.FC = () => {
   // Siempre llamar useSSE para respetar las reglas de React Hooks
   // Pero solo usar los datos si la feature está habilitada
-  const bettingNotifications = useSSE<BettingNotificationsResponse>('/api/sse/users/me/betting');
-  
-  const isBettingEnabled = process.env.REACT_APP_FEATURES_BETTING === 'true';
+  const bettingNotifications = useSSE<BettingNotificationsResponse>(
+    "/api/sse/users/me/betting",
+  );
+
+  const isBettingEnabled = process.env.REACT_APP_FEATURES_BETTING === "true";
 
   // No renderizar nada si las notificaciones están deshabilitadas o no hay datos
   if (!isBettingEnabled || !bettingNotifications) {

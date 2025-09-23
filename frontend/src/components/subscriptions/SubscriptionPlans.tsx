@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Crown, Check, Star, RefreshCw, AlertTriangle } from 'lucide-react';
-import { subscriptionAPI } from '../../config/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
+import React, { useState, useEffect } from "react";
+import { Crown, Check, Star, RefreshCw, AlertTriangle } from "lucide-react";
+import { subscriptionAPI } from "../../config/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
 
 interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
   currency: string;
-  interval: 'day' | 'month';
+  interval: "day" | "month";
   features: string[];
   popular?: boolean;
   description?: string;
@@ -25,7 +25,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   onPlanSelect,
   currentPlan,
   loading: externalLoading = false,
-  className = ''
+  className = "",
 }) => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,12 +37,12 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await subscriptionAPI.getPlans();
       setPlans(response.data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load subscription plans');
-      console.error('Failed to fetch plans:', err);
+      setError(err.message || "Failed to load subscription plans");
+      console.error("Failed to fetch plans:", err);
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       setSelecting(plan.id);
       await onPlanSelect(plan);
     } catch (error) {
-      console.error('Plan selection failed:', error);
+      console.error("Plan selection failed:", error);
     } finally {
       setSelecting(null);
     }
@@ -70,21 +70,22 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
   // Format currency
   const formatPrice = (price: number, currency: string) => {
-    const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
+    const symbol =
+      currency === "USD" ? "$" : currency === "EUR" ? "€" : currency;
     return `${symbol}${price.toFixed(2)}`;
   };
 
   // Calculate savings for monthly plan
   const calculateSavings = () => {
-    const dailyPlan = plans.find(p => p.interval === 'day');
-    const monthlyPlan = plans.find(p => p.interval === 'month');
-    
+    const dailyPlan = plans.find((p) => p.interval === "day");
+    const monthlyPlan = plans.find((p) => p.interval === "month");
+
     if (dailyPlan && monthlyPlan) {
       const monthlyDaily = dailyPlan.price * 30;
       const savings = monthlyDaily - monthlyPlan.price;
       return savings > 0 ? savings : 0;
     }
-    
+
     return 0;
   };
 
@@ -104,12 +105,13 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-600" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Plans</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Error Loading Plans
+        </h3>
         <p className="text-gray-600 mb-6">
-          {error.includes('network') || error.includes('fetch') 
-            ? 'Check your internet connection and try again.'
-            : error
-          }
+          {error.includes("network") || error.includes("fetch")
+            ? "Check your internet connection and try again."
+            : error}
         </p>
         <button
           onClick={fetchPlans}
@@ -127,9 +129,12 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     return (
       <div className={`text-center py-12 ${className}`}>
         <Crown className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Plans Available</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          No Plans Available
+        </h3>
         <p className="text-gray-600">
-          Subscription plans are not available at the moment. Please try again later.
+          Subscription plans are not available at the moment. Please try again
+          later.
         </p>
       </div>
     );
@@ -141,10 +146,12 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     <div className={`max-w-4xl mx-auto ${className}`}>
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Choose Your Plan
+        </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Compare features and select the plan that works best for you. 
-          All plans include premium streaming access and exclusive content.
+          Compare features and select the plan that works best for you. All
+          plans include premium streaming access and exclusive content.
         </p>
         {savings > 0 && (
           <div className="mt-4 inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
@@ -155,25 +162,26 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       </div>
 
       {/* Plans Grid */}
-      <div 
+      <div
         data-testid="subscription-plans"
         className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
       >
         {plans.map((plan) => {
           const isCurrentPlan = currentPlan === plan.id;
           const isSelecting = selecting === plan.id;
-          const isUpgrade = currentPlan === 'daily' && plan.interval === 'month';
+          const isUpgrade =
+            currentPlan === "daily" && plan.interval === "month";
 
           return (
             <div
               key={plan.id}
               data-testid={`plan-${plan.id}`}
               className={`relative bg-white rounded-2xl shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
-                plan.popular 
-                  ? 'border-yellow-400 ring-2 ring-yellow-400 ring-opacity-50' 
+                plan.popular
+                  ? "border-yellow-400 ring-2 ring-yellow-400 ring-opacity-50"
                   : isCurrentPlan
-                  ? 'border-green-500 ring-2 ring-green-500 ring-opacity-50'
-                  : 'border-gray-200 hover:border-blue-300'
+                    ? "border-green-500 ring-2 ring-green-500 ring-opacity-50"
+                    : "border-gray-200 hover:border-blue-300"
               }`}
             >
               {/* Popular Badge */}
@@ -207,21 +215,23 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <div className="p-8">
                 {/* Plan Header */}
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {plan.name}
+                  </h3>
                   {plan.description && (
                     <p className="text-gray-600 text-sm">{plan.description}</p>
                   )}
-                  
+
                   <div className="mt-4">
                     <span className="text-4xl font-bold text-gray-900">
                       {formatPrice(plan.price, plan.currency)}
                     </span>
                     <span className="text-gray-500 ml-1">
-                      /{plan.interval === 'day' ? 'day' : 'month'}
+                      /{plan.interval === "day" ? "day" : "month"}
                     </span>
                   </div>
 
-                  {plan.interval === 'month' && savings > 0 && (
+                  {plan.interval === "month" && savings > 0 && (
                     <div className="mt-2 text-sm text-green-600 font-medium">
                       Save ${savings.toFixed(2)} per month
                     </div>
@@ -244,10 +254,10 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   disabled={isCurrentPlan || isSelecting || externalLoading}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
                     isCurrentPlan
-                      ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                      ? "bg-green-100 text-green-700 cursor-not-allowed"
                       : plan.popular
-                      ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 transform hover:scale-105'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105'
+                        ? "bg-yellow-400 hover:bg-yellow-500 text-yellow-900 transform hover:scale-105"
+                        : "bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105"
                   } disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isSelecting ? (
@@ -256,21 +266,20 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       Selecting...
                     </div>
                   ) : isCurrentPlan ? (
-                    'Current Plan'
+                    "Current Plan"
                   ) : isUpgrade ? (
                     `Upgrade to ${plan.name}`
                   ) : (
-                    'Select Plan'
+                    "Select Plan"
                   )}
                 </button>
 
                 {/* Billing Info */}
                 <div className="mt-4 text-center">
                   <p className="text-xs text-gray-500">
-                    {plan.interval === 'day' 
-                      ? 'Billed daily. Cancel anytime.' 
-                      : 'Billed monthly. Cancel anytime.'
-                    }
+                    {plan.interval === "day"
+                      ? "Billed daily. Cancel anytime."
+                      : "Billed monthly. Cancel anytime."}
                   </p>
                 </div>
               </div>
@@ -298,7 +307,8 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
-            <strong>Money-back guarantee:</strong> Not satisfied? Get a full refund within 7 days of your purchase.
+            <strong>Money-back guarantee:</strong> Not satisfied? Get a full
+            refund within 7 days of your purchase.
           </p>
         </div>
       </div>

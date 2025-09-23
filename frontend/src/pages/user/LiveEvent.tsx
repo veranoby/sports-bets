@@ -83,7 +83,7 @@ const VideoPlayer = memo(
         )}
       </div>
     </div>
-  )
+  ),
 );
 
 const ChatComponent = memo(({ eventId }: { eventId: string }) => (
@@ -153,7 +153,7 @@ const BettingPanel = memo(
         </div>
       )}
     </div>
-  )
+  ),
 );
 
 // ✅ COMPONENTE PRINCIPAL CORREGIDO
@@ -181,7 +181,7 @@ const LiveEvent = () => {
   // Estados locales
   const [currentEvent, setCurrentEvent] = useState<EventData | null>(null);
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
-    "available"
+    "available",
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -231,8 +231,8 @@ const LiveEvent = () => {
           fetchFights({ eventId });
         }
       },
-      [eventId, fetchFights]
-    )
+      [eventId, fetchFights],
+    ),
   );
 
   useWebSocketListener(
@@ -244,8 +244,8 @@ const LiveEvent = () => {
           fetchAvailableBets({ eventId });
         }
       },
-      [eventId, fetchAvailableBets]
-    )
+      [eventId, fetchAvailableBets],
+    ),
   );
 
   useWebSocketListener(
@@ -257,8 +257,8 @@ const LiveEvent = () => {
           setCurrentEvent((prev) => (prev ? { ...prev, ...data } : null));
         }
       },
-      [eventId]
-    )
+      [eventId],
+    ),
   );
 
   // ✅ Load data on mount
@@ -277,7 +277,7 @@ const LiveEvent = () => {
         setError(err.message || "Error aceptando apuesta");
       }
     },
-    [acceptBet, fetchAvailableBets, eventId]
+    [acceptBet, fetchAvailableBets, eventId],
   );
 
   const handleCreateBet = useCallback(() => {
@@ -544,15 +544,15 @@ const LiveEvent = () => {
                             bet.status === "active"
                               ? "bg-blue-500/20 text-blue-400"
                               : bet.status === "won"
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-red-500/20 text-red-400"
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-red-500/20 text-red-400"
                           }`}
                         >
                           {bet.status === "active"
                             ? "Activa"
                             : bet.status === "won"
-                            ? "Ganada"
-                            : "Perdida"}
+                              ? "Ganada"
+                              : "Perdida"}
                         </span>
                       </div>
                     </div>
@@ -599,7 +599,7 @@ const LiveEvent = () => {
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
-                      }
+                      },
                     )}
                   </p>
                 </div>

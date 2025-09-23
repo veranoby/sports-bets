@@ -1,52 +1,60 @@
 // frontend/src/components/shared/PWAInstallPrompt.tsx
 // Component para prompt de instalación PWA - USER y VENUE solamente
 
-import React, { useState, useEffect } from 'react';
-import { X, Download, Smartphone } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { X, Download, Smartphone } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 interface PWAInstallPromptProps {
-  showFor?: ('user' | 'venue')[];
+  showFor?: ("user" | "venue")[];
   delay?: number;
   autoShow?: boolean;
 }
 
 const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
-  showFor = ['user', 'venue'],
+  showFor = ["user", "venue"],
   delay = 3000,
-  autoShow = true
+  autoShow = true,
 }) => {
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     // Detectar iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const iOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(iOS);
 
     // Verificar si ya está instalado
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone;
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone;
     setIsInstalled(isStandalone);
 
     // Handler para beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Solo mostrar para roles específicos y en móvil
       const isMobile = window.innerWidth <= 768;
       const userRole = user?.role;
-      const shouldShow = userRole && showFor.includes(userRole as 'user' | 'venue') && isMobile && !isStandalone && autoShow;
-      
+      const shouldShow =
+        userRole &&
+        showFor.includes(userRole as "user" | "venue") &&
+        isMobile &&
+        !isStandalone &&
+        autoShow;
+
       if (shouldShow) {
         setTimeout(() => setIsVisible(true), delay);
       }
@@ -59,12 +67,15 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, [user?.role, showFor, delay, autoShow]);
 
@@ -72,14 +83,14 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       // Analytics tracking
       if ((window as any).gtag) {
-        (window as any).gtag('event', 'pwa_install_' + outcome, {
-          user_role: user?.role
+        (window as any).gtag("event", "pwa_install_" + outcome, {
+          user_role: user?.role,
         });
       }
-      
+
       setDeferredPrompt(null);
       setIsVisible(false);
     }
@@ -87,23 +98,23 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
 
   const handleDismiss = () => {
     setIsVisible(false);
-    
+
     // Analytics tracking
     if ((window as any).gtag) {
-      (window as any).gtag('event', 'pwa_install_dismissed', {
-        user_role: user?.role
+      (window as any).gtag("event", "pwa_install_dismissed", {
+        user_role: user?.role,
       });
     }
-    
+
     // No mostrar again por 24h
-    localStorage.setItem('pwa_dismissed', Date.now().toString());
+    localStorage.setItem("pwa_dismissed", Date.now().toString());
   };
 
   // No mostrar si está instalado o no es móvil
   if (isInstalled || window.innerWidth > 768) return null;
 
   // No mostrar si fue rechazado recientemente
-  const dismissed = localStorage.getItem('pwa_dismissed');
+  const dismissed = localStorage.getItem("pwa_dismissed");
   if (dismissed && Date.now() - parseInt(dismissed) < 24 * 60 * 60 * 1000) {
     return null;
   }
@@ -118,7 +129,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
               <Smartphone className="w-6 h-6 text-white" />
             </div>
           </div>
-          
+
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 mb-1">
               Instalar Galleros<span className="text-red-500">.Net</span>
@@ -132,7 +143,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
               <li>3. Toca "Añadir"</li>
             </ol>
           </div>
-          
+
           <button
             onClick={handleDismiss}
             className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
@@ -154,14 +165,16 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
               <Download className="w-6 h-6 text-white" />
             </div>
           </div>
-          
+
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">Instalar Galleros<span className="text-red-500">.Net</span></h3>
+            <h3 className="font-semibold text-gray-900">
+              Instalar Galleros<span className="text-red-500">.Net</span>
+            </h3>
             <p className="text-sm text-gray-600">
               Acceso rápido desde tu pantalla de inicio
             </p>
           </div>
-          
+
           <div className="flex space-x-2">
             <button
               onClick={handleDismiss}
@@ -188,11 +201,13 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
 export const usePWAInstall = () => {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone;
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone;
     setIsInstalled(isStandalone);
 
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -207,12 +222,15 @@ export const usePWAInstall = () => {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -230,7 +248,7 @@ export const usePWAInstall = () => {
   return {
     canInstall,
     isInstalled,
-    install
+    install,
   };
 };
 
@@ -238,7 +256,7 @@ export const usePWAInstall = () => {
 export const PWAInstallButton: React.FC<{
   className?: string;
   children?: React.ReactNode;
-}> = ({ className = '', children }) => {
+}> = ({ className = "", children }) => {
   const { canInstall, install } = usePWAInstall();
 
   if (!canInstall) return null;
@@ -249,7 +267,7 @@ export const PWAInstallButton: React.FC<{
       className={`flex items-center space-x-2 ${className}`}
     >
       <Download className="w-4 h-4" />
-      <span>{children || 'Instalar App'}</span>
+      <span>{children || "Instalar App"}</span>
     </button>
   );
 };

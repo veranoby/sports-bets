@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { articlesAPI } from '../../config/api';
-import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import { Edit, Eye, Clock, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { articlesAPI } from "../../config/api";
+import { useAuth } from "../../contexts/AuthContext";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import { Edit, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 
 const MyArticlesPage: React.FC = () => {
   const { user } = useAuth();
@@ -18,7 +18,7 @@ const MyArticlesPage: React.FC = () => {
         const response = await articlesAPI.getAll({ author_id: user.id });
         setArticles(response.data.articles);
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error("Error loading articles:", error);
       } finally {
         setLoading(false);
       }
@@ -29,10 +29,14 @@ const MyArticlesPage: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'published': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
-      case 'rejected': return <XCircle className="w-4 h-4 text-red-600" />;
-      default: return <Clock className="w-4 h-4 text-gray-600" />;
+      case "published":
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case "pending":
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      case "rejected":
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -61,7 +65,10 @@ const MyArticlesPage: React.FC = () => {
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <ul className="divide-y divide-gray-200">
             {articles.map((article: any) => (
-              <li key={article.id} className="p-4 hover:bg-gray-50 flex justify-between items-center">
+              <li
+                key={article.id}
+                className="p-4 hover:bg-gray-50 flex justify-between items-center"
+              >
                 <div>
                   <p className="font-semibold text-gray-800">{article.title}</p>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
@@ -70,8 +77,18 @@ const MyArticlesPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Link to={`/articles/${article.id}`} className="text-blue-600 hover:text-blue-800"><Eye className="w-5 h-5" /></Link>
-                  <Link to={`/user/articles/edit/${article.id}`} className="text-gray-600 hover:text-gray-800"><Edit className="w-5 h-5" /></Link>
+                  <Link
+                    to={`/articles/${article.id}`}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    to={`/user/articles/edit/${article.id}`}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </Link>
                 </div>
               </li>
             ))}

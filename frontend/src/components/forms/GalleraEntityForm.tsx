@@ -1,12 +1,12 @@
 // frontend/src/components/forms/GalleraEntityForm.tsx
 // Formulario para editar información específica de la entidad Gallera
 
-import React, { useState } from 'react';
-import { gallerasAPI } from '../../services/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import ErrorMessage from '../shared/ErrorMessage';
-import { MapPin, Trophy, Users } from 'lucide-react';
-import type { Gallera } from '../../types';
+import React, { useState } from "react";
+import { gallerasAPI } from "../../services/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
+import { MapPin, Trophy, Users } from "lucide-react";
+import type { Gallera } from "../../types";
 
 interface GalleraEntityFormProps {
   gallera?: Gallera;
@@ -15,53 +15,62 @@ interface GalleraEntityFormProps {
   onCancel: () => void;
 }
 
-const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, onSave, onCancel }) => {
+const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
+  gallera,
+  userId,
+  onSave,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<Partial<Gallera>>({
-    name: gallera?.name || '',
-    location: gallera?.location || '',
-    description: gallera?.description || '',
+    name: gallera?.name || "",
+    location: gallera?.location || "",
+    description: gallera?.description || "",
     specialties: gallera?.specialties || {
       breeds: [],
       trainingMethods: [],
-      experience: ''
+      experience: "",
     },
     activeRoosters: gallera?.activeRoosters || 0,
     fightRecord: gallera?.fightRecord || {
       wins: 0,
       losses: 0,
-      draws: 0
+      draws: 0,
     },
     images: gallera?.images || [],
-    status: gallera?.status || 'pending'
+    status: gallera?.status || "pending",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('specialties.')) {
-      const field = name.split('.')[1];
-      setFormData(prev => ({
+
+    if (name.startsWith("specialties.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
         ...prev,
         specialties: {
           ...prev.specialties,
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
-    } else if (name.startsWith('fightRecord.')) {
-      const field = name.split('.')[1];
-      setFormData(prev => ({
+    } else if (name.startsWith("fightRecord.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
         ...prev,
         fightRecord: {
           ...prev.fightRecord,
-          [field]: parseInt(value) || 0
-        }
+          [field]: parseInt(value) || 0,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: name === 'activeRoosters' ? parseInt(value) || 0 : value
+        [name]: name === "activeRoosters" ? parseInt(value) || 0 : value,
       }));
     }
   };
@@ -80,20 +89,20 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
       } else {
         // Para creaciones, sí pasamos ownerId
         const response = await gallerasAPI.create({
-          name: formData.name || 'New Gallera',
-          location: formData.location || 'Location TBD',
+          name: formData.name || "New Gallera",
+          location: formData.location || "Location TBD",
           description: formData.description,
           ownerId: userId,
           contactInfo: formData.contactInfo,
           specialties: formData.specialties,
           activeRoosters: formData.activeRoosters,
-          fightRecord: formData.fightRecord
+          fightRecord: formData.fightRecord,
         });
         result = response.data as Gallera;
       }
       onSave(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save gallera');
+      setError(err instanceof Error ? err.message : "Failed to save gallera");
     } finally {
       setLoading(false);
     }
@@ -104,7 +113,9 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">🐓</span>
         <h3 className="text-lg font-semibold text-gray-800">
-          {gallera?.id ? 'Edit Gallera Information' : 'Create Gallera Information'}
+          {gallera?.id
+            ? "Edit Gallera Information"
+            : "Create Gallera Information"}
         </h3>
       </div>
 
@@ -269,7 +280,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({ gallera, userId, 
                 Saving...
               </>
             ) : (
-              'Save Gallera'
+              "Save Gallera"
             )}
           </button>
         </div>

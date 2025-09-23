@@ -73,7 +73,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
     .filter(
       (suggestion) =>
         suggestion.toLowerCase().includes(searchValue.toLowerCase()) &&
-        suggestion.toLowerCase() !== searchValue.toLowerCase()
+        suggestion.toLowerCase() !== searchValue.toLowerCase(),
     )
     .slice(0, 5);
 
@@ -148,13 +148,13 @@ const SearchInput: React.FC<SearchInputProps> = ({
       case "ArrowDown":
         e.preventDefault();
         setSelectedSuggestion((prev) =>
-          prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+          prev < filteredSuggestions.length - 1 ? prev + 1 : 0,
         );
         break;
       case "ArrowUp":
         e.preventDefault();
         setSelectedSuggestion((prev) =>
-          prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+          prev > 0 ? prev - 1 : filteredSuggestions.length - 1,
         );
         break;
       case "Enter":

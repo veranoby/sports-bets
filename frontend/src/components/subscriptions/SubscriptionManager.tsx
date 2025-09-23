@@ -1,16 +1,48 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { CreditCard, Calendar, DollarSign, ExternalLink, CheckCircle, AlertCircle, X, RefreshCw, Settings, Crown, Download, History } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { subscriptionAPI } from '../../config/api';
-import { Card, Button, Tabs, Spin, Alert, Empty, Typography, List, Avatar, Tag, Modal, Form, Input, Select, DatePicker, Space, Pagination, Badge } from 'antd';
-import { formatDate, formatCurrency } from '../../utils/formatters';
-import SubscriptionPlans from './SubscriptionPlans';
-import './SubscriptionManager.css';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  CreditCard,
+  Calendar,
+  DollarSign,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
+  X,
+  RefreshCw,
+  Settings,
+  Crown,
+  Download,
+  History,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { subscriptionAPI } from "../../config/api";
+import {
+  Card,
+  Button,
+  Tabs,
+  Spin,
+  Alert,
+  Empty,
+  Typography,
+  List,
+  Avatar,
+  Tag,
+  Modal,
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Space,
+  Pagination,
+  Badge,
+} from "antd";
+import { formatDate, formatCurrency } from "../../utils/formatters";
+import SubscriptionPlans from "./SubscriptionPlans";
+import "./SubscriptionManager.css";
 
 interface Subscription {
   id: string;
-  type: 'daily' | 'monthly';
-  status: 'active' | 'cancelled' | 'expired';
+  type: "daily" | "monthly";
+  status: "active" | "cancelled" | "expired";
   expiresAt: string;
   remainingDays: number;
   autoRenew: boolean;
@@ -25,7 +57,7 @@ interface Subscription {
 interface PaymentHistory {
   id: string;
   type: string;
-  status: 'completed' | 'failed' | 'pending' | 'refunded';
+  status: "completed" | "failed" | "pending" | "refunded";
   amount: number;
   formattedAmount: string;
   currency: string;
@@ -53,15 +85,17 @@ const SubscriptionManager: React.FC = () => {
     total: 0,
     limit: 10,
     offset: 0,
-    hasMore: false
+    hasMore: false,
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'plans'>('overview');
+  const [activeTab, setActiveTab] = useState<"overview" | "history" | "plans">(
+    "overview",
+  );
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [togglingRenew, setTogglingRenew] = useState(false);
 
@@ -70,12 +104,12 @@ const SubscriptionManager: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await subscriptionAPI.getCurrentSubscription();
       setSubscription(response.data);
     } catch (err: any) {
-      console.error('Failed to fetch subscription:', err);
-      setError(err.message || 'Failed to load subscription information');
+      console.error("Failed to fetch subscription:", err);
+      setError(err.message || "Failed to load subscription information");
     } finally {
       setLoading(false);
     }
@@ -85,22 +119,24 @@ const SubscriptionManager: React.FC = () => {
   const fetchPaymentHistory = async (offset = 0, limit = 10) => {
     try {
       setHistoryLoading(true);
-      
+
       const response = await subscriptionAPI.getPaymentHistory({
         limit,
-        offset
+        offset,
       });
-      
+
       if (offset === 0) {
         setPaymentHistory(response.data);
       } else {
-        setPaymentHistory(prev => [...prev, ...response.data]);
+        setPaymentHistory((prev) => [...prev, ...response.data]);
       }
-      
-      setPagination((response as any).pagination || { current: 1, total: 0, pageSize: 10 });
+
+      setPagination(
+        (response as any).pagination || { current: 1, total: 0, pageSize: 10 },
+      );
     } catch (err: any) {
-      console.error('Failed to fetch payment history:', err);
-      setError(err.message || 'Failed to load payment history');
+      console.error("Failed to fetch payment history:", err);
+      setError(err.message || "Failed to load payment history");
     } finally {
       setHistoryLoading(false);
     }
@@ -109,7 +145,10 @@ const SubscriptionManager: React.FC = () => {
   // Load more payment history
   const loadMoreHistory = () => {
     if (pagination.hasMore && !historyLoading) {
-      fetchPaymentHistory(pagination.offset + pagination.limit, pagination.limit);
+      fetchPaymentHistory(
+        pagination.offset + pagination.limit,
+        pagination.limit,
+      );
     }
   };
 
@@ -121,22 +160,22 @@ const SubscriptionManager: React.FC = () => {
   // Handle subscription cancellation
   const handleCancelSubscription = async () => {
     if (!subscription) return;
-    
+
     try {
       setCancelling(true);
-      
+
       await subscriptionAPI.cancelSubscription({
-        reason: cancelReason || 'User requested cancellation'
+        reason: cancelReason || "User requested cancellation",
       });
-      
+
       // Refresh subscription data
       await fetchSubscription();
-      
+
       setShowCancelDialog(false);
-      setCancelReason('');
+      setCancelReason("");
     } catch (err: any) {
-      console.error('Failed to cancel subscription:', err);
-      setError(err.message || 'Failed to cancel subscription');
+      console.error("Failed to cancel subscription:", err);
+      setError(err.message || "Failed to cancel subscription");
     } finally {
       setCancelling(false);
     }
@@ -145,19 +184,19 @@ const SubscriptionManager: React.FC = () => {
   // Toggle auto-renew
   const handleToggleAutoRenew = async () => {
     if (!subscription) return;
-    
+
     try {
       setTogglingRenew(true);
-      
+
       await subscriptionAPI.updateAutoRenew(subscription.id, {
-        autoRenew: !subscription.autoRenew
+        autoRenew: !subscription.autoRenew,
       });
-      
+
       // Refresh subscription data
       await fetchSubscription();
     } catch (err: any) {
-      console.error('Failed to toggle auto-renew:', err);
-      setError(err.message || 'Failed to update auto-renew setting');
+      console.error("Failed to toggle auto-renew:", err);
+      setError(err.message || "Failed to update auto-renew setting");
     } finally {
       setTogglingRenew(false);
     }
@@ -167,37 +206,53 @@ const SubscriptionManager: React.FC = () => {
   const handlePlanSelect = async (plan: any) => {
     // This would trigger the payment flow for plan changes
     // For now, redirect to plans page
-    setActiveTab('plans');
+    setActiveTab("plans");
   };
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Get status color and icon
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'active':
-        return { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle };
-      case 'cancelled':
-        return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: AlertCircle };
-      case 'expired':
-        return { color: 'text-red-600', bg: 'bg-red-100', icon: X };
-      case 'completed':
-        return { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle };
-      case 'failed':
-        return { color: 'text-red-600', bg: 'bg-red-100', icon: X };
-      case 'pending':
-        return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: RefreshCw };
+      case "active":
+        return {
+          color: "text-green-600",
+          bg: "bg-green-100",
+          icon: CheckCircle,
+        };
+      case "cancelled":
+        return {
+          color: "text-yellow-600",
+          bg: "bg-yellow-100",
+          icon: AlertCircle,
+        };
+      case "expired":
+        return { color: "text-red-600", bg: "bg-red-100", icon: X };
+      case "completed":
+        return {
+          color: "text-green-600",
+          bg: "bg-green-100",
+          icon: CheckCircle,
+        };
+      case "failed":
+        return { color: "text-red-600", bg: "bg-red-100", icon: X };
+      case "pending":
+        return {
+          color: "text-yellow-600",
+          bg: "bg-yellow-100",
+          icon: RefreshCw,
+        };
       default:
-        return { color: 'text-gray-600', bg: 'bg-gray-100', icon: AlertCircle };
+        return { color: "text-gray-600", bg: "bg-gray-100", icon: AlertCircle };
     }
   };
 
@@ -213,9 +268,12 @@ const SubscriptionManager: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Subscription Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Subscription Management
+        </h1>
         <p className="text-gray-600">
-          Manage your subscription, view payment history, and update billing preferences.
+          Manage your subscription, view payment history, and update billing
+          preferences.
         </p>
       </div>
 
@@ -237,21 +295,21 @@ const SubscriptionManager: React.FC = () => {
       <div className="border-b border-gray-200 mb-8">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'overview', label: 'Overview', icon: Settings },
-            { id: 'history', label: 'Payment History', icon: History },
-            { id: 'plans', label: 'Change Plan', icon: Crown }
+            { id: "overview", label: "Overview", icon: Settings },
+            { id: "history", label: "Payment History", icon: History },
+            { id: "plans", label: "Change Plan", icon: Crown },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            
+
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center px-1 py-4 border-b-2 font-medium text-sm transition-colors ${
                   isActive
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 <Icon className="w-4 h-4 mr-2" />
@@ -263,22 +321,29 @@ const SubscriptionManager: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
+      {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Current Subscription */}
           {subscription ? (
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Current Subscription</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Current Subscription
+                  </h2>
                   <div className="flex items-center">
                     {(() => {
-                      const statusDisplay = getStatusDisplay(subscription.status);
+                      const statusDisplay = getStatusDisplay(
+                        subscription.status,
+                      );
                       const StatusIcon = statusDisplay.icon;
                       return (
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.bg} ${statusDisplay.color}`}>
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.bg} ${statusDisplay.color}`}
+                        >
                           <StatusIcon className="w-4 h-4 mr-1" />
-                          {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+                          {subscription.status.charAt(0).toUpperCase() +
+                            subscription.status.slice(1)}
                         </div>
                       );
                     })()}
@@ -289,27 +354,37 @@ const SubscriptionManager: React.FC = () => {
                   {/* Plan Details */}
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Plan Type</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Plan Type
+                      </label>
                       <p className="text-lg font-semibold text-gray-900 capitalize">
                         {subscription.type} Access
                       </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Price</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Price
+                      </label>
                       <p className="text-lg font-semibold text-gray-900">
-                        ${(subscription.amount / 100).toFixed(2)} {subscription.currency}
+                        ${(subscription.amount / 100).toFixed(2)}{" "}
+                        {subscription.currency}
                         <span className="text-sm text-gray-500 ml-1">
-                          /{subscription.type === 'daily' ? 'day' : 'month'}
+                          /{subscription.type === "daily" ? "day" : "month"}
                         </span>
                       </p>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Features</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Features
+                      </label>
                       <ul className="mt-1 space-y-1">
                         {subscription.features.map((feature, index) => (
-                          <li key={index} className="flex items-center text-sm text-gray-700">
+                          <li
+                            key={index}
+                            className="flex items-center text-sm text-gray-700"
+                          >
                             <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
                             {feature}
                           </li>
@@ -321,11 +396,13 @@ const SubscriptionManager: React.FC = () => {
                   {/* Billing Details */}
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Expires At</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Expires At
+                      </label>
                       <p className="text-lg font-semibold text-gray-900">
                         {formatDate(subscription.expiresAt)}
                       </p>
-                      {subscription.status === 'active' && (
+                      {subscription.status === "active" && (
                         <p className="text-sm text-blue-600">
                           {subscription.remainingDays} days remaining
                         </p>
@@ -333,23 +410,31 @@ const SubscriptionManager: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Auto-Renew</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Auto-Renew
+                      </label>
                       <div className="flex items-center mt-1">
                         <button
                           onClick={handleToggleAutoRenew}
-                          disabled={togglingRenew || subscription.status !== 'active'}
+                          disabled={
+                            togglingRenew || subscription.status !== "active"
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                            subscription.autoRenew ? 'bg-blue-600' : 'bg-gray-200'
-                          } ${togglingRenew ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            subscription.autoRenew
+                              ? "bg-blue-600"
+                              : "bg-gray-200"
+                          } ${togglingRenew ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              subscription.autoRenew ? 'translate-x-5' : 'translate-x-0'
+                              subscription.autoRenew
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
                         <span className="ml-3 text-sm text-gray-700">
-                          {subscription.autoRenew ? 'Enabled' : 'Disabled'}
+                          {subscription.autoRenew ? "Enabled" : "Disabled"}
                         </span>
                         {togglingRenew && (
                           <RefreshCw className="w-4 h-4 ml-2 animate-spin text-blue-500" />
@@ -359,7 +444,9 @@ const SubscriptionManager: React.FC = () => {
 
                     {subscription.nextBillingDate && (
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Next Billing</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Next Billing
+                        </label>
                         <p className="text-lg font-semibold text-gray-900">
                           {formatDate(subscription.nextBillingDate)}
                         </p>
@@ -368,7 +455,9 @@ const SubscriptionManager: React.FC = () => {
 
                     {subscription.cancelledAt && (
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Cancelled On</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Cancelled On
+                        </label>
                         <p className="text-lg font-semibold text-gray-900">
                           {formatDate(subscription.cancelledAt)}
                         </p>
@@ -378,16 +467,16 @@ const SubscriptionManager: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                {subscription.status === 'active' && (
+                {subscription.status === "active" && (
                   <div className="mt-6 pt-6 border-t border-gray-200 flex flex-col sm:flex-row gap-4">
                     <button
-                      onClick={() => setActiveTab('plans')}
+                      onClick={() => setActiveTab("plans")}
                       className="flex items-center justify-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       Upgrade Plan
                     </button>
-                    
+
                     <button
                       onClick={() => setShowCancelDialog(true)}
                       className="flex items-center justify-center px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
@@ -402,12 +491,15 @@ const SubscriptionManager: React.FC = () => {
           ) : (
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 text-center">
               <Crown className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Subscription</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Active Subscription
+              </h3>
               <p className="text-gray-600 mb-6">
-                Subscribe to access premium streaming content and exclusive features.
+                Subscribe to access premium streaming content and exclusive
+                features.
               </p>
               <button
-                onClick={() => setActiveTab('plans')}
+                onClick={() => setActiveTab("plans")}
                 className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Crown className="w-5 h-5 mr-2" />
@@ -418,11 +510,13 @@ const SubscriptionManager: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'history' && (
+      {activeTab === "history" && (
         <div className="bg-white rounded-lg shadow-lg border border-gray-200">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Payment History</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Payment History
+              </h2>
               <div className="text-sm text-gray-500">
                 {pagination.total} total transactions
               </div>
@@ -433,7 +527,7 @@ const SubscriptionManager: React.FC = () => {
                 {paymentHistory.map((payment) => {
                   const statusDisplay = getStatusDisplay(payment.status);
                   const StatusIcon = statusDisplay.icon;
-                  
+
                   return (
                     <div
                       key={payment.id}
@@ -441,15 +535,19 @@ const SubscriptionManager: React.FC = () => {
                     >
                       <div className="flex items-center space-x-4">
                         <div className={`p-2 rounded-full ${statusDisplay.bg}`}>
-                          <StatusIcon className={`w-5 h-5 ${statusDisplay.color}`} />
+                          <StatusIcon
+                            className={`w-5 h-5 ${statusDisplay.color}`}
+                          />
                         </div>
-                        
+
                         <div>
                           <p className="font-medium text-gray-900">
                             {payment.formattedAmount}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {payment.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {payment.type
+                              .replace("_", " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
                             {payment.cardLast4 && (
                               <span className="ml-2">
                                 •••• {payment.cardLast4}
@@ -468,13 +566,20 @@ const SubscriptionManager: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusDisplay.bg} ${statusDisplay.color}`}>
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                        <div
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusDisplay.bg} ${statusDisplay.color}`}
+                        >
+                          {payment.status.charAt(0).toUpperCase() +
+                            payment.status.slice(1)}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          {formatDate(payment.processedAt || payment.failedAt || payment.createdAt)}
+                          {formatDate(
+                            payment.processedAt ||
+                              payment.failedAt ||
+                              payment.createdAt,
+                          )}
                         </p>
                       </div>
                     </div>
@@ -507,9 +612,12 @@ const SubscriptionManager: React.FC = () => {
             ) : (
               <div className="text-center py-12">
                 <History className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Payment History</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Payment History
+                </h3>
                 <p className="text-gray-600">
-                  Your payment transactions will appear here once you make a purchase.
+                  Your payment transactions will appear here once you make a
+                  purchase.
                 </p>
               </div>
             )}
@@ -517,7 +625,7 @@ const SubscriptionManager: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'plans' && (
+      {activeTab === "plans" && (
         <SubscriptionPlans
           onPlanSelect={handlePlanSelect}
           currentPlan={subscription?.type}
@@ -531,12 +639,15 @@ const SubscriptionManager: React.FC = () => {
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center mb-4">
               <AlertCircle className="w-6 h-6 text-red-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Cancel Subscription</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Cancel Subscription
+              </h3>
             </div>
-            
+
             <p className="text-gray-600 mb-4">
-              Are you sure you want to cancel your subscription? You'll continue to have access 
-              until {subscription && formatDate(subscription.expiresAt)}.
+              Are you sure you want to cancel your subscription? You'll continue
+              to have access until{" "}
+              {subscription && formatDate(subscription.expiresAt)}.
             </p>
 
             <div className="mb-4">
@@ -565,7 +676,7 @@ const SubscriptionManager: React.FC = () => {
                 disabled={cancelling}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                {cancelling ? "Cancelling..." : "Cancel Subscription"}
               </button>
             </div>
           </div>

@@ -1,17 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Space, Tag, Typography, message, Modal, Select, Input } from 'antd';
-import { 
-  PlayCircleOutlined, 
-  PauseCircleOutlined, 
-  CheckCircleOutlined, 
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Button,
+  Card,
+  Space,
+  Tag,
+  Typography,
+  message,
+  Modal,
+  Select,
+} from "antd";
+import {
+  PlayCircleOutlined,
+  CheckCircleOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   UserOutlined,
-  TeamOutlined
-} from '@ant-design/icons';
-import { eventAPI, fightAPI } from '../../services/api';
-import { useWebSocketContext } from '../../contexts/WebSocketContext';
-import type { Event, Fight } from '../../types';
+} from "@ant-design/icons";
+import { eventAPI, fightAPI } from "../../services/api";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import type { Event, Fight } from "../../types";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -21,13 +28,18 @@ interface EventWorkflowControlsProps {
   onEventUpdate: (updatedEvent: Event) => void;
 }
 
-const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, onEventUpdate }) => {
+const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
+  event,
+  onEventUpdate,
+}) => {
   const { isConnected, emit } = useWebSocketContext();
   const [loading, setLoading] = useState(false);
-  const [selectedFight, setSelectedFight] = useState<string>('');
-  const [fightResult, setFightResult] = useState<'red' | 'blue' | 'draw' | null>(null);
+  const [selectedFight, setSelectedFight] = useState<string>("");
+  const [fightResult, setFightResult] = useState<
+    "red" | "blue" | "draw" | null
+  >(null);
   const [isAssigningOperator, setIsAssigningOperator] = useState(false);
-  const [operatorId, setOperatorId] = useState<string>('');
+  const [operatorId, setOperatorId] = useState<string>("");
   const [fights, setFights] = useState<Fight[]>([]);
 
   // Load fights for the event
@@ -39,8 +51,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
           setFights(response.data as Fight[]);
         }
       } catch (error) {
-        console.error('Failed to load fights:', error);
-        message.error('Failed to load fights');
+        console.error("Failed to load fights:", error);
+        message.error("Failed to load fights");
       }
     };
 
@@ -53,20 +65,6 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
   useEffect(() => {
     if (!isConnected) return;
 
-    const handleEventUpdate = (data: any) => {
-      if (data.eventId === event.id) {
-        onEventUpdate({ ...event, ...data });
-      }
-    };
-
-    const handleFightUpdate = (data: any) => {
-      if (data.eventId === event.id) {
-        setFights(prev => prev.map(fight => 
-          fight.id === data.fightId ? { ...fight, ...data } : fight
-        ));
-      }
-    };
-
     // In a real implementation, you would use the WebSocket context's addListener method
     // For this example, we'll use a simplified approach
     // const cleanupEvent = addListener('event_status_update', handleEventUpdate);
@@ -78,120 +76,136 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     // };
   }, [event.id, isConnected, onEventUpdate]);
 
-  const updateEventStatus = useCallback(async (status: Event['status']) => {
-    setLoading(true);
-    try {
-      const response = await eventAPI.updateEventStatus(event.id, status);
-      if (response.success) {
-        onEventUpdate(response.data as Event);
-      }
-      message.success(`Event status updated to ${status}`);
-      
-      // Emit real-time update
-      if (isConnected) {
-        emit('event_status_update', {
-          eventId: event.id,
-          status,
-          timestamp: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error('Failed to update event status:', error);
-      message.error('Failed to update event status');
-    } finally {
-      setLoading(false);
-    }
-  }, [event.id, onEventUpdate, isConnected, emit]);
-
-  const createFight = useCallback(async (fightData: Partial<Fight>) => {
-    setLoading(true);
-    try {
-      const response = await fightAPI.createFight({
-        eventId: event.id,
-        ...fightData
-      });
-      if (response.success) {
-        setFights(prev => [...prev, response.data as Fight]);
-        message.success('Fight created successfully');
+  const updateEventStatus = useCallback(
+    async (status: Event["status"]) => {
+      setLoading(true);
+      try {
+        const response = await eventAPI.updateEventStatus(event.id, status);
+        if (response.success) {
+          onEventUpdate(response.data as Event);
+        }
+        message.success(`Event status updated to ${status}`);
 
         // Emit real-time update
         if (isConnected) {
-          emit('fight_created', {
+          emit("event_status_update", {
             eventId: event.id,
-            fight: response.data as Fight,
-            timestamp: new Date().toISOString()
+            status,
+            timestamp: new Date().toISOString(),
           });
         }
+      } catch (error) {
+        console.error("Failed to update event status:", error);
+        message.error("Failed to update event status");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to create fight:', error);
-      message.error('Failed to create fight');
-    } finally {
-      setLoading(false);
-    }
-  }, [event.id, isConnected, emit]);
+    },
+    [event.id, onEventUpdate, isConnected, emit],
+  );
 
-  const updateFightStatus = useCallback(async (fightId: string, status: Fight['status']) => {
-    setLoading(true);
-    try {
-      const response = await fightAPI.updateFightStatus(fightId, status);
-      if (response.success) {
-        setFights(prev => prev.map(fight =>
-          fight.id === fightId ? response.data as Fight : fight
-        ));
-      }
-      message.success(`Fight status updated to ${status}`);
-      
-      // Emit real-time update
-      if (isConnected) {
-        emit('fight_status_update', {
+  const createFight = useCallback(
+    async (fightData: Partial<Fight>) => {
+      setLoading(true);
+      try {
+        const response = await fightAPI.createFight({
           eventId: event.id,
-          fightId,
-          status,
-          timestamp: new Date().toISOString()
+          ...fightData,
         });
-      }
-    } catch (error) {
-      console.error('Failed to update fight status:', error);
-      message.error('Failed to update fight status');
-    } finally {
-      setLoading(false);
-    }
-  }, [event.id, isConnected, emit]);
+        if (response.success) {
+          setFights((prev) => [...prev, response.data as Fight]);
+          message.success("Fight created successfully");
 
-  const assignFightResult = useCallback(async (fightId: string, result: 'red' | 'blue' | 'draw') => {
-    setLoading(true);
-    try {
-      const response = await fightAPI.assignFightResult(fightId, result);
-      if (response.success) {
-        setFights(prev => prev.map(fight =>
-          fight.id === fightId ? response.data as Fight : fight
-        ));
+          // Emit real-time update
+          if (isConnected) {
+            emit("fight_created", {
+              eventId: event.id,
+              fight: response.data as Fight,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to create fight:", error);
+        message.error("Failed to create fight");
+      } finally {
+        setLoading(false);
       }
-      message.success('Fight result assigned');
-      setFightResult(null);
-      setSelectedFight('');
-      
-      // Emit real-time update
-      if (isConnected) {
-        emit('fight_result_assigned', {
-          eventId: event.id,
-          fightId,
-          result,
-          timestamp: new Date().toISOString()
-        });
+    },
+    [event.id, isConnected, emit],
+  );
+
+  const updateFightStatus = useCallback(
+    async (fightId: string, status: Fight["status"]) => {
+      setLoading(true);
+      try {
+        const response = await fightAPI.updateFightStatus(fightId, status);
+        if (response.success) {
+          setFights((prev) =>
+            prev.map((fight) =>
+              fight.id === fightId ? (response.data as Fight) : fight,
+            ),
+          );
+        }
+        message.success(`Fight status updated to ${status}`);
+
+        // Emit real-time update
+        if (isConnected) {
+          emit("fight_status_update", {
+            eventId: event.id,
+            fightId,
+            status,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to update fight status:", error);
+        message.error("Failed to update fight status");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to assign fight result:', error);
-      message.error('Failed to assign fight result');
-    } finally {
-      setLoading(false);
-    }
-  }, [event.id, isConnected, emit]);
+    },
+    [event.id, isConnected, emit],
+  );
+
+  const assignFightResult = useCallback(
+    async (fightId: string, result: "red" | "blue" | "draw") => {
+      setLoading(true);
+      try {
+        const response = await fightAPI.assignFightResult(fightId, result);
+        if (response.success) {
+          setFights((prev) =>
+            prev.map((fight) =>
+              fight.id === fightId ? (response.data as Fight) : fight,
+            ),
+          );
+        }
+        message.success("Fight result assigned");
+        setFightResult(null);
+        setSelectedFight("");
+
+        // Emit real-time update
+        if (isConnected) {
+          emit("fight_result_assigned", {
+            eventId: event.id,
+            fightId,
+            result,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to assign fight result:", error);
+        message.error("Failed to assign fight result");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [event.id, isConnected, emit],
+  );
 
   const assignOperator = useCallback(async () => {
     if (!operatorId) {
-      message.error('Please select an operator');
+      message.error("Please select an operator");
       return;
     }
 
@@ -201,21 +215,21 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
       if (response.success) {
         onEventUpdate(response.data as Event);
       }
-      message.success('Operator assigned successfully');
+      message.success("Operator assigned successfully");
       setIsAssigningOperator(false);
-      setOperatorId('');
-      
+      setOperatorId("");
+
       // Emit real-time update
       if (isConnected) {
-        emit('operator_assigned', {
+        emit("operator_assigned", {
           eventId: event.id,
           operatorId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
     } catch (error) {
-      console.error('Failed to assign operator:', error);
-      message.error('Failed to assign operator');
+      console.error("Failed to assign operator:", error);
+      message.error("Failed to assign operator");
     } finally {
       setLoading(false);
     }
@@ -227,20 +241,20 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
       const response = await eventAPI.generateStreamKey(event.id);
       if (response.success) {
         onEventUpdate(response.data as Event);
-        message.success('Stream key generated successfully');
+        message.success("Stream key generated successfully");
 
         // Emit real-time update
         if (isConnected) {
-          emit('stream_key_generated', {
+          emit("stream_key_generated", {
             eventId: event.id,
-            streamKey: (response.data as any).streamKey,
-            timestamp: new Date().toISOString()
+            streamKey: response.data?.streamKey,
+            timestamp: new Date().toISOString(),
           });
         }
       }
     } catch (error) {
-      console.error('Failed to generate stream key:', error);
-      message.error('Failed to generate stream key');
+      console.error("Failed to generate stream key:", error);
+      message.error("Failed to generate stream key");
     } finally {
       setLoading(false);
     }
@@ -248,12 +262,24 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
 
   const getStatusTag = (status: string) => {
     switch (status) {
-      case 'scheduled':
-        return <Tag icon={<ClockCircleOutlined />} color="default">Scheduled</Tag>;
-      case 'in-progress':
-        return <Tag icon={<PlayCircleOutlined />} color="processing">In Progress</Tag>;
-      case 'completed':
-        return <Tag icon={<CheckCircleOutlined />} color="success">Completed</Tag>;
+      case "scheduled":
+        return (
+          <Tag icon={<ClockCircleOutlined />} color="default">
+            Scheduled
+          </Tag>
+        );
+      case "in-progress":
+        return (
+          <Tag icon={<PlayCircleOutlined />} color="processing">
+            In Progress
+          </Tag>
+        );
+      case "completed":
+        return (
+          <Tag icon={<CheckCircleOutlined />} color="success">
+            Completed
+          </Tag>
+        );
       default:
         return <Tag>{status}</Tag>;
     }
@@ -261,27 +287,27 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
 
   return (
     <Card title="Event Workflow Controls" size="small">
-      <Space direction="vertical" style={{ width: '100%' }}>
+      <Space direction="vertical" style={{ width: "100%" }}>
         {/* Event Status Controls */}
         <div>
           <Title level={5}>Event Status</Title>
           <Space>
             {getStatusTag(event.status)}
-            {event.status === 'scheduled' && (
-              <Button 
-                type="primary" 
+            {event.status === "scheduled" && (
+              <Button
+                type="primary"
                 icon={<PlayCircleOutlined />}
-                onClick={() => updateEventStatus('in-progress')}
+                onClick={() => updateEventStatus("in-progress")}
                 loading={loading}
               >
                 Start Event
               </Button>
             )}
-            {event.status === 'in-progress' && (
-              <Button 
-                type="primary" 
+            {event.status === "in-progress" && (
+              <Button
+                type="primary"
                 icon={<CheckCircleOutlined />}
-                onClick={() => updateEventStatus('completed')}
+                onClick={() => updateEventStatus("completed")}
                 loading={loading}
               >
                 Complete Event
@@ -294,8 +320,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
         <div>
           <Title level={5}>Stream Key</Title>
           <Space>
-            <Text code>{event.streamKey || 'Not generated'}</Text>
-            {!event.streamKey && event.status === 'in-progress' && (
+            <Text code>{event.streamKey || "Not generated"}</Text>
+            {!event.streamKey && event.status === "in-progress" && (
               <Button onClick={generateStreamKey} loading={loading}>
                 Generate Key
               </Button>
@@ -325,34 +351,34 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
         {/* Fight Controls */}
         <div>
           <Title level={5}>Fights</Title>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            {fights.map(fight => (
-              <Card 
-                key={fight.id} 
-                size="small" 
+          <Space direction="vertical" style={{ width: "100%" }}>
+            {fights.map((fight) => (
+              <Card
+                key={fight.id}
+                size="small"
                 title={`Fight #${fight.number}`}
                 extra={getStatusTag(fight.status)}
               >
                 <Space>
-                  {fight.status === 'upcoming' && (
-                    <Button 
+                  {fight.status === "upcoming" && (
+                    <Button
                       size="small"
-                      onClick={() => updateFightStatus(fight.id, 'betting')}
+                      onClick={() => updateFightStatus(fight.id, "betting")}
                     >
                       Open Betting
                     </Button>
                   )}
-                  {fight.status === 'betting' && (
-                    <Button 
+                  {fight.status === "betting" && (
+                    <Button
                       size="small"
                       type="primary"
-                      onClick={() => updateFightStatus(fight.id, 'live')}
+                      onClick={() => updateFightStatus(fight.id, "live")}
                     >
                       Start Fight
                     </Button>
                   )}
-                  {fight.status === 'live' && (
-                    <Button 
+                  {fight.status === "live" && (
+                    <Button
                       size="small"
                       type="primary"
                       danger
@@ -372,10 +398,10 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
                 </Space>
               </Card>
             ))}
-            <Button 
-              type="dashed" 
+            <Button
+              type="dashed"
               onClick={() => createFight({})}
-              disabled={event.status !== 'in-progress'}
+              disabled={event.status !== "in-progress"}
             >
               Add New Fight
             </Button>
@@ -392,7 +418,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
         confirmLoading={loading}
       >
         <Select
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
           placeholder="Select operator"
           value={operatorId}
           onChange={setOperatorId}
@@ -407,9 +433,11 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
       <Modal
         title="Assign Fight Result"
         open={!!selectedFight}
-        onOk={() => fightResult && assignFightResult(selectedFight, fightResult)}
+        onOk={() =>
+          fightResult && assignFightResult(selectedFight, fightResult)
+        }
         onCancel={() => {
-          setSelectedFight('');
+          setSelectedFight("");
           setFightResult(null);
         }}
         confirmLoading={loading}
@@ -417,21 +445,21 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
         <Space direction="vertical">
           <Text>Select the winner:</Text>
           <Space>
-            <Button 
-              type={fightResult === 'red' ? 'primary' : 'default'}
-              onClick={() => setFightResult('red')}
+            <Button
+              type={fightResult === "red" ? "primary" : "default"}
+              onClick={() => setFightResult("red")}
             >
               Red Wins
             </Button>
-            <Button 
-              type={fightResult === 'blue' ? 'primary' : 'default'}
-              onClick={() => setFightResult('blue')}
+            <Button
+              type={fightResult === "blue" ? "primary" : "default"}
+              onClick={() => setFightResult("blue")}
             >
               Blue Wins
             </Button>
-            <Button 
-              type={fightResult === 'draw' ? 'primary' : 'default'}
-              onClick={() => setFightResult('draw')}
+            <Button
+              type={fightResult === "draw" ? "primary" : "default"}
+              onClick={() => setFightResult("draw")}
             >
               Draw
             </Button>

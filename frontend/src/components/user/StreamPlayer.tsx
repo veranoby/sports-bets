@@ -68,8 +68,8 @@ const StreamPlayer = ({ streamUrl }: { streamUrl: string }) => {
                         {connectionStrength === 3
                           ? "Excelente"
                           : connectionStrength === 2
-                          ? "Buena"
-                          : "Débil"}
+                            ? "Buena"
+                            : "Débil"}
                       </span>
                     </>
                   ) : (

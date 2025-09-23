@@ -62,21 +62,21 @@ const AdminArticlesPage: React.FC = () => {
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
+    searchParams.get("search") || "",
   );
   const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("status") || searchParams.get("filter") || ""
+    searchParams.get("status") || searchParams.get("filter") || "",
   );
   const [authorFilter, setAuthorFilter] = useState(
-    searchParams.get("author") || ""
+    searchParams.get("author") || "",
   );
   const [venueFilter, setVenueFilter] = useState(
-    searchParams.get("venue") || ""
+    searchParams.get("venue") || "",
   );
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get("page") || "1")
+    parseInt(searchParams.get("page") || "1"),
   );
   const [pageSize] = useState(25);
 
@@ -106,7 +106,9 @@ const AdminArticlesPage: React.FC = () => {
       setArticles(articlesRes.data?.articles || []);
       setVenues(venuesRes.data?.venues || []);
     } else {
-      setError(articlesRes.error || venuesRes.error || "Error loading articles");
+      setError(
+        articlesRes.error || venuesRes.error || "Error loading articles",
+      );
     }
     setLoading(false);
   }, []);
@@ -126,7 +128,7 @@ const AdminArticlesPage: React.FC = () => {
           a.title.toLowerCase().includes(term) ||
           a.summary.toLowerCase().includes(term) ||
           a.content.toLowerCase().includes(term) ||
-          a.author_name?.toLowerCase().includes(term)
+          a.author_name?.toLowerCase().includes(term),
       );
     }
 
@@ -136,7 +138,7 @@ const AdminArticlesPage: React.FC = () => {
 
     if (authorFilter) {
       result = result.filter((a) =>
-        a.author_name?.toLowerCase().includes(authorFilter.toLowerCase())
+        a.author_name?.toLowerCase().includes(authorFilter.toLowerCase()),
       );
     }
 
@@ -194,8 +196,8 @@ const AdminArticlesPage: React.FC = () => {
                 status: "published",
                 published_at: new Date().toISOString(),
               }
-            : a
-        )
+            : a,
+        ),
       );
     } else {
       setError(res.error || "Error aprobando artículo");
@@ -207,8 +209,8 @@ const AdminArticlesPage: React.FC = () => {
     if (res.success) {
       setArticles(
         articles.map((a) =>
-          a.id === articleId ? { ...a, status: "archived" } : a
-        )
+          a.id === articleId ? { ...a, status: "archived" } : a,
+        ),
       );
     } else {
       setError(res.error || "Error rechazando artículo");
@@ -218,7 +220,7 @@ const AdminArticlesPage: React.FC = () => {
   const handleDeleteArticle = async (articleId: string) => {
     if (
       !window.confirm(
-        "¿Estás seguro de que quieres eliminar este artículo? Esta acción no se puede deshacer."
+        "¿Estás seguro de que quieres eliminar este artículo? Esta acción no se puede deshacer.",
       )
     ) {
       return;
@@ -237,8 +239,8 @@ const AdminArticlesPage: React.FC = () => {
     if (res.success) {
       setArticles(
         articles.map((a) =>
-          a.id === articleId ? { ...a, ...res.data?.article } : a
-        )
+          a.id === articleId ? { ...a, ...res.data?.article } : a,
+        ),
       );
       setEditingArticle(null);
     } else {
@@ -250,7 +252,7 @@ const AdminArticlesPage: React.FC = () => {
   const handleBulkApprove = async () => {
     try {
       await Promise.all(
-        selectedArticles.map((id) => articlesAPI.updateStatus(id, "published"))
+        selectedArticles.map((id) => articlesAPI.updateStatus(id, "published")),
       );
       setArticles(
         articles.map((a) =>
@@ -260,8 +262,8 @@ const AdminArticlesPage: React.FC = () => {
                 status: "published",
                 published_at: new Date().toISOString(),
               }
-            : a
-        )
+            : a,
+        ),
       );
       setSelectedArticles([]);
       setShowBulkActions(false);
@@ -273,12 +275,12 @@ const AdminArticlesPage: React.FC = () => {
   const handleBulkReject = async () => {
     try {
       await Promise.all(
-        selectedArticles.map((id) => articlesAPI.updateStatus(id, "archived"))
+        selectedArticles.map((id) => articlesAPI.updateStatus(id, "archived")),
       );
       setArticles(
         articles.map((a) =>
-          selectedArticles.includes(a.id) ? { ...a, status: "archived" } : a
-        )
+          selectedArticles.includes(a.id) ? { ...a, status: "archived" } : a,
+        ),
       );
       setSelectedArticles([]);
       setShowBulkActions(false);
@@ -292,7 +294,7 @@ const AdminArticlesPage: React.FC = () => {
     setSelectedArticles((prev) =>
       prev.includes(articleId)
         ? prev.filter((id) => id !== articleId)
-        : [...prev, articleId]
+        : [...prev, articleId],
     );
   };
 
@@ -333,7 +335,7 @@ const AdminArticlesPage: React.FC = () => {
   const handleArticleSaved = (savedArticle: Article) => {
     if (editingArticle) {
       setArticles(
-        articles.map((a) => (a.id === savedArticle.id ? savedArticle : a))
+        articles.map((a) => (a.id === savedArticle.id ? savedArticle : a)),
       );
     } else {
       setArticles([savedArticle, ...articles]);
@@ -658,7 +660,7 @@ const AdminArticlesPage: React.FC = () => {
                             <span>
                               Publicado:{" "}
                               {new Date(
-                                article.published_at
+                                article.published_at,
                               ).toLocaleDateString()}
                             </span>
                           </div>

@@ -4,11 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  Plus,
-  Search,
-} from "lucide-react";
+import { Users, Plus, Search } from "lucide-react";
 
 // Componentes reutilizados
 import Card from "../../components/shared/Card";
@@ -32,7 +28,7 @@ const AdminOperatorsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // State for modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingOperator, setEditingOperator] = useState<User | null>(null);
@@ -61,7 +57,7 @@ const AdminOperatorsPage: React.FC = () => {
   const filteredOperators = operators.filter(
     (op) =>
       op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (op.email && op.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      (op.email && op.email.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   // Handlers for edit modal
@@ -76,7 +72,11 @@ const AdminOperatorsPage: React.FC = () => {
   };
 
   const handleOperatorUpdated = (updatedOperator: User) => {
-    setOperators(operators.map(op => op.id === updatedOperator.id ? updatedOperator : op));
+    setOperators(
+      operators.map((op) =>
+        op.id === updatedOperator.id ? updatedOperator : op,
+      ),
+    );
     handleCloseEditModal();
   };
 
@@ -96,18 +96,22 @@ const AdminOperatorsPage: React.FC = () => {
 
   // Handler for delete operator
   const handleDeleteOperator = async (operatorId: string) => {
-    const operator = operators.find(u => u.id === operatorId);
+    const operator = operators.find((u) => u.id === operatorId);
     if (!operator) return;
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar al operador "${operator.username}"? Esta acción no se puede deshacer.`)) {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres eliminar al operador "${operator.username}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
       return;
     }
-    
+
     setError(null);
     const res = await usersAPI.delete(operatorId);
     if (res.success) {
-      setOperators(operators.filter(u => u.id !== operatorId));
+      setOperators(operators.filter((u) => u.id !== operatorId));
     } else {
-      setError(res.error || 'Error eliminando operador');
+      setError(res.error || "Error eliminando operador");
     }
   };
 
@@ -184,7 +188,10 @@ const AdminOperatorsPage: React.FC = () => {
                 >
                   Miembro Desde
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Acciones
                 </th>
               </tr>
@@ -237,9 +244,9 @@ const AdminOperatorsPage: React.FC = () => {
           </div>
         )}
       </Card>
-      
+
       {isEditModalOpen && editingOperator && (
-        <EditOperatorModal 
+        <EditOperatorModal
           operator={editingOperator}
           onClose={handleCloseEditModal}
           onOperatorUpdated={handleOperatorUpdated}

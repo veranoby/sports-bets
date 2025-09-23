@@ -384,7 +384,7 @@ export const useConfirmDialog = () => {
   });
 
   const confirm = (
-    props: Omit<ConfirmDialogProps, "isOpen" | "onClose" | "onConfirm">
+    props: Omit<ConfirmDialogProps, "isOpen" | "onClose" | "onConfirm">,
   ): Promise<boolean> => {
     return new Promise((resolve) => {
       setDialogState({

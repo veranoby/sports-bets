@@ -23,7 +23,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 ${fullPage ? 'min-h-screen' : ''} ${className}`}
+      className={`flex flex-col items-center justify-center p-8 ${fullPage ? "min-h-screen" : ""} ${className}`}
     >
       <Loader2
         className={`${sizeClasses[size]} animate-spin text-theme-primary mb-4`}

@@ -1,16 +1,16 @@
 // frontend/src/components/forms/SubscriptionForm.tsx
 // Formulario para editar suscripciones de usuarios
 
-import React, { useState } from 'react';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import ErrorMessage from '../shared/ErrorMessage';
-import { CreditCard, Crown } from 'lucide-react';
-import type { UserSubscription } from '../../types';
+import React, { useState } from "react";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
+import { CreditCard, Crown } from "lucide-react";
+import type { UserSubscription } from "../../types";
 
 interface SubscriptionFormData {
-  planType: 'daily' | 'monthly';
-  status: 'active' | 'cancelled' | 'expired' | 'pending';
-  action: 'none' | 'create' | 'cancel' | 'renew';
+  planType: "daily" | "monthly";
+  status: "active" | "cancelled" | "expired" | "pending";
+  action: "none" | "create" | "cancel" | "renew";
 }
 
 interface SubscriptionFormProps {
@@ -20,20 +20,26 @@ interface SubscriptionFormProps {
   onCancel: () => void;
 }
 
-const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscription, onSave, onCancel }) => {
+const SubscriptionForm: React.FC<SubscriptionFormProps> = ({
+  userId,
+  subscription,
+  onSave,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<SubscriptionFormData>({
-    planType: (subscription?.type === 'free' ? 'daily' : subscription?.type) || 'daily',
-    status: 'cancelled' as const,
-    action: 'none'
+    planType:
+      (subscription?.type === "free" ? "daily" : subscription?.type) || "daily",
+    status: "cancelled" as const,
+    action: "none",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -43,30 +49,31 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
     setError(null);
 
     try {
-      
       switch (formData.action) {
-        case 'create':
-        case 'renew':
+        case "create":
+        case "renew":
           // TODO: Implementar creación/renovación de suscripción
-          console.log('Crear/renovar suscripción para usuario:', userId);
+          console.log("Crear/renovar suscripción para usuario:", userId);
           break;
-        case 'cancel':
+        case "cancel":
           // TODO: Implementar cancelación de suscripción
-          console.log('Cancelar suscripción para usuario:', userId);
+          console.log("Cancelar suscripción para usuario:", userId);
           break;
         default:
           // No action needed
           break;
       }
-      
+
       // Simular guardado
       onSave({
         ...subscription,
         type: formData.planType,
-        status: formData.action === 'cancel' ? 'cancelled' : formData.status
+        status: formData.action === "cancel" ? "cancelled" : formData.status,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update subscription');
+      setError(
+        err instanceof Error ? err.message : "Failed to update subscription",
+      );
     } finally {
       setLoading(false);
     }
@@ -74,10 +81,14 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
 
   const getSubscriptionStatusColor = (status?: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-yellow-100 text-yellow-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "expired":
+        return "bg-red-100 text-red-800";
+      case "cancelled":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
     }
   };
 
@@ -95,18 +106,20 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
           <Crown className="w-4 h-4 text-yellow-500" />
           Suscripción Actual
         </h4>
-        
+
         {subscription ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Plan:</span>
               <span className="font-medium">
-                {subscription.type === 'daily' ? '📅 Diario' : '📆 Mensual'}
+                {subscription.type === "daily" ? "📅 Diario" : "📆 Mensual"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Estado:</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(subscription.status)}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(subscription.status)}`}
+              >
                 {subscription.status}
               </span>
             </div>
@@ -120,7 +133,9 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
             )}
           </div>
         ) : (
-          <p className="text-gray-500">El usuario no tiene suscripción activa</p>
+          <p className="text-gray-500">
+            El usuario no tiene suscripción activa
+          </p>
         )}
       </div>
 
@@ -146,7 +161,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
           </select>
         </div>
 
-        {(formData.action === 'create' || formData.action === 'renew') && (
+        {(formData.action === "create" || formData.action === "renew") && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tipo de Plan
@@ -163,10 +178,11 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
           </div>
         )}
 
-        {formData.action === 'cancel' && (
+        {formData.action === "cancel" && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-sm text-red-700">
-              ⚠️ Esta acción cancelará la suscripción del usuario inmediatamente.
+              ⚠️ Esta acción cancelará la suscripción del usuario
+              inmediatamente.
             </p>
           </div>
         )}
@@ -183,7 +199,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
           </button>
           <button
             type="submit"
-            disabled={loading || formData.action === 'none'}
+            disabled={loading || formData.action === "none"}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
@@ -192,7 +208,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ userId, subscriptio
                 Guardando...
               </>
             ) : (
-              'Guardar Cambios'
+              "Guardar Cambios"
             )}
           </button>
         </div>

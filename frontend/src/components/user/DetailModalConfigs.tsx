@@ -10,53 +10,55 @@ import type { Bet, Transaction, Event } from "../../types";
 // ============================================================================
 export const BET_DETAIL_FIELDS: FieldConfig[] = [
   {
-    key: 'id',
-    label: 'ID',
-    copyable: true
+    key: "id",
+    label: "ID",
+    copyable: true,
   },
   {
-    key: 'eventName',
-    label: 'Evento'
+    key: "eventName",
+    label: "Evento",
   },
   {
-    key: 'fighterNames',
-    label: 'Peleadores',
+    key: "fighterNames",
+    label: "Peleadores",
     render: (fighters: any) => (
       <span>
-        {fighters?.red || 'N/A'} vs {fighters?.blue || 'N/A'}
+        {fighters?.red || "N/A"} vs {fighters?.blue || "N/A"}
       </span>
-    )
+    ),
   },
   {
-    key: 'amount',
-    label: 'Monto'
+    key: "amount",
+    label: "Monto",
   },
   {
-    key: 'odds',
-    label: 'Cuota'
+    key: "odds",
+    label: "Cuota",
   },
   {
-    key: 'status',
-    label: 'Estado'
+    key: "status",
+    label: "Estado",
   },
   {
-    key: 'result',
-    label: 'Resultado'
+    key: "result",
+    label: "Resultado",
   },
   {
-    key: 'createdAt',
-    label: 'Creada'
-  }
+    key: "createdAt",
+    label: "Creada",
+  },
 ];
 
-export const getBetActions = (onCancelBet?: (betId: string) => void): ActionConfig[] => [
+export const getBetActions = (
+  onCancelBet?: (betId: string) => void,
+): ActionConfig[] => [
   {
-    label: 'Cancelar apuesta',
+    label: "Cancelar apuesta",
     onClick: (bet: Bet) => onCancelBet?.(bet.id),
-    variant: 'danger',
-    conditional: (bet: Bet) => 
-      (bet.status === 'pending' || bet.status === 'active') && !!onCancelBet
-  }
+    variant: "danger",
+    conditional: (bet: Bet) =>
+      (bet.status === "pending" || bet.status === "active") && !!onCancelBet,
+  },
 ];
 
 // ============================================================================
@@ -64,34 +66,34 @@ export const getBetActions = (onCancelBet?: (betId: string) => void): ActionConf
 // ============================================================================
 export const TRANSACTION_DETAIL_FIELDS: FieldConfig[] = [
   {
-    key: 'id',
-    label: 'ID'
+    key: "id",
+    label: "ID",
   },
   {
-    key: 'type',
-    label: 'Tipo'
+    key: "type",
+    label: "Tipo",
   },
   {
-    key: 'status',
-    label: 'Estado'
+    key: "status",
+    label: "Estado",
   },
   {
-    key: 'amount',
-    label: 'Monto'
+    key: "amount",
+    label: "Monto",
   },
   {
-    key: 'description',
-    label: 'Descripción'
+    key: "description",
+    label: "Descripción",
   },
   {
-    key: 'createdAt',
-    label: 'Fecha'
+    key: "createdAt",
+    label: "Fecha",
   },
   {
-    key: 'reference',
-    label: 'Referencia',
-    conditional: (transaction: Transaction) => !!transaction.reference
-  }
+    key: "reference",
+    label: "Referencia",
+    conditional: (transaction: Transaction) => !!transaction.reference,
+  },
 ];
 
 // No actions específicas para Transaction actualmente
@@ -102,55 +104,57 @@ export const TRANSACTION_ACTIONS: ActionConfig[] = [];
 // ============================================================================
 export const EVENT_DETAIL_FIELDS: FieldConfig[] = [
   {
-    key: 'id',
-    label: 'ID',
-    copyable: true
+    key: "id",
+    label: "ID",
+    copyable: true,
   },
   {
-    key: 'name',
-    label: 'Nombre'
+    key: "name",
+    label: "Nombre",
   },
   {
-    key: 'status',
-    label: 'Estado'
+    key: "status",
+    label: "Estado",
   },
   {
-    key: 'scheduledDate',
-    label: 'Fecha'
+    key: "scheduledDate",
+    label: "Fecha",
   },
   {
-    key: 'venue',
-    label: 'Venue',
+    key: "venue",
+    label: "Venue",
     render: (venue: any, event: Event) => (
-      <span>{venue?.name || event.venueId || 'N/A'}</span>
-    )
+      <span>{venue?.name || event.venueId || "N/A"}</span>
+    ),
   },
   {
-    key: 'totalFights',
-    label: 'Total de Peleas'
+    key: "totalFights",
+    label: "Total de Peleas",
   },
   {
-    key: 'totalBets', 
-    label: 'Apuestas'
+    key: "totalBets",
+    label: "Apuestas",
   },
   {
-    key: 'totalPrizePool',
-    label: 'Premio acumulado'
+    key: "totalPrizePool",
+    label: "Premio acumulado",
   },
   {
-    key: 'createdAt',
-    label: 'Creado'
-  }
+    key: "createdAt",
+    label: "Creado",
+  },
 ];
 
-export const getEventActions = (onActivateEvent?: (eventId: string) => void): ActionConfig[] => [
+export const getEventActions = (
+  onActivateEvent?: (eventId: string) => void,
+): ActionConfig[] => [
   {
-    label: 'Activar evento',
+    label: "Activar evento",
     onClick: (event: Event) => onActivateEvent?.(event.id),
-    variant: 'success',
-    conditional: (event: Event) => 
-      event.status === 'scheduled' && !!onActivateEvent
-  }
+    variant: "success",
+    conditional: (event: Event) =>
+      event.status === "scheduled" && !!onActivateEvent,
+  },
 ];
 
 // ============================================================================
@@ -159,17 +163,19 @@ export const getEventActions = (onActivateEvent?: (eventId: string) => void): Ac
 export const useBetDetailConfig = (onCancelBet?: (betId: string) => void) => ({
   fields: BET_DETAIL_FIELDS,
   actions: getBetActions(onCancelBet),
-  title: "Detalle de Apuesta"
+  title: "Detalle de Apuesta",
 });
 
 export const useTransactionDetailConfig = () => ({
   fields: TRANSACTION_DETAIL_FIELDS,
   actions: TRANSACTION_ACTIONS,
-  title: "Detalle de Transacción"
+  title: "Detalle de Transacción",
 });
 
-export const useEventDetailConfig = (onActivateEvent?: (eventId: string) => void) => ({
+export const useEventDetailConfig = (
+  onActivateEvent?: (eventId: string) => void,
+) => ({
   fields: EVENT_DETAIL_FIELDS,
   actions: getEventActions(onActivateEvent),
-  title: "Detalle de Evento"
+  title: "Detalle de Evento",
 });

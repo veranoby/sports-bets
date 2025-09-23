@@ -3,7 +3,7 @@ import axios, {
   type Method,
   type AxiosRequestConfig,
 } from "axios";
-import { type ApiResponse, type ApiError } from "../types";
+import type { Article } from "../types/article";
 
 const api = axios.create({
   baseURL: "/api", // The vite proxy in vite.config.ts will handle this
@@ -92,13 +92,16 @@ export const fightsAPI = {
   getFightsByEvent: async (eventId: string) => {
     return apiCall("get", `/events/${eventId}/fights`);
   },
-  createFight: async (data: any) => {
+  createFight: async (data: Partial<Fight>) => {
     return apiCall("post", "/fights", data);
   },
   updateFightStatus: async (fightId: string, status: string) => {
     return apiCall("put", `/fights/${fightId}/status`, { status });
   },
-  assignFightResult: async (fightId: string, result: any) => {
+  assignFightResult: async (
+    fightId: string,
+    result: { winner: string; method: string; round?: number; time?: string },
+  ) => {
     return apiCall("post", `/fights/${fightId}/result`, result);
   },
 };
@@ -129,7 +132,7 @@ export const userAPI = {
   getProfile: async () => {
     return apiCall("get", "/users/profile");
   },
-  getAll: async (params?: any) => {
+  getAll: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/users", params);
   },
   getById: async (id: string) => {
@@ -149,7 +152,7 @@ export const authAPI = {
 };
 
 export const eventsAPI = {
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Partial<Event>) => {
     return apiCall("put", `/events/${id}`, data);
   },
   // Admin component methods
@@ -165,22 +168,22 @@ export const eventsAPI = {
 };
 
 export const venuesAPI = {
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Partial<Venue>) => {
     return apiCall("put", `/venues/${id}`, data);
   },
-  create: async (data: any) => {
+  create: async (data: Partial<Venue>) => {
     return apiCall("post", "/venues", data);
   },
-  getAll: async (params?: any) => {
+  getAll: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/venues", params);
   },
 };
 
 export const gallerasAPI = {
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Partial<Gallera>) => {
     return apiCall("put", `/galleras/${id}`, data);
   },
-  create: async (data: any) => {
+  create: async (data: Partial<Gallera>) => {
     return apiCall("post", "/galleras", data);
   },
 };
@@ -206,7 +209,7 @@ export const betsAPI = {
   getMyBets: async () => {
     return apiCall("get", "/bets/my-bets");
   },
-  create: async (data: any) => {
+  create: async (data: Partial<Bet>) => {
     return apiCall("post", "/bets", data);
   },
   cancel: async (betId: string) => {
@@ -218,16 +221,16 @@ export const betsAPI = {
 };
 
 export const articlesAPI = {
-  getAll: async (params?: any) => {
+  getAll: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/articles", params);
   },
-  getFeatured: async (params: any) => {
+  getFeatured: async (params: Record<string, unknown>) => {
     return apiCall("get", "/articles/featured", params);
   },
-  create: async (data: any) => {
+  create: async (data: Partial<Article>) => {
     return apiCall("post", "/articles", data);
   },
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Partial<Article>) => {
     return apiCall("put", `/articles/${id}`, data);
   },
   delete: async (id: string) => {

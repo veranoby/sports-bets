@@ -3,7 +3,6 @@
 
 import React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface TrendData {
   value: number;
@@ -157,9 +156,12 @@ const Card: React.FC<CardProps> = ({
       size === "sm" ? "w-5 h-5" : size === "lg" ? "w-8 h-8" : "w-6 h-6";
 
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon as React.ReactElement, {
-        className: `${iconSize} ${colors.icon}`,
-      } as any);
+      return React.cloneElement(
+        icon as React.ReactElement,
+        {
+          className: `${iconSize} ${colors.icon}`,
+        } as any,
+      );
     }
 
     // Si es un componente de icono de Lucide
@@ -187,15 +189,15 @@ const Card: React.FC<CardProps> = ({
       trendDirection === "up"
         ? TrendingUp
         : trendDirection === "down"
-        ? TrendingDown
-        : Minus;
+          ? TrendingDown
+          : Minus;
 
     const trendColor =
       trendDirection === "up"
         ? "text-green-400"
         : trendDirection === "down"
-        ? "text-red-400"
-        : "text-gray-400";
+          ? "text-red-400"
+          : "text-gray-400";
 
     return (
       <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
@@ -254,8 +256,8 @@ const Card: React.FC<CardProps> = ({
                     size === "sm"
                       ? "text-lg"
                       : size === "lg"
-                      ? "text-3xl"
-                      : "text-2xl"
+                        ? "text-3xl"
+                        : "text-2xl"
                   } text-white`}
                 >
                   {value}

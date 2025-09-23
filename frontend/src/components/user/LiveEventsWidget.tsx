@@ -90,16 +90,16 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
                 event.stats.popularityTrend === "up"
                   ? "text-green-400"
                   : event.stats.popularityTrend === "down"
-                  ? "text-red-400"
-                  : "text-yellow-400"
+                    ? "text-red-400"
+                    : "text-yellow-400"
               }`}
             >
               <TrendingUp className="w-3 h-3 mr-1" />
               {event.stats.popularityTrend === "up"
                 ? "↗"
                 : event.stats.popularityTrend === "down"
-                ? "↘"
-                : "→"}
+                  ? "↘"
+                  : "→"}
             </div>
           )}
         </div>
@@ -129,8 +129,8 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
                 viewerTrend.trend === "high"
                   ? "bg-green-500/20 text-green-400"
                   : viewerTrend.trend === "medium"
-                  ? "bg-yellow-500/20 text-yellow-400"
-                  : "bg-red-500/20 text-red-400"
+                    ? "bg-yellow-500/20 text-yellow-400"
+                    : "bg-red-500/20 text-red-400"
               }`}
             >
               {viewerTrend.percentage}%
@@ -186,7 +186,7 @@ const LiveEventsWidget: React.FC = () => {
   // Estados locales
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"viewers" | "bets" | "volume">(
-    "viewers"
+    "viewers",
   );
   const [showFilters, setShowFilters] = useState(false);
 
@@ -195,7 +195,7 @@ const LiveEventsWidget: React.FC = () => {
     "event_started",
     useCallback(() => {
       fetchEvents();
-    }, [fetchEvents])
+    }, [fetchEvents]),
   );
 
   useWebSocketListener(
@@ -203,7 +203,7 @@ const LiveEventsWidget: React.FC = () => {
     useCallback((data: any) => {
       // Actualizar estadísticas en tiempo real
       console.log("Event stats updated:", data);
-    }, [])
+    }, []),
   );
 
   // ✅ DATOS COMPUTADOS - Solo eventos en vivo con enriquecimiento
@@ -230,7 +230,7 @@ const LiveEventsWidget: React.FC = () => {
             Math.floor(Math.random() * 3)
           ] as "up" | "down" | "stable",
         },
-      })
+      }),
     );
   }, [events]);
 
@@ -357,7 +357,7 @@ const LiveEventsWidget: React.FC = () => {
             <div className="text-2xl font-bold text-blue-400">
               {sortedEvents.reduce(
                 (sum, e) => sum + (e.currentViewers || 0),
-                0
+                0,
               )}
             </div>
             <div className="text-xs text-theme-light">Total Espectadores</div>

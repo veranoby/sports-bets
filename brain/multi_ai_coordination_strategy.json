@@ -115,6 +115,27 @@
           "Form layout optimization"
         ]
       },
+      "gemini_collaboration_results": {
+        "rating": "7/10",
+        "evidence": "ReactQuill + Profile enhancements delivered successfully (Sept 2025)",
+        "successful_implementations": [
+          "ReactQuill findDOMNode fix via react-quill-new@3.6.0 upgrade",
+          "Profile component venue/gallera role extensions",
+          "Business validation fields for venue users",
+          "Registration fields for gallera users",
+          "TypeScript compliance maintained throughout"
+        ],
+        "efficiency_achieved": {
+          "time_savings": "60-70% vs Claude equivalent work",
+          "token_efficiency": "Significant savings confirmed",
+          "quality_delivered": "7/10 - Functional code, minimal testing"
+        },
+        "optimization_opportunities": [
+          "Test coverage requires explicit mandates in prompts",
+          "Integration validation needs Claude oversight",
+          "Documentation minimal but adequate for iteration"
+        ]
+      },
       "rapid_implementation": {
         "rating": "4/5",
         "evidence": "Fast code generation when properly constrained + 40% token savings achieved",
@@ -481,6 +502,142 @@
         "pattern": "ReactQuill requires CSS import consolidation",
         "template": "When integrating ReactQuill: 1) Import 'react-quill/dist/quill.snow.css' only once 2) Use useMemo for toolbar config 3) Check existing ReactQuill components for conflicts",
         "validation": "Search for existing ReactQuill imports to prevent CSS conflicts"
+      }
+    },
+    "micro_task_strategy_v2": {
+      "critical_discovery": "V1 strategy (abstract prompts) achieved only 10% success (43/420 errors) in 3-4 hours. V2 strategy (micro-tasks + exact commands) targets 95% success in 50 minutes.",
+      "core_problem_v1": {
+        "abstract_instructions": "Phase-based approach confused Qwen with too many decisions",
+        "multiple_files": "Qwen lost context switching between files",
+        "delayed_validation": "Errors accumulated without immediate feedback",
+        "missing_commands": "No specific sed/grep commands provided"
+      },
+      "solution_v2_micro_tasks": {
+        "philosophy": "One exact command + immediate validation + auto-rollback",
+        "time_per_task": "5 minutes maximum per micro-task",
+        "command_specificity": "Exact sed/grep commands, no interpretation needed",
+        "validation_immediate": "npm run lint after each change",
+        "rollback_automatic": "git checkout file if validation fails"
+      },
+      "micro_task_templates": {
+        "unused_import_removal": {
+          "template": "sed -i 's/, FileText//g; s/, User//g' src/components/admin/AdminSidebar.tsx",
+          "validation": "npm run lint --quiet src/components/admin/AdminSidebar.tsx",
+          "success_criteria": "Zero warnings for this file",
+          "rollback": "git checkout -- src/components/admin/AdminSidebar.tsx"
+        },
+        "explicit_any_fix": {
+          "template": "sed -i 's/: any/: ApiResponse/g' src/services/api.ts",
+          "validation": "npx tsc --noEmit --target src/services/api.ts",
+          "success_criteria": "TypeScript compilation clean",
+          "rollback": "git checkout -- src/services/api.ts"
+        },
+        "unused_variable_removal": {
+          "template": "sed -i '/const Title = Typography.Title;/d' src/components/admin/FightStatusManager.tsx",
+          "validation": "npm run lint --quiet src/components/admin/FightStatusManager.tsx",
+          "success_criteria": "Zero unused variable warnings",
+          "rollback": "git checkout -- src/components/admin/FightStatusManager.tsx"
+        }
+      },
+      "execution_optimization": {
+        "session_structure": "1 file = 1 session = 5 minutes = 1 specific command",
+        "error_budget": "0 tolerance - any error triggers immediate rollback",
+        "progress_tracking": "Update brain with exact errors fixed after each session",
+        "time_boxing": "45 minutes total = 9 files maximum per coordination cycle"
+      },
+      "success_metrics": {
+        "time_efficiency": "V1: 30-40 hours estimate vs V2: 50 minutes (48x faster)",
+        "accuracy_rate": "V1: 10% success vs V2: 95% target success",
+        "token_savings": "Same tokens as V1 but 95% better results",
+        "reliability": "Auto-rollback prevents broken states"
+      }
+    },
+
+    "json_prompt_structure_optimization": {
+      "critical_discovery": "Current JSON prompts (qwen-prompt.json, gemini-prompt.json) lack mandatory comprehensive structure, causing incomplete implementations and context gaps",
+      "mandatory_structure_requirements": {
+        "knowledge_verification": {
+          "purpose": "Prevent context gaps and implementation errors",
+          "required_content": [
+            "Document QUÉ knowledge del proyecto consultaste",
+            "List componentes/fases ya implementados que afectan esta tarea",
+            "Identifica gaps de conocimiento que podrían causar errores"
+          ],
+          "example": "knowledge_verification: { consulted: ['Profile.tsx current implementation', 'EditVenueGalleraModal.tsx patterns'], existing_components: ['UserProfileForm', 'VenueEntityForm'], knowledge_gaps: ['Backend API validation for venue fields'] }"
+        },
+        "task_decomposition": {
+          "purpose": "Atomic tasks prevent overwhelming target AI with complex multi-step operations",
+          "requirements": [
+            "Descompón en subtareas atómicas (máximo 10 minutos cada una)",
+            "Cada subtarea debe tener criterio de éxito medible",
+            "Ordena por dependencias técnicas"
+          ],
+          "example": "task_decomposition: { subtasks: [{ task: 'Fix ReactQuill import error', duration: '5 min', success_criteria: 'Article editor loads without console errors' }] }"
+        },
+        "purpose_and_requirements": {
+          "critical_specificity": "Abstract purposes lead to implementation drift - must be domain-specific",
+          "required_sections": [
+            "Propósito específico (qué problema resuelve exactamente)",
+            "Requisitos funcionales (qué debe hacer)",
+            "Requisitos no-funcionales (performance, seguridad, etc.)"
+          ]
+        },
+        "inputs_and_outputs": {
+          "prevent_undefined_behavior": "Missing I/O specifications cause target AI to make assumptions",
+          "required_specification": [
+            "Parámetros de entrada con tipos, validaciones y ejemplos",
+            "Formato de salida esperado con estructura completa",
+            "Casos edge que debe manejar"
+          ]
+        },
+        "test_driven_development": {
+          "implementation_prevention": "Tests must be written BEFORE implementation to prevent broken states",
+          "mandatory_approach": [
+            "Tests unitarios que debe superar ANTES de implementar",
+            "Tests de integración con sistemas existentes",
+            "Datos mock específicos del dominio",
+            "Criterios de cobertura (mínimo 80%)"
+          ]
+        },
+        "context_injection": {
+          "pattern_consistency": "Target AI needs exact patterns to follow - prevents architecture drift",
+          "required_references": [
+            "Referencias a código existente que debe seguir como patrón",
+            "Arquitectura/esquemas que debe respetar",
+            "Decisiones técnicas previas que impactan la implementación"
+          ]
+        },
+        "risk_mitigation": {
+          "ai_specific_failures": "Each AI has known failure patterns that must be explicitly prevented",
+          "prevention_strategies": [
+            "Identificar puntos de fallo comunes de la herramienta target",
+            "Estrategias para evitar alucinaciones/código inconsistente",
+            "Plan de rollback si la implementación falla"
+          ]
+        }
+      },
+      "current_json_audit": {
+        "qwen_prompt_json": {
+          "missing_sections": ["knowledge_verification", "context_injection", "test_driven_development"],
+          "weak_sections": ["risk_mitigation (only safety rules)", "inputs_and_outputs (no examples)"],
+          "causes_failure": "Abstract 'systematic_approach' without specific commands led to 90% failure rate"
+        },
+        "gemini_prompt_json": {
+          "missing_sections": ["knowledge_verification", "task_decomposition", "test_driven_development", "inputs_and_outputs"],
+          "weak_sections": ["context_injection (missing pattern references)", "risk_mitigation (no failure patterns)"],
+          "improvement_needed": "Add specific ReactQuill patterns, form validation examples, test specifications"
+        }
+      },
+      "implementation_strategy": {
+        "next_json_creation": "Must include ALL 12 mandatory sections with domain-specific content",
+        "validation_checklist": [
+          "✅ JSON específico enough para eliminar ambigüedad?",
+          "✅ Incluye todo contexto necesario del proyecto?",
+          "✅ Tests están definidos ANTES que implementación?",
+          "✅ Tareas están descompuestas atómicamente?",
+          "✅ Configuración específica para herramienta target?"
+        ],
+        "token_efficiency_gain": "Complete structure upfront = 60% fewer iterations = major token savings"
       }
     },
 

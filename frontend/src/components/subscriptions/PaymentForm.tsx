@@ -1,13 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 // Note: Stripe integration removed - using Kushki for LATAM payments
 // import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Form, Input, Button, Alert, Spin, Row, Col, Typography, Divider } from 'antd';
-import { CreditCard, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { subscriptionAPI } from '../../config/api';
+import {
+  Form,
+  Input,
+  Button,
+  Alert,
+  Spin,
+  Row,
+  Col,
+  Typography,
+  Divider,
+} from "antd";
+import { CreditCard, Lock, AlertCircle } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { subscriptionAPI } from "../../config/api";
 
 interface PaymentFormProps {
-  planType: 'daily' | 'monthly';
+  planType: "daily" | "monthly";
   planPrice: number;
   onPaymentSuccess: (data: { token: string; planType: string }) => void;
   onPaymentError: (error: string) => void;
@@ -29,22 +39,22 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onPaymentSuccess,
   onPaymentError,
   onCancel,
-  className = ''
+  className = "",
 }) => {
   const { user: _user } = useAuth();
-  
+
   // Form state
   const [cardData, setCardData] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: ''
+    number: "",
+    expiry: "",
+    cvv: "",
+    name: "",
   });
-  
+
   const [errors, setErrors] = useState<CardErrors>({});
   const [processing, setProcessing] = useState<boolean>(false);
   const [kushkiReady, setKushkiReady] = useState(false);
-  const [cardType, setCardType] = useState('unknown');
+  const [cardType, setCardType] = useState("unknown");
 
   // Initialize Kushki on component mount
   useEffect(() => {
@@ -53,7 +63,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         // await // kushkiService.initializeKushki(); // TODO: Implement Kushki service
         setKushkiReady(true);
       } catch (error: any) {
-        setErrors({ general: 'Payment system unavailable. Please try again later.' });
+        setErrors({
+          general: "Payment system unavailable. Please try again later.",
+        });
         onPaymentError(error.message);
       }
     };
@@ -67,46 +79,46 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       // const type = // kushkiService.getCardType(cardData.number);
       // setCardType(type);
     } else {
-      setCardType('unknown');
+      setCardType("unknown");
     }
   }, [cardData.number]);
 
   // Handle input changes with formatting and validation
-  const handleInputChange = useCallback((field: string, value: string) => {
-    let formattedValue = value;
-    const newErrors = { ...errors };
+  const handleInputChange = useCallback(
+    (field: string, value: string) => {
+      let formattedValue = value;
+      const newErrors = { ...errors };
 
-    // Clear error for this field when user starts typing
-    delete newErrors[field as keyof CardErrors];
+      // Clear error for this field when user starts typing
+      delete newErrors[field as keyof CardErrors];
 
-    switch (field) {
-      case 'number':
-        // formattedValue = // kushkiService.formatCardNumber(value);
-        // Real-time validation
-        if (formattedValue.replace(/\s/g, '').length >= 13) {
-          // if (!// kushkiService.validateCardNumber(formattedValue)) {
-          //   newErrors.number = 'Invalid card number';
-          // }
-        }
-        break;
+      switch (field) {
+        case "number":
+          // formattedValue = // kushkiService.formatCardNumber(value);
+          // Real-time validation
+          if (formattedValue.replace(/\s/g, "").length >= 13) {
+            // if (!// kushkiService.validateCardNumber(formattedValue)) {
+            //   newErrors.number = 'Invalid card number';
+            // }
+          }
+          break;
 
-      case 'expiry':
-        // formattedValue = // kushkiService.formatExpiryDate(value);
-        // Real-time validation
-        if (formattedValue.length === 5) {
-          // if (!// kushkiService.validateExpiryDate(formattedValue)) {
-          //   newErrors.expiry = 'Invalid expiry date';
-          // }
-        }
-        break;
+        case "expiry":
+          // formattedValue = // kushkiService.formatExpiryDate(value);
+          // Real-time validation
+          if (formattedValue.length === 5) {
+            // if (!// kushkiService.validateExpiryDate(formattedValue)) {
+            //   newErrors.expiry = 'Invalid expiry date';
+            // }
+          }
+          break;
 
-      case 'cvv':
-        {
+        case "cvv": {
           // Only allow digits
-          formattedValue = value.replace(/\D/g, '');
-          const maxLength = cardType === 'amex' ? 4 : 3;
+          formattedValue = value.replace(/\D/g, "");
+          const maxLength = cardType === "amex" ? 4 : 3;
           formattedValue = formattedValue.slice(0, maxLength);
-          
+
           // Real-time validation
           if (formattedValue.length === maxLength) {
             // if (!// kushkiService.validateCVV(formattedValue, cardType)) {
@@ -116,18 +128,20 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           break;
         }
 
-      case 'name':
-        // Only allow letters and spaces
-        formattedValue = value.replace(/[^a-zA-Z\s]/g, '');
-        if (formattedValue.length > 0 && formattedValue.trim().length < 2) {
-          newErrors.name = 'Name is too short';
-        }
-        break;
-    }
+        case "name":
+          // Only allow letters and spaces
+          formattedValue = value.replace(/[^a-zA-Z\s]/g, "");
+          if (formattedValue.length > 0 && formattedValue.trim().length < 2) {
+            newErrors.name = "Name is too short";
+          }
+          break;
+      }
 
-    setCardData(prev => ({ ...prev, [field]: formattedValue }));
-    setErrors(newErrors);
-  }, [errors, cardType]);
+      setCardData((prev) => ({ ...prev, [field]: formattedValue }));
+      setErrors(newErrors);
+    },
+    [errors, cardType],
+  );
 
   // Validate entire form
   const validateForm = useCallback(() => {
@@ -146,7 +160,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     //   if (validation.errors.expiry) formattedErrors.expiry = validation.errors.expiry;
     //   if (validation.errors.cvv) formattedErrors.cvv = validation.errors.cvv;
     //   if (validation.errors.name) formattedErrors.name = validation.errors.name;
-      
+
     //   setErrors(formattedErrors);
     //   return false;
     // }
@@ -168,7 +182,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     try {
       // Parse expiry date
       // const [month, year] = cardData.expiry.split('/');
-      
+
       // Tokenize card with Kushki
       // const tokenResponse = await // kushkiService.tokenizeCard({
       //   number: cardData.number.replace(/\s/g, ''),
@@ -186,12 +200,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
       // For now, we'll just simulate a successful payment
       onPaymentSuccess({
-        token: 'test-token',
-        planType
+        token: "test-token",
+        planType,
       });
-
     } catch (error: any) {
-      const errorMessage = error.message || 'Payment processing failed. Please try again.';
+      const errorMessage =
+        error.message || "Payment processing failed. Please try again.";
       setErrors({ general: errorMessage });
       onPaymentError(errorMessage);
     } finally {
@@ -201,43 +215,58 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
   // Check if form is valid for submission
   const isFormValid = () => {
-    return kushkiReady &&
-           cardData.number.replace(/\s/g, '').length >= 13 &&
-           cardData.expiry.length === 5 &&
-           cardData.cvv.length >= 3 &&
-           cardData.name.trim().length >= 2 &&
-           Object.keys(errors).length === 0;
+    return (
+      kushkiReady &&
+      cardData.number.replace(/\s/g, "").length >= 13 &&
+      cardData.expiry.length === 5 &&
+      cardData.cvv.length >= 3 &&
+      cardData.name.trim().length >= 2 &&
+      Object.keys(errors).length === 0
+    );
   };
 
-  const planName = planType === 'daily' ? 'Daily Access' : 'Monthly Premium';
+  const planName = planType === "daily" ? "Daily Access" : "Monthly Premium";
   const formattedPrice = `$${planPrice.toFixed(2)}`;
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto ${className}`}
+    >
       {/* Header */}
       <div className="text-center mb-6">
         <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
           <CreditCard className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Payment</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Complete Payment
+        </h2>
         <div className="text-lg">
           <span className="font-medium text-gray-900">{planName}</span>
-          <span className="text-2xl font-bold text-blue-600 ml-2">{formattedPrice}</span>
-          <span className="text-gray-500">/{planType === 'daily' ? 'day' : 'month'}</span>
+          <span className="text-2xl font-bold text-blue-600 ml-2">
+            {formattedPrice}
+          </span>
+          <span className="text-gray-500">
+            /{planType === "daily" ? "day" : "month"}
+          </span>
         </div>
       </div>
 
       {/* Security Notice */}
       <div className="flex items-center justify-center mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
         <Lock className="w-5 h-5 text-green-600 mr-2" />
-        <span className="text-sm text-green-700">Secured by Kushki - Your card data is encrypted</span>
+        <span className="text-sm text-green-700">
+          Secured by Kushki - Your card data is encrypted
+        </span>
       </div>
 
       {/* Payment Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Card Number */}
         <div>
-          <label htmlFor="card-number" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="card-number"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Card Number
           </label>
           <div className="relative">
@@ -246,28 +275,35 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               data-testid="card-number"
               type="text"
               value={cardData.number}
-              onChange={(e) => handleInputChange('number', e.target.value)}
+              onChange={(e) => handleInputChange("number", e.target.value)}
               placeholder="1234 5678 9012 3456"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.number ? 'border-red-500' : 'border-gray-300'
+                errors.number ? "border-red-500" : "border-gray-300"
               }`}
               disabled={processing || !kushkiReady}
             />
-            {cardType !== 'unknown' && (
+            {cardType !== "unknown" && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div 
+                <div
                   data-testid={`card-type-${cardType}`}
                   className={`w-8 h-5 rounded ${
-                    cardType === 'visa' ? 'bg-blue-600' :
-                    cardType === 'mastercard' ? 'bg-red-600' :
-                    cardType === 'amex' ? 'bg-green-600' :
-                    'bg-gray-600'
+                    cardType === "visa"
+                      ? "bg-blue-600"
+                      : cardType === "mastercard"
+                        ? "bg-red-600"
+                        : cardType === "amex"
+                          ? "bg-green-600"
+                          : "bg-gray-600"
                   } flex items-center justify-center`}
                 >
                   <span className="text-white text-xs font-bold">
-                    {cardType === 'visa' ? 'V' :
-                     cardType === 'mastercard' ? 'MC' :
-                     cardType === 'amex' ? 'AE' : '?'}
+                    {cardType === "visa"
+                      ? "V"
+                      : cardType === "mastercard"
+                        ? "MC"
+                        : cardType === "amex"
+                          ? "AE"
+                          : "?"}
                   </span>
                 </div>
               </div>
@@ -281,7 +317,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         {/* Expiry and CVV */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="expiry-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="expiry-date"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Expiry Date
             </label>
             <input
@@ -289,10 +328,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               data-testid="expiry-date"
               type="text"
               value={cardData.expiry}
-              onChange={(e) => handleInputChange('expiry', e.target.value)}
+              onChange={(e) => handleInputChange("expiry", e.target.value)}
               placeholder="MM/YY"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.expiry ? 'border-red-500' : 'border-gray-300'
+                errors.expiry ? "border-red-500" : "border-gray-300"
               }`}
               disabled={processing || !kushkiReady}
             />
@@ -302,7 +341,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           </div>
 
           <div>
-            <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="cvv"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               CVV
             </label>
             <input
@@ -310,10 +352,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               data-testid="cvv"
               type="text"
               value={cardData.cvv}
-              onChange={(e) => handleInputChange('cvv', e.target.value)}
-              placeholder={cardType === 'amex' ? '1234' : '123'}
+              onChange={(e) => handleInputChange("cvv", e.target.value)}
+              placeholder={cardType === "amex" ? "1234" : "123"}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.cvv ? 'border-red-500' : 'border-gray-300'
+                errors.cvv ? "border-red-500" : "border-gray-300"
               }`}
               disabled={processing || !kushkiReady}
             />
@@ -325,7 +367,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
         {/* Cardholder Name */}
         <div>
-          <label htmlFor="cardholder-name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="cardholder-name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Cardholder Name
           </label>
           <input
@@ -333,10 +378,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             data-testid="cardholder-name"
             type="text"
             value={cardData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
+            onChange={(e) => handleInputChange("name", e.target.value)}
             placeholder="John Doe"
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
+              errors.name ? "border-red-500" : "border-gray-300"
             }`}
             disabled={processing || !kushkiReady}
           />

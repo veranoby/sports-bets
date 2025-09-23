@@ -69,9 +69,7 @@ const EventCard = React.memo(
                 </span>
               </div>
             )}
-            <StatusChip
-              status={event.status}
-            />
+            <StatusChip status={event.status} />
           </div>
           <ChevronRight className="w-4 h-4 text-theme-light" />
         </div>
@@ -141,7 +139,7 @@ const EventCard = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 const EventsPage: React.FC = () => {
@@ -154,11 +152,11 @@ const EventsPage: React.FC = () => {
   // Estados locales
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "live" | "upcoming">(
-    "all"
+    "all",
   );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [activeTab, setActiveTab] = useState<"upcoming" | "archived">(
-    "upcoming"
+    "upcoming",
   );
 
   // ✅ Referencia estable para fetchEvents
@@ -176,7 +174,7 @@ const EventsPage: React.FC = () => {
       console.log(`Notification: ${message} (${type})`);
       // Implementar sistema de notificaciones si necesario
     },
-    []
+    [],
   );
 
   // Cargar eventos al montar
@@ -209,7 +207,7 @@ const EventsPage: React.FC = () => {
 
   // Handlers
   const handleSearchChange = (
-    value: string | React.ChangeEvent<HTMLInputElement>
+    value: string | React.ChangeEvent<HTMLInputElement>,
   ) => {
     const searchValue = typeof value === "string" ? value : value.target.value;
     setSearchTerm(searchValue);
@@ -260,29 +258,35 @@ const EventsPage: React.FC = () => {
               <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 p-4 rounded-xl border border-green-500/30 flex flex-col items-center justify-center">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-5 h-5 text-green-400" />
-                  <span className="text-sm text-green-400 font-medium">En Vivo</span>
-               
-                <span className="text-xl font-bold text-theme-primary">
-                  {events.filter((e) => e.status === "in-progress").length}
-                </span> </div>
+                  <span className="text-sm text-green-400 font-medium">
+                    En Vivo
+                  </span>
+                  <span className="text-xl font-bold text-theme-primary">
+                    {events.filter((e) => e.status === "in-progress").length}
+                  </span>{" "}
+                </div>
               </div>
               <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 p-4 rounded-xl border border-amber-500/30 flex flex-col items-center justify-center">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-5 h-5 text-amber-400" />
-                  <span className="text-sm text-amber-400 font-medium">Próximos</span>
-               
-                <span className="text-xl font-bold text-theme-primary">
-                  {events.filter((e) => e.status === "scheduled").length}
-                </span> </div>
+                  <span className="text-sm text-amber-400 font-medium">
+                    Próximos
+                  </span>
+                  <span className="text-xl font-bold text-theme-primary">
+                    {events.filter((e) => e.status === "scheduled").length}
+                  </span>{" "}
+                </div>
               </div>
               <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-4 rounded-xl border border-blue-500/30 flex flex-col items-center justify-center">
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-5 h-5 text-blue-400" />
-                  <span className="text-sm text-blue-400 font-medium">Apuestas</span>
-               
-                <span className="text-xl font-bold text-theme-primary">
-                  {events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
-                </span> </div>
+                  <span className="text-sm text-blue-400 font-medium">
+                    Apuestas
+                  </span>
+                  <span className="text-xl font-bold text-theme-primary">
+                    {events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
+                  </span>{" "}
+                </div>
               </div>
             </div>
 
@@ -330,10 +334,10 @@ const EventsPage: React.FC = () => {
               searchTerm
                 ? "No se encontraron eventos que coincidan con tu búsqueda"
                 : statusFilter !== "all"
-                ? `No hay eventos ${
-                    statusFilter === "live" ? "en vivo" : "próximos"
-                  } en este momento`
-                : "No hay eventos programados actualmente"
+                  ? `No hay eventos ${
+                      statusFilter === "live" ? "en vivo" : "próximos"
+                    } en este momento`
+                  : "No hay eventos programados actualmente"
             }
             icon={<Calendar className="w-12 h-12" />}
             action={
@@ -403,7 +407,7 @@ const EventsPage: React.FC = () => {
                     .sort(
                       (a, b) =>
                         new Date(a.scheduledDate).getTime() -
-                        new Date(b.scheduledDate).getTime()
+                        new Date(b.scheduledDate).getTime(),
                     )
                     .map((event) => (
                       <EventCard
@@ -441,7 +445,11 @@ const EventsPage: React.FC = () => {
 
         {/* Estado de conexión WebSocket */}
         <div className="fixed bottom-20 right-4 z-30">
-          <StatusChip variant="indicator" status={isConnected ? "connected" : "disconnected"} label="Tiempo Real" />
+          <StatusChip
+            variant="indicator"
+            status={isConnected ? "connected" : "disconnected"}
+            label="Tiempo Real"
+          />
         </div>
       </div>
 
@@ -480,7 +488,7 @@ const EventsPage: React.FC = () => {
                 <span className="text-theme-light text-sm">Fecha:</span>
                 <p className="text-theme-primary">
                   {new Date(selectedEvent.scheduledDate).toLocaleString(
-                    "es-ES"
+                    "es-ES",
                   )}
                 </p>
               </div>

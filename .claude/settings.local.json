@@ -72,7 +72,8 @@
       "Read(//var/log/**)",
       "Bash(ss:*)",
       "Bash(/bashes)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

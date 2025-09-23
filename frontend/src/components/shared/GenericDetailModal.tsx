@@ -35,7 +35,9 @@ interface GenericDetailModalProps<T> {
   className?: string;
 }
 
-const GenericDetailModal = <T extends { id: string; status?: string; createdAt?: string }>({
+const GenericDetailModal = <
+  T extends { id: string; status?: string; createdAt?: string },
+>({
   title,
   data,
   isOpen,
@@ -57,23 +59,25 @@ const GenericDetailModal = <T extends { id: string; status?: string; createdAt?:
     }
 
     const value = (data as any)[field.key];
-    
+
     return (
       <div key={field.key} className="flex justify-between items-center">
         <span className="font-bold">{field.label}:</span>
         <div className="flex items-center gap-2">
           {field.render ? (
             field.render(value, data)
-          ) : field.key === 'status' ? (
+          ) : field.key === "status" ? (
             <StatusChip status={value} size="sm" />
-          ) : field.key === 'createdAt' || field.key.includes('Date') ? (
-            <span>{value ? new Date(value).toLocaleString() : '-'}</span>
-          ) : field.key === 'amount' || field.key.includes('Prize') ? (
-            <span>${typeof value === 'number' ? value.toFixed(2) : value || 0}</span>
-          ) : field.key === 'id' ? (
+          ) : field.key === "createdAt" || field.key.includes("Date") ? (
+            <span>{value ? new Date(value).toLocaleString() : "-"}</span>
+          ) : field.key === "amount" || field.key.includes("Prize") ? (
+            <span>
+              ${typeof value === "number" ? value.toFixed(2) : value || 0}
+            </span>
+          ) : field.key === "id" ? (
             <span className="font-mono text-xs">{value}</span>
           ) : (
-            <span>{value || '-'}</span>
+            <span>{value || "-"}</span>
           )}
           {field.copyable && value && (
             <button
@@ -98,15 +102,15 @@ const GenericDetailModal = <T extends { id: string; status?: string; createdAt?:
     const baseClasses = "px-4 py-2 rounded font-medium transition-colors";
     const variantClasses = {
       primary: "bg-blue-600 text-white hover:bg-blue-700",
-      danger: "bg-red-600 text-white hover:bg-red-700", 
-      success: "bg-green-600 text-white hover:bg-green-700"
+      danger: "bg-red-600 text-white hover:bg-red-700",
+      success: "bg-green-600 text-white hover:bg-green-700",
     };
 
     return (
       <button
         key={action.label}
         onClick={() => action.onClick(data)}
-        className={`${baseClasses} ${variantClasses[action.variant]} ${action.className || ''}`}
+        className={`${baseClasses} ${variantClasses[action.variant]} ${action.className || ""}`}
       >
         {action.label}
       </button>
@@ -114,16 +118,17 @@ const GenericDetailModal = <T extends { id: string; status?: string; createdAt?:
   };
 
   return (
-    <Modal title={title} isOpen={isOpen} onClose={onClose} className={className}>
-      <div className="space-y-3">
-        {fields.map(renderField)}
-      </div>
+    <Modal
+      title={title}
+      isOpen={isOpen}
+      onClose={onClose}
+      className={className}
+    >
+      <div className="space-y-3">{fields.map(renderField)}</div>
 
       {/* Actions Section */}
       {actions.length > 0 && (
-        <div className="flex gap-3 mt-6">
-          {actions.map(renderAction)}
-        </div>
+        <div className="flex gap-3 mt-6">{actions.map(renderAction)}</div>
       )}
 
       {/* Default Close Button */}

@@ -24,9 +24,7 @@ const CreateUser: React.FC = () => {
 
   // Role selection removed
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "fullName" || name === "phoneNumber") {
       setFormData((prev) => ({
@@ -69,7 +67,8 @@ const CreateUser: React.FC = () => {
   };
 
   // Define consistent styles based on ArticleEditorForm
-  const inputStyle = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+  const inputStyle =
+    "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
   const labelStyle = "block text-sm font-medium text-gray-700";
 
   return (
@@ -87,7 +86,8 @@ const CreateUser: React.FC = () => {
               Crear Nuevo Usuario Normal
             </h1>
             <p className="text-sm text-gray-500">
-              Completa el formulario para añadir un nuevo usuario con rol 'user'.
+              Completa el formulario para añadir un nuevo usuario con rol
+              'user'.
             </p>
           </div>
         </div>

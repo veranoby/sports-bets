@@ -46,7 +46,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<TransactionType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<TransactionStatus | "all">(
-    "all"
+    "all",
   );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -95,7 +95,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
   const currentTransactions = sortedTransactions.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const handlePageChange = (page: number) => {
@@ -182,15 +182,15 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                 transaction.status === "completed"
                   ? "bg-green-50"
                   : transaction.status === "pending"
-                  ? "bg-yellow-50"
-                  : "bg-red-50"
+                    ? "bg-yellow-50"
+                    : "bg-red-50"
               }`}
               onClick={() => {
                 if (onSelectTransaction) {
                   onSelectTransaction(transaction);
                 } else {
                   setExpandedId(
-                    expandedId === transaction.id ? null : transaction.id
+                    expandedId === transaction.id ? null : transaction.id,
                   );
                 }
               }}
@@ -265,7 +265,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         <button
           onClick={() =>
             handlePageChange(
-              currentPage < totalPages ? currentPage + 1 : totalPages
+              currentPage < totalPages ? currentPage + 1 : totalPages,
             )
           }
           className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"

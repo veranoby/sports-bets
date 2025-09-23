@@ -103,7 +103,7 @@ const UserManagementTable: React.FC = () => {
       result = result.filter(
         (user) =>
           user.username.toLowerCase().includes(term) ||
-          user.email.toLowerCase().includes(term)
+          user.email.toLowerCase().includes(term),
       );
     }
 
@@ -135,7 +135,7 @@ const UserManagementTable: React.FC = () => {
   // Cambiar rol de usuario
   const handleChangeRole = (
     user: User,
-    newRole: "admin" | "operator" | "venue" | "user" | "gallera"
+    newRole: "admin" | "operator" | "venue" | "user" | "gallera",
   ) => {
     setConfirmAction({ type: "role", user, newValue: newRole });
   };
@@ -146,13 +146,21 @@ const UserManagementTable: React.FC = () => {
 
   const handleBulkActivate = async () => {
     await usersAPI.bulkUpdateStatus(selectedUsers, true);
-    setUsers(users.map(u => selectedUsers.includes(u.id) ? { ...u, isActive: true } : u));
+    setUsers(
+      users.map((u) =>
+        selectedUsers.includes(u.id) ? { ...u, isActive: true } : u,
+      ),
+    );
     setSelectedUsers([]);
   };
 
   const handleBulkDeactivate = async () => {
     await usersAPI.bulkUpdateStatus(selectedUsers, false);
-    setUsers(users.map(u => selectedUsers.includes(u.id) ? { ...u, isActive: false } : u));
+    setUsers(
+      users.map((u) =>
+        selectedUsers.includes(u.id) ? { ...u, isActive: false } : u,
+      ),
+    );
     setSelectedUsers([]);
   };
 
@@ -164,27 +172,27 @@ const UserManagementTable: React.FC = () => {
       if (confirmAction.type === "status") {
         await usersAPI.updateStatus(
           confirmAction.user.id,
-          confirmAction.newValue as boolean
+          confirmAction.newValue as boolean,
         );
         setUsers(
           users.map((u) =>
             u.id === confirmAction.user.id
               ? { ...u, isActive: confirmAction.newValue as boolean }
-              : u
-          )
+              : u,
+          ),
         );
         setSuccessMsg(`Estado actualizado correctamente.`);
       } else if (confirmAction.type === "role") {
         await usersAPI.updateRole(
           confirmAction.user.id,
-          confirmAction.newValue as string
+          confirmAction.newValue as string,
         );
         setUsers(
           users.map((u) =>
             u.id === confirmAction.user.id
               ? { ...u, role: confirmAction.newValue as typeof u.role }
-              : u
-          )
+              : u,
+          ),
         );
         setSuccessMsg(`Rol actualizado correctamente.`);
       } else if (confirmAction.type === "delete") {
@@ -295,13 +303,16 @@ const UserManagementTable: React.FC = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <input type="checkbox" onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedUsers(filteredUsers.map(u => u.id));
-                  } else {
-                    setSelectedUsers([]);
-                  }
-                }} />
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedUsers(filteredUsers.map((u) => u.id));
+                    } else {
+                      setSelectedUsers([]);
+                    }
+                  }}
+                />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Usuario
@@ -339,13 +350,19 @@ const UserManagementTable: React.FC = () => {
               filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => {
-                      if (selectedUsers.includes(user.id)) {
-                        setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                      } else {
-                        setSelectedUsers([...selectedUsers, user.id]);
-                      }
-                    }} />
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => {
+                        if (selectedUsers.includes(user.id)) {
+                          setSelectedUsers(
+                            selectedUsers.filter((id) => id !== user.id),
+                          );
+                        } else {
+                          setSelectedUsers([...selectedUsers, user.id]);
+                        }
+                      }}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.username}
@@ -385,24 +402,36 @@ const UserManagementTable: React.FC = () => {
                         </button>
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200 hidden group-hover:block">
                           <div className="py-1">
-                            {["admin", "operator", "venue", "user", "gallera"].map(
-                              (role) => (
-                                <button
-                                  key={role}
-                                  onClick={() =>
-                                    handleChangeRole(user, role as "admin" | "operator" | "venue" | "user" | "gallera")
-                                  }
-                                  disabled={user.role === role || isUpdating}
-                                  className={`w-full text-left px-4 py-2 text-sm ${
-                                    user.role === role
-                                      ? "bg-gray-100 text-gray-700"
-                                      : "text-gray-700 hover:bg-gray-100"
-                                  }`}
-                                >
-                                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </button>
-                              )
-                            )}
+                            {[
+                              "admin",
+                              "operator",
+                              "venue",
+                              "user",
+                              "gallera",
+                            ].map((role) => (
+                              <button
+                                key={role}
+                                onClick={() =>
+                                  handleChangeRole(
+                                    user,
+                                    role as
+                                      | "admin"
+                                      | "operator"
+                                      | "venue"
+                                      | "user"
+                                      | "gallera",
+                                  )
+                                }
+                                disabled={user.role === role || isUpdating}
+                                className={`w-full text-left px-4 py-2 text-sm ${
+                                  user.role === role
+                                    ? "bg-gray-100 text-gray-700"
+                                    : "text-gray-700 hover:bg-gray-100"
+                                }`}
+                              >
+                                {role.charAt(0).toUpperCase() + role.slice(1)}
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -486,8 +515,8 @@ const UserManagementTable: React.FC = () => {
             confirmAction.type === "status"
               ? `¿Confirmar cambio de estado?`
               : confirmAction.type === "role"
-              ? `¿Confirmar cambio de rol?`
-              : `¿Confirmar eliminación?`
+                ? `¿Confirmar cambio de rol?`
+                : `¿Confirmar eliminación?`
           }
           message={
             confirmAction.type === "status"
@@ -495,8 +524,8 @@ const UserManagementTable: React.FC = () => {
                   confirmAction.newValue ? "activar" : "desactivar"
                 } al usuario ${confirmAction.user.username}?`
               : confirmAction.type === "role"
-              ? `¿Seguro que deseas cambiar el rol de ${confirmAction.user.username} a ${confirmAction.newValue}?`
-              : `¿Seguro que deseas eliminar al usuario ${confirmAction.user.username}? Esta acción no se puede deshacer.`
+                ? `¿Seguro que deseas cambiar el rol de ${confirmAction.user.username} a ${confirmAction.newValue}?`
+                : `¿Seguro que deseas eliminar al usuario ${confirmAction.user.username}? Esta acción no se puede deshacer.`
           }
           isOpen={!!confirmAction}
           onConfirm={handleConfirmAction}

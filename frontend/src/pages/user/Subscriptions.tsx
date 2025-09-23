@@ -52,20 +52,27 @@ const SubscriptionsPage: React.FC = () => {
   const loadData = async () => {
     try {
       const plansData = await fetchPlans();
-      
+
       const freePlan: Plan = {
-        id: 'free',
-        name: 'Plan Gratuito',
+        id: "free",
+        name: "Plan Gratuito",
         price: 0,
         duration: 9999,
-        durationUnit: 'days',
-        description: 'Acceso limitado a noticias y resultados.',
-        features: ['Acceso a noticias', 'Resultados de eventos', 'Soporte por correo', 'Con publicidad'],
-        recommended: false
+        durationUnit: "days",
+        description: "Acceso limitado a noticias y resultados.",
+        features: [
+          "Acceso a noticias",
+          "Resultados de eventos",
+          "Soporte por correo",
+          "Con publicidad",
+        ],
+        recommended: false,
       };
 
-      const apiPlans = Array.isArray(plansData) ? plansData : (plansData as any)?.data || [];
-      
+      const apiPlans = Array.isArray(plansData)
+        ? plansData
+        : (plansData as any)?.data || [];
+
       setPlans([freePlan, ...apiPlans]);
       await fetchCurrent();
     } catch (err) {
@@ -248,25 +255,26 @@ const SubscriptionsPage: React.FC = () => {
                 ))}
               </ul>
 
-              {plan.id !== 'free' && (!subscription || subscription.plan !== plan.id) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSubscribe(plan.id);
-                  }}
-                  disabled={loading}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" />
-                      {subscription ? "Cambiar Plan" : "Suscribirse"}
-                    </>
-                  )}
-                </button>
-              )}
+              {plan.id !== "free" &&
+                (!subscription || subscription.plan !== plan.id) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSubscribe(plan.id);
+                    }}
+                    disabled={loading}
+                    className="btn-primary w-full flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4" />
+                        {subscription ? "Cambiar Plan" : "Suscribirse"}
+                      </>
+                    )}
+                  </button>
+                )}
             </div>
           ))}
         </div>

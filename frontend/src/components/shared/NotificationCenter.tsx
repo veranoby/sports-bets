@@ -85,11 +85,11 @@ const NotificationCenter: React.FC = memo(() => {
 
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === updatedNotification.id ? updatedNotification : n
-        )
+          n.id === updatedNotification.id ? updatedNotification : n,
+        ),
       );
     },
-    []
+    [],
   );
 
   // 🔒 EFFECT ÚNICO PARA LISTENERS - REGISTRO ÚNICO
@@ -107,7 +107,7 @@ const NotificationCenter: React.FC = memo(() => {
     return () => {
       if (listenersRegisteredRef.current) {
         console.log(
-          `🧹 ${componentIdRef.current} limpiando listeners WebSocket`
+          `🧹 ${componentIdRef.current} limpiando listeners WebSocket`,
         );
         // Cleanup handled by addListener return value
         listenersRegisteredRef.current = false;
@@ -126,7 +126,7 @@ const NotificationCenter: React.FC = memo(() => {
 
     return () => {
       console.log(
-        `🗑️ ${componentIdRef.current} desmontando - cleanup completo`
+        `🗑️ ${componentIdRef.current} desmontando - cleanup completo`,
       );
       isMountedRef.current = false;
 
@@ -152,7 +152,7 @@ const NotificationCenter: React.FC = memo(() => {
     try {
       await apiClient.put(`/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, status: "read" as const } : n))
+        prev.map((n) => (n.id === id ? { ...n, status: "read" as const } : n)),
       );
     } catch (error) {
       console.error("Error marking notification as read:", error);

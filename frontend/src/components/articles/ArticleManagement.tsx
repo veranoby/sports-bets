@@ -6,150 +6,165 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import Modal from "../../components/shared/Modal";
 import { articlesAPI } from "../../services/api";
 import ArticleEditor from "./ArticleEditor";
-import type { Article, ArticleFormData, ArticleFormErrors } from "../../types";
+import type {
+  Article,
+  ArticleFormData,
+  ArticleFormErrors,
+} from "../../types/article";
 import StatusChip from "../../components/shared/StatusChip";
 
 // Article Card Component - Following Events page patterns
-const ArticleCard = React.memo(({
-  article,
-  onEdit,
-  onPreview,
-  onDelete,
-}: {
-  article: Article;
-  onEdit: () => void;
-  onPreview: () => void;
-  onDelete: () => void;
-}) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'text-green-400';
-      case 'draft': return 'text-yellow-400';
-      case 'pending': return 'text-blue-400';
-      case 'archived': return 'text-gray-400';
-      default: return 'text-theme-light';
-    }
-  };
+const ArticleCard = React.memo(
+  ({
+    article,
+    onEdit,
+    onPreview,
+    onDelete,
+  }: {
+    article: Article;
+    onEdit: () => void;
+    onPreview: () => void;
+    onDelete: () => void;
+  }) => {
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case "published":
+          return "text-green-400";
+        case "draft":
+          return "text-yellow-400";
+        case "pending":
+          return "text-blue-400";
+        case "archived":
+          return "text-gray-400";
+        default:
+          return "text-theme-light";
+      }
+    };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'published': return 'Publicado';
-      case 'draft': return 'Borrador';
-      case 'pending': return 'En Revisión';
-      case 'archived': return 'Archivado';
-      default: return status;
-    }
-  };
+    const getStatusLabel = (status: string) => {
+      switch (status) {
+        case "published":
+          return "Publicado";
+        case "draft":
+          return "Borrador";
+        case "pending":
+          return "En Revisión";
+        case "archived":
+          return "Archivado";
+        default:
+          return status;
+      }
+    };
 
-  return (
-    <div className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]">
-      {/* Article Image */}
-      {article.featured_image && (
-        <div className="w-full h-32 rounded-lg overflow-hidden mb-3">
-          <img
-            src={article.featured_image}
-            alt={article.title}
-            className="w-full h-full object-cover"
+    return (
+      <div className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]">
+        {/* Article Image */}
+        {article.featured_image && (
+          <div className="w-full h-32 rounded-lg overflow-hidden mb-3">
+            <img
+              src={article.featured_image}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-3">
+          <StatusChip
+            status={article.status}
+            label={getStatusLabel(article.status)}
+            className={getStatusColor(article.status)}
           />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mb-3">
-        <StatusChip
-          status={article.status}
-          label={getStatusLabel(article.status)}
-          className={getStatusColor(article.status)}
-        />
-        <ChevronRight className="w-4 h-4 text-theme-light" />
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="font-semibold text-theme-primary line-clamp-2">
-          {article.title}
-        </h3>
-
-        {article.excerpt && (
-          <p className="text-sm text-theme-light line-clamp-2">
-            {article.excerpt}
-          </p>
-        )}
-
-        <div className="flex items-center gap-2 text-xs text-theme-light">
-          <Calendar className="w-3 h-3" />
-          <span>
-            {new Date(article.created_at).toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreview();
-            }}
-            className="text-blue-400 hover:text-blue-300 p-1 rounded transition-colors"
-            title="Previsualizar"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="text-yellow-400 hover:text-yellow-300 p-1 rounded transition-colors"
-            title="Editar"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
-            title="Eliminar"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <ChevronRight className="w-4 h-4 text-theme-light" />
         </div>
 
-        {article.status === 'published' && article.published_at && (
-          <span className="text-xs text-green-400">
-            Publicado
-          </span>
-        )}
+        <div className="space-y-2">
+          <h3 className="font-semibold text-theme-primary line-clamp-2">
+            {article.title}
+          </h3>
+
+          {article.excerpt && (
+            <p className="text-sm text-theme-light line-clamp-2">
+              {article.excerpt}
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 text-xs text-theme-light">
+            <Calendar className="w-3 h-3" />
+            <span>
+              {new Date(article.created_at).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview();
+              }}
+              className="text-blue-400 hover:text-blue-300 p-1 rounded transition-colors"
+              title="Previsualizar"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="text-yellow-400 hover:text-yellow-300 p-1 rounded transition-colors"
+              title="Editar"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
+              title="Eliminar"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          {article.status === "published" && article.published_at && (
+            <span className="text-xs text-green-400">Publicado</span>
+          )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 const ArticleManagement: React.FC = () => {
   const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState<ArticleFormData>({
     title: "",
     excerpt: "",
     content: "",
-    featured_image: ""
+    featured_image: "",
+    status: "draft",
   });
   const [formErrors, setFormErrors] = useState<ArticleFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -159,14 +174,14 @@ const ArticleManagement: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Get articles for the current user (gallera)
       const response = await articlesAPI.getAll({
         author_id: user?.id,
         limit: 50,
-        includeAuthor: true
+        includeAuthor: true,
       });
-      
+
       setArticles(response.data?.articles || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading articles");
@@ -182,25 +197,25 @@ const ArticleManagement: React.FC = () => {
   // Form validation
   const validateForm = (data: ArticleFormData): ArticleFormErrors => {
     const errors: ArticleFormErrors = {};
-    
+
     if (!data.title.trim()) {
       errors.title = "El título es requerido";
     } else if (data.title.length < 5 || data.title.length > 255) {
       errors.title = "El título debe tener entre 5 y 255 caracteres";
     }
-    
+
     if (!data.excerpt.trim()) {
       errors.excerpt = "El resumen es requerido";
     } else if (data.excerpt.length < 10 || data.excerpt.length > 500) {
       errors.excerpt = "El resumen debe tener entre 10 y 500 caracteres";
     }
-    
+
     if (!data.content.trim()) {
       errors.content = "El contenido es requerido";
     } else if (data.content.length < 10) {
       errors.content = "El contenido debe tener al menos 10 caracteres";
     }
-    
+
     if (data.featured_image && data.featured_image.trim()) {
       try {
         new URL(data.featured_image);
@@ -208,24 +223,24 @@ const ArticleManagement: React.FC = () => {
         errors.featured_image = "Por favor, ingresa una URL válida";
       }
     }
-    
+
     return errors;
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const errors = validateForm(formData);
     setFormErrors(errors);
-    
+
     if (Object.keys(errors).length > 0) {
       return;
     }
-    
+
     try {
       setSubmitting(true);
-      
+
       if (editingArticle) {
         // Update existing article
         const updatePayload = {
@@ -234,10 +249,17 @@ const ArticleManagement: React.FC = () => {
           summary: formData.excerpt,
           featured_image_url: formData.featured_image,
         };
-        const response = await articlesAPI.update(editingArticle.id, updatePayload);
-        setArticles(prev => prev.map(article => 
-          article.id === editingArticle.id ? { ...article, ...response.data } : article
-        ));
+        const response = await articlesAPI.update(
+          editingArticle.id,
+          updatePayload,
+        );
+        setArticles((prev) =>
+          prev.map((article) =>
+            article.id === editingArticle.id
+              ? { ...article, ...response.data }
+              : article,
+          ),
+        );
         setShowEditModal(false);
       } else {
         // Create new article
@@ -248,13 +270,15 @@ const ArticleManagement: React.FC = () => {
           featured_image_url: formData.featured_image,
         };
         const response = await articlesAPI.create(createPayload);
-        setArticles(prev => [response.data, ...prev]);
+        setArticles((prev) => [response.data, ...prev]);
         setShowCreateModal(false);
       }
-      
+
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al guardar el artículo");
+      setError(
+        err instanceof Error ? err.message : "Error al guardar el artículo",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -265,12 +289,14 @@ const ArticleManagement: React.FC = () => {
     if (!confirm("¿Estás seguro de que quieres eliminar este artículo?")) {
       return;
     }
-    
+
     try {
       await articlesAPI.delete(articleId);
-      setArticles(prev => prev.filter(article => article.id !== articleId));
+      setArticles((prev) => prev.filter((article) => article.id !== articleId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al eliminar el artículo");
+      setError(
+        err instanceof Error ? err.message : "Error al eliminar el artículo",
+      );
     }
   };
 
@@ -285,7 +311,8 @@ const ArticleManagement: React.FC = () => {
       title: article.title,
       excerpt: article.excerpt || "",
       content: article.content,
-      featured_image: article.featured_image || ""
+      featured_image: article.featured_image || "",
+      status: article.status as "draft" | "pending" | "published",
     });
     setEditingArticle(article);
     setShowEditModal(true);
@@ -301,7 +328,8 @@ const ArticleManagement: React.FC = () => {
       title: "",
       excerpt: "",
       content: "",
-      featured_image: ""
+      featured_image: "",
+      status: "draft",
     });
     setFormErrors({});
     setEditingArticle(null);
@@ -317,10 +345,10 @@ const ArticleManagement: React.FC = () => {
 
   // Group articles by status
   const articlesByStatus = {
-    draft: articles.filter(a => a.status === "draft"),
-    pending: articles.filter(a => a.status === "pending"),
-    published: articles.filter(a => a.status === "published"),
-    archived: articles.filter(a => a.status === "archived")
+    draft: articles.filter((a) => a.status === "draft"),
+    pending: articles.filter((a) => a.status === "pending"),
+    published: articles.filter((a) => a.status === "published"),
+    archived: articles.filter((a) => a.status === "archived"),
   };
 
   if (loading) {
@@ -336,7 +364,9 @@ const ArticleManagement: React.FC = () => {
             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
               📰 Mis Artículos
             </h1>
-            <p className="text-theme-light">Gestiona y crea contenido de calidad</p>
+            <p className="text-theme-light">
+              Gestiona y crea contenido de calidad
+            </p>
           </div>
 
           {/* Article Statistics */}
@@ -364,9 +394,7 @@ const ArticleManagement: React.FC = () => {
         </div>
       </div>
 
-      {error && (
-        <ErrorMessage error={error} onRetry={fetchArticles} />
-      )}
+      {error && <ErrorMessage error={error} onRetry={fetchArticles} />}
 
       {/* Enhanced Article Cards Grid - Matching Events page sophistication */}
       {articles.length === 0 ? (
@@ -378,12 +406,10 @@ const ArticleManagement: React.FC = () => {
             ¡Comienza a escribir!
           </h3>
           <p className="text-theme-light mb-6">
-            Crea tu primer artículo y comparte tus conocimientos con la comunidad galística
+            Crea tu primer artículo y comparte tus conocimientos con la
+            comunidad galística
           </p>
-          <button
-            onClick={openCreateModal}
-            className="btn-primary"
-          >
+          <button onClick={openCreateModal} className="btn-primary">
             Crear Mi Primer Artículo
           </button>
         </div>
@@ -455,77 +481,90 @@ const ArticleManagement: React.FC = () => {
       )}
 
       {/* Create Article Modal */}
-        <ArticleEditor
-          isOpen={showCreateModal}
-          onClose={closeAllModals}
-          title="Crear Nuevo Artículo"
-          formData={formData}
-          formErrors={formErrors}
-          onChange={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-          onSubmit={handleSubmit}
-          submitting={submitting}
-          isEditing={false}
-        />
+      <ArticleEditor
+        isOpen={showCreateModal}
+        onClose={closeAllModals}
+        title="Crear Nuevo Artículo"
+        formData={formData}
+        formErrors={formErrors}
+        onChange={(field, value) =>
+          setFormData((prev) => ({ ...prev, [field]: value }))
+        }
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        isEditing={false}
+      />
 
-        {/* Edit Article Modal */}
-        <ArticleEditor
-          isOpen={showEditModal}
-          onClose={closeAllModals}
-          title="Editar Artículo"
-          formData={formData}
-          formErrors={formErrors}
-          onChange={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-          onSubmit={handleSubmit}
-          submitting={submitting}
-          isEditing={true}
-        />
+      {/* Edit Article Modal */}
+      <ArticleEditor
+        isOpen={showEditModal}
+        onClose={closeAllModals}
+        title="Editar Artículo"
+        formData={formData}
+        formErrors={formErrors}
+        onChange={(field, value) =>
+          setFormData((prev) => ({ ...prev, [field]: value }))
+        }
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        isEditing={true}
+      />
 
-        {/* Preview Modal */}
-        <Modal
-          isOpen={showPreviewModal}
-          onClose={closeAllModals}
-          title="Previsualizar Artículo"
-          size="lg"
-        >
-          {previewArticle && (
-            <div className="space-y-4">
-              {previewArticle.featured_image && (
-                <img
-                  src={previewArticle.featured_image}
-                  alt=""
-                  className="w-full h-64 object-cover rounded-lg"
+      {/* Preview Modal */}
+      <Modal
+        isOpen={showPreviewModal}
+        onClose={closeAllModals}
+        title="Previsualizar Artículo"
+        size="lg"
+      >
+        {previewArticle && (
+          <div className="space-y-4">
+            {previewArticle.featured_image && (
+              <img
+                src={previewArticle.featured_image}
+                alt=""
+                className="w-full h-64 object-cover rounded-lg"
+              />
+            )}
+
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {previewArticle.title}
+              </h1>
+
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                <span>
+                  Estado:{" "}
+                  <StatusChip status={previewArticle.status} size="sm" />
+                </span>
+                <span>
+                  Creado:{" "}
+                  {new Date(previewArticle.created_at).toLocaleDateString()}
+                </span>
+                {previewArticle.published_at && (
+                  <span>
+                    Publicado:{" "}
+                    {new Date(previewArticle.published_at).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-lg text-gray-700 mb-6 font-medium">
+                {previewArticle.excerpt}
+              </p>
+
+              <div className="prose prose-sm max-w-none">
+                <div
+                  className="whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{
+                    __html: previewArticle.content.replace(/\n/g, "<br>"),
+                  }}
                 />
-              )}
-              
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {previewArticle.title}
-                </h1>
-                
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                  <span>Estado: <StatusChip status={previewArticle.status} size="sm" /></span>
-                  <span>Creado: {new Date(previewArticle.created_at).toLocaleDateString()}</span>
-                  {previewArticle.published_at && (
-                    <span>Publicado: {new Date(previewArticle.published_at).toLocaleDateString()}</span>
-                  )}
-                </div>
-                
-                <p className="text-lg text-gray-700 mb-6 font-medium">
-                  {previewArticle.excerpt}
-                </p>
-                
-                <div className="prose prose-sm max-w-none">
-                  <div
-                    className="whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{
-                      __html: previewArticle.content.replace(/\n/g, "<br>")
-                    }}
-                  />
-                </div>
               </div>
             </div>
-          )}
-        </Modal>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

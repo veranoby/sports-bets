@@ -1,5 +1,14 @@
 import React from "react";
-import { FileText, Plus, Edit, Eye, Trash2, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Edit,
+  Eye,
+  Trash2,
+  Clock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import Card from "../../components/shared/Card";
 import StatusChip from "../../components/shared/StatusChip";
 import type { Article } from "../../types/article";
@@ -37,11 +46,13 @@ const ArticleList: React.FC<ArticleListProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-600">Pendientes de Revisión</p>
-              <p className="text-xl font-bold text-gray-900">{articlesByStatus.pending.length}</p>
+              <p className="text-xl font-bold text-gray-900">
+                {articlesByStatus.pending.length}
+              </p>
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 text-green-600 rounded-lg">
@@ -49,7 +60,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-600">Publicados</p>
-              <p className="text-xl font-bold text-gray-900">{articlesByStatus.published.length}</p>
+              <p className="text-xl font-bold text-gray-900">
+                {articlesByStatus.published.length}
+              </p>
             </div>
           </div>
         </Card>
@@ -61,7 +74,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-600">Borradores</p>
-              <p className="text-xl font-bold text-gray-900">{articlesByStatus.draft.length}</p>
+              <p className="text-xl font-bold text-gray-900">
+                {articlesByStatus.draft.length}
+              </p>
             </div>
           </div>
         </Card>
@@ -73,7 +88,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-600">Archivados</p>
-              <p className="text-xl font-bold text-gray-900">{articlesByStatus.archived.length}</p>
+              <p className="text-xl font-bold text-gray-900">
+                {articlesByStatus.archived.length}
+              </p>
             </div>
           </div>
         </Card>
@@ -83,8 +100,12 @@ const ArticleList: React.FC<ArticleListProps> = ({
       {articles.length === 0 ? (
         <Card className="p-12 text-center">
           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aún no tienes artículos</h3>
-          <p className="text-gray-600 mb-6">Empieza a crear tu primer artículo para compartir con la comunidad.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aún no tienes artículos
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Empieza a crear tu primer artículo para compartir con la comunidad.
+          </p>
           <button
             onClick={onOpenCreateModal}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
@@ -95,7 +116,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
         </Card>
       ) : (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Todos tus Artículos</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Todos tus Artículos
+          </h2>
           <div className="space-y-4">
             {articles.map((article) => (
               <div
@@ -119,12 +142,22 @@ const ArticleList: React.FC<ArticleListProps> = ({
 
                 {/* Article Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">{article.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{article.excerpt}</p>
+                  <h3 className="font-medium text-gray-900 truncate">
+                    {article.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    {article.excerpt}
+                  </p>
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span>Creado: {new Date(article.created_at).toLocaleDateString()}</span>
+                    <span>
+                      Creado:{" "}
+                      {new Date(article.created_at).toLocaleDateString()}
+                    </span>
                     {article.published_at && (
-                      <span>Publicado: {new Date(article.published_at).toLocaleDateString()}</span>
+                      <span>
+                        Publicado:{" "}
+                        {new Date(article.published_at).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -132,7 +165,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
                 {/* Status & Actions */}
                 <div className="flex items-center gap-3">
                   <StatusChip status={article.status} size="sm" />
-                  
+
                   <div className="flex gap-1">
                     <button
                       onClick={() => onOpenPreviewModal(article)}
@@ -141,8 +174,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    
-                    {(article.status === "draft" || article.status === "pending") && (
+
+                    {(article.status === "draft" ||
+                      article.status === "pending") && (
                       <button
                         onClick={() => onOpenEditModal(article)}
                         className="p-2 text-blue-400 hover:text-blue-600 transition-colors"
@@ -151,7 +185,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
                         <Edit className="w-4 h-4" />
                       </button>
                     )}
-                    
+
                     {article.status === "draft" && (
                       <button
                         onClick={() => onDelete(article.id)}

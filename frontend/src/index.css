@@ -9,35 +9,35 @@
 /* ✅ CSS VARIABLES GLOBALES - GALLEROS.NET LIGHT THEME */
 :root {
   /* Primary Colors */
-  --color-primary: #6B9BD1;
-  --color-primary-dark: #5A89BF;
-  --color-primary-light: #8FB4DD;
-  --color-secondary: #7FC29B;
-  --color-secondary-dark: #6DAF87;
-  --color-secondary-light: #99D1B3;
-  --color-accent: #F0F9FF;
+  --color-primary: #6b9bd1;
+  --color-primary-dark: #5a89bf;
+  --color-primary-light: #8fb4dd;
+  --color-secondary: #7fc29b;
+  --color-secondary-dark: #6daf87;
+  --color-secondary-light: #99d1b3;
+  --color-accent: #f0f9ff;
 
   /* Backgrounds */
-  --color-bg-main: #FFFFFF;
-  --color-bg-card: #F8FAFC;
-  --color-bg-header: #FFFFFF;
-  --color-bg-hover: #F1F5F9;
+  --color-bg-main: #ffffff;
+  --color-bg-card: #f8fafc;
+  --color-bg-header: #ffffff;
+  --color-bg-hover: #f1f5f9;
 
   /* Borders */
-  --color-border-primary: #E5E7EB;
-  --color-border-secondary: #D1D5DB;
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
 
   /* Text Colors */
-  --color-text-primary: #1F2937;
-  --color-text-secondary: #6B7280;
-  --color-text-light: #9CA3AF;
-  --color-text-inverse: #FFFFFF;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-light: #9ca3af;
+  --color-text-inverse: #ffffff;
 
   /* Status Colors */
-  --color-success: #22C55E;
-  --color-warning: #FACC15;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #22c55e;
+  --color-warning: #facc15;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -86,9 +86,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -511,7 +511,9 @@ body {
 .bg-theme-main,
 .bg-theme-card,
 .bg-theme-header {
-  transition: background-color 0.3s ease, color 0.3s ease,
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
     border-color 0.3s ease;
 }
 

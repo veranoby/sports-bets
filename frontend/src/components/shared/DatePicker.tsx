@@ -236,7 +236,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                       {date.getDate()}
                     </button>
                   );
-                }
+                },
               )}
             </div>
 

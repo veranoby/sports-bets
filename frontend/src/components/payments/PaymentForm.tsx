@@ -145,7 +145,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               <option value="">AA</option>
               {Array.from(
                 { length: 10 },
-                (_, i) => new Date().getFullYear() + i
+                (_, i) => new Date().getFullYear() + i,
               ).map((year) => (
                 <option key={year} value={year.toString().substr(-2)}>
                   {year.toString().substr(-2)}

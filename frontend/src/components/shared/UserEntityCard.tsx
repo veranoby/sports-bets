@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, Calendar, MapPin, ChevronRight } from 'lucide-react';
+import React from "react";
+import { Users, Calendar, MapPin, ChevronRight } from "lucide-react";
 
 interface UserEntityCardProps {
   id: string;
@@ -10,7 +10,7 @@ interface UserEntityCardProps {
   articlesCount?: number;
   establishedDate?: string;
   onClick: () => void;
-  type: 'gallera' | 'venue';
+  type: "gallera" | "venue";
 }
 
 const UserEntityCard: React.FC<UserEntityCardProps> = ({
@@ -21,7 +21,7 @@ const UserEntityCard: React.FC<UserEntityCardProps> = ({
   articlesCount,
   establishedDate,
   onClick,
-  type
+  type,
 }) => {
   return (
     <div
@@ -31,7 +31,7 @@ const UserEntityCard: React.FC<UserEntityCardProps> = ({
       {/* Header with image and basic info */}
       <div className="flex items-center mb-4">
         {imageUrl && (
-          <img 
+          <img
             src={imageUrl}
             alt={name}
             className="w-16 h-16 rounded-full object-cover mr-4 border-2 border-red-500"
@@ -48,7 +48,9 @@ const UserEntityCard: React.FC<UserEntityCardProps> = ({
       </div>
 
       {/* Description */}
-      <p className="text-theme-secondary mb-4 text-sm line-clamp-2">{description}</p>
+      <p className="text-theme-secondary mb-4 text-sm line-clamp-2">
+        {description}
+      </p>
 
       {/* Footer with metadata */}
       <div className="flex justify-between text-sm text-theme-light">
@@ -61,7 +63,8 @@ const UserEntityCard: React.FC<UserEntityCardProps> = ({
         {establishedDate && (
           <div className="flex items-center">
             <Calendar size={16} className="mr-2" />
-            {type === 'gallera' ? 'Fundada' : 'Establecido'} en {new Date(establishedDate).getFullYear()}
+            {type === "gallera" ? "Fundada" : "Establecido"} en{" "}
+            {new Date(establishedDate).getFullYear()}
           </div>
         )}
       </div>

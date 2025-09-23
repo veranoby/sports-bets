@@ -2,13 +2,13 @@
 // ================================================================
 // Dedicated venue detail page component with proper venue-specific features
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, articlesAPI } from '../../services/api';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import Card from '../../components/shared/Card';
-import type { User } from '../../types';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { usersAPI, articlesAPI } from "../../services/api";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import Card from "../../components/shared/Card";
+import type { User } from "../../types";
 import {
   MapPin,
   ChevronLeft,
@@ -18,8 +18,8 @@ import {
   Star,
   Sparkles,
   Clock,
-  Zap
-} from 'lucide-react';
+  Zap,
+} from "lucide-react";
 
 interface ArticleLite {
   id: string;
@@ -41,7 +41,7 @@ const VenueDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) {
-      setError('No se proporcionó un ID de venue.');
+      setError("No se proporcionó un ID de venue.");
       setLoading(false);
       return;
     }
@@ -51,7 +51,7 @@ const VenueDetailPage: React.FC = () => {
         setLoading(true);
         const userResponse = await usersAPI.getById(id);
         if (!userResponse.success) {
-          throw new Error(userResponse.error || 'Error al cargar venue');
+          throw new Error(userResponse.error || "Error al cargar venue");
         }
         setVenue(userResponse.data);
 
@@ -59,10 +59,9 @@ const VenueDetailPage: React.FC = () => {
         if (articlesResponse.success) {
           setArticles(articlesResponse.data.articles || []);
         }
-
       } catch (err) {
-        console.error('Error fetching venue data:', err);
-        setError('No se pudo cargar el local. Inténtalo de nuevo.');
+        console.error("Error fetching venue data:", err);
+        setError("No se pudo cargar el local. Inténtalo de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -71,63 +70,61 @@ const VenueDetailPage: React.FC = () => {
     fetchData();
   }, [id]);
 
-  if (loading) return (
-    <div className="page-background">
-      <LoadingSpinner text="Cargando local..." className="mt-20" />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="page-background">
+        <LoadingSpinner text="Cargando local..." className="mt-20" />
+      </div>
+    );
 
-  if (error) return (
-    <div className="page-background p-4">
-      <Card variant="error" className="p-6">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/venues')}
-            className="btn-primary"
-          >
-            Volver a Locales
-          </button>
-        </div>
-      </Card>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="page-background p-4">
+        <Card variant="error" className="p-6">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">{error}</p>
+            <button onClick={() => navigate("/venues")} className="btn-primary">
+              Volver a Locales
+            </button>
+          </div>
+        </Card>
+      </div>
+    );
 
-  if (!venue) return (
-    <div className="page-background p-4">
-      <EmptyState
-        title="Local no encontrado"
-        description="El local que buscas no existe o ha sido eliminado."
-        icon={<Building className="w-12 h-12" />}
-        action={
-          <button
-            onClick={() => navigate('/venues')}
-            className="btn-primary"
-          >
-            Volver a Locales
-          </button>
-        }
-      />
-    </div>
-  );
+  if (!venue)
+    return (
+      <div className="page-background p-4">
+        <EmptyState
+          title="Local no encontrado"
+          description="El local que buscas no existe o ha sido eliminado."
+          icon={<Building className="w-12 h-12" />}
+          action={
+            <button onClick={() => navigate("/venues")} className="btn-primary">
+              Volver a Locales
+            </button>
+          }
+        />
+      </div>
+    );
 
   const venueName = venue.profileInfo?.venueName || venue.username;
-  const location = venue.profileInfo?.location || 'Ubicación no especificada';
-  const description = venue.profileInfo?.description || 'Local para eventos de gallos';
+  const location = venue.profileInfo?.location || "Ubicación no especificada";
+  const description =
+    venue.profileInfo?.description || "Local para eventos de gallos";
   const establishedDate = venue.profileInfo?.establishedDate;
   const isVerified = venue.profileInfo?.verified || false;
   const activeEvents = venue.profileInfo?.activeEvents || 0;
   const rating = venue.profileInfo?.rating || 0;
 
-  const publishedArticles = articles.filter(a => a.status === 'published');
-  const draftArticles = articles.filter(a => a.status === 'draft');
+  const publishedArticles = articles.filter((a) => a.status === "published");
+  const draftArticles = articles.filter((a) => a.status === "draft");
 
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
         {/* Back Navigation */}
         <button
-          onClick={() => navigate('/venues')}
+          onClick={() => navigate("/venues")}
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -153,9 +150,7 @@ const VenueDetailPage: React.FC = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                   {venueName}
                 </h1>
-                {isVerified && (
-                  <Sparkles className="w-5 h-5 text-yellow-400" />
-                )}
+                {isVerified && <Sparkles className="w-5 h-5 text-yellow-400" />}
               </div>
               <div className="flex items-center gap-2 text-theme-light mb-3">
                 <MapPin className="w-4 h-4" />
@@ -171,36 +166,50 @@ const VenueDetailPage: React.FC = () => {
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <BookOpen className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-blue-400 font-medium">Artículos</span>
+              <span className="text-xs text-blue-400 font-medium">
+                Artículos
+              </span>
             </div>
-            <span className="text-lg font-bold text-theme-primary">{publishedArticles.length}</span>
+            <span className="text-lg font-bold text-theme-primary">
+              {publishedArticles.length}
+            </span>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Star className="w-4 h-4 text-yellow-400" />
-              <span className="text-xs text-yellow-400 font-medium">Rating</span>
+              <span className="text-xs text-yellow-400 font-medium">
+                Rating
+              </span>
             </div>
             <span className="text-lg font-bold text-theme-primary">
-              {rating > 0 ? rating.toFixed(1) : 'N/A'}
+              {rating > 0 ? rating.toFixed(1) : "N/A"}
             </span>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-green-400 font-medium">Eventos</span>
+              <span className="text-xs text-green-400 font-medium">
+                Eventos
+              </span>
             </div>
-            <span className="text-lg font-bold text-theme-primary">{activeEvents}</span>
+            <span className="text-lg font-bold text-theme-primary">
+              {activeEvents}
+            </span>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-purple-400" />
-              <span className="text-xs text-purple-400 font-medium">Fundado</span>
+              <span className="text-xs text-purple-400 font-medium">
+                Fundado
+              </span>
             </div>
             <span className="text-lg font-bold text-theme-primary">
-              {establishedDate ? new Date(establishedDate).getFullYear() : 'N/A'}
+              {establishedDate
+                ? new Date(establishedDate).getFullYear()
+                : "N/A"}
             </span>
           </Card>
         </div>
@@ -208,30 +217,38 @@ const VenueDetailPage: React.FC = () => {
         {/* Articles Section */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-400"/>
+            <BookOpen className="w-5 h-5 text-blue-400" />
             Artículos del Local
           </h2>
 
           {publishedArticles.length > 0 ? (
             <div className="space-y-4">
-              {publishedArticles.map(article => (
+              {publishedArticles.map((article) => (
                 <div
                   key={article.id}
                   className="p-4 rounded-lg bg-[#1a1f37]/50 hover:bg-[#2a325c]/50 cursor-pointer transition-colors"
                 >
-                  <h3 className="font-semibold text-theme-primary mb-1">{article.title}</h3>
+                  <h3 className="font-semibold text-theme-primary mb-1">
+                    {article.title}
+                  </h3>
                   {article.summary && (
-                    <p className="text-sm text-theme-light line-clamp-2 mb-2">{article.summary}</p>
+                    <p className="text-sm text-theme-light line-clamp-2 mb-2">
+                      {article.summary}
+                    </p>
                   )}
                   <div className="flex items-center gap-4 text-xs text-theme-light">
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3"/>
+                      <Calendar className="w-3 h-3" />
                       <span>
-                        {new Date(article.published_at || article.created_at || Date.now()).toLocaleDateString('es-ES')}
+                        {new Date(
+                          article.published_at ||
+                            article.created_at ||
+                            Date.now(),
+                        ).toLocaleDateString("es-ES")}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3"/>
+                      <Clock className="w-3 h-3" />
                       <span>Publicado</span>
                     </div>
                   </div>
@@ -255,18 +272,22 @@ const VenueDetailPage: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Estado de verificación:</span>
-              <span className={`font-medium ${isVerified ? 'text-green-400' : 'text-amber-400'}`}>
-                {isVerified ? 'Verificado' : 'En verificación'}
+              <span
+                className={`font-medium ${isVerified ? "text-green-400" : "text-amber-400"}`}
+              >
+                {isVerified ? "Verificado" : "En verificación"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Artículos en borrador:</span>
-              <span className="font-medium text-theme-primary">{draftArticles.length}</span>
+              <span className="font-medium text-theme-primary">
+                {draftArticles.length}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Miembro desde:</span>
               <span className="font-medium text-theme-primary">
-                {new Date(venue.created_at).toLocaleDateString('es-ES')}
+                {new Date(venue.created_at).toLocaleDateString("es-ES")}
               </span>
             </div>
           </div>

@@ -55,7 +55,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   // Contar filtros activos
   const activeFilterCount = Object.values(activeFilters).filter(
-    (value) => value && (Array.isArray(value) ? value.length > 0 : true)
+    (value) => value && (Array.isArray(value) ? value.length > 0 : true),
   ).length;
 
   // Handler para cambios de filtro
@@ -98,51 +98,50 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </select>
         );
 
-      case "multiselect":
-        {
-          const selectedValues = activeFilters[filter.key] || [];
-          return (
-            <div className="relative">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`${theme.input} min-w-32 flex items-center justify-between`}
-              >
-                <span>
-                  {selectedValues.length > 0
-                    ? `${filter.label} (${selectedValues.length})`
-                    : filter.placeholder || filter.label}
-                </span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+      case "multiselect": {
+        const selectedValues = activeFilters[filter.key] || [];
+        return (
+          <div className="relative">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`${theme.input} min-w-32 flex items-center justify-between`}
+            >
+              <span>
+                {selectedValues.length > 0
+                  ? `${filter.label} (${selectedValues.length})`
+                  : filter.placeholder || filter.label}
+              </span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
 
-              {showFilters && (
-                <div className="absolute z-10 mt-1 w-full bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg">
-                  {filter.options?.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center px-3 py-2 hover:bg-[#596c95] cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedValues.includes(option.value)}
-                        onChange={(e) => {
-                          const newValues = e.target.checked
-                            ? [...selectedValues, option.value]
-                            : selectedValues.filter(
-                                (v: string) => v !== option.value
-                              );
-                          handleFilterChange(filter.key, newValues);
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-white text-sm">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        }
+            {showFilters && (
+              <div className="absolute z-10 mt-1 w-full bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg">
+                {filter.options?.map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center px-3 py-2 hover:bg-[#596c95] cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedValues.includes(option.value)}
+                      onChange={(e) => {
+                        const newValues = e.target.checked
+                          ? [...selectedValues, option.value]
+                          : selectedValues.filter(
+                              (v: string) => v !== option.value,
+                            );
+                        handleFilterChange(filter.key, newValues);
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-white text-sm">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
 
       case "number":
         return (

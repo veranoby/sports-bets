@@ -25,7 +25,13 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // Hooks API existentes
 import { useEvents } from "../../hooks/useApi";
-import { eventsAPI, usersAPI, articlesAPI, walletAPI, apiClient } from "../../services/api";
+import {
+  eventsAPI,
+  usersAPI,
+  articlesAPI,
+  walletAPI,
+  apiClient,
+} from "../../services/api";
 
 interface DashboardMetrics {
   eventsToday: number;
@@ -64,7 +70,7 @@ const AdminDashboard: React.FC = () => {
     wallet_enabled: false,
     user_registration: false,
     event_creation: false,
-    loading: true
+    loading: true,
   });
 
   const [loading, setLoading] = useState(true);
@@ -74,34 +80,34 @@ const AdminDashboard: React.FC = () => {
   const fetchFeatures = async () => {
     try {
       // Usar el endpoint público de features sin autenticación
-      const response = await apiClient.get('/settings/features/public');
-      console.log('🔍 Features API response:', response);
-      
+      const response = await apiClient.get("/settings/features/public");
+      console.log("🔍 Features API response:", response);
+
       const featuresData = response.data || {};
-      console.log('🔍 Features data received:', featuresData);
-      
+      console.log("🔍 Features data received:", featuresData);
+
       // Mapear la respuesta del backend a nuestros nombres de UI
       const featuresMap = {
         betting_enabled: featuresData.betting_enabled === true,
         wallet_enabled: featuresData.wallets_enabled === true,
         user_registration: featuresData.streaming_enabled === true, // Usamos streaming como proxy para registro
         event_creation: !featuresData.maintenance_mode, // Si no está en mantenimiento, eventos están habilitados
-        loading: false
+        loading: false,
       };
-      
-      console.log('🔧 Features mapped for UI:', featuresMap);
+
+      console.log("🔧 Features mapped for UI:", featuresMap);
       setFeatures(featuresMap);
     } catch (error) {
-      console.error('Error loading features:', error);
-      
+      console.error("Error loading features:", error);
+
       // DEMO: Usar valores funcionales para demostración
       // En producción, estos vendrían del backend
       setFeatures({
-        betting_enabled: true,  // ✅ Demostrando sistema funcional
+        betting_enabled: true, // ✅ Demostrando sistema funcional
         wallet_enabled: false, // ❌ Demostrará estado mixto
         user_registration: true, // ✅ Sistema abierto
-        event_creation: false,  // ❌ Demostración de estado deshabilitado
-        loading: false
+        event_creation: false, // ❌ Demostración de estado deshabilitado
+        loading: false,
       });
     }
   };
@@ -112,10 +118,24 @@ const AdminDashboard: React.FC = () => {
     setError(null);
 
     const eventsData = await eventsAPI.getAll({ today: true });
-    const pendingUsersData = await usersAPI.getAll({ status: "pending", limit: 1 });
-    const pendingVenuesData = await usersAPI.getAll({ role: "venue", status: "pending", limit: 1 });
-    const pendingGallerasData = await usersAPI.getAll({ role: "gallera", status: "pending", limit: 1 });
-    const pendingArticlesData = await articlesAPI.getAll({ status: "pending", limit: 1 });
+    const pendingUsersData = await usersAPI.getAll({
+      status: "pending",
+      limit: 1,
+    });
+    const pendingVenuesData = await usersAPI.getAll({
+      role: "venue",
+      status: "pending",
+      limit: 1,
+    });
+    const pendingGallerasData = await usersAPI.getAll({
+      role: "gallera",
+      status: "pending",
+      limit: 1,
+    });
+    const pendingArticlesData = await articlesAPI.getAll({
+      status: "pending",
+      limit: 1,
+    });
     const withdrawalsData = await walletAPI.getTransactions({
       type: "withdrawal",
       status: "pending",
@@ -137,7 +157,7 @@ const AdminDashboard: React.FC = () => {
       const withdrawals = withdrawalsData.data?.requests || [];
       const totalWithdrawalAmount = withdrawals.reduce(
         (sum, w) => sum + w.amount,
-        0
+        0,
       );
 
       setMetrics({
@@ -155,13 +175,13 @@ const AdminDashboard: React.FC = () => {
     } else {
       setError(
         eventsData.error ||
-        pendingUsersData.error ||
-        pendingVenuesData.error ||
-        pendingGallerasData.error ||
-        pendingArticlesData.error ||
-        withdrawalsData.error ||
-        financeData.error ||
-        "Error loading metrics"
+          pendingUsersData.error ||
+          pendingVenuesData.error ||
+          pendingGallerasData.error ||
+          pendingArticlesData.error ||
+          withdrawalsData.error ||
+          financeData.error ||
+          "Error loading metrics",
       );
     }
     setLoading(false);
@@ -172,10 +192,13 @@ const AdminDashboard: React.FC = () => {
     fetchDashboardMetrics();
     fetchFeatures();
 
-    const interval = setInterval(() => {
-      fetchDashboardMetrics();
-      fetchFeatures();
-    }, 5 * 60 * 1000); // 5min
+    const interval = setInterval(
+      () => {
+        fetchDashboardMetrics();
+        fetchFeatures();
+      },
+      5 * 60 * 1000,
+    ); // 5min
     return () => clearInterval(interval);
   }, [fetchDashboardMetrics]);
 
@@ -184,7 +207,7 @@ const AdminDashboard: React.FC = () => {
     (path: string, options?: any) => {
       navigate(path, options);
     },
-    [navigate]
+    [navigate],
   );
 
   if (loading && !metrics.eventsToday) {
@@ -235,38 +258,54 @@ const AdminDashboard: React.FC = () => {
       <Card title="Estado de Características del Sistema" className="mb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center space-x-3">
-            <Shield className={`w-5 h-5 ${features.betting_enabled ? 'text-green-500' : 'text-red-500'}`} />
+            <Shield
+              className={`w-5 h-5 ${features.betting_enabled ? "text-green-500" : "text-red-500"}`}
+            />
             <div>
               <p className="text-sm font-medium">Apuestas</p>
-              <p className={`text-xs ${features.betting_enabled ? 'text-green-600' : 'text-red-600'}`}>
-                {features.betting_enabled ? 'Habilitado' : 'Deshabilitado'}
+              <p
+                className={`text-xs ${features.betting_enabled ? "text-green-600" : "text-red-600"}`}
+              >
+                {features.betting_enabled ? "Habilitado" : "Deshabilitado"}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Wallet className={`w-5 h-5 ${features.wallet_enabled ? 'text-green-500' : 'text-red-500'}`} />
+            <Wallet
+              className={`w-5 h-5 ${features.wallet_enabled ? "text-green-500" : "text-red-500"}`}
+            />
             <div>
               <p className="text-sm font-medium">Billeteras</p>
-              <p className={`text-xs ${features.wallet_enabled ? 'text-green-600' : 'text-red-600'}`}>
-                {features.wallet_enabled ? 'Habilitado' : 'Deshabilitado'}
+              <p
+                className={`text-xs ${features.wallet_enabled ? "text-green-600" : "text-red-600"}`}
+              >
+                {features.wallet_enabled ? "Habilitado" : "Deshabilitado"}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Users className={`w-5 h-5 ${features.user_registration ? 'text-green-500' : 'text-red-500'}`} />
+            <Users
+              className={`w-5 h-5 ${features.user_registration ? "text-green-500" : "text-red-500"}`}
+            />
             <div>
               <p className="text-sm font-medium">Streaming</p>
-              <p className={`text-xs ${features.user_registration ? 'text-green-600' : 'text-red-600'}`}>
-                {features.user_registration ? 'Habilitado' : 'Deshabilitado'}
+              <p
+                className={`text-xs ${features.user_registration ? "text-green-600" : "text-red-600"}`}
+              >
+                {features.user_registration ? "Habilitado" : "Deshabilitado"}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Settings className={`w-5 h-5 ${features.event_creation ? 'text-green-500' : 'text-red-500'}`} />
+            <Settings
+              className={`w-5 h-5 ${features.event_creation ? "text-green-500" : "text-red-500"}`}
+            />
             <div>
               <p className="text-sm font-medium">Eventos</p>
-              <p className={`text-xs ${features.event_creation ? 'text-green-600' : 'text-red-600'}`}>
-                {features.event_creation ? 'Habilitado' : 'Deshabilitado'}
+              <p
+                className={`text-xs ${features.event_creation ? "text-green-600" : "text-red-600"}`}
+              >
+                {features.event_creation ? "Habilitado" : "Deshabilitado"}
               </p>
             </div>
           </div>
@@ -386,14 +425,14 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <h3 className="font-semibold text-theme-primary mb-3">
             Configuración Rápida
           </h3>
           <div className="space-y-2 text-sm">
             <button
-              onClick={() => navigateToSection('/admin/settings')}
+              onClick={() => navigateToSection("/admin/settings")}
               className="w-full text-left p-2 rounded hover:bg-gray-100 flex items-center gap-2"
             >
               <Settings className="w-4 h-4" />

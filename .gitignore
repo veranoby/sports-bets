@@ -47,19 +47,17 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Claude/Cursor
+.claude/
 
-# sistema brain 
-brain/*
-
-# sistema qwen */
-.qwen/*
-qwen*.*
-
-# sistema gemini */
-.gemini/*
-gemini*.*
-
-# sistema superclaude */   
-.claude/*
-claude*.*
-.serena/*
+claude_workspace/
+*.claude
+*.claude-desktop-arch/
+claude-desktop-arch/
+.cursor/
+cursor_workspace/
+.gemini-session/
+.gemini/
+.qwen/
+.ai-context/
+.cursorrules

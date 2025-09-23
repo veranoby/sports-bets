@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { apiClient } from '../../config/api';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import Card from '../../components/shared/Card';
-import SocialShare from '../../components/shared/SocialShare';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { apiClient } from "../../config/api";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import Card from "../../components/shared/Card";
+import SocialShare from "../../components/shared/SocialShare";
 
 const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ const ArticleDetailPage: React.FC = () => {
         const response = await apiClient.get(`/articles/${id}`);
         setArticle(response.data.data);
       } catch (err: any) {
-        setError(err?.message || 'Error al cargar el artículo');
+        setError(err?.message || "Error al cargar el artículo");
       } finally {
         setLoading(false);
       }
@@ -38,7 +38,10 @@ const ArticleDetailPage: React.FC = () => {
     <div className="page-background space-y-4 p-4">
       <Card className="p-4">
         <h1 className="text-2xl font-bold mb-4">{article.title}</h1>
-        <div className="prose" dangerouslySetInnerHTML={{ __html: article.content }} />
+        <div
+          className="prose"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
         <div className="mt-6 pt-6 border-t">
           <h3 className="text-lg font-semibold mb-3">Compartir artículo</h3>
           <SocialShare

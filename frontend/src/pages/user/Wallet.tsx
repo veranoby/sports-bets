@@ -54,7 +54,7 @@ Chart.register(
   CategoryScale,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 const WalletPage: React.FC = () => {
@@ -143,7 +143,7 @@ const WalletPage: React.FC = () => {
     // Solo verificar si wallet está cargado, NO hacer fetch
     if (!wallet && !loading) {
       console.log(
-        "💰 Wallet data not available, UserHeader should handle this"
+        "💰 Wallet data not available, UserHeader should handle this",
       );
     }
   }, [wallet, loading]);
@@ -164,7 +164,7 @@ const WalletPage: React.FC = () => {
   const handleDeposit = async (
     amount: number,
     paymentMethod: string,
-    paymentData?: unknown
+    paymentData?: unknown,
   ) => {
     try {
       await deposit(amount, paymentMethod, paymentData);
@@ -179,7 +179,7 @@ const WalletPage: React.FC = () => {
     amount: number,
     accountNumber: string,
     accountType?: string,
-    bankName?: string
+    bankName?: string,
   ) => {
     try {
       await withdraw(amount, accountNumber, accountType, bankName);
@@ -387,14 +387,23 @@ const WalletPage: React.FC = () => {
               Exportar
             </button>
           </div>
-          <TransactionHistory transactions={(recentTransactions || []).map(t => ({
-            id: t.id,
-            type: t.type as "deposit" | "withdrawal" | "bet-win" | "bet-loss" | "bet-refund",
-            amount: t.amount,
-            status: t.status as "pending" | "completed" | "failed",
-            description: t.description || `${t.type === 'deposit' ? 'Depósito' : 'Retiro'} de $${t.amount}`,
-            createdAt: new Date(t.createdAt)
-          }))} />
+          <TransactionHistory
+            transactions={(recentTransactions || []).map((t) => ({
+              id: t.id,
+              type: t.type as
+                | "deposit"
+                | "withdrawal"
+                | "bet-win"
+                | "bet-loss"
+                | "bet-refund",
+              amount: t.amount,
+              status: t.status as "pending" | "completed" | "failed",
+              description:
+                t.description ||
+                `${t.type === "deposit" ? "Depósito" : "Retiro"} de $${t.amount}`,
+              createdAt: new Date(t.createdAt),
+            }))}
+          />
         </Card>
       </div>
 

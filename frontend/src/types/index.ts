@@ -36,6 +36,14 @@ export interface User {
     address?: string;
     identificationNumber?: string;
     verificationLevel: "none" | "basic" | "full";
+    // Venue fields
+    businessName?: string;
+    businessAddress?: string;
+    businessPhone?: string;
+    taxId?: string;
+    licenseNumber?: string;
+    // Gallera fields
+    registrationDetails?: string;
   };
   lastLogin?: string;
   createdAt: string;
@@ -152,7 +160,7 @@ export interface Venue {
     address?: string;
   };
   ownerId: string;
-  status: "pending" | "active" | "suspended";
+  status: "pending" | "active" | "suspended" | "rejected";
   isVerified: boolean;
   images?: string[];
   createdAt: string;
@@ -344,23 +352,4 @@ export interface EventData extends Event {
   currentViewers?: number;
   activeBets?: number;
   totalViewers?: number;
-}
-
-// Article interface
-export interface Article {
-  id: string;
-  title: string;
-  content: string;
-  excerpt?: string;
-  summary?: string;
-  status: string;
-  featured_image?: string;
-  featured_image_url?: string;
-  published_at?: string;
-  created_at: string;
-  updated_at?: string;
-  author?: User;
-  author_name?: string;
-  venue?: Venue;
-  venue_name?: string;
 }

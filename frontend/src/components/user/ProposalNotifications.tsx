@@ -34,7 +34,7 @@ const ProposalNotifications = () => {
     (data: { proposalId: string }) => {
       console.log("Actualización de propuesta:", data);
     },
-    []
+    [],
   );
 
   useEffect(() => {

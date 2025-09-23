@@ -24,12 +24,12 @@ interface FinancialData {
 
 const FinancialStats: React.FC = () => {
   const [financialData, setFinancialData] = useState<FinancialData | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<"week" | "month" | "year">(
-    "month"
+    "month",
   );
 
   // Cargar datos financieros (sin mock)
@@ -200,7 +200,7 @@ const FinancialStats: React.FC = () => {
                       minHeight: "10px",
                     }}
                     title={`${new Date(
-                      day.date
+                      day.date,
                     ).toLocaleDateString()}: ${formatCurrency(day.amount)}`}
                   ></div>
                   <span className="text-xs text-gray-500 mt-1">
@@ -241,7 +241,8 @@ const FinancialStats: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.transactionsByType && data.transactionsByType.length > 0 ? (
+              {data?.transactionsByType &&
+              data.transactionsByType.length > 0 ? (
                 data.transactionsByType.map((type, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

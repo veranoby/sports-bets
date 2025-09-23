@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { 
-  Users, 
-  Eye, 
-  Clock, 
-  TrendingUp, 
-  Globe, 
-  Monitor, 
+import React, { useState } from "react";
+import {
+  Users,
+  Eye,
+  Clock,
+  TrendingUp,
+  Globe,
+  Monitor,
   AlertCircle,
   Wifi,
   WifiOff,
   RefreshCw,
   BarChart3,
-  Activity
-} from 'lucide-react';
-import useStreamAnalytics from '../../hooks/useStreamAnalytics';
-import LoadingSpinner from '../shared/LoadingSpinner';
+  Activity,
+} from "lucide-react";
+import useStreamAnalytics from "../../hooks/useStreamAnalytics";
+import LoadingSpinner from "../shared/LoadingSpinner";
 
 interface AnalyticsDashboardProps {
   streamId?: string;
@@ -28,12 +28,12 @@ interface AnalyticsDashboardProps {
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   streamId,
   eventId,
-  className = '',
+  className = "",
   compact = false,
   realtime = true,
-  refreshInterval = 30000
+  refreshInterval = 30000,
 }) => {
-  const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('1h');
+  const [timeRange, setTimeRange] = useState<"1h" | "24h" | "7d" | "30d">("1h");
   const [showDetails, setShowDetails] = useState(false);
 
   const {
@@ -44,13 +44,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     hasBufferedEvents,
     fetchAnalytics,
     refresh,
-    clearError
+    clearError,
   } = useStreamAnalytics({
     streamId,
     eventId,
     autoRefresh: !realtime, // Don't auto-refresh if using realtime
     refreshInterval,
-    realtime
+    realtime,
   });
 
   // Format duration for display
@@ -60,9 +60,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     const secs = seconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Format percentage
@@ -134,28 +134,28 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  const StatCard = ({ 
-    icon: Icon, 
-    title, 
-    value, 
-    subtitle, 
-    trend, 
-    color = 'blue' 
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    subtitle,
+    trend,
+    color = "blue",
   }: {
     icon: any;
     title: string;
     value: string | number;
     subtitle?: string;
-    trend?: 'up' | 'down' | 'stable';
-    color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray';
+    trend?: "up" | "down" | "stable";
+    color?: "blue" | "green" | "yellow" | "red" | "purple" | "gray";
   }) => {
     const colorClasses = {
-      blue: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-      green: 'bg-green-500/10 border-green-500/20 text-green-400',
-      yellow: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400',
-      red: 'bg-red-500/10 border-red-500/20 text-red-400',
-      purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
-      gray: 'bg-gray-500/10 border-gray-500/20 text-gray-400'
+      blue: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+      green: "bg-green-500/10 border-green-500/20 text-green-400",
+      yellow: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
+      red: "bg-red-500/10 border-red-500/20 text-red-400",
+      purple: "bg-purple-500/10 border-purple-500/20 text-purple-400",
+      gray: "bg-gray-500/10 border-gray-500/20 text-gray-400",
     };
 
     return (
@@ -163,20 +163,20 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         <div className="flex items-center justify-between mb-2">
           <Icon className="w-5 h-5" />
           {trend && (
-            <TrendingUp 
+            <TrendingUp
               className={`w-4 h-4 ${
-                trend === 'up' ? 'text-green-400' : 
-                trend === 'down' ? 'text-red-400 rotate-180' : 
-                'text-gray-400'
-              }`} 
+                trend === "up"
+                  ? "text-green-400"
+                  : trend === "down"
+                    ? "text-red-400 rotate-180"
+                    : "text-gray-400"
+              }`}
             />
           )}
         </div>
         <div className="text-2xl font-bold text-white mb-1">{value}</div>
         <div className="text-sm opacity-75">{title}</div>
-        {subtitle && (
-          <div className="text-xs opacity-60 mt-1">{subtitle}</div>
-        )}
+        {subtitle && <div className="text-xs opacity-60 mt-1">{subtitle}</div>}
       </div>
     );
   };
@@ -188,7 +188,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         <div className="flex items-center space-x-4">
           <h2 className="text-xl font-semibold text-white flex items-center">
             <Activity className="w-6 h-6 mr-2" />
-            {compact ? 'Analytics' : 'Stream Analytics'}
+            {compact ? "Analytics" : "Stream Analytics"}
           </h2>
           <ConnectionStatus />
         </div>
@@ -198,7 +198,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <select
               value={timeRange}
               onChange={(e) => {
-                const newRange = e.target.value as '1h' | '24h' | '7d' | '30d';
+                const newRange = e.target.value as "1h" | "24h" | "7d" | "30d";
                 setTimeRange(newRange);
                 fetchAnalytics(newRange);
               }}
@@ -217,15 +217,19 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
             title="Refresh analytics"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* Main Metrics */}
-      <div className={`grid gap-4 ${
-        compact ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-      }`}>
+      <div
+        className={`grid gap-4 ${
+          compact
+            ? "grid-cols-2 lg:grid-cols-4"
+            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+        }`}
+      >
         <StatCard
           icon={Users}
           title="Current Viewers"
@@ -265,7 +269,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             title="Buffer Ratio"
             value={formatPercentage(analytics.bufferRatio)}
             subtitle="Lower is better"
-            color={analytics.bufferRatio > 0.1 ? 'red' : analytics.bufferRatio > 0.05 ? 'yellow' : 'green'}
+            color={
+              analytics.bufferRatio > 0.1
+                ? "red"
+                : analytics.bufferRatio > 0.05
+                  ? "yellow"
+                  : "green"
+            }
           />
 
           <StatCard
@@ -273,7 +283,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             title="Error Rate"
             value={formatPercentage(analytics.errorRate)}
             subtitle="Connection issues"
-            color={analytics.errorRate > 0.05 ? 'red' : analytics.errorRate > 0.02 ? 'yellow' : 'green'}
+            color={
+              analytics.errorRate > 0.05
+                ? "red"
+                : analytics.errorRate > 0.02
+                  ? "yellow"
+                  : "green"
+            }
           />
 
           <StatCard
@@ -294,7 +310,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             className="w-full p-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white hover:bg-gray-800/70 transition-colors flex items-center justify-center space-x-2"
           >
             <BarChart3 className="w-5 h-5" />
-            <span>{showDetails ? 'Hide Details' : 'Show Details'}</span>
+            <span>{showDetails ? "Hide Details" : "Show Details"}</span>
           </button>
 
           {showDetails && (
@@ -306,24 +322,29 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   Viewers by Region
                 </h3>
                 <div className="space-y-3">
-                  {Object.entries(analytics.viewersByRegion).map(([region, count]) => (
-                    <div key={region} className="flex items-center justify-between">
-                      <span className="text-gray-300">{region}</span>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-blue-500 rounded-full"
-                            style={{ 
-                              width: `${(count / Math.max(...Object.values(analytics.viewersByRegion))) * 100}%` 
-                            }}
-                          />
+                  {Object.entries(analytics.viewersByRegion).map(
+                    ([region, count]) => (
+                      <div
+                        key={region}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-gray-300">{region}</span>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full"
+                              style={{
+                                width: `${(count / Math.max(...Object.values(analytics.viewersByRegion))) * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-white font-medium w-12 text-right">
+                            {count.toLocaleString()}
+                          </span>
                         </div>
-                        <span className="text-white font-medium w-12 text-right">
-                          {count.toLocaleString()}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -334,24 +355,29 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   Quality Distribution
                 </h3>
                 <div className="space-y-3">
-                  {Object.entries(analytics.qualityDistribution).map(([quality, count]) => (
-                    <div key={quality} className="flex items-center justify-between">
-                      <span className="text-gray-300">{quality}</span>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-purple-500 rounded-full"
-                            style={{ 
-                              width: `${(count / Math.max(...Object.values(analytics.qualityDistribution))) * 100}%` 
-                            }}
-                          />
+                  {Object.entries(analytics.qualityDistribution).map(
+                    ([quality, count]) => (
+                      <div
+                        key={quality}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-gray-300">{quality}</span>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-purple-500 rounded-full"
+                              style={{
+                                width: `${(count / Math.max(...Object.values(analytics.qualityDistribution))) * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-white font-medium w-12 text-right">
+                            {count.toLocaleString()}
+                          </span>
                         </div>
-                        <span className="text-white font-medium w-12 text-right">
-                          {count.toLocaleString()}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             </div>

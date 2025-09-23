@@ -14,7 +14,6 @@ import { WebSocketProvider } from "./contexts/WebSocketContext";
 import UserLayout from "./components/layouts/UserLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 
-
 // Componentes comunes
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
@@ -58,8 +57,6 @@ const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
 // Operators use admin environment with role-based restrictions
-
-
 
 // 🎯 COMPONENTE PARA REDIRECCIÓN BASADA EN ROL
 const RoleBasedRedirect: React.FC = () => {
@@ -112,13 +109,16 @@ const AppContent: React.FC = () => {
         <Route path="/venue" element={<Navigate to="/dashboard" replace />} />
         <Route path="/venue/*" element={<Navigate to="/dashboard" replace />} />
         <Route path="/gallera" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/gallera/*" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/gallera/*"
+          element={<Navigate to="/dashboard" replace />}
+        />
 
         {/* 🎯 RUTAS DE USUARIO - Mantener carga inmediata */}
         <Route
           element={
-<ProtectedRoute allowedRoles={["user", "venue", "gallera"]}>
-<UserLayout />
+            <ProtectedRoute allowedRoles={["user", "venue", "gallera"]}>
+              <UserLayout />
             </ProtectedRoute>
           }
         >
@@ -131,7 +131,7 @@ const AppContent: React.FC = () => {
           <Route path="/bets" element={<BetsPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/news" element={<NewsPage />} />
-                    <Route path="/venues" element={<VenuesPage />} />
+          <Route path="/venues" element={<VenuesPage />} />
           <Route path="/venues/:id" element={<VenueDetailPage />} />
           <Route path="/galleras" element={<GallerasPage />} />
           <Route path="/galleras/:id" element={<GalleraDetailPage />} />
@@ -275,8 +275,6 @@ const AppContent: React.FC = () => {
 
         {/* Operators use admin routes with role-based restrictions */}
 
-        
-
         {/* Debug route removida */}
 
         {/* 🚫 RUTA 404 */}
@@ -300,7 +298,7 @@ const AppContent: React.FC = () => {
       </Routes>
       {/* Toast System - Notificaciones globales */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      
+
       {/* PWA Install Button */}
       {canInstall && (
         <button

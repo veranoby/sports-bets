@@ -13,7 +13,7 @@ import Card from "../../components/shared/Card";
 import NewsBanner from "../../components/shared/NewsBanner";
 import SearchInput from "../../components/shared/SearchInput";
 import ArticleManagement from "../../components/articles/ArticleManagement";
-import type { Article } from "../../types";
+import type { Article } from "../../types/article";
 
 interface ArticleItem {
   id: string;
@@ -57,7 +57,9 @@ const NewsPage: React.FC = () => {
         setError(response.error || "Error al cargar artículos");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar artículos");
+      setError(
+        err instanceof Error ? err.message : "Error al cargar artículos",
+      );
     } finally {
       setLoading(false);
     }
@@ -120,29 +122,38 @@ const NewsPage: React.FC = () => {
                       <span className="text-white/80 text-sm">Sin imagen</span>
                     </div>
                   )}
-                  
+
                   <div className="space-y-3 flex-1">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-medium">
-                            Publicado
-                        </span>
-                        <span className="text-xs text-theme-light">
-                            {new Date(article.published_at).toLocaleDateString("es-ES", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                        </span>
+                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-medium">
+                        Publicado
+                      </span>
+                      <span className="text-xs text-theme-light">
+                        {new Date(article.published_at).toLocaleDateString(
+                          "es-ES",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
+                      </span>
                     </div>
                     <h2 className="font-semibold text-theme-primary text-lg line-clamp-2">
                       {article.title}
                     </h2>
-                    <p className="text-sm text-theme-light mt-1 line-clamp-3">{article.summary}</p>
+                    <p className="text-sm text-theme-light mt-1 line-clamp-3">
+                      {article.summary}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
                     <div className="text-xs text-theme-light truncate">
-                      {article.author_name && <span>Por: {article.author_name}</span>}
-                      {article.venue_name && <span className="ml-2">• {article.venue_name}</span>}
+                      {article.author_name && (
+                        <span>Por: {article.author_name}</span>
+                      )}
+                      {article.venue_name && (
+                        <span className="ml-2">• {article.venue_name}</span>
+                      )}
                     </div>
                     <ChevronRight className="w-4 h-4 text-theme-light flex-shrink-0" />
                   </div>

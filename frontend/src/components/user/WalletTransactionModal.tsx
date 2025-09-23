@@ -18,9 +18,18 @@ interface WalletTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   // Deposit specific props
-  onDeposit?: (amount: number, paymentMethod: string, paymentData?: any) => Promise<void>;
-  // Withdraw specific props  
-  onWithdraw?: (amount: number, accountNumber: string, accountType?: string, bankName?: string) => Promise<void>;
+  onDeposit?: (
+    amount: number,
+    paymentMethod: string,
+    paymentData?: any,
+  ) => Promise<void>;
+  // Withdraw specific props
+  onWithdraw?: (
+    amount: number,
+    accountNumber: string,
+    accountType?: string,
+    bankName?: string,
+  ) => Promise<void>;
   availableBalance?: number;
 }
 
@@ -56,18 +65,18 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
       MAX_AMOUNT: 1000,
       FEE_PERCENTAGE: 0.05,
       submitText: "Procesar Depósito",
-      successText: "¡Depósito realizado con éxito!"
+      successText: "¡Depósito realizado con éxito!",
     },
     withdraw: {
-      title: "Retirar Fondos", 
+      title: "Retirar Fondos",
       MIN_AMOUNT: 10,
       MAX_AMOUNT: availableBalance,
       PROCESSING_FEE: 1.5,
       HIGH_AMOUNT_THRESHOLD: 500,
       PROCESSING_TIME: "24-48 horas",
       submitText: "Procesar Retiro",
-      successText: "¡Retiro procesado con éxito!"
-    }
+      successText: "¡Retiro procesado con éxito!",
+    },
   }[mode];
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +86,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
       return;
     }
     if (value < config.MIN_AMOUNT || value > config.MAX_AMOUNT) {
-      setError(`Monto debe ser entre $${config.MIN_AMOUNT} y $${config.MAX_AMOUNT.toFixed?.(2) || config.MAX_AMOUNT}`);
+      setError(
+        `Monto debe ser entre $${config.MIN_AMOUNT} y $${config.MAX_AMOUNT.toFixed?.(2) || config.MAX_AMOUNT}`,
+      );
     } else {
       setError(null);
     }
@@ -88,7 +99,11 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
     e.preventDefault();
 
     // Common validation
-    if (isNaN(amount) || amount < config.MIN_AMOUNT || amount > config.MAX_AMOUNT) {
+    if (
+      isNaN(amount) ||
+      amount < config.MIN_AMOUNT ||
+      amount > config.MAX_AMOUNT
+    ) {
       setError("Ingrese un monto válido");
       return;
     }
@@ -111,23 +126,32 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           if (Math.random() > 0.2) {
             setConfirmationStep(2);
           } else {
-            setError("Pago rechazado. Verifique los datos o intente otro método.");
+            setError(
+              "Pago rechazado. Verifique los datos o intente otro método.",
+            );
           }
         }, 2000);
       } else {
         // Withdraw flow
-        setTimeout(() => {
-          setLoading(false);
-          if (amount > (config as any).HIGH_AMOUNT_THRESHOLD) {
-            setIdentityVerification(true);
-          } else {
-            setConfirmationStep(2);
-          }
-        }, 1500 + Math.random() * 1000);
+        setTimeout(
+          () => {
+            setLoading(false);
+            if (amount > (config as any).HIGH_AMOUNT_THRESHOLD) {
+              setIdentityVerification(true);
+            } else {
+              setConfirmationStep(2);
+            }
+          },
+          1500 + Math.random() * 1000,
+        );
       }
     } catch (error) {
       setLoading(false);
-      setError(error instanceof Error ? error.message : "Error procesando la transacción");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Error procesando la transacción",
+      );
     }
   };
 
@@ -173,14 +197,16 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         <div className="text-center py-8">
           <div className="text-green-500 text-4xl mb-4">✅</div>
           <h3 className="text-lg font-semibold mb-2">{config.successText}</h3>
-          <p className="text-gray-600">Tu depósito será procesado en unos minutos.</p>
+          <p className="text-gray-600">
+            Tu depósito será procesado en unos minutos.
+          </p>
         </div>
       );
     }
 
     if (step === "payment") {
       return (
-        <PaymentForm 
+        <PaymentForm
           amount={amount}
           description={`Depósito de $${amount}`}
           onSuccess={() => setStep("success")}
@@ -192,7 +218,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Método de Pago</label>
+          <label className="block text-sm font-medium mb-2">
+            Método de Pago
+          </label>
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
@@ -204,7 +232,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Monto a Depositar</label>
+          <label className="block text-sm font-medium mb-2">
+            Monto a Depositar
+          </label>
           <input
             type="number"
             value={amount || ""}
@@ -266,14 +296,16 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           <div className="bg-yellow-50 p-4 rounded-lg flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-yellow-600 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-yellow-800">Verificación Requerida</h4>
+              <h4 className="font-semibold text-yellow-800">
+                Verificación Requerida
+              </h4>
               <p className="text-sm text-yellow-700">
-                Por montos superiores a ${(config as any).HIGH_AMOUNT_THRESHOLD}, 
-                necesitamos verificar tu identidad.
+                Por montos superiores a ${(config as any).HIGH_AMOUNT_THRESHOLD}
+                , necesitamos verificar tu identidad.
               </p>
             </div>
           </div>
-          
+
           <button
             onClick={handleIdentityVerificationComplete}
             disabled={loading}
@@ -290,12 +322,17 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-blue-50 p-3 rounded-lg">
           <p className="text-sm text-blue-700">
-            Balance disponible: <span className="font-semibold">${availableBalance.toFixed(2)}</span>
+            Balance disponible:{" "}
+            <span className="font-semibold">
+              ${availableBalance.toFixed(2)}
+            </span>
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Número de Cuenta *</label>
+          <label className="block text-sm font-medium mb-2">
+            Número de Cuenta *
+          </label>
           <input
             type="text"
             value={accountNumber}
@@ -307,7 +344,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Tipo de Cuenta (Opcional)</label>
+          <label className="block text-sm font-medium mb-2">
+            Tipo de Cuenta (Opcional)
+          </label>
           <select
             value={accountType}
             onChange={(e) => setAccountType(e.target.value)}
@@ -320,7 +359,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Banco (Opcional)</label>
+          <label className="block text-sm font-medium mb-2">
+            Banco (Opcional)
+          </label>
           <input
             type="text"
             value={bankName}
@@ -331,7 +372,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Monto a Retirar</label>
+          <label className="block text-sm font-medium mb-2">
+            Monto a Retirar
+          </label>
           <input
             type="number"
             value={amount || ""}
@@ -384,8 +427,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           <LoadingSpinner size="md" />
         </div>
       )}
-      
-      {!loading && (mode === "deposit" ? renderDepositContent() : renderWithdrawContent())}
+
+      {!loading &&
+        (mode === "deposit" ? renderDepositContent() : renderWithdrawContent())}
     </Modal>
   );
 };

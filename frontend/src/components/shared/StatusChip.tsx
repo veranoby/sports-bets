@@ -5,11 +5,32 @@
 import React from "react";
 
 export type StatusType =
-  | "active" | "inactive" | "pending" | "approved" | "rejected"
-  | "live" | "upcoming" | "completed" | "cancelled" | "settled" | "matched"
-  | "connected" | "disconnected" | "banned" | "postponed" | "betting" | "closed"
-  | "processing" | "confirmed" | "failed" | "unmatched" | "retrying"
-  | "connecting" | "success" | "error" | "warning";
+  | "active"
+  | "inactive"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "live"
+  | "upcoming"
+  | "completed"
+  | "cancelled"
+  | "settled"
+  | "matched"
+  | "connected"
+  | "disconnected"
+  | "banned"
+  | "postponed"
+  | "betting"
+  | "closed"
+  | "processing"
+  | "confirmed"
+  | "failed"
+  | "unmatched"
+  | "retrying"
+  | "connecting"
+  | "success"
+  | "error"
+  | "warning";
 
 interface StatusChipProps {
   status: string;
@@ -30,112 +51,193 @@ const StatusChip: React.FC<StatusChipProps> = ({
   label,
 }) => {
   // Auto-determine status from isConnected if provided (StatusIndicator compatibility)
-  const finalStatus = isConnected !== undefined 
-    ? (isConnected ? "connected" : "disconnected")
-    : status;
+  const finalStatus =
+    isConnected !== undefined
+      ? isConnected
+        ? "connected"
+        : "disconnected"
+      : status;
 
   // Common status configurations
   const statusConfig = {
     // Estados positivos
-    active: { 
+    active: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    approved: { 
+    approved: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    completed: { 
+    completed: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    settled: { 
+    settled: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    connected: { 
+    connected: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    confirmed: { 
+    confirmed: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
-    success: { 
+    success: {
       chip: "bg-theme-success/20 text-theme-success",
-      indicator: { color: "bg-green-500", textColor: "text-green-400", pulse: false }
+      indicator: {
+        color: "bg-green-500",
+        textColor: "text-green-400",
+        pulse: false,
+      },
     },
 
-    // Estados en progreso  
-    live: { 
+    // Estados en progreso
+    live: {
       chip: "bg-theme-secondary/20 text-theme-secondary",
-      indicator: { color: "bg-blue-500", textColor: "text-blue-400", pulse: true }
+      indicator: {
+        color: "bg-blue-500",
+        textColor: "text-blue-400",
+        pulse: true,
+      },
     },
-    pending: { 
+    pending: {
       chip: "bg-yellow-100 text-yellow-800",
-      indicator: { color: "bg-yellow-500", textColor: "text-yellow-400", pulse: true }
+      indicator: {
+        color: "bg-yellow-500",
+        textColor: "text-yellow-400",
+        pulse: true,
+      },
     },
-    processing: { 
+    processing: {
       chip: "bg-blue-100 text-blue-800",
-      indicator: { color: "bg-blue-500", textColor: "text-blue-400", pulse: true }
+      indicator: {
+        color: "bg-blue-500",
+        textColor: "text-blue-400",
+        pulse: true,
+      },
     },
-    connecting: { 
+    connecting: {
       chip: "bg-yellow-100 text-yellow-800",
-      indicator: { color: "bg-yellow-500", textColor: "text-yellow-400", pulse: true }
+      indicator: {
+        color: "bg-yellow-500",
+        textColor: "text-yellow-400",
+        pulse: true,
+      },
     },
 
     // Estados negativos
-    inactive: { 
+    inactive: {
       chip: "bg-gray-100 text-gray-600",
-      indicator: { color: "bg-gray-500", textColor: "text-gray-400", pulse: false }
+      indicator: {
+        color: "bg-gray-500",
+        textColor: "text-gray-400",
+        pulse: false,
+      },
     },
-    rejected: { 
+    rejected: {
       chip: "bg-theme-danger/20 text-theme-danger",
-      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+      indicator: {
+        color: "bg-red-500",
+        textColor: "text-red-400",
+        pulse: false,
+      },
     },
-    cancelled: { 
+    cancelled: {
       chip: "bg-theme-danger/20 text-theme-danger",
-      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+      indicator: {
+        color: "bg-red-500",
+        textColor: "text-red-400",
+        pulse: false,
+      },
     },
-    disconnected: { 
+    disconnected: {
       chip: "bg-theme-danger/20 text-theme-danger",
-      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: true }
+      indicator: {
+        color: "bg-red-500",
+        textColor: "text-red-400",
+        pulse: true,
+      },
     },
-    failed: { 
+    failed: {
       chip: "bg-theme-danger/20 text-theme-danger",
-      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+      indicator: {
+        color: "bg-red-500",
+        textColor: "text-red-400",
+        pulse: false,
+      },
     },
-    error: { 
+    error: {
       chip: "bg-red-100 text-red-800",
-      indicator: { color: "bg-red-500", textColor: "text-red-400", pulse: false }
+      indicator: {
+        color: "bg-red-500",
+        textColor: "text-red-400",
+        pulse: false,
+      },
     },
 
     // Estados neutros
-    upcoming: { 
+    upcoming: {
       chip: "bg-gray-100 text-gray-600",
-      indicator: { color: "bg-gray-400", textColor: "text-gray-400", pulse: false }
+      indicator: {
+        color: "bg-gray-400",
+        textColor: "text-gray-400",
+        pulse: false,
+      },
     },
-    matched: { 
+    matched: {
       chip: "bg-purple-100 text-purple-800",
-      indicator: { color: "bg-purple-500", textColor: "text-purple-400", pulse: false }
-    }
+      indicator: {
+        color: "bg-purple-500",
+        textColor: "text-purple-400",
+        pulse: false,
+      },
+    },
   };
 
-  const config = statusConfig[finalStatus as keyof typeof statusConfig] || statusConfig.inactive;
+  const config =
+    statusConfig[finalStatus as keyof typeof statusConfig] ||
+    statusConfig.inactive;
 
   const getSizeClasses = () => {
     if (variant === "indicator") {
       return {
         sm: "w-2 h-2",
-        md: "w-3 h-3", 
-        lg: "w-4 h-4"
+        md: "w-3 h-3",
+        lg: "w-4 h-4",
       }[size];
     }
-    
+
     return {
       sm: "px-2 py-1 text-xs",
       md: "px-3 py-1 text-sm",
-      lg: "px-4 py-2 text-base"
+      lg: "px-4 py-2 text-base",
     }[size];
   };
 
@@ -161,9 +263,10 @@ const StatusChip: React.FC<StatusChipProps> = ({
   }
 
   // Render as chip (default behavior)
-  const chipClasses = variant === "outline" 
-    ? `border-2 border-current bg-transparent ${config.chip.replace(/bg-\S+/, '')}`
-    : config.chip;
+  const chipClasses =
+    variant === "outline"
+      ? `border-2 border-current bg-transparent ${config.chip.replace(/bg-\S+/, "")}`
+      : config.chip;
 
   return (
     <span

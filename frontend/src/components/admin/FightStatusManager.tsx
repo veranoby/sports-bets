@@ -1,18 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Card, Space, Tag, Typography, message, Modal, Select, Input, Row, Col } from 'antd';
-import { 
-  PlayCircleOutlined, 
-  CheckCircleOutlined, 
+import React, { useState } from "react";
+import {
+  Button,
+  Card,
+  Space,
+  Tag,
+  Typography,
+  message,
+  Modal,
+  Row,
+  Col,
+} from "antd";
+import {
+  PlayCircleOutlined,
+  CheckCircleOutlined,
   ClockCircleOutlined,
   UserOutlined,
-  TrophyOutlined
-} from '@ant-design/icons';
-import { eventAPI, fightAPI } from '../../services/api';
-import { useWebSocketContext } from '../../contexts/WebSocketContext';
-import type { Event, Fight } from '../../types';
+  TrophyOutlined,
+} from "@ant-design/icons";
+import { fightAPI } from "../../services/api";
+import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import type { Fight } from "../../types";
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const { Text } = Typography;
 
 interface FightStatusManagerProps {
   fight: Fight;
@@ -20,13 +29,19 @@ interface FightStatusManagerProps {
   onFightUpdate: (updatedFight: Fight) => void;
 }
 
-const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId, onFightUpdate }) => {
+const FightStatusManager: React.FC<FightStatusManagerProps> = ({
+  fight,
+  eventId,
+  onFightUpdate,
+}) => {
   const { isConnected, emit } = useWebSocketContext();
   const [loading, setLoading] = useState(false);
-  const [fightResult, setFightResult] = useState<'red' | 'blue' | 'draw' | null>(null);
+  const [fightResult, setFightResult] = useState<
+    "red" | "blue" | "draw" | null
+  >(null);
   const [isAssigningResult, setIsAssigningResult] = useState(false);
 
-  const updateFightStatus = async (status: Fight['status']) => {
+  const updateFightStatus = async (status: Fight["status"]) => {
     setLoading(true);
     try {
       const response = await fightAPI.updateFightStatus(fight.id, status);
@@ -34,47 +49,47 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
         onFightUpdate(response.data as Fight);
       }
       message.success(`Fight status updated to ${status}`);
-      
+
       // Emit real-time update
       if (isConnected) {
-        emit('fight_status_update', {
+        emit("fight_status_update", {
           eventId,
           fightId: fight.id,
           status,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
     } catch (error) {
-      console.error('Failed to update fight status:', error);
-      message.error('Failed to update fight status');
+      console.error("Failed to update fight status:", error);
+      message.error("Failed to update fight status");
     } finally {
       setLoading(false);
     }
   };
 
-  const assignFightResult = async (result: 'red' | 'blue' | 'draw') => {
+  const assignFightResult = async (result: "red" | "blue" | "draw") => {
     setLoading(true);
     try {
       const response = await fightAPI.assignFightResult(fight.id, result);
       if (response.success) {
         onFightUpdate(response.data as Fight);
       }
-      message.success('Fight result assigned');
+      message.success("Fight result assigned");
       setFightResult(null);
       setIsAssigningResult(false);
-      
+
       // Emit real-time update
       if (isConnected) {
-        emit('fight_result_assigned', {
+        emit("fight_result_assigned", {
           eventId,
           fightId: fight.id,
           result,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
     } catch (error) {
-      console.error('Failed to assign fight result:', error);
-      message.error('Failed to assign fight result');
+      console.error("Failed to assign fight result:", error);
+      message.error("Failed to assign fight result");
     } finally {
       setLoading(false);
     }
@@ -82,22 +97,38 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
 
   const getStatusTag = (status: string) => {
     switch (status) {
-      case 'upcoming':
-        return <Tag icon={<ClockCircleOutlined />} color="default">Upcoming</Tag>;
-      case 'betting':
-        return <Tag icon={<UserOutlined />} color="processing">Betting Open</Tag>;
-      case 'live':
-        return <Tag icon={<PlayCircleOutlined />} color="error">Live</Tag>;
-      case 'completed':
-        return <Tag icon={<CheckCircleOutlined />} color="success">Completed</Tag>;
+      case "upcoming":
+        return (
+          <Tag icon={<ClockCircleOutlined />} color="default">
+            Upcoming
+          </Tag>
+        );
+      case "betting":
+        return (
+          <Tag icon={<UserOutlined />} color="processing">
+            Betting Open
+          </Tag>
+        );
+      case "live":
+        return (
+          <Tag icon={<PlayCircleOutlined />} color="error">
+            Live
+          </Tag>
+        );
+      case "completed":
+        return (
+          <Tag icon={<CheckCircleOutlined />} color="success">
+            Completed
+          </Tag>
+        );
       default:
         return <Tag>{status}</Tag>;
     }
   };
 
   return (
-    <Card 
-      size="small" 
+    <Card
+      size="small"
       title={
         <Space>
           <TrophyOutlined />
@@ -121,25 +152,22 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
         </Col>
         <Col span={24}>
           <Space>
-            {fight.status === 'upcoming' && (
-              <Button 
-                size="small"
-                onClick={() => updateFightStatus('betting')}
-              >
+            {fight.status === "upcoming" && (
+              <Button size="small" onClick={() => updateFightStatus("betting")}>
                 Open Betting
               </Button>
             )}
-            {fight.status === 'betting' && (
-              <Button 
+            {fight.status === "betting" && (
+              <Button
                 size="small"
                 type="primary"
-                onClick={() => updateFightStatus('live')}
+                onClick={() => updateFightStatus("live")}
               >
                 Start Fight
               </Button>
             )}
-            {fight.status === 'live' && (
-              <Button 
+            {fight.status === "live" && (
+              <Button
                 size="small"
                 type="primary"
                 danger
@@ -168,24 +196,24 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
         }}
         confirmLoading={loading}
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" style={{ width: "100%" }}>
           <Text>Select the winner:</Text>
           <Space>
-            <Button 
-              type={fightResult === 'red' ? 'primary' : 'default'}
-              onClick={() => setFightResult('red')}
+            <Button
+              type={fightResult === "red" ? "primary" : "default"}
+              onClick={() => setFightResult("red")}
             >
               Red Wins
             </Button>
-            <Button 
-              type={fightResult === 'blue' ? 'primary' : 'default'}
-              onClick={() => setFightResult('blue')}
+            <Button
+              type={fightResult === "blue" ? "primary" : "default"}
+              onClick={() => setFightResult("blue")}
             >
               Blue Wins
             </Button>
-            <Button 
-              type={fightResult === 'draw' ? 'primary' : 'default'}
-              onClick={() => setFightResult('draw')}
+            <Button
+              type={fightResult === "draw" ? "primary" : "default"}
+              onClick={() => setFightResult("draw")}
             >
               Draw
             </Button>

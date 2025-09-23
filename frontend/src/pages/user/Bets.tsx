@@ -39,8 +39,7 @@ const UserBets: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // API Hooks
-  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet } =
-    useBets();
+  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet } = useBets();
 
   const { wallet } = useWallet();
 
@@ -67,22 +66,22 @@ const UserBets: React.FC = () => {
   const handleProposalAccepted = useCallback((data: any) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet
-      )
+        bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet,
+      ),
     );
   }, []);
 
   const handleProposalRejected = useCallback((data: any) => {
     setBetsRef.current((prev) =>
-      prev.filter((bet) => bet.id !== data.proposalId)
+      prev.filter((bet) => bet.id !== data.proposalId),
     );
   }, []);
 
   const handleBetProposalUpdate = useCallback((data: any) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.proposalId ? { ...bet, ...data.updates } : bet
-      )
+        bet.id === data.proposalId ? { ...bet, ...data.updates } : bet,
+      ),
     );
   }, []);
 
@@ -128,7 +127,7 @@ const UserBets: React.FC = () => {
           totalLost: 0,
           winRate: 0,
           netProfit: 0,
-        }
+        },
       );
 
       stats.winRate =

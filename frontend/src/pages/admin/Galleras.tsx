@@ -79,7 +79,12 @@ const AdminGallerasPage: React.FC = () => {
 
       setCombinedData(combined);
     } else {
-      setError(usersRes.error || venuesRes.error || gallerasRes.error || "Error loading gallera data");
+      setError(
+        usersRes.error ||
+          venuesRes.error ||
+          gallerasRes.error ||
+          "Error loading gallera data",
+      );
     }
     setLoading(false);
   }, []);
@@ -89,26 +94,32 @@ const AdminGallerasPage: React.FC = () => {
   }, [fetchData]);
 
   // Filtrado por búsqueda
-  const filteredData = useMemo(() =>
-    combinedData.filter(
-      ({ user, venue }) =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (venue && venue.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    ),
-    [combinedData, searchTerm]
+  const filteredData = useMemo(
+    () =>
+      combinedData.filter(
+        ({ user, venue }) =>
+          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (user.email &&
+            user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (venue &&
+            venue.name.toLowerCase().includes(searchTerm.toLowerCase())),
+      ),
+    [combinedData, searchTerm],
   );
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<{ user: UserType; venue?: VenueType } | null>(null);
-  
+  const [editingData, setEditingData] = useState<{
+    user: UserType;
+    venue?: VenueType;
+  } | null>(null);
+
   // Estado para modal de creación
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Handlers para edición dual
   const handleEdit = (userId: string, venueId?: string) => {
-    const userData = combinedData.find(item => item.user.id === userId);
+    const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
       setEditingData({ user: userData.user, venue: userData.venue });
       setIsEditModalOpen(true);
@@ -117,28 +128,32 @@ const AdminGallerasPage: React.FC = () => {
 
   // Handler para eliminación
   const handleDelete = async (userId: string, galleraId?: string) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta gallera? Esta acción no se puede deshacer.')) {
+    if (
+      !window.confirm(
+        "¿Estás seguro de que quieres eliminar esta gallera? Esta acción no se puede deshacer.",
+      )
+    ) {
       return;
     }
 
     setError(null);
-    
+
     // Si hay gallera asociada, eliminarla primero
     if (galleraId) {
       const galleraRes = await gallerasAPI.delete(galleraId);
       if (!galleraRes.success) {
-        setError(galleraRes.error || 'Error eliminando gallera');
+        setError(galleraRes.error || "Error eliminando gallera");
         return;
       }
     }
-    
+
     // Eliminar el usuario
     const userRes = await usersAPI.delete(userId);
     if (!userRes.success) {
-      setError(userRes.error || 'Error eliminando usuario');
+      setError(userRes.error || "Error eliminando usuario");
       return;
     }
-    
+
     // Actualizar la lista
     fetchData();
   };
@@ -213,7 +228,10 @@ const AdminGallerasPage: React.FC = () => {
         {/* Grid de Galleras */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredData.map(({ user, venue }) => (
-            <div key={user.id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between">
+            <div
+              key={user.id}
+              className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
+            >
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
@@ -230,41 +248,49 @@ const AdminGallerasPage: React.FC = () => {
                 )}
 
                 <div className="border-t border-gray-100 pt-3 mt-3">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Propietario</h4>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
+                    Propietario
+                  </h4>
                   <div className="flex items-center gap-2 mb-1">
                     <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">{user.username}</span>
-                    <StatusChip status={user.isActive ? 'active' : 'inactive'} size="sm" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {user.username}
+                    </span>
+                    <StatusChip
+                      status={user.isActive ? "active" : "inactive"}
+                      size="sm"
+                    />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                     <Mail className="w-4 h-4" />
                     <span>{user.email}</span>
                   </div>
                   <div className="text-xs text-gray-500">
-                    <span className="font-medium">Membresía expira:</span> {
-                      user.subscription?.manual_expires_at 
-                        ? new Date(user.subscription.manual_expires_at).toLocaleDateString('es-ES')
-                        : 'Gratuita'
-                    }
+                    <span className="font-medium">Membresía expira:</span>{" "}
+                    {user.subscription?.manual_expires_at
+                      ? new Date(
+                          user.subscription.manual_expires_at,
+                        ).toLocaleDateString("es-ES")
+                      : "Gratuita"}
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 flex justify-end gap-3">
-                 <button
-                    onClick={() => handleEdit(user.id, venue?.id)}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user.id, venue?.id)}
-                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar
-                  </button>
+                <button
+                  onClick={() => handleEdit(user.id, venue?.id)}
+                  className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(user.id, venue?.id)}
+                  className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar
+                </button>
               </div>
             </div>
           ))}
@@ -273,8 +299,12 @@ const AdminGallerasPage: React.FC = () => {
         {filteredData.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold">No se encontraron galleras</h3>
-            <p className="text-sm">No hay galleras que coincidan con la búsqueda.</p>
+            <h3 className="text-lg font-semibold">
+              No se encontraron galleras
+            </h3>
+            <p className="text-sm">
+              No hay galleras que coincidan con la búsqueda.
+            </p>
           </div>
         )}
       </Card>

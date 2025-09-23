@@ -89,7 +89,7 @@ const AdminFinancePage: React.FC = () => {
 
   // Filtros temporales
   const [timePeriod, setTimePeriod] = useState(
-    searchParams.get("period") || "month"
+    searchParams.get("period") || "month",
   );
   const [dateFrom, setDateFrom] = useState(searchParams.get("dateFrom") || "");
   const [dateTo, setDateTo] = useState(searchParams.get("dateTo") || "");
@@ -235,10 +235,10 @@ const AdminFinancePage: React.FC = () => {
               {timePeriod === "today"
                 ? "del día"
                 : timePeriod === "week"
-                ? "semanal"
-                : timePeriod === "month"
-                ? "mensual"
-                : "anual"}
+                  ? "semanal"
+                  : timePeriod === "month"
+                    ? "mensual"
+                    : "anual"}
               {metrics &&
                 ` • ${formatCurrency(metrics.totalRevenue)} ingresos totales`}
             </p>
@@ -332,7 +332,7 @@ const AdminFinancePage: React.FC = () => {
           description={
             calculatedMetrics
               ? `${formatPercentage(
-                  calculatedMetrics.commissionRate
+                  calculatedMetrics.commissionRate,
                 )} del volumen`
               : undefined
           }
@@ -605,8 +605,8 @@ const AdminFinancePage: React.FC = () => {
                           transaction.status === "completed"
                             ? "bg-green-100 text-green-800"
                             : transaction.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                         }`}
                       >
                         {transaction.status}

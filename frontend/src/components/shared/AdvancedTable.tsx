@@ -40,7 +40,7 @@ interface AdvancedTableProps<T> {
 function AdvancedTable<T>({
   data,
   columns,
-  loading = false
+  loading = false,
 }: AdvancedTableProps<T>) {
   if (loading) {
     return (
@@ -75,8 +75,7 @@ function AdvancedTable<T>({
                 >
                   {column.render
                     ? column.render(row[column.key], row)
-                    : String(row[column.key] || '')
-                  }
+                    : String(row[column.key] || "")}
                 </td>
               ))}
             </tr>

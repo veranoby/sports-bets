@@ -23,7 +23,11 @@ interface CreateUserModalProps {
   onUserCreated: () => void;
 }
 
-const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUserCreated }) => {
+const CreateUserModal: React.FC<CreateUserModalProps> = ({
+  role,
+  onClose,
+  onUserCreated,
+}) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<CreateUserData>({
     username: "",
@@ -70,9 +74,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "fullName" || name === "phoneNumber") {
       setFormData((prev) => ({
@@ -105,7 +107,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
         });
         onUserCreated(); // Notify parent to refresh list
       } else {
-        const errorMessage = res.error || "Ocurrió un error al crear el usuario.";
+        const errorMessage =
+          res.error || "Ocurrió un error al crear el usuario.";
         setError(errorMessage);
         addToast({
           type: "error",
@@ -115,7 +118,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Ocurrió un error al crear el usuario.";
+        err instanceof Error
+          ? err.message
+          : "Ocurrió un error al crear el usuario.";
       setError(errorMessage);
       addToast({
         type: "error",
@@ -127,7 +132,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
     }
   };
 
-  const inputStyle = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+  const inputStyle =
+    "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
   const labelStyle = "block text-sm font-medium text-gray-700";
 
   return (
@@ -135,15 +141,16 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="p-6 border-b flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">{getModalTitle()}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
             &times;
           </button>
         </div>
         <div className="p-6 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <ErrorMessage error={error} />
-            )}
+            {error && <ErrorMessage error={error} />}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Username */}
@@ -256,7 +263,14 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ role, onClose, onUser
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Crear {role === "operator" ? "Operador" : role === "venue" ? "Venue" : role === "gallera" ? "Gallera" : "Usuario"}
+                    Crear{" "}
+                    {role === "operator"
+                      ? "Operador"
+                      : role === "venue"
+                        ? "Venue"
+                        : role === "gallera"
+                          ? "Gallera"
+                          : "Usuario"}
                   </>
                 )}
               </button>

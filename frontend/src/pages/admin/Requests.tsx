@@ -62,18 +62,18 @@ const AdminRequestsPage: React.FC = () => {
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
+    searchParams.get("search") || "",
   );
   const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("status") || searchParams.get("filter") || ""
+    searchParams.get("status") || searchParams.get("filter") || "",
   );
   const [dateFrom, setDateFrom] = useState(searchParams.get("dateFrom") || "");
   const [dateTo, setDateTo] = useState(searchParams.get("dateTo") || "");
   const [amountMin, setAmountMin] = useState(
-    searchParams.get("amountMin") || ""
+    searchParams.get("amountMin") || "",
   );
   const [amountMax, setAmountMax] = useState(
-    searchParams.get("amountMax") || ""
+    searchParams.get("amountMax") || "",
   );
 
   // Modal detalle
@@ -122,7 +122,7 @@ const AdminRequestsPage: React.FC = () => {
     const newReqs = requests.filter((r) => r.status === "pending");
     const processReqs = requests.filter((r) => r.status === "in_process");
     const completedReqs = requests.filter((r) =>
-      ["completed", "rejected", "failed"].includes(r.status)
+      ["completed", "rejected", "failed"].includes(r.status),
     );
 
     // Aplicar filtros
@@ -133,7 +133,7 @@ const AdminRequestsPage: React.FC = () => {
           r.user.username.toLowerCase().includes(term) ||
           r.user.email.toLowerCase().includes(term) ||
           r.accountNumber.includes(term) ||
-          r.user.profileInfo?.fullName?.toLowerCase().includes(term)
+          r.user.profileInfo?.fullName?.toLowerCase().includes(term),
       );
     }
 
@@ -143,13 +143,13 @@ const AdminRequestsPage: React.FC = () => {
 
     if (dateFrom) {
       filtered = filtered.filter(
-        (r) => new Date(r.requestedAt) >= new Date(dateFrom)
+        (r) => new Date(r.requestedAt) >= new Date(dateFrom),
       );
     }
 
     if (dateTo) {
       filtered = filtered.filter(
-        (r) => new Date(r.requestedAt) <= new Date(dateTo)
+        (r) => new Date(r.requestedAt) <= new Date(dateTo),
       );
     }
 
@@ -167,7 +167,7 @@ const AdminRequestsPage: React.FC = () => {
       completedRequests: completedReqs,
       filteredRequests: filtered.sort(
         (a, b) =>
-          new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()
+          new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime(),
       ),
     };
   }, [
@@ -183,7 +183,7 @@ const AdminRequestsPage: React.FC = () => {
   // Acciones
   const handleProcessRequest = async (
     requestId: string,
-    action: "approve" | "reject" | "complete"
+    action: "approve" | "reject" | "complete",
   ) => {
     if (action === "complete" && !transferProof.trim()) {
       setError("Se requiere comprobante de transferencia");
@@ -198,8 +198,8 @@ const AdminRequestsPage: React.FC = () => {
           action === "approve"
             ? "in_process"
             : action === "reject"
-            ? "rejected"
-            : "completed",
+              ? "rejected"
+              : "completed",
       };
 
       if (action === "reject") {
@@ -222,8 +222,8 @@ const AdminRequestsPage: React.FC = () => {
                 rejectionReason: payload.rejectionReason,
                 transferProof: payload.transferProof,
               }
-            : r
-        )
+            : r,
+        ),
       );
 
       setShowProcessModal(false);
@@ -233,7 +233,7 @@ const AdminRequestsPage: React.FC = () => {
       setError(
         `Error procesando solicitud: ${
           err instanceof Error ? err.message : "Error desconocido"
-        }`
+        }`,
       );
     } finally {
       setProcessing(null);
@@ -242,7 +242,7 @@ const AdminRequestsPage: React.FC = () => {
 
   const openProcessModal = (
     request: WithdrawalRequest,
-    action: "approve" | "reject" | "complete"
+    action: "approve" | "reject" | "complete",
   ) => {
     setSelectedRequest(request);
     setProcessAction(action);
@@ -444,7 +444,7 @@ const AdminRequestsPage: React.FC = () => {
             <div className="text-sm text-gray-600">
               Total:{" "}
               {formatAmount(
-                inProcessRequests.reduce((sum, r) => sum + r.amount, 0)
+                inProcessRequests.reduce((sum, r) => sum + r.amount, 0),
               )}
             </div>
           </div>
@@ -809,8 +809,8 @@ const AdminRequestsPage: React.FC = () => {
                 {processAction === "approve"
                   ? "Aprobar Solicitud"
                   : processAction === "reject"
-                  ? "Rechazar Solicitud"
-                  : "Marcar Completada"}
+                    ? "Rechazar Solicitud"
+                    : "Marcar Completada"}
               </h2>
               <button
                 onClick={() => setShowProcessModal(false)}
@@ -885,17 +885,17 @@ const AdminRequestsPage: React.FC = () => {
                     processAction === "approve"
                       ? "bg-blue-600 hover:bg-blue-700"
                       : processAction === "reject"
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-green-600 hover:bg-green-700"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-green-600 hover:bg-green-700"
                   } disabled:opacity-50`}
                 >
                   {processing === selectedRequest.id
                     ? "Procesando..."
                     : processAction === "approve"
-                    ? "Aprobar"
-                    : processAction === "reject"
-                    ? "Rechazar"
-                    : "Completar"}
+                      ? "Aprobar"
+                      : processAction === "reject"
+                        ? "Rechazar"
+                        : "Completar"}
                 </button>
               </div>
             </div>

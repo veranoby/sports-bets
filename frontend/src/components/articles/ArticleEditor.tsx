@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Modal from "../shared/Modal";
 import { FormField } from "../shared/FormField";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import type { ArticleFormData, ArticleFormErrors } from "../../types/article";
 
 interface ArticleEditorProps {
@@ -28,7 +28,9 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   submitting,
   isEditing,
 }) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(formData.featured_image || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    formData.featured_image || null,
+  );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,9 +59,9 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             {/* Image Preview */}
             <div className="flex-shrink-0">
               {imagePreview ? (
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
+                <img
+                  src={imagePreview}
+                  alt="Preview"
                   className="w-32 h-32 object-cover rounded-lg border border-gray-600"
                 />
               ) : (
@@ -68,7 +70,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                 </div>
               )}
             </div>
-            
+
             {/* Upload Controls */}
             <div className="flex-1">
               <input
@@ -84,7 +86,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                   file:cursor-pointer"
               />
               <p className="mt-2 text-xs text-gray-500">
-                Selecciona una imagen para el artículo. Formatos recomendados: JPG, PNG, WEBP.
+                Selecciona una imagen para el artículo. Formatos recomendados:
+                JPG, PNG, WEBP.
               </p>
               {(formData.featured_image || imagePreview) && (
                 <button
@@ -134,20 +137,25 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               onChange={(value) => onChange("content", value)}
               modules={{
                 toolbar: [
-                  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                  [{ 'indent': '-1'}, { 'indent': '+1' }],
-                  ['link', 'image'],
-                  ['clean']
+                  [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                  ["bold", "italic", "underline", "strike"],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                  [{ indent: "-1" }, { indent: "+1" }],
+                  ["link", "image"],
+                  ["clean"],
                 ],
               }}
               formats={[
-                'header',
-                'bold', 'italic', 'underline', 'strike',
-                'list', 'bullet',
-                'indent',
-                'link', 'image'
+                "header",
+                "bold",
+                "italic",
+                "underline",
+                "strike",
+                "list",
+                "bullet",
+                "indent",
+                "link",
+                "image",
               ]}
               placeholder="Escribe el contenido del artículo aquí..."
               className="h-64"
@@ -171,7 +179,13 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             disabled={submitting}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            {submitting ? (isEditing ? "Actualizando..." : "Creando...") : isEditing ? "Actualizar Artículo" : "Crear Artículo"}
+            {submitting
+              ? isEditing
+                ? "Actualizando..."
+                : "Creando..."
+              : isEditing
+                ? "Actualizar Artículo"
+                : "Crear Artículo"}
           </button>
         </div>
       </form>

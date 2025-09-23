@@ -90,7 +90,7 @@ const AdminMonitoringPage: React.FC = () => {
   // Estados principales
   const [services, setServices] = useState<ServiceStatus[]>([]);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(
-    null
+    null,
   );
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
@@ -98,8 +98,8 @@ const AdminMonitoringPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Obtener rol actual para restricciones
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isOperator = currentUser.role === 'operator';
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const isOperator = currentUser.role === "operator";
 
   // Estados UI
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -110,36 +110,47 @@ const AdminMonitoringPage: React.FC = () => {
   // Fetch datos de monitoreo con restricciones por rol
   const fetchMonitoringData = useCallback(async () => {
     setError(null);
-    
+
     if (isOperator) {
       // Operadores solo ven monitoreo de streaming según claude-prompt.json
-      const alertsRes = await systemAPI.getAlerts().catch(() => ({ success: true, data: [] }));
-      const statsRes = await systemAPI.getLiveStats().catch(() => ({ success: true, data: null }));
+      const alertsRes = await systemAPI
+        .getAlerts()
+        .catch(() => ({ success: true, data: [] }));
+      const statsRes = await systemAPI
+        .getLiveStats()
+        .catch(() => ({ success: true, data: null }));
 
       // Filtrar solo servicios de streaming para operadores
       setServices([
-        { 
-          service: "Streaming Service", 
-          status: "healthy", 
-          uptime: 99.5, 
+        {
+          service: "Streaming Service",
+          status: "healthy",
+          uptime: 99.5,
           responseTime: 45,
-          lastCheck: new Date().toISOString() 
-        }
+          lastCheck: new Date().toISOString(),
+        },
       ]);
       setSystemMetrics(null); // Operadores no ven métricas del sistema
-      setAlerts(alertsRes.success ? alertsRes.data?.filter((alert: any) => 
-        alert.service.toLowerCase().includes('stream') || 
-        alert.service.toLowerCase().includes('rtmp')
-      ) || [] : []);
+      setAlerts(
+        alertsRes.success
+          ? alertsRes.data?.filter(
+              (alert: any) =>
+                alert.service.toLowerCase().includes("stream") ||
+                alert.service.toLowerCase().includes("rtmp"),
+            ) || []
+          : [],
+      );
       setLiveStats({
         ...(statsRes.success ? statsRes.data : {}),
         // Solo mostrar stats relacionadas con streaming
         activeUsers: statsRes.success ? statsRes.data?.activeUsers || 0 : 0,
         liveEvents: statsRes.success ? statsRes.data?.liveEvents || 0 : 0,
         activeBets: 0, // Operadores no ven info de apuestas
-        connectionCount: statsRes.success ? statsRes.data?.connectionCount || 0 : 0,
+        connectionCount: statsRes.success
+          ? statsRes.data?.connectionCount || 0
+          : 0,
         requestsPerMinute: 0,
-        errorRate: 0
+        errorRate: 0,
       });
     } else {
       // Admin ve todo el monitoreo completo
@@ -148,7 +159,12 @@ const AdminMonitoringPage: React.FC = () => {
       const alertsRes = await systemAPI.getAlerts();
       const statsRes = await systemAPI.getLiveStats();
 
-      if (servicesRes.success && metricsRes.success && alertsRes.success && statsRes.success) {
+      if (
+        servicesRes.success &&
+        metricsRes.success &&
+        alertsRes.success &&
+        statsRes.success
+      ) {
         setServices(servicesRes.data);
         setSystemMetrics(metricsRes.data);
         setAlerts(alertsRes.data);
@@ -161,7 +177,7 @@ const AdminMonitoringPage: React.FC = () => {
         setLiveStats(null);
       }
     }
-    
+
     setLastUpdate(new Date());
     setLoading(false);
   }, [isOperator]);
@@ -388,7 +404,7 @@ const AdminMonitoringPage: React.FC = () => {
                 </div>
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    service.status
+                    service.status,
                   )}`}
                 >
                   {service.status}
@@ -507,7 +523,7 @@ const AdminMonitoringPage: React.FC = () => {
               <div
                 key={alert.id}
                 className={`p-4 rounded-lg border ${getAlertColor(
-                  alert.level
+                  alert.level,
                 )} ${alert.resolved ? "opacity-60" : ""}`}
               >
                 <div className="flex items-start justify-between">
@@ -521,8 +537,8 @@ const AdminMonitoringPage: React.FC = () => {
                           alert.level === "critical"
                             ? "bg-red-600 text-white"
                             : alert.level === "warning"
-                            ? "bg-yellow-600 text-white"
-                            : "bg-blue-600 text-white"
+                              ? "bg-yellow-600 text-white"
+                              : "bg-blue-600 text-white"
                         }`}
                       >
                         {alert.level}
@@ -583,8 +599,8 @@ const AdminMonitoringPage: React.FC = () => {
                     selectedAlert.level === "critical"
                       ? "bg-red-600 text-white"
                       : selectedAlert.level === "warning"
-                      ? "bg-yellow-600 text-white"
-                      : "bg-blue-600 text-white"
+                        ? "bg-yellow-600 text-white"
+                        : "bg-blue-600 text-white"
                   }`}
                 >
                   {selectedAlert.level}

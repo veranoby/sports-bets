@@ -52,7 +52,10 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     if (!isConnected) return;
 
     const cleanupNewBet = addListener("new_bet", handleNewBet);
-    const cleanupWindowClosed = addListener("betting_window_closed", handleBettingWindowClosed);
+    const cleanupWindowClosed = addListener(
+      "betting_window_closed",
+      handleBettingWindowClosed,
+    );
     let cleanupBetMatched = () => {};
     if (onBetPlaced) {
       cleanupBetMatched = addListener("bet_matched", handleBetMatched);
@@ -63,7 +66,14 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
       cleanupWindowClosed();
       cleanupBetMatched();
     };
-  }, [isConnected, addListener, handleNewBet, handleBettingWindowClosed, handleBetMatched, onBetPlaced]);
+  }, [
+    isConnected,
+    addListener,
+    handleNewBet,
+    handleBettingWindowClosed,
+    handleBetMatched,
+    onBetPlaced,
+  ]);
 
   // Return condicional DESPUÉS de todos los hooks
   if (!isBettingEnabled) return null;

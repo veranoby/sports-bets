@@ -1,69 +1,75 @@
-import React, { useState } from 'react';
-import { Upload, Button, Select, Input, notification } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import { Upload as UploadIcon, CreditCard, DollarSign } from 'lucide-react';
-import { userAPI } from '../../services/api';
+import React, { useState } from "react";
+import { Upload, Button, Select, Input, notification } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import { Upload as UploadIcon, CreditCard, DollarSign } from "lucide-react";
+import { userAPI } from "../../services/api";
 
 interface PaymentProofUploadProps {
   onUploadSuccess?: () => void;
 }
 
-const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({ onUploadSuccess }) => {
-  const [assignedUsername, setAssignedUsername] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'paypal'>('bank_transfer');
+const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
+  onUploadSuccess,
+}) => {
+  const [assignedUsername, setAssignedUsername] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "bank_transfer" | "paypal"
+  >("bank_transfer");
   const [uploading, setUploading] = useState<boolean>(false);
   const [fileList, setFileList] = useState<any[]>([]);
 
   const paymentDescriptions = {
     bank_transfer: `galleros.net usuario ${assignedUsername} plan [24h/mensual]`,
-    paypal: `galleros.net usuario ${assignedUsername} plan [tipo]`
+    paypal: `galleros.net usuario ${assignedUsername} plan [tipo]`,
   };
 
   const uploadProps = {
-    name: 'payment_proof',
+    name: "payment_proof",
     multiple: false,
     fileList,
     beforeUpload: () => false, // Prevent auto upload
     onChange: ({ fileList: newFileList }: any) => {
       setFileList(newFileList.slice(-1)); // Keep only the latest file
     },
-    accept: 'image/*'
+    accept: "image/*",
   };
 
   const handleUpload = async () => {
     if (!assignedUsername.trim()) {
-      notification.error({ message: 'Username assignment is required' });
+      notification.error({ message: "Username assignment is required" });
       return;
     }
 
     if (fileList.length === 0) {
-      notification.error({ message: 'Payment proof image is required' });
+      notification.error({ message: "Payment proof image is required" });
       return;
     }
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('payment_proof', fileList[0].originFileObj);
-      formData.append('assigned_username', assignedUsername.trim());
-      formData.append('payment_description', paymentDescriptions[paymentMethod]);
-      formData.append('payment_method', paymentMethod);
+      formData.append("payment_proof", fileList[0].originFileObj);
+      formData.append("assigned_username", assignedUsername.trim());
+      formData.append(
+        "payment_description",
+        paymentDescriptions[paymentMethod],
+      );
+      formData.append("payment_method", paymentMethod);
 
       await userAPI.uploadPaymentProof(formData);
 
       notification.success({
-        message: 'Payment proof uploaded successfully',
-        description: 'Admin will review and activate your membership'
+        message: "Payment proof uploaded successfully",
+        description: "Admin will review and activate your membership",
       });
 
       // Reset form
       setFileList([]);
-      setAssignedUsername('');
+      setAssignedUsername("");
       onUploadSuccess?.();
-
     } catch (error) {
-      console.error('Upload error:', error);
-      notification.error({ message: 'Failed to upload payment proof' });
+      console.error("Upload error:", error);
+      notification.error({ message: "Failed to upload payment proof" });
     }
     setUploading(false);
   };
@@ -77,20 +83,40 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({ onUploadSuccess
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Payment Method</label>
+          <label className="block text-sm font-medium mb-2">
+            Payment Method
+          </label>
           <Select
             value={paymentMethod}
             onChange={setPaymentMethod}
             className="w-full"
             options={[
-              { value: 'bank_transfer', label: <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" />Bank Transfer</span> },
-              { value: 'paypal', label: <span className="flex items-center gap-2"><DollarSign className="w-4 h-4" />PayPal</span> }
+              {
+                value: "bank_transfer",
+                label: (
+                  <span className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    Bank Transfer
+                  </span>
+                ),
+              },
+              {
+                value: "paypal",
+                label: (
+                  <span className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" />
+                    PayPal
+                  </span>
+                ),
+              },
             ]}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Username for Membership</label>
+          <label className="block text-sm font-medium mb-2">
+            Username for Membership
+          </label>
           <Input
             value={assignedUsername}
             onChange={(e) => setAssignedUsername(e.target.value)}
@@ -102,7 +128,8 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({ onUploadSuccess
         {assignedUsername && (
           <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
             <p className="text-sm text-blue-800">
-              <strong>Suggested description:</strong><br />
+              <strong>Suggested description:</strong>
+              <br />
               {paymentDescriptions[paymentMethod]}
             </p>
           </div>
@@ -113,8 +140,12 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({ onUploadSuccess
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
-            <p className="ant-upload-text">Click or drag payment proof to upload</p>
-            <p className="ant-upload-hint">Support for images only (JPG, PNG, etc)</p>
+            <p className="ant-upload-text">
+              Click or drag payment proof to upload
+            </p>
+            <p className="ant-upload-hint">
+              Support for images only (JPG, PNG, etc)
+            </p>
           </Upload.Dragger>
         </div>
 

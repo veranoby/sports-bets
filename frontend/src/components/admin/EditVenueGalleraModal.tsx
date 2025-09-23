@@ -1,19 +1,19 @@
 // frontend/src/components/admin/EditVenueGalleraModal.tsx
 // Modal unificado para editar venues y galleras con pestañas
 
-import React, { useState } from 'react';
-import { usersAPI, venuesAPI, gallerasAPI } from '../../config/api';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import ErrorMessage from '../shared/ErrorMessage';
-import SubscriptionTabs from './SubscriptionTabs';
-import { User, Building2, CreditCard, X, Info } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
-import type { User as UserType, Venue, Gallera } from '../../types';
+import React, { useState } from "react";
+import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
+import LoadingSpinner from "../shared/LoadingSpinner";
+import ErrorMessage from "../shared/ErrorMessage";
+import SubscriptionTabs from "./SubscriptionTabs";
+import { User, Building2, CreditCard, X, Info } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import type { User as UserType, Venue, Gallera } from "../../types";
 
 interface EditVenueGalleraModalProps {
   user: UserType;
   venue?: Venue | Gallera;
-  role: 'venue' | 'gallera';
+  role: "venue" | "gallera";
   onClose: () => void;
   onSaved: (updatedData: { user: UserType; venue: Venue | Gallera }) => void;
 }
@@ -22,149 +22,152 @@ type ProfileData = {
   username: string;
   email: string;
   profileInfo: {
-      fullName: string;
-      phoneNumber: string;
-      address: string;
-      identificationNumber: string;
+    fullName: string;
+    phoneNumber: string;
+    address: string;
+    identificationNumber: string;
   };
   is_active: boolean;
 };
 
 type EntityData = Partial<Venue & Gallera>;
 
-const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({ 
-  user, 
-  venue, 
-  role, 
-  onClose, 
-  onSaved 
+const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
+  user,
+  venue,
+  role,
+  onClose,
+  onSaved,
 }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'entity' | 'subscription'>('profile');
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "entity" | "subscription"
+  >("profile");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  
-  
+
   // Profile form data
   const [profileData, setProfileData] = useState<ProfileData>({
-    username: user?.username || '',
-    email: user?.email || '',
+    username: user?.username || "",
+    email: user?.email || "",
     profileInfo: {
-      fullName: user?.profileInfo?.fullName || '',
-      phoneNumber: user?.profileInfo?.phoneNumber || '',
-      address: user?.profileInfo?.address || '',
-      identificationNumber: user?.profileInfo?.identificationNumber || ''
+      fullName: user?.profileInfo?.fullName || "",
+      phoneNumber: user?.profileInfo?.phoneNumber || "",
+      address: user?.profileInfo?.address || "",
+      identificationNumber: user?.profileInfo?.identificationNumber || "",
     },
-    is_active: user?.isActive !== false
+    is_active: user?.isActive !== false,
   });
 
   // Entity form data
   const [entityData, setEntityData] = useState<EntityData>({
-    name: venue?.name || '',
-    location: venue?.location || '',
-    description: venue?.description || '',
+    name: venue?.name || "",
+    location: venue?.location || "",
+    description: venue?.description || "",
     contactInfo: venue?.contactInfo || {
-      phone: '',
-      email: '',
-      website: '',
-      address: ''
+      phone: "",
+      email: "",
+      website: "",
+      address: "",
     },
-    status: (venue?.status || 'pending') as any
+    status: venue?.status || "pending",
   });
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('profileInfo.')) {
-      const field = name.split('.')[1];
-      setProfileData(prev => ({
+
+    if (name.startsWith("profileInfo.")) {
+      const field = name.split(".")[1];
+      setProfileData((prev) => ({
         ...prev,
         profileInfo: {
           ...prev.profileInfo,
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
-  const handleEntityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleEntityChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('contactInfo.')) {
-      const field = name.split('.')[1];
-      setEntityData(prev => ({
+
+    if (name.startsWith("contactInfo.")) {
+      const field = name.split(".")[1];
+      setEntityData((prev) => ({
         ...prev,
         contactInfo: {
           ...prev.contactInfo,
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setEntityData(prev => ({
+      setEntityData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleSaveAll = async () => {
     setLoading(true);
-    
+
     setError(null);
 
     try {
       // Update user profile
-      console.log('Updating user profile with data:', profileData.profileInfo);
+      console.log("Updating user profile with data:", profileData.profileInfo);
       await usersAPI.updateProfile({
-        profileInfo: profileData.profileInfo
+        profileInfo: profileData.profileInfo,
       });
-      
 
       // Update user email
       if (profileData.email !== user.email) {
-        console.log('Updating user email to:', profileData.email);
+        console.log("Updating user email to:", profileData.email);
         await usersAPI.update(user.id, { email: profileData.email });
       }
 
       // Update entity (venue or gallera)
       let result;
       if (venue?.id) {
-        console.log('Updating entity with data:', entityData);
-        if (role === 'venue') {
+        console.log("Updating entity with data:", entityData);
+        if (role === "venue") {
           result = await venuesAPI.update(venue.id, {
-            ...entityData
+            ...entityData,
           });
         } else {
           result = await gallerasAPI.update(venue.id, {
-            ...entityData
+            ...entityData,
           });
         }
       } else {
-        console.log('Creating new entity with data:', entityData);
-        if (role === 'venue') {
+        console.log("Creating new entity with data:", entityData);
+        if (role === "venue") {
           result = await venuesAPI.create({
-            name: entityData.name || 'New Venue',
-            location: entityData.location || 'Location TBD',
+            name: entityData.name || "New Venue",
+            location: entityData.location || "Location TBD",
             description: entityData.description,
             contactInfo: entityData.contactInfo,
-            ownerId: user.id
+            ownerId: user.id,
           });
         } else {
           result = await gallerasAPI.create({
-            name: entityData.name || 'New Gallera',
-            location: entityData.location || 'Location TBD',
+            name: entityData.name || "New Gallera",
+            location: entityData.location || "Location TBD",
             description: entityData.description,
             contactInfo: entityData.contactInfo,
-            ownerId: user.id
+            ownerId: user.id,
           });
         }
       }
-      
 
       const updatedUser = {
         ...user,
@@ -173,25 +176,25 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         isActive: profileData.is_active,
         profileInfo: {
           ...profileData.profileInfo,
-          verificationLevel: user.profileInfo?.verificationLevel || 'none'
-        }
+          verificationLevel: user.profileInfo?.verificationLevel || "none",
+        },
       } as UserType;
 
       onSaved({
         user: updatedUser,
-        venue: result
+        venue: result,
       });
-      
+
       // Show success message
-      toast.success('¡Éxito!', 'Los cambios se han guardado exitosamente');
-      
+      toast.success("¡Éxito!", "Los cambios se han guardado exitosamente");
+
       onClose();
     } catch (err) {
-      console.error('Error saving data:', err);
-      const errorMessage = err instanceof Error ? err.message : `Error al actualizar ${role}`;
+      console.error("Error saving data:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : `Error al actualizar ${role}`;
       setError(errorMessage);
-      toast.error('Error', errorMessage);
-      
+      toast.error("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -204,10 +207,10 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              Editar {role === 'venue' ? 'Local' : 'Gallera'}
+              Editar {role === "venue" ? "Local" : "Gallera"}
             </h2>
             <p className="text-sm text-gray-500">
-              {user.username} - {venue ? venue.name : 'Sin entidad asignada'}
+              {user.username} - {venue ? venue.name : "Sin entidad asignada"}
             </p>
           </div>
           <button
@@ -222,33 +225,33 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             <button
-              onClick={() => setActiveTab('profile')}
+              onClick={() => setActiveTab("profile")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'profile'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === "profile"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <User className="w-4 h-4 inline mr-2" />
               Perfil
             </button>
             <button
-              onClick={() => setActiveTab('entity')}
+              onClick={() => setActiveTab("entity")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'entity'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === "entity"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <Building2 className="w-4 h-4 inline mr-2" />
-              {role === 'venue' ? 'Local' : 'Gallera'}
+              {role === "venue" ? "Local" : "Gallera"}
             </button>
             <button
-              onClick={() => setActiveTab('subscription')}
+              onClick={() => setActiveTab("subscription")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'subscription'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === "subscription"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <CreditCard className="w-4 h-4 inline mr-2" />
@@ -259,7 +262,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
 
         {/* Content */}
         <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-          {activeTab === 'profile' && (
+          {activeTab === "profile" && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -349,7 +352,12 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   type="checkbox"
                   name="is_active"
                   checked={profileData.is_active}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, is_active: e.target.checked }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      is_active: e.target.checked,
+                    }))
+                  }
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label className="text-sm font-medium text-gray-700">
@@ -365,11 +373,13 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
             </div>
           )}
 
-          {activeTab === 'entity' && (
+          {activeTab === "entity" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {role === 'venue' ? 'Nombre del Local' : 'Nombre de la Gallera'}
+                  {role === "venue"
+                    ? "Nombre del Local"
+                    : "Nombre de la Gallera"}
                 </label>
                 <input
                   type="text"
@@ -481,7 +491,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
             </div>
           )}
 
-          {activeTab === 'subscription' && (
+          {activeTab === "subscription" && (
             <SubscriptionTabs
               userId={user.id}
               subscription={user.subscription}
@@ -489,7 +499,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                 // Actualizar los datos del usuario con la nueva suscripción
                 onSaved({
                   user: { ...user, subscription: subscriptionData },
-                  venue
+                  venue,
                 });
               }}
               onCancel={onClose}
@@ -517,7 +527,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                 Guardando...
               </>
             ) : (
-              'Guardar Todos los Cambios'
+              "Guardar Todos los Cambios"
             )}
           </button>
         </div>

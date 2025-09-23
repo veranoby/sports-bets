@@ -84,7 +84,8 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
       },
     ];
 
-    if (isWalletEnabled) { // Conditionally add wallet item
+    if (isWalletEnabled) {
+      // Conditionally add wallet item
       commonItems.push({
         id: "wallet",
         icon: Wallet,
@@ -93,7 +94,8 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         gradient: "from-yellow-500 to-yellow-600",
       });
     }
-    if (isBettingEnabled) { // Conditionally add bets item
+    if (isBettingEnabled) {
+      // Conditionally add bets item
       commonItems.push({
         id: "bets",
         icon: Trophy,
@@ -223,7 +225,9 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
                 >
                   <Icon
                     className={`w-5 h-5 transition-colors duration-300 ${
-                      isActive ? "text-white" : "text-theme-secondary hover:text-theme-primary"
+                      isActive
+                        ? "text-white"
+                        : "text-theme-secondary hover:text-theme-primary"
                     }`}
                   />
                 </div>
