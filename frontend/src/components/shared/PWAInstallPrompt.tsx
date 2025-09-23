@@ -31,7 +31,8 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   useEffect(() => {
     // Detectar iOS
     const iOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as { MSStream?: unknown }).MSStream;
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !(window as { MSStream?: unknown }).MSStream;
     setIsIOS(iOS);
 
     // Verificar si ya está instalado

@@ -15,7 +15,7 @@ interface SubscriptionData {
   createdAt?: string;
   manual_expires_at?: string;
   assigned_username?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 interface SubscriptionTabsProps {

@@ -35,12 +35,12 @@ interface WebSocketContextType {
   isConnected: boolean;
   connectionError: string | null;
   isConnecting: boolean;
-  emit: (event: string, data?: any) => boolean;
+  emit: (event: string, data?: unknown) => boolean;
   joinRoom: (roomId: string) => void;
   leaveRoom: (roomId: string) => void;
   addListener: (
     event: string,
-    handler: (data: any) => void,
+    handler: (data: unknown) => void,
     componentId?: string,
   ) => () => void;
   getListenerStats: () => {
@@ -81,15 +81,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   // ✅ REGISTRY OPTIMIZED
   const listenersRegistryRef = useRef<
     Map<
-      string,
-      Map<
-        (...args: any[]) => void,
-        {
-          addedAt: number;
-          componentId?: string;
-        }
+        string,
+        Map<
+          (...args: unknown[]) => void,
+          {
+            addedAt: number;
+            componentId?: string;
+          }
+        >
       >
-    >
   >(new Map());
 
   // 🧹 FUNCTION TO CLEAN UP ORPHANED LISTENERS

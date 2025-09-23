@@ -5,7 +5,7 @@ interface StreamStatus {
   status: "live" | "offline" | "error";
   viewers?: number;
   timestamp?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 interface StreamStatusMonitorProps {
