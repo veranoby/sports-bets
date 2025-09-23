@@ -47,17 +47,4 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Claude/Cursor
-.claude/
 
-claude_workspace/
-*.claude
-*.claude-desktop-arch/
-claude-desktop-arch/
-.cursor/
-cursor_workspace/
-.gemini-session/
-.gemini/
-.qwen/
-.ai-context/
-.cursorrules

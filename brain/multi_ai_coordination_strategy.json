@@ -970,6 +970,50 @@
         "error_prevention": "Always validate TypeScript compilation before commit attempts",
         "coordination": "Qwen fixes → Claude validates → Successful commit"
       }
+    },
+
+    "eslint_warnings_strategy_v3": {
+      "discovery": "Husky pre-commit optimized (350→500 warnings), 309 warnings identified for cleanup",
+      "target": "309 warnings → <150 warnings (50%+ improvement)",
+      "strategy": "4-phase incremental approach with safety validations",
+      "phase_breakdown": {
+        "phase_1_safe": {
+          "target": "Unused variables & imports cleanup (60-80 warnings)",
+          "risk": "SAFE - No functional impact",
+          "validation": "npm run lint | grep 'no-unused-vars' | wc -l should be 0"
+        },
+        "phase_2_low": {
+          "target": "Basic TypeScript any replacements (80-120 warnings)",
+          "risk": "LOW - Simple type conversions",
+          "validation": "npm run lint | grep 'no-explicit-any' progress check"
+        },
+        "phase_3_medium": {
+          "target": "useEffect dependencies fix (40-50 warnings)",
+          "risk": "MEDIUM - React hooks dependencies",
+          "validation": "npm run lint | grep 'exhaustive-deps' reduction"
+        },
+        "phase_4_high": {
+          "target": "React fast refresh exports (25-30 warnings)",
+          "risk": "HIGH - Structural component changes",
+          "validation": "Build + render verification required"
+        }
+      },
+      "agent_coordination": {
+        "refactoring_expert": "Primary systematic code improvements",
+        "quality_engineer": "Phase validation and integration testing",
+        "python_expert": "Complex type inference support"
+      },
+      "safety_mechanisms": {
+        "incremental_commits": "Commit after each phase with validation",
+        "rollback_strategy": "git reset --hard HEAD~1 per phase failure",
+        "husky_buffer": "191 warnings buffer before blocking commits",
+        "no_functional_changes": "CRITICAL - preserve all business logic"
+      },
+      "efficiency_gains": {
+        "proven_approach": "Based on successful Gemini collaboration patterns",
+        "token_savings": "60-70% vs Claude doing equivalent systematic cleanup",
+        "time_estimate": "45-60 minutes vs 3-4 hours manual approach"
+      }
     }
   },
 

@@ -1,134 +1,141 @@
 {
-  "task_assignment": "QWEN - TypeScript & ESLint Error Cleanup",
-  "priority": "CRITICAL - Blocking git commit with 420 linting errors",
-  "token_savings_target": "30-50% through automated error fixing",
-  "proven_qwen_strengths": "Simple TypeScript fixes, unused import cleanup",
+  "task_id": "eslint_warnings_cleanup_v2",
+  "priority": "medium",
+  "estimated_duration": "45-60 minutes",
 
-  "critical_task": {
-    "problem": "Pre-commit hook failing with 389 TypeScript errors + 31 warnings",
-    "blocking_commit": "Cannot commit current work due to lint failures",
-    "solution_approach": "Systematic cleanup of TypeScript and ESLint violations",
-    "success_criteria": "git commit succeeds without lint errors"
+  "required_agents": [
+    "refactoring-expert",
+    "quality-engineer",
+    "python-expert"
+  ],
+
+  "agent_usage_strategy": {
+    "refactoring-expert": "Primary agent for systematic code improvements and TypeScript type fixes",
+    "quality-engineer": "Validation agent to verify each phase completion and test integration",
+    "python-expert": "Support agent for complex type inference and dependency analysis"
   },
 
-  "error_categories": {
-    "1_unused_imports": {
-      "count": "~150 errors",
-      "pattern": "'XXX' is defined but never used @typescript-eslint/no-unused-vars",
-      "solution": "Remove unused import statements",
-      "examples": [
-        "FileText, User, MessageSquare, Ticket, Eye from AdminSidebar.tsx",
-        "Search from News.tsx",
-        "Users from VenueDetailPage.tsx"
-      ]
-    },
+  "task_description": "Fix 309 ESLint warnings systematically using incremental phased approach with safety validations",
 
-    "2_explicit_any_types": {
-      "count": "~200 errors", 
-      "pattern": "Unexpected any. Specify a different type @typescript-eslint/no-explicit-any",
-      "solution": "Replace 'any' with proper TypeScript types",
-      "strategy": "Use existing type interfaces or create simple ones"
+  "context_injection": {
+    "project_type": "React + TypeScript frontend (GalloBets streaming platform)",
+    "warning_categories": {
+      "no-explicit-any": "~180 warnings - Replace 'any' with specific types",
+      "no-unused-vars": "~60 warnings - Remove unused imports/variables",
+      "exhaustive-deps": "~40 warnings - Fix useEffect dependencies",
+      "only-export-components": "~29 warnings - Fix React fast refresh exports"
     },
-
-    "3_unused_variables": {
-      "count": "~50 errors",
-      "pattern": "'XXX' is assigned a value but never used",
-      "solution": "Remove unused variable assignments or use underscore prefix",
-      "examples": [
-        "showAvatarModal, passwordLoading from Profile.tsx",
-        "total from News.tsx"
-      ]
-    }
+    "current_warning_count": 309,
+    "husky_limit": 500,
+    "safety_margin": "191 warnings buffer before Husky blocks commits"
   },
 
-  "systematic_approach": {
-    "phase_1_unused_imports": {
-      "files_priority": [
-        "components/admin/AdminSidebar.tsx",
-        "components/admin/FightStatusManager.tsx", 
-        "pages/user/News.tsx",
-        "pages/user/VenueDetailPage.tsx"
+  "constraints": {
+    "no_functional_changes": "CRITICAL - Do not modify component functionality or business logic",
+    "incremental_commits": "REQUIRED - Commit after each phase with validation",
+    "preserve_patterns": "Follow existing TypeScript patterns in codebase",
+    "test_validation": "Run npm run lint after each phase to verify warning reduction",
+    "rollback_strategy": "Each phase must be reversible via git reset"
+  },
+
+  "task_decomposition": {
+    "phase_1": {
+      "title": "Unused Variables & Imports Cleanup",
+      "risk_level": "SAFE",
+      "target_warnings": "60-80 warnings",
+      "description": "Remove unused imports, variables, and dead code",
+      "validation": "npm run lint | grep 'no-unused-vars' | wc -l should be 0",
+      "commit_message": "Phase 1: Remove unused variables and imports"
+    },
+
+    "phase_2": {
+      "title": "Basic TypeScript Any Replacements",
+      "risk_level": "LOW",
+      "target_warnings": "80-120 warnings",
+      "description": "Replace obvious 'any' types with specific types (events, props, simple objects)",
+      "patterns_to_fix": [
+        "event: any → event: React.ChangeEvent<HTMLInputElement>",
+        "props: any → props: ComponentProps",
+        "data: any → data: ApiResponse",
+        "error: any → error: Error"
       ],
-      "action": "Remove completely unused imports, keep used ones"
+      "validation": "npm run lint | grep 'no-explicit-any' | head -20 to verify progress",
+      "commit_message": "Phase 2: Replace basic any types with specific TypeScript types"
     },
 
-    "phase_2_explicit_any": {
-      "strategy": "Replace with proper types from existing interfaces",
-      "common_replacements": [
-        "any → unknown (for generic data)",
-        "any → Record<string, unknown> (for objects)", 
-        "any → string | number (for simple values)",
-        "any → User | Venue | Gallera (for entity types)"
-      ]
+    "phase_3": {
+      "title": "useEffect Dependencies Fix",
+      "risk_level": "MEDIUM",
+      "target_warnings": "40-50 warnings",
+      "description": "Add missing dependencies to useEffect arrays or wrap in useCallback",
+      "approach": "Conservative - only add obviously safe dependencies",
+      "validation": "npm run lint | grep 'exhaustive-deps' | wc -l should be significantly reduced",
+      "commit_message": "Phase 3: Fix useEffect dependency arrays"
     },
 
-    "phase_3_unused_variables": {
-      "action": "Remove if truly unused, or prefix with underscore if needed for future"
+    "phase_4": {
+      "title": "React Fast Refresh Exports",
+      "risk_level": "HIGH",
+      "target_warnings": "25-30 warnings",
+      "description": "Move constants/utilities out of component files to fix fast refresh",
+      "approach": "Only if confident - move obvious constants to separate files",
+      "validation": "Verify no build errors and components still render properly",
+      "commit_message": "Phase 4: Fix React fast refresh export warnings"
     }
   },
 
-  "forbidden_changes": {
-    "critical_restrictions": [
-      "DO NOT modify authentication logic or AuthContext",
-      "DO NOT change API service contracts or endpoints", 
-      "DO NOT modify component functionality - only type/import cleanup",
-      "DO NOT break existing component interfaces",
-      "DO NOT remove variables that might be used in templates"
+  "success_criteria": {
+    "primary": "Reduce ESLint warnings from 309 to under 150 (>50% improvement)",
+    "secondary": "Maintain all functionality - no broken components or features",
+    "tertiary": "Improve TypeScript type safety without introducing new errors",
+    "validation_commands": [
+      "npm run lint | tail -10",
+      "npm run build",
+      "npm run dev (verify no console errors)"
     ]
   },
 
-  "validation_workflow": {
-    "after_each_phase": [
-      "Run: npx tsc --noEmit to check TypeScript compilation",
-      "Run: npm run lint to verify ESLint errors reduced",
-      "Ensure no functional regressions"
+  "execution_workflow": {
+    "pre_execution": [
+      "git status (ensure clean working tree)",
+      "npm run lint | wc -l (baseline warning count)",
+      "git checkout -b feature/eslint-cleanup-qwen"
     ],
-    "final_validation": [
-      "All TypeScript errors resolved",
-      "ESLint warnings under acceptable threshold",
-      "git commit succeeds without pre-commit hook failures"
+
+    "phase_execution": [
+      "Execute phase changes using refactoring-expert agent",
+      "Run npm run lint to verify warning reduction",
+      "Use quality-engineer agent to validate no functionality breaks",
+      "git add . && git commit -m '[phase message]'",
+      "Continue to next phase only if validation passes"
+    ],
+
+    "post_execution": [
+      "Final npm run lint count verification",
+      "npm run build (ensure no build errors)",
+      "git push origin feature/eslint-cleanup-qwen",
+      "Report final statistics: warnings reduced from 309 to X"
     ]
   },
 
-  "recommended_agents": {
-    "primary_agent": "--refactoring-expert --safe-mode --token-efficient",
-    "support_agent": "--quality-engineer --validate --scope file",
-    "monitoring_agent": "--performance-engineer --focus quality --no-optimization",
-    "agent_rationale": {
-      "refactoring_expert": "Specialized in code cleanup without changing functionality - perfect for lint errors",
-      "quality_engineer": "Validates each file maintains quality without breaking functionality",
-      "performance_engineer": "Monitors that cleanup doesn't affect performance, but NO optimization (dangerous for Qwen)"
-    },
-    "forbidden_agents": [
-      "--backend-architect (too complex for Qwen)",
-      "--system-architect (could change architecture)",
-      "--security-engineer (might touch auth/permissions)",
-      "--frontend-architect (could restructure components)"
-    ]
+  "rollback_procedures": {
+    "phase_failure": "git reset --hard HEAD~1 (undo last phase)",
+    "complete_failure": "git checkout main && git branch -D feature/eslint-cleanup-qwen",
+    "partial_success": "Stop at successful phase, document progress in brain/"
   },
 
-  "agent_workflow": {
-    "phase_1_analysis": "--quality-engineer --validate --scope project",
-    "phase_2_cleanup": "--refactoring-expert --safe-mode --scope file",
-    "phase_3_validation": "--quality-engineer --validate --token-efficient",
-    "execution_pattern": "Process ONE file at a time with validation after every 10 fixes"
+  "expected_outcomes": {
+    "warning_reduction": "150-200 warnings eliminated (50-65% improvement)",
+    "type_safety": "Improved TypeScript coverage and type inference",
+    "code_quality": "Cleaner codebase with better maintainability",
+    "development_experience": "Fewer ESLint distractions during development",
+    "husky_compliance": "Comfortable margin below 500 warning limit"
   },
 
-  "optimization_targets": {
-    "error_reduction": "420 errors → 0 errors",
-    "focus_areas": [
-      "Remove unused imports systematically",
-      "Fix explicit 'any' types with proper interfaces",
-      "Clean up unused variable assignments",
-      "Ensure React hooks dependency warnings addressed"
-    ]
-  },
-
-  "success_deliverables": [
-    "Clean TypeScript compilation (npx tsc --noEmit passes)",
-    "ESLint errors under 10 (maximum threshold)",
-    "Git commit completes successfully",
-    "No functional regressions in components",
-    "Maintained code readability and structure"
-  ]
+  "reporting_format": {
+    "phase_completion": "Phase X completed: Y warnings → Z warnings (Δ reduction)",
+    "final_summary": "ESLint cleanup completed: 309 → X warnings (Y% improvement)",
+    "failure_report": "Stopped at Phase X due to: [reason] - Rollback to previous state",
+    "brain_update": "Update brain/multi_ai_coordination_strategy.json with results"
+  }
 }
