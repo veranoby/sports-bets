@@ -5,12 +5,7 @@ import React, { useState, useEffect } from "react";
 import { usersAPI } from "../../config/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
-import {
-  User as UserIcon,
-  Mail,
-  Building,
-  Briefcase,
-} from "lucide-react";
+import { User as UserIcon, Mail, Building, Briefcase } from "lucide-react";
 import type { User } from "../../types";
 
 interface ExtendedProfileInfo extends NonNullable<User["profileInfo"]> {

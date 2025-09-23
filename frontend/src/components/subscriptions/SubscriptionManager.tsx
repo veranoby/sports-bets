@@ -11,11 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { subscriptionAPI } from "../../config/api";
-import {
-  Spin,
-  Alert,
-  Empty,
-} from "antd";
+import { Spin, Alert, Empty } from "antd";
 import { formatDate, formatCurrency } from "../../utils/formatters";
 import SubscriptionPlans from "./SubscriptionPlans";
 import "./SubscriptionManager.css";

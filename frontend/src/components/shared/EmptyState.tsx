@@ -46,7 +46,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     <div className={`text-center p-8 ${className}`}>
       <div className="mx-auto w-12 h-12 text-gray-400 mb-4">
         {React.isValidElement(icon)
-          ? React.cloneElement(icon as React.ReactElement<any>, {
+          ? React.cloneElement(icon as React.ReactElement, {
               className: "w-12 h-12",
             })
           : icon || <Calendar className="w-12 h-12" />}

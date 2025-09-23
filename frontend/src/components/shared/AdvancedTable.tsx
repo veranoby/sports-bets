@@ -3,7 +3,7 @@ import React from "react";
 interface TableColumn<T> {
   key: keyof T;
   title: string;
-  render?: (value: any, record: T) => React.ReactNode;
+  render?: (value: T[keyof T], record: T) => React.ReactNode;
 }
 
 interface FilterConfig {
@@ -28,7 +28,7 @@ interface AdvancedTableProps<T> {
     onPageChange: (page: number) => void;
   };
   filters?: FilterConfig[];
-  onFiltersChange?: (filters: any) => void;
+  onFiltersChange?: (filters: Record<string, string | string[] | number | Date | [Date, Date] | null>) => void;
   actions?: TableAction<T>[];
   exportable?: boolean;
   onExport?: (format: "pdf" | "excel") => void;

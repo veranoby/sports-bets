@@ -160,12 +160,12 @@ const Card: React.FC<CardProps> = ({
         icon as React.ReactElement,
         {
           className: `${iconSize} ${colors.icon}`,
-        } as any,
+        }
       );
     }
 
     // Si es un componente de icono de Lucide
-    const IconComponent = icon as any;
+    const IconComponent = icon as React.ComponentType<{ className?: string }>;
     return <IconComponent className={`${iconSize} ${colors.icon}`} />;
   };
 

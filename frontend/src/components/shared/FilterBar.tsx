@@ -23,7 +23,7 @@ interface FilterBarProps {
   searchPlaceholder?: string;
   onSearch?: (term: string) => void;
   filters?: FilterOption[];
-  onFilterChange?: (key: string, value: any) => void;
+  onFilterChange?: (key: string, value: string | string[] | number | Date | [Date, Date] | null) => void;
   onClearFilters?: () => void;
   className?: string;
   compact?: boolean;
@@ -59,7 +59,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   ).length;
 
   // Handler para cambios de filtro
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | string[] | number | Date | [Date, Date] | null) => {
     const newFilters = { ...activeFilters, [key]: value };
 
     // Remover filtros vacíos

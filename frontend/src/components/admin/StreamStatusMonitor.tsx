@@ -1,9 +1,16 @@
 import React, { useEffect } from "react";
 import useSSE from "../../hooks/useSSE";
 
+interface StreamStatus {
+  status: "live" | "offline" | "error";
+  viewers?: number;
+  timestamp?: string;
+  [key: string]: any; // Allow additional properties
+}
+
 interface StreamStatusMonitorProps {
   eventId: string;
-  onStatusUpdate: (status: any) => void;
+  onStatusUpdate: (status: StreamStatus) => void;
 }
 
 const StreamStatusMonitor: React.FC<StreamStatusMonitorProps> = ({

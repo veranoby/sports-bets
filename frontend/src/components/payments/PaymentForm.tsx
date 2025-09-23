@@ -56,7 +56,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       });
 
       onSuccess(transactionId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Payment failed:", err);
       // El error ya se maneja en el hook
     }
