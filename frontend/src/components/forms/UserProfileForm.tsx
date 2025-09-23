@@ -7,9 +7,6 @@ import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import {
   User as UserIcon,
-  Phone,
-  MapPin,
-  CreditCard,
   Mail,
   Building,
   Briefcase,

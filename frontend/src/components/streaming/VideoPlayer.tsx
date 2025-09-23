@@ -3,7 +3,6 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 import { Crown } from "lucide-react";
-import useStreamAnalytics from "../../hooks/useStreamAnalytics";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
 import { Modal, notification } from "antd";
 import PaymentProofUpload from "../user/PaymentProofUpload";

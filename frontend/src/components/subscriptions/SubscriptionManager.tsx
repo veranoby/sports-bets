@@ -1,9 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  CreditCard,
-  Calendar,
-  DollarSign,
-  ExternalLink,
   CheckCircle,
   AlertCircle,
   X,
@@ -16,24 +12,9 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { subscriptionAPI } from "../../config/api";
 import {
-  Card,
-  Button,
-  Tabs,
   Spin,
   Alert,
   Empty,
-  Typography,
-  List,
-  Avatar,
-  Tag,
-  Modal,
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  Space,
-  Pagination,
-  Badge,
 } from "antd";
 import { formatDate, formatCurrency } from "../../utils/formatters";
 import SubscriptionPlans from "./SubscriptionPlans";

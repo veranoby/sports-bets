@@ -9,7 +9,6 @@ import {
   Clock,
   Scale,
   Users,
-  Info,
   ArrowLeft,
   Crown,
   Activity,
@@ -86,7 +85,7 @@ const VideoPlayer = memo(
   ),
 );
 
-const ChatComponent = memo(({ eventId }: { eventId: string }) => (
+const ChatComponent = memo(() => (
   <div className="bg-[#1a1f37]/50 rounded-lg p-4">
     <h3 className="text-theme-primary font-semibold mb-3">Chat en Vivo</h3>
     <div className="space-y-2 max-h-40 overflow-y-auto">

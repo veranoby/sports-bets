@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 // Note: Stripe integration removed - using Kushki for LATAM payments
 // import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import {
-  Form,
-  Input,
-  Button,
-  Alert,
-  Spin,
-  Row,
-  Col,
-  Typography,
-  Divider,
-} from "antd";
 import { CreditCard, Lock, AlertCircle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { subscriptionAPI } from "../../config/api";
@@ -41,7 +30,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   className = "",
 }) => {
-  const { user: _user } = useAuth();
+  const { user } = useAuth();
 
   // Form state
   const [cardData, setCardData] = useState({

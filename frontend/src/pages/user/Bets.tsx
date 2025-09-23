@@ -1,16 +1,14 @@
 // frontend/src/pages/user/Bets.tsx - VERSIÓN CORREGIDA
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Navigate } from "react-router-dom"; // Added Navigate import
 import {
   Activity,
   TrendingUp,
-  Clock,
   DollarSign,
   Award,
   Plus,
-  Filter,
   ArrowLeft,
   Bell,
 } from "lucide-react";
