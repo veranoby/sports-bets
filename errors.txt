@@ -1,46 +1,71 @@
-analiza, confirma, y optimiza estos cambios sugeridos:
-1) para admin/venues y admin/galleras , el modal de "editar perfil" , todo debe pasar a español. la seccion "edit user profile", el campo "full name" debe ser "nombre del representante". Existe ahi una opcion "active user". Porque? no es contradictorio con el campo "status" de la seccion de "create venue information"?. analiza y de ser posible, unifica los conceptos.
-2) para admin/venues y admin/galleras , el modal de "editar perfil" tiene 3 botones de "save". deja solo uno, que grabe las actualizaciones en todas las secciones involucradas.
-3) para admin/venues y admin/galleras , el modal de "editar perfil" , en lugar de tener 3 secciones, implementa 3 pestañas. la tercera pestaña seria la de "suscripcion". Recuerda que el rol galleras tambien requiere esa pestaña. aqui vamois a cambiar la presentacion: debe haber unicamente 3 radiobuttons, con "gratis","acceso diario" y "acceso mensual". cada uno con su valor, que puedes consultar de tu conocimiento y brain. En esta pestaña debe salir tambien la ultima fecha de activacion de la suscripcion actual. tambien debe salir si la suscripcion esta activa. recuerda que una suscripcion se desactiva (pasa a gratis con sus limitaciones), si supera el tiempo establecido de sus suscripcion relativo a su ultima fecha de activacion. si no entiendes este punto, realiza las preguntas concernientes para aclarartelo.
-4) sobre esta pestaña de suscripcion, a lado de los radiobuttons de las opciones de suscripciones, debe haber un boton de "reactivar" y "cancelar". "Cancelar" pasa la suscripcion a gratuita. "reactivar" graba la nueva suscripcion elegida, y actualiza la fecha de activacion. 
-5) sobre esta pestaña de suscripcion, debe ser aplicada igual para la opcion de editar usuarios en admin/users
+consola del backend:
 
+🧠 Memory cache hit for key: maintenance_mode
+🧠 User cache hit for optional auth, userId: d447f8ed-1e4c-42de-b919-868d58fcbe08
+2025-09-22 20:20:22:2022 warn: ⚠️ Database operation attempt 1 failed:
+2025-09-22 20:20:22:2022 info: ⏳ Retrying operation in 1 seconds...
+2025-09-22 20:20:24:2024 warn: ⚠️ Database operation attempt 2 failed:
+2025-09-22 20:20:24:2024 info: ⏳ Retrying operation in 2 seconds...
+2025-09-22 20:20:26:2026 warn: ⚠️ Database operation attempt 3 failed:
+2025-09-22 20:20:26:2026 error: ❌ Database operation failed after 3 attempts
+2025-09-22 20:20:26:2026 error: 500 - invalid input syntax for type uuid: "featured" - /api/articles/featured?limit=5&type=banner - GET - ::1
+2025-09-22 20:20:26:2026 error: Error
+    at Query.run (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
+    at /home/veranoby/sports-bets/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at async PostgresQueryInterface.select (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:1001:12)
+    at async Article.findAll (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1824:21)
+    at async Article.findOne (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1998:12)
+    at async Article.findByPk (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1955:12)
+2025-09-22 20:20:26:2026 http: ← GET /api/articles/featured?limit=5&type=banner 500 4596ms
+2025-09-22 20:20:26:2026 warn: Error response: GET /api/articles/featured?limit=5&type=banner - 500 - 4596ms
+⚠️ Slow query detected: /api/articles/featured?limit=5&type=banner took 4596.13ms
+🚨 CRITICAL: Very slow query: /api/articles/featured?limit=5&type=banner took 4596.13ms
+2025-09-22 20:20:26:2026 http: → GET /api/articles/featured?limit=5&type=banner from ::1
+2025-09-22 20:20:26:2026 debug: Authorization header present
+🧠 Memory cache hit for key: maintenance_mode
+🧠 User cache hit for optional auth, userId: d447f8ed-1e4c-42de-b919-868d58fcbe08
+2025-09-22 20:20:27:2027 warn: ⚠️ Database operation attempt 1 failed:
+2025-09-22 20:20:27:2027 info: ⏳ Retrying operation in 1 seconds...
+2025-09-22 20:20:30:2030 warn: ⚠️ Database operation attempt 2 failed:
+2025-09-22 20:20:30:2030 info: ⏳ Retrying operation in 2 seconds...
+2025-09-22 20:20:32:2032 warn: ⚠️ Database operation attempt 3 failed:
+2025-09-22 20:20:32:2032 error: ❌ Database operation failed after 3 attempts
+2025-09-22 20:20:32:2032 error: 500 - invalid input syntax for type uuid: "featured" - /api/articles/featured?limit=5&type=banner - GET - ::1
+2025-09-22 20:20:32:2032 error: Error
+    at Query.run (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
+    at /home/veranoby/sports-bets/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at async PostgresQueryInterface.select (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:1001:12)
+    at async Article.findAll (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1824:21)
+    at async Article.findOne (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1998:12)
+    at async Article.findByPk (/home/veranoby/sports-bets/backend/node_modules/sequelize/src/model.js:1955:12)
+2025-09-22 20:20:32:2032 http: ← GET /api/articles/featured?limit=5&type=banner 500 5670ms
+2025-09-22 20:20:32:2032 warn: Error response: GET /api/articles/featured?limit=5&type=banner - 500 - 5670ms
+⚠️ Slow query detected: /api/articles/featured?limit=5&type=banner took 5670.59ms
+🚨 CRITICAL: Very slow query: /api/articles/featured?limit=5&type=banner took 5670.59ms
 
-anotaciones samuel:
-- requerimientos de presentacion: pedazo redaccion y link a externos (fb y tiktok). 
-- nombre definitivo: gallero.net
-- articulos pueden tener videos? editor wysiwyg?
-- obtener logo
-- creacion de instagram , tiktok y facebook. se puede integrar compartir de articulos de la plataforma a estas redes directo?
-- compartir un link de la plataforma, un articulo, para que exteriores lo vean, se puede? requeriria login previo? que recomiendas?
+consola navegador:
 
-- creacion de articulos, tanto entorno admin y users, pueden tener videos? editor wysiwyg?
-- sobre creacion de contenidos parainstagram , tiktok y facebook. se puede integrar compartir de articulos de la plataforma a estas redes, directo?
-- en la logica del ingreso/registro: analizar proceso de inscripcion: veo que se crea correcto el usuario en la base de datos. pero no hay algun elemento de "confirmacion" tipo email, para confirmar que los datos sean reales o algo asi? analiza, confirma, y optimiza
-- en entorno usuarios, /galleras y /venues tienen funcionalidades similares (correcto), pero esquemas visuales diferentes. normaliza a un solo esquema visual.
-- se puede ver y tener registrado en la base de datos, los usuarios que se conectaron a un evento en vivo?
+ErrorBoundary.tsx:24 Error caught by ErrorBoundary: TypeError: react_dom_1.default.findDOMNode is not a function
 
-api.ts:35 API Error: Network Error
-(anonymous)	@	api.ts:35
-Promise.then		
-getAll	@	api.ts:78
-(anonymous)	@	AdminDashboard.tsx:70
-(anonymous)	@	AdminDashboard.tsx:112
+ArticleEditor.tsx:131 TypeError: react_dom_1.default.findDOMNode is not a function
 
-api.ts:78  GET http://localhost:3001/api/events?today=true net::ERR_CONNECTION_REFUSED
+ErrorBoundary.tsx:19 Error caught by ErrorBoundary: TypeError: react_dom_1.default.findDOMNode is not a function
 
-api.ts:423  GET http://localhost:3001/api/users?status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+useApi.ts:191 Uncaught (in promise) AxiosError {message: 'Request failed with status code 503', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
 
-api.ts:423  GET http://localhost:3001/api/users?role=venue&status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+useApi.ts:182 ❌ Error fetching wallet: AxiosError {message: 'Request failed with status code 503', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
 
-api.ts:423  GET http://localhost:3001/api/users?role=gallera&status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+useApi.ts:152  GET http://localhost:5173/api/wallet 503 (Service Unavailable)
 
-api.ts:469  GET http://localhost:3001/api/articles?status=pending&limit=1 net::ERR_CONNECTION_REFUSED
+api.ts:24  GET http://localhost:5173/api/articles/featured?limit=5&type=banner 500 (Internal Server Error)
 
-api.ts:198  GET http://localhost:3001/api/wallet/transactions?type=withdrawal&status=pending&limit=1000 net::ERR_CONNECTION_REFUSED
+api.ts:34 Error at /articles/featured: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
 
-api.ts:215  GET http://localhost:3001/api/wallet/stats net::ERR_CONNECTION_REFUSED
+api.ts:24  GET http://localhost:5173/api/articles/featured?limit=5&type=banner 500 (Internal Server Error)
 
-Settings.tsx:49  GET http://localhost:3001/api/settings net::ERR_CONNECTION_REFUSED
+api.ts:34 Error at /articles/featured: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
 
- 
+useApi.ts:852  PUT http://localhost:5173/api/users/profile 400 (Bad Request)
+
+Profile.tsx:47 Error saving profile: AxiosError {message: 'Request failed with status code 400', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+

@@ -45,7 +45,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
       // Solo mostrar para roles específicos y en móvil
       const isMobile = window.innerWidth <= 768;
       const userRole = user?.role;
-      const shouldShow = userRole && showFor.includes(userRole) && isMobile && !isStandalone && autoShow;
+      const shouldShow = userRole && showFor.includes(userRole as 'user' | 'venue') && isMobile && !isStandalone && autoShow;
       
       if (shouldShow) {
         setTimeout(() => setIsVisible(true), delay);

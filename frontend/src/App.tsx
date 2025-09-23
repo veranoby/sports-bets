@@ -38,7 +38,8 @@ import SubscriptionsPage from "./pages/user/Subscriptions";
 import NewsPage from "./pages/user/News";
 import VenuesPage from "./pages/user/Venues";
 import GallerasPage from "./pages/user/Galleras";
-import UserProfilePage from "./pages/user/UserProfilePage";
+import VenueDetailPage from "./pages/user/VenueDetailPage";
+import GalleraDetailPage from "./pages/user/GalleraDetailPage";
 import ArticlePage from "./components/user/ArticlePage";
 
 // Lazy imports para rutas no críticas
@@ -131,9 +132,9 @@ const AppContent: React.FC = () => {
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/news" element={<NewsPage />} />
                     <Route path="/venues" element={<VenuesPage />} />
-          <Route path="/venues/:id" element={<UserProfilePage />} />
+          <Route path="/venues/:id" element={<VenueDetailPage />} />
           <Route path="/galleras" element={<GallerasPage />} />
-          <Route path="/galleras/:id" element={<UserProfilePage />} />
+          <Route path="/galleras/:id" element={<GalleraDetailPage />} />
           <Route path="/article/:articleId" element={<ArticlePage />} />
         </Route>
 

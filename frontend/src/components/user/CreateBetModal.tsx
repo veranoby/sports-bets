@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useBets } from "../../hooks/useApi";
 import Modal from "../shared/Modal";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import type { Bet } from "../../types";
 
 const CreateBetModal = ({
   fightId,

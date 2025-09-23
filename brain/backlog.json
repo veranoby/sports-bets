@@ -1,926 +1,374 @@
 {
   "metadata": {
-    "purpose": "Granular task tracking and Vibe Coding session management",
-    "updated": "2025-09-13",
-    "version": "2.2",
-    "cross_references": ["priorities_memory_index.json", "sdd_system.json"],
-    "work_instructions_file": "/home/veranoby/sports-bets/claude-prompt.json",
-    "database_source_of_truth": "/home/veranoby/sports-bets/backend/database-analysis/*.json",
-    "prd_sdd_updates": "Architecture decision: Hybrid SSE (admin) + WebSocket (betting only) confirmed",
-    "betting_websocket_rationale": "PAGO proposals, timeouts, and bidirectional interactions require WebSocket",
-    "backend_startup_issue_resolved": "TypeScript compilation path mismatch fixed - backend starts correctly",
-    "manual_del_operador_completed": "Updated with real state, no Docker, Node Media Server alternatives",
-    "rtmp_solution_confirmed": "Node Media Server (no Docker) for local development",
-    "production_streaming_architecture_finalized": {
-      "vps_rtmp_server": "DigitalOcean VPS $4/month Miami datacenter confirmed",
-      "cdn_provider": "Bunny.net selected - $0.005/GB, $15-25/month for projected usage",
-      "architecture_flow": "OBS Studio → VPS RTMP → Bunny.net CDN → 1000 viewers",
-      "cost_analysis": "Total $19-29/month operational cost (reduced from VPS optimization)",
-      "implementation_timeline": "Ready for deployment - claude-prompt-2.json created",
-      "deployment_status": "Backend and frontend TypeScript optimizations completed by Claude",
-      "development_workflow_status": {
-        "typescript_errors_resolved": "All critical React Hooks violations fixed",
-        "eslint_configuration": "Optimized for commit-friendly development (allows warnings)",
-        "pre_commit_hooks": "Updated to use lint:commit command with 100 warnings limit",
-        "commit_workflow": "✅ WORKING - Developers can commit with code quality warnings",
-        "critical_fixes_applied": [
-          "BettingNotifications.tsx - useSSE hook moved outside conditional logic", 
-          "BettingPanel.tsx - All hooks moved before conditional returns"
+    "purpose": "Task tracking and AI coordination for GalloBets MVP",
+    "updated": "2025-09-21",
+    "version": "3.0",
+    "cross_references": ["sdd_system.json", "multi_ai_coordination_strategy.json", "multi_ai_decision_matrix.json"],
+    "mvp_deadline": "September 21, 2025 (15 days)"
+  },
+
+  "mvp_15_day_timeline": {
+    "week_1_core_implementation": {
+      "day_1_2_sse_architecture": {
+        "status": "pending",
+        "owner": "Claude",
+        "priority": "P0",
+        "tasks": [
+          "Design complete SSE architecture",
+          "Implement SSE service backend",
+          "Define event types and subscriptions",
+          "Create error handling patterns"
         ],
-        "remaining_code_quality_issues": "370 TypeScript errors remaining (95% @typescript-eslint/no-explicit-any)",
-        "typescript_cleanup_status": {
-          "phase_1_claude_qwen": "✅ COMPLETED - Reduced 499 → 399 errors (unused vars, imports)",
-          "phase_2_gemini_pending": "🔄 IN PROGRESS - Interface-focused cleanup for remaining 370 errors",
-          "error_breakdown": "95% 'any' types requiring proper TypeScript interfaces",
-          "strategy": "Interface-first approach with systematic type definition",
-          "target": "0 TypeScript errors for production readiness"
-        }
-      }
-    },
-    "gemini_freemium_implementation_verification_2025_09_13": {
-      "status": "✅ FULLY VERIFIED AND COMPLETED",
-      "verification_date": "2025-09-13", 
-      "verified_by": "Claude Code deep analysis",
-      "claude_prompt_json_compliance": "100% - All tasks implemented exactly per specifications",
-      "implementation_quality_score": "EXCELLENT (A+)",
-      "total_estimated_hours": 15,
-      "actual_implementation_quality": "Exceeded expectations",
-      "backend_verification": {
-        "subscription_model_extension": "✅ 4 new fields added with proper types and comments",
-        "membership_check_endpoint": "✅ /auth/check-membership-status implemented with localStorage cache logic",
-        "admin_assignment_endpoint": "✅ /admin/users/:id/membership with proper validation",
-        "payment_proof_upload": "✅ Multer configuration + file validation + endpoint complete",
-        "typescript_compilation": "✅ npx tsc passes, server starts correctly"
-      },
-      "frontend_verification": {
-        "user_membership_panel": "✅ Complete admin component with Select dropdown + confirmation modal",
-        "payment_proof_upload": "✅ Drag-drop upload with validation + username assignment",
-        "membership_check_hook": "✅ localStorage caching + API throttling + error handling",
-        "profile_integration": "✅ PaymentProofUpload component integrated with refresh callback", 
-        "video_player_integration": "✅ Membership verification + upgrade modal before streaming",
-        "api_services": "✅ 3 new endpoints added to adminAPI, userAPI, authAPI"
-      },
-      "architecture_assessment": {
-        "separation_of_concerns": "EXCELLENT - Clean separation between admin/user components",
-        "reusability": "EXCELLENT - Components properly abstracted and reusable",
-        "error_handling": "EXCELLENT - Comprehensive try-catch + user notifications",
-        "performance": "EXCELLENT - LocalStorage caching + API call throttling",
-        "ux_considerations": "EXCELLENT - Loading states, confirmations, clear messaging"
-      },
-      "problem_resolution": {
-        "backend_startup_issue": "RESOLVED - Was TypeScript compilation path misconfiguration, not missing files",
-        "brain_system_correction": "Backend startup failure information was incorrect - corrected in backlog.json",
-        "actual_blocker": "package.json start script expected dist/index.js but tsc output was in dist/backend/src/index.js"
-      },
-      "recommendation": "READY FOR PRODUCTION - Implementation complete and verified at enterprise quality level",
-      "post_implementation_lesson": {
-        "issue_discovered": "npm run dev failure due to missing multer dependency and incorrect file targeting",
-        "lesson_learned": "Gemini requires explicit dependency management tasks and source file targeting in claude-prompt.json",
-        "prevention_measures_implemented": "Enhanced claude-prompt template with mandatory dependency installation, .ts file targeting, and verification requirements",
-        "brain_system_updated": "development_lessons.json updated with comprehensive Gemini instruction guidelines"
-      }
-    },
-    "payment_gateway_final_decision": {
-      "kushki_rejected": "High fixed fees make it unviable ($500+ monthly with 50 clients × $10)",
-      "square_unavailable": "Does not support Ecuador/LATAM markets - confirmed",
-      "mercadopago_unavailable": "Does not operate in Ecuador - confirmed",
-      "payphone_selected": {
-        "cost_analysis": "$58/month total (11.6% effective rate vs 10% budget target)",
-        "decision_rationale": "Only viable Ecuador option, slightly over budget acceptable",
-        "integration_complexity": "API REST available, requires custom recurring billing logic",
-        "implementation_priority": "P0 CRITICAL - replace Kushki integration"
-      },
-      "previous_analysis_validation": "9.2/10 Kushki implementation quality confirmed, architecture reusable for Payphone",
-      "implementation_approach": "Leverage existing PaymentService.ts structure, replace Kushki calls with Payphone API"
-    },
-    "database_optimization_critical_issues": {
-      "duplicate_indexes_identified": "events.stream_key (4 duplicates), users.email (4 duplicates), subscriptions.kushki_subscription_id (3 duplicates)",
-      "constraint_vs_index_issue": "Cannot DROP INDEX when backed by CONSTRAINT - must DROP CONSTRAINT instead",
-      "performance_impact": "Memory waste + INSERT/UPDATE degradation under load",
-      "immediate_action_required": "Execute SQL cleanup in Neon.tech editor before production launch"
-    },
-    "platform_enhancement_analysis_2025": {
-      "status": "FULLY_IMPLEMENTED",
-      "phase_name": "Comprehensive Platform Feature Analysis & Enhancement Planning",
-      "analysis_completion_date": "2025-01-15",
-      "implementation_completion_date": "2025-09-11", 
-      "total_estimated_hours": 35,
-      "total_actual_hours": 25,
-      "comprehensive_analysis_completed": {
-        "article_system": "✅ COMPLETED - Users can now create articles with approval workflow",
-        "social_media_integration": "✅ COMPLETED - SocialShare component with Facebook/Twitter/WhatsApp integration",
-        "email_verification": "✅ COMPLETED - Full SMTP service with verification tokens implemented",
-        "visual_schema_inconsistency": "✅ COMPLETED - UserEntityCard component provides consistent layout for all entities",
-        "live_event_tracking": "✅ COMPLETED - event_connections table with full analytics implemented"
-      },
-      "detailed_plan_created": {
-        "claude_prompt_updated": "Comprehensive technical specifications in claude-prompt.json",
-        "implementation_phases": [
-          "✅ Phase 1: Visual normalization + email verification (COMPLETED 2025-09-11)",
-          "✅ Phase 2: User articles + event tracking (COMPLETED 2025-09-11)", 
-          "✅ Phase 3: Social media integration (COMPLETED 2025-09-11)"
+        "success_criteria": [
+          "SSE endpoints working",
+          "Event types defined",
+          "Admin real-time updates functional"
         ]
       },
-      "priority_features_identified": [
-        "✅ P1: Email verification system (COMPLETED - security critical)",
-        "✅ P1: Visual schema normalization (COMPLETED - UX consistency)", 
-        "✅ P2: User article creation interface (COMPLETED - engagement)",
-        "✅ P2: Live event connection tracking (COMPLETED - analytics)",
-        "✅ P3: Social media sharing integration (COMPLETED - marketing)"
-      ]
-    },
-    "critical_database_issue_identified": {
-      "table": "users",
-      "problem": "842 updates vs 6 inserts (140 updates/user)",
-      "probable_cause": "Excessive login tracking or session refresh",
-      "investigation_required": "Check auth middleware and login frequency",
-      "impact": "Performance degradation and unnecessary database load",
-      "status": "partially_resolved",
-      "current_ratio": 93,
-      "implementation_completed": "Auth middleware fixed, login endpoint preserved",
-      "next_action": "Reset pg_stats for fresh measurement, verify no other update sources"
-    },
-    "roles_permissions_clarified": {
-      "all_roles_base_capabilities": "ALL roles (user, venue, gallera) can view streams, manage wallet, create/accept bets",
-      "additional_capabilities_by_role": {
-        "venue": "Manage venue entities + create articles + request events",
-        "gallera": "Manage gallera entities + create articles",
-        "user": "Base capabilities only"
+      
+      "day_3_4_frontend_sse": {
+        "status": "pending",
+        "owner": "Gemini",
+        "priority": "P0",
+        "tasks": [
+          "Create useSSE hook with reconnection",
+          "Implement admin dashboard components",
+          "Add system monitoring with SSE",
+          "Create real-time notifications"
+        ],
+        "success_criteria": [
+          "useSSE hook connects and receives data",
+          "Admin sees real-time updates",
+          "Automatic reconnection working"
+        ]
       },
-      "final_confirmation": "All roles confirmed - venues CAN bet and create articles, no inconsistencies remain",
-      "profile_editing_requirement": "Venues/galleras need dual editing: user.profile_info + entity table data"
+      
+      "day_5_6_betting_windows": {
+        "status": "pending",
+        "owner": "Claude + Gemini",
+        "priority": "P0",
+        "tasks": [
+          "Design fight temporal logic",
+          "Create CurrentBettingPanel",
+          "Implement PAGO/DOY proposals",
+          "Add countdown timers"
+        ],
+        "success_criteria": [
+          "Fight status transitions working",
+          "Betting only during 'betting' status",
+          "PAGO/DOY via minimal WebSocket"
+        ]
+      },
+      
+      "day_7_operator_dashboard": {
+        "status": "pending",
+        "owner": "Gemini",
+        "priority": "P0",
+        "tasks": [
+          "Create operator dashboard",
+          "Implement permission restrictions",
+          "Add event management for operators",
+          "Create fight control panel"
+        ],
+        "success_criteria": [
+          "Operators cannot modify admins",
+          "Event assignment working",
+          "Fight transitions functional"
+        ]
+      }
+    },
+    
+    "week_2_optimization": {
+      "day_8_10_database_performance": {
+        "status": "✅ COMPLETED 2025-09-22",
+        "owner": "Claude ONLY",
+        "priority": "P0_CRITICAL",
+        "tasks": [
+          "✅ Analyze slow queries (1-3+ seconds) - COMPLETED",
+          "✅ Add optimized indexes (8 critical indexes) - COMPLETED",
+          "✅ Fix connection pool configuration - COMPLETED",
+          "✅ Resolve ETIMEDOUT errors - COMPLETED",
+          "✅ Implement query caching (ultra-aggressive) - COMPLETED"
+        ],
+        "success_criteria": [
+          "✅ 95% queries <500ms - ACHIEVED (300-500ms)",
+          "✅ Zero ETIMEDOUT errors - ACHIEVED",
+          "✅ Stable connection pool - ACHIEVED"
+        ],
+        "performance_results": "Response times improved 75%: 1-4s → 300-500ms",
+        "forbidden": "QWEN absolutely excluded"
+      },
+      
+      "day_11_12_integration": {
+        "status": "pending",
+        "owner": "Claude + Gemini",
+        "priority": "P0",
+        "tasks": [
+          "End-to-end betting flow test",
+          "Streaming integration validation",
+          "Error handling verification",
+          "Performance testing"
+        ],
+        "success_criteria": [
+          "Complete user flow working",
+          "All integrations functional",
+          "No breaking bugs"
+        ]
+      },
+      
+      "day_13_14_polish": {
+        "status": "pending",
+        "owner": "Gemini + limited QWEN",
+        "priority": "P1",
+        "tasks": [
+          "UI/UX improvements",
+          "TypeScript error cleanup",
+          "Documentation updates",
+          "Final testing"
+        ],
+        "qwen_restrictions": [
+          "Only simple TypeScript fixes",
+          "New test files only",
+          "Documentation additions",
+          "No core logic changes"
+        ]
+      },
+      
+      "day_15_deployment": {
+        "status": "pending",
+        "owner": "Claude",
+        "priority": "P0",
+        "tasks": [
+          "Production deployment",
+          "Monitoring setup",
+          "Launch validation",
+          "Performance verification"
+        ],
+        "success_criteria": [
+          "System live in production",
+          "All features working",
+          "Monitoring active",
+          "MVP complete! 🎉"
+        ]
+      }
     }
   },
-  "phase_2b_completion": {
-    "status": "completed",
-    "completion_date": "2025-09-06",
-    "critical_achievements": [
-      "✅ P0 SSE blocker resolved - server startup working",
-      "✅ All 5 SSE endpoints implemented and tested",
-      "✅ TypeScript compilation issues fixed (ts-node cache)",
-      "✅ Neon.tech PostgreSQL connection established",
-      "✅ RTMP streaming server operational (ports 1935/8000)",
-      "✅ SSE connection management with proper cleanup",
-      "✅ Import errors corrected in streaming services"
+
+  "current_blockers": {
+    "database_performance": {
+      "severity": "CRITICAL",
+      "impact": "System unusable with current 1-3s queries",
+      "owner": "Claude",
+      "solution": "Day 8-10 dedicated to optimization",
+      "metrics": [
+        "Current: 1-3+ seconds per query",
+        "Target: <500ms for 95% of queries"
+      ]
+    },
+    
+    "typescript_errors": {
+      "severity": "MEDIUM",
+      "impact": "370+ @typescript-eslint/no-explicit-any errors",
+      "owner": "QWEN with Claude validation",
+      "solution": "Gradual cleanup on day 13-14",
+      "restrictions": "QWEN limited to simple type additions only"
+    },
+    
+    "authentication_fragility": {
+      "severity": "HIGH",
+      "impact": "QWEN previously broke Profile.tsx and auth",
+      "owner": "Claude ONLY",
+      "solution": "FORBIDDEN files list enforced",
+      "prevention": "Git backup before any QWEN session"
+    }
+  },
+
+  "completed_work": {
+    "backend_infrastructure": {
+      "completion": "85%",
+      "achievements": [
+        "PostgreSQL on Neon.tech configured",
+        "Sequelize models complete",
+        "JWT authentication working",
+        "Basic API endpoints functional",
+        "RTMP streaming configured"
+      ]
+    },
+    
+    "frontend_base": {
+      "completion": "75%",
+      "achievements": [
+        "React + TypeScript setup",
+        "Tailwind CSS configured",
+        "Admin layout created",
+        "User dashboard working",
+        "Basic components ready"
+      ]
+    },
+    
+    "streaming_system": {
+      "completion": "70%",
+      "achievements": [
+        "RTMP server setup",
+        "OBS integration framework",
+        "Stream key generation",
+        "Basic player component"
+      ],
+      "pending": [
+        "End-to-end testing",
+        "CDN integration",
+        "Performance optimization"
+      ]
+    }
+  },
+
+  "ai_task_assignments": {
+    "claude_exclusive": [
+      "Database performance optimization",
+      "SSE/WebSocket architecture",
+      "Betting logic implementation",
+      "Authentication fixes",
+      "Integration validation",
+      "Deployment coordination"
     ],
-    "critical_knowledge_captured": [
-      "TypeScript compilation: 'npx tsc' must run from /backend only, not project root",
-      "ts-node cache issues: Clear with 'rm -rf node_modules/.cache .ts-node'",
-      "SSE architecture pattern established for scalable real-time updates",
-      "Connection registry pattern for managing multiple SSE clients"
+    
+    "gemini_primary": [
+      "React component creation",
+      "TypeScript interfaces",
+      "UI/UX implementation",
+      "SSE hook integration",
+      "Responsive design",
+      "Admin/Operator dashboards"
+    ],
+    
+    "qwen_limited": [
+      "Simple TypeScript cleanup",
+      "New test file creation",
+      "Documentation updates",
+      "CSS styling additions"
+    ],
+    
+    "forbidden_for_qwen": [
+      "Profile.tsx",
+      "AuthContext.tsx",
+      "auth.ts",
+      "api.ts",
+      "Any database work",
+      "Any authentication logic",
+      "Any betting logic",
+      "Any real-time systems"
     ]
   },
-  "phase_4_priorities": {
-    "status": "active",
-    "phase_name": "Database Performance Optimization + Production Streaming Infrastructure", 
-    "total_estimated_hours": 14,
-    "operator_admin_confirmed": "✅ YA IMPLEMENTADO - Operators use admin environment with role hierarchy. AdminSidebar filtering + Users.tsx data filtering + Articles access working correctly",
-    "P0_global_settings_system": {
-      "status": "completed",
-      "priority": "P0",
-      "description": "Admin settings interface to enable/disable wallets/betting vs environment variables",
-      "estimated_hours": 8,
-      "actual_hours": 8,
-      "completion_date": "2025-09-08",
-      "features": ["✅ system_settings table", "✅ admin interface", "✅ feature toggles", "✅ Redis caching"],
-      "success_criteria_met": "5/5 - Testing report confirms full functionality"
-    },
-    "P0_database_performance_optimization": {
-      "status": "active",
-      "priority": "P0",
-      "description": "Critical database optimizations for 1000+ user scaling",
-      "estimated_hours": 3,
-      "immediate_actions": [
-        "Drop duplicate constraints/indexes in Neon.tech",
-        "Implement connection pooling (max 20 connections)",
-        "Add performance monitoring middleware",
-        "Optimize EventService queries with eager loading"
-      ],
-      "performance_target": "Support 500+ concurrent users without degradation"
-    },
-    "P0_production_streaming_infrastructure": {
-      "status": "planned",
-      "priority": "P0",
-      "description": "VPS + Bunny.net CDN production setup",
-      "estimated_hours": 8,
-      "requirements": ["VPS nginx-rtmp setup", "Bunny.net integration", "OBS Studio testing"]
-    },
-    "P1_settings_integration": {
-      "status": "planned", 
-      "priority": "P1",
-      "description": "Integrate settings system with existing wallet/betting endpoints",
-      "estimated_hours": 3
-    }
-  },
-  "current_development_focus_2025": {
-    "feature_enhancement_phase": {
-      "priority": "P0",
-      "status": "COMPLETED",
-      "completion_date": "2025-09-11",
-      "total_estimated_hours": 35,
-      "total_actual_hours": 25,
-      "focus_areas": {
-        "user_experience_consistency": {
-          "visual_normalization": "✅ COMPLETED - UserEntityCard component created and integrated",
-          "estimated_hours": 3,
-          "actual_hours": 2,
-          "status": "COMPLETED",
-          "completion_date": "2025-09-11"
-        },
-        "security_enhancement": {
-          "email_verification": "✅ COMPLETED - Database schema + backend API + email service ready", 
-          "estimated_hours": 6,
-          "actual_hours": 4,
-          "status": "COMPLETED",
-          "completion_date": "2025-09-11"
-        },
-        "user_engagement": {
-          "article_creation_interface": "✅ COMPLETED - Frontend components (CreateArticle.tsx, MyArticles.tsx) functional",
-          "estimated_hours": 4,
-          "actual_hours": 3,
-          "status": "COMPLETED", 
-          "completion_date": "2025-09-11"
-        },
-        "analytics_capability": {
-          "live_event_tracking": "✅ COMPLETED - event_connections table + backend API + WebSocket tracking",
-          "estimated_hours": 8,
-          "actual_hours": 6,
-          "status": "COMPLETED",
-          "completion_date": "2025-09-11"
-        },
-        "marketing_integration": {
-          "social_media_sharing": "✅ COMPLETED - SocialShare component + react-share integration functional",
-          "estimated_hours": 16,
-          "actual_hours": 10,
-          "status": "COMPLETED",
-          "completion_date": "2025-09-11"
-        }
-      }
-    }
-  },
-  "legacy_active_tasks": {
-    "P0_admin_environment": {
-      "parent_priority": "admin_environment_completion",
-      "status": "near_completion",
-      "completion": 90,
-      "subtasks": {
-        "system_monitoring_refinement": {
-          "status": "completed",
-          "complexity": "medium",
-          "estimated_hours": 4,
-          "actual_hours": 3,
-          "tool": "claude_code",
-          "dependencies": [],
-          "description": "Complete SystemMonitoring component with real-time data",
-          "acceptance_criteria": [
-            "✅ Real-time streaming metrics display with SSE",
-            "✅ Database connection monitoring",
-            "✅ Error log aggregation functional",
-            "✅ Multi-service status tracking (API, DB, Streaming, Cache)",
-            "✅ Automatic refresh intervals"
-          ],
-          "current_blockers": [],
-          "completion_notes": "Exceeded expectations - enterprise-grade monitoring dashboard with SSE real-time updates"
-        },
-        "user_role_hierarchy_completion": {
-          "status": "in_progress", 
-          "complexity": "medium",
-          "estimated_hours": 6,
-          "tool": "gemini_cli",
-          "dependencies": [],
-          "description": "Finalize admin interface for user management across all roles",
-          "acceptance_criteria": [
-            "Admin can manage users, venues, galleras, operators",
-            "Role-based permission enforcement",
-            "Bulk user operations functional"
-          ],
-          "current_blockers": []
-        }
-      }
-    },
-    "P0_operator_integration": {
-      "parent_priority": "operator_environment_integration",
-      "status": "planned",
-      "completion": 0,
-      "subtasks": {
-        "operator_permission_system": {
-          "status": "planned",
-          "complexity": "high",
-          "estimated_hours": 8,
-          "tool": "claude_code",
-          "dependencies": ["user_role_hierarchy_completion"],
-          "description": "Implement hierarchical permissions for operator role",
-          "acceptance_criteria": [
-            "Operators inherit limited admin capabilities",
-            "Cannot manage admin users or operators",
-            "Can manage events, venues, users within assigned scope",
-            "Permission boundaries clearly enforced"
-          ],
-          "technical_approach": "Extend existing user/venue/gallera unification pattern",
-          "current_blockers": ["Waiting for admin environment completion"]
-        },
-        "operator_dashboard_creation": {
-          "status": "planned",
-          "complexity": "medium", 
-          "estimated_hours": 6,
-          "tool": "gemini_cli",
-          "dependencies": ["operator_permission_system"],
-          "description": "Create operator-specific dashboard with limited admin tools",
-          "acceptance_criteria": [
-            "Operator sees only relevant admin sections",
-            "Streamlined interface for daily operations",
-            "Quick access to event management and streaming controls"
-          ],
-          "current_blockers": ["Waiting for permission system"]
-        }
-      }
-    },
-    "P0_transmission_workflow": {
-      "parent_priority": "transmission_workflow_completion",
-      "status": "near_completion",
-      "completion": 85,
-      "subtasks": {
-        "rtmp_obs_integration_finalization": {
-          "status": "completed",
-          "complexity": "high",
-          "estimated_hours": 10,
-          "actual_hours": 8,
-          "tool": "claude_code",
-          "dependencies": [],
-          "description": "Complete RTMP streaming with OBS configuration",
-          "acceptance_criteria": [
-            "✅ Stream key generation functional",
-            "✅ OBS configuration automated with getOBSConfiguration",
-            "✅ Stream quality controls working",
-            "✅ Stream start/stop controls operational",
-            "✅ RTMP server health monitoring",
-            "✅ Stream analytics and viewer tracking",
-            "✅ Automated stream lifecycle management"
-          ],
-          "current_progress": "Enterprise-grade RTMP service implemented with full analytics",
-          "current_blockers": [],
-          "completion_notes": "Significantly exceeded scope - includes viewer analytics, stream health monitoring, and advanced stream management"
-        },
-        "websocket_realtime_controls": {
-        "status": "completed",
-        "complexity": "medium",
-        "estimated_hours": 6,
-        "actual_hours": 5,
-        "tool": "claude_code",
-        "dependencies": [],
-        "description": "Real-time streaming controls via WebSocket",
-        "acceptance_criteria": [
-        "✅ Live viewer count updates with 10s intervals",
-        "✅ Stream status broadcasting to all namespaces",
-        "✅ Performance monitoring real-time",
-          "✅ Operator control responsiveness",
-          "✅ Dual namespace architecture (/stream and /stream-control)",
-          "✅ JWT authentication for both namespaces",
-            "✅ Automated inactive viewer cleanup",
-            "✅ Comprehensive analytics broadcasting"
-          ],
-          "current_progress": "Professional WebSocket implementation with dual namespaces and full feature set",
-          "current_blockers": [],
-          "completion_notes": "Production-ready implementation with authentication, analytics, and automated cleanup"
-        },
-        "viewer_authentication_system": {
-          "status": "planned",
-          "complexity": "medium",
-          "estimated_hours": 5,
-          "tool": "claude_code",
-          "dependencies": ["subscription system integration"],
-          "description": "Authenticate viewers based on subscription status",
-          "acceptance_criteria": [
-            "Subscription validation for stream access",
-            "JWT tokens for stream authentication",
-            "Graceful handling of expired subscriptions"
-          ],
-          "current_blockers": ["Need subscription system verification"]
-        }
-      }
-    },
-    "P0_deployment_preparation": {
-      "parent_priority": "mvp_deployment_preparation",
-      "status": "planned",
-      "completion": 0,
-      "subtasks": {
-        "production_environment_setup": {
-          "status": "planned",
-          "complexity": "medium",
-          "estimated_hours": 4,
-          "tool": "manual_configuration",
-          "dependencies": ["all_p0_tasks"],
-          "description": "Configure production environment on Neon.tech + hosting",
-          "acceptance_criteria": [
-            "Environment variables configured",
-            "Database migrations executed",
-            "SSL certificates installed",
-            "Performance monitoring enabled"
-          ]
-        },
-        "end_to_end_testing": {
-          "status": "planned",
-          "complexity": "medium",
-          "estimated_hours": 6,
-          "tool": "manual_testing",
-          "dependencies": ["production_environment_setup"],
-          "description": "Complete system testing with real users",
-          "acceptance_criteria": [
-            "Full user registration → subscription → stream access flow tested",
-            "Operator event creation → stream management tested",
-            "Payment processing verified",
-            "Performance under load validated"
-          ]
-        }
-      }
-    }
-  },
-  "vibe_coding_sessions": {
-    "critical_streaming_workflow": {
-      "architecture_decision_final": {
-        "hybrid_approach_confirmed": "SSE for admin/notifications + WebSocket for betting only",
-        "sse_usage": ["Admin interface real-time updates", "System notifications", "Event status changes", "Stream monitoring"],
-        "websocket_usage": ["MINIMAL: Only PAGO/DOY proposals with bidirectional timeout handling"],
-        "benefits_target": ["Simplified admin architecture", "Reduced memory leaks", "Better separation of concerns", "Polished betting UX", "Easier debugging"]
-      },
-      "admin_transmission_management": {
-        "database_structure_analysis": {
-          "events_table": "status enum: scheduled→in-progress→completed, operator_id, stream_key, stream_url",
-          "fights_table": "status enum: upcoming→betting→live→completed, start_time, end_time, number (order)",
-          "users_table": "role enum: admin, operator, venue, user, gallera"
-        },
-        "workflow_states": {
-          "event_preparation": "Admin creates event (scheduled) → assigns operator → generates stream_key",
-          "event_activation": "Event day → Admin/Operator enables (in-progress) → creates fights list",
-          "transmission_cycle": "Start fight (live) → stream active → end fight (completed) → prepare next",
-          "between_fights": "Interview sessions (TBD: part of transmission or separate tag)",
-          "event_completion": "All fights completed → event status (completed)"
-        },
-        "technical_requirements": {
-          "stream_management": "Seamless start/stop between fights without technical complexity",
-          "notification_flow": "Real-time updates to all stakeholders without overwhelming",
-          "operator_limitations": "Hierarchical permissions - operators cannot manage admin/operator users",
-          "error_handling": "Graceful failure recovery during live transmissions"
-        }
-      }
-    },
-    "architecture_decisions_confirmed": {
-    "hybrid_approach_finalized": {
-    "sse_usage": "Admin interface + system notifications",
-    "websocket_usage": "MINIMAL: Only PAGO/DOY proposals with bidirectional timeout handling",
-    "rationale": "Betting requires bidirectional real-time for PAGO proposals, matching, timeouts"
-    },
-      "target_benefits": {
-        "verify_sse_endpoints_work": true,
-        "test_admin_sse_user_websocket_simultaneously": true,
-        "no_breaking_changes": true,
-        "simplified_architecture_reduces_bugs": true,
-        "reduced_memory_leaks_admin_interface": true,
-        "polished_betting_experience_users": true
-      },
-      "betting_system_requirements": {
-        "pago_proposals_only": "ONLY WebSocket use: User B proposes PAGO/DOY → User A accepts/rejects (3min timeout)",
-        "auto_matching_sse": "Auto-matching uses SSE notification, not WebSocket", 
-        "wallet_manual_refresh": "Wallet operations use manual refresh, no WebSocket",
-        "no_dynamic_suggestions": "Betting suggestions are click-based, no live typing",
-        "no_chat_no_fight_rooms": "No chat system exists - WebSocket minimal usage only"
-      }
-    },
-    "project_cleanup_requirements": {
-      "deprecated_files_removal": {
-        "backend_duplicates": [
-          "backend/src/sockets/streamingSocket.js (keep .ts)",
-          "backend/src/services/rtmpService.js (keep .ts)", 
-          "backend/src/services/paymentService.js (keep .ts)",
-          "backend/src/services/streamHealthCheck.js (keep .ts)"
-        ],
-        "frontend_unused": [
-          "frontend/src/components/betting/BettingNotifications.tsx (feature disabled)"
-        ],
-        "consolidation_pattern": "Always keep TypeScript versions, remove JavaScript duplicates"
-      },
-      "architecture_cleanup": {
-        "websocket_singleton_removal": "Remove complex WebSocket singleton patterns",
-        "sse_migration": "Replace admin WebSocket usage with SSE",
-        "polling_removal": "Remove any remaining polling mechanisms"
-      }
-    },
-    "session_tracking": {
-      "last_session": {
-        "date": "2025-08-30",
-        "tool": "claude_code",
-        "focus": "Admin interface system monitoring",
-        "duration_hours": 2,
-        "outcomes": [
-          "SystemMonitoring component structure created",
-          "Real-time data flow architecture planned",
-          "API endpoints for system status defined"
-        ],
-        "next_session_prep": "Focus on connecting real-time streaming metrics"
-      },
-      "upcoming_sessions": [
-        {
-          "planned_date": "2025-09-01",
-          "tool": "claude_code", 
-          "focus": "Complete RTMP integration and testing",
-          "estimated_duration": 3,
-          "prerequisites": ["Review current RTMPConfig component", "Test OBS connection"]
-        },
-        {
-          "planned_date": "2025-09-02",
-          "tool": "gemini_cli",
-          "focus": "Operator permission system implementation",
-          "estimated_duration": 4,
-          "prerequisites": ["Admin environment completion verified"]
-        }
-      ]
-    },
-    "session_outcomes_log": [
-      {
-        "date": "2025-08-29",
-        "tool": "gemini_cli", 
-        "focus": "Database schema review and frontend integration",
-        "achievements": [
-          "Confirmed PostgreSQL schema complete",
-          "Identified subscription system integration points",
-          "User role hierarchy clarified"
-        ],
-        "challenges": [
-          "Operator permission boundaries need definition",
-          "Stream analytics integration complex"
-        ],
-        "follow_up_required": [
-          "Define exact operator limitations",
-          "Plan WebSocket integration approach"
-        ]
-      }
-    ]
-  },
-  "coding_environment": {
-    "primary_tools": {
-      "claude_code": {
-        "use_case": "Complex backend logic, API development, database integration",
-        "current_focus": "RTMP streaming system completion",
-        "coordination_with_brain": "Check sdd_system.json + priorities before sessions"
-      },
-      "gemini_cli": {
-        "use_case": "Frontend components, UI interactions, React development",
-        "current_focus": "Admin dashboard and operator interface",
-        "coordination_with_brain": "Reference UI_UX.json for consistency"
-      },
-      "gemini_2.5_pro": {
-        "use_case": "Architecture planning, JSON specifications, strategic decisions",
-        "current_focus": "System design validation and planning sessions",
-        "coordination_with_brain": "Use all brain files for comprehensive context"
-      },
-      "cursor_windsurf": {
-        "use_case": "UI refinements, debugging, code review",
-        "current_focus": "Interface polishing and user experience optimization",
-        "coordination_with_brain": "Reference UI_UX.json + user feedback"
-      }
-    },
-    "development_workflow": {
-      "planning_phase": "Gemini 2.5 Pro + Claude with brain context → JSON specifications",
-      "implementation_phase": "Claude Code (backend) + Gemini CLI (frontend)",
-      "verification_phase": "Claude GitHub integration + manual browser testing",
-      "refinement_phase": "Cursor/Windsurf for UI polish"
-    }
-  },
-  "critical_context_notes": {
-    "gemini_cli_failure_prevention": {
-      "previous_failures": "JSONs too strategic vs operational, generic vs code-specific, architectural vs practical",
-      "lessons_learned_sse_blocker": "Missing sse.ts file not specified in JSON instructions - need file-level specificity",
-      "json_improvements_applied": {
-        "file_specificity": "claude-prompt.json updated with exact file creation requirements",
-        "import_verification": "Check all imports have corresponding files",
-        "before_after_examples": "Show exact code changes needed"
-      },
-      "required_approach": [
-        "File-level specificity - exactamente qué archivos crear",
-        "Line-level context - dónde están los errores actuales",
-        "Before/after examples - mostrar código actual vs esperado",
-        "Tool-specific commands - comandos exactos para Gemini CLI"
-      ]
-    },
-    "focus_areas": {
-      "primary": "Admin environment (including operator)",
-      "excluded": "User environment (venues, galleras) - NOT working on this yet",
-      "critical_workflow": "Admin streaming transmission management with many subtleties"
-    },
-    "streaming_workflow_requirements": {
-      "flow": [
-        "1. Event created for specific day (status: scheduled)",
-        "2. Event day arrives → enable event (status: in-progress)", 
-        "3. Create fights in order (status: upcoming)",
-        "4. Start fight → transmission (status: live)",
-        "5. End fight → transmission (status: completed)",
-        "6. Prepare next fight OR interview session",
-        "7. Repeat until event complete"
-      ],
-      "interview_sessions": "Between fights - need to decide if part of transmission or separate tag",
-      "user_experience": "Non-technical users need fluid, easy process",
-      "notification_system": "Be extremely careful with notification implementation"
-    },
-    "crud_completion_status": "All CRUD elements should be finished (users, events, fights, articles, venues, galleras, ads)",
-    "database_integrity": "backend/database-analysis/*.json is source of truth, not models/sequelize - report inconsistencies"
-  },
+
   "technical_debt": {
-    "high_priority": [
+    "critical_p0": [
       {
-        "item": "Database constraint optimization",
-        "impact": "Performance degradation as users scale", 
-        "estimated_fix_time": 4,
-        "defer_until": "Post-MVP launch",
-        "rationale": "Current performance acceptable for MVP user load"
+        "issue": "Database query performance",
+        "current": "1-3+ seconds per query",
+        "target": "<500ms",
+        "owner": "Claude",
+        "timeline": "Day 8-10"
+      },
+      {
+        "issue": "Connection pool exhaustion",
+        "current": "ETIMEDOUT errors frequent",
+        "target": "Zero timeouts",
+        "owner": "Claude",
+        "timeline": "Day 8-10"
       }
     ],
-    "medium_priority": [
+    
+    "important_p1": [
       {
-        "item": "WebSocket connection pooling",
-        "impact": "Resource usage optimization",
-        "estimated_fix_time": 6,
-        "defer_until": "After user base > 100 concurrent",
-        "rationale": "Not blocking for initial user acquisition"
+        "issue": "TypeScript errors",
+        "current": "370+ any errors",
+        "target": "0 errors",
+        "owner": "QWEN + Claude",
+        "timeline": "Day 13-14"
+      },
+      {
+        "issue": "Test coverage",
+        "current": "Minimal tests",
+        "target": "Critical paths tested",
+        "owner": "Gemini",
+        "timeline": "Day 11-12"
       }
     ],
-    "low_priority": [
-      {
-        "item": "Code documentation completion", 
-        "impact": "Developer experience",
-        "estimated_fix_time": 8,
-        "defer_until": "Team expansion or handoff needed",
-        "rationale": "Solo development doesn't require extensive docs immediately"
-      }
+    
+    "deferred_post_mvp": [
+      "Advanced analytics dashboard",
+      "Mobile app development",
+      "International expansion features",
+      "Advanced betting features"
     ]
   },
-  "implementation_guidelines": {
-      "file_specificity_requirements": {
-        "exact_files": "Always specify exact file paths to modify",
-        "line_numbers": "Identify specific line ranges with current errors",
-        "before_after": "Show actual current code vs expected replacement",
-        "gemini_cli_commands": "Provide exact commands for tool execution"
-      },
-      "database_verification": {
-        "primary_source": "backend/database-analysis/*.json files",
-        "secondary_check": "Sequelize models (but don't trust 100%)",
-        "inconsistency_reporting": "Always flag mismatches between analysis and models"
-      }
+
+  "success_metrics": {
+    "mvp_delivery": {
+      "deadline": "September 21, 2025",
+      "confidence": "85%",
+      "risks": [
+        "Database performance resolution",
+        "Integration complexity",
+        "QWEN destructive potential"
+      ]
     },
-    "immediate_work_priorities": [
-    "✅ COMPLETED: Database performance optimizations",
-    "✅ COMPLETED: Backend connection pooling + monitoring", 
-    "✅ COMPLETED: EventService optimization",
-    "✅ COMPLETED: Payment gateway analysis - Payphone selected as only viable Ecuador option",
-    "✅ COMPLETED: Local development environment optimizations (ESLint, testing, env validation, pre-commit hooks)",
-    "P0 CRITICAL: Replace Kushki integration with Payphone (custom recurring billing required)",
-    "P0 CRITICAL: Implement custom subscription logic (Payphone lacks native recurring)",
-      "P1: Deploy streaming infrastructure (DigitalOcean + Bunny.net)",
-      "P1: Complete frontend TypeScript corrections"
-    ],
-  "qwen_coder_workflow_implementation_2025_09_15": {
-    "status": "READY_FOR_EXECUTION",
-    "preparation_date": "2025-09-15",
-    "target_ai": "QWen 3 Coder",
-    "estimated_total_time": "12-16 hours",
-    "priority": "P0 CRITICAL",
-    "objective": "Complete admin/operator workflow integration for streaming events management",
-    "deliverables_prepared": {
-      "streaming_local_testing_phase_5": "✅ COMPLETED - Full operator workflow documentation added",
-      "claude_prompt_qwen_workflow_json": "✅ COMPLETED - QWen-optimized implementation plan created",
-      "brain_system_integration": "✅ COMPLETED - Prevention strategies and lessons integrated",
-      "qwen_vs_gemini_research": "✅ COMPLETED - QWen specific optimizations identified"
+    
+    "core_features": {
+      "sse_real_time": "Must work with <1s latency",
+      "betting_windows": "Temporal logic enforced",
+      "operator_dashboard": "Permission restrictions working",
+      "database_performance": "Queries <500ms",
+      "authentication": "Zero breaking changes"
     },
-    "critical_components_to_implement": {
-      "backend_workflow_apis": "Event/fight status transitions + stream key generation",
-      "frontend_admin_interface": "Complete workflow controls + real-time updates", 
-      "operator_role_restrictions": "Role-based UI filtering and permissions",
-      "real_time_synchronization": "SSE + WebSocket integration for live updates",
-      "end_to_end_testing": "STREAMING-LOCAL-TESTING.md Phase 5 validation"
-    },
-    "qwen_coder_advantages": {
-      "context_size": "256K-1M tokens - can load entire codebase",
-      "agentic_capabilities": "Multi-step workflows and file coordination",
-      "parser_optimization": "Enhanced React/TypeScript code understanding",
-      "cost_effectiveness": "2K requests/day free tier vs paid alternatives"
-    },
-    "prevention_strategies_applied": {
-      "dependency_management": "Mandatory Task 0 with explicit npm install + verification",
-      "source_file_targeting": "Always .ts files, never .js compiled files",
-      "architecture_respect": "Extend admin interface vs creating separate components",
-      "compilation_verification": "npx tsc from /backend directory after every change"
-    },
-    "success_criteria": {
-      "workflow_completion": "Full event → peleas → transmisión flow working",
-      "admin_interface": "Intuitive controls for non-technical operators",
-      "real_time_sync": "State changes synchronized across all interfaces",
-      "streaming_integration": "OBS + stream key generation working",
-      "phase_5_validation": "STREAMING-LOCAL-TESTING.md executable end-to-end"
-    },
-    "execution_readiness": {
-      "qwen_setup": "✅ QWen Coder CLI ready for installation",
-      "project_state": "✅ Backend 3001 + Frontend 5174 running",
-      "brain_files": "✅ All brain/*.json files updated and accessible", 
-      "documentation": "✅ STREAMING-LOCAL-TESTING.md Phase 5 complete",
-      "implementation_plan": "✅ claude-prompt-qwen-workflow.json ready"
-    },
-    "next_action": "HYBRID WORKFLOW ACTIVE: Claude Coordinator + Qwen Executor established as permanent pattern"
-  },
-      "status": "ENTERPRISE_GRADE_COMPLETED",
-      "completion_date": "2025-09-14",
-      "analysis_findings": {
-        "backend_streaming": "✅ COMPLETED - RTMP Service, WebSocket dual namespace, SSE architecture",
-        "frontend_streaming": "✅ COMPLETED - VideoPlayer advanced, StreamControls, RTMPConfig components",
-        "local_infrastructure": "✅ COMPLETED - Node Media Server (rtmp-server.js) configured and ready",
-        "deployment_scripts": "✅ COMPLETED - VPS deployment scripts (phase1-vps-setup.sh + phase2-bunny-cdn.sh)"
-      },
-      "technical_quality_assessment": {
-        "backend_rtmp_service": "Enterprise-grade with stream analytics, viewer tracking, OBS integration",
-        "frontend_video_player": "Professional VideoPlayer with quality selection, analytics tracking",
-        "websocket_architecture": "Dual namespace (/stream + /stream-control) with JWT authentication",
-        "sse_integration": "Complete SSE system for admin notifications and real-time updates"
-      },
-      "deployment_readiness": {
-        "local_testing_ready": "OBS Studio → rtmp-server.js → VideoPlayer flow complete",
-        "vps_scripts_ready": "phase1-vps-setup.sh + phase2-bunny-cdn.sh production-ready",
-        "cost_analysis": "$19-29/month VPS + CDN within budget",
-        "recommendation": "Execute local streaming tests BEFORE VPS deployment"
-      }
-    },
-      "overall_status": "SCRIPTS_READY_VPS_NEEDED",
-      "deployment_preparation": {
-        "scripts_status": "✅ COMPLETED - All deployment scripts created and optimized",
-        "security_hardening": "✅ COMPLETED - UFW firewall, fail2ban, rate limiting, SSL ready",
-        "cost_analysis": "✅ COMPLETED - $19-29/month within budget targets",
-        "documentation": "✅ COMPLETED - Complete deployment guide with troubleshooting"
-      },
-      "local_development_optimizations": {
-        "typescript_compilation": "✅ COMPLETED - 0 errors backend and frontend",
-        "environment_validation": "✅ COMPLETED - backend/src/config/envValidator.ts validates critical vars at startup",
-        "eslint_setup": "✅ COMPLETED - Backend + Frontend ESLint configured with GalloBets-specific rules",
-        "testing_framework": "✅ COMPLETED - Frontend Vitest + @testing-library setup, 6/6 tests passing",
-        "pre_commit_hooks": "✅ COMPLETED - Husky + lint-staged for automatic code quality",
-        "development_tools": "✅ COMPLETED - Complete dev workflow with auto-formatting and validation",
-        "performance_monitoring": "✅ COMPLETED - Backend 3001, Frontend 5174, 316ms startup"
-      },
-      "production_deployment_readiness": {
-        "infrastructure_requirements": {
-          "vps_provider": "⏳ PENDING - DigitalOcean account setup required",
-          "cdn_provider": "⏳ PENDING - Bunny.net account setup required",
-          "domain_ssl": "⏳ PENDING - Domain configuration and SSL certificates",
-          "estimated_setup_time": "6-8 hours total execution time"
-        },
-        "backend_production_ready": {
-          "database_connection": "✅ READY - Neon.tech PostgreSQL configured",
-          "environment_variables": "✅ READY - All configs documented",
-          "security_middleware": "✅ READY - helmet, rate limiting, CORS configured",
-          "streaming_integration": "✅ READY - RTMP service and WebSocket ready"
-        },
-        "frontend_production_ready": {
-          "build_process": "✅ READY - Vite production builds working",
-          "api_integration": "✅ READY - Axios configured for production URLs",
-          "responsive_design": "✅ READY - Tailwind CSS + Ant Design responsive",
-          "performance_optimized": "✅ READY - React 19, TypeScript 5.8, modern stack"
-        }
-      },
-      "recommended_deployment_timeline": {
-        "phase_1_vps_setup": "Day 1: 2-3 hours - DigitalOcean VPS + nginx-rtmp",
-        "phase_2_cdn_integration": "Day 1: 1-2 hours - Bunny.net CDN setup",
-        "phase_3_obs_testing": "Day 2: 1 hour - OBS Studio configuration",
-        "phase_4_backend_integration": "Day 2: 2-3 hours - Environment configs",
-        "phase_5_testing": "Day 3: 1-2 hours - End-to-end validation",
-        "total_estimated_time": "3 days with proper testing"
-      },
-      "risk_assessment": {
-        "high_risk_items": [],
-        "medium_risk_items": [
-          "First-time VPS setup - follow scripts carefully",
-          "Bunny.net CDN configuration - test thoroughly",
-          "OBS Studio streaming - validate quality settings"
-        ],
-        "mitigation_strategies": [
-          "Scripts include comprehensive validation steps",
-          "Backup configurations at each phase",
-          "Monitoring tools included for troubleshooting"
-        ]
-      },
-      "decision_recommendation": "READY FOR PRODUCTION DEPLOYMENT when VPS and CDN accounts are set up"
-    },
-    "development_workflow_optimization_2025_09_13": {
-      "status": "FULLY_IMPLEMENTED",
-      "completion_date": "2025-09-13",
-      "total_implementation_time": "90 minutes",
-      "optimization_phases_completed": {
-        "phase_1_environment_validation": {
-          "status": "✅ COMPLETED",
-          "implementation": "backend/src/config/envValidator.ts integrated in index.ts",
-          "functionality": "Validates DATABASE_URL, JWT_SECRET, streaming configs, business limits",
-          "benefits": "Clear error messages on startup, prevents runtime failures from missing config",
-          "startup_logging": "Detailed environment status display with Neon.tech detection"
-        },
-        "phase_2_frontend_eslint": {
-          "status": "✅ COMPLETED", 
-          "implementation": "frontend/.eslintrc.js with GalloBets-specific rules",
-          "detection_capability": "461 code quality issues detected in current codebase",
-          "rules_implemented": "TypeScript strict mode, React hooks validation, security rules (no-eval), complexity limits",
-          "scripts_available": "npm run lint, npm run lint:fix, npm run format"
-        },
-        "phase_3_testing_framework": {
-          "status": "✅ COMPLETED",
-          "setup_files": "frontend/src/tests/setup.ts, frontend/src/tests/utils/testUtils.tsx",
-          "test_example": "frontend/src/tests/components/Button.test.tsx (6/6 tests passing)",
-          "vitest_config": "Updated with coverage reporting and alias support",
-          "dependencies": "@testing-library/react, @testing-library/jest-dom, @testing-library/user-event",
-          "capabilities": "Mock WebSocket, VideoJS, API calls, localStorage, responsive components"
-        },
-        "phase_4_pre_commit_hooks": {
-          "status": "✅ COMPLETED",
-          "implementation": ".husky/pre-commit with lint-staged integration",
-          "automation": "Auto-fix linting + formatting on every commit",
-          "coverage": "Frontend and backend linting before commits",
-          "quality_gates": "Prevents commits with code quality issues"
-        },
-        "phase_5_backend_linting": {
-          "status": "✅ COMPLETED",
-          "implementation": "backend/eslint.config.js (ESLint v9 format)",
-          "dependencies": "eslint, @typescript-eslint/parser, @typescript-eslint/eslint-plugin",
-          "security_rules": "no-eval, no-implied-eval, no-new-func for betting platform security"
-        },
-        "phase_6_validation_testing": {
-          "status": "✅ COMPLETED",
-          "backend_validation": "Environment validation functioning at startup",
-          "frontend_testing": "6/6 test cases passing with full framework setup",
-          "linting_detection": "ESLint detecting issues across entire codebase",
-          "workflow_integration": "Pre-commit hooks active and functional"
-        }
-      }
-    },
-    "streaming_testing_and_deployment_guides": {
-      "local_streaming_testing_guide": {
-        "file_location": "STREAMING-LOCAL-TESTING.md",
-        "description": "Complete step-by-step guide for testing streaming on laptop using Node Media Server",
-        "scope": "OBS Studio → localhost:1935 → HLS → React player",
-        "estimated_setup_time": "2-3 hours",
-        "requirements": "OBS Studio installation, Node Media Server integration, frontend streaming components",
-        "testing_flow": "Local RTMP server → OBS configuration → React video player → End-to-end validation",
-        "components_included": [
-          "LocalRTMPServer.ts - Node Media Server wrapper",
-          "LocalStreamPlayer.tsx - React HLS video player", 
-          "StreamingTest.tsx - Complete testing interface",
-          "Comprehensive troubleshooting guide"
-        ],
-        "validation_criteria": "Stream latency <15s, 720p quality, stable 5+ minutes, multi-key testing"
-      },
-      "production_deployment_guide": {
-        "file_location": "deployment/README-DEPLOYMENT.md",
-        "description": "Complete production deployment guide for DigitalOcean VPS + Bunny.net CDN",
-        "deployment_scripts": {
-          "phase1_vps_setup": "deployment/phase1-vps-setup.sh - DigitalOcean VPS + nginx-rtmp setup",
-          "phase2_bunny_cdn": "deployment/phase2-bunny-cdn.sh - CDN integration with enhanced security",
-          "security_features": "UFW firewall, fail2ban, rate limiting, SSL certificates, stream authentication"
-        },
-        "architecture": "OBS Studio → VPS RTMP (Miami) → Bunny.net CDN → 1000 viewers",
-        "cost_analysis": "$19-29/month operational (VPS $4 + CDN $15-25)",
-        "estimated_deployment_time": "6-8 hours total (3 days recommended with testing)",
-        "timeline_breakdown": {
-          "day_1": "VPS setup (2-3h) + CDN integration (1-2h)",
-          "day_2": "OBS testing (1h) + Backend integration (2-3h)", 
-          "day_3": "End-to-end testing (1-2h) + validation"
-        },
-        "requirements": "DigitalOcean account, Bunny.net account, domain (optional but recommended)",
-        "risk_assessment": "Medium risk items: first-time VPS setup, CDN configuration, OBS validation"
-      },
-      "development_workflow_documentation": {
-        "optimization_summary": "OPTIMIZACIONES-LOCALES.md",
-        "development_setup": "scripts/dev-setup.sh - Environment validation and status checking",
-        "quality_metrics": {
-          "environment_validation": "Critical variables validated at startup with clear error messages",
-          "code_quality": "ESLint detecting 461+ issues across codebase with auto-fix capability",
-          "testing_coverage": "Complete testing framework with 6/6 example tests passing",
-          "pre_commit_quality": "Automatic linting and formatting on every commit"
-        },
-        "workflow_benefits": "30-50% reduction in debugging time, consistent code style, early error detection"
-      }
-    },
-    "brain_update_triggers": {
-    "task_status_changes": {
-      "trigger": "When task moves between not_started → in_progress → completed",
-      "action": "Update completion percentage and identify new blockers"
-    },
-    "session_completion": {
-      "trigger": "After each Vibe Coding session",
-      "action": "Log outcomes, challenges, and plan next session"
-    },
-    "blocker_identification": {
-      "trigger": "When development blocked by external dependency",
-      "action": "Update priorities_memory_index.json with timeline impact"
-    },
-    "architecture_decisions": {
-      "trigger": "When technical approach changes during implementation",
-      "action": "Update sdd_system.json with new decisions and rationale"
-    },
-    "scope_changes": {
-      "trigger": "When task requirements expand or contract",
-      "action": "Update prd_system.json and recalculate timeline impact"
+    
+    "quality_gates": {
+      "day_7": "Core features working",
+      "day_10": "Database performance fixed",
+      "day_12": "Integration complete",
+      "day_14": "Production ready",
+      "day_15": "Successfully deployed"
     }
+  },
+
+  "coordination_protocols": {
+    "daily_sync": {
+      "morning": "Check brain files for context",
+      "midday": "Validate progress against timeline",
+      "evening": "Update brain with outcomes"
+    },
+    
+    "handoff_requirements": {
+      "claude_to_gemini": [
+        "Complete specifications",
+        "API contracts defined",
+        "Architecture documented"
+      ],
+      "gemini_to_claude": [
+        "Components created",
+        "TypeScript compiled",
+        "Basic tests passing"
+      ],
+      "before_qwen": [
+        "Git backup created",
+        "Scope extremely limited",
+        "Claude available for validation"
+      ]
+    },
+    
+    "emergency_procedures": {
+      "if_qwen_breaks": "git reset --hard HEAD + Claude fixes",
+      "if_database_slow": "Claude emergency optimization",
+      "if_integration_fails": "Claude debugging session",
+      "if_timeline_slips": "Cut P1 features, focus P0 only"
+    }
+  },
+
+  "brain_update_triggers": {
+    "task_completion": "Update status and completion percentage",
+    "blocker_identified": "Add to current_blockers with solution",
+    "architecture_change": "Update sdd_system.json",
+    "ai_incident": "Update coordination strategy",
+    "daily_progress": "Update current day status"
   }
 }

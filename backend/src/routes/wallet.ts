@@ -4,7 +4,7 @@ import { authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Wallet, Transaction, User } from "../models";
 import { body, validationResult } from "express-validator";
-import { transaction, retryOperation, sequelize } from "../config/database";
+import { transaction, retryOperation, sequelize, cache } from "../config/database";
 import { Op, fn, col } from "sequelize";
 import { requireWallets, injectCommissionSettings } from "../middleware/settingsMiddleware";
 
@@ -13,42 +13,67 @@ const router = Router();
 // Apply wallet feature gate to all routes
 router.use(requireWallets);
 
-// GET /api/wallet - Obtener información del wallet del usuario
+// ⚡ ULTRA OPTIMIZED: Wallet GET with aggressive caching and error recovery
 router.get(
   "/",
   authenticate,
   asyncHandler(async (req, res) => {
-    const wallet = await Wallet.findOne({
-      where: { userId: req.user!.id },
-      include: [
-        {
-          model: Transaction,
-          as: "transactions",
-          limit: 10,
-          order: [["createdAt", "DESC"]],
-        },
-      ],
-    });
+    // ⚡ CRITICAL OPTIMIZATION: Cache user wallet data
+    const cacheKey = `wallet_main_${req.user!.id}`;
 
-    if (!wallet) {
-      throw errors.notFound("Wallet not found");
-    }
+    const walletData = await retryOperation(async () => {
+      return await cache.getOrSet(cacheKey, async () => {
+        const wallet = await Wallet.findOne({
+          where: { userId: req.user!.id },
+          include: [
+            {
+              model: Transaction,
+              as: "transactions",
+              limit: 10,
+              order: [["createdAt", "DESC"]],
+            },
+          ],
+        });
 
-    const walletData = wallet.toJSON() as any;
+        if (!wallet) {
+          // ⚡ CRITICAL FIX: Auto-create wallet if missing (prevents 503 errors)
+          console.log(`Auto-creating wallet for user ${req.user!.id}`);
+          try {
+            const newWallet = await Wallet.create({
+              userId: req.user!.id,
+              balance: 0,
+              frozenAmount: 0,
+            });
+
+            console.log(`Wallet created successfully: ${newWallet.id}`);
+            return {
+              wallet: newWallet.toPublicJSON(),
+              recentTransactions: []
+            };
+          } catch (error) {
+            console.error(`Failed to create wallet for user ${req.user!.id}:`, error);
+            throw new Error(`Wallet service unavailable: ${error.message}`);
+          }
+        }
+
+        const walletJson = wallet.toJSON() as any;
+
+        return {
+          wallet: wallet.toPublicJSON(),
+          recentTransactions:
+            walletJson.transactions?.map((t: any) => t.toPublicJSON?.() || t) || [],
+        };
+      }, 60); // ⚡ 1 minute cache for wallet data (frequently accessed)
+    }, 2, 500); // ⚡ Retry with shorter delays for wallet endpoints
 
     res.json({
       success: true,
-      data: {
-        wallet: wallet.toPublicJSON(),
-        recentTransactions:
-          walletData.transactions?.map((t: any) => t.toPublicJSON?.() || t) ||
-          [],
-      },
+      data: walletData,
     });
   })
 );
 
-// GET /api/wallet/transactions - Obtener historial de transacciones
+// ⚡ OPTIMIZED: Wallet transactions with enhanced caching
 router.get(
   "/transactions",
   authenticate,
@@ -76,18 +101,25 @@ router.get(
       if (dateTo) where.createdAt[Op.lte] = new Date(dateTo as string);
     }
 
-    const wallet = await Wallet.findOne({
+    // ⚡ PERFORMANCE: Get or create wallet with better error handling
+    let wallet = await Wallet.findOne({
       where: { userId: req.user!.id },
     });
 
     if (!wallet) {
-      throw errors.notFound("Wallet not found");
+      // ⚡ AUTO-CREATE: Create wallet if missing to prevent 503s
+      wallet = await Wallet.create({
+        userId: req.user!.id,
+        balance: 0,
+        frozenAmount: 0,
+      });
     }
 
-    // Optimized query with caching for wallet transactions
-    const cacheKey = `wallet_transactions_${wallet.id}_${limit}_${offset}`;
+    // ⚡ OPTIMIZATION: Cache transactions query
+    const cacheKey = `wallet_transactions_${wallet.id}_${limit}_${offset}_${JSON.stringify(where)}`;
+
     const transactions = await retryOperation(async () => {
-      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+      return await cache.getOrSet(cacheKey, async () => {
         return await Transaction.findAndCountAll({
           where: {
             walletId: wallet.id,
@@ -97,7 +129,7 @@ router.get(
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),
         });
-      }, 30); // Cache for 30 seconds
+      }, 30); // ⚡ 30 second cache for transaction queries
     });
 
     res.json({
@@ -112,7 +144,7 @@ router.get(
   })
 );
 
-// POST /api/wallet/deposit - Solicitar depósito
+// ⚡ OPTIMIZED: Deposit with cache invalidation
 router.post(
   "/deposit",
   authenticate,
@@ -142,12 +174,17 @@ router.post(
 
     const { amount, paymentMethod, paymentData } = req.body;
 
-    const wallet = await Wallet.findOne({
+    // ⚡ PERFORMANCE: Get or create wallet
+    let wallet = await Wallet.findOne({
       where: { userId: req.user!.id },
     });
 
     if (!wallet) {
-      throw errors.notFound("Wallet not found");
+      wallet = await Wallet.create({
+        userId: req.user!.id,
+        balance: 0,
+        frozenAmount: 0,
+      });
     }
 
     await transaction(async (t) => {
@@ -181,6 +218,9 @@ router.post(
         // Agregar fondos al wallet
         await wallet.addBalance(amount);
 
+        // ⚡ OPTIMIZATION: Invalidate wallet cache after deposit
+        await cache.invalidatePattern(`wallet_*_${req.user!.id}`);
+
         res.status(201).json({
           success: true,
           message: "Deposit completed successfully (development mode)",
@@ -204,7 +244,7 @@ router.post(
   })
 );
 
-// POST /api/wallet/withdraw - Solicitar retiro
+// ⚡ OPTIMIZED: Withdrawal with cache invalidation
 router.post(
   "/withdraw",
   authenticate,
@@ -238,12 +278,17 @@ router.post(
 
     const { amount, accountNumber, accountType, bankName } = req.body;
 
-    const wallet = await Wallet.findOne({
+    // ⚡ PERFORMANCE: Get or create wallet
+    let wallet = await Wallet.findOne({
       where: { userId: req.user!.id },
     });
 
     if (!wallet) {
-      throw errors.notFound("Wallet not found");
+      wallet = await Wallet.create({
+        userId: req.user!.id,
+        balance: 0,
+        frozenAmount: 0,
+      });
     }
 
     // Verificar que tiene suficiente balance disponible
@@ -251,26 +296,30 @@ router.post(
       throw errors.badRequest("Insufficient available balance");
     }
 
-    // Verificar límites diarios (opcional - implementar según requerimientos)
+    // ⚡ OPTIMIZATION: Cache daily withdrawals query
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayWithdrawals = await Transaction.sum("amount", {
-      where: {
-        walletId: wallet.id,
-        type: "withdrawal",
-        status: ["pending", "completed"],
-        createdAt: {
-          [Op.gte]: today,
+    const cacheKey = `daily_withdrawals_${wallet.id}_${today.toISOString().split('T')[0]}`;
+
+    const todayWithdrawals = await cache.getOrSet(cacheKey, async () => {
+      return await Transaction.sum("amount", {
+        where: {
+          walletId: wallet.id,
+          type: "withdrawal",
+          status: ["pending", "completed"],
+          createdAt: {
+            [Op.gte]: today,
+          },
         },
-      },
-    });
+      }) || 0;
+    }, 300); // ⚡ 5 minute cache for daily limits
 
     const dailyLimit = parseFloat(process.env.MAX_WITHDRAWAL_DAILY || "5000");
-    if ((todayWithdrawals || 0) + amount > dailyLimit) {
+    if (todayWithdrawals + amount > dailyLimit) {
       throw errors.badRequest(
         `Daily withdrawal limit exceeded. Remaining: $${
-          dailyLimit - (todayWithdrawals || 0)
+          dailyLimit - todayWithdrawals
         }`
       );
     }
@@ -298,6 +347,12 @@ router.post(
       // Congelar fondos inmediatamente
       await wallet.freezeAmount(amount);
 
+      // ⚡ OPTIMIZATION: Invalidate wallet and daily limit caches
+      await Promise.all([
+        cache.invalidatePattern(`wallet_*_${req.user!.id}`),
+        cache.invalidate(cacheKey)
+      ]);
+
       res.status(201).json({
         success: true,
         message:
@@ -311,72 +366,93 @@ router.post(
   })
 );
 
-// GET /api/wallet/balance - Obtener solo el balance actual
+// ⚡ ULTRA OPTIMIZED: Balance endpoint with micro-caching
 router.get(
   "/balance",
   authenticate,
   asyncHandler(async (req, res) => {
-    const wallet = await Wallet.findOne({
-      where: { userId: req.user!.id },
-    });
+    // ⚡ MICRO-CACHE: Very short cache for balance queries (30 seconds)
+    const cacheKey = `wallet_balance_${req.user!.id}`;
 
-    if (!wallet) {
-      throw errors.notFound("Wallet not found");
-    }
+    const walletBalance = await cache.getOrSet(cacheKey, async () => {
+      let wallet = await Wallet.findOne({
+        where: { userId: req.user!.id },
+      });
+
+      if (!wallet) {
+        wallet = await Wallet.create({
+          userId: req.user!.id,
+          balance: 0,
+          frozenAmount: 0,
+        });
+      }
+
+      return wallet.toPublicJSON();
+    }, 30); // ⚡ 30 second micro-cache for balance
 
     res.json({
       success: true,
-      data: wallet.toPublicJSON(),
+      data: walletBalance,
     });
   })
 );
 
-// GET /api/wallet/stats - Obtener estadísticas del wallet
+// ⚡ OPTIMIZED: Stats with caching
 router.get(
   "/stats",
   authenticate,
   asyncHandler(async (req, res) => {
-    const wallet = await Wallet.findOne({
+    // ⚡ PERFORMANCE: Get or create wallet
+    let wallet = await Wallet.findOne({
       where: { userId: req.user!.id },
     });
 
     if (!wallet) {
-      throw errors.notFound("Wallet not found");
+      wallet = await Wallet.create({
+        userId: req.user!.id,
+        balance: 0,
+        frozenAmount: 0,
+      });
     }
 
-    // Obtener estadísticas de transacciones del último mes
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    // ⚡ OPTIMIZATION: Cache monthly stats
+    const cacheKey = `wallet_stats_${wallet.id}_monthly`;
 
-    const monthlyStats = await Transaction.findAll({
-      where: {
-        walletId: wallet.id,
-        createdAt: {
-          [Op.gte]: lastMonth,
+    const stats = await cache.getOrSet(cacheKey, async () => {
+      // Obtener estadísticas de transacciones del último mes
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+      const monthlyStats = await Transaction.findAll({
+        where: {
+          walletId: wallet.id,
+          createdAt: {
+            [Op.gte]: lastMonth,
+          },
         },
-      },
-      attributes: ["type", "status", "amount"],
-      raw: true,
-    });
+        attributes: ["type", "status", "amount"],
+        raw: true,
+      });
 
-    const stats = {
-      totalDeposits: monthlyStats
-        .filter((t: any) => t.type === "deposit" && t.status === "completed")
-        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
-      totalWithdrawals: monthlyStats
-        .filter((t: any) => t.type === "withdrawal" && t.status === "completed")
-        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
-      totalBetWins: monthlyStats
-        .filter((t: any) => t.type === "bet-win")
-        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
-      totalBetLosses: monthlyStats
-        .filter((t: any) => t.type === "bet-loss")
-        .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
-      pendingTransactions: monthlyStats.filter(
-        (t: any) => t.status === "pending"
-      ).length,
-      currentBalance: wallet.toPublicJSON(),
-    };
+      return {
+        totalDeposits: monthlyStats
+          .filter((t: any) => t.type === "deposit" && t.status === "completed")
+          .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
+        totalWithdrawals: monthlyStats
+          .filter((t: any) => t.type === "withdrawal" && t.status === "completed")
+          .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
+        totalBetWins: monthlyStats
+          .filter((t: any) => t.type === "bet-win")
+          .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
+        totalBetLosses: monthlyStats
+          .filter((t: any) => t.type === "bet-loss")
+          .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0),
+        pendingTransactions: monthlyStats.filter(
+          (t: any) => t.status === "pending"
+        ).length,
+        currentBalance: wallet.toPublicJSON(),
+      };
+    }, 300); // ⚡ 5 minute cache for stats
 
     res.json({
       success: true,
@@ -385,7 +461,7 @@ router.get(
   })
 );
 
-// POST /api/wallet/process-payment - Webhook para procesar pagos (solo sistema)
+// ⚡ OPTIMIZATION: Process payment with cache invalidation
 router.post(
   "/process-payment",
   // En producción, aquí iría validación de webhook de Kushki
@@ -424,6 +500,12 @@ router.post(
 
         if (wallet) {
           await wallet.addBalance(depositTransaction.amount);
+
+          // ⚡ OPTIMIZATION: Invalidate user's wallet cache
+          const user = await User.findByPk(wallet.userId);
+          if (user) {
+            await cache.invalidatePattern(`wallet_*_${user.id}`);
+          }
         }
       } else {
         depositTransaction.status = "failed";
@@ -438,7 +520,7 @@ router.post(
   })
 );
 
-// GET /api/wallet/withdrawal-requests
+// Admin routes - no changes needed for core functionality
 router.get(
   "/withdrawal-requests",
   authenticate,
@@ -457,46 +539,51 @@ router.get(
   })
 );
 
-// GET /api/wallet/financial-metrics
 router.get(
   "/financial-metrics",
   authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
-    // Calcular métricas reales desde el modelo Transaction
-    const metrics = {
-      totalDeposits: await Transaction.sum("amount", {
-        where: { type: "deposit" },
-      }),
-      totalWithdrawals: await Transaction.sum("amount", {
-        where: { type: "withdrawal" },
-      }),
-      // Agregar más métricas según sea necesario
-    };
+    // ⚡ OPTIMIZATION: Cache admin financial metrics
+    const cacheKey = 'admin_financial_metrics';
+
+    const metrics = await cache.getOrSet(cacheKey, async () => {
+      return {
+        totalDeposits: await Transaction.sum("amount", {
+          where: { type: "deposit", status: "completed" },
+        }) || 0,
+        totalWithdrawals: await Transaction.sum("amount", {
+          where: { type: "withdrawal", status: "completed" },
+        }) || 0,
+      };
+    }, 300); // ⚡ 5 minute cache for admin metrics
 
     res.json({ success: true, data: metrics });
   })
 );
 
-// GET /api/wallet/revenue-by-source - Revenue aggregated by transaction type
 router.get(
   "/revenue-by-source",
   authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
-    // Aggregate transactions by type, return totals
-    const revenueBySource = await Transaction.findAll({
-      attributes: [
-        "type",
-        [fn("SUM", col("amount")), "total"],
-        [fn("COUNT", "*"), "count"],
-      ],
-      where: {
-        status: "completed",
-      },
-      group: ["type"],
-      raw: true,
-    });
+    // ⚡ OPTIMIZATION: Cache revenue source data
+    const cacheKey = 'admin_revenue_by_source';
+
+    const revenueBySource = await cache.getOrSet(cacheKey, async () => {
+      return await Transaction.findAll({
+        attributes: [
+          "type",
+          [fn("SUM", col("amount")), "total"],
+          [fn("COUNT", "*"), "count"],
+        ],
+        where: {
+          status: "completed",
+        },
+        group: ["type"],
+        raw: true,
+      });
+    }, 600); // ⚡ 10 minute cache for revenue data
 
     res.json({
       success: true,
@@ -505,7 +592,6 @@ router.get(
   })
 );
 
-// GET /api/wallet/revenue-trends - Daily/monthly revenue trends
 router.get(
   "/revenue-trends",
   authenticate,
@@ -521,23 +607,28 @@ router.get(
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(days as string));
 
-    const trends = await Transaction.findAll({
-      attributes: [
-        [fn("DATE_FORMAT", col("created_at"), dateFormat), "date"],
-        "type",
-        [fn("SUM", col("amount")), "amount"],
-        [fn("COUNT", "*"), "count"],
-      ],
-      where: {
-        status: "completed",
-        createdAt: {
-          [Op.gte]: startDate,
+    // ⚡ OPTIMIZATION: Cache revenue trends
+    const cacheKey = `admin_revenue_trends_${period}_${days}`;
+
+    const trends = await cache.getOrSet(cacheKey, async () => {
+      return await Transaction.findAll({
+        attributes: [
+          [fn("DATE_FORMAT", col("created_at"), dateFormat), "date"],
+          "type",
+          [fn("SUM", col("amount")), "amount"],
+          [fn("COUNT", "*"), "count"],
+        ],
+        where: {
+          status: "completed",
+          createdAt: {
+            [Op.gte]: startDate,
+          },
         },
-      },
-      group: [fn("DATE_FORMAT", col("created_at"), dateFormat), "type"],
-      order: [[fn("DATE_FORMAT", col("created_at"), dateFormat), "DESC"]],
-      raw: true,
-    });
+        group: [fn("DATE_FORMAT", col("created_at"), dateFormat), "type"],
+        order: [[fn("DATE_FORMAT", col("created_at"), dateFormat), "DESC"]],
+        raw: true,
+      });
+    }, 300); // ⚡ 5 minute cache for trends
 
     res.json({
       success: true,
@@ -546,7 +637,6 @@ router.get(
   })
 );
 
-// GET /api/wallet/user/:userId - Get specific user's wallet (admin only)
 router.get(
   "/user/:userId",
   authenticate,
@@ -556,9 +646,8 @@ router.get(
       where: { userId: req.params.userId },
       include: [
         {
-          model: Wallet,
-          as: "wallet",
-          include: [{ model: User, as: "user" }],
+          model: User,
+          as: "user",
         },
         {
           model: Transaction,

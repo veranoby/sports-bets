@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Interceptor para manejar respuestas y errores
@@ -45,7 +45,7 @@ apiClient.interceptors.response.use(
       "Error desconocido";
 
     return Promise.reject(new Error(errorMessage));
-  }
+  },
 );
 
 // Servicios API organizados por categoría
@@ -84,7 +84,8 @@ export const eventsAPI = {
     operatorId?: string;
   }) => apiClient.post("/events", data),
 
-  update: (id: string, data: Partial<Event>) => apiClient.put(`/events/${id}`, data),
+  update: (id: string, data: Partial<Event>) =>
+    apiClient.put(`/events/${id}`, data),
 
   activate: (id: string) => apiClient.post(`/events/${id}/activate`),
 
@@ -98,7 +99,8 @@ export const eventsAPI = {
 
   getStats: (id: string) => apiClient.get(`/events/${id}/stats`),
 
-  getCurrentBetting: (id: string) => apiClient.get(`/events/${id}/current-betting`),
+  getCurrentBetting: (id: string) =>
+    apiClient.get(`/events/${id}/current-betting`),
 
   delete: (id: string) => apiClient.delete(`/events/${id}`),
 };
@@ -127,15 +129,17 @@ export const fightsAPI = {
       weight?: number;
       notes?: string;
       status?: string;
-    }
+    },
   ) => apiClient.put(`/fights/${id}`, data),
 
   openBetting: (id: string) => apiClient.post(`/fights/${id}/open-betting`),
 
   closeBetting: (id: string) => apiClient.post(`/fights/${id}/close-betting`),
 
-  recordResult: (id: string, data: { winner: "red" | "blue" | "draw"; notes?: string }) =>
-    apiClient.post(`/fights/${id}/result`, data),
+  recordResult: (
+    id: string,
+    data: { winner: "red" | "blue" | "draw"; notes?: string },
+  ) => apiClient.post(`/fights/${id}/result`, data),
 };
 
 // ✅ BETS API COMPLETA CON MÉTODOS PAGO/DOY
@@ -156,6 +160,7 @@ export const betsAPI = {
     amount: number;
     ratio?: number;
     isOffer?: boolean;
+    type?: "PAGO" | "DOY";
   }) => apiClient.post("/bets", data),
 
   accept: (betId: string) => apiClient.post(`/bets/${betId}/accept`),
@@ -226,7 +231,7 @@ export const walletAPI = {
       rejectionReason?: string;
       transferProof?: string;
       processNotes?: string;
-    }
+    },
   ) => apiClient.put(`/wallet/withdrawal-requests/${id}`, data),
 
   getFinancialMetrics: (params?: {
@@ -240,10 +245,9 @@ export const walletAPI = {
 
   getRevenueTrends: (params?: Record<string, unknown>) =>
     apiClient.get("/wallet/revenue-trends", { params }),
-  
+
   // Get wallet for specific user (admin only)
-  getUserWallet: (userId: string) => 
-    apiClient.get(`/wallet/user/${userId}`),
+  getUserWallet: (userId: string) => apiClient.get(`/wallet/user/${userId}`),
 };
 
 export const subscriptionAPI = {
@@ -258,7 +262,7 @@ export const subscriptionAPI = {
   }) => apiClient.post("/subscriptions/create", data),
 
   // Cancel active subscription
-  cancelSubscription: (data?: { reason?: string }) => 
+  cancelSubscription: (data?: { reason?: string }) =>
     apiClient.post("/subscriptions/cancel", data),
 
   // Get payment history
@@ -269,7 +273,7 @@ export const subscriptionAPI = {
   }) => apiClient.get("/subscriptions/history", { params }),
 
   // Check subscription access
-  checkAccess: (data?: { feature?: string }) => 
+  checkAccess: (data?: { feature?: string }) =>
     apiClient.post("/subscriptions/check-access", data),
 
   // Get available subscription plans
@@ -302,7 +306,8 @@ export const venuesAPI = {
     ownerId?: string;
   }) => apiClient.post("/venues", data),
 
-  update: (id: string, data: Partial<Venue>) => apiClient.put(`/venues/${id}`, data),
+  update: (id: string, data: Partial<Venue>) =>
+    apiClient.put(`/venues/${id}`, data),
 
   updateStatus: (id: string, status: string, reason?: string) =>
     apiClient.put(`/venues/${id}/status`, { status, reason }),
@@ -322,9 +327,9 @@ export const gallerasAPI = {
     name: string;
     location: string;
     description?: string;
-    specialties?: Gallera['specialties'];
+    specialties?: Gallera["specialties"];
     activeRoosters?: number;
-    fightRecord?: Gallera['fightRecord'];
+    fightRecord?: Gallera["fightRecord"];
     ownerId?: string;
     contactInfo?: {
       email?: string;
@@ -334,7 +339,8 @@ export const gallerasAPI = {
     };
   }) => apiClient.post("/galleras", data),
 
-  update: (id: string, data: Partial<Gallera>) => apiClient.put(`/galleras/${id}`, data),
+  update: (id: string, data: Partial<Gallera>) =>
+    apiClient.put(`/galleras/${id}`, data),
 
   updateStatus: (id: string, status: string, reason?: string) =>
     apiClient.put(`/galleras/${id}/status`, { status, reason }),
@@ -366,10 +372,13 @@ export const streamingAPI = {
   // System status and analytics
   getSystemStatus: () => apiClient.get("/streaming/status"),
 
-  getStreamAnalytics: (streamId?: string, params?: {
-    timeRange?: "1h" | "24h" | "7d" | "30d";
-    metrics?: string;
-  }) => apiClient.get(`/streaming/analytics/${streamId || ''}`, { params }),
+  getStreamAnalytics: (
+    streamId?: string,
+    params?: {
+      timeRange?: "1h" | "24h" | "7d" | "30d";
+      metrics?: string;
+    },
+  ) => apiClient.get(`/streaming/analytics/${streamId || ""}`, { params }),
 
   // Stream keys and RTMP
   generateStreamKey: (data: { eventId: string }) =>
@@ -432,12 +441,15 @@ export const usersAPI = {
     apiClient.put(`/users/${id}/role`, { role, reason }),
 
   // General update method (admin only)
-  update: (id: string, data: { 
-    username?: string;
-    email?: string;
-    role?: string;
-    profileInfo?: Record<string, unknown>;
-  }) => apiClient.put(`/users/${id}`, data),
+  update: (
+    id: string,
+    data: {
+      username?: string;
+      email?: string;
+      role?: string;
+      profileInfo?: Record<string, unknown>;
+    },
+  ) => apiClient.put(`/users/${id}`, data),
 
   getAvailableOperators: () => apiClient.get("/users/operators/available"),
 
@@ -463,15 +475,16 @@ export const articlesAPI = {
 
   getFeatured: (params?: {
     limit?: number;
-    type?: 'banner' | 'featured' | 'promotion';
-  }) => apiClient.get("/articles", { 
-    params: { 
-      status: 'published',
-      featured: true,
-      limit: params?.limit || 5,
-      ...params
-    } 
-  }),
+    type?: "banner" | "featured" | "promotion";
+  }) =>
+    apiClient.get("/articles", {
+      params: {
+        status: "published",
+        featured: true,
+        limit: params?.limit || 5,
+        ...params,
+      },
+    }),
 
   getById: (id: string) => apiClient.get(`/articles/${id}`),
 
@@ -491,7 +504,7 @@ export const articlesAPI = {
       summary?: string;
       venue_id?: string;
       featured_image_url?: string;
-    }
+    },
   ) => apiClient.put(`/articles/${id}`, data),
 
   updateStatus: (id: string, status: "published" | "archived" | "pending") =>
@@ -512,21 +525,24 @@ export const settingsAPI = {
   getAll: () => apiClient.get("/settings"),
   update: (data: Record<string, unknown>) => apiClient.put("/settings", data),
   get: (key: string) => apiClient.get(`/settings/${key}`),
-  set: (key: string, value: unknown) => apiClient.put(`/settings/${key}`, { value })
+  set: (key: string, value: unknown) =>
+    apiClient.put(`/settings/${key}`, { value }),
 };
 
 // Admin API for membership management
 export const adminAPI = {
-  updateUserMembership: (userId: string, data: {
-    membership_type: string;
-    assigned_username: string;
-  }) => apiClient.put(`/admin/users/${userId}/membership`, data),
+  updateUserMembership: (
+    userId: string,
+    data: {
+      membership_type: string;
+      assigned_username: string;
+    },
+  ) => apiClient.put(`/admin/users/${userId}/membership`, data),
 
-  getUserMembership: (userId: string) => 
+  getUserMembership: (userId: string) =>
     apiClient.get(`/admin/users/${userId}/membership`),
-    
-  getMembershipStats: () => 
-    apiClient.get("/admin/membership/stats")
+
+  getMembershipStats: () => apiClient.get("/admin/membership/stats"),
 };
 
 // WebSocket configuration
@@ -535,7 +551,7 @@ export const WEBSOCKET_URL =
 
 // Re-exportar tipos desde el archivo de tipos (para compatibilidad)
 export type {
-  APIResponse,
+  ApiResponse,
   User,
   Event,
   Fight,

@@ -18,13 +18,13 @@ const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
   const columns = useMemo(() => [
     {
       key: 'eventName' as keyof Bet,
-      label: 'Evento',
+      title: 'Evento',
       sortable: true,
       width: '25%'
     },
     {
       key: 'side' as keyof Bet,
-      label: 'Apuesta',
+      title: 'Apuesta',
       render: (value: string) => (
         <span className={`font-medium ${value === 'red' ? 'text-red-500' : 'text-blue-500'}`}>
           {value === 'red' ? '🔴 Rojo' : '🔵 Azul'}
@@ -34,7 +34,7 @@ const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
     },
     {
       key: 'amount' as keyof Bet,
-      label: 'Monto',
+      title: 'Monto',
       render: (value: number) => (
         <span className="font-mono text-green-400">
           ${value.toFixed(2)}
@@ -46,13 +46,13 @@ const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
     },
     {
       key: 'status' as keyof Bet,
-      label: 'Estado',
+      title: 'Estado',
       render: (status: string) => <StatusChip status={status} />,
       width: '15%'
     },
     {
       key: 'createdAt' as keyof Bet,
-      label: 'Fecha',
+      title: 'Fecha',
       render: (date: string) => new Date(date).toLocaleDateString('es-ES'),
       sortable: true,
       width: '25%'

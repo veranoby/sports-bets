@@ -41,8 +41,8 @@ interface EventData {
   name: string;
   status: string;
   scheduledDate: string;
-  venue?: any;
-  operator?: any;
+  venue?: Record<string, unknown>;
+  operator?: Record<string, unknown>;
 }
 
 interface FightData {
@@ -79,40 +79,52 @@ interface UserData {
   email: string;
   role: string;
   isActive: boolean;
-  profileInfo?: any;
+  profileInfo?: Record<string, unknown>;
 }
 
-
 // ====================== BASE HOOK ======================
-function useAsyncOperation<T = any>() {
+function useAsyncOperation<T = unknown>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
-  const execute = useCallback(async (asyncFunction: () => Promise<any>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await asyncFunction();
+  const execute = useCallback(
+    async (asyncFunction: () => Promise<ApiResponse<T>>) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await asyncFunction();
 
-      if (mountedRef.current) {
-        setData(result.data);
+        if (mountedRef.current) {
+          setData(result.data);
+        }
+        return result;
+      } catch (err: unknown) {
+        if (mountedRef.current) {
+          if (err instanceof Error) {
+            // Try to extract error message from different possible sources
+            const axiosError = err as {
+              response?: { data?: { message?: string } };
+            };
+            setError(
+              axiosError.response?.data?.message ||
+                err.message ||
+                "An error occurred",
+            );
+          } else {
+            setError("An unknown error occurred");
+          }
+        }
+        throw err;
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
-      return result;
-    } catch (err: any) {
-      if (mountedRef.current) {
-        setError(
-          err.response?.data?.message || err.message || "An error occurred"
-        );
-      }
-      throw err;
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     mountedRef.current = true;
@@ -165,7 +177,7 @@ export function useWallet() {
             balance: Number(walletData.balance || 0),
             frozenAmount: Number(walletData.frozenAmount || 0),
             availableBalance: Number(
-              walletData.availableBalance || walletData.balance || 0
+              walletData.availableBalance || walletData.balance || 0,
             ),
           };
 
@@ -178,12 +190,21 @@ export function useWallet() {
       } else {
         throw new Error(response.error || "Error loading wallet");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Error fetching wallet:", err);
       if (mountedRef.current) {
-        setError(
-          err.response?.data?.message || err.message || "Error loading wallet"
-        );
+        if (err instanceof Error) {
+          const axiosError = err as {
+            response?: { data?: { message?: string } };
+          };
+          setError(
+            axiosError.response?.data?.message ||
+              err.message ||
+              "Error loading wallet",
+          );
+        } else {
+          setError("An unknown error occurred");
+        }
       }
       throw err;
     } finally {
@@ -217,9 +238,19 @@ export function useWallet() {
         } else {
           throw new Error(response.error || "Error loading transactions");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mountedRef.current) {
-          setError(err.response?.data?.message || "Error loading transactions");
+          if (err instanceof Error) {
+            const axiosError = err as {
+              response?: { data?: { message?: string } };
+            };
+            setError(
+              axiosError.response?.data?.message ||
+                "Error loading transactions",
+            );
+          } else {
+            setError("An unknown error occurred");
+          }
         }
         throw err;
       } finally {
@@ -228,11 +259,15 @@ export function useWallet() {
         }
       }
     },
-    []
+    [],
   );
 
   const deposit = useCallback(
-    async (amount: number, paymentMethod: string, paymentData?: any) => {
+    async (
+      amount: number,
+      paymentMethod: string,
+      paymentData?: Record<string, unknown>,
+    ) => {
       try {
         setLoading(true);
         const response = await apiClient.post("/wallet/deposit", {
@@ -243,9 +278,18 @@ export function useWallet() {
 
         await fetchWallet();
         return response.data;
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mountedRef.current) {
-          setError(err.response?.data?.message || "Error processing deposit");
+          if (err instanceof Error) {
+            const axiosError = err as {
+              response?: { data?: { message?: string } };
+            };
+            setError(
+              axiosError.response?.data?.message || "Error processing deposit",
+            );
+          } else {
+            setError("An unknown error occurred");
+          }
         }
         throw err;
       } finally {
@@ -254,7 +298,7 @@ export function useWallet() {
         }
       }
     },
-    [fetchWallet]
+    [fetchWallet],
   );
 
   const withdraw = useCallback(
@@ -262,7 +306,7 @@ export function useWallet() {
       amount: number,
       accountNumber: string,
       accountType?: string,
-      bankName?: string
+      bankName?: string,
     ) => {
       try {
         setLoading(true);
@@ -275,11 +319,19 @@ export function useWallet() {
 
         await fetchWallet();
         return response.data;
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mountedRef.current) {
-          setError(
-            err.response?.data?.message || "Error processing withdrawal"
-          );
+          if (err instanceof Error) {
+            const axiosError = err as {
+              response?: { data?: { message?: string } };
+            };
+            setError(
+              axiosError.response?.data?.message ||
+                "Error processing withdrawal",
+            );
+          } else {
+            setError("An unknown error occurred");
+          }
         }
         throw err;
       } finally {
@@ -288,7 +340,7 @@ export function useWallet() {
         }
       }
     },
-    [fetchWallet]
+    [fetchWallet],
   );
 
   useEffect(() => {
@@ -314,14 +366,13 @@ export function useWallet() {
 
 // ====================== BETS HOOK ======================
 export function useBets() {
-  const { data, loading, error, execute, setData, setLoading, setError } =
-    useAsyncOperation<{
-      bets: BetData[];
-      total: number;
-    }>();
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
+    bets: BetData[];
+    total: number;
+  }>();
 
   const fetchMyBets = useCallback(
-    async (params?: {
+    (params?: {
       status?: string;
       fightId?: string;
       limit?: number;
@@ -329,14 +380,14 @@ export function useBets() {
     }) => {
       return execute(() => apiClient.get("/bets", { params }));
     },
-    [execute]
+    [execute],
   );
 
   const fetchAvailableBets = useCallback(
     (fightId: string) => {
       return execute(() => apiClient.get(`/bets/available/${fightId}`));
     },
-    [execute]
+    [execute],
   );
 
   const createBet = useCallback(
@@ -346,62 +397,69 @@ export function useBets() {
       amount: number;
       ratio?: number;
       isOffer?: boolean;
+      betType?: "flat" | "doy";
+      parentBetId?: string;
     }) => {
       return execute(() => apiClient.post("/bets", betData));
     },
-    [execute]
+    [execute],
   );
 
   const acceptBet = useCallback(
     async (betId: string) => {
       const response = await execute(() =>
-        apiClient.post(`/bets/${betId}/accept`)
+        apiClient.post(`/bets/${betId}/accept`),
       );
       await fetchMyBets();
       return response;
     },
-    [execute, fetchMyBets]
+    [execute, fetchMyBets],
   );
 
   const cancelBet = useCallback(
     async (betId: string) => {
       const response = await execute(() =>
-        apiClient.put(`/bets/${betId}/cancel`)
+        apiClient.put(`/bets/${betId}/cancel`),
       );
       setData((prev) =>
         prev
-          ? {
-              ...prev,
-              bets: prev.bets.filter((bet) => bet.id !== betId),
-            }
-          : null
+          ? { ...prev, bets: prev.bets.filter((bet) => bet.id !== betId) }
+          : null,
       );
       return response;
     },
-    [execute, setData]
+    [execute, setData],
   );
 
   const getBetsStats = useCallback(() => {
     return execute(() => apiClient.get("/bets/stats"));
   }, [execute]);
 
-  const getPendingProposals = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await betsAPI.getPendingProposals();
-      if (response.success) {
-        return response.data?.proposals || [];
-      } else {
-        setError(response.error || "Error loading proposals");
-        return [];
-      }
-    } catch (err) {
-      setError((err as Error).message || "Error loading proposals");
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError]);
+  const getCompatibleBets = useCallback(
+    (params: {
+      fightId: string;
+      side: "red" | "blue";
+      minAmount: number;
+      maxAmount: number;
+    }) => {
+      return execute(() => betsAPI.getCompatibleBets(params));
+    },
+    [execute],
+  );
+
+  const acceptProposal = useCallback(
+    (betId: string) => execute(() => betsAPI.acceptProposal(betId)),
+    [execute],
+  );
+
+  const rejectProposal = useCallback(
+    (betId: string) => execute(() => betsAPI.rejectProposal(betId)),
+    [execute],
+  );
+
+  const getPendingProposals = useCallback(() => {
+    return execute(() => betsAPI.getPendingProposals());
+  }, [execute]);
 
   return {
     bets: data?.bets || [],
@@ -414,7 +472,10 @@ export function useBets() {
     acceptBet,
     cancelBet,
     getBetsStats,
+    getCompatibleBets,
     getPendingProposals,
+    acceptProposal,
+    rejectProposal,
   };
 }
 
@@ -435,14 +496,14 @@ export function useEvents() {
     }) => {
       return execute(() => apiClient.get("/events", { params }));
     },
-    [execute]
+    [execute],
   );
 
   const fetchEventById = useCallback(
     (eventId: string) => {
       return execute(() => apiClient.get(`/events/${eventId}`));
     },
-    [execute]
+    [execute],
   );
 
   const createEvent = useCallback(
@@ -454,21 +515,21 @@ export function useEvents() {
     }) => {
       return execute(() => apiClient.post("/events", eventData));
     },
-    [execute]
+    [execute],
   );
 
   const updateEvent = useCallback(
-    (eventId: string, eventData: any) => {
+    (eventId: string, eventData: Record<string, unknown>) => {
       return execute(() => apiClient.put(`/events/${eventId}`, eventData));
     },
-    [execute]
+    [execute],
   );
 
   const activateEvent = useCallback(
     (eventId: string) => {
       return execute(() => apiClient.post(`/events/${eventId}/activate`));
     },
-    [execute]
+    [execute],
   );
 
   useEffect(() => {
@@ -497,14 +558,14 @@ export function useFights(eventId?: string) {
       const queryParams = params || (eventId ? { eventId } : {});
       return execute(() => apiClient.get("/fights", { params: queryParams }));
     },
-    [execute, eventId]
+    [execute, eventId],
   );
 
   const fetchFightById = useCallback(
     (fightId: string) => {
       return execute(() => apiClient.get(`/fights/${fightId}`));
     },
-    [execute]
+    [execute],
   );
 
   const createFight = useCallback(
@@ -518,37 +579,37 @@ export function useFights(eventId?: string) {
     }) => {
       return execute(() => apiClient.post("/fights", fightData));
     },
-    [execute]
+    [execute],
   );
 
   const updateFight = useCallback(
-    (fightId: string, fightData: any) => {
+    (fightId: string, fightData: Record<string, unknown>) => {
       return execute(() => apiClient.put(`/fights/${fightId}`, fightData));
     },
-    [execute]
+    [execute],
   );
 
   const openBetting = useCallback(
     (fightId: string) => {
       return execute(() => apiClient.post(`/fights/${fightId}/open-betting`));
     },
-    [execute]
+    [execute],
   );
 
   const closeBetting = useCallback(
     (fightId: string) => {
       return execute(() => apiClient.post(`/fights/${fightId}/close-betting`));
     },
-    [execute]
+    [execute],
   );
 
   const recordResult = useCallback(
     (fightId: string, result: "red" | "blue" | "draw" | "cancelled") => {
       return execute(() =>
-        apiClient.post(`/fights/${fightId}/result`, { result })
+        apiClient.post(`/fights/${fightId}/result`, { result }),
       );
     },
-    [execute]
+    [execute],
   );
 
   useEffect(() => {
@@ -580,14 +641,14 @@ export function useVenues() {
     async (params?: { status?: string; limit?: number; offset?: number }) => {
       return execute(() => apiClient.get("/venues", { params }));
     },
-    [execute]
+    [execute],
   );
 
   const fetchVenueById = useCallback(
     (venueId: string) => {
       return execute(() => apiClient.get(`/venues/${venueId}`));
     },
-    [execute]
+    [execute],
   );
 
   const createVenue = useCallback(
@@ -595,27 +656,27 @@ export function useVenues() {
       name: string;
       location: string;
       description?: string;
-      contactInfo?: any;
+      contactInfo?: Record<string, unknown>;
     }) => {
       return execute(() => apiClient.post("/venues", venueData));
     },
-    [execute]
+    [execute],
   );
 
   const updateVenue = useCallback(
-    (venueId: string, venueData: any) => {
+    (venueId: string, venueData: Record<string, unknown>) => {
       return execute(() => apiClient.put(`/venues/${venueId}`, venueData));
     },
-    [execute]
+    [execute],
   );
 
   const updateVenueStatus = useCallback(
     (venueId: string, status: string, reason?: string) => {
       return execute(() =>
-        apiClient.put(`/venues/${venueId}/status`, { status, reason })
+        apiClient.put(`/venues/${venueId}/status`, { status, reason }),
       );
     },
-    [execute]
+    [execute],
   );
 
   const getMyVenues = useCallback(() => {
@@ -656,13 +717,13 @@ export function useNotifications() {
     }) => {
       return execute(() => apiClient.get("/notifications", { params }));
     },
-    [execute]
+    [execute],
   );
 
   const markAsRead = useCallback(
     async (notificationId: string) => {
       const response = await execute(() =>
-        apiClient.put(`/notifications/${notificationId}/read`)
+        apiClient.put(`/notifications/${notificationId}/read`),
       );
       setData((prev) =>
         prev
@@ -671,19 +732,19 @@ export function useNotifications() {
               notifications: prev.notifications.map((notif) =>
                 notif.id === notificationId
                   ? { ...notif, isRead: true }
-                  : notif
+                  : notif,
               ),
             }
-          : null
+          : null,
       );
       return response;
     },
-    [execute, setData]
+    [execute, setData],
   );
 
   const markAllAsRead = useCallback(async () => {
     const response = await execute(() =>
-      apiClient.post("/notifications/mark-all-read")
+      apiClient.post("/notifications/mark-all-read"),
     );
     setData((prev) =>
       prev
@@ -694,7 +755,7 @@ export function useNotifications() {
               isRead: true,
             })),
           }
-        : null
+        : null,
     );
     return response;
   }, [execute, setData]);
@@ -702,21 +763,21 @@ export function useNotifications() {
   const archiveNotification = useCallback(
     async (notificationId: string) => {
       const response = await execute(() =>
-        apiClient.put(`/notifications/${notificationId}/archive`)
+        apiClient.put(`/notifications/${notificationId}/archive`),
       );
       setData((prev) =>
         prev
           ? {
               ...prev,
               notifications: prev.notifications.filter(
-                (notif) => notif.id !== notificationId
+                (notif) => notif.id !== notificationId,
               ),
             }
-          : null
+          : null,
       );
       return response;
     },
-    [execute, setData]
+    [execute, setData],
   );
 
   useEffect(() => {
@@ -735,70 +796,7 @@ export function useNotifications() {
   };
 }
 
-// ====================== SUBSCRIPTIONS HOOK ======================
-export function useSubscriptions() {
-  const { data, loading, error, execute } = useAsyncOperation<any>();
-
-  const fetchPlans = useCallback(() => {
-    return execute(() => apiClient.get("/subscriptions/plans"));
-  }, [execute]);
-
-  const fetchCurrent = useCallback(() => {
-    return execute(() => apiClient.get("/subscriptions/current"));
-  }, [execute]);
-
-  const fetchMy = useCallback(() => {
-    return execute(() => apiClient.get("/subscriptions"));
-  }, [execute]);
-
-  const createSubscription = useCallback(
-    (subscriptionData: {
-      plan: "daily" | "monthly";
-      autoRenew?: boolean;
-      paymentData?: any;
-    }) => {
-      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));
-    },
-    [execute]
-  );
-
-  const cancelSubscription = useCallback(
-    (subscriptionId: string) => {
-      return execute(() =>
-        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)
-      );
-    },
-    [execute]
-  );
-
-  const toggleAutoRenew = useCallback(
-    (subscriptionId: string, autoRenew: boolean) => {
-      return execute(() =>
-        apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {
-          autoRenew,
-        })
-      );
-    },
-    [execute]
-  );
-
-  const checkAccess = useCallback(() => {
-    return execute(() => apiClient.post("/subscriptions/check-access"));
-  }, [execute]);
-
-  return {
-    subscription: data,
-    loading,
-    error,
-    fetchPlans,
-    fetchCurrent,
-    fetchMy,
-    createSubscription,
-    cancelSubscription,
-    toggleAutoRenew,
-    checkAccess,
-  };
-}
+// ====================== SUBSCRIPTIONS HOOK ======================\nexport function useSubscriptions() {\n  const { data, loading, error, execute } = useAsyncOperation<Record<string, unknown>>();\n\n  const fetchPlans = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions/plans"));\n  }, [execute]);\n\n  const fetchCurrent = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions/current"));\n  }, [execute]);\n\n  const fetchMy = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions"));\n  }, [execute]);\n\n  const createSubscription = useCallback(\n    (subscriptionData: {\n      plan: "daily" | "monthly";\n      autoRenew?: boolean;\n      paymentData?: Record<string, unknown>;\n    }) => {\n      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));\n    },\n    [execute]\n  );\n\n  const cancelSubscription = useCallback(\n    (subscriptionId: string) => {\n      return execute(() =>\n        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)\n      );\n    },\n    [execute]\n  );\n\n  const toggleAutoRenew = useCallback(\n    (subscriptionId: string, autoRenew: boolean) => {\n      return execute(() =>\n        apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {\n          autoRenew,\n        })\n      );\n    },\n    [execute]\n  );\n\n  const checkAccess = useCallback(() => {\n    return execute(() => apiClient.post("/subscriptions/check-access"));\n  }, [execute]);\n\n  return {\n    subscription: data,\n    loading,\n    error,\n    fetchPlans,\n    fetchCurrent,\n    fetchMy,\n    createSubscription,\n    cancelSubscription,\n    toggleAutoRenew,\n    checkAccess,\n  };\n}
 
 // ====================== USERS HOOK (ADMIN) ======================
 export function useUsers() {
@@ -816,32 +814,32 @@ export function useUsers() {
     }) => {
       return execute(() => apiClient.get("/users", { params }));
     },
-    [execute]
+    [execute],
   );
 
   const fetchUserById = useCallback(
     (userId: string) => {
       return execute(() => apiClient.get(`/users/${userId}`));
     },
-    [execute]
+    [execute],
   );
 
   const updateUserStatus = useCallback(
     async (userId: string, isActive: boolean, reason?: string) => {
       return execute(() =>
-        apiClient.put(`/users/${userId}/status`, { isActive, reason })
+        apiClient.put(`/users/${userId}/status`, { isActive, reason }),
       );
     },
-    [execute]
+    [execute],
   );
 
   const updateUserRole = useCallback(
     async (userId: string, role: string, reason?: string) => {
       return execute(() =>
-        apiClient.put(`/users/${userId}/role`, { role, reason })
+        apiClient.put(`/users/${userId}/role`, { role, reason }),
       );
     },
-    [execute]
+    [execute],
   );
 
   const getProfile = useCallback(() => {
@@ -849,10 +847,10 @@ export function useUsers() {
   }, [execute]);
 
   const updateProfile = useCallback(
-    (profileData: any) => {
+    (profileData: Record<string, unknown>) => {
       return execute(() => apiClient.put("/users/profile", profileData));
     },
-    [execute]
+    [execute],
   );
 
   const getAvailableOperators = useCallback(() => {
@@ -881,10 +879,10 @@ export function useAuthOperations() {
   const changePassword = useCallback(
     async (passwordData: { currentPassword: string; newPassword: string }) => {
       return execute(() =>
-        apiClient.post("/auth/change-password", passwordData)
+        apiClient.post("/auth/change-password", passwordData),
       );
     },
-    [execute]
+    [execute],
   );
 
   const refreshToken = useCallback(() => {

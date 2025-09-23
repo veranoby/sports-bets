@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, articlesAPI } from '../../config/api';
+import { usersAPI, articlesAPI } from '../../services/api';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import Card from '../../components/shared/Card';

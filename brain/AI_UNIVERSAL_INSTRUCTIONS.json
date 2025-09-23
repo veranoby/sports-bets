@@ -1,162 +1,306 @@
 {
   "metadata": {
-    "purpose": "Universal instructions for ANY AI working on GalloBets project",
-    "created": "2025-09-18",
+    "purpose": "Universal safety protocols and coordination instructions for ANY AI working on GalloBets",
+    "created": "2025-09-21",
+    "updated": "2025-09-21",
     "project": "GalloBets - Professional Cockfighting Streaming Platform",
-    "applicable_to": ["Claude", "Gemini", "Qwen", "GPT-4", "Any AI system"]
+    "applicable_to": ["Claude", "Gemini", "Qwen", "GPT-4", "Cursor", "Windsurf", "Any AI system"]
+  },
+
+  "MANDATORY_READING": {
+    "brain_system_files": [
+      "brain/multi_ai_coordination_strategy.json - Overall AI coordination framework",
+      "brain/multi_ai_decision_matrix.json - Task routing and AI selection",
+      "brain/gemini_optimization_patterns.json - Gemini-specific patterns",
+      "brain/sdd_system.json - Technical architecture",
+      "brain/prd_system.json - Business requirements",
+      "brain/backlog.json - Current tasks and timeline"
+    ],
+    "coordination_documents": [
+      "CLAUDE.md - Claude-specific instructions",
+      "GEMINI.md - Gemini React/TypeScript patterns",
+      "QWEN.md - QWEN safety protocols and restrictions"
+    ]
   },
 
   "CRITICAL_SAFETY_PROTOCOLS": {
-    "NEVER_MODIFY_THESE_FILES": [
-      "frontend/src/pages/user/Profile.tsx (JUST RESTORED - WORKING)",
-      "backend/src/routes/auth.ts (HAS NEW ENDPOINT - WORKING)",
-      "frontend/src/contexts/AuthContext.tsx (FIXED - WORKING)",
-      "frontend/src/services/api.ts (FIXED - WORKING)"
-    ],
-    "FORBIDDEN_PATTERNS": [
-      "NEVER replace working code with placeholder comments",
-      "NEVER use patterns like '{/* ... (content remains the same) ... */}'",
-      "NEVER remove functional UI components or business logic",
-      "NEVER comment out working imports or hooks",
-      "NEVER modify authentication or API structure without explicit permission"
-    ],
-    "REQUIRED_TESTING": [
-      "Test login flow BEFORE making any changes",
-      "Test profile edit functionality BEFORE making any changes",
-      "Verify no console errors BEFORE making any changes",
-      "Validate all changes immediately after implementation"
-    ]
+    "QWEN_DESTROYED_FILES": {
+      "incident_log": [
+        "Profile.tsx - Replaced with placeholder comments",
+        "AuthContext.tsx - Broke authentication flow",
+        "auth.ts - Modified breaking login"
+      ],
+      "ABSOLUTELY_FORBIDDEN": [
+        "frontend/src/pages/user/Profile.tsx",
+        "frontend/src/contexts/AuthContext.tsx",
+        "backend/src/routes/auth.ts",
+        "frontend/src/services/api.ts"
+      ],
+      "qwen_restrictions": [
+        "NEVER modify existing authentication",
+        "NEVER use placeholder comments {/* */}",
+        "NEVER delete working code",
+        "MAXIMUM 30 minutes per session",
+        "MAXIMUM 30 lines changed"
+      ]
+    },
+    
+    "BEFORE_ANY_CHANGES": {
+      "mandatory_checks": [
+        "Test current functionality works",
+        "Create git backup: git commit -m 'backup before [AI] session'",
+        "Verify no console errors exist",
+        "Check brain files for context"
+      ]
+    }
   },
 
   "PROJECT_ARCHITECTURE": {
     "technology_stack": {
-      "database": "PostgreSQL on Neon.tech",
+      "database": "PostgreSQL on Neon.tech (PERFORMANCE ISSUES: 1-3s queries)",
       "backend": "Node.js + Express + Sequelize + TypeScript",
       "frontend": "React + TypeScript + Tailwind CSS",
-      "streaming": "RTMP + WebSocket minimal",
-      "real_time": "SSE for admin, WebSocket only for betting proposals"
+      "real_time": "Hybrid SSE (admin) + Minimal WebSocket (PAGO/DOY only)",
+      "streaming": "RTMP + OBS Studio + HLS delivery",
+      "payments": "Kushki (Ecuador/LATAM)"
     },
-    "critical_business_logic": {
-      "fight_temporal_logic": "upcoming → betting → live → completed (strict progression)",
-      "betting_windows": "Only allowed during status='betting'",
-      "user_roles": "admin > operator > venue/gallera > user hierarchy",
-      "pago_doy_timeout": "WebSocket proposals expire after 3 minutes"
+    
+    "critical_architecture_decisions": {
+      "sse_for_admin": "All admin real-time updates via SSE",
+      "websocket_minimal": "ONLY for PAGO/DOY proposals (3-min timeout)",
+      "no_websocket_for": ["Wallet operations", "Dynamic suggestions", "Chat"],
+      "fight_temporal_logic": "upcoming → betting → live → completed (strict)",
+      "betting_windows": "Bets ONLY accepted during status='betting'"
+    }
+  },
+
+  "AI_COORDINATION_MATRIX": {
+    "claude_exclusive_tasks": [
+      "Database performance optimization (1-3s issue)",
+      "SSE/WebSocket architecture design",
+      "Betting logic implementation",
+      "Authentication system fixes",
+      "Error debugging and resolution",
+      "Integration validation",
+      "Deployment coordination"
+    ],
+    
+    "gemini_primary_tasks": [
+      "React component creation",
+      "TypeScript interface definitions",
+      "UI/UX implementation with Tailwind",
+      "SSE hook integration (useSSE)",
+      "Admin/Operator dashboards",
+      "Responsive design implementation"
+    ],
+    
+    "qwen_limited_tasks": [
+      "Simple TypeScript 'any' cleanup ONLY",
+      "New test file creation (not modification)",
+      "Documentation additions (not changes)",
+      "CSS styling additions (no logic)"
+    ],
+    
+    "task_routing": {
+      "database_work": "CLAUDE ONLY - QWEN forbidden",
+      "real_time_systems": "Claude designs → Gemini implements UI",
+      "authentication": "CLAUDE ONLY - QWEN destroyed it before",
+      "betting_logic": "Claude designs → Gemini UI only",
+      "bug_fixing": "CLAUDE ONLY - QWEN deletes code",
+      "ui_components": "Gemini optimal, QWEN only if new/isolated"
     }
   },
 
   "CURRENT_SYSTEM_STATUS": {
-    "WORKING_FUNCTIONALITY": [
-      "✅ Authentication system (login/logout/JWT)",
-      "✅ Profile edit functionality (fullName, phoneNumber, address)",
-      "✅ Backend endpoint /auth/check-membership-status",
-      "✅ User dashboard and navigation",
-      "✅ Admin panel basic functionality"
+    "working_features": [
+      "✅ Basic authentication (JWT)",
+      "✅ User roles (admin, operator, venue, gallera, user)",
+      "✅ Admin dashboard structure",
+      "✅ RTMP streaming configuration",
+      "✅ Database schema complete"
     ],
-    "REMAINING_ISSUES": [
-      "🚨 Database performance: Queries taking 1-3+ seconds",
-      "⚠️ ETIMEDOUT errors from Neon.tech connection",
-      "⚠️ 400+ TypeScript @typescript-eslint/no-explicit-any errors",
-      "⚠️ Pre-commit hooks path configuration"
-    ]
+    
+    "critical_issues": {
+      "database_performance": {
+        "severity": "CRITICAL",
+        "current": "Queries taking 1-3+ seconds",
+        "target": "<500ms for 95% of queries",
+        "owner": "Claude ONLY",
+        "timeline": "Day 8-10 of MVP"
+      },
+      "connection_errors": {
+        "severity": "HIGH",
+        "issue": "ETIMEDOUT errors from Neon.tech",
+        "solution": "Connection pool optimization",
+        "owner": "Claude ONLY"
+      },
+      "typescript_errors": {
+        "severity": "MEDIUM",
+        "count": "370+ @typescript-eslint/no-explicit-any",
+        "owner": "QWEN (limited) + Claude validation",
+        "timeline": "Day 13-14"
+      }
+    }
   },
 
-  "WORK_PRIORITIES": {
-    "P0_CRITICAL": [
-      "Database connection pool optimization",
-      "Query performance optimization (target <500ms)",
-      "Connection timeout error resolution"
+  "TIMELINE_CRITICAL": {
+    "mvp_deadline": "September 21, 2025 (15 days total)",
+    "current_day": "Day 1 of 15",
+    "week_1_priorities": [
+      "Day 1-2: SSE architecture (Claude)",
+      "Day 3-4: Frontend SSE integration (Gemini)",
+      "Day 5-6: Betting windows system (Claude + Gemini)",
+      "Day 7: Operator dashboard (Gemini)"
     ],
-    "P1_IMPORTANT": [
-      "Error monitoring and logging improvements",
-      "TypeScript error cleanup (gradual)",
-      "Pre-commit hook path fixes"
-    ],
-    "P2_NICE_TO_HAVE": [
-      "Performance monitoring dashboard",
-      "Advanced error boundaries",
-      "Code quality improvements"
+    "week_2_priorities": [
+      "Day 8-10: Database performance fix (Claude ONLY)",
+      "Day 11-12: Integration testing (Claude + Gemini)",
+      "Day 13-14: Polish and TypeScript (Gemini + limited QWEN)",
+      "Day 15: Deployment (Claude)"
     ]
   },
 
   "DEVELOPMENT_PATTERNS": {
-    "file_structure": {
-      "backend_routes": "src/routes/{entity}.ts - RESTful patterns",
-      "frontend_admin": "src/pages/admin/ and src/components/admin/",
-      "frontend_user": "src/pages/user/ and src/components/user/",
-      "api_config": "src/config/api.ts - centralized API calls",
-      "types": "src/types/index.ts - shared TypeScript interfaces"
+    "sse_implementation": {
+      "backend": "EventSource with subscription management",
+      "frontend": "useSSE hook with reconnection logic",
+      "events": ["system-stats", "bet-updates", "fight-status", "notifications"]
     },
-    "code_standards": {
-      "react_components": "Functional components with TypeScript",
-      "api_responses": "Standard {success, data/error, message} format",
-      "error_handling": "Try-catch with proper logging",
-      "database_queries": "Use Sequelize ORM with proper relations"
+    
+    "websocket_minimal": {
+      "usage": "ONLY PAGO/DOY proposals",
+      "timeout": "3 minutes for acceptance",
+      "no_usage_for": ["Wallet", "Chat", "General updates"]
+    },
+    
+    "betting_windows": {
+      "states": ["upcoming", "betting", "live", "completed"],
+      "rule": "Bets ONLY during 'betting' status",
+      "enforcement": "Backend validation + Frontend UI"
+    },
+    
+    "operator_restrictions": {
+      "cannot_do": ["Modify admin users", "Modify operator users"],
+      "can_do": ["Manage assigned events", "Create venue/gallera/users"],
+      "implementation": "Role-based UI filtering + Backend validation"
     }
   },
 
-  "DEBUGGING_TOOLS": {
-    "frontend": [
-      "Browser Network tab for API calls",
-      "React Developer Tools",
-      "Console.log for state debugging"
+  "QUALITY_GATES": {
+    "before_commit": [
+      "TypeScript compiles (npm run tsc)",
+      "No console errors",
+      "Core functionality still works",
+      "Authentication not broken"
     ],
-    "backend": [
-      "Database query logging",
-      "Performance monitoring logs",
-      "API response time measurement"
-    ]
-  },
-
-  "SUCCESS_CRITERIA": {
-    "functional_requirements": [
-      "All authentication flows working correctly",
-      "Profile edit saves persist to database",
-      "API endpoints respond within acceptable time",
-      "No console errors on critical user flows"
+    
+    "before_handoff": [
+      "Component renders correctly",
+      "API integration working",
+      "Responsive design verified",
+      "Document any issues found"
     ],
-    "performance_requirements": [
-      "Database queries < 500ms average",
-      "API endpoints < 200ms response time",
-      "Reduced ETIMEDOUT connection errors",
-      "Stable connection pool management"
+    
+    "before_deployment": [
+      "All tests passing",
+      "Database queries <500ms",
+      "SSE latency <1s",
+      "No critical bugs"
     ]
   },
 
   "EMERGENCY_PROCEDURES": {
-    "if_something_breaks": [
-      "STOP all changes immediately",
-      "Use 'git checkout -- filename' to restore working version",
-      "Test restored functionality before continuing",
-      "Report exactly what was attempted and what broke"
+    "if_qwen_breaks_something": [
+      "STOP immediately - do not let QWEN 'fix' it",
+      "git reset --hard HEAD",
+      "Request Claude for proper fix",
+      "Update FORBIDDEN files list"
     ],
-    "rollback_commands": [
-      "git stash (save current changes)",
-      "git checkout HEAD~1 -- filename (restore specific file)",
-      "git reset --hard HEAD (nuclear option - lose all changes)"
+    
+    "if_database_slow": [
+      "Alert Claude immediately",
+      "Do not attempt optimization without Claude",
+      "Emergency: Add caching layer temporarily"
+    ],
+    
+    "if_auth_breaks": [
+      "CRITICAL - Stop all work",
+      "git checkout -- [auth files]",
+      "Claude exclusive fix required",
+      "Test login flow completely"
+    ],
+    
+    "if_timeline_slipping": [
+      "Focus P0 features only",
+      "Cut P1 features if needed",
+      "Daily progress updates to brain",
+      "Consider reducing scope"
     ]
   },
 
-  "BRAIN_SYSTEM_USAGE": {
-    "key_files_to_reference": [
-      "brain/sdd_system.json (technical architecture)",
-      "brain/prd_system.json (business requirements)",
-      "brain/backlog.json (current tasks)",
-      "CLAUDE.md (development guidelines)"
+  "COORDINATION_PROTOCOL": {
+    "daily_workflow": {
+      "morning": [
+        "Check brain/backlog.json for today's tasks",
+        "Review brain/multi_ai_decision_matrix.json for task routing",
+        "Verify git backup exists"
+      ],
+      "implementation": [
+        "Follow AI-specific instructions (CLAUDE.md, GEMINI.md, QWEN.md)",
+        "Test every 30 minutes",
+        "Update brain files with progress"
+      ],
+      "handoff": [
+        "Document what was completed",
+        "List any issues encountered",
+        "Prepare clear handoff notes"
+      ]
+    },
+    
+    "ai_specific_rules": {
+      "claude": "Check brain files → Design architecture → Validate everything",
+      "gemini": "Get Claude specs → Implement UI → Test responsiveness",
+      "qwen": "EXTREME limitations → Simple tasks only → Claude validates"
+    }
+  },
+
+  "SUCCESS_METRICS": {
+    "technical_requirements": [
+      "Database queries <500ms",
+      "SSE latency <1 second",
+      "Zero authentication issues",
+      "TypeScript compiles cleanly"
     ],
-    "before_starting_work": [
-      "Read brain/sdd_system.json for technical context",
-      "Check brain/backlog.json for current task status",
-      "Review CLAUDE.md for coding standards",
-      "Understand business context from brain/prd_system.json"
+    
+    "business_requirements": [
+      "Betting windows working correctly",
+      "Operator dashboard functional",
+      "Streaming integration complete",
+      "Payment processing active"
+    ],
+    
+    "timeline_requirements": [
+      "MVP deployed by September 21",
+      "Daily progress against timeline",
+      "All P0 features complete"
     ]
   },
 
-  "TOKEN_EFFICIENCY": {
-    "for_large_operations": [
-      "Use symbol-enhanced communication (✅❌⚠️🔍🔧)",
-      "Abbreviate common terms (auth, impl, perf, cfg)",
-      "Focus on essential information only",
-      "Use bullet points over paragraphs"
+  "FINAL_REMINDERS": {
+    "never_forget": [
+      "QWEN destroyed authentication - be extremely careful",
+      "Database performance is CRITICAL blocker",
+      "15-day deadline is non-negotiable",
+      "SSE for admin, WebSocket ONLY for PAGO/DOY",
+      "Test before committing anything"
+    ],
+    
+    "always_do": [
+      "Check brain files for context",
+      "Create git backups",
+      "Follow AI coordination matrix",
+      "Test core functionality",
+      "Update brain with progress"
     ]
   }
 }

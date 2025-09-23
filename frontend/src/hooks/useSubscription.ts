@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import type { UserSubscription } from '../types';
+import { useCallback, useMemo } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import type { UserSubscription } from "../types";
 
 interface UseSubscriptionReturn {
   subscription: UserSubscription | null;
@@ -19,14 +19,18 @@ export const useSubscription = (): UseSubscriptionReturn => {
 
   const hasAccess = useMemo(() => {
     if (!subscription) return false;
-    if (subscription.status !== 'active') return false;
-    if (subscription.expiresAt && new Date(subscription.expiresAt) <= new Date()) return false;
+    if (subscription.status !== "active") return false;
+    if (
+      subscription.expiresAt &&
+      new Date(subscription.expiresAt) <= new Date()
+    )
+      return false;
     return true;
   }, [subscription]);
 
   const isPremium = useMemo(() => {
     if (!subscription) return false;
-    if (subscription.type === 'free') return false;
+    if (subscription.type === "free") return false;
     return hasAccess;
   }, [subscription, hasAccess]);
 

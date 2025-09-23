@@ -1,0 +1,134 @@
+{
+  "task_assignment": "QWEN - TypeScript & ESLint Error Cleanup",
+  "priority": "CRITICAL - Blocking git commit with 420 linting errors",
+  "token_savings_target": "30-50% through automated error fixing",
+  "proven_qwen_strengths": "Simple TypeScript fixes, unused import cleanup",
+
+  "critical_task": {
+    "problem": "Pre-commit hook failing with 389 TypeScript errors + 31 warnings",
+    "blocking_commit": "Cannot commit current work due to lint failures",
+    "solution_approach": "Systematic cleanup of TypeScript and ESLint violations",
+    "success_criteria": "git commit succeeds without lint errors"
+  },
+
+  "error_categories": {
+    "1_unused_imports": {
+      "count": "~150 errors",
+      "pattern": "'XXX' is defined but never used @typescript-eslint/no-unused-vars",
+      "solution": "Remove unused import statements",
+      "examples": [
+        "FileText, User, MessageSquare, Ticket, Eye from AdminSidebar.tsx",
+        "Search from News.tsx",
+        "Users from VenueDetailPage.tsx"
+      ]
+    },
+
+    "2_explicit_any_types": {
+      "count": "~200 errors", 
+      "pattern": "Unexpected any. Specify a different type @typescript-eslint/no-explicit-any",
+      "solution": "Replace 'any' with proper TypeScript types",
+      "strategy": "Use existing type interfaces or create simple ones"
+    },
+
+    "3_unused_variables": {
+      "count": "~50 errors",
+      "pattern": "'XXX' is assigned a value but never used",
+      "solution": "Remove unused variable assignments or use underscore prefix",
+      "examples": [
+        "showAvatarModal, passwordLoading from Profile.tsx",
+        "total from News.tsx"
+      ]
+    }
+  },
+
+  "systematic_approach": {
+    "phase_1_unused_imports": {
+      "files_priority": [
+        "components/admin/AdminSidebar.tsx",
+        "components/admin/FightStatusManager.tsx", 
+        "pages/user/News.tsx",
+        "pages/user/VenueDetailPage.tsx"
+      ],
+      "action": "Remove completely unused imports, keep used ones"
+    },
+
+    "phase_2_explicit_any": {
+      "strategy": "Replace with proper types from existing interfaces",
+      "common_replacements": [
+        "any → unknown (for generic data)",
+        "any → Record<string, unknown> (for objects)", 
+        "any → string | number (for simple values)",
+        "any → User | Venue | Gallera (for entity types)"
+      ]
+    },
+
+    "phase_3_unused_variables": {
+      "action": "Remove if truly unused, or prefix with underscore if needed for future"
+    }
+  },
+
+  "forbidden_changes": {
+    "critical_restrictions": [
+      "DO NOT modify authentication logic or AuthContext",
+      "DO NOT change API service contracts or endpoints", 
+      "DO NOT modify component functionality - only type/import cleanup",
+      "DO NOT break existing component interfaces",
+      "DO NOT remove variables that might be used in templates"
+    ]
+  },
+
+  "validation_workflow": {
+    "after_each_phase": [
+      "Run: npx tsc --noEmit to check TypeScript compilation",
+      "Run: npm run lint to verify ESLint errors reduced",
+      "Ensure no functional regressions"
+    ],
+    "final_validation": [
+      "All TypeScript errors resolved",
+      "ESLint warnings under acceptable threshold",
+      "git commit succeeds without pre-commit hook failures"
+    ]
+  },
+
+  "recommended_agents": {
+    "primary_agent": "--refactoring-expert --safe-mode --token-efficient",
+    "support_agent": "--quality-engineer --validate --scope file",
+    "monitoring_agent": "--performance-engineer --focus quality --no-optimization",
+    "agent_rationale": {
+      "refactoring_expert": "Specialized in code cleanup without changing functionality - perfect for lint errors",
+      "quality_engineer": "Validates each file maintains quality without breaking functionality",
+      "performance_engineer": "Monitors that cleanup doesn't affect performance, but NO optimization (dangerous for Qwen)"
+    },
+    "forbidden_agents": [
+      "--backend-architect (too complex for Qwen)",
+      "--system-architect (could change architecture)",
+      "--security-engineer (might touch auth/permissions)",
+      "--frontend-architect (could restructure components)"
+    ]
+  },
+
+  "agent_workflow": {
+    "phase_1_analysis": "--quality-engineer --validate --scope project",
+    "phase_2_cleanup": "--refactoring-expert --safe-mode --scope file",
+    "phase_3_validation": "--quality-engineer --validate --token-efficient",
+    "execution_pattern": "Process ONE file at a time with validation after every 10 fixes"
+  },
+
+  "optimization_targets": {
+    "error_reduction": "420 errors → 0 errors",
+    "focus_areas": [
+      "Remove unused imports systematically",
+      "Fix explicit 'any' types with proper interfaces",
+      "Clean up unused variable assignments",
+      "Ensure React hooks dependency warnings addressed"
+    ]
+  },
+
+  "success_deliverables": [
+    "Clean TypeScript compilation (npx tsc --noEmit passes)",
+    "ESLint errors under 10 (maximum threshold)",
+    "Git commit completes successfully",
+    "No functional regressions in components",
+    "Maintained code readability and structure"
+  ]
+}

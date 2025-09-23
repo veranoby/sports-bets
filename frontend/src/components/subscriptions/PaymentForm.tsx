@@ -101,18 +101,20 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         break;
 
       case 'cvv':
-        // Only allow digits
-        formattedValue = value.replace(/\D/g, '');
-        const maxLength = cardType === 'amex' ? 4 : 3;
-        formattedValue = formattedValue.slice(0, maxLength);
-        
-        // Real-time validation
-        if (formattedValue.length === maxLength) {
-          // if (!// kushkiService.validateCVV(formattedValue, cardType)) {
-          //   newErrors.cvv = 'Invalid CVV';
-          // }
+        {
+          // Only allow digits
+          formattedValue = value.replace(/\D/g, '');
+          const maxLength = cardType === 'amex' ? 4 : 3;
+          formattedValue = formattedValue.slice(0, maxLength);
+          
+          // Real-time validation
+          if (formattedValue.length === maxLength) {
+            // if (!// kushkiService.validateCVV(formattedValue, cardType)) {
+            //   newErrors.cvv = 'Invalid CVV';
+            // }
+          }
+          break;
         }
-        break;
 
       case 'name':
         // Only allow letters and spaces

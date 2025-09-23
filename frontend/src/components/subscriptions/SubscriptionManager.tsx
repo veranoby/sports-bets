@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { CreditCard, Calendar, DollarSign, ExternalLink } from 'lucide-react';
+import { CreditCard, Calendar, DollarSign, ExternalLink, CheckCircle, AlertCircle, X, RefreshCw, Settings, Crown, Download, History } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscriptionAPI } from '../../config/api';
 import { Card, Button, Tabs, Spin, Alert, Empty, Typography, List, Avatar, Tag, Modal, Form, Input, Select, DatePicker, Space, Pagination, Badge } from 'antd';
 import { formatDate, formatCurrency } from '../../utils/formatters';
+import SubscriptionPlans from './SubscriptionPlans';
 import './SubscriptionManager.css';
 
 interface Subscription {
@@ -96,7 +97,7 @@ const SubscriptionManager: React.FC = () => {
         setPaymentHistory(prev => [...prev, ...response.data]);
       }
       
-      setPagination(response.pagination);
+      setPagination((response as any).pagination || { current: 1, total: 0, pageSize: 10 });
     } catch (err: any) {
       console.error('Failed to fetch payment history:', err);
       setError(err.message || 'Failed to load payment history');
@@ -203,7 +204,7 @@ const SubscriptionManager: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner text="Loading subscription details..." />
+        <Spin size="large" tip="Loading subscription details..." />
       </div>
     );
   }

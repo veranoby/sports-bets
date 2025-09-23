@@ -5,7 +5,7 @@ interface ModalProps {
   isOpen?: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
   className?: string;
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
@@ -49,6 +49,10 @@ const Modal: React.FC<ModalProps> = ({
     md: "max-w-md",
     lg: "max-w-lg",
     xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    "3xl": "max-w-3xl",
+    "4xl": "max-w-4xl",
+    full: "max-w-full w-full h-full",
   };
 
   return (
@@ -58,7 +62,7 @@ const Modal: React.FC<ModalProps> = ({
         onClick={closeOnOverlayClick ? onClose : undefined}
       />
       <div
-        className={`bg-[#1a1f37] p-6 rounded-lg w-full ${sizeClasses[size]} ${className} relative z-10`}
+        className={`bg-[#1a1f37] p-6 rounded-lg w-full ${sizeClasses[size]} ${className} relative z-10 max-h-screen overflow-y-auto`}
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-bold text-lg">{title}</h3>

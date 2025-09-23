@@ -114,7 +114,7 @@ const FightControl: React.FC<FightControlProps> = ({
       setLoading('recording');
       const response = await fightsAPI.recordResult(fight.id, {
         winner,
-        notes: `Fight ${fight.number} result recorded`
+        method: 'decision'
       });
       
       if (response.success) {

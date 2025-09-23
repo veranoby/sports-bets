@@ -1,16 +1,20 @@
-import axios, { type AxiosError, type Method, type AxiosRequestConfig } from 'axios';
-import { type ApiResponse, type ApiError } from '../types';
+import axios, {
+  type AxiosError,
+  type Method,
+  type AxiosRequestConfig,
+} from "axios";
+import { type ApiResponse, type ApiError } from "../types";
 
 const api = axios.create({
-  baseURL: '/api', // The vite proxy in vite.config.ts will handle this
+  baseURL: "/api", // The vite proxy in vite.config.ts will handle this
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 // Optional: Add interceptors for handling tokens or errors globally.
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,61 +23,92 @@ api.interceptors.request.use(config => {
 
 export default api;
 
-const apiCall = async <T>(method: Method, endpoint: string, data?: unknown, headers?: AxiosRequestConfig['headers']): Promise<ApiResponse<T>> => {
-    try {
-      const response = await api.request<T>({
-        method,
-        url: endpoint,
-        data: method.toLowerCase() !== 'get' && method.toLowerCase() !== 'delete' ? data : undefined,
-        params: method.toLowerCase() === 'get' || method.toLowerCase() === 'delete' ? data : undefined,
-        headers,
-      });
-      // Return backend response directly (it already has success/data structure)
-      return response.data as ApiResponse<T>;
-    } catch (error) {
-      console.error(`Error at ${endpoint}:`, error);
-      const err = error as AxiosError<unknown>;
-      const apiError: ApiError = {
-        name: 'ApiError',
-        message: (err.response?.data as { message?: string })?.message || err.message || 'An error occurred',
-        status: err.response?.status,
-      };
-      return { success: false, data: null as T, error: apiError.message, code: apiError.status };
-    }
-}
-
+const apiCall = async <T>(
+  method: Method,
+  endpoint: string,
+  data?: unknown,
+  headers?: AxiosRequestConfig["headers"],
+): Promise<ApiResponse<T>> => {
+  try {
+    const response = await api.request<T>({
+      method,
+      url: endpoint,
+      data:
+        method.toLowerCase() !== "get" && method.toLowerCase() !== "delete"
+          ? data
+          : undefined,
+      params:
+        method.toLowerCase() === "get" || method.toLowerCase() === "delete"
+          ? data
+          : undefined,
+      headers,
+    });
+    // Return backend response directly (it already has success/data structure)
+    return response.data as ApiResponse<T>;
+  } catch (error) {
+    console.error(`Error at ${endpoint}:`, error);
+    const err = error as AxiosError<unknown>;
+    const apiError: ApiError = {
+      name: "ApiError",
+      message:
+        (err.response?.data as { message?: string })?.message ||
+        err.message ||
+        "An error occurred",
+      status: err.response?.status,
+    };
+    return {
+      success: false,
+      data: null as T,
+      error: apiError.message,
+      code: apiError.status,
+    };
+  }
+};
 
 export const fightsAPI = {
-  create: async (data: { eventId: string; redCorner: string; blueCorner: string; weight: number; number: number; notes?: string; }) => {
-    return apiCall('post', '/fights', data);
+  create: async (data: {
+    eventId: string;
+    redCorner: string;
+    blueCorner: string;
+    weight: number;
+    number: number;
+    notes?: string;
+  }) => {
+    return apiCall("post", "/fights", data);
   },
   openBetting: async (fightId: string) => {
-    return apiCall('post', `/fights/${fightId}/open-betting`);
+    return apiCall("post", `/fights/${fightId}/open-betting`);
   },
   closeBetting: async (fightId: string) => {
-    return apiCall('post', `/fights/${fightId}/close-betting`);
+    return apiCall("post", `/fights/${fightId}/close-betting`);
   },
-  recordResult: async (fightId: string, result: { winner: string; method: string; round?: number; time?: string; }) => {
-    return apiCall('post', `/fights/${fightId}/result`, result);
+  recordResult: async (
+    fightId: string,
+    result: { winner: string; method: string; round?: number; time?: string },
+  ) => {
+    return apiCall("post", `/fights/${fightId}/result`, result);
   },
   // Admin component methods
   getFightsByEvent: async (eventId: string) => {
-    return apiCall('get', `/events/${eventId}/fights`);
+    return apiCall("get", `/events/${eventId}/fights`);
   },
   createFight: async (data: any) => {
-    return apiCall('post', '/fights', data);
+    return apiCall("post", "/fights", data);
   },
   updateFightStatus: async (fightId: string, status: string) => {
-    return apiCall('put', `/fights/${fightId}/status`, { status });
+    return apiCall("put", `/fights/${fightId}/status`, { status });
   },
   assignFightResult: async (fightId: string, result: any) => {
-    return apiCall('post', `/fights/${fightId}/result`, result);
+    return apiCall("post", `/fights/${fightId}/result`, result);
   },
 };
 
 export const adminAPI = {
-  updateUserMembership: async (userId: string, data: { membership_type: string, assigned_username: string }) => {
-    return apiCall('put', `/admin/users/${userId}/membership`, data);
+  updateUserMembership: async (
+    userId: string,
+    data: { membership_type: string; assigned_username: string },
+  ) => {
+    return apiCall("put", `/admin/users/${userId}/membership`, data);
   },
 };
 
@@ -84,16 +119,21 @@ export const userAPI = {
     password: string;
     role: string;
   }) => {
-    return apiCall('post', '/users', data);
+    return apiCall("post", "/users", data);
   },
   uploadPaymentProof: async (formData: FormData) => {
-    return apiCall('post', '/users/upload-payment-proof', formData, { 'Content-Type': 'multipart/form-data' });
+    return apiCall("post", "/users/upload-payment-proof", formData, {
+      "Content-Type": "multipart/form-data",
+    });
   },
   getProfile: async () => {
-    return apiCall('get', '/users/profile');
+    return apiCall("get", "/users/profile");
   },
   getAll: async (params?: any) => {
-    return apiCall('get', '/users', params);
+    return apiCall("get", "/users", params);
+  },
+  getById: async (id: string) => {
+    return apiCall("get", `/users/${id}`);
   },
 };
 
@@ -101,97 +141,106 @@ export const apiClient = api;
 
 export const authAPI = {
   login: async (credentials: { login: string; password: string }) => {
-    return apiCall('post', '/auth/login', credentials);
+    return apiCall("post", "/auth/login", credentials);
   },
   checkMembershipStatus: async () => {
-    return apiCall('post', '/auth/check-membership-status');
+    return apiCall("post", "/auth/check-membership-status");
   },
 };
 
 export const eventsAPI = {
   update: async (id: string, data: any) => {
-    return apiCall('put', `/events/${id}`, data);
+    return apiCall("put", `/events/${id}`, data);
   },
   // Admin component methods
   updateEventStatus: async (eventId: string, status: string) => {
-    return apiCall('put', `/events/${eventId}/status`, { status });
+    return apiCall("put", `/events/${eventId}/status`, { status });
   },
   assignOperator: async (eventId: string, operatorId: string) => {
-    return apiCall('put', `/events/${eventId}/operator`, { operatorId });
+    return apiCall("put", `/events/${eventId}/operator`, { operatorId });
   },
   generateStreamKey: async (eventId: string) => {
-    return apiCall('post', `/events/${eventId}/stream-key`);
+    return apiCall("post", `/events/${eventId}/stream-key`);
   },
 };
 
 export const venuesAPI = {
   update: async (id: string, data: any) => {
-    return apiCall('put', `/venues/${id}`, data);
+    return apiCall("put", `/venues/${id}`, data);
   },
   create: async (data: any) => {
-    return apiCall('post', '/venues', data);
+    return apiCall("post", "/venues", data);
   },
   getAll: async (params?: any) => {
-    return apiCall('get', '/venues', params);
+    return apiCall("get", "/venues", params);
   },
 };
 
 export const gallerasAPI = {
   update: async (id: string, data: any) => {
-    return apiCall('put', `/galleras/${id}`, data);
+    return apiCall("put", `/galleras/${id}`, data);
   },
   create: async (data: any) => {
-    return apiCall('post', '/galleras', data);
+    return apiCall("post", "/galleras", data);
   },
 };
 
 // Add streamingAPI for missing methods
 export const streamingAPI = {
   getStatus: async (streamId: string) => {
-    return apiCall('get', `/streaming/${streamId}/status`);
+    return apiCall("get", `/streaming/${streamId}/status`);
   },
   updateStatus: async (streamId: string, status: string) => {
-    return apiCall('put', `/streaming/${streamId}/status`, { status });
+    return apiCall("put", `/streaming/${streamId}/status`, { status });
   },
   startStream: async (streamId: string) => {
-    return apiCall('post', `/streaming/${streamId}/start`);
+    return apiCall("post", `/streaming/${streamId}/start`);
   },
   stopStream: async (streamId: string) => {
-    return apiCall('post', `/streaming/${streamId}/stop`);
+    return apiCall("post", `/streaming/${streamId}/stop`);
   },
 };
 
 // Add missing APIs and aliases for components
 export const betsAPI = {
   getMyBets: async () => {
-    return apiCall('get', '/bets/my-bets');
+    return apiCall("get", "/bets/my-bets");
   },
   create: async (data: any) => {
-    return apiCall('post', '/bets', data);
+    return apiCall("post", "/bets", data);
   },
   cancel: async (betId: string) => {
-    return apiCall('delete', `/bets/${betId}`);
+    return apiCall("delete", `/bets/${betId}`);
   },
   accept: async (betId: string) => {
-    return apiCall('post', `/bets/${betId}/accept`);
+    return apiCall("post", `/bets/${betId}/accept`);
   },
 };
 
 export const articlesAPI = {
   getAll: async (params?: any) => {
-    return apiCall('get', '/articles', params);
+    return apiCall("get", "/articles", params);
   },
   getFeatured: async (params: any) => {
-    return apiCall('get', '/articles/featured', params);
+    return apiCall("get", "/articles/featured", params);
+  },
+  create: async (data: any) => {
+    return apiCall("post", "/articles", data);
+  },
+  update: async (id: string, data: any) => {
+    return apiCall("put", `/articles/${id}`, data);
+  },
+  delete: async (id: string) => {
+    return apiCall("delete", `/articles/${id}`);
   },
 };
 
 export const walletAPI = {
   getBalance: async () => {
-    return apiCall('get', '/wallet/balance');
+    return apiCall("get", "/wallet/balance");
   },
   addFunds: async (amount: number) => {
-    return apiCall('post', '/wallet/add-funds', { amount });
+    return apiCall("post", "/wallet/add-funds", { amount });
   },
 };
 

@@ -67,10 +67,12 @@ const StreamControls: React.FC<StreamControlsProps> = ({
     try {
       const response = await streamingAPI.getStatus('default-stream');
       // Update status based on API response
-      setStatus(prev => ({
-        ...prev,
-        ...(response.data || {})
-      }));
+      if (response.success && response.data) {
+        setStatus(prev => ({
+          ...prev,
+          ...(response.data as object)
+        }));
+      }
     } catch (err) {
       console.error('Failed to fetch stream status:', err);
     }
@@ -105,10 +107,10 @@ const StreamControls: React.FC<StreamControlsProps> = ({
       setStatus(prev => ({
         ...prev,
         isLive: true,
-        streamId: response.data?.streamId || '',
-        rtmpUrl: response.data?.rtmpUrl || '',
-        streamKey: response.data?.streamKey || '',
-        hlsUrl: response.data?.hlsUrl || '',
+        streamId: (response.data as any)?.streamId || '',
+        rtmpUrl: (response.data as any)?.rtmpUrl || '',
+        streamKey: (response.data as any)?.streamKey || '',
+        hlsUrl: (response.data as any)?.hlsUrl || '',
         health: 'healthy'
       }));
 

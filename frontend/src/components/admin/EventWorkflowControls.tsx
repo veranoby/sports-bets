@@ -35,7 +35,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     const loadFights = async () => {
       try {
         const response = await fightAPI.getFightsByEvent(event.id);
-        setFights(response.data);
+        if (response.success) {
+          setFights(response.data as Fight[]);
+        }
       } catch (error) {
         console.error('Failed to load fights:', error);
         message.error('Failed to load fights');
@@ -80,7 +82,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     setLoading(true);
     try {
       const response = await eventAPI.updateEventStatus(event.id, status);
-      onEventUpdate(response.data);
+      if (response.success) {
+        onEventUpdate(response.data as Event);
+      }
       message.success(`Event status updated to ${status}`);
       
       // Emit real-time update
@@ -106,16 +110,18 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
         eventId: event.id,
         ...fightData
       });
-      setFights(prev => [...prev, response.data]);
-      message.success('Fight created successfully');
-      
-      // Emit real-time update
-      if (isConnected) {
-        emit('fight_created', {
-          eventId: event.id,
-          fight: response.data,
-          timestamp: new Date().toISOString()
-        });
+      if (response.success) {
+        setFights(prev => [...prev, response.data as Fight]);
+        message.success('Fight created successfully');
+
+        // Emit real-time update
+        if (isConnected) {
+          emit('fight_created', {
+            eventId: event.id,
+            fight: response.data as Fight,
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to create fight:', error);
@@ -129,9 +135,11 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     setLoading(true);
     try {
       const response = await fightAPI.updateFightStatus(fightId, status);
-      setFights(prev => prev.map(fight => 
-        fight.id === fightId ? response.data : fight
-      ));
+      if (response.success) {
+        setFights(prev => prev.map(fight =>
+          fight.id === fightId ? response.data as Fight : fight
+        ));
+      }
       message.success(`Fight status updated to ${status}`);
       
       // Emit real-time update
@@ -155,9 +163,11 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     setLoading(true);
     try {
       const response = await fightAPI.assignFightResult(fightId, result);
-      setFights(prev => prev.map(fight => 
-        fight.id === fightId ? response.data : fight
-      ));
+      if (response.success) {
+        setFights(prev => prev.map(fight =>
+          fight.id === fightId ? response.data as Fight : fight
+        ));
+      }
       message.success('Fight result assigned');
       setFightResult(null);
       setSelectedFight('');
@@ -188,7 +198,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     setLoading(true);
     try {
       const response = await eventAPI.assignOperator(event.id, operatorId);
-      onEventUpdate(response.data);
+      if (response.success) {
+        onEventUpdate(response.data as Event);
+      }
       message.success('Operator assigned successfully');
       setIsAssigningOperator(false);
       setOperatorId('');
@@ -213,16 +225,18 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({ event, on
     setLoading(true);
     try {
       const response = await eventAPI.generateStreamKey(event.id);
-      onEventUpdate(response.data);
-      message.success('Stream key generated successfully');
-      
-      // Emit real-time update
-      if (isConnected) {
-        emit('stream_key_generated', {
-          eventId: event.id,
-          streamKey: response.data.streamKey,
-          timestamp: new Date().toISOString()
-        });
+      if (response.success) {
+        onEventUpdate(response.data as Event);
+        message.success('Stream key generated successfully');
+
+        // Emit real-time update
+        if (isConnected) {
+          emit('stream_key_generated', {
+            eventId: event.id,
+            streamKey: (response.data as any).streamKey,
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to generate stream key:', error);

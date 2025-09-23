@@ -7,7 +7,7 @@ import { Op } from "sequelize";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { retryOperation, sequelize } from "../config/database";
+import { retryOperation, sequelize, cache } from "../config/database";
 
 const router = Router();
 
@@ -72,10 +72,32 @@ router.put(
       .optional()
       .isLength({ min: 5, max: 20 })
       .withMessage("Identification number must be between 5 and 20 characters"),
+    // Additional validations for venue/gallera specific fields
+    body("profileInfo.businessName")
+      .optional()
+      .isLength({ min: 2, max: 100 })
+      .withMessage("Business name must be between 2 and 100 characters"),
+    body("profileInfo.businessAddress")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Business address must not exceed 500 characters"),
+    body("profileInfo.businessPhone")
+      .optional()
+      .isMobilePhone("any")
+      .withMessage("Please provide a valid business phone number"),
+    body("profileInfo.taxId")
+      .optional()
+      .isLength({ min: 5, max: 20 })
+      .withMessage("Tax ID must be between 5 and 20 characters"),
+    body("profileInfo.licenseNumber")
+      .optional()
+      .isLength({ min: 5, max: 50 })
+      .withMessage("License number must be between 5 and 50 characters"),
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
+      console.error('Profile validation errors:', validationErrors.array());
       throw errors.badRequest(
         "Validation failed: " +
           validationErrors
@@ -88,26 +110,53 @@ router.put(
     const user = req.user!;
     const { profileInfo } = req.body;
 
-    console.log('Received profileInfo:', profileInfo);
-    console.log('Current user profileInfo:', user.profileInfo);
+    console.log('Received profileInfo:', JSON.stringify(profileInfo, null, 2));
+    console.log('Current user profileInfo:', JSON.stringify(user.profileInfo, null, 2));
+    console.log('User role:', user.role);
+
+    // Validate role-specific fields
+    if (user.role === 'venue' || user.role === 'gallera') {
+      if (profileInfo && profileInfo.businessName) {
+        // Ensure venue/gallera have required business information
+        const requiredFields = ['businessName'];
+        for (const field of requiredFields) {
+          if (profileInfo[field] && profileInfo[field].trim().length < 2) {
+            throw errors.badRequest(`${field} is required for ${user.role} accounts`);
+          }
+        }
+      }
+    }
 
     if (profileInfo) {
-      // Actualizar información del perfil manteniendo datos existentes
+      // Initialize profileInfo if it doesn't exist
+      if (!user.profileInfo) {
+        user.profileInfo = {};
+      }
+
+      // Merge profile information, ensuring proper data types
       user.profileInfo = {
         ...user.profileInfo,
         ...profileInfo,
+        // Ensure certain fields are properly sanitized
+        verificationLevel: user.profileInfo?.verificationLevel || "none"
       };
-      console.log('Updated user profileInfo:', user.profileInfo);
+
+      console.log('Updated user profileInfo:', JSON.stringify(user.profileInfo, null, 2));
     }
 
-    await user.save();
-    console.log('User saved successfully');
+    try {
+      await user.save();
+      console.log('User saved successfully');
 
-    res.json({
-      success: true,
-      message: "Perfil actualizado exitosamente",
-      data: user.toPublicJSON(),
-    });
+      res.json({
+        success: true,
+        message: "Perfil actualizado exitosamente",
+        data: user.toPublicJSON(),
+      });
+    } catch (error) {
+      console.error('Error saving user profile:', error);
+      throw errors.badRequest(`Failed to update profile: ${error.message}`);
+    }
   })
 );
 
@@ -231,7 +280,7 @@ router.get(
     // Optimized query with caching for user listings
     const cacheKey = `users_list_${role || 'all'}_${isActive || 'all'}_${limit}_${offset}`;
     const users = await retryOperation(async () => {
-      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+      return await cache.getOrSet(cacheKey, async () => {
         return await User.findAndCountAll({
           where,
           attributes,

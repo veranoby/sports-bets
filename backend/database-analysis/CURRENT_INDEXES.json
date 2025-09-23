@@ -36,6 +36,13 @@
 }, {
   "schemaname": "public",
   "tablename": "articles",
+  "indexname": "idx_articles_status_published",
+  "indexdef": "CREATE INDEX idx_articles_status_published ON public.articles USING btree (status, published_at DESC) WHERE (status = 'published'::enum_articles_status)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
   "indexname": "idx_articles_status_published_at",
   "indexdef": "CREATE INDEX idx_articles_status_published_at ON public.articles USING btree (status, published_at)",
   "is_unique": false,
@@ -463,6 +470,13 @@
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
+  "indexname": "idx_system_settings_key",
+  "indexdef": "CREATE INDEX idx_system_settings_key ON public.system_settings USING btree (key)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
   "indexname": "idx_system_settings_public",
   "indexdef": "CREATE INDEX idx_system_settings_public ON public.system_settings USING btree (is_public)",
   "is_unique": false,
@@ -480,6 +494,13 @@
   "indexname": "system_settings_pkey",
   "indexdef": "CREATE UNIQUE INDEX system_settings_pkey ON public.system_settings USING btree (id)",
   "is_unique": true,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_date",
+  "indexdef": "CREATE INDEX idx_transactions_wallet_date ON public.transactions USING btree (wallet_id, created_at DESC)",
+  "is_unique": false,
   "index_type": "btree"
 }, {
   "schemaname": "public",
@@ -549,6 +570,13 @@
   "tablename": "users",
   "indexname": "idx_users_email_login_optimized",
   "indexdef": "CREATE INDEX idx_users_email_login_optimized ON public.users USING btree (email, is_active, last_login)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_id_active",
+  "indexdef": "CREATE INDEX idx_users_id_active ON public.users USING btree (id, is_active) WHERE (is_active = true)",
   "is_unique": false,
   "index_type": "btree"
 }, {
@@ -647,6 +675,13 @@
   "tablename": "venues",
   "indexname": "venues_status",
   "indexdef": "CREATE INDEX venues_status ON public.venues USING btree (status)",
+  "is_unique": false,
+  "index_type": "btree"
+}, {
+  "schemaname": "public",
+  "tablename": "wallets",
+  "indexname": "idx_wallets_user_id",
+  "indexdef": "CREATE INDEX idx_wallets_user_id ON public.wallets USING btree (user_id)",
   "is_unique": false,
   "index_type": "btree"
 }, {

@@ -1,7 +1,7 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "176 kB",
+  "total_size": "192 kB",
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
@@ -10,17 +10,22 @@
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
+  "tablename": "system_settings",
+  "total_size": "96 kB",
+  "table_size": "8192 bytes"
+}, {
+  "schemaname": "public",
   "tablename": "bets",
   "total_size": "96 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "events",
+  "tablename": "payment_transactions",
   "total_size": "88 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "payment_transactions",
+  "tablename": "events",
   "total_size": "88 kB",
   "table_size": "0 bytes"
 }, {
@@ -30,27 +35,27 @@
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
-  "tablename": "system_settings",
-  "total_size": "80 kB",
-  "table_size": "8192 bytes"
-}, {
-  "schemaname": "public",
   "tablename": "transactions",
-  "total_size": "72 kB",
-  "table_size": "0 bytes"
-}, {
-  "schemaname": "public",
-  "tablename": "fights",
-  "total_size": "56 kB",
+  "total_size": "80 kB",
   "table_size": "0 bytes"
 }, {
   "schemaname": "public",
   "tablename": "wallets",
-  "total_size": "56 kB",
+  "total_size": "72 kB",
+  "table_size": "8192 bytes"
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "total_size": "64 kB",
   "table_size": "8192 bytes"
 }, {
   "schemaname": "public",
   "tablename": "articles",
+  "total_size": "64 kB",
+  "table_size": "0 bytes"
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
   "total_size": "56 kB",
   "table_size": "0 bytes"
 }, {
@@ -61,11 +66,6 @@
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
-  "total_size": "32 kB",
-  "table_size": "0 bytes"
-}, {
-  "schemaname": "public",
-  "tablename": "galleras",
   "total_size": "32 kB",
   "table_size": "0 bytes"
 }, {

@@ -16,10 +16,8 @@ const Profile: React.FC = () => {
   const { isBettingEnabled } = useFeatureFlags();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [formData, setFormData] = useState({ fullName: user?.profileInfo?.fullName || "", phoneNumber: user?.profileInfo?.phoneNumber || "", address: user?.profileInfo?.address || "" });
   const navigate = useNavigate();

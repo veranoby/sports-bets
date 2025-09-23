@@ -595,6 +595,13 @@
   "column_default": "now()"
 }, {
   "table_schema": "public",
+  "table_name": "galleras",
+  "column_name": "contact_info",
+  "data_type": "jsonb",
+  "is_nullable": "YES",
+  "column_default": "'{}'::jsonb"
+}, {
+  "table_schema": "public",
   "table_name": "notifications",
   "column_name": "id",
   "data_type": "uuid",

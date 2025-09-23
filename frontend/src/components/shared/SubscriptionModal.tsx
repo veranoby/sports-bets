@@ -41,13 +41,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     cancelSubscription,
   } = useSubscriptions();
 
-  useEffect(() => {
-    if (isOpen) {
-      loadPlans();
-      fetchCurrent();
-    }
-  }, [isOpen, fetchCurrent, loadPlans]);
-
   const loadPlans = async () => {
     try {
       const response = await fetchPlans();
@@ -56,6 +49,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       console.error("Error loading plans:", err);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadPlans();
+      fetchCurrent();
+    }
+  }, [isOpen, fetchCurrent]);
 
   const handleSubscribe = async () => {
     try {

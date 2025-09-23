@@ -25,7 +25,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const { bets, fetchAvailableBets } = useBets();
   const { wallet } = useWallet();
   const { isConnected } = useWebSocketRoom(fightId);
-  const { addListener, removeListener } = useWebSocketContext();
+  const { addListener } = useWebSocketContext();
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
 
   // Referencia estable para fetchAvailableBets - TODOS los hooks deben ir antes del return condicional
@@ -36,35 +36,34 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
 
   // Handlers memoizados
   const handleNewBet = useCallback(() => {
-    fetchAvailableBetsRef.current();
-  }, []);
+    fetchAvailableBetsRef.current(fightId);
+  }, [fightId]);
 
   const handleBetMatched = useCallback(() => {
     onBetPlaced?.();
-  }, []);
+  }, [onBetPlaced]);
 
   const handleBettingWindowClosed = useCallback(() => {
-    fetchAvailableBetsRef.current();
-  }, []);
+    fetchAvailableBetsRef.current(fightId);
+  }, [fightId]);
 
   // Listeners (solo depende de isConnected)
   useEffect(() => {
     if (!isConnected) return;
 
-    addListener("new_bet", handleNewBet);
-    addListener("betting_window_closed", handleBettingWindowClosed);
+    const cleanupNewBet = addListener("new_bet", handleNewBet);
+    const cleanupWindowClosed = addListener("betting_window_closed", handleBettingWindowClosed);
+    let cleanupBetMatched = () => {};
     if (onBetPlaced) {
-      addListener("bet_matched", handleBetMatched);
+      cleanupBetMatched = addListener("bet_matched", handleBetMatched);
     }
 
     return () => {
-      removeListener("new_bet", handleNewBet);
-      removeListener("betting_window_closed", handleBettingWindowClosed);
-      if (onBetPlaced) {
-        removeListener("bet_matched", handleBetMatched);
-      }
+      cleanupNewBet();
+      cleanupWindowClosed();
+      cleanupBetMatched();
     };
-  }, [isConnected, addListener, removeListener, handleNewBet, handleBettingWindowClosed, handleBetMatched, onBetPlaced]);
+  }, [isConnected, addListener, handleNewBet, handleBettingWindowClosed, handleBetMatched, onBetPlaced]);
 
   // Return condicional DESPUÉS de todos los hooks
   if (!isBettingEnabled) return null;

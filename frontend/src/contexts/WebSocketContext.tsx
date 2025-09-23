@@ -1,6 +1,6 @@
 // frontend/src/contexts/WebSocketContext.tsx - RESTRICTED TO BETTING ONLY
 // ========================================================================
-// 
+//
 // ⚠️  USAGE RESTRICTION: This WebSocket context is ONLY for betting features
 // - PAGO/DOY bet proposals and responses
 // - Real-time betting workflows requiring bidirectional communication
@@ -21,7 +21,7 @@
 import React, {
   createContext,
   useContext,
-  ReactNode,
+  type ReactNode,
   useEffect,
   useState,
   useCallback,
@@ -41,7 +41,7 @@ interface WebSocketContextType {
   addListener: (
     event: string,
     handler: (data: any) => void,
-    componentId?: string
+    componentId?: string,
   ) => () => void;
   getListenerStats: () => {
     totalEvents: number;
@@ -83,7 +83,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     Map<
       string,
       Map<
-        Function,
+        (...args: any[]) => void,
         {
           addedAt: number;
           componentId?: string;
@@ -106,7 +106,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     let cleanedCount = 0;
 
     listenersRegistryRef.current.forEach((eventListeners, event) => {
-      const listenersToRemove: Function[] = [];
+      const listenersToRemove: ((...args: any[]) => void)[] = [];
 
       eventListeners.forEach((metadata, handler) => {
         if (metadata.addedAt < cutoffTime) {
@@ -127,7 +127,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     if (cleanedCount > 0) {
       console.log(
-        `🧹 WebSocket: Cleaned up ${cleanedCount} orphaned listeners`
+        `🧹 WebSocket: Cleaned up ${cleanedCount} orphaned listeners`,
       );
       cleanupAttemptsRef.current++; // Increment attempts
     } else {
@@ -178,28 +178,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       // Check per-event limit
       if (eventListeners.size >= MAX_LISTENERS_PER_EVENT) {
         console.warn(
-          `⚠️ WebSocket: Too many listeners for event '${event}' (${eventListeners.size})`
+          `⚠️ WebSocket: Too many listeners for event '${event}' (${eventListeners.size})`,
         );
 
         // Try cleanup before adding
         const oldestEntry = Array.from(eventListeners.entries()).sort(
-          (a, b) => a[1].addedAt - b[1].addedAt
+          (a, b) => a[1].addedAt - b[1].addedAt,
         )[0];
 
         if (oldestEntry) {
           const [oldHandler] = oldestEntry;
           socketRef.current.off(event, oldHandler);
           eventListeners.delete(oldHandler);
-          console.log(
-            `🧹 WebSocket: Removed oldest listener for '${event}'`
-          );
+          console.log(`🧹 WebSocket: Removed oldest listener for '${event}'`);
         }
       }
 
       // Check if already registered
       if (eventListeners.has(handler)) {
         console.warn(
-          `⚠️ WebSocket: Listener already registered for event '${event}'`
+          `⚠️ WebSocket: Listener already registered for event '${event}'`,
         );
         return () => {};
       }
@@ -213,7 +211,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       socketRef.current.on(event, handler);
 
       console.log(
-        `🎧 WebSocket: Listener added for '${event}' (total: ${eventListeners.size})`
+        `🎧 WebSocket: Listener added for '${event}' (total: ${eventListeners.size})`,
       );
 
       // ✅ RETURN CLEANUP FUNCTION
@@ -231,7 +229,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         }
       };
     },
-    [cleanupOrphanedListeners]
+    [cleanupOrphanedListeners],
   );
 
   // 🔗 CREATE CONNECTION - FIXED
@@ -434,7 +432,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       addListener,
       getListenerStats,
       cleanupOrphanedListeners,
-    ]
+    ],
   );
 
   return (
@@ -449,7 +447,7 @@ export const useWebSocketContext = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
     throw new Error(
-      "useWebSocketContext must be used within WebSocketProvider"
+      "useWebSocketContext must be used within WebSocketProvider",
     );
   }
   return context;
@@ -468,7 +466,7 @@ export const useWebSocketEmit = () => {
       emitJoinFight: (fightId: string) => emit("join_fight", { fightId }),
       emitLeaveFight: (fightId: string) => emit("leave_fight", { fightId }),
     }),
-    [isConnected, emit]
+    [isConnected, emit],
   );
 };
 
@@ -476,7 +474,7 @@ export const useWebSocketEmit = () => {
 export const useWebSocketListener = <T = any,>(
   event: string,
   handler: (data: T) => void,
-  dependencies: any[] = []
+  dependencies: any[] = [],
 ) => {
   const { isConnected, addListener } = useWebSocketContext();
   const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
@@ -494,7 +492,7 @@ export const useWebSocketListener = <T = any,>(
     cleanupRef.current = addListener(
       event,
       stableHandler,
-      componentIdRef.current
+      componentIdRef.current,
     );
 
     return () => {
@@ -523,4 +521,4 @@ export const useWebSocketRoom = (roomId: string) => {
   }, [roomId, isConnected, joinRoom, leaveRoom]);
 
   return { isConnected, roomId };
-};;
+};

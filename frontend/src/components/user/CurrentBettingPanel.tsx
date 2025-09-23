@@ -56,6 +56,10 @@ interface BettingData {
   bettingOpen: boolean;
 }
 
+interface FightSseData {
+  eventType: string;
+}
+
 interface CurrentBettingPanelProps {
   eventId: string;
   userId?: string;
@@ -81,28 +85,26 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
   const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
 
   // SSE connection for real-time updates
-  const eventSSE = useSSE(`/api/sse/events/${eventId}/fights`);
+  const eventSSE = useSSE<FightSseData>(`/api/sse/events/${eventId}/fights`);
 
   // Fetch current betting data
   const fetchBettingData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await eventsAPI.getCurrentBetting(eventId);
+      const data = await eventsAPI.getCurrentBetting(eventId) as BettingData;
       
-      if (response.success) {
-        setBettingData(response.data);
-        
-        // Start countdown if betting is open
-        if (response.data.bettingOpen && response.data.currentFight?.bettingOpenedAt) {
-          const openedAt = new Date(response.data.currentFight.bettingOpenedAt).getTime();
-          const now = Date.now();
-          const elapsed = Math.floor((now - openedAt) / 1000);
-          const maxBettingTime = 5 * 60; // 5 minutes
-          const remaining = Math.max(0, maxBettingTime - elapsed);
-          setCountdownSeconds(remaining);
-        } else {
-          setCountdownSeconds(null);
-        }
+      setBettingData(data);
+      
+      // Start countdown if betting is open
+      if (data.bettingOpen && data.currentFight?.bettingOpenedAt) {
+        const openedAt = new Date(data.currentFight.bettingOpenedAt).getTime();
+        const now = Date.now();
+        const elapsed = Math.floor((now - openedAt) / 1000);
+        const maxBettingTime = 5 * 60; // 5 minutes
+        const remaining = Math.max(0, maxBettingTime - elapsed);
+        setCountdownSeconds(remaining);
+      } else {
+        setCountdownSeconds(null);
       }
     } catch (error) {
       console.error('Error fetching betting data:', error);
@@ -148,15 +150,14 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
     if (!bettingData.currentFight || !userId) return;
 
     try {
-      const response = await betsAPI.createBet({
+      const response = await betsAPI.create({
         fightId: bettingData.currentFight.id,
         type: betForm.type,
         amount: betForm.amount,
-        side: betForm.side,
-        userId
+        side: betForm.side
       });
 
-      if (response.success) {
+      if (response) {
         setShowCreateBetModal(false);
         fetchBettingData(); // Refresh available bets
       }

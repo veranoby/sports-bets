@@ -1,7 +1,18 @@
-import type { User, Venue, Fight, BetSide, BetStatus as IndexBetStatus } from './index';
+import type {
+  User,
+  Venue,
+  Fight,
+  BetSide,
+  BetStatus as IndexBetStatus,
+} from "./index";
 
 // Status from admin/Events.tsx
-type AdminEventStatus = "scheduled" | "active" | "live" | "completed" | "cancelled";
+type AdminEventStatus =
+  | "scheduled"
+  | "active"
+  | "live"
+  | "completed"
+  | "cancelled";
 // Status from types/index.ts
 type IndexEventStatus = "scheduled" | "in-progress" | "completed" | "cancelled";
 
@@ -32,7 +43,6 @@ export interface UnifiedEvent {
   activeBets: number;
 }
 
-
 // Status from LiveEvent.tsx
 type LiveBetStatus = "active" | "matched" | "won" | "lost";
 
@@ -54,19 +64,19 @@ export interface UnifiedBet {
   parentBetId?: string;
   matchedWith?: string;
   terms?: {
-      ratio: number;
-      isOffer: boolean;
-      pagoAmount?: number;
-      doyAmount?: number;
-      proposedBy?: string;
+    ratio: number;
+    isOffer: boolean;
+    pagoAmount?: number;
+    doyAmount?: number;
+    proposedBy?: string;
   };
   fight?: Fight;
   user?: User;
   matchedBet?: UnifiedBet;
   eventName?: string;
   fighterNames?: {
-      red: string;
-      blue: string;
+    red: string;
+    blue: string;
   };
   isLive?: boolean;
   // From LiveEvent.tsx local Bet

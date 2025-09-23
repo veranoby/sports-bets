@@ -72,8 +72,12 @@ router.get(
   optionalAuth,
   filterByOperatorAssignment,
   asyncHandler(async (req, res) => {
-    const { venueId, status, upcoming, limit = 20, offset = 0 } = req.query;
+    const { venueId, status, upcoming } = req.query;
     const userRole = req.user?.role || 'public';
+
+    // ⚡ SAFE PAGINATION: Enforce safe limits
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
     // Create a unique cache key based on query params and user role
     const cacheKey = `events:list:${userRole}:${venueId || ''}:${status || ''}:${upcoming || ''}:${limit}:${offset}`;
@@ -105,17 +109,29 @@ router.get(
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
       ],
       order: [["scheduledDate", "ASC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
+      limit,
+      offset,
     });
+
+    // ⚡ ENHANCED PAGINATION METADATA
+    const totalPages = Math.ceil(events.count / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
 
     const responseData = {
       success: true,
       data: {
         events: events.rows.map((e) => e.toJSON({ attributes })),
-        total: events.count,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        pagination: {
+          limit,
+          offset,
+          total: events.count,
+          totalPages,
+          currentPage,
+          hasNext: offset + limit < events.count,
+          hasPrev: offset > 0,
+          nextOffset: offset + limit < events.count ? offset + limit : null,
+          prevOffset: offset > 0 ? Math.max(0, offset - limit) : null
+        }
       },
     };
 

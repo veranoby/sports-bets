@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ArticleEditor from '../../components/admin/ArticleEditor';
+import StandaloneArticleEditor from '../../components/articles/StandaloneArticleEditor';
 import { articlesAPI } from '../../config/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -41,7 +41,7 @@ const CreateArticlePage: React.FC = () => {
       <p className="text-gray-600 mb-6">
         Tu artículo será revisado por los administradores antes de ser publicado.
       </p>
-      <ArticleEditor
+      <StandaloneArticleEditor
         onSave={handleSave}
         onCancel={handleCancel}
         isLoading={loading}

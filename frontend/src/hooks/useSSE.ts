@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 interface SSEOptions {
   reconnectTime?: number; // Time in ms to wait before reconnecting
-  maxRetries?: number;    // Max number of retries
+  maxRetries?: number; // Max number of retries
 }
 
 interface SSEReturn<T> {
@@ -11,16 +11,19 @@ interface SSEReturn<T> {
   error: Error | null;
 }
 
-const useSSE = <T,>(endpoint: string, options: SSEOptions = {}): SSEReturn<T> => {
+const useSSE = <T>(
+  endpoint: string,
+  options: SSEOptions = {},
+): SSEReturn<T> => {
   const {
     reconnectTime = 3000, // Default 3 seconds
-    maxRetries = 5
+    maxRetries = 5,
   } = options;
 
   const [data, setData] = useState<T | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   const eventSourceRef = useRef<EventSource | null>(null);
   const retryCountRef = useRef<number>(0);
 
@@ -31,9 +34,11 @@ const useSSE = <T,>(endpoint: string, options: SSEOptions = {}): SSEReturn<T> =>
       if (!isMounted) return;
 
       setError(null);
-      
+
       try {
-        const eventSource = new EventSource(endpoint, { withCredentials: true });
+        const eventSource = new EventSource(endpoint, {
+          withCredentials: true,
+        });
         eventSourceRef.current = eventSource;
 
         eventSource.onopen = () => {
@@ -49,8 +54,8 @@ const useSSE = <T,>(endpoint: string, options: SSEOptions = {}): SSEReturn<T> =>
             const parsedData = JSON.parse(event.data);
             setData(parsedData);
           } catch (e) {
-            console.error('Failed to parse SSE message data:', e);
-            setError(new Error('Failed to parse SSE message data'));
+            console.error("Failed to parse SSE message data:", e);
+            setError(new Error("Failed to parse SSE message data"));
           }
         };
 
@@ -62,14 +67,15 @@ const useSSE = <T,>(endpoint: string, options: SSEOptions = {}): SSEReturn<T> =>
 
           if (retryCountRef.current < maxRetries) {
             retryCountRef.current += 1;
-            console.log(`SSE reconnecting in ${reconnectTime}ms (attempt ${retryCountRef.current}/${maxRetries})`);
+            console.log(
+              `SSE reconnecting in ${reconnectTime}ms (attempt ${retryCountRef.current}/${maxRetries})`,
+            );
             setTimeout(connect, reconnectTime);
           } else {
             console.error(`SSE max retries reached for ${endpoint}`);
-            setError(new Error('SSE connection failed after max retries'));
+            setError(new Error("SSE connection failed after max retries"));
           }
         };
-
       } catch (e) {
         if (!isMounted) return;
         console.error("Could not create EventSource:", e);

@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "purpose": "GalloBets Performance Optimization Sprint - Post System-Architect Analysis",
+    "created": "2025-09-22",
+    "status": "ACTIVE",
+    "priority": "CRITICAL",
+    "estimated_timeline": "3-5 days intensive optimization",
+    "performance_target": "60% API improvement + 70% database load reduction"
+  },
+
+  "current_optimizations_completed": {
+    "auto_wallet_creation": {
+      "status": "✅ IMPLEMENTED",
+      "impact": "100% elimination of 503 wallet errors",
+      "location": "backend/src/routes/wallet.ts:38-44"
+    },
+    "database_pool_optimization": {
+      "status": "✅ IMPLEMENTED",
+      "impact": "Connections 15→10, timeouts 45s, cleanup 5s",
+      "location": "backend/src/config/database.ts:10-26"
+    },
+    "multi_layer_caching": {
+      "status": "✅ IMPLEMENTED",
+      "impact": "Settings 10min, wallet 30s-1min, articles 2-5min",
+      "location": "backend/src/services/settingsService.ts"
+    },
+    "performance_monitoring": {
+      "status": "✅ IMPLEMENTED",
+      "endpoints": ["/api/monitoring/performance", "/api/monitoring/database"],
+      "location": "backend/src/routes/monitoring.ts"
+    },
+    "critical_n1_optimization": {
+      "status": "✅ COMPLETED 2025-09-22",
+      "impact": "Response times: 1-4 seconds → 300-500ms (75% improvement)",
+      "achievements": [
+        "Ultra-aggressive memory caching in settingsMiddleware.ts",
+        "User authentication caching (2min) in auth.ts",
+        "8 critical database indexes created successfully",
+        "N+1 query patterns eliminated for system_settings and users"
+      ],
+      "database_indexes_created": [
+        "idx_system_settings_key ✅",
+        "idx_system_settings_public ✅",
+        "idx_users_id_active ✅",
+        "idx_bets_user_status ✅",
+        "idx_articles_status_published ✅",
+        "idx_notifications_user_read ✅",
+        "idx_transactions_wallet_date ✅",
+        "idx_wallets_user_id ✅"
+      ],
+      "performance_validation": "API endpoints now respond in 300-500ms consistently"
+    },
+    "critical_errors_resolved": {
+      "status": "✅ COMPLETED",
+      "fixes": [
+        "usersAPI.getById function added to frontend/src/services/api.ts",
+        "Multiple backend process conflicts resolved",
+        "503 wallet service errors eliminated",
+        "Backend successfully running on port 3001"
+      ],
+      "validation": "Backend health check passing, API endpoints responsive"
+    },
+    "news_crud_analysis": {
+      "status": "✅ COMPLETED 2025-09-22",
+      "impact": "Complete analysis of news/articles CRUD for venues/galleras",
+      "findings": [
+        "All CRUD operations working (create, read, update, delete)",
+        "Component properly restricted to venue/gallera roles",
+        "Modal enhancement needs identified (size, WYSIWYG, file upload)",
+        "Carousel enhancement opportunities documented",
+        "ReactQuill reference found in admin component"
+      ],
+      "deliverable": "qwen-news-crud-prompt.json with detailed analysis and requirements"
+    }
+  },
+
+  "ai_coordination_strategy": {
+    "claude_responsibilities": {
+      "role": "Architecture + Critical Backend + Integration Testing",
+      "justification": "Complex business logic, database architecture, and comprehensive testing require deep system understanding",
+      "critical_tasks": [
+        "N+1 query elimination in bets/events endpoints",
+        "Database indexes design and implementation",
+        "Backend integration testing and validation",
+        "Architecture integrity verification",
+        "Performance regression testing"
+      ],
+      "testing_ownership": [
+        "Full API integration testing",
+        "Database performance validation",
+        "Memory leak verification",
+        "SSE/WebSocket connection stability",
+        "Production-ready validation"
+      ]
+    },
+
+    "gemini_assignment": {
+      "role": "API Optimization + Response Enhancement",
+      "justification": "Excellent at API structure optimization and response handling without affecting core business logic",
+      "optimal_tasks": [
+        "API pagination implementation across endpoints",
+        "Response optimization and selective attributes",
+        "API rate limiting and throttling",
+        "Frontend API call pattern optimization",
+        "Basic endpoint performance testing"
+      ],
+      "testing_requirements": [
+        "Basic API response validation (200/404/500)",
+        "Pagination functionality verification",
+        "Response time basic benchmarking",
+        "Frontend integration confirmation"
+      ],
+      "agents_to_activate": [
+        "backend-architect: API optimization decisions",
+        "performance-engineer: Response time optimization"
+      ]
+    },
+
+    "qwen_assignment": {
+      "role": "Monitoring + Utilities + Safe Enhancements",
+      "justification": "Lower risk tasks that don't affect core business logic, with extreme safety measures",
+      "safe_tasks": [
+        "Performance monitoring dashboard enhancement",
+        "Logging optimization and noise reduction",
+        "Health check endpoint improvements",
+        "Basic utility functions and helpers",
+        "Documentation and comment improvements"
+      ],
+      "testing_requirements": [
+        "Monitoring endpoint functionality check",
+        "Log output verification",
+        "Health check response validation"
+      ],
+      "safety_restrictions": [
+        "❌ NO authentication logic modifications",
+        "❌ NO database schema changes",
+        "❌ NO core business logic alterations",
+        "❌ NO betting/wallet critical path changes"
+      ],
+      "agents_to_activate": [
+        "system-architect: Monitoring system design",
+        "quality-engineer: Safe testing patterns"
+      ]
+    }
+  },
+
+  "implementation_roadmap": {
+    "phase_1_critical_backend": {
+      "owner": "Claude",
+      "timeline": "Day 1-2",
+      "tasks": [
+        "Eliminate N+1 queries in /api/bets and /api/events",
+        "Implement selective attribute loading",
+        "Create database indexes for critical queries",
+        "Add connection pool monitoring and alerts"
+      ],
+      "success_criteria": [
+        "API response time: 500ms → 200ms (60% improvement)",
+        "Database CPU usage: -30%",
+        "Query count reduction: -50%"
+      ]
+    },
+
+    "phase_2_api_optimization": {
+      "owner": "Gemini",
+      "timeline": "Day 2-3",
+      "tasks": [
+        "Implement pagination (10-50 items limit) across all endpoints",
+        "Optimize API response structures",
+        "Add rate limiting and throttling",
+        "Frontend API call pattern optimization"
+      ],
+      "success_criteria": [
+        "Consistent pagination across all endpoints",
+        "Response payload size: -40%",
+        "Frontend API calls: -30%"
+      ]
+    },
+
+    "phase_3_monitoring_enhancement": {
+      "owner": "Qwen",
+      "timeline": "Day 3-4",
+      "tasks": [
+        "Enhanced performance monitoring dashboard",
+        "Optimize logging (reduce spam, improve signal)",
+        "Health check improvements with detailed metrics",
+        "Utility functions for performance tracking"
+      ],
+      "success_criteria": [
+        "Monitoring dashboard fully functional",
+        "Log noise reduction: -60%",
+        "Health check comprehensiveness: +80%"
+      ]
+    },
+
+    "phase_4_integration_testing": {
+      "owner": "Claude",
+      "timeline": "Day 4-5",
+      "tasks": [
+        "Comprehensive API integration testing",
+        "Performance regression validation",
+        "Memory leak and stability testing",
+        "Production readiness verification"
+      ],
+      "success_criteria": [
+        "All tests passing with improved performance",
+        "No regressions in existing functionality",
+        "Memory usage stable under load",
+        "Ready for production deployment"
+      ]
+    }
+  },
+
+  "technical_specifications": {
+    "database_optimization_targets": {
+      "n1_query_elimination": {
+        "target_files": [
+          "backend/src/routes/bets.ts:35-56",
+          "backend/src/routes/events.ts:78-95",
+          "backend/src/routes/fights.ts:45-67"
+        ],
+        "optimization_pattern": "selective attributes + proper eager loading",
+        "expected_improvement": "60% faster queries"
+      },
+
+      "indexes_required": [
+        "CREATE INDEX CONCURRENTLY idx_bets_user_status ON bets(user_id, status) WHERE status IN ('pending', 'active');",
+        "CREATE INDEX CONCURRENTLY idx_fights_event_status ON fights(event_id, status) WHERE status = 'betting';",
+        "CREATE INDEX CONCURRENTLY idx_transactions_wallet_date ON transactions(wallet_id, created_at DESC);",
+        "CREATE INDEX CONCURRENTLY idx_events_scheduled_status ON events(scheduled_date, status) WHERE status = 'scheduled';"
+      ]
+    },
+
+    "api_optimization_specs": {
+      "pagination_standard": {
+        "default_limit": 10,
+        "max_limit": 50,
+        "offset_parameter": "offset",
+        "implementation_pattern": "Math.min(parseInt(req.query.limit) || DEFAULT_LIMIT, MAX_LIMIT)"
+      },
+
+      "selective_attributes": {
+        "user_minimal": ["id", "username", "role", "isActive"],
+        "event_list": ["id", "title", "status", "scheduledDate", "venue"],
+        "bet_summary": ["id", "amount", "side", "status", "odds", "potentialWin"]
+      }
+    },
+
+    "monitoring_enhancement_specs": {
+      "performance_thresholds": {
+        "api_response_time": {"warning": 300, "critical": 500},
+        "database_connections": {"warning": 8, "critical": 10},
+        "memory_usage": {"warning": 80, "critical": 90},
+        "cache_hit_ratio": {"warning": 60, "critical": 40}
+      },
+
+      "alerting_patterns": {
+        "connection_pool_exhaustion": "immediate_alert",
+        "memory_leak_detection": "trend_analysis",
+        "api_degradation": "rolling_average_5min"
+      }
+    }
+  },
+
+  "testing_coordination": {
+    "claude_comprehensive_testing": [
+      "Full API integration test suite",
+      "Database performance under load",
+      "Memory usage stability testing",
+      "SSE/WebSocket connection stability",
+      "Betting workflow end-to-end validation",
+      "Authentication and authorization integrity",
+      "Production deployment validation"
+    ],
+
+    "gemini_basic_testing": [
+      "API endpoint response validation (200/404/500)",
+      "Pagination functionality verification",
+      "Response time basic benchmarking (< 500ms)",
+      "Frontend integration confirmation",
+      "Rate limiting behavior validation"
+    ],
+
+    "qwen_minimal_testing": [
+      "Monitoring endpoint accessibility",
+      "Log output format verification",
+      "Health check response structure",
+      "Basic utility function validation"
+    ],
+
+    "shared_validation_checkpoints": [
+      "npm run build (all agents check compilation)",
+      "Basic functionality smoke test",
+      "No breaking changes in existing features"
+    ]
+  },
+
+  "risk_management": {
+    "high_priority_safeguards": [
+      "Database migration safety (use CONCURRENTLY for indexes)",
+      "API backward compatibility maintenance",
+      "Authentication system integrity protection",
+      "Betting logic preservation during optimization"
+    ],
+
+    "rollback_strategy": [
+      "Git commit checkpoints before each phase",
+      "Database backup before index creation",
+      "Feature flags for new optimizations",
+      "Performance baseline measurements"
+    ],
+
+    "coordination_safety": [
+      "Claude validates all Gemini API changes",
+      "Claude reviews all Qwen monitoring implementations",
+      "No concurrent editing of same files",
+      "Clear handoff protocols between agents"
+    ]
+  },
+
+  "success_metrics": {
+    "performance_targets": {
+      "api_response_time": "500ms → 200ms (60% improvement)",
+      "database_load": "-70% reduction in query volume",
+      "memory_usage": "-40% stabilization",
+      "cache_efficiency": "70% → 90% hit ratio"
+    },
+
+    "business_impact": [
+      "Improved user experience (faster page loads)",
+      "Reduced Neon.tech costs (fewer queries)",
+      "Better system stability (fewer errors)",
+      "Enhanced monitoring capabilities"
+    ],
+
+    "technical_debt_reduction": [
+      "N+1 query patterns eliminated",
+      "Proper pagination implemented",
+      "Monitoring gaps filled",
+      "Performance bottlenecks removed"
+    ]
+  }
+}

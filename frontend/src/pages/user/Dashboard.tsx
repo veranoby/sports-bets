@@ -130,11 +130,7 @@ const Dashboard: React.FC = () => {
         )}
 
 
-        {(user?.role === "venue" || user?.role === "gallera") && (
-          <div className="space-y-6">
-            <ArticleManagement />
-          </div>
-        )}
+        {/* ArticleManagement component moved to News.tsx for venue and gallera roles */}
 
         <div className="grid grid-cols-2 ">
           <div>

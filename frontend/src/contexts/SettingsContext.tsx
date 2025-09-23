@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import useSettings from '../hooks/useSettings';
+import React, { createContext, useContext, type ReactNode } from "react";
+import useSettings from "../hooks/useSettings";
 
 interface SettingsContextType {
   settings: Record<string, any>;
@@ -26,9 +26,9 @@ interface SettingsProviderProps {
   adminMode?: boolean;
 }
 
-export const SettingsProvider: React.FC<SettingsProviderProps> = ({ 
-  children, 
-  adminMode = false 
+export const SettingsProvider: React.FC<SettingsProviderProps> = ({
+  children,
+  adminMode = false,
 }) => {
   const settingsData = useSettings(adminMode);
 
@@ -41,11 +41,13 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
 export const useSettingsContext = (): SettingsContextType => {
   const context = useContext(SettingsContext);
-  
+
   if (!context) {
-    throw new Error('useSettingsContext must be used within a SettingsProvider');
+    throw new Error(
+      "useSettingsContext must be used within a SettingsProvider",
+    );
   }
-  
+
   return context;
 };
 
@@ -56,43 +58,43 @@ export const useFeatureFlag = (featureKey: string): boolean => {
 };
 
 export const useWalletsEnabled = (): boolean => {
-  return useFeatureFlag('enable_wallets');
+  return useFeatureFlag("enable_wallets");
 };
 
 export const useBettingEnabled = (): boolean => {
-  return useFeatureFlag('enable_betting');
+  return useFeatureFlag("enable_betting");
 };
 
 export const useStreamingEnabled = (): boolean => {
-  return useFeatureFlag('enable_streaming');
+  return useFeatureFlag("enable_streaming");
 };
 
 export const useMaintenanceMode = (): boolean => {
-  return useFeatureFlag('maintenance_mode');
+  return useFeatureFlag("maintenance_mode");
 };
 
 // Business settings hooks
 export const useBusinessSettings = () => {
   const { getSetting } = useSettingsContext();
-  
+
   return {
-    commissionPercentage: getSetting('commission_percentage', 5),
-    minBetAmount: getSetting('min_bet_amount', 1),
-    maxBetAmount: getSetting('max_bet_amount', 10000),
-    autoApprovalThreshold: getSetting('auto_approval_threshold', 100),
-    withdrawalDailyLimit: getSetting('withdrawal_daily_limit', 1000)
+    commissionPercentage: getSetting("commission_percentage", 5),
+    minBetAmount: getSetting("min_bet_amount", 1),
+    maxBetAmount: getSetting("max_bet_amount", 10000),
+    autoApprovalThreshold: getSetting("auto_approval_threshold", 100),
+    withdrawalDailyLimit: getSetting("withdrawal_daily_limit", 1000),
   };
 };
 
 // Streaming settings hooks
 export const useStreamingSettings = () => {
   const { getSetting } = useSettingsContext();
-  
+
   return {
-    defaultStreamQuality: getSetting('default_stream_quality', '720p'),
-    maxViewersPerStream: getSetting('max_viewers_per_stream', 1000),
-    streamBufferSeconds: getSetting('stream_buffer_seconds', 30),
-    maxConcurrentStreams: getSetting('max_concurrent_streams', 10)
+    defaultStreamQuality: getSetting("default_stream_quality", "720p"),
+    maxViewersPerStream: getSetting("max_viewers_per_stream", 1000),
+    streamBufferSeconds: getSetting("stream_buffer_seconds", 30),
+    maxConcurrentStreams: getSetting("max_concurrent_streams", 10),
   };
 };
 

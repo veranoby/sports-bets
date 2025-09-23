@@ -8,6 +8,7 @@ import { User } from "../models/User";
 import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
 import { Op } from "sequelize";
+import { cache, retryOperation } from "../config/database"; // ⚡ OPTIMIZATION: Add caching
 
 import { UserRole } from "../../../shared/types";
 
@@ -48,7 +49,7 @@ function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail
 
 const router = Router();
 
-// GET /api/articles - Listar artículos con sanitización por rol
+// ⚡ PERFORMANCE OPTIMIZED: Articles list with aggressive caching
 router.get(
   "/",
   optionalAuth,
@@ -84,20 +85,24 @@ router.get(
       search,
       venueId,
       status: rawStatus = "published",
-      page = 1,
-      limit = 10,
       author_id,
       includeAuthor = true,
       includeVenue = true,
     } = req.query as any;
-    
+
+    // ⚡ SAFE PAGINATION: Enforce safe limits (consistent with events.ts)
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
     // Convert string values to boolean
     const includeAuthorBool = includeAuthor === 'true' || includeAuthor === true;
     const includeVenueBool = includeVenue === 'true' || includeVenue === true;
-    
+
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
     const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
-    const offset = (page - 1) * limit;
+
+    // ⚡ CRITICAL OPTIMIZATION: Generate cache key for query results
+    const cacheKey = `articles_list_${status}_${limit}_${offset}_${search || 'none'}_${venueId || 'none'}_${author_id || 'none'}_${includeAuthorBool}_${includeVenueBool}`;
 
     const whereClause: any = { status };
 
@@ -119,63 +124,88 @@ router.get(
     // Patrón attributes por rol: público ve campos mínimos
     const attributes = getArticleAttributes(req.user?.role, "list");
 
-    const { count, rows } = await Article.findAndCountAll({
-      where: whereClause,
-      attributes,
-      include: [
-        includeAuthorBool && {
-          model: User,
-          as: "author",
-          attributes: ["id", "username"],
-        },
-        includeVenueBool && {
-          model: Venue,
-          as: "venue",
-          attributes: ["id", "name"],
-        },
-      ].filter(Boolean),
-      order: [
-        ["published_at", "DESC"],
-        ["created_at", "DESC"],
-      ],
-      limit,
-      offset,
+    // ⚡ MEGA OPTIMIZATION: Cache articles list for 2 minutes (frequently accessed)
+    const result = await retryOperation(async () => {
+      return await cache.getOrSet(cacheKey, async () => {
+        return await Article.findAndCountAll({
+          where: whereClause,
+          attributes,
+          include: [
+            includeAuthorBool && {
+              model: User,
+              as: "author",
+              attributes: ["id", "username"],
+            },
+            includeVenueBool && {
+              model: Venue,
+              as: "venue",
+              attributes: ["id", "name"],
+            },
+          ].filter(Boolean),
+          order: [
+            ["published_at", "DESC"],
+            ["created_at", "DESC"],
+          ],
+          limit,
+          offset,
+        });
+      }, 120); // ⚡ 2 minute cache for article lists (heavily accessed)
     });
+
+    const { count, rows } = result;
+
+    // ⚡ ENHANCED PAGINATION METADATA (consistent with events.ts)
+    const totalPages = Math.ceil(count / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
 
     res.json({
       success: true,
       data: {
-        // Lista: usar payload "lite"
         articles: rows.map((article) => article.toJSON({ attributes })),
-        total: count,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        limit,
+        pagination: {
+          limit,
+          offset,
+          total: count,
+          totalPages,
+          currentPage,
+          hasNext: offset + limit < count,
+          hasPrev: offset > 0,
+          nextOffset: offset + limit < count ? offset + limit : null,
+          prevOffset: offset > 0 ? Math.max(0, offset - limit) : null
+        }
       },
     });
   })
 );
 
-// GET /api/articles/:id - Obtener artículo específico
+// ⚡ PERFORMANCE OPTIMIZED: Single article with caching
 router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
     const attributes = getArticleAttributes(req.user?.role, "detail");
-    const article = await Article.findByPk(req.params.id, {
-      attributes,
-      include: [
-        {
-          model: User,
-          as: "author",
-          attributes: ["id", "username"],
-        },
-        {
-          model: Venue,
-          as: "venue",
-          attributes: ["id", "name"],
-        },
-      ],
+
+    // ⚡ OPTIMIZATION: Cache individual articles for 5 minutes
+    const cacheKey = `article_detail_${req.params.id}_${req.user?.role || 'public'}`;
+
+    const article = await retryOperation(async () => {
+      return await cache.getOrSet(cacheKey, async () => {
+        return await Article.findByPk(req.params.id, {
+          attributes,
+          include: [
+            {
+              model: User,
+              as: "author",
+              attributes: ["id", "username"],
+            },
+            {
+              model: Venue,
+              as: "venue",
+              attributes: ["id", "name"],
+            },
+          ],
+        });
+      }, 300); // ⚡ 5 minute cache for individual articles
     });
 
     if (!article) {
@@ -197,7 +227,7 @@ router.get(
   })
 );
 
-// POST /api/articles - Crear artículo (solo admin/gallera)
+// ⚡ OPTIMIZATION: Article creation with cache invalidation
 router.post(
   "/",
   authenticate,
@@ -241,6 +271,12 @@ router.post(
       published_at: publishedAt,
     });
 
+    // ⚡ OPTIMIZATION: Invalidate articles list and featured cache after creation
+    await Promise.all([
+      cache.invalidatePattern('articles_list_*'),
+      cache.invalidatePattern('articles_featured_*')
+    ]);
+
     res.status(201).json({
       success: true,
       data: article.toJSON(),
@@ -248,7 +284,7 @@ router.post(
   })
 );
 
-// PUT /api/articles/:id/status - Aprobar/rechazar artículo (admin/operator)
+// ⚡ OPTIMIZATION: Status update with cache invalidation
 router.put(
   "/:id/status",
   authenticate,
@@ -269,6 +305,13 @@ router.put(
 
     await article.save();
 
+    // ⚡ OPTIMIZATION: Invalidate all relevant caches
+    await Promise.all([
+      cache.invalidatePattern('articles_list_*'),
+      cache.invalidatePattern('articles_featured_*'),
+      cache.invalidate(`article_detail_${req.params.id}_*`)
+    ]);
+
     res.json({
       success: true,
       data: article.toJSON(),
@@ -276,7 +319,64 @@ router.put(
   })
 );
 
-// PUT /api/articles/:id/publish - Publish article (admin only)
+// ⚡ CRITICAL FIX: Featured articles endpoint for banner carousel
+router.get(
+  "/featured",
+  optionalAuth,
+  [
+    query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
+    query("type").optional().isIn(["banner", "highlight", "trending"]),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest("Invalid parameters");
+    }
+
+    const { limit = 5, type = "banner" } = req.query as any;
+    const attributes = getArticleAttributes(req.user?.role, "list");
+
+    // ⚡ OPTIMIZATION: Cache featured articles
+    const cacheKey = `articles_featured_${type}_${limit}_${req.user?.role || 'public'}`;
+
+    const featuredArticles = await retryOperation(async () => {
+      return await cache.getOrSet(cacheKey, async () => {
+        return await Article.findAll({
+          where: {
+            status: "published",
+            featured_image: { [Op.ne]: null }, // Only articles with images for banners
+          },
+          attributes,
+          include: [
+            {
+              model: User,
+              as: "author",
+              attributes: ["id", "username"],
+            },
+            {
+              model: Venue,
+              as: "venue",
+              attributes: ["id", "name"],
+            },
+          ],
+          order: [["published_at", "DESC"]],
+          limit: parseInt(limit),
+        });
+      }, 180); // ⚡ 3 minute cache for featured articles
+    });
+
+    res.json({
+      success: true,
+      data: {
+        articles: featuredArticles.map((article) => article.toJSON({ attributes })),
+        type,
+        total: featuredArticles.length,
+      },
+    });
+  })
+);
+
+// ⚡ OPTIMIZATION: Publish with cache invalidation
 router.put(
   "/:id/publish",
   authenticate,
@@ -293,6 +393,13 @@ router.put(
     }
 
     await article.save();
+
+    // ⚡ OPTIMIZATION: Invalidate caches after publishing
+    await Promise.all([
+      cache.invalidatePattern('articles_list_*'),
+      cache.invalidatePattern('articles_featured_*'),
+      cache.invalidate(`article_detail_${req.params.id}_*`)
+    ]);
 
     res.json({
       success: true,

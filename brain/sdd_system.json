@@ -1,296 +1,377 @@
 {
   "metadata": {
-    "purpose": "System design and technical architecture for sports betting platform",
-    "updated": "2025-09-06",
-    "version": "1.0",
-    "cross_references": ["prd_system.json", "backlog.json", "priorities_memory_index.json"]
+    "purpose": "System design and technical architecture for GalloBets platform",
+    "updated": "2025-09-21",
+    "version": "2.0",
+    "cross_references": ["prd_system.json", "backlog.json", "multi_ai_coordination_strategy.json", "multi_ai_decision_matrix.json"]
   },
+  
   "technical_architecture": {
     "database_layer": {
       "primary_database": {
         "type": "PostgreSQL",
         "hosting": "Neon.tech",
-        "rationale": "Managed PostgreSQL with excellent performance and scaling capabilities",
-        "connection_management": "Sequelize ORM with connection pooling",
-        "backup_strategy": "Neon.tech automated backups + point-in-time recovery"
+        "version": "PostgreSQL 17.5",
+        "rationale": "Managed PostgreSQL with excellent performance and scaling",
+        "connection_management": "Sequelize ORM with optimized pooling",
+        "critical_issues": {
+          "query_performance": "Currently 1-3+ seconds (target: <500ms)",
+          "connection_errors": "ETIMEDOUT issues need resolution",
+          "pool_exhaustion": "Connection pool optimization required"
+        }
       },
-      "schema_version": "Current (September 2025)",
-      "postgresql_version": "PostgreSQL 17.5 (aarch64-linux-gnu)",
-      "database_size": "10 MB",
-      "current_stats": {
-        "tables": 12,
-        "constraints": 158,
-        "indexes": 91,
-        "enums": 23
-      },
-      "migration_strategy": "Migration-only architecture - NO sync() operations",
-      "performance_optimizations": [
-        "Proper indexing on foreign keys and query patterns",
-        "Connection pooling with monitored metrics",
-        "Query optimization for real-time analytics"
-      ]
+      "performance_optimizations": {
+        "P0_critical": [
+          "Index optimization for slow queries",
+          "Connection pool configuration tuning",
+          "Query caching for hot data",
+          "Lazy loading implementation"
+        ],
+        "success_metrics": [
+          "95% queries <500ms",
+          "Zero ETIMEDOUT in production",
+          "Stable connection pool"
+        ]
+      }
     },
+    
     "backend_architecture": {
-      "framework": "Node.js + Express.js",
+      "framework": "Node.js + Express + TypeScript",
       "orm": "Sequelize",
       "authentication": "JWT with role-based access control",
-      "real_time": "Socket.io for streaming controls and analytics",
-      "api_design": "RESTful APIs with WebSocket supplements",
-      "rationale": "Proven stack with excellent streaming support and rapid development"
+      "real_time_architecture": {
+        "strategy": "Hybrid SSE + Minimal WebSocket",
+        "sse_usage": [
+          "Admin real-time updates",
+          "System monitoring",
+          "Bet updates and notifications",
+          "Fight status changes",
+          "Event subscriptions"
+        ],
+        "websocket_usage": [
+          "PAGO/DOY proposals ONLY",
+          "3-minute timeout bidirectional",
+          "No wallet operations",
+          "No dynamic suggestions"
+        ],
+        "rationale": "SSE simplicity for most real-time needs, WebSocket only where bidirectional required"
+      },
+      "api_design": "RESTful with SSE supplements"
     },
+    
     "frontend_architecture": {
       "framework": "React + TypeScript",
-      "state_management": "React Context + useState/useReducer",
-      "routing": "React Router with protected routes",
-      "styling": "Tailwind CSS with custom components",
-      "build_system": "Vite for development speed",
-      "rationale": "Modern React stack optimized for developer velocity"
+      "state_management": "React Context + hooks",
+      "routing": "React Router with role-based protection",
+      "styling": "Tailwind CSS",
+      "build_system": "Vite",
+      "real_time_integration": {
+        "useSSE_hook": "Custom hook with reconnection logic",
+        "event_source": "Automatic retry with exponential backoff",
+        "websocket_minimal": "Only for PAGO/DOY proposals"
+      }
     },
-    "rtmp_production_plan": {
-      "mvp_solution": "VPS $5-10/mes + Nginx-RTMP (25-50 viewers)",
-      "growth_solution": "Red5 Cloud (50GB free, then pay-as-you-go)",
-      "alternative": "Wowza Cloud ($2.50/hour + $0.10/viewer hour)",
-      "development": "Node Media Server (no Docker)"
-    },
+    
+    "streaming_infrastructure": {
+      "protocol": "RTMP input + HLS output",
+      "integration": "OBS Studio + Stream keys",
+      "mvp_solution": "VPS with Nginx-RTMP (25-50 viewers)",
+      "growth_solution": "Red5 Cloud or Wowza",
+      "monitoring": "Real-time bitrate and viewer analytics"
+    }
   },
+  
   "database_architecture": {
     "core_entities": {
       "users": {
         "purpose": "Authentication and role management",
-        "key_fields": ["id", "username", "email", "role", "profile_info"],
         "roles": ["admin", "operator", "venue", "gallera", "user"],
-        "relationships": ["venues", "events", "subscriptions", "bets"]
-      },
-      "venues": {
-        "purpose": "Physical locations for events (galleras)",
-        "key_fields": ["id", "name", "location", "description", "contact_info"],
-        "relationships": ["users (owner)", "events"]
+        "hierarchy": "admin > operator > venue/gallera > user",
+        "critical_fields": ["id", "username", "email", "role", "walletBalance"]
       },
       "events": {
-        "purpose": "Fighting events with streaming capabilities", 
-        "key_fields": ["id", "title", "venue_id", "operator_id", "created_by", "status"],
-        "relationships": ["venue", "fights", "operator", "creator"]
+        "purpose": "Cockfighting events with streaming",
+        "key_fields": ["id", "title", "venueId", "operatorId", "streamKey", "status"],
+        "operator_assignment": "Operators manage assigned events only"
       },
       "fights": {
-        "purpose": "Individual rooster fights within events",
-        "key_fields": ["id", "event_id", "rooster_1", "rooster_2", "status", "result"],
-        "relationships": ["event", "bets"]
+        "purpose": "Individual fights with temporal betting windows",
+        "key_fields": ["id", "eventId", "status", "bettingStartsAt", "bettingEndsAt"],
+        "temporal_flow": "upcoming → betting → live → completed",
+        "critical_logic": "Betting ONLY during status='betting'"
+      },
+      "bets": {
+        "purpose": "P2P betting system",
+        "types": ["PAGO", "DOY"],
+        "statuses": ["pending", "matched", "won", "lost", "cancelled"],
+        "pago_doy_logic": "Proposals via minimal WebSocket with 3-min timeout"
       },
       "subscriptions": {
-        "purpose": "User payment and access management",
-        "key_fields": ["id", "user_id", "type", "status", "expires_at"],
-        "types": ["daily", "weekly", "monthly"],
-        "relationships": ["user", "payment_transactions"]
-      },
-      "payment_transactions": {
-        "purpose": "Financial transaction tracking",
-        "key_fields": ["id", "user_id", "subscription_id", "amount", "status", "kushki_transaction_id"],
+        "purpose": "Payment and access control",
         "payment_provider": "Kushki",
-        "relationships": ["user", "subscription"]
+        "types": ["daily", "weekly", "monthly"],
+        "validation": "Required for stream access"
       }
     },
-    "deferred_entities": {
-      "bets": {
-        "purpose": "Betting system (Post-MVP implementation)",
-        "implementation_priority": "P1",
-        "complexity": "High - requires wallet integration"
-      },
-      "wallets": {
-        "purpose": "User balance management (Post-MVP implementation)",
-        "implementation_priority": "P1", 
-        "complexity": "High - financial compliance requirements"
-      },
-      "transactions": {
-        "purpose": "Wallet transaction history (Post-MVP implementation)",
-        "implementation_priority": "P1",
-        "dependency": "wallets + bets implementation"
-      }
-    },
-    "indexing_strategy": {
-      "performance_critical": [
-        "users.role + users.is_active (role-based queries)",
-        "events.status + events.created_at (event listings)",
-        "subscriptions.user_id + subscriptions.status (access validation)",
-        "subscriptions.expires_at (subscription monitoring)"
-      ],
-      "analytics_support": [
-        "payment_transactions.created_at (revenue reporting)",
-        "events.venue_id + events.created_at (venue analytics)"
-      ]
-    }
+    
+    "performance_critical_indexes": [
+      "users.role + users.is_active",
+      "events.status + events.operatorId",
+      "fights.status + fights.eventId",
+      "bets.status + bets.fightId",
+      "subscriptions.userId + subscriptions.status"
+    ]
   },
+  
   "application_components": {
-    "admin_dashboard": {
-      "current_status": "70% complete",
-      "key_features": [
-        "SystemMonitoring for real-time platform status",
-        "User management across all roles",
-        "Event management and oversight",
-        "Subscription and payment monitoring"
-      ],
-      "pending_work": [
-        "Real-time streaming metrics integration",
-        "Advanced user filtering and bulk operations",
-        "Comprehensive analytics dashboard"
-      ]
+    "admin_environment": {
+      "status": "85% complete",
+      "architecture": "Shared environment with role-based restrictions",
+      "components": {
+        "SystemMonitoring": "SSE real-time system stats",
+        "UserManagement": "Full CRUD for all roles",
+        "EventManagement": "Complete event lifecycle",
+        "SubscriptionMonitoring": "Payment and access tracking"
+      }
     },
-    "operator_interface": {
-      "current_status": "Implemented (100% complete)",
-      "architecture_decision": "SHARED ADMIN ENVIRONMENT - Operators use admin interface with role-based restrictions",
-      "key_features": [
-        "✅ Same AdminLayout with filtered navigation based on role hierarchy",
-        "✅ AdminSidebar with declarative role permissions per section",
-        "✅ Event creation and management access",
-        "✅ Streaming controls (start/stop/monitor)",
-        "✅ User management (limited to venue/gallera/user creation)",
-        "✅ Articles/News management access",
-        "✅ Venues/Galleras management access",
-        "✅ System monitoring access"
+    
+    "operator_dashboard": {
+      "status": "In development",
+      "architecture": "Limited admin interface",
+      "restrictions": [
+        "Cannot create/modify admin or operator users",
+        "Can only manage assigned events",
+        "Limited to venue/gallera/user creation",
+        "No financial access"
       ],
-      "technical_approach": "Role-based filtering in AdminSidebar.tsx with declarative permissions array",
-      "restricted_sections": ["Solicitudes", "Finanzas", "Configuración"],
-      "allowed_sections": ["Dashboard", "Usuarios", "Galleras", "Noticias", "Eventos", "Monitoreo"],
-      "implementation_notes": [
-        "No separate operator components - uses admin components with restrictions",
-        "Visual role indicator (admin=red, operator=blue)",
-        "Automatic redirection: /operator → /admin for unified experience"
-      ]
+      "components": {
+        "OperatorDashboard": "Main interface",
+        "EventManagement": "For assigned events only",
+        "StreamingControls": "Start/stop/monitor streams",
+        "FightControl": "Manage fight status transitions"
+      }
     },
+    
+    "betting_system": {
+      "status": "Architecture defined",
+      "components": {
+        "CurrentBettingPanel": "Active fight betting interface",
+        "BetCard": "Individual bet display/interaction",
+        "FightStatusIndicator": "Real-time status with countdown",
+        "PAGODOYModal": "Proposal creation with timeout"
+      },
+      "real_time": "SSE for updates, WebSocket for proposals only"
+    },
+    
     "streaming_system": {
-      "current_status": "60% complete",
+      "status": "70% complete",
       "implemented": [
         "RTMP server configuration",
-        "WebSocket real-time controls",
         "Stream key generation",
-        "OBS integration framework"
+        "Basic OBS integration"
       ],
-      "pending_work": [
-        "End-to-end streaming workflow testing",
-        "Viewer authentication integration",
-        "Stream analytics real-time display",
-        "Performance optimization"
-      ]
-    },
-    "subscription_system": {
-      "current_status": "Implemented",
-      "features": [
-        "Kushki payment integration",
-        "Multiple subscription tiers (daily/weekly/monthly)",
-        "Automatic renewal handling",
-        "Subscription status validation"
-      ],
-      "integration_points": [
-        "Stream access control",
-        "User dashboard subscription management",
-        "Admin subscription monitoring"
+      "pending": [
+        "End-to-end testing",
+        "Viewer authentication",
+        "Performance optimization",
+        "Analytics dashboard"
       ]
     }
   },
-  "automation_workflows": {
-    "current_automations": {
-      "database_migrations": {
-        "trigger": "Code deployment",
-        "process": "Automated migration execution with rollback capability"
+  
+  "critical_business_logic": {
+    "fight_temporal_transitions": {
+      "rule": "Strict progression: upcoming → betting → live → completed",
+      "validation": "Cannot skip states or go backwards",
+      "enforcement": "Backend validation + UI restrictions"
+    },
+    
+    "betting_windows": {
+      "rule": "Bets ONLY accepted during status='betting'",
+      "opening": "Operator manually opens window",
+      "closing": "Automatic or manual close before live",
+      "validation": "Server-side temporal validation"
+    },
+    
+    "pago_doy_proposals": {
+      "mechanism": "WebSocket bidirectional communication",
+      "timeout": "3 minutes for acceptance",
+      "scope": "MINIMAL - only for proposals",
+      "restriction": "No wallet operations via WebSocket"
+    },
+    
+    "operator_hierarchy": {
+      "principle": "Operators cannot manage peers or superiors",
+      "implementation": "Role-based UI hiding + backend validation",
+      "event_assignment": "Operators see only assigned events"
+    }
+  },
+  
+  "development_timeline": {
+    "week_1_critical": {
+      "days_1_2": {
+        "focus": "SSE architecture implementation",
+        "owner": "Claude",
+        "deliverables": ["SSE service", "Event types", "Admin real-time"]
       },
-      "subscription_monitoring": {
-        "trigger": "Scheduled (daily)",
-        "process": "Check subscription expirations and send notifications"
+      "days_3_4": {
+        "focus": "Frontend SSE integration",
+        "owner": "Gemini",
+        "deliverables": ["useSSE hook", "Real-time components", "System monitoring"]
+      },
+      "days_5_6": {
+        "focus": "Betting windows system",
+        "owner": "Claude + Gemini",
+        "deliverables": ["Temporal logic", "CurrentBettingPanel", "Fight controls"]
+      },
+      "day_7": {
+        "focus": "Operator dashboard",
+        "owner": "Gemini",
+        "deliverables": ["Complete operator interface", "Permission enforcement"]
       }
     },
-    "planned_automations": {
-      "stream_health_monitoring": {
-        "trigger": "Continuous during events",
-        "process": "Automated stream quality monitoring with alerts",
-        "priority": "P0"
+    
+    "week_2_optimization": {
+      "days_8_10": {
+        "focus": "Database performance",
+        "owner": "Claude ONLY",
+        "deliverables": ["Query optimization", "Connection pool fix", "<500ms queries"],
+        "critical": "QWEN absolutely forbidden"
       },
-      "event_lifecycle_automation": {
-        "trigger": "Event status changes",
-        "process": "Automated notifications and stream preparation",
-        "priority": "P1"
+      "days_11_12": {
+        "focus": "Integration testing",
+        "owner": "Claude + Gemini",
+        "deliverables": ["End-to-end validation", "Bug fixes", "Performance tuning"]
+      },
+      "days_13_14": {
+        "focus": "Polish and documentation",
+        "owner": "Gemini + limited QWEN",
+        "deliverables": ["UI improvements", "TypeScript cleanup", "Documentation"]
+      },
+      "day_15": {
+        "focus": "Deployment",
+        "owner": "Claude",
+        "deliverables": ["Production deployment", "Monitoring setup", "Launch validation"]
       }
     }
   },
-  "development_phases": {
-    "phase_1_mvp": {
-      "timeline": "September 1-15, 2025",
-      "scope": "Admin environment + Operator integration + Streaming system",
-      "deliverables": [
-        "Complete admin dashboard",
-        "Operator role with hierarchical permissions",
-        "End-to-end streaming workflow",
-        "Production deployment"
-      ],
-      "success_criteria": "Platform generating revenue from event transmissions"
-    },
-    "phase_2_expansion": {
-      "timeline": "October-December 2025",
-      "scope": "Betting system + Wallet integration",
-      "deliverables": [
-        "Betting system implementation",
-        "Wallet system with financial controls",
-        "Enhanced analytics and reporting",
-        "Mobile-optimized interface"
-      ],
-      "success_criteria": "Betting system contributing significant revenue growth"
-    }
-  },
+  
   "performance_requirements": {
-    "scalability_targets": {
-      "concurrent_users": {
-        "mvp_target": "25+ concurrent viewers per event",
-        "year_1_target": "100+ concurrent viewers per event",
-        "ultimate_target": "500+ concurrent viewers per event"
-      },
-      "event_capacity": {
-        "mvp_target": "1-2 events per week",
-        "year_1_target": "5-7 events per week",
-        "ultimate_target": "Multiple concurrent events"
-      },
-      "database_performance": {
-        "query_response": "<200ms for 95% of queries",
-        "connection_pool": "Monitored usage with automatic scaling",
-        "transaction_throughput": "Support payment processing spikes"
-      }
+    "database": {
+      "query_response": "<500ms for 95% of queries",
+      "connection_stability": "Zero ETIMEDOUT errors",
+      "pool_efficiency": "80% utilization without exhaustion"
     },
-    "availability_targets": {
-      "platform_uptime": "99.5% during events, 99% overall",
-      "streaming_uptime": "99.5% during active streams",
-      "payment_processing": "99.9% availability",
-      "recovery_time": "<5 minutes for critical issues"
+    
+    "real_time": {
+      "sse_latency": "<1 second for updates",
+      "websocket_timeout": "3 minutes for proposals",
+      "reconnection": "Automatic with exponential backoff"
+    },
+    
+    "streaming": {
+      "concurrent_viewers": "25+ MVP, 100+ Year 1",
+      "uptime": "99.5% during events",
+      "quality": "Adaptive bitrate support"
+    },
+    
+    "api": {
+      "response_time": "<200ms average",
+      "error_rate": "<0.1%",
+      "availability": "99.9%"
     }
   },
+  
   "security_architecture": {
     "authentication": {
-      "method": "JWT tokens with role-based claims",
-      "token_expiry": "7 days with refresh capability",
-      "password_security": "bcrypt with 12 rounds"
+      "method": "JWT with role claims",
+      "expiry": "7 days with refresh",
+      "storage": "httpOnly cookies + localStorage"
     },
+    
     "authorization": {
-      "role_hierarchy": "admin > operator > venue/gallera > user",
-      "permission_model": "Role-based with resource-level restrictions",
-      "api_protection": "Protected routes with role validation"
+      "hierarchy": "admin > operator > venue/gallera > user",
+      "enforcement": "Frontend + Backend validation",
+      "operator_limits": "Event-based restrictions"
     },
-    "data_protection": {
-      "encryption": "TLS 1.3 for all communications",
-      "sensitive_data": "Payment info handled by Kushki (PCI compliance)",
-      "user_privacy": "GDPR-compliant data handling"
+    
+    "payment_security": {
+      "provider": "Kushki (PCI compliant)",
+      "storage": "No card data stored",
+      "audit": "Complete transaction logs"
     }
   },
-  "technical_debt_tracking": {
-    "high_priority": [
+  
+  "technical_debt": {
+    "critical_p0": [
       {
-        "item": "Database constraint optimization",
-        "impact": "Performance at scale",
-        "estimated_effort": "4 hours",
-        "target_resolution": "Post-MVP"
+        "issue": "Database performance (1-3s queries)",
+        "impact": "User experience degradation",
+        "solution": "Index optimization + connection pooling",
+        "owner": "Claude",
+        "timeline": "Days 8-10"
+      },
+      {
+        "issue": "TypeScript any errors (400+)",
+        "impact": "Type safety compromised",
+        "solution": "Gradual cleanup with QWEN (limited)",
+        "owner": "QWEN + Claude validation",
+        "timeline": "Days 13-14"
       }
     ],
-    "monitoring_required": [
+    
+    "deferred_p1": [
       {
-        "item": "WebSocket connection scaling",
-        "trigger": ">50 concurrent connections",
-        "action": "Implement connection pooling"
+        "issue": "Advanced analytics dashboard",
+        "timeline": "Post-MVP"
+      },
+      {
+        "issue": "Mobile app development",
+        "timeline": "Post-MVP Phase 2"
       }
+    ]
+  },
+  
+  "ai_coordination": {
+    "claude_ownership": [
+      "Database performance",
+      "SSE/WebSocket architecture",
+      "Betting logic design",
+      "Integration validation",
+      "Deployment"
+    ],
+    
+    "gemini_ownership": [
+      "React components",
+      "TypeScript interfaces",
+      "UI/UX implementation",
+      "SSE hook integration",
+      "Responsive design"
+    ],
+    
+    "qwen_restrictions": [
+      "NO database work",
+      "NO authentication changes",
+      "NO business logic",
+      "ONLY simple TypeScript fixes",
+      "ONLY new isolated components"
+    ]
+  },
+  
+  "success_metrics": {
+    "mvp_delivery": "September 21, 2025 (15 days)",
+    "core_features": [
+      "SSE real-time working",
+      "Betting windows functional",
+      "Operator dashboard complete",
+      "Database performance <500ms",
+      "Zero authentication issues"
+    ],
+    "business_validation": [
+      "First event streamed successfully",
+      "Subscription payments working",
+      "Betting system accepting wagers",
+      "Operator managing events"
     ]
   }
 }

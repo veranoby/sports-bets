@@ -69,22 +69,36 @@ const LoginPage: React.FC = () => {
       navigate("/");
     } catch (error: unknown) {
       let errorMessage = "Error desconocido al procesar la solicitud";
-      
+
       if (error instanceof Error) {
         // Check for specific HTTP errors
-        if (error.message.includes("401") || error.message.toLowerCase().includes("invalid") || error.message.toLowerCase().includes("unauthorized")) {
+        if (
+          error.message.includes("401") ||
+          error.message.toLowerCase().includes("invalid") ||
+          error.message.toLowerCase().includes("unauthorized")
+        ) {
           errorMessage = "Credenciales inválidas";
-        } else if (error.message.includes("404") || error.message.toLowerCase().includes("not found")) {
+        } else if (
+          error.message.includes("404") ||
+          error.message.toLowerCase().includes("not found")
+        ) {
           errorMessage = "Usuario no encontrado";
-        } else if (error.message.includes("500") || error.message.toLowerCase().includes("server")) {
+        } else if (
+          error.message.includes("500") ||
+          error.message.toLowerCase().includes("server")
+        ) {
           errorMessage = "Error del servidor";
-        } else if (error.message.toLowerCase().includes("network") || error.message.toLowerCase().includes("fetch") || error.message.toLowerCase().includes("connection")) {
+        } else if (
+          error.message.toLowerCase().includes("network") ||
+          error.message.toLowerCase().includes("fetch") ||
+          error.message.toLowerCase().includes("connection")
+        ) {
           errorMessage = "Error de conexión";
         } else {
           errorMessage = error.message;
         }
       }
-      
+
       displayError(errorMessage);
     } finally {
       setLocalIsLoading(false);

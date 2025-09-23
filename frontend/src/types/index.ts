@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Tipos centralizados para evitar importaciones circulares
 
@@ -7,7 +7,14 @@ export interface ApiResponse<T = unknown> {
   data: T;
   error?: string;
   code?: number;
-  message?: string; // Mantengo message por retrocompatibilidad temporal
+  message?: string;
+  // Common API response properties
+  users?: T;
+  venues?: T;
+  total?: number;
+  totalPages?: number;
+  articles?: T;
+  parsed?: any;
 }
 
 export interface ApiError extends Error {
@@ -228,18 +235,24 @@ export interface Subscription {
 
 // Nueva representación normalizada utilizada por backend /users/profile
 export interface UserSubscription {
-  type: 'free' | 'daily' | 'monthly';
-  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  type: "free" | "daily" | "monthly";
+  status: "active" | "cancelled" | "expired" | "pending";
   expiresAt: string | null;
   features: string[];
   remainingDays: number;
+  manual_expires_at?: string;
 }
 
 // 3. NAVIGATION PAGE TYPE (agregar si falta)
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
 
 // 4. FIGHT TYPES (verificar que existan)
-export type FightStatus = "upcoming" | "betting" | "live" | "completed" | "cancelled";
+export type FightStatus =
+  | "upcoming"
+  | "betting"
+  | "live"
+  | "completed"
+  | "cancelled";
 export type FightResult = "red" | "blue" | "draw" | "no_contest";
 
 // 5. STREAMING TYPES (agregar si faltan)
@@ -282,8 +295,72 @@ export interface BettingNotificationData {
 
 export interface BettingNotificationsResponse {
   type: string;
+  amount?: number;
+  fighter?: string;
   data?: {
     amount: number;
     fighter: string;
   };
+}
+
+// BetData interface for form data before being converted to Bet
+export interface BetData {
+  id: string;
+  userId?: string;
+  fightId: string;
+  amount: number;
+  side: BetSide;
+  status: BetStatus;
+  result?: BetResult;
+  odds?: number;
+  payout?: number;
+  potentialWin?: number;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+  betType?: BetType;
+  proposalStatus?: ProposalStatus;
+  parentBetId?: string;
+  matchedWith?: string;
+  terms?: {
+    ratio: number;
+    isOffer: boolean;
+    pagoAmount?: number;
+    doyAmount?: number;
+    proposedBy?: string;
+  };
+  fight?: Fight;
+  user?: User;
+  matchedBet?: Bet;
+  eventName?: string;
+  fighterNames?: {
+    red: string;
+    blue: string;
+  };
+  isLive?: boolean;
+}
+
+// EventData interface for API responses that may differ from Event
+export interface EventData extends Event {
+  currentViewers?: number;
+  activeBets?: number;
+  totalViewers?: number;
+}
+
+// Article interface
+export interface Article {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  summary?: string;
+  status: string;
+  featured_image?: string;
+  featured_image_url?: string;
+  published_at?: string;
+  created_at: string;
+  updated_at?: string;
+  author?: User;
+  author_name?: string;
+  venue?: Venue;
+  venue_name?: string;
 }

@@ -3,7 +3,7 @@ import { authenticate } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Bet, Fight, Event, User, Wallet, Transaction } from "../models";
 import { body, validationResult } from "express-validator";
-import { transaction, retryOperation } from "../config/database";
+import { transaction, retryOperation, cache } from "../config/database";
 import { sequelize } from "../config/database";
 import { Op } from "sequelize";
 import { requireBetting, enforceBetLimits, injectCommissionSettings } from "../middleware/settingsMiddleware";
@@ -27,7 +27,7 @@ router.get(
     // Optimized query with caching for frequently accessed data
     const cacheKey = `user_bets_${req.user!.id}_${status || 'all'}_${eventId || 'all'}_${limit}_${offset}`;
     const bets = await retryOperation(async () => {
-      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+      return await cache.getOrSet(cacheKey, async () => {
         return await Bet.findAndCountAll({
           where,
           include: [
@@ -69,7 +69,17 @@ router.get(
   "/available/:fightId",
   authenticate,
   asyncHandler(async (req, res) => {
-    const fight = await Fight.findByPk(req.params.fightId);
+    // ⚡ N+1 OPTIMIZATION: Include Event for canAcceptBets() method
+    const fight = await Fight.findByPk(req.params.fightId, {
+      include: [
+        {
+          model: Event,
+          as: "event",
+          attributes: ['id', 'status', 'scheduledDate'] // Only needed fields for canAcceptBets()
+        }
+      ]
+    });
+
     if (!fight) {
       throw errors.notFound("Fight not found");
     }
@@ -81,7 +91,7 @@ router.get(
     // Buscar apuestas pendientes que el usuario puede aceptar with caching
     const cacheKey = `available_bets_${req.params.fightId}_${req.user!.id}`;
     const availableBets = await retryOperation(async () => {
-      return await (sequelize as any).cache.getOrSet(cacheKey, async () => {
+      return await cache.getOrSet(cacheKey, async () => {
         return await Bet.findAll({
           where: {
             fightId: req.params.fightId,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Hook personalizado para Server-Sent Events (SSE)
@@ -10,11 +10,11 @@ const useSSE = (endpoint, options = {}) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [connected, setConnected] = useState(false);
-  
+
   const {
     dependencies = [],
     reconnectInterval = 5000,
-    withCredentials = false
+    withCredentials = false,
   } = options;
 
   useEffect(() => {
@@ -25,42 +25,42 @@ const useSSE = (endpoint, options = {}) => {
       try {
         // Crear nueva conexión SSE
         eventSource = new EventSource(endpoint, { withCredentials });
-        
+
         // Manejar conexión abierta
         eventSource.onopen = () => {
           setConnected(true);
           setError(null);
         };
-        
+
         // Manejar mensajes recibidos
         eventSource.onmessage = (event) => {
           try {
             const parsedData = JSON.parse(event.data);
             setData(parsedData);
           } catch (parseError) {
-            console.warn('Error parsing SSE message:', parseError);
+            console.warn("Error parsing SSE message:", parseError);
           }
         };
-        
+
         // Manejar eventos personalizados
-        eventSource.addEventListener('event_activated', (event) => {
+        eventSource.addEventListener("event_activated", (event) => {
           try {
             const parsedData = JSON.parse(event.data);
-            setData(prevData => ({
+            setData((prevData) => ({
               ...prevData,
               ...parsedData,
-              eventType: 'event_activated'
+              eventType: "event_activated",
             }));
           } catch (parseError) {
-            console.warn('Error parsing event_activated message:', parseError);
+            console.warn("Error parsing event_activated message:", parseError);
           }
         });
-        
+
         // Manejar errores
         eventSource.onerror = (err) => {
           setConnected(false);
           setError(err);
-          
+
           // Intentar reconectar
           if (reconnectInterval > 0) {
             reconnectTimeout = setTimeout(() => {
@@ -77,7 +77,7 @@ const useSSE = (endpoint, options = {}) => {
 
     // Iniciar conexión
     connect();
-    
+
     // Limpiar conexión al desmontar o cambiar dependencias
     return () => {
       if (eventSource) {

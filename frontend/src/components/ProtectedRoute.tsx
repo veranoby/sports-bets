@@ -1,20 +1,20 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Array<'admin' | 'operator' | 'venue' | 'user' | 'gallera'>;
-  requiredRole?: 'admin' | 'operator' | 'venue' | 'user' | 'gallera'; // Keep for backward compatibility
+  allowedRoles?: Array<"admin" | "operator" | "venue" | "user" | "gallera">;
+  requiredRole?: "admin" | "operator" | "venue" | "user" | "gallera"; // Keep for backward compatibility
   redirectTo?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
   allowedRoles,
   requiredRole,
-  redirectTo = '/login' 
+  redirectTo = "/login",
 }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
@@ -38,19 +38,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Verificar rol si se especifica
   const roles = allowedRoles || (requiredRole ? [requiredRole] : []);
-  
+
   if (roles.length > 0 && user?.role && !roles.includes(user.role)) {
     // Redirigir según el rol del usuario
     const roleRedirects = {
-      admin: '/admin',
-      operator: '/operator',
-      venue: '/venue',
-      user: '/user',
-      gallera: '/gallera',
+      admin: "/admin",
+      operator: "/operator",
+      venue: "/venue",
+      user: "/user",
+      gallera: "/gallera",
     };
 
-    const userRedirect = roleRedirects[user.role as keyof typeof roleRedirects] || '/user';
-    
+    const userRedirect =
+      roleRedirects[user.role as keyof typeof roleRedirects] || "/user";
+
     return <Navigate to={userRedirect} replace />;
   }
 

@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card, Space, Tag, Typography, message, Modal, Select, Input, Row, Col } from 'antd';
 import { 
   PlayCircleOutlined, 
-  PauseCircleOutlined, 
   CheckCircleOutlined, 
   ClockCircleOutlined,
-  ExclamationCircleOutlined,
   UserOutlined,
-  TeamOutlined,
   TrophyOutlined
 } from '@ant-design/icons';
 import { eventAPI, fightAPI } from '../../services/api';
@@ -33,7 +30,9 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
     setLoading(true);
     try {
       const response = await fightAPI.updateFightStatus(fight.id, status);
-      onFightUpdate(response.data);
+      if (response.success) {
+        onFightUpdate(response.data as Fight);
+      }
       message.success(`Fight status updated to ${status}`);
       
       // Emit real-time update
@@ -57,7 +56,9 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight, eventId,
     setLoading(true);
     try {
       const response = await fightAPI.assignFightResult(fight.id, result);
-      onFightUpdate(response.data);
+      if (response.success) {
+        onFightUpdate(response.data as Fight);
+      }
       message.success('Fight result assigned');
       setFightResult(null);
       setIsAssigningResult(false);

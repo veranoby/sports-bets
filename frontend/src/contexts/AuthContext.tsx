@@ -56,7 +56,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    localStorage.getItem("token"),
   );
   const [isLoading, setIsLoading] = useState(true);
 
@@ -73,7 +73,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           setIsLoading(true);
           // Usar perfil unificado que incluye subscription
-          const response = (await usersAPI.getProfile()) as unknown as ProfileResponse;
+          const response =
+            (await usersAPI.getProfile()) as unknown as ProfileResponse;
           const u = response.data.user as User;
           setUser({ ...u, subscription: response.data.subscription });
           setToken(savedToken);
@@ -111,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setToken(authToken);
 
           // Small delay to ensure axios interceptor can pick up the token
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 50));
 
           try {
             const me = await usersAPI.getProfile();
@@ -140,7 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isOperatingRef.current = false;
       }
     },
-    []
+    [],
   );
 
   // 🔧 MEJORA 4: Register optimizado
@@ -181,7 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isOperatingRef.current = false;
       }
     },
-    []
+    [],
   );
 
   // 🔧 MEJORA 5: Logout optimizado
@@ -229,7 +230,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       register,
       logout,
       refreshUser,
-    ]
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,190 +1,285 @@
 {
   "metadata": {
-    "purpose": "Navigation map and usage guide for Proyecto Gallos de pelea brain system",
-    "project_name": "Proyecto Gallos de pelea",
+    "purpose": "Navigation map and comprehensive guide for GalloBets brain system",
+    "project_name": "GalloBets - Professional Cockfighting Streaming Platform",
     "created": "2025-08-31",
-    "updated": "2025-08-31",
-    "version": "1.0"
+    "updated": "2025-09-21",
+    "version": "2.0"
   },
+  
   "project_context": {
-    "current_phase": "MVP Phase - Final TypeScript Quality Assurance",
-    "deadline": "September 17, 2025 - Testing Phase",
+    "current_phase": "MVP Development Sprint - Day 1 of 15",
+    "deadline": "September 21, 2025 - MVP Launch",
     "primary_stakeholder": "veranoby (solo founder/developer)",
-    "revenue_strategy": "Subscription-based event transmissions",
+    "business_model": "Subscription streaming + P2P betting platform",
     "tech_stack": {
       "database": "PostgreSQL on Neon.tech",
-      "backend": "Node.js + Sequelize",
-      "frontend": "React + TypeScript",
-      "streaming": "RTMP + WebSocket",
-      "development_tools": ["Claude Code", "Gemini CLI", "Qwen CLI", "Cursor", "Windsurf"]
+      "backend": "Node.js + Express + Sequelize + TypeScript",
+      "frontend": "React + TypeScript + Tailwind CSS",
+      "real_time": "SSE (admin) + Minimal WebSocket (betting)",
+      "streaming": "RTMP + OBS Studio + HLS",
+      "payments": "Kushki"
     },
-    "current_status": {
-      "typescript_errors": "370 errors remaining (95% @typescript-eslint/no-explicit-any)",
-      "error_reduction_progress": "499 → 399 errors completed by Claude+Qwen",
-      "next_phase": "Gemini CLI interface-focused TypeScript cleanup",
-      "system_functionality": "Fully operational - errors are type safety only"
+    "critical_status": {
+      "database_performance": "CRITICAL: 1-3s queries need optimization",
+      "typescript_errors": "370+ @typescript-eslint/no-explicit-any",
+      "qwen_incidents": "Destroyed Profile.tsx and authentication",
+      "timeline_pressure": "15 days to MVP launch"
     }
   },
-  "file_purposes": {
-    "AI_UNIVERSAL_INSTRUCTIONS.json": {
-      "purpose": "Universal safety protocols and instructions for ANY AI system",
-      "update_frequency": "When critical safety protocols change",
-      "primary_use": "MANDATORY reading for any AI starting work on this project"
+  
+  "file_structure": {
+    "coordination_files": {
+      "multi_ai_coordination_strategy.json": {
+        "purpose": "Comprehensive multi-AI coordination framework",
+        "importance": "CRITICAL",
+        "update_frequency": "When AI coordination changes",
+        "primary_use": "Understanding AI strengths, weaknesses, and optimal workflows"
+      },
+      "multi_ai_decision_matrix.json": {
+        "purpose": "Task routing decision tree for AI selection",
+        "importance": "CRITICAL",
+        "update_frequency": "When new task patterns identified",
+        "primary_use": "Determining which AI should handle specific tasks"
+      },
+      "gemini_optimization_patterns.json": {
+        "purpose": "Gemini-specific React/TypeScript patterns",
+        "importance": "HIGH",
+        "update_frequency": "When new patterns discovered",
+        "primary_use": "Gemini implementation excellence patterns"
+      }
     },
-    "brain_index.json": {
-      "purpose": "System navigation and decision framework",
-      "update_frequency": "Weekly or when major system changes",
-      "primary_use": "Initial consultation for any strategic decision"
+    
+    "technical_files": {
+      "sdd_system.json": {
+        "purpose": "System design and technical architecture",
+        "importance": "CRITICAL",
+        "update_frequency": "When architecture decisions change",
+        "primary_use": "Technical consistency and architecture reference"
+      },
+      "prd_system.json": {
+        "purpose": "Product requirements and business context",
+        "importance": "HIGH",
+        "update_frequency": "When business requirements change",
+        "primary_use": "Feature specifications and business alignment"
+      },
+      "backlog.json": {
+        "purpose": "Task tracking and 15-day timeline management",
+        "importance": "CRITICAL",
+        "update_frequency": "Daily during MVP sprint",
+        "primary_use": "Development coordination and progress tracking"
+      }
     },
-    "priorities_memory_index.json": {
-      "purpose": "P0-P3 priority stack and resource allocation",
-      "update_frequency": "Daily during development sprints",
-      "primary_use": "Development planning and conflict resolution",
-      "critical_for": ["Sprint planning", "Feature prioritization", "Blocker resolution"]
+    
+    "instruction_files": {
+      "AI_UNIVERSAL_INSTRUCTIONS.json": {
+        "purpose": "Universal safety protocols for ANY AI",
+        "importance": "CRITICAL",
+        "update_frequency": "When incidents occur or protocols change",
+        "primary_use": "MANDATORY first read for any AI starting work"
+      },
+      "../CLAUDE.md": {
+        "purpose": "Claude-specific development instructions",
+        "importance": "HIGH",
+        "primary_use": "Claude architecture and validation patterns"
+      },
+      "../GEMINI.md": {
+        "purpose": "Gemini React/TypeScript implementation guide",
+        "importance": "HIGH",
+        "primary_use": "Gemini UI component patterns and SSE integration"
+      },
+      "../QWEN.md": {
+        "purpose": "QWEN safety protocols and restrictions",
+        "importance": "CRITICAL",
+        "primary_use": "Preventing QWEN destructive behavior"
+      }
     },
-    "backlog.json": {
-      "purpose": "Granular task tracking and Vibe Coding session management",
-      "update_frequency": "After each coding session",
-      "primary_use": "Development workflow coordination",
-      "critical_for": ["Claude Code sessions", "Gemini CLI coordination", "Progress tracking"]
-    },
-    "monthly_report.json": {
-      "purpose": "Progress metrics and business validation",
-      "update_frequency": "Weekly during MVP, then monthly",
-      "primary_use": "Stakeholder reporting and course correction",
-      "critical_for": ["MVP milestone tracking", "Revenue validation", "Post-launch metrics"]
-    },
-    "objectives_memory_index.json": {
-      "purpose": "Strategic goals and success criteria",
-      "update_frequency": "Bi-weekly or when pivoting",
-      "primary_use": "Validate decisions against business objectives",
-      "critical_for": ["Feature validation", "Architecture decisions", "Business pivots"]
-    },
-    "prd_system.json": {
-      "purpose": "Product requirements and business context",
-      "update_frequency": "When requirements change or stakeholder feedback",
-      "primary_use": "Feature specification and stakeholder alignment",
-      "critical_for": ["Admin environment scope", "Operator hierarchy", "Transmission workflows"]
-    },
-    "sdd_system.json": {
-      "purpose": "Technical architecture and development phases",
-      "update_frequency": "After architectural decisions",
-      "primary_use": "Technical consistency and development planning",
-      "critical_for": ["Database schema decisions", "API design", "Streaming infrastructure"]
-    },
-    "UI_UX.json": {
-      "purpose": "Design decisions and user experience flows",
-      "update_frequency": "After UX research or user feedback",
-      "primary_use": "Interface consistency and user adoption",
-      "critical_for": ["Admin dashboard design", "Operator interface", "User resistance mitigation"]
-    },
-    "guide_for_using_the_system.json": {
-      "purpose": "Operational procedures and decision frameworks",
-      "update_frequency": "When usage patterns change",
-      "primary_use": "AI coordination and quality assurance"
+    
+    "legacy_files": {
+      "brain_index.json": {
+        "purpose": "This file - Brain system navigation",
+        "note": "You are reading this file"
+      },
+      "guide_for_using_the_system.json": {
+        "purpose": "Operational procedures",
+        "status": "Updated with new coordination patterns"
+      },
+      "UI_UX.json": {
+        "purpose": "Design decisions",
+        "status": "Active for UI consistency"
+      },
+      "development_lessons_master.md": {
+        "purpose": "Historical lessons learned",
+        "status": "Reference for patterns"
+      }
     }
   },
+  
   "query_patterns": {
-    "development_decisions": {
-      "required_files": ["priorities_memory_index.json", "backlog.json", "sdd_system.json"],
-      "optional_files": ["prd_system.json"],
-      "use_case": "Planning Vibe Coding sessions, technical debt resolution"
+    "starting_new_task": {
+      "required_files": [
+        "AI_UNIVERSAL_INSTRUCTIONS.json",
+        "multi_ai_decision_matrix.json",
+        "backlog.json"
+      ],
+      "process": "Check instructions → Verify task routing → Review current status"
     },
+    
     "architecture_decisions": {
-      "required_files": ["sdd_system.json", "prd_system.json", "priorities_memory_index.json"],
-      "optional_files": ["objectives_memory_index.json"],
-      "use_case": "Database schema changes, API design, streaming infrastructure"
+      "required_files": [
+        "sdd_system.json",
+        "multi_ai_coordination_strategy.json",
+        "prd_system.json"
+      ],
+      "process": "Technical architecture → AI capabilities → Business requirements"
     },
-    "business_strategy": {
-      "required_files": ["objectives_memory_index.json", "priorities_memory_index.json", "monthly_report.json"],
-      "optional_files": ["prd_system.json"],
-      "use_case": "Revenue validation, feature prioritization, stakeholder decisions"
+    
+    "implementation_work": {
+      "claude_path": ["CLAUDE.md", "sdd_system.json", "backlog.json"],
+      "gemini_path": ["GEMINI.md", "gemini_optimization_patterns.json", "backlog.json"],
+      "qwen_path": ["QWEN.md", "AI_UNIVERSAL_INSTRUCTIONS.json", "FORBIDDEN files list"]
     },
-    "user_experience": {
-      "required_files": ["UI_UX.json", "prd_system.json"],
-      "optional_files": ["objectives_memory_index.json"],
-      "use_case": "Admin interface design, operator hierarchy, user adoption"
-    },
-    "progress_tracking": {
-      "required_files": ["backlog.json", "monthly_report.json", "priorities_memory_index.json"],
-      "optional_files": ["objectives_memory_index.json"],
-      "use_case": "Sprint reviews, milestone tracking, course correction"
+    
+    "debugging_issues": {
+      "required_files": [
+        "multi_ai_decision_matrix.json",
+        "AI_UNIVERSAL_INSTRUCTIONS.json"
+      ],
+      "rule": "CLAUDE ONLY for debugging - QWEN destroys code"
     }
   },
-  "update_scenarios": {
-    "task_completion": {
-      "triggers": ["Feature delivered", "Bug resolved", "Technical debt addressed"],
-      "files_to_update": ["backlog.json", "priorities_memory_index.json"],
-      "update_type": "Status modification"
+  
+  "critical_decisions": {
+    "real_time_architecture": {
+      "decision": "Hybrid SSE + Minimal WebSocket",
+      "sse_for": "Admin updates, notifications, bet lists",
+      "websocket_for": "ONLY PAGO/DOY proposals (3-min timeout)",
+      "rationale": "Simplicity, fewer memory leaks, easier debugging"
     },
-    "architectural_change": {
-      "triggers": ["Database schema update", "API modification", "New service integration"],
-      "files_to_update": ["sdd_system.json", "backlog.json"],
-      "update_type": "Add new entries + modify dependencies"
+    
+    "betting_system": {
+      "temporal_logic": "upcoming → betting → live → completed",
+      "critical_rule": "Bets ONLY during 'betting' status",
+      "pago_doy": "WebSocket proposals with timeout",
+      "wallet": "Manual refresh, no WebSocket"
     },
-    "business_decision": {
-      "triggers": ["Priority shift", "Feature pivot", "Timeline change"],
-      "files_to_update": ["priorities_memory_index.json", "objectives_memory_index.json", "prd_system.json"],
-      "update_type": "Modify existing + add rationale"
+    
+    "operator_hierarchy": {
+      "principle": "Operators cannot modify admin/operator users",
+      "implementation": "Shared admin environment with restrictions",
+      "ui_approach": "Role-based component filtering"
     },
-    "development_session": {
-      "triggers": ["Vibe Coding session completed", "Claude Code session", "Gemini CLI session"],
-      "files_to_update": ["backlog.json"],
-      "update_type": "Add outcomes + update task status"
-    },
-    "weekly_review": {
-      "triggers": ["Sprint completion", "Weekly milestone"],
-      "files_to_update": ["monthly_report.json", "priorities_memory_index.json", "backlog.json"],
-      "update_type": "Progress summary + next period planning"
+    
+    "ai_coordination": {
+      "database": "Claude EXCLUSIVE",
+      "ui_components": "Gemini PRIMARY",
+      "debugging": "Claude ONLY",
+      "qwen_usage": "EXTREMELY LIMITED"
     }
   },
+  
   "current_priorities": {
-    "P0_immediate": [
-      "Complete admin environment with operator integration",
-      "Implement operator role hierarchy (limited admin tools)",
-      "Finalize event transmission workflow",
-      "Deploy MVP for revenue generation (15-day deadline)"
+    "today_day_1": [
+      "SSE architecture design (Claude)",
+      "Review existing codebase",
+      "Plan week 1 implementation"
     ],
-    "P1_post_mvp": [
-      "Betting system implementation",
-      "Wallet system implementation",
-      "Revenue optimization",
-      "User acquisition"
+    
+    "week_1_critical": [
+      "Day 1-2: SSE implementation",
+      "Day 3-4: Frontend SSE integration",
+      "Day 5-6: Betting windows system",
+      "Day 7: Operator dashboard"
     ],
-    "deferred": [
-      "Advanced analytics",
-      "Mobile app",
-      "International expansion"
+    
+    "week_2_critical": [
+      "Day 8-10: DATABASE PERFORMANCE FIX",
+      "Day 11-12: Integration testing",
+      "Day 13-14: Polish and cleanup",
+      "Day 15: DEPLOYMENT"
     ]
   },
-  "ai_coordination": {
-    "memory_usage_protocol": {
-      "query_first": "Always check relevant brain files before strategic/technical guidance",
-      "context_requirement": "Reference 2-3 brain files minimum for comprehensive recommendations",
-      "update_triggers": ["Task status changes", "New discoveries", "Architecture decisions", "Weekly progress"],
-      "auto_update": "Update brain after significant conversations about progress/decisions"
+  
+  "update_protocols": {
+    "daily_updates": {
+      "morning": "Update backlog.json with day's plan",
+      "evening": "Update progress and blockers",
+      "handoff": "Document in coordination files"
     },
-    "tool_coordination": {
-      "ANY_AI_SYSTEM": "MUST read AI_UNIVERSAL_INSTRUCTIONS.json first",
-      "claude_code": "Reference backlog.json + sdd_system.json for context",
-      "gemini_cli": "Use claude-prompt-critical-remaining.json for performance tasks",
-      "qwen_cli": "Follow AI_UNIVERSAL_INSTRUCTIONS.json safety protocols",
-      "cursor_windsurf": "Coordinate via brain system for consistency",
-      "planning_sessions": "Use any AI with brain context + universal instructions"
+    
+    "incident_updates": {
+      "qwen_destruction": "Update AI_UNIVERSAL_INSTRUCTIONS.json + QWEN.md",
+      "performance_issues": "Update sdd_system.json + backlog.json",
+      "architecture_changes": "Update all technical files"
+    },
+    
+    "success_updates": {
+      "feature_complete": "Update backlog.json status",
+      "pattern_discovered": "Update optimization patterns files",
+      "milestone_reached": "Update all tracking files"
     }
   },
-  "success_indicators": {
-    "system_effectiveness": [
-      "Decisions reference specific project context vs generic advice",
-      "AI tools coordinate via shared brain state",
-      "Development velocity increases with context awareness",
-      "Technical debt tracked and resolved systematically"
+  
+  "ai_routing_quick_reference": {
+    "always_claude": [
+      "Database anything",
+      "Authentication anything",
+      "Debugging anything",
+      "Architecture design",
+      "Integration validation"
     ],
-    "business_impact": [
-      "15-day MVP deadline met",
-      "Transmission revenue stream activated",
-      "Operator hierarchy successfully implemented",
-      "Admin environment completion verified"
+    
+    "prefer_gemini": [
+      "React components",
+      "TypeScript interfaces",
+      "UI implementation",
+      "SSE frontend hooks",
+      "Responsive design"
+    ],
+    
+    "qwen_only_if": [
+      "Simple TypeScript 'any' fixes",
+      "New test files",
+      "Documentation additions",
+      "Maximum 30 minutes",
+      "Claude available to validate"
+    ],
+    
+    "never_qwen": [
+      "Profile.tsx",
+      "AuthContext.tsx",
+      "Any authentication",
+      "Any database work",
+      "Any debugging"
     ]
+  },
+  
+  "success_metrics": {
+    "technical": [
+      "Database queries <500ms",
+      "SSE latency <1s",
+      "Zero auth issues",
+      "TypeScript compiles"
+    ],
+    
+    "business": [
+      "Betting windows working",
+      "Operator dashboard functional",
+      "Streaming integrated",
+      "Payments processing"
+    ],
+    
+    "timeline": [
+      "Daily progress on track",
+      "Week 1 goals met",
+      "MVP deployed by Sept 21"
+    ]
+  },
+  
+  "emergency_contacts": {
+    "if_blocked": "Review multi_ai_decision_matrix.json for routing",
+    "if_confused": "Read AI_UNIVERSAL_INSTRUCTIONS.json",
+    "if_timeline_risk": "Check backlog.json and cut P1 features",
+    "if_qwen_breaks": "STOP, git reset, call Claude"
   }
 }

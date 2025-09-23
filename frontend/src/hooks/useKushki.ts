@@ -74,15 +74,16 @@ export const useKushki = () => {
         }
 
         return result.token!;
-      } catch (err: any) {
-        const errorMessage = err.message || "Error al tokenizar tarjeta";
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Error al tokenizar tarjeta";
         setError(errorMessage);
         throw new Error(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   const processPayment = useCallback(
@@ -112,15 +113,16 @@ export const useKushki = () => {
         }
 
         return result.data.transactionId;
-      } catch (err: any) {
-        const errorMessage = err.message || "Error al procesar pago";
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Error al procesar pago";
         setError(errorMessage);
         throw new Error(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   return {

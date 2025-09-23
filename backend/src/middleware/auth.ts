@@ -3,6 +3,25 @@ import { Request, Response, NextFunction } from 'express';
 import { User } from '../models/User';
 import { errors } from './errorHandler';
 
+// ⚡ CRITICAL OPTIMIZATION: User cache to prevent N+1 queries on authentication
+interface CachedUser {
+  user: User;
+  expires: number;
+}
+
+const userCache = new Map<string, CachedUser>();
+const USER_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache for authenticated users
+
+// ⚡ OPTIMIZATION: Periodic cache cleanup to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, cached] of userCache.entries()) {
+    if (now >= cached.expires) {
+      userCache.delete(userId);
+    }
+  }
+}, 5 * 60 * 1000); // Clean up every 5 minutes
+
 // Extender Request interface para incluir user y queryFilter
 declare global {
   namespace Express {
@@ -31,9 +50,33 @@ export const authenticate = async (
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     console.log('Decoded token:', decoded);
-    
-    const user = await User.findByPk(decoded.userId);
-    
+
+    // ⚡ CRITICAL OPTIMIZATION: Check user cache first to prevent N+1 queries
+    const now = Date.now();
+    let user: User;
+
+    const cached = userCache.get(decoded.userId);
+    if (cached && now < cached.expires) {
+      user = cached.user;
+      console.log('🧠 User cache hit for userId:', decoded.userId);
+    } else {
+      // Fetch from database only if not cached or expired
+      const fetchedUser = await User.findByPk(decoded.userId);
+
+      if (!fetchedUser || !fetchedUser.isActive) {
+        throw errors.unauthorized('Invalid token or user inactive');
+      }
+
+      // ⚡ CRITICAL: Cache user for 2 minutes to prevent repeated DB calls
+      userCache.set(decoded.userId, {
+        user: fetchedUser,
+        expires: now + USER_CACHE_DURATION
+      });
+
+      user = fetchedUser;
+      console.log('🔍 Database fetch for userId:', decoded.userId);
+    }
+
     if (!user || !user.isActive) {
       throw errors.unauthorized('Invalid token or user inactive');
     }
@@ -93,16 +136,38 @@ export const optionalAuth = async (
 ): Promise<void> => {
   try {
     const token = extractToken(req);
-    
+
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      const user = await User.findByPk(decoded.userId);
-      
+
+      // ⚡ CRITICAL OPTIMIZATION: Check user cache first for optional auth too
+      const now = Date.now();
+      let user: User | null = null;
+
+      const cached = userCache.get(decoded.userId);
+      if (cached && now < cached.expires) {
+        user = cached.user;
+        console.log('🧠 User cache hit for optional auth, userId:', decoded.userId);
+      } else {
+        // Fetch from database only if not cached or expired
+        const fetchedUser = await User.findByPk(decoded.userId);
+
+        if (fetchedUser && fetchedUser.isActive) {
+          // ⚡ CRITICAL: Cache user for optional auth too
+          userCache.set(decoded.userId, {
+            user: fetchedUser,
+            expires: now + USER_CACHE_DURATION
+          });
+          user = fetchedUser;
+          console.log('🔍 Database fetch for optional auth, userId:', decoded.userId);
+        }
+      }
+
       if (user && user.isActive) {
         req.user = user;
       }
     }
-    
+
     next();
   } catch (error) {
     // En autenticación opcional, continuamos sin usuario si hay error

@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-
+import { useState, useEffect } from "react";
 
 interface UseSettingsReturn {
-  settings: Record<string, any>;
-  publicSettings: Record<string, any>;
+  settings: Record<string, unknown>;
+  publicSettings: Record<string, unknown>;
   featureStatus: {
     wallets_enabled: boolean;
     betting_enabled: boolean;
@@ -13,29 +12,31 @@ interface UseSettingsReturn {
   loading: boolean;
   error: string | null;
   refreshSettings: () => Promise<void>;
-  updateSetting: (key: string, value: any) => Promise<boolean>;
-  bulkUpdateSettings: (updates: Record<string, any>) => Promise<boolean>;
-  getSetting: (key: string, defaultValue?: any) => any;
+  updateSetting: (key: string, value: unknown) => Promise<boolean>;
+  bulkUpdateSettings: (updates: Record<string, unknown>) => Promise<boolean>;
+  getSetting: (key: string, defaultValue?: unknown) => unknown;
   isFeatureEnabled: (featureKey: string) => boolean;
 }
 
 const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
-  const [settings, setSettings] = useState<Record<string, any>>({});
-  const [publicSettings, setPublicSettings] = useState<Record<string, any>>({});
+  const [settings, setSettings] = useState<Record<string, unknown>>({});
+  const [publicSettings, setPublicSettings] = useState<Record<string, unknown>>(
+    {},
+  );
   const [featureStatus, setFeatureStatus] = useState({
     wallets_enabled: false,
     betting_enabled: false,
     streaming_enabled: false,
-    maintenance_mode: false
+    maintenance_mode: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
   };
 
@@ -45,8 +46,8 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
       setError(null);
 
       // Fetch public settings (always available)
-      const publicResponse = await fetch('/api/settings/public', {
-        headers: getAuthHeaders()
+      const publicResponse = await fetch("/api/settings/public", {
+        headers: getAuthHeaders(),
       });
 
       if (publicResponse.ok) {
@@ -56,8 +57,8 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
 
       // Fetch admin settings if in admin mode
       if (adminMode) {
-        const adminResponse = await fetch('/api/settings', {
-          headers: getAuthHeaders()
+        const adminResponse = await fetch("/api/settings", {
+          headers: getAuthHeaders(),
         });
 
         if (adminResponse.ok) {
@@ -68,10 +69,9 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
 
       // Fetch feature status
       await fetchFeatureStatus();
-
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      setError(error instanceof Error ? error.message : 'Error desconocido');
+      console.error("Error fetching settings:", error);
+      setError(error instanceof Error ? error.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -79,8 +79,8 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
 
   const fetchFeatureStatus = async () => {
     try {
-      const response = await fetch('/api/settings/features/status', {
-        headers: getAuthHeaders()
+      const response = await fetch("/api/settings/features/status", {
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
@@ -88,29 +88,32 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
         setFeatureStatus(data.data);
       }
     } catch (error) {
-      console.error('Error fetching feature status:', error);
+      console.error("Error fetching feature status:", error);
     }
   };
 
-  const updateSetting = async (key: string, value: any): Promise<boolean> => {
+  const updateSetting = async (
+    key: string,
+    value: unknown,
+  ): Promise<boolean> => {
     try {
       const response = await fetch(`/api/settings/${key}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ value })
+        body: JSON.stringify({ value }),
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
           // Update local state
-          setSettings(prev => ({
+          setSettings((prev) => ({
             ...prev,
-            [key]: value
+            [key]: value,
           }));
 
           // Refresh feature status if it's a feature toggle
-          if (key.startsWith('enable_') || key === 'maintenance_mode') {
+          if (key.startsWith("enable_") || key === "maintenance_mode") {
             await fetchFeatureStatus();
           }
 
@@ -118,34 +121,38 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
         }
       }
 
-      throw new Error('Error updating setting');
+      throw new Error("Error updating setting");
     } catch (error) {
-      console.error('Error updating setting:', error);
-      setError(error instanceof Error ? error.message : 'Error updating setting');
+      console.error("Error updating setting:", error);
+      setError(
+        error instanceof Error ? error.message : "Error updating setting",
+      );
       return false;
     }
   };
 
-  const bulkUpdateSettings = async (updates: Record<string, any>): Promise<boolean> => {
+  const bulkUpdateSettings = async (
+    updates: Record<string, unknown>,
+  ): Promise<boolean> => {
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PUT',
+      const response = await fetch("/api/settings", {
+        method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
           // Update local state
-          setSettings(prev => ({
+          setSettings((prev) => ({
             ...prev,
-            ...updates
+            ...updates,
           }));
 
           // Refresh feature status if any feature toggles were updated
-          const hasFeatureUpdates = Object.keys(updates).some(key => 
-            key.startsWith('enable_') || key === 'maintenance_mode'
+          const hasFeatureUpdates = Object.keys(updates).some(
+            (key) => key.startsWith("enable_") || key === "maintenance_mode",
           );
 
           if (hasFeatureUpdates) {
@@ -156,20 +163,22 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
         }
       }
 
-      throw new Error('Error updating settings');
+      throw new Error("Error updating settings");
     } catch (error) {
-      console.error('Error bulk updating settings:', error);
-      setError(error instanceof Error ? error.message : 'Error updating settings');
+      console.error("Error bulk updating settings:", error);
+      setError(
+        error instanceof Error ? error.message : "Error updating settings",
+      );
       return false;
     }
   };
 
-  const getSetting = (key: string, defaultValue: any = null): any => {
+  const getSetting = (key: string, defaultValue: unknown = null): unknown => {
     // Try admin settings first, then public settings
     if (key in settings) {
       return settings[key];
     }
-    
+
     if (key in publicSettings) {
       return publicSettings[key];
     }
@@ -207,7 +216,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     updateSetting,
     bulkUpdateSettings,
     getSetting,
-    isFeatureEnabled
+    isFeatureEnabled,
   };
 };
 

@@ -255,38 +255,41 @@ const EventsPage: React.FC = () => {
         {/* Header con búsqueda y filtros */}
         <div className="card-background p-4">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Estadísticas rápidas */}
-            <div className="flex justify-center gap-4">
-              <Badge
-                value={events.filter((e) => e.status === "in-progress").length}
-                variant="success"
-                size="lg"
-                className="flex-col items-center gap-1"
-              >
-                <span className="text-xs text-theme-light">En Vivo</span>
-              </Badge>
-              <Badge
-                value={events.filter((e) => e.status === "scheduled").length}
-                variant="warning"
-                size="lg"
-                className="flex-col items-center gap-1"
-              >
-                <span className="text-xs text-theme-light">Próximos</span>
-              </Badge>
-              <Badge
-                value={events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
-                variant="primary"
-                size="lg"
-                className="flex-col items-center gap-1"
-              >
-                <span className="text-xs text-theme-light">Apuestas</span>
-              </Badge>
+            {/* Estadísticas rápidas - Aumentado el tamaño */}
+            <div className="grid grid-cols-3 gap-4 w-full md:w-2/5">
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 p-4 rounded-xl border border-green-500/30 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-5 h-5 text-green-400" />
+                  <span className="text-sm text-green-400 font-medium">En Vivo</span>
+               
+                <span className="text-xl font-bold text-theme-primary">
+                  {events.filter((e) => e.status === "in-progress").length}
+                </span> </div>
+              </div>
+              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 p-4 rounded-xl border border-amber-500/30 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                  <span className="text-sm text-amber-400 font-medium">Próximos</span>
+               
+                <span className="text-xl font-bold text-theme-primary">
+                  {events.filter((e) => e.status === "scheduled").length}
+                </span> </div>
+              </div>
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-4 rounded-xl border border-blue-500/30 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-blue-400" />
+                  <span className="text-sm text-blue-400 font-medium">Apuestas</span>
+               
+                <span className="text-xl font-bold text-theme-primary">
+                  {events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
+                </span> </div>
+              </div>
             </div>
 
-            {/* Barra de búsqueda */}
-            <div className="flex-1 relative">
+            {/* Barra de búsqueda - Reducido el ancho */}
+            <div className="flex-1 relative w-full md:w-2/5">
               <SearchInput
-                placeholder="  Buscar eventos..."
+                placeholder="Buscar eventos..."
                 onSearch={handleSearchChange}
                 value={searchTerm}
                 showClearButton
@@ -295,8 +298,8 @@ const EventsPage: React.FC = () => {
               />
             </div>
 
-            {/* Filtros de estado */}
-            <div className="flex gap-2">
+            {/* Filtros de estado - Mejorados los estilos */}
+            <div className="flex gap-2 w-full md:w-1/5">
               {[
                 { key: "all", label: "Todos", icon: Calendar },
                 { key: "live", label: "En Vivo", icon: Zap },
@@ -305,14 +308,14 @@ const EventsPage: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setStatusFilter(key as any)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
                     statusFilter === key
-                      ? "bg-[#596c95] text-white"
-                      : "text-theme-light hover:bg-[#2a325c]/50"
+                      ? "bg-gradient-to-r from-blue-300 to-blue-400 text-white shadow-md"
+                      : "text-theme-primary  border border-[#596c95]/50 shadow-sm"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  {label}
+                  <span className="hidden md:inline">{label}</span>
                 </button>
               ))}
             </div>
@@ -395,11 +398,7 @@ const EventsPage: React.FC = () => {
             {/* Eventos próximos */}
             {upcomingEvents.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-400" />
-                  Próximos Eventos
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingEvents
                     .sort(
                       (a, b) =>
@@ -424,7 +423,7 @@ const EventsPage: React.FC = () => {
                   <Star className="w-5 h-5 text-yellow-400" />
                   Eventos Pasados
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {archivedEvents
                     .slice(0, 6) // Mostrar solo los últimos 6
                     .map((event) => (

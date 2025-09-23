@@ -29,19 +29,40 @@ export const injectSettings = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+// ⚡ CRITICAL OPTIMIZATION: Ultra-aggressive caching for public settings middleware
+let cachedPublicSettings: Record<string, any> | null = null;
+let publicSettingsCacheExpires = 0;
+const PUBLIC_SETTINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in memory
+
 /**
  * Middleware to inject only public settings
  * Used for endpoints accessible to non-admin users
+ * ⚡ OPTIMIZED: Ultra-fast memory cache to prevent database hits on every request
  */
 export const injectPublicSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // ⚡ CRITICAL: Check memory cache first to avoid database hit on every request
+    const now = Date.now();
+    if (cachedPublicSettings && now < publicSettingsCacheExpires) {
+      req.settings = cachedPublicSettings;
+      next();
+      return;
+    }
+
+    // Only fetch from database/cache if memory cache is expired
     const publicSettings = await settingsService.getPublicSettings();
+
+    // ⚡ CRITICAL: Cache in memory for 5 minutes to avoid repeated DB calls
+    cachedPublicSettings = publicSettings;
+    publicSettingsCacheExpires = now + PUBLIC_SETTINGS_CACHE_DURATION;
+
     req.settings = publicSettings;
-    
+
     next();
   } catch (error) {
     console.error('❌ Error injecting public settings:', error);
-    req.settings = {};
+    // ⚡ FALLBACK: Use cached settings if available, even if expired
+    req.settings = cachedPublicSettings || {};
     next();
   }
 };
@@ -74,8 +95,14 @@ export const requireFeature = (featureKey: string, errorMessage?: string) => {
   };
 };
 
+// ⚡ CRITICAL OPTIMIZATION: Ultra-aggressive caching for maintenance mode check
+let cachedMaintenanceMode: boolean | null = null;
+let maintenanceModeCacheExpires = 0;
+const MAINTENANCE_MODE_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes in memory
+
 /**
  * Maintenance mode middleware - blocks all requests during maintenance
+ * ⚡ OPTIMIZED: Ultra-fast memory cache to prevent database hits on every request
  */
 export const checkMaintenanceMode = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -84,8 +111,23 @@ export const checkMaintenanceMode = async (req: Request, res: Response, next: Ne
       return next();
     }
 
-    const isMaintenanceMode = await settingsService.isMaintenanceMode();
-    
+    // ⚡ CRITICAL: Check memory cache first to avoid database hit on every request
+    const now = Date.now();
+    let isMaintenanceMode: boolean;
+
+    if (cachedMaintenanceMode !== null && now < maintenanceModeCacheExpires) {
+      isMaintenanceMode = cachedMaintenanceMode;
+      console.log('🧠 Memory cache hit for key: maintenance_mode');
+    } else {
+      // Only fetch from database/cache if memory cache is expired
+      isMaintenanceMode = await settingsService.isMaintenanceMode();
+
+      // ⚡ CRITICAL: Cache in memory for 2 minutes to avoid repeated DB calls
+      cachedMaintenanceMode = isMaintenanceMode;
+      maintenanceModeCacheExpires = now + MAINTENANCE_MODE_CACHE_DURATION;
+      console.log('🔍 Database fetch for key: maintenance_mode');
+    }
+
     if (isMaintenanceMode) {
       return res.status(503).json({
         success: false,
@@ -93,11 +135,11 @@ export const checkMaintenanceMode = async (req: Request, res: Response, next: Ne
         code: 'MAINTENANCE_MODE'
       });
     }
-    
+
     next();
   } catch (error) {
     console.error('❌ Error checking maintenance mode:', error);
-    // Continue on error to avoid blocking all requests
+    // ⚡ FALLBACK: Continue on error to avoid blocking all requests (assume not in maintenance)
     next();
   }
 };

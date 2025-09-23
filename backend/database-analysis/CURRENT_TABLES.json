@@ -679,6 +679,14 @@
   "column_default": "now()",
   "ordinal_position": 13
 }, {
+  "table_name": "galleras",
+  "column_name": "contact_info",
+  "data_type": "jsonb",
+  "character_maximum_length": null,
+  "is_nullable": "YES",
+  "column_default": "'{}'::jsonb",
+  "ordinal_position": 14
+}, {
   "table_name": "notifications",
   "column_name": "id",
   "data_type": "uuid",

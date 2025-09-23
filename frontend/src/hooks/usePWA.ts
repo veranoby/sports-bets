@@ -1,7 +1,7 @@
 // src/hooks/usePWA.ts
 
-import { useState, useEffect } from 'react';
-import { pwaService } from '../services/pwaService';
+import { useState, useEffect } from "react";
+import { pwaService } from "../services/pwaService";
 
 export const usePWA = () => {
   const [canInstall, setCanInstall] = useState(pwaService.canInstall());
@@ -11,10 +11,16 @@ export const usePWA = () => {
       setCanInstall(e.detail);
     };
 
-    window.addEventListener('pwa-installable', handleInstallable as EventListener);
+    window.addEventListener(
+      "pwa-installable",
+      handleInstallable as EventListener,
+    );
 
     return () => {
-      window.removeEventListener('pwa-installable', handleInstallable as EventListener);
+      window.removeEventListener(
+        "pwa-installable",
+        handleInstallable as EventListener,
+      );
     };
   }, []);
 
@@ -27,7 +33,7 @@ export const usePWA = () => {
       await pwaService.subscribeToPushNotifications();
       // You might want to update some state here
     } catch (error) {
-      console.error('Failed to subscribe to push notifications', error);
+      console.error("Failed to subscribe to push notifications", error);
     }
   };
 
