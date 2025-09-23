@@ -20,7 +20,7 @@ interface Notification {
   timestamp: Date;
   status: "unread" | "read" | "archived";
   type: "info" | "warning" | "error" | "success" | "bet_proposal";
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 const NotificationCenter: React.FC = memo(() => {

@@ -2,8 +2,8 @@ import React, { createContext, useContext, type ReactNode } from "react";
 import useSettings from "../hooks/useSettings";
 
 interface SettingsContextType {
-  settings: Record<string, any>;
-  publicSettings: Record<string, any>;
+  settings: Record<string, unknown>;
+  publicSettings: Record<string, unknown>;
   featureStatus: {
     wallets_enabled: boolean;
     betting_enabled: boolean;
@@ -13,9 +13,9 @@ interface SettingsContextType {
   loading: boolean;
   error: string | null;
   refreshSettings: () => Promise<void>;
-  updateSetting: (key: string, value: any) => Promise<boolean>;
-  bulkUpdateSettings: (updates: Record<string, any>) => Promise<boolean>;
-  getSetting: (key: string, defaultValue?: any) => any;
+  updateSetting: (key: string, value: unknown) => Promise<boolean>;
+  bulkUpdateSettings: (updates: Record<string, unknown>) => Promise<boolean>;
+  getSetting: (key: string, defaultValue?: unknown) => unknown;
   isFeatureEnabled: (featureKey: string) => boolean;
 }
 

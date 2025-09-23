@@ -28,7 +28,12 @@ interface AdvancedTableProps<T> {
     onPageChange: (page: number) => void;
   };
   filters?: FilterConfig[];
-  onFiltersChange?: (filters: Record<string, string | string[] | number | Date | [Date, Date] | null>) => void;
+  onFiltersChange?: (
+    filters: Record<
+      string,
+      string | string[] | number | Date | [Date, Date] | null
+    >,
+  ) => void;
   actions?: TableAction<T>[];
   exportable?: boolean;
   onExport?: (format: "pdf" | "excel") => void;

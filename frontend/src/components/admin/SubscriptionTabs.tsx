@@ -8,10 +8,20 @@ import ErrorMessage from "../shared/ErrorMessage";
 import { notification } from "antd";
 import { CreditCard, Crown, User, Clock } from "lucide-react";
 
+interface SubscriptionData {
+  id?: string;
+  status?: string;
+  type?: string;
+  createdAt?: string;
+  manual_expires_at?: string;
+  assigned_username?: string;
+  [key: string]: any; // Allow additional properties
+}
+
 interface SubscriptionTabsProps {
   userId: string;
-  subscription?: any;
-  onSave: (subscriptionData: any) => void;
+  subscription?: SubscriptionData;
+  onSave: (subscriptionData: SubscriptionData) => void;
   onCancel: () => void;
 }
 

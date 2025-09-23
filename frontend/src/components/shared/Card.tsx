@@ -156,12 +156,9 @@ const Card: React.FC<CardProps> = ({
       size === "sm" ? "w-5 h-5" : size === "lg" ? "w-8 h-8" : "w-6 h-6";
 
     if (React.isValidElement(icon)) {
-      return React.cloneElement(
-        icon as React.ReactElement,
-        {
-          className: `${iconSize} ${colors.icon}`,
-        }
-      );
+      return React.cloneElement(icon as React.ReactElement, {
+        className: `${iconSize} ${colors.icon}`,
+      });
     }
 
     // Si es un componente de icono de Lucide

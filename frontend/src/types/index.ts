@@ -14,7 +14,7 @@ export interface ApiResponse<T = unknown> {
   total?: number;
   totalPages?: number;
   articles?: T;
-  parsed?: any;
+  parsed?: unknown;
 }
 
 export interface ApiError extends Error {

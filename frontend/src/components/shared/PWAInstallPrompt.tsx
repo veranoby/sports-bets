@@ -31,13 +31,13 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   useEffect(() => {
     // Detectar iOS
     const iOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as { MSStream?: unknown }).MSStream;
     setIsIOS(iOS);
 
     // Verificar si ya está instalado
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone;
+      (window.navigator as { standalone?: boolean }).standalone;
     setIsInstalled(isStandalone);
 
     // Handler para beforeinstallprompt
