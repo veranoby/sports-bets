@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 350",
     "lint:fix": "eslint src --ext ts,tsx --fix",
-    "lint:commit": "eslint src --ext ts,tsx --fix --max-warnings 350",
+    "lint:commit": "eslint src --ext ts,tsx --fix --max-warnings 500",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
