@@ -81,15 +81,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   // ✅ REGISTRY OPTIMIZED
   const listenersRegistryRef = useRef<
     Map<
-        string,
-        Map<
-          (...args: unknown[]) => void,
-          {
-            addedAt: number;
-            componentId?: string;
-          }
-        >
+      string,
+      Map<
+        (...args: unknown[]) => void,
+        {
+          addedAt: number;
+          componentId?: string;
+        }
       >
+    >
   >(new Map());
 
   // 🧹 FUNCTION TO CLEAN UP ORPHANED LISTENERS
