@@ -42,15 +42,11 @@ interface VenueProfile {
 interface VenueUser {
   id: string;
   username: string;
+  createdAt: string;
   profileInfo?: {
-    venueName?: string;
-    description?: string;
-    location?: string;
-    imageUrl?: string;
-    establishedDate?: string;
-    verified?: boolean;
-    rating?: number;
-    activeEvents?: number;
+    businessName?: string;
+    businessAddress?: string;
+    verificationLevel?: "none" | "basic" | "full";
   };
 }
 
@@ -191,24 +187,30 @@ const VenuesPage: React.FC = () => {
         const response = await usersAPI.getAll({ role: "venue" });
         if (response.success) {
           const venueProfiles = await Promise.all(
-            response.data.users.map(async (user: VenueUser) => {
-              const articles = await articlesAPI.getAll({ author_id: user.id });
-              return {
-                id: user.id,
-                name: user.profileInfo?.venueName || user.username,
-                description:
-                  user.profileInfo?.description ||
-                  "Local para eventos de gallos",
-                location:
-                  user.profileInfo?.location || "Ubicación no especificada",
-                imageUrl: user.profileInfo?.imageUrl,
-                articlesCount: articles.success ? articles.data.total || 0 : 0,
-                establishedDate: user.profileInfo?.establishedDate,
-                isVerified: user.profileInfo?.verified || false,
-                rating: user.profileInfo?.rating || 0,
-                activeEvents: user.profileInfo?.activeEvents || 0,
-              };
-            }),
+            ((response.data as any)?.users || []).map(
+              async (user: VenueUser) => {
+                const articles = await articlesAPI.getAll({
+                  author_id: user.id,
+                });
+                return {
+                  id: user.id,
+                  name: user.profileInfo?.businessName || user.username,
+                  description: "Local para eventos de gallos",
+                  location:
+                    user.profileInfo?.businessAddress ||
+                    "Ubicación no especificada",
+                  imageUrl: undefined,
+                  articlesCount: articles.success
+                    ? (articles.data as any)?.total || 0
+                    : 0,
+                  establishedDate: user.createdAt,
+                  isVerified:
+                    user.profileInfo?.verificationLevel === "full" || false,
+                  rating: 0,
+                  activeEvents: 0,
+                };
+              },
+            ),
           );
           setVenues(venueProfiles);
         } else {

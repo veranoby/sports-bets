@@ -43,8 +43,11 @@ const VenueApprovalPanel: React.FC = () => {
       setError(null);
       const response = await venuesAPI.getAll({ status: "pending" });
       setVenues(response.data.venues || []);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Error al cargar venues");
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al cargar venues";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -60,8 +63,11 @@ const VenueApprovalPanel: React.FC = () => {
       setIsUpdating(true);
       await venuesAPI.updateStatus(venueId, "approved");
       setVenues(venues.filter((venue) => venue.id !== venueId));
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Error al aprobar venue");
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al aprobar venue";
+      setError(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -87,8 +93,11 @@ const VenueApprovalPanel: React.FC = () => {
       );
       setVenues(venues.filter((venue) => venue.id !== selectedVenue.id));
       setShowRejectModal(false);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Error al rechazar venue");
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al rechazar venue";
+      setError(errorMessage);
     } finally {
       setIsUpdating(false);
     }

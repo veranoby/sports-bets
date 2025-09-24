@@ -40,8 +40,13 @@ const FinancialStats: React.FC = () => {
       const response = await fetch(`/api/wallet/stats?${params}`);
       const data = await response.json();
       setFinancialData(data.data);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Error al cargar datos financieros");
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Error al cargar datos financieros";
+      setError(errorMessage);
       setFinancialData(null); // Limpiar datos en caso de error
     } finally {
       setIsLoading(false);

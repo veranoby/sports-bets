@@ -494,11 +494,21 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
           {activeTab === "subscription" && (
             <SubscriptionTabs
               userId={user.id}
-              subscription={user.subscription}
+              subscription={user.subscription as any}
               onSave={(subscriptionData) => {
                 // Actualizar los datos del usuario con la nueva suscripción
+                const userSubscription: typeof user.subscription = {
+                  type: subscriptionData.type || "free",
+                  status: subscriptionData.status || "active",
+                  expiresAt:
+                    subscriptionData.expiresAt ||
+                    subscriptionData.manual_expires_at ||
+                    null,
+                  features: subscriptionData.features || [],
+                  remainingDays: subscriptionData.remainingDays || 0,
+                };
                 onSaved({
-                  user: { ...user, subscription: subscriptionData },
+                  user: { ...user, subscription: userSubscription },
                   venue,
                 });
               }}

@@ -7,7 +7,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FileText,
   Search,
-  Filter,
   Eye,
   CheckCircle,
   XCircle,
@@ -20,8 +19,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
-  AlertTriangle,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -56,7 +53,6 @@ interface Venue {
 }
 
 const AdminArticlesPage: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Estados principales
@@ -96,262 +92,33 @@ const AdminArticlesPage: React.FC = () => {
   // Modal preview
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
 
-  // Fetch data
-  const fetchArticles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const articlesRes = await articlesAPI.getAll({
-      limit: 1000,
-      includeAuthor: true,
-      includeVenue: true,
-    });
-    const venuesRes = await venuesAPI.getAll({ status: "active", limit: 100 });
-
-    if (articlesRes.success && venuesRes.success) {
-      setArticles(articlesRes.data?.articles || []);
-      setVenues(venuesRes.data?.venues || []);
-    } else {
-      setError(
-        articlesRes.error || venuesRes.error || "Error loading articles",
-      );
-    }
-    setLoading(false);
-  }, []);
-
-  // Filtrado y paginación
-  const { pendingArticles, filteredArticles, totalPages } = useMemo(() => {
-    let result = [...articles];
-
-    // Artículos pendientes
-    const pending = result.filter((a) => a.status === "pending");
-
-    // Aplicar filtros para gestión general
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.title.toLowerCase().includes(term) ||
-          a.summary.toLowerCase().includes(term) ||
-          a.content.toLowerCase().includes(term) ||
-          a.author_name?.toLowerCase().includes(term),
-      );
-    }
-
-    if (statusFilter) {
-      result = result.filter((a) => a.status === statusFilter);
-    }
-
-    if (authorFilter) {
-      result = result.filter((a) =>
-        a.author_name?.toLowerCase().includes(authorFilter.toLowerCase()),
-      );
-    }
-
-    if (venueFilter) {
-      result = result.filter((a) => a.venue_id === venueFilter);
-    }
-
-    const total = Math.ceil(result.length / pageSize);
-    const startIndex = (currentPage - 1) * pageSize;
-    const paginatedArticles = result.slice(startIndex, startIndex + pageSize);
-
-    return {
-      pendingArticles: pending,
-      filteredArticles: paginatedArticles,
-      totalPages: total,
-    };
-  }, [
-    articles,
-    searchTerm,
-    statusFilter,
-    authorFilter,
-    venueFilter,
-    currentPage,
-    pageSize,
-  ]);
-
-  // Actualizar URL params
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.set("search", searchTerm);
-    if (statusFilter) params.set("status", statusFilter);
-    if (authorFilter) params.set("author", authorFilter);
-    if (venueFilter) params.set("venue", venueFilter);
-    if (currentPage > 1) params.set("page", currentPage.toString());
-
-    setSearchParams(params);
-  }, [
-    searchTerm,
-    statusFilter,
-    authorFilter,
-    venueFilter,
-    currentPage,
-    setSearchParams,
-  ]);
-
-  // Acciones individuales
-  const handleApproveArticle = async (articleId: string) => {
-    const res = await articlesAPI.updateStatus(articleId, "published");
-    if (res.success) {
-      setArticles(
-        articles.map((a) =>
-          a.id === articleId
-            ? {
-                ...a,
-                status: "published",
-                published_at: new Date().toISOString(),
-              }
-            : a,
-        ),
-      );
-    } else {
-      setError(res.error || "Error aprobando artículo");
-    }
-  };
-
-  const handleRejectArticle = async (articleId: string) => {
-    const res = await articlesAPI.updateStatus(articleId, "archived");
-    if (res.success) {
-      setArticles(
-        articles.map((a) =>
-          a.id === articleId ? { ...a, status: "archived" } : a,
-        ),
-      );
-    } else {
-      setError(res.error || "Error rechazando artículo");
-    }
-  };
-
-  const handleDeleteArticle = async (articleId: string) => {
-    if (
-      !window.confirm(
-        "¿Estás seguro de que quieres eliminar este artículo? Esta acción no se puede deshacer.",
-      )
-    ) {
-      return;
-    }
-
-    const res = await articlesAPI.delete(articleId);
-    if (res.success) {
-      setArticles(articles.filter((a) => a.id !== articleId));
-    } else {
-      setError(res.error || "Error eliminando artículo");
-    }
-  };
-
-  const handleEditArticle = async (articleId: string, data: Partial<Article>) => {
-    const res = await articlesAPI.update(articleId, data);
-    if (res.success) {
-      setArticles(
-        articles.map((a) =>
-          a.id === articleId ? { ...a, ...res.data?.article } : a,
-        ),
-      );
-      setEditingArticle(null);
-    } else {
-      setError(res.error || "Error actualizando artículo");
-    }
-  };
-
-  // Acciones masivas
-  const handleBulkApprove = async () => {
-    try {
-      await Promise.all(
-        selectedArticles.map((id) => articlesAPI.updateStatus(id, "published")),
-      );
-      setArticles(
-        articles.map((a) =>
-          selectedArticles.includes(a.id)
-            ? {
-                ...a,
-                status: "published",
-                published_at: new Date().toISOString(),
-              }
-            : a,
-        ),
-      );
-      setSelectedArticles([]);
-      setShowBulkActions(false);
-    } catch (err) {
-      setError("Error en aprobación masiva");
-    }
-  };
-
-  const handleBulkReject = async () => {
-    try {
-      await Promise.all(
-        selectedArticles.map((id) => articlesAPI.updateStatus(id, "archived")),
-      );
-      setArticles(
-        articles.map((a) =>
-          selectedArticles.includes(a.id) ? { ...a, status: "archived" } : a,
-        ),
-      );
-      setSelectedArticles([]);
-      setShowBulkActions(false);
-    } catch (_err) {
-      setError("Error en rechazo masivo");
-    }
-  };
-
-  // Selección
-  const toggleArticleSelection = (articleId: string) => {
-    setSelectedArticles((prev) =>
-      prev.includes(articleId)
-        ? prev.filter((id) => id !== articleId)
-        : [...prev, articleId],
-    );
-  };
-
-  const selectAllVisible = () => {
-    const visibleIds = filteredArticles.map((a) => a.id);
-    setSelectedArticles(visibleIds);
-  };
-
-  const clearSelection = () => {
-    setSelectedArticles([]);
-    setShowBulkActions(false);
-  };
-
-  // Modal handlers
-  const openCreateModal = () => {
-    setEditingArticle(null);
-    setShowArticleModal(true);
-  };
-
-  const openEditModal = (article: Article) => {
-    setEditingArticle(article);
-    setShowArticleModal(true);
-  };
-
-  const closeArticleModal = () => {
-    setShowArticleModal(false);
-    setEditingArticle(null);
-  };
-
-  const openPreview = (article: Article) => {
-    setPreviewArticle(article);
-  };
-
-  const closePreview = () => {
-    setPreviewArticle(null);
-  };
-
-  const handleArticleSaved = (savedArticle: Article) => {
-    if (editingArticle) {
-      setArticles(
-        articles.map((a) => (a.id === savedArticle.id ? savedArticle : a)),
-      );
-    } else {
-      setArticles([savedArticle, ...articles]);
-    }
-    closeArticleModal();
-  };
-
   // Fetch inicial
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetchArticles = async () => {
+      setLoading(true);
+      setError(null);
+      const articlesRes = await articlesAPI.getAll({
+        limit: 1000,
+        includeAuthor: true,
+        includeVenue: true,
+      });
+      const venuesRes = await venuesAPI.getAll({
+        status: "active",
+        limit: 100,
+      });
+
+      if (articlesRes.success && venuesRes.success) {
+        setArticles(articlesRes.data?.articles || []);
+        setVenues(venuesRes.data?.venues || []);
+      } else {
+        setError(
+          articlesRes.error || venuesRes.error || "Error loading articles",
+        );
+      }
+      setLoading(false);
+    };
+    fetchArticles();
+  }, []);
 
   // Componentes auxiliares
   const truncateText = (text: string, maxLength: number = 100) => {

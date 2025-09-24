@@ -18,7 +18,8 @@ const ArticleDetailPage: React.FC = () => {
       try {
         const response = await apiClient.get(`/articles/${id}`);
         setArticle(response.data.data);
-      } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+      } catch (err: unknown) {
+        // Changed from 'any' to 'unknown' for better type safety
         setError(err?.message || "Error al cargar el artículo");
       } finally {
         setLoading(false);

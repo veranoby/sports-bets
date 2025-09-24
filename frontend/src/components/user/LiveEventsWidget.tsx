@@ -4,19 +4,17 @@
 // CARACTERÍSTICAS: Análisis avanzado, múltiples vistas, filtros sofisticados
 // OPTIMIZADO: Sin UserThemeContext, CSS variables estáticas, WebSocket optimizado
 
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import {
   Zap,
   Play,
   Users,
   TrendingUp,
-  Filter,
   Grid,
   List,
   Star,
   Eye,
   DollarSign,
-  Clock,
   MapPin,
   BarChart3,
   Activity,
@@ -193,7 +191,6 @@ const LiveEventsWidget: React.FC = () => {
   const [sortBy, setSortBy] = useState<"viewers" | "bets" | "volume">(
     "viewers",
   );
-  const [showFilters, setShowFilters] = useState(false);
 
   // ✅ WEBSOCKET LISTENERS optimizados
   useWebSocketListener(

@@ -75,7 +75,15 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, getAuthHeaders, adminMode, setPublicSettings, setSettings, fetchFeatureStatus]);
+  }, [
+    setLoading,
+    setError,
+    getAuthHeaders,
+    adminMode,
+    setPublicSettings,
+    setSettings,
+    fetchFeatureStatus,
+  ]);
 
   const fetchFeatureStatus = async () => {
     try {

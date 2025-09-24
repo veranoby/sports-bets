@@ -40,7 +40,8 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
       const response = await subscriptionAPI.getPlans();
       setPlans(response.data);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Failed to load subscription plans");
       console.error("Failed to fetch plans:", err);
     } finally {

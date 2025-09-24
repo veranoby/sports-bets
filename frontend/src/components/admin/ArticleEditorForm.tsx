@@ -66,11 +66,18 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
 
     try {
       let response;
-      const payload = { ...formData };
       if (article && article.id) {
-        response = await articlesAPI.update(article.id, payload);
+        response = await articlesAPI.update(article.id, formData);
       } else {
-        response = await articlesAPI.create(payload);
+        // Ensure required fields are provided for create
+        const createPayload = {
+          title: formData.title || "",
+          content: formData.content || "",
+          summary: formData.summary || "",
+          venue_id: formData.venue_id,
+          featured_image_url: formData.featured_image_url,
+        };
+        response = await articlesAPI.create(createPayload);
       }
       onArticleSaved(response.data);
       onClose();

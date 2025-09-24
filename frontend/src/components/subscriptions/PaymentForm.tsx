@@ -50,7 +50,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       try {
         // await // kushkiService.initializeKushki(); // TODO: Implement Kushki service
         setKushkiReady(true);
-      } catch (error: unknown) { // Changed from 'any' to 'unknown' for better type safety
+      } catch (error: unknown) {
+        // Changed from 'any' to 'unknown' for better type safety
         setErrors({
           general: "Payment system unavailable. Please try again later.",
         });
@@ -191,7 +192,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         token: "test-token",
         planType,
       });
-    } catch (error: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (error: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       const errorMessage =
         error.message || "Payment processing failed. Please try again.";
       setErrors({ general: errorMessage });

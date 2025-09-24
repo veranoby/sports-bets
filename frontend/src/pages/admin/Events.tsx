@@ -165,7 +165,9 @@ const AdminEventsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Estado de transmisión en tiempo real usando SSE
-  const [streamStatuses, setStreamStatuses] = useState<Record<string, StreamStatus>>({});
+  const [streamStatuses, setStreamStatuses] = useState<
+    Record<string, StreamStatus>
+  >({});
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState(

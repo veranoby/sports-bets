@@ -21,7 +21,15 @@ const StreamStatusMonitor: React.FC<StreamStatusMonitorProps> = ({
 
   useEffect(() => {
     if (sseData.data) {
-      onStatusUpdate(sseData.data);
+      // Type guard to ensure data has required properties
+      const streamData = sseData.data as StreamStatus;
+      if (
+        streamData &&
+        typeof streamData === "object" &&
+        "status" in streamData
+      ) {
+        onStatusUpdate(streamData);
+      }
     }
   }, [sseData.data, onStatusUpdate]);
 

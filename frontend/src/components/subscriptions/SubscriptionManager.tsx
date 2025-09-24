@@ -89,7 +89,8 @@ const SubscriptionManager: React.FC = () => {
 
       const response = await subscriptionAPI.getCurrentSubscription();
       setSubscription(response.data);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch subscription:", err);
       setError(err.message || "Failed to load subscription information");
     } finally {
@@ -114,9 +115,14 @@ const SubscriptionManager: React.FC = () => {
       }
 
       setPagination(
-        (response as { pagination: PaginationInfo }).pagination || { current: 1, total: 0, pageSize: 10 },
+        (response as { pagination: PaginationInfo }).pagination || {
+          current: 1,
+          total: 0,
+          pageSize: 10,
+        },
       );
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch payment history:", err);
       setError(err.message || "Failed to load payment history");
     } finally {
@@ -155,7 +161,8 @@ const SubscriptionManager: React.FC = () => {
 
       setShowCancelDialog(false);
       setCancelReason("");
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to cancel subscription:", err);
       setError(err.message || "Failed to cancel subscription");
     } finally {
@@ -176,7 +183,8 @@ const SubscriptionManager: React.FC = () => {
 
       // Refresh subscription data
       await fetchSubscription();
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to toggle auto-renew:", err);
       setError(err.message || "Failed to update auto-renew setting");
     } finally {
@@ -185,7 +193,7 @@ const SubscriptionManager: React.FC = () => {
   };
 
   // Handle plan selection (upgrade/downgrade)
-  const handlePlanSelect = async (_plan: Plan) => {
+  const handlePlanSelect = async () => {
     // This would trigger the payment flow for plan changes
     // For now, redirect to plans page
     setActiveTab("plans");

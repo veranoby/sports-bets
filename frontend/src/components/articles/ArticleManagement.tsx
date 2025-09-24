@@ -182,7 +182,7 @@ const ArticleManagement: React.FC = () => {
         includeAuthor: true,
       });
 
-      setArticles(response.data?.articles || []);
+      setArticles((response.data as any)?.articles || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading articles");
     } finally {
@@ -256,7 +256,7 @@ const ArticleManagement: React.FC = () => {
         setArticles((prev) =>
           prev.map((article) =>
             article.id === editingArticle.id
-              ? { ...article, ...response.data }
+              ? { ...article, ...(response.data as Article) }
               : article,
           ),
         );
@@ -270,7 +270,7 @@ const ArticleManagement: React.FC = () => {
           featured_image_url: formData.featured_image,
         };
         const response = await articlesAPI.create(createPayload);
-        setArticles((prev) => [response.data, ...prev]);
+        setArticles((prev) => [response.data as Article, ...prev]);
         setShowCreateModal(false);
       }
 

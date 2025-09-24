@@ -12,7 +12,6 @@ import {
   TrendingUp,
   AlertTriangle,
   Calendar,
-  Clock,
   Shield,
   Wallet,
   Settings,
@@ -23,8 +22,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 
-// Hooks API existentes
-import { useEvents } from "../../hooks/useApi";
+// Componentes reutilizados
 import {
   eventsAPI,
   usersAPI,

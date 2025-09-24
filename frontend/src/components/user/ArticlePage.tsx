@@ -37,7 +37,8 @@ const ArticlePage: React.FC = () => {
           setError(null);
           const response = await apiClient.get(`/articles/${articleId}`);
           setArticle(response.data);
-        } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+        } catch (err: unknown) {
+          // Changed from 'any' to 'unknown' for better type safety
           setError(err.message || "Error al cargar artículo");
         } finally {
           setLoading(false);

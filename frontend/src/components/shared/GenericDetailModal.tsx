@@ -61,23 +61,35 @@ const GenericDetailModal = <
     const value = data[field.key];
 
     return (
-      <div key={field.key} className="flex justify-between items-center">
+      <div
+        key={String(field.key)}
+        className="flex justify-between items-center"
+      >
         <span className="font-bold">{field.label}:</span>
         <div className="flex items-center gap-2">
           {field.render ? (
             field.render(value, data)
-          ) : field.key === "status" ? (
-            <StatusChip status={value} size="sm" />
-          ) : field.key === "createdAt" || field.key.includes("Date") ? (
-            <span>{value ? new Date(value).toLocaleString() : "-"}</span>
-          ) : field.key === "amount" || field.key.includes("Prize") ? (
+          ) : String(field.key) === "status" ? (
+            <StatusChip status={String(value)} size="sm" />
+          ) : String(field.key) === "createdAt" ||
+            String(field.key).includes("Date") ? (
             <span>
-              ${typeof value === "number" ? value.toFixed(2) : value || 0}
+              {value
+                ? new Date(value as string | number).toLocaleString()
+                : "-"}
             </span>
-          ) : field.key === "id" ? (
-            <span className="font-mono text-xs">{value}</span>
+          ) : String(field.key) === "amount" ||
+            String(field.key).includes("Prize") ? (
+            <span>
+              $
+              {typeof value === "number"
+                ? value.toFixed(2)
+                : String(value) || 0}
+            </span>
+          ) : String(field.key) === "id" ? (
+            <span className="font-mono text-xs">{String(value)}</span>
           ) : (
-            <span>{value || "-"}</span>
+            <span>{String(value) || "-"}</span>
           )}
           {field.copyable && value && (
             <button

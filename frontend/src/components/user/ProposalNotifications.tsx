@@ -14,12 +14,10 @@ interface Proposal {
 
 const ProposalNotifications = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [hasUnread, setHasUnread] = useState(false);
   const { acceptProposal, rejectProposal, getPendingProposals } = useBets();
 
   const handleProposalReceived = useCallback((proposal: Proposal) => {
     setProposals((prev) => [proposal, ...prev]);
-    setHasUnread(true);
   }, []);
 
   const handleProposalAccepted = useCallback((proposalId: string) => {

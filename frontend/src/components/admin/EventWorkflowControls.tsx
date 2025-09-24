@@ -172,7 +172,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
     async (fightId: string, result: "red" | "blue" | "draw") => {
       setLoading(true);
       try {
-        const response = await fightAPI.assignFightResult(fightId, result);
+        const resultObj = { winner: result, method: "decision" };
+        const response = await fightAPI.assignFightResult(fightId, resultObj);
         if (response.success) {
           setFights((prev) =>
             prev.map((fight) =>
@@ -247,7 +248,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         if (isConnected) {
           emit("stream_key_generated", {
             eventId: event.id,
-            streamKey: response.data?.streamKey,
+            streamKey: (response.data as any)?.streamKey,
             timestamp: new Date().toISOString(),
           });
         }

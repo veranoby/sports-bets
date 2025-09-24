@@ -53,11 +53,11 @@ const VenueDetailPage: React.FC = () => {
         if (!userResponse.success) {
           throw new Error(userResponse.error || "Error al cargar venue");
         }
-        setVenue(userResponse.data);
+        setVenue(userResponse.data as User);
 
         const articlesResponse = await articlesAPI.getAll({ author_id: id });
         if (articlesResponse.success) {
-          setArticles(articlesResponse.data.articles || []);
+          setArticles((articlesResponse.data as any)?.articles || []);
         }
       } catch (err) {
         console.error("Error fetching venue data:", err);
@@ -107,14 +107,14 @@ const VenueDetailPage: React.FC = () => {
       </div>
     );
 
-  const venueName = venue.profileInfo?.venueName || venue.username;
-  const location = venue.profileInfo?.location || "Ubicación no especificada";
-  const description =
-    venue.profileInfo?.description || "Local para eventos de gallos";
-  const establishedDate = venue.profileInfo?.establishedDate;
-  const isVerified = venue.profileInfo?.verified || false;
-  const activeEvents = venue.profileInfo?.activeEvents || 0;
-  const rating = venue.profileInfo?.rating || 0;
+  const venueName = venue.profileInfo?.businessName || venue.username;
+  const location =
+    venue.profileInfo?.businessAddress || "Ubicación no especificada";
+  const description = "Local para eventos de gallos";
+  const establishedDate = venue.createdAt;
+  const isVerified = venue.profileInfo?.verificationLevel === "full" || false;
+  const activeEvents = 0; // This would need to come from events API
+  const rating = 0; // This would need to come from ratings API
 
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");
@@ -134,17 +134,9 @@ const VenueDetailPage: React.FC = () => {
         {/* Venue Header */}
         <div className="card-background p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {venue.profileInfo?.imageUrl ? (
-              <img
-                src={venue.profileInfo.imageUrl}
-                alt={venueName}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 border-blue-500"
-              />
-            ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                <Building className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
-              </div>
-            )}
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+              <Building className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
@@ -287,7 +279,7 @@ const VenueDetailPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Miembro desde:</span>
               <span className="font-medium text-theme-primary">
-                {new Date(venue.created_at).toLocaleDateString("es-ES")}
+                {new Date(venue.createdAt).toLocaleDateString("es-ES")}
               </span>
             </div>
           </div>

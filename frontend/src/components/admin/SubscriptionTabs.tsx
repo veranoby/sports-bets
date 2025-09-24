@@ -10,11 +10,15 @@ import { CreditCard, Crown, User, Clock } from "lucide-react";
 
 interface SubscriptionData {
   id?: string;
-  status?: string;
-  type?: string;
+  status?: "active" | "cancelled" | "expired" | "pending";
+  type?: "free" | "daily" | "monthly";
   createdAt?: string;
   manual_expires_at?: string;
   assigned_username?: string;
+  // Add UserSubscription compatibility fields
+  expiresAt?: string | null;
+  features?: string[];
+  remainingDays?: number;
   [key: string]: unknown; // Allow additional properties
 }
 

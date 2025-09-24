@@ -1,71 +1,70 @@
 {
   "metadata": {
-    "purpose": "Decision matrix for optimal AI selection in GalloBets project",
+    "purpose": "Enhanced decision matrix for optimal AI selection in GalloBets project",
+    "version": "2.0",
     "created": "2025-09-21",
-    "based_on": "Sistema-agri experience + GalloBets specific requirements",
+    "updated": "2025-09-24",
+    "based_on": "3-AI pipeline success with build stability improvements",
     "project": "GalloBets - Professional Cockfighting Streaming Platform",
-    "decision_framework": "Task type + Risk level + Timeline constraints"
+    "decision_framework": "Task type + Risk level + Validation gates + Build stability"
   },
 
-  "task_classification_system": {
+  "enhanced_task_classification": {
     "complexity_levels": {
       "simple": {
-        "definition": "Single file, <50 lines, isolated change",
+        "definition": "Single file, <50 lines, isolated change with build stability",
         "examples": ["Doc updates", "Simple TypeScript fixes", "CSS tweaks"],
         "risk_level": "Low",
-        "time_estimate": "<2 hours"
+        "validation_required": "TypeScript compilation only",
+        "time_estimate": "<30 minutes"
       },
       "moderate": {
-        "definition": "Multi-file, component integration, UI logic",
+        "definition": "Multi-file, component integration, UI logic with dependency tracking",
         "examples": ["New React components", "SSE hooks", "Betting panels"],
         "risk_level": "Medium",
-        "time_estimate": "2-6 hours"
+        "validation_required": "Full validation gates",
+        "time_estimate": "30-60 minutes"
       },
       "complex": {
-        "definition": "Architecture changes, real-time systems, performance",
+        "definition": "Architecture changes, real-time systems, performance with integration testing",
         "examples": ["SSE architecture", "Database optimization", "WebSocket design"],
         "risk_level": "High",
-        "time_estimate": ">6 hours"
+        "validation_required": "Comprehensive validation + integration testing",
+        "time_estimate": "60+ minutes"
       },
       "critical": {
-        "definition": "Core system modifications, debugging, authentication",
+        "definition": "Core system modifications, debugging, authentication with regression testing",
         "examples": ["Database performance", "Auth fixes", "Betting logic"],
         "risk_level": "Critical",
-        "time_estimate": "Variable"
+        "validation_required": "Full regression testing suite",
+        "time_estimate": "Variable with extensive validation"
       }
     },
 
-    "domain_categories": {
-      "betting_business_logic": {
-        "examples": ["PAGO/DOY proposals", "Fight windows", "Temporal transitions", "Bet validation"],
-        "complexity_factor": "High - requires domain expertise",
-        "risk_factor": "Critical - financial implications"
+    "build_stability_assessment": {
+      "typescript_impact": {
+        "none": "No TypeScript type changes",
+        "minimal": "Simple type additions without interface changes",
+        "moderate": "Interface modifications with backward compatibility",
+        "high": "Breaking type changes requiring dependency updates"
       },
-      "streaming_infrastructure": {
-        "examples": ["RTMP setup", "OBS integration", "HLS delivery", "Stream monitoring"],
-        "complexity_factor": "High - technical complexity",
-        "risk_factor": "High - user experience impact"
+      "import_dependency_impact": {
+        "none": "No import/export changes",
+        "minimal": "New imports only, no export modifications",
+        "moderate": "Export additions, potential component moves",
+        "high": "Significant component restructuring or moves"
       },
-      "real_time_systems": {
-        "examples": ["SSE implementation", "WebSocket minimal", "Event subscriptions", "Live updates"],
-        "complexity_factor": "High - architectural impact",
-        "risk_factor": "High - system stability"
-      },
-      "frontend_implementation": {
-        "examples": ["React components", "TypeScript", "Tailwind", "Responsive design"],
-        "complexity_factor": "Moderate - technical implementation",
-        "risk_factor": "Medium - UI focused"
-      },
-      "database_performance": {
-        "examples": ["Query optimization", "Connection pools", "Indexes", "Caching"],
-        "complexity_factor": "Critical - performance impact",
-        "risk_factor": "Critical - system availability"
+      "component_architecture_impact": {
+        "none": "No component changes",
+        "minimal": "Component implementation only",
+        "moderate": "Component interface or props changes",
+        "high": "Component hierarchy or relationship changes"
       }
     }
   },
 
-  "ai_selection_decision_tree": {
-    "claude_mandatory_scenarios": {
+  "enhanced_ai_selection_with_validation": {
+    "claude_mandatory_scenarios_enhanced": {
       "database_performance_issues": {
         "trigger_conditions": [
           "Queries taking >1 second",
@@ -74,6 +73,12 @@
           "Index optimization needs"
         ],
         "risk_assessment": "CRITICAL - System unusable if not fixed",
+        "validation_gates": [
+          "Database query performance testing",
+          "Connection pool stability verification",
+          "Integration testing with frontend",
+          "Performance monitoring setup"
+        ],
         "claude_advantages": [
           "PostgreSQL expertise",
           "Sequelize ORM knowledge",
@@ -83,80 +88,56 @@
         "qwen_exclusion": "ABSOLUTE - Would break database"
       },
 
-      "sse_websocket_architecture": {
+      "build_stability_validation": {
         "trigger_conditions": [
-          "SSE service design",
-          "WebSocket minimal implementation",
-          "Real-time architecture decisions",
-          "Event subscription patterns"
+          "Any AI session completion",
+          "TypeScript compilation failures",
+          "Import/export dependency issues",
+          "Component architecture changes"
         ],
-        "risk_assessment": "HIGH - Core system architecture",
-        "claude_advantages": [
-          "Hybrid SSE/WebSocket expertise",
-          "Minimal WebSocket approach understanding",
-          "Event-driven architecture",
-          "Performance optimization"
-        ]
+        "risk_assessment": "HIGH - Build stability critical for development",
+        "mandatory_validation": [
+          "npx tsc --noEmit verification",
+          "npm run build completion",
+          "Import dependency resolution",
+          "Component rendering validation"
+        ],
+        "claude_role": "Primary validation engine for all AI work",
+        "escalation_protocol": "Immediate rollback on validation failure"
       },
 
-      "betting_system_design": {
+      "integration_gap_analysis": {
         "trigger_conditions": [
-          "Fight temporal logic",
-          "PAGO/DOY proposal system",
-          "Betting window management",
-          "Timeout mechanisms"
+          "Multi-AI handoff points",
+          "Context preservation requirements",
+          "Dependency resolution needs",
+          "Cross-component integration"
         ],
-        "risk_assessment": "CRITICAL - Business logic core",
-        "claude_advantages": [
-          "P2P betting understanding",
-          "Temporal state machines",
-          "Financial transaction safety",
-          "Business rule enforcement"
-        ]
-      },
-
-      "error_debugging": {
-        "trigger_conditions": [
-          "Authentication broken",
-          "API failures",
-          "Integration issues",
-          "Performance problems"
-        ],
-        "risk_assessment": "QWEN destroyed Profile.tsx - Claude ONLY",
-        "claude_advantages": [
-          "Systematic debugging",
-          "Root cause analysis",
-          "Non-destructive fixes",
-          "Integration understanding"
-        ]
-      },
-
-      "operator_hierarchy": {
-        "trigger_conditions": [
-          "Role-based permissions",
-          "Limited admin tools",
-          "Event assignment logic",
-          "Access control"
-        ],
-        "risk_assessment": "HIGH - Security implications",
-        "claude_advantages": [
-          "Permission matrix design",
-          "Hierarchy enforcement",
-          "Security best practices",
-          "Role validation"
+        "risk_assessment": "MEDIUM-HIGH - Integration failures cause project delays",
+        "claude_expertise": [
+          "Cross-system integration understanding",
+          "Component relationship analysis",
+          "Context gap identification",
+          "Systematic debugging approach"
         ]
       }
     },
 
-    "gemini_optimal_scenarios": {
-      "react_component_creation": {
+    "gemini_optimal_scenarios_enhanced": {
+      "react_component_creation_with_validation": {
         "trigger_conditions": [
           "New React components needed",
           "TypeScript interfaces",
           "Component architecture",
           "State management"
         ],
-        "risk_assessment": "MEDIUM - UI focused",
+        "risk_assessment": "MEDIUM - UI focused with build validation required",
+        "mandatory_validation_gates": [
+          "TypeScript compilation (npx tsc --noEmit)",
+          "Build process completion (npm run build)",
+          "Component rendering verification",
+          "Import dependency validation"
+        ],
         "gemini_advantages": [
           "React expertise",
           "TypeScript mastery",
@@ -166,441 +147,400 @@
         "preconditions": [
           "Claude provides architecture",
           "API contracts defined",
-          "SSE patterns specified"
+          "SSE patterns specified",
+          "Dependency mapping available"
+        ],
+        "failure_protocol": [
+          "Immediate rollback on validation failure",
+          "Claude intervention for TypeScript errors",
+          "Session restart with reduced scope if needed"
         ]
       },
 
-      "betting_ui_implementation": {
+      "typescript_specialization": {
         "trigger_conditions": [
-          "CurrentBettingPanel creation",
-          "BetCard components",
-          "PAGO/DOY modals",
-          "Fight status indicators"
+          "Complex type inference needs",
+          "Advanced TypeScript patterns",
+          "Interface design requirements",
+          "Generic type implementations"
         ],
-        "risk_assessment": "MEDIUM - Frontend only",
-        "gemini_advantages": [
-          "Betting UI patterns",
-          "Real-time UI updates",
-          "Responsive design",
-          "User interaction flows"
+        "risk_assessment": "MEDIUM - Type safety improvements with validation",
+        "validation_requirements": [
+          "Zero TypeScript compilation errors",
+          "Backward compatibility maintained",
+          "Component interfaces preserved",
+          "Type inference working correctly"
         ],
-        "coordination_requirements": [
-          "Claude provides betting logic",
-          "API endpoints ready",
-          "SSE events defined"
-        ]
-      },
-
-      "admin_dashboard_creation": {
-        "trigger_conditions": [
-          "Admin panel components",
-          "System monitoring UI",
-          "Event management interface",
-          "Streaming controls"
-        ],
-        "risk_assessment": "MEDIUM - Admin tools",
-        "gemini_advantages": [
-          "Dashboard patterns",
-          "Data visualization",
-          "Admin UI/UX",
-          "Tailwind layouts"
-        ]
-      },
-
-      "operator_interface": {
-        "trigger_conditions": [
-          "Operator dashboard",
-          "Limited admin tools",
-          "Event assignment UI",
-          "Fight control panel"
-        ],
-        "risk_assessment": "MEDIUM - Permission aware",
-        "gemini_advantages": [
-          "Role-based UI",
-          "Conditional rendering",
-          "Permission checking",
-          "Limited tool implementation"
+        "build_stability_focus": [
+          "All type changes must compile successfully",
+          "No breaking changes to component interfaces",
+          "Proper export/import of type definitions",
+          "Generic constraints properly defined"
         ]
       }
     },
 
-    "qwen_cli_restricted_scenarios": {
-      "typescript_cleanup": {
+    "qwen_cli_restricted_scenarios_enhanced": {
+      "typescript_cleanup_with_fallbacks": {
         "strict_conditions": [
           "ONLY @typescript-eslint/no-explicit-any errors",
           "Simple type additions only",
           "No logic changes",
-          "Single warning type per 45-60min session"
+          "Single warning type per 20-30min session"
         ],
-        "risk_assessment": "LOW if QWEN CLI uses native tools with fallback strategies",
-        "qwen_cli_tool_requirements": [
-          "PREFERRED: search_file_content, read_file, edit",
-          "FALLBACK: run_shell_command when MCPs timeout",
-          "FORBIDDEN: Complex multi-step MCP operations"
+        "mcp_timeout_mitigation": [
+          "QWEN CLI native tools preferred (search_file_content, read_file, edit)",
+          "Immediate fallback to run_shell_command when MCPs timeout",
+          "Document MCP failures for future optimization",
+          "Session validation deferred to end to prevent tool fatigue"
         ],
-        "safety_requirements": [
-          "Backup before session",
-          "QWEN CLI native tools first",
-          "Immediate fallback when MCPs fail",
-          "Single session validation at end"
+        "enhanced_safety_requirements": [
+          "Git commit before session",
+          "TypeScript compilation validation after session",
+          "Import dependency verification",
+          "No modification of critical files (auth, database, betting logic)"
+        ],
+        "validation_gates": [
+          "npx tsc --noEmit (must pass)",
+          "ESLint warning count reduction verification",
+          "No new warnings introduced",
+          "Build process still works"
         ]
       },
 
-      "new_test_files": {
+      "isolated_component_creation": {
         "strict_conditions": [
-          "Test files only (.test.tsx)",
-          "New files only",
-          "Template based",
-          "No modification of existing"
+          "New files only (.test.tsx, .md files)",
+          "No modification of existing components",
+          "Template-based implementations",
+          "No complex business logic"
         ],
-        "risk_assessment": "LOW - isolated tests",
-        "safety_requirements": [
-          "Follow test templates",
-          "No complex logic",
-          "Simple assertions only"
+        "validation_requirements": [
+          "Files compile successfully",
+          "No import/export issues",
+          "Follow project naming conventions",
+          "No impact on existing components"
         ]
-      },
-
-      "documentation_updates": {
-        "strict_conditions": [
-          "Markdown files only",
-          "Additive content only",
-          "No code blocks modified",
-          "README and docs only"
-        ],
-        "risk_assessment": "VERY LOW - no code impact"
-      }
-    },
-
-    "absolutely_forbidden_for_qwen": {
-      "authentication_system": {
-        "files": ["Profile.tsx", "AuthContext.tsx", "auth.ts", "api.ts"],
-        "reason": "QWEN destroyed working authentication",
-        "alternative": "Claude ONLY for any auth work"
-      },
-      "database_work": {
-        "reason": "Cannot understand Sequelize or SQL",
-        "evidence": "Would use placeholder comments",
-        "alternative": "Claude ONLY for all database work"
-      },
-      "real_time_systems": {
-        "reason": "Doesn't understand SSE/WebSocket hybrid",
-        "evidence": "Would break event subscriptions",
-        "alternative": "Claude architecture, Gemini UI only"
-      },
-      "betting_logic": {
-        "reason": "Cannot understand temporal windows",
-        "evidence": "Would break fight transitions",
-        "alternative": "Claude designs, Gemini implements UI"
       }
     }
   },
 
-  "task_routing_algorithms": {
-    "primary_routing_logic": {
-      "step_1_file_check": {
-        "forbidden_files": [
-          "Profile.tsx → Claude ONLY",
-          "AuthContext.tsx → Claude ONLY",
-          "auth.ts → Claude ONLY",
-          "Any Sequelize model → Claude ONLY"
-        ]
+  "validation_gate_routing_matrix": {
+    "pre_session_validation": {
+      "dependency_analysis": {
+        "command": "grep -r 'import.*from.*\\.\\./' src/ | grep [target-files] | sort",
+        "purpose": "Map component dependencies before changes",
+        "ai_applicability": "All AIs working on component modifications"
       },
-      "step_2_risk_assessment": {
-        "critical_risk": "Claude ONLY - no exceptions",
-        "high_risk": "Claude designs → Gemini implements → Claude validates",
-        "medium_risk": "Gemini with Claude specification",
-        "low_risk": "QWEN allowed with extreme restrictions"
+      "typescript_baseline": {
+        "command": "npx tsc --noEmit",
+        "purpose": "Establish compilation baseline",
+        "ai_applicability": "All AIs making TypeScript changes"
       },
-      "step_3_domain_check": {
-        "database": "Claude ONLY",
-        "real_time": "Claude architecture → Gemini UI",
-        "betting_logic": "Claude design → Gemini UI",
-        "frontend_only": "Gemini optimal",
-        "documentation": "QWEN allowed"
+      "eslint_baseline": {
+        "command": "npm run lint | grep -c 'warning\\|error'",
+        "purpose": "Document current warning/error counts",
+        "ai_applicability": "AIs working on code quality improvements"
       },
-      "step_4_complexity": {
-        "simple_isolated": "QWEN with safety protocols",
-        "moderate_ui": "Gemini optimal",
-        "complex_system": "Claude required",
-        "critical_core": "Claude ONLY"
+      "build_baseline": {
+        "command": "npm run build",
+        "purpose": "Verify build works before changes",
+        "ai_applicability": "All AIs except documentation-only"
       }
     },
 
-    "specific_task_routing": {
-      "sse_implementation": {
-        "route": "Claude → Gemini → Claude",
-        "breakdown": {
-          "claude_1": "Design SSE architecture",
-          "gemini": "Implement useSSE hook and components",
-          "claude_2": "Validate and optimize"
+    "post_session_validation_gates": {
+      "level_1_basic_validation": {
+        "applicable_to": "QWEN CLI sessions, simple changes",
+        "gates": [
+          {
+            "name": "TypeScript Compilation",
+            "command": "npx tsc --noEmit",
+            "timeout": "60 seconds",
+            "failure_action": "Rollback session"
+          },
+          {
+            "name": "ESLint Progress",
+            "command": "npm run lint | grep -c warning",
+            "success_criteria": "Warning count reduction",
+            "failure_action": "Revert problematic files"
+          }
+        ]
+      },
+
+      "level_2_component_validation": {
+        "applicable_to": "Gemini sessions, component changes",
+        "gates": [
+          {
+            "name": "TypeScript Compilation",
+            "command": "npx tsc --noEmit",
+            "timeout": "120 seconds",
+            "failure_action": "Full session rollback"
+          },
+          {
+            "name": "Build Process",
+            "command": "npm run build",
+            "timeout": "180 seconds",
+            "failure_action": "Full session rollback"
+          },
+          {
+            "name": "Import Dependencies",
+            "command": "grep -r 'Cannot find module\\|Module not found' src/",
+            "success_criteria": "Zero missing module errors",
+            "failure_action": "Fix imports before proceeding"
+          },
+          {
+            "name": "Component Rendering",
+            "command": "npm run dev & sleep 10 && curl -s http://localhost:3000 > /dev/null",
+            "success_criteria": "Development server starts successfully",
+            "failure_action": "Investigate component issues"
+          }
+        ]
+      },
+
+      "level_3_integration_validation": {
+        "applicable_to": "Claude sessions, architecture changes",
+        "gates": [
+          {
+            "name": "Full TypeScript Compilation",
+            "command": "npx tsc --noEmit",
+            "timeout": "180 seconds",
+            "failure_action": "Comprehensive error analysis"
+          },
+          {
+            "name": "Production Build",
+            "command": "npm run build",
+            "timeout": "300 seconds",
+            "failure_action": "Full system analysis"
+          },
+          {
+            "name": "Integration Testing",
+            "command": "npm run test:integration",
+            "timeout": "600 seconds",
+            "failure_action": "Integration issue resolution"
+          },
+          {
+            "name": "Performance Validation",
+            "command": "npm run test:performance",
+            "timeout": "300 seconds",
+            "failure_action": "Performance issue analysis"
+          }
+        ]
+      }
+    }
+  },
+
+  "enhanced_task_routing_algorithms": {
+    "primary_routing_with_validation": {
+      "step_1_build_impact_assessment": {
+        "typescript_changes": {
+          "none": "Route to appropriate AI based on task complexity",
+          "minimal": "Add Level 1 validation gates",
+          "moderate": "Add Level 2 validation gates",
+          "high": "Claude required with Level 3 validation"
+        },
+        "component_dependencies": {
+          "none": "Standard routing applies",
+          "minimal": "Add dependency tracking",
+          "moderate": "Require pre-session dependency analysis",
+          "high": "Claude coordination required"
         }
       },
-      "betting_panel": {
-        "route": "Claude → Gemini → Claude",
-        "breakdown": {
-          "claude_1": "Define betting logic and API",
-          "gemini": "Create CurrentBettingPanel UI",
-          "claude_2": "Integration testing"
+
+      "step_2_ai_capability_matching": {
+        "qwen_cli_with_validation": {
+          "suitable_for": [
+            "Simple TypeScript cleanup",
+            "Unused import removal",
+            "Basic ESLint warning fixes",
+            "Documentation updates"
+          ],
+          "validation_level": "Level 1 (Basic)",
+          "session_constraints": [
+            "20-30 minute maximum duration",
+            "Single warning type focus",
+            "MCP timeout fallback required",
+            "Build validation at session end"
+          ]
+        },
+        "gemini_cli_with_validation": {
+          "suitable_for": [
+            "React component implementation",
+            "TypeScript interface design",
+            "UI logic and state management",
+            "Component architecture improvements"
+          ],
+          "validation_level": "Level 2 (Component)",
+          "mandatory_requirements": [
+            "TypeScript compilation must pass",
+            "Build process must complete",
+            "Component dependencies must resolve",
+            "No functional regressions allowed"
+          ]
+        },
+        "claude_with_validation": {
+          "suitable_for": [
+            "Architecture decisions",
+            "Database optimization",
+            "Integration debugging",
+            "Multi-AI validation and coordination"
+          ],
+          "validation_level": "Level 3 (Integration)",
+          "responsibilities": [
+            "Final validation of all AI work",
+            "Build stability assurance",
+            "Context preservation",
+            "Integration testing"
+          ]
         }
       },
-      "database_optimization": {
-        "route": "Claude ONLY",
-        "breakdown": {
-          "claude": "All query optimization work",
-          "forbidden": "QWEN and Gemini excluded"
+
+      "step_3_validation_gate_assignment": {
+        "automatic_gate_assignment": {
+          "based_on_ai": "Each AI gets appropriate validation level",
+          "based_on_task": "Complex tasks get higher validation levels",
+          "based_on_impact": "High-impact changes get comprehensive validation",
+          "based_on_history": "Previously problematic areas get extra validation"
         }
-      },
-      "typescript_cleanup": {
-        "route": "QWEN → Claude validation",
-        "breakdown": {
-          "qwen": "Simple any fixes only",
-          "claude": "Validate no breaking changes"
-        }
-      },
-      "operator_dashboard": {
-        "route": "Claude → Gemini",
-        "breakdown": {
-          "claude": "Permission matrix and API",
-          "gemini": "Complete UI implementation"
+      }
+    },
+
+    "failure_recovery_routing": {
+      "validation_gate_failures": {
+        "typescript_compilation_failure": {
+          "immediate_action": "Stop current AI session",
+          "analysis_routing": "Claude analyzes compilation errors",
+          "resolution_routing": "Claude fixes or guides AI to fix",
+          "prevention": "Update AI prompts with error patterns"
+        },
+        "build_process_failure": {
+          "immediate_action": "Full session rollback",
+          "analysis_routing": "Claude investigates build issues",
+          "resolution_routing": "Claude resolves or escalates to human",
+          "prevention": "Enhanced pre-session validation"
+        },
+        "dependency_resolution_failure": {
+          "immediate_action": "Fix imports/exports immediately",
+          "analysis_routing": "Claude maps dependency issues",
+          "resolution_routing": "Claude updates imports/exports",
+          "prevention": "Better pre-session dependency analysis"
         }
       }
     }
   },
 
-  "coordination_workflows": {
-    "day_1_sse_architecture": {
-      "morning": {
-        "owner": "Claude",
-        "tasks": [
-          "Design SSE service architecture",
-          "Define event types and subscriptions",
-          "Create error handling patterns"
+  "context_preservation_routing": {
+    "handoff_validation": {
+      "qwen_to_gemini": {
+        "required_documentation": [
+          "Files modified with exact line counts",
+          "Warning categories and count changes",
+          "TypeScript patterns applied",
+          "MCP timeout issues encountered"
         ],
-        "deliverables": [
-          "Complete SSE specification document",
-          "Event type definitions",
-          "API endpoint designs"
+        "validation_before_handoff": [
+          "All changes compile successfully",
+          "ESLint warning count reduced",
+          "No new errors introduced",
+          "Build process still works"
         ]
       },
-      "afternoon": {
-        "owner": "Claude",
-        "tasks": [
-          "Implement SSE service backend",
-          "Create subscription management",
-          "Test SSE endpoints"
+      "gemini_to_claude": {
+        "required_documentation": [
+          "Components created or modified",
+          "TypeScript interfaces defined",
+          "Dependencies added or changed",
+          "Validation gate results"
         ],
-        "handoff_to_gemini": [
-          "SSE endpoint URLs",
-          "Event type specifications",
-          "useSSE hook requirements"
+        "validation_before_handoff": [
+          "Full TypeScript compilation",
+          "Complete build process",
+          "Component rendering verification",
+          "Integration points identified"
         ]
       }
     },
 
-    "day_2_sse_frontend": {
-      "morning": {
-        "owner": "Gemini",
-        "tasks": [
-          "Create useSSE hook",
-          "Implement EventSource management",
-          "Add reconnection logic"
-        ],
-        "validation_points": [
-          "Hook connects successfully",
-          "Events received properly",
-          "Reconnection works"
-        ]
-      },
-      "afternoon": {
-        "owner": "Gemini",
-        "tasks": [
-          "Create admin dashboard components",
-          "Add real-time updates",
-          "System monitoring panel"
-        ],
-        "claude_validation": [
-          "Real-time updates working",
-          "No performance issues",
-          "Error handling correct"
-        ]
-      }
-    },
-
-    "day_3_betting_windows": {
-      "morning": {
-        "owner": "Claude",
-        "tasks": [
-          "Design fight temporal logic",
-          "Create state machine",
-          "Define betting window rules"
-        ],
-        "deliverables": [
-          "State transition diagram",
-          "API endpoints for transitions",
-          "Validation rules"
-        ]
-      },
-      "afternoon": {
-        "owner": "Gemini",
-        "tasks": [
-          "Create FightStatusIndicator",
-          "Implement countdown timer",
-          "Add transition controls"
-        ],
-        "integration": [
-          "Connect to SSE updates",
-          "Handle state transitions",
-          "Show betting windows"
-        ]
-      }
-    },
-
-    "day_4_pago_doy": {
-      "morning": {
-        "owner": "Claude",
-        "tasks": [
-          "Design PAGO/DOY proposal system",
-          "Create WebSocket minimal endpoints",
-          "Define timeout logic"
-        ],
-        "critical": [
-          "WebSocket ONLY for proposals",
-          "3-minute timeout enforcement",
-          "No wallet operations via WebSocket"
-        ]
-      },
-      "afternoon": {
-        "owner": "Gemini",
-        "tasks": [
-          "Create proposal modals",
-          "Add accept/reject UI",
-          "Implement countdown timer"
-        ],
-        "validation": [
-          "Proposals timeout correctly",
-          "UI updates in real-time",
-          "Clean modal interactions"
-        ]
-      }
-    },
-
-    "day_5_operator_dashboard": {
-      "full_day": {
-        "owner": "Gemini (Claude spec)",
-        "morning_tasks": [
-          "Create operator main dashboard",
-          "Add event management UI",
-          "Implement limited tools"
-        ],
-        "afternoon_tasks": [
-          "Add streaming controls",
-          "Create fight management",
-          "Test permissions"
-        ],
-        "claude_validation": [
-          "Permissions enforced",
-          "Cannot modify admins",
-          "Event assignment works"
-        ]
-      }
-    },
-
-    "week_2_database_sprint": {
-      "days_8_10": {
-        "owner": "Claude ONLY",
-        "tasks": [
-          "Analyze slow queries",
-          "Add database indexes",
-          "Optimize connection pool",
-          "Implement query caching"
-        ],
-        "metrics": [
-          "Queries <500ms target",
-          "No ETIMEDOUT errors",
-          "Stable connections"
-        ],
-        "forbidden": "QWEN completely excluded"
-      }
-    }
-  },
-
-  "quality_gates": {
-    "before_gemini_implementation": {
-      "required_from_claude": [
-        "Complete architectural specification",
-        "API endpoints documented",
-        "Event types defined",
-        "Test data available"
-      ]
-    },
-    "before_claude_validation": {
-      "required_from_gemini": [
-        "All components rendering",
-        "TypeScript compiling",
-        "No console errors",
-        "Basic functionality working"
-      ]
-    },
-    "before_qwen_session": {
-      "mandatory_checks": [
-        "Git commit created",
-        "Task is in safe category",
-        "Time limit set (30 min)",
-        "Claude available for validation"
-      ]
-    },
-    "before_production": {
-      "final_validation": [
-        "All tests passing",
-        "Performance targets met",
-        "No critical bugs",
-        "Documentation complete"
+    "context_gap_prevention": {
+      "pre_handoff_checklist": [
+        "All work documented with rationale",
+        "Remaining tasks clearly identified",
+        "Risk areas flagged for next AI",
+        "Validation results included"
+      ],
+      "knowledge_transfer_quality": [
+        "Next AI can continue without questions",
+        "All decisions explained with context",
+        "Edge cases and solutions documented",
+        "AI-specific insights included"
       ]
     }
   },
 
-  "emergency_decision_tree": {
-    "if_authentication_breaks": {
-      "immediate": "STOP all work",
-      "action": "Claude analyzes and fixes",
-      "forbidden": "QWEN must not touch"
+  "success_metrics_with_validation": {
+    "build_stability_success": {
+      "zero_compilation_regressions": "All AI sessions must maintain TypeScript compilation",
+      "zero_build_failures": "All AI sessions must maintain build capability",
+      "zero_dependency_breaks": "All AI sessions must preserve import/export integrity",
+      "zero_functional_regressions": "All AI sessions must preserve component functionality"
     },
-    "if_database_slow": {
-      "immediate": "Claude investigates",
-      "action": "Emergency index creation",
-      "escalation": "Consider caching layer"
+
+    "coordination_efficiency_enhanced": {
+      "handoff_quality": "Next AI starts immediately without context questions",
+      "validation_overhead": "Validation gates add <20% to session time",
+      "failure_recovery_speed": "Issues resolved within one validation cycle",
+      "token_efficiency_maintained": "50%+ token savings preserved with validation"
     },
-    "if_sse_fails": {
-      "immediate": "Check event source connections",
-      "action": "Claude fixes backend",
-      "fallback": "Implement polling temporarily"
-    },
-    "if_betting_logic_wrong": {
-      "immediate": "Disable betting temporarily",
-      "action": "Claude redesigns logic",
-      "validation": "Extensive testing before re-enable"
+
+    "ai_performance_with_gates": {
+      "claude_validation_accuracy": "100% of validation issues correctly identified",
+      "gemini_build_stability": "100% of Gemini sessions pass build validation",
+      "qwen_scope_adherence": "100% of QWEN sessions stay within defined scope",
+      "overall_pipeline_reliability": "90%+ success rate with validation gates"
     }
   },
 
-  "success_metrics": {
-    "coordination_effectiveness": [
-      "Clear task ownership",
-      "No duplicate work",
-      "Smooth handoffs",
-      "Timeline adherence"
-    ],
-    "technical_goals": [
-      "SSE latency <1 second",
-      "Database queries <500ms",
-      "Zero auth breaking changes",
-      "WebSocket truly minimal"
-    ],
-    "business_goals": [
-      "15-day MVP delivery",
-      "Betting system working",
-      "Operator dashboard complete",
-      "Streaming integrated"
-    ]
+  "escalation_patterns_enhanced": {
+    "immediate_escalation_triggers": {
+      "build_breaking_changes": {
+        "detection": "npm run build fails after AI session",
+        "escalation": "Claude immediate intervention",
+        "resolution": "Full rollback or targeted fix",
+        "prevention": "Enhanced pre-session validation"
+      },
+      "typescript_compilation_errors": {
+        "detection": "npx tsc --noEmit fails after AI session",
+        "escalation": "Claude error analysis and resolution",
+        "resolution": "Fix types or revert problematic changes",
+        "prevention": "Better type safety in AI prompts"
+      },
+      "critical_system_breaks": {
+        "detection": "Authentication, database, or core functionality fails",
+        "escalation": "Claude exclusive ownership",
+        "resolution": "Systematic debugging and repair",
+        "prevention": "Forbidden file lists strictly enforced"
+      }
+    },
+
+    "validation_failure_protocols": {
+      "level_1_validation_failure": {
+        "action": "Targeted file rollback",
+        "analysis": "Claude reviews specific failures",
+        "resolution": "Fix or revert individual files",
+        "continuation": "AI session can continue with corrections"
+      },
+      "level_2_validation_failure": {
+        "action": "Full session rollback",
+        "analysis": "Claude comprehensive component analysis",
+        "resolution": "Session restart with reduced scope",
+        "continuation": "New session with lessons learned"
+      },
+      "level_3_validation_failure": {
+        "action": "Full project validation and repair",
+        "analysis": "Claude system-wide impact assessment",
+        "resolution": "Complete integration testing and fixes",
+        "continuation": "Human consultation if needed"
+      }
+    }
   }
 }

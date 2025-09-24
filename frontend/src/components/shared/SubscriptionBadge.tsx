@@ -2,12 +2,7 @@
 // Componente unificado para mostrar badges de suscripción
 
 import React from "react";
-
-interface UserSubscription {
-  type?: "daily" | "monthly";
-  status?: "active" | "expired" | "cancelled" | "pending";
-  expiresAt?: string;
-}
+import type { UserSubscription } from "../../types";
 
 interface SubscriptionBadgeProps {
   subscription?: UserSubscription | null;

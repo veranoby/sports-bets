@@ -44,10 +44,10 @@ const UserProfilePage: React.FC = () => {
       try {
         setLoading(true);
         const userResponse = await usersAPI.getById(id);
-        setUser(userResponse.data);
+        setUser(userResponse.data as User);
 
         const articlesResponse = await articlesAPI.getAll({ author_id: id });
-        setArticles(articlesResponse.data.articles || []);
+        setArticles((articlesResponse.data as any)?.articles || []);
       } catch (err) {
         console.error("Error fetching profile data:", err);
         setError("No se pudo cargar el perfil. Inténtalo de nuevo.");

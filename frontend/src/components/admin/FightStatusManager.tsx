@@ -70,7 +70,8 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
   const assignFightResult = async (result: "red" | "blue" | "draw") => {
     setLoading(true);
     try {
-      const response = await fightAPI.assignFightResult(fight.id, result);
+      const resultObj = { winner: result, method: "decision" };
+      const response = await fightAPI.assignFightResult(fight.id, resultObj);
       if (response.success) {
         onFightUpdate(response.data as Fight);
       }

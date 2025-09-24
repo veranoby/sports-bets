@@ -156,14 +156,25 @@ const Card: React.FC<CardProps> = ({
       size === "sm" ? "w-5 h-5" : size === "lg" ? "w-8 h-8" : "w-6 h-6";
 
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon as React.ReactElement, {
-        className: `${iconSize} ${colors.icon}`,
-      });
+      return React.cloneElement(
+        icon as React.ReactElement<{ className?: string }>,
+        {
+          className: `${iconSize} ${colors.icon}`,
+        },
+      );
     }
 
     // Si es un componente de icono de Lucide
-    const IconComponent = icon as React.ComponentType<{ className?: string }>;
-    return <IconComponent className={`${iconSize} ${colors.icon}`} />;
+    try {
+      const IconComponent = icon as unknown as React.ComponentType<{
+        className?: string;
+      }>;
+      return <IconComponent className={`${iconSize} ${colors.icon}`} />;
+    } catch {
+      return (
+        <span className={`${iconSize} ${colors.icon}`}>{String(icon)}</span>
+      );
+    }
   };
 
   // Renderizar trend

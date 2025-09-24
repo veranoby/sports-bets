@@ -49,11 +49,11 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     setError(null);
 
     try {
-      const submissionData = {
-        ...formData,
+      const submissionData: any = {
+        name: formData.name,
         scheduledDate: formData.scheduledDate
           ? new Date(formData.scheduledDate).toISOString()
-          : undefined,
+          : formData.scheduledDate,
       };
       const response = await eventsAPI.update(event.id, submissionData);
       if (response.success && response.data) {

@@ -23,7 +23,6 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const [currentMode, setCurrentMode] = useState(mode);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { bets, fetchAvailableBets } = useBets();
-  const { wallet } = useWallet();
   const { isConnected } = useWebSocketRoom(fightId);
   const { addListener } = useWebSocketContext();
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check

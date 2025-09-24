@@ -1,193 +1,432 @@
 {
-  "task_id": "eslint_warnings_cleanup_qwen_cli_v3",
-  "priority": "medium",
-  "estimated_duration": "45-60 minutes per session",
-  "tool": "QWEN CLI (External Command Line Tool)",
-  "approach": "Single warning type focus with MCP timeout mitigation",
+  "task_assignment": "QWEN CLI - ESLint Warning Cleanup with Build Stability (Enhanced Phase 1 of 3-AI Pipeline)",
+  "version": "3.0",
+  "priority": "MEDIUM - Code quality improvement with build stability focus",
+  "tool": "QWEN CLI (External AI Tool)",
+  "pipeline_position": "Phase 1: QWEN CLI (foundation) → Gemini CLI (specialization) → Claude (validation)",
+  "token_savings_target": "50% through focused micro-sessions with MCP timeout mitigation",
+  "updated": "2025-09-24",
+  "enhancement_focus": "Build validation gates, dependency resolution, improved handoff documentation",
 
-  "qwen_cli_optimization": {
-    "mcp_timeout_prevention": "Use native QWEN CLI tools with immediate fallback to shell commands",
-    "session_structure": "45-60min focused work + validation + commit + report",
-    "tool_hierarchy": [
-      "1. search_file_content (QWEN CLI native - preferred)",
-      "2. read_file (QWEN CLI native - preferred)",
-      "3. edit (QWEN CLI native - preferred)",
-      "4. run_shell_command (fallback when MCPs timeout)"
-    ],
-    "success_pattern": "Complete single warning type per session vs multi-phase approach"
-  },
-
-  "task_description": "Fix remaining 276 ESLint warnings using QWEN CLI native tools with MCP timeout fallback strategies",
-
-  "context_injection": {
-    "project_type": "React + TypeScript frontend (GalloBets streaming platform)",
-    "current_status": "63 warnings already fixed (18% completion), 276 warnings remaining",
-    "previous_session_issues": "60% MCP timeouts during 4-hour session prevented completion",
-    "warning_categories_remaining": {
-      "no-explicit-any": "~150 warnings remaining - Replace 'any' with specific types",
-      "no-unused-vars": "~45 warnings remaining - Remove unused imports/variables",
-      "exhaustive-deps": "~40 warnings remaining - Fix useEffect dependencies",
-      "only-export-components": "~29 warnings remaining - Fix React fast refresh exports"
-    },
-    "current_warning_count": 276,
-    "husky_limit": 500,
-    "safety_margin": "224 warnings buffer before Husky blocks commits"
-  },
-
-  "constraints": {
-    "no_functional_changes": "CRITICAL - Do not modify component functionality or business logic",
-    "single_session_commits": "REQUIRED - Commit after completing single warning type",
-    "preserve_patterns": "Follow existing TypeScript patterns in codebase",
-    "qwen_cli_mcp_fallback": "When MCPs timeout, immediately switch to run_shell_command",
-    "session_validation": "Use run_shell_command 'npm run lint' only at session end",
-    "rollback_strategy": "Session must be reversible via git checkout for failed files"
-  },
-
-  "qwen_cli_session_types": {
-    "session_1_unused_vars": {
-      "title": "Unused Variables & Imports Cleanup",
-      "risk_level": "SAFE",
-      "target_warnings": "45 remaining no-unused-vars warnings",
-      "duration": "45-60 minutes",
-      "qwen_cli_workflow": {
-        "step_1": "search_file_content for unused import patterns",
-        "step_2": "read_file to understand file structure and verify unused status",
-        "step_3": "edit to remove unused imports/variables",
-        "fallback": "run_shell_command 'grep -rn \"import.*unused\" src/' if MCPs timeout"
+  "pipeline_lessons_learned_integration": {
+    "successful_patterns_to_maintain": {
+      "micro_session_approach": {
+        "optimal_duration": "20-30 minutes (reduced from 45-60 minutes)",
+        "evidence": "Prevents MCP timeouts and tool fatigue",
+        "mandatory_implementation": "All QWEN sessions must stay within 30-minute limit"
       },
-      "validation": "run_shell_command 'npm run lint | grep no-unused-vars | wc -l'",
-      "commit_message": "QWEN CLI Session 1: Remove unused variables and imports"
+      "single_warning_focus": {
+        "approach": "Complete one ESLint category per session",
+        "evidence": "Higher success rate than multi-phase approaches",
+        "mandatory_implementation": "No multi-tasking within sessions"
+      },
+      "native_tool_fallback": {
+        "strategy": "QWEN CLI native tools first, shell commands as backup",
+        "evidence": "60% of MCP timeouts resolved with fallback strategies",
+        "mandatory_implementation": "Immediate fallback when MCPs fail"
+      }
     },
 
-    "session_2_explicit_any": {
-      "title": "TypeScript Any Types Replacement",
-      "risk_level": "LOW",
-      "target_warnings": "150 remaining no-explicit-any warnings",
-      "duration": "45-60 minutes",
-      "qwen_cli_workflow": {
-        "step_1": "search_file_content ': any' to find all instances",
-        "step_2": "read_file to understand context and determine correct type",
-        "step_3": "edit to replace ': any' with specific types",
-        "fallback": "run_shell_command 'grep -rn \": any\" src/' if MCPs timeout"
+    "improvement_areas_addressed": {
+      "build_stability_integration": {
+        "identified_issue": "Need TypeScript compilation validation after each session",
+        "solution_implemented": "Mandatory build validation gates after QWEN work",
+        "validation_commands": [
+          "npx tsc --noEmit (TypeScript compilation)",
+          "npm run build (build process verification)",
+          "npm run lint | grep -c warning (progress tracking)"
+        ]
       },
-      "patterns_to_fix": [
-        "event: any → event: React.ChangeEvent<HTMLInputElement>",
-        "props: any → props: ComponentProps",
-        "data: any → data: ApiResponse",
-        "error: any → error: Error"
-      ],
-      "validation": "run_shell_command 'npm run lint | grep no-explicit-any | wc -l'",
-      "commit_message": "QWEN CLI Session 2: Replace any types with specific TypeScript types"
-    },
-
-    "session_3_exhaustive_deps": {
-      "title": "useEffect Dependencies Fix",
-      "risk_level": "MEDIUM",
-      "target_warnings": "40 remaining exhaustive-deps warnings",
-      "duration": "45-60 minutes",
-      "qwen_cli_workflow": {
-        "step_1": "search_file_content 'useEffect' to find all instances",
-        "step_2": "read_file to understand dependencies and effects",
-        "step_3": "edit to add missing dependencies conservatively",
-        "fallback": "run_shell_command 'grep -rn \"useEffect\" src/' if MCPs timeout"
+      "enhanced_handoff_documentation": {
+        "identified_issue": "Context gaps between QWEN and Gemini sessions",
+        "solution_implemented": "Standardized handoff template with comprehensive data",
+        "required_documentation": [
+          "Files modified with exact line counts",
+          "Warning reduction metrics by category",
+          "TypeScript patterns applied and avoided",
+          "MCP timeout mitigation strategies used"
+        ]
       },
-      "approach": "Conservative - only add obviously safe dependencies",
-      "validation": "run_shell_command 'npm run lint | grep exhaustive-deps | wc -l'",
-      "commit_message": "QWEN CLI Session 3: Fix useEffect dependency arrays"
-    },
-
-    "session_4_export_components": {
-      "title": "React Fast Refresh Exports",
-      "risk_level": "HIGH",
-      "target_warnings": "29 remaining only-export-components warnings",
-      "duration": "45-60 minutes",
-      "qwen_cli_workflow": {
-        "step_1": "search_file_content 'export' to find non-component exports",
-        "step_2": "read_file to identify constants/utilities in component files",
-        "step_3": "edit to move constants to separate files (only if obvious)",
-        "fallback": "run_shell_command 'grep -rn \"export const\" src/' if MCPs timeout"
-      },
-      "approach": "Only if confident - move obvious constants to separate files",
-      "validation": "run_shell_command 'npm run lint | grep only-export-components | wc -l'",
-      "commit_message": "QWEN CLI Session 4: Fix React fast refresh export warnings"
+      "dependency_awareness": {
+        "identified_issue": "Import/export issues requiring manual Claude resolution",
+        "solution_implemented": "Pre-session dependency analysis and post-session validation",
+        "prevention_commands": [
+          "grep -r 'import.*from.*\\.\\./' src/ | sort (dependency mapping)",
+          "grep -r 'Cannot find module' src/ (broken import detection)"
+        ]
+      }
     }
   },
 
-  "success_criteria": {
-    "per_session": "Complete one warning type per 45-60min session with measurable reduction",
-    "overall_target": "Reduce 276 remaining warnings to under 100 (>65% reduction from current state)",
-    "functionality": "Maintain all functionality - no broken components or features",
-    "type_safety": "Improve TypeScript type safety without introducing new errors",
-    "validation_commands": [
-      "run_shell_command 'npm run lint | tail -10'",
-      "run_shell_command 'npm run build'",
-      "Optional: run_shell_command 'npm run dev' to verify no console errors"
-    ]
+  "enhanced_mcp_timeout_prevention": {
+    "qwen_cli_tool_hierarchy_optimized": {
+      "tier_1_preferred": {
+        "tools": ["search_file_content", "read_file", "edit"],
+        "rationale": "QWEN CLI native tools with highest reliability",
+        "usage": "Always attempt these first for any operation"
+      },
+      "tier_2_fallback": {
+        "tool": "run_shell_command",
+        "rationale": "Backup when MCPs timeout (error -32001)",
+        "usage": "Immediate switch when tier 1 tools fail"
+      },
+      "timeout_detection": {
+        "signs": ["MCP error -32001", "Tool unresponsive >30 seconds", "Internal timeout errors"],
+        "immediate_action": "Switch to run_shell_command alternative",
+        "documentation": "Record which MCP failed for future optimization"
+      }
+    },
+
+    "session_optimization_enhanced": {
+      "duration_limit": "20-30 minutes maximum (hard limit)",
+      "focus_constraint": "Single warning type per session (no exceptions)",
+      "validation_strategy": "Defer all validation to session end (prevent MCP fatigue)",
+      "break_pattern": "Complete single category → validate → commit → report → new session"
+    },
+
+    "fallback_command_library": {
+      "search_operations": {
+        "primary": "search_file_content 'pattern'",
+        "fallback": "run_shell_command 'grep -rn \"pattern\" src/ | head -20'"
+      },
+      "file_reading": {
+        "primary": "read_file 'path/to/file.ts'",
+        "fallback": "run_shell_command 'cat src/path/to/file.ts'"
+      },
+      "file_editing": {
+        "primary": "edit 'path/to/file.ts' with specific changes",
+        "fallback": "run_shell_command 'sed -i \"s/pattern/replacement/g\" src/path/to/file.ts'"
+      },
+      "validation_commands": {
+        "eslint_check": "run_shell_command 'npm run lint | grep -c warning'",
+        "typescript_check": "run_shell_command 'npx tsc --noEmit'",
+        "build_check": "run_shell_command 'npm run build'"
+      }
+    }
   },
 
-  "qwen_cli_execution_workflow": {
-    "pre_session": [
+  "enhanced_validation_gates": {
+    "mandatory_post_session_validation": {
+      "gate_1_typescript_compilation": {
+        "command": "npx tsc --noEmit",
+        "success_criteria": "Exit code 0 with no compilation errors",
+        "timeout": "60 seconds",
+        "failure_action": "Immediate session rollback and Claude escalation"
+      },
+      "gate_2_eslint_progress": {
+        "command": "npm run lint | grep -c 'warning\\|error'",
+        "success_criteria": "Warning count reduction from session baseline",
+        "failure_action": "Revert files that introduced new warnings"
+      },
+      "gate_3_build_process": {
+        "command": "npm run build",
+        "success_criteria": "Successful build completion",
+        "timeout": "120 seconds",
+        "failure_action": "Full session rollback required"
+      },
+      "gate_4_import_dependencies": {
+        "command": "grep -r 'Cannot find module\\|Module not found' src/ | wc -l",
+        "success_criteria": "Zero broken import references",
+        "failure_action": "Fix import paths before handoff"
+      }
+    },
+
+    "validation_workflow": {
+      "step_1": "QWEN completes warning cleanup work",
+      "step_2": "Run all 4 validation gates automatically",
+      "step_3": "If any gate fails, trigger immediate rollback",
+      "step_4": "If all gates pass, generate handoff documentation",
+      "step_5": "Commit changes with comprehensive message"
+    }
+  },
+
+  "enhanced_session_decomposition": {
+    "session_1_unused_imports_vars": {
+      "id": "qwen_session_1_enhanced",
+      "focus": "Remove unused imports and variables (no-unused-vars warnings)",
+      "duration": "20-30 minutes",
+      "target_reduction": "50%+ of no-unused-vars warnings",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content for 'import.*{[^}]*unused' patterns",
+        "step_2": "read_file to understand file structure and verify unused status",
+        "step_3": "edit to remove unused imports/variables systematically",
+        "fallback": "run_shell_command 'grep -rn \"import.*{\" src/ | grep unused' if MCPs timeout"
+      },
+      "build_stability_focus": [
+        "Ensure removed imports don't break other files",
+        "Verify TypeScript compilation after each file modification",
+        "Check for indirect usage before removing variables"
+      ],
+      "success_criteria": "Significant unused import reduction + TypeScript compilation passes"
+    },
+
+    "session_2_explicit_any_replacement": {
+      "id": "qwen_session_2_enhanced",
+      "focus": "Replace basic any types with specific TypeScript types",
+      "duration": "20-30 minutes",
+      "target_reduction": "40%+ of no-explicit-any warnings (simple cases)",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content for ': any' patterns",
+        "step_2": "read_file to understand context and determine appropriate type",
+        "step_3": "edit to replace ': any' with specific types (unknown, Error, etc.)",
+        "fallback": "run_shell_command 'grep -rn \": any\" src/' if MCPs timeout"
+      },
+      "type_replacement_patterns": [
+        "catch (error: any) → catch (error: unknown)",
+        "event: any → event: React.ChangeEvent<HTMLInputElement>",
+        "response: any → response: ApiResponse",
+        "data: any → data: unknown (if context unclear)"
+      ],
+      "build_stability_focus": [
+        "Only replace obvious type patterns",
+        "Avoid complex generic type replacements",
+        "Ensure all type changes compile successfully"
+      ]
+    },
+
+    "session_3_exhaustive_deps_basic": {
+      "id": "qwen_session_3_enhanced",
+      "focus": "Fix obvious useEffect dependency issues",
+      "duration": "20-30 minutes",
+      "target_reduction": "Simple exhaustive-deps warnings only",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content for 'useEffect' with missing obvious dependencies",
+        "step_2": "read_file to understand effect logic and identify safe dependencies",
+        "step_3": "edit to add obviously safe dependencies only",
+        "fallback": "run_shell_command 'grep -rn \"useEffect\" src/' if MCPs timeout"
+      },
+      "conservative_approach": [
+        "Only add obviously safe dependencies (primitives, stable functions)",
+        "Avoid complex object dependencies that might cause infinite loops",
+        "Skip cases that require useCallback or useMemo analysis"
+      ],
+      "build_stability_focus": [
+        "Test component behavior doesn't change after dependency additions",
+        "Ensure no infinite re-render loops introduced",
+        "Preserve existing React patterns"
+      ]
+    }
+  },
+
+  "enhanced_handoff_documentation_template": {
+    "session_summary_standardized": {
+      "ai_used": "QWEN CLI",
+      "session_id": "[session_1/session_2/session_3]_enhanced",
+      "duration_actual": "Exact minutes spent",
+      "focus_area": "Specific ESLint warning category",
+      "validation_gates_passed": "All 4 gates passed/failed with details",
+      "mcp_timeout_issues": "List of MCP tools that failed and fallbacks used"
+    },
+
+    "work_completed_detailed": {
+      "files_modified": [
+        {
+          "file_path": "src/components/example/Component.tsx",
+          "lines_changed": "5 lines modified",
+          "changes_summary": "Removed 2 unused imports, replaced 1 any type"
+        }
+      ],
+      "warning_count_changes": {
+        "no_unused_vars": "45 → 22 warnings (-23)",
+        "no_explicit_any": "84 → 65 warnings (-19)",
+        "exhaustive_deps": "10 → 8 warnings (-2)"
+      },
+      "patterns_applied": [
+        "catch (error: any) → catch (error: unknown)",
+        "Removed unused React imports",
+        "Added obvious useEffect dependencies"
+      ],
+      "patterns_avoided": [
+        "Complex generic type replacements",
+        "Object dependency additions in useEffect",
+        "Removal of imports used in other files"
+      ]
+    },
+
+    "context_for_gemini_handoff": {
+      "recommended_focus": "Advanced TypeScript patterns and complex type inference",
+      "files_to_prioritize": "Files with remaining complex any types",
+      "files_to_avoid": "Files that caused MCP timeout issues",
+      "successful_patterns": "Type patterns that worked well in this session",
+      "estimated_remaining_work": "60+ warnings requiring specialized TypeScript knowledge"
+    },
+
+    "validation_results_comprehensive": {
+      "typescript_compilation": "✅ All files compile successfully",
+      "eslint_progress": "✅ 44 warnings reduced (no new warnings)",
+      "build_process": "✅ npm run build completes successfully",
+      "import_dependencies": "✅ No broken imports detected",
+      "overall_status": "Ready for Gemini CLI phase 2"
+    },
+
+    "mcp_timeout_mitigation_report": {
+      "tools_that_failed": "List any MCP tools that timed out",
+      "fallback_strategies_used": "Shell commands used as alternatives",
+      "optimization_recommendations": "Suggestions for future QWEN CLI sessions",
+      "session_duration_impact": "How timeouts affected session length"
+    }
+  },
+
+  "enhanced_safety_protocols": {
+    "pre_session_requirements": {
+      "git_backup": "run_shell_command 'git add . && git commit -m \"Pre-QWEN session backup\"'",
+      "baseline_metrics": [
+        "npx tsc --noEmit (compilation baseline)",
+        "npm run lint | grep -c warning (warning count baseline)",
+        "npm run build (build baseline)"
+      ],
+      "dependency_analysis": "grep -r 'import.*from.*\\.\\./' src/ | grep [target-files] | sort"
+    },
+
+    "session_constraints_enhanced": {
+      "forbidden_files_strict": [
+        "frontend/src/pages/user/Profile.tsx",
+        "frontend/src/contexts/AuthContext.tsx",
+        "backend/src/routes/auth.ts",
+        "frontend/src/services/api.ts",
+        "Any Sequelize models",
+        "Any authentication logic",
+        "Any betting business logic",
+        "Any database files"
+      ],
+      "allowed_modifications": [
+        "Simple type additions only",
+        "Unused import/variable removal",
+        "Basic ESLint warning fixes",
+        "Documentation updates"
+      ],
+      "functional_change_prohibition": "CRITICAL - No logic changes allowed"
+    },
+
+    "rollback_procedures_enhanced": {
+      "session_failure": {
+        "detection": "Any validation gate fails",
+        "immediate_action": "run_shell_command 'git reset --hard HEAD~1'",
+        "verification": "Confirm all baselines restored",
+        "escalation": "Claude immediate intervention"
+      },
+      "partial_failure": {
+        "detection": "Some files pass, others fail validation",
+        "action": "run_shell_command 'git checkout -- [problematic-files]'",
+        "selective_commit": "Commit only files that pass validation",
+        "documentation": "Report partial success for next session planning"
+      }
+    }
+  },
+
+  "success_criteria_enhanced": {
+    "per_session_targets": {
+      "warning_reduction": "40-50% reduction in target warning category",
+      "build_stability": "All validation gates must pass",
+      "functionality_preservation": "Zero functional changes to components",
+      "handoff_quality": "Comprehensive documentation for Gemini transition"
+    },
+
+    "pipeline_contribution": {
+      "foundation_establishment": "Create stable base for Gemini specialization",
+      "context_preservation": "Maintain full project context for next phase",
+      "build_integrity": "Ensure TypeScript compilation and build process work",
+      "progress_measurement": "Quantifiable warning reduction with detailed metrics"
+    },
+
+    "validation_command_results": {
+      "typescript_compilation": "npx tsc --noEmit returns exit code 0",
+      "build_process": "npm run build completes without errors",
+      "eslint_progress": "Warning count demonstrably reduced",
+      "import_integrity": "No broken imports or module resolution errors"
+    }
+  },
+
+  "qwen_cli_execution_workflow_enhanced": {
+    "pre_session_checklist": [
       "run_shell_command 'git status' (ensure clean working tree)",
-      "run_shell_command 'npm run lint | tail -5' (current warning count)",
-      "run_shell_command 'git checkout -b feature/eslint-cleanup-qwen-session-X'"
+      "run_shell_command 'npx tsc --noEmit' (compilation baseline)",
+      "run_shell_command 'npm run lint | tail -10' (warning count baseline)",
+      "run_shell_command 'git checkout -b feature/eslint-qwen-session-[X]-enhanced'"
     ],
 
-    "session_execution": [
-      "PREFERRED: Use search_file_content to find warning patterns",
-      "PREFERRED: Use read_file to understand context",
-      "PREFERRED: Use edit to make specific changes",
-      "FALLBACK: Use run_shell_command when QWEN CLI MCPs timeout",
-      "Focus on single warning type completion (no multi-tasking)"
+    "session_execution_pattern": [
+      "PREFERRED: Use search_file_content → read_file → edit workflow",
+      "MONITOR: Watch for MCP timeout signs (error -32001, unresponsiveness)",
+      "FALLBACK: Immediate switch to run_shell_command alternatives",
+      "FOCUS: Single warning type completion (no multi-tasking)",
+      "DEFER: All validation to session end (prevent MCP fatigue)"
     ],
 
-    "session_validation": [
-      "run_shell_command 'npm run lint | grep [warning-type] | wc -l'",
-      "Verify significant reduction in target warning type",
-      "run_shell_command 'npm run build' (ensure no build errors)",
-      "run_shell_command 'git add . && git commit -m \"[session message]\"'"
+    "session_end_validation": [
+      "run_shell_command 'npx tsc --noEmit' (TypeScript gate)",
+      "run_shell_command 'npm run lint | grep -c warning' (progress gate)",
+      "run_shell_command 'npm run build' (build gate)",
+      "run_shell_command 'grep -r \"Cannot find module\" src/ | wc -l' (dependency gate)"
     ],
 
-    "session_reporting": [
-      "Document MCPs that timed out for future optimization",
-      "Report warning reduction: [warning-type] X → Y warnings",
-      "Note any fallback commands used",
-      "Plan next session focus area"
+    "handoff_preparation": [
+      "Generate comprehensive session summary with all required fields",
+      "Document MCP timeout issues and fallback strategies used",
+      "Categorize remaining work by complexity for Gemini planning",
+      "Commit with detailed message including warning count changes"
     ]
   },
 
-  "qwen_cli_rollback_procedures": {
-    "session_failure": "run_shell_command 'git reset --hard HEAD~1' (undo last session)",
-    "partial_file_failure": "run_shell_command 'git checkout -- [problematic-files]' (selective rollback)",
-    "mcp_timeout_recovery": "Switch to run_shell_command immediately, continue session",
-    "complete_failure": "run_shell_command 'git checkout main && git branch -D feature/eslint-cleanup-qwen-session-X'",
-    "partial_success": "Commit successful changes, document which MCPs failed, plan next session"
+  "expected_outcomes_enhanced": {
+    "immediate_deliverables": {
+      "warning_reduction": "40-50% reduction in target ESLint category per session",
+      "build_stability": "100% of validation gates pass",
+      "context_documentation": "Complete handoff package for Gemini CLI",
+      "mcp_optimization_data": "Timeout mitigation strategies documented"
+    },
+
+    "pipeline_foundation": {
+      "stable_codebase": "All TypeScript compilation and build processes work",
+      "progress_baseline": "Quantified warning reduction for Gemini to build upon",
+      "pattern_library": "Documented successful type replacement patterns",
+      "context_continuity": "No gaps in project understanding for next phase"
+    },
+
+    "optimization_insights": {
+      "qwen_cli_performance": "Document which MCP tools are reliable vs problematic",
+      "session_timing": "Optimal session duration and warning type focus validated",
+      "fallback_effectiveness": "Shell command alternatives proven for MCP failures",
+      "validation_overhead": "Time cost of build validation gates measured"
+    }
   },
 
-  "expected_outcomes": {
-    "session_completion": "Complete single warning type per 45-60min session",
-    "warning_reduction": "176-200 warnings eliminated (65-75% improvement from 276 remaining)",
-    "mcp_reliability": "Proven fallback strategy when QWEN CLI MCPs timeout",
-    "type_safety": "Improved TypeScript coverage and type inference",
-    "code_quality": "Cleaner codebase with better maintainability",
-    "development_experience": "Fewer ESLint distractions during development"
+  "brain_system_integration": {
+    "real_time_updates": {
+      "session_progress": "Update brain/multi_ai_coordination_strategy.json after each session",
+      "validation_results": "Record all validation gate results for future optimization",
+      "pattern_learning": "Capture successful and failed approaches for reuse",
+      "mcp_behavior": "Document MCP timeout patterns for QWEN CLI optimization"
+    },
+
+    "continuous_improvement": {
+      "weekly_optimization": "Analyze QWEN CLI performance and update strategies",
+      "fallback_refinement": "Improve shell command alternatives based on usage",
+      "validation_tuning": "Optimize validation gate timing and thresholds",
+      "handoff_enhancement": "Improve documentation templates based on Gemini feedback"
+    }
   },
 
-  "qwen_cli_reporting_format": {
-    "session_completion": "QWEN CLI Session X completed: [warning-type] Y → Z warnings (Δ reduction)",
-    "mcp_timeout_report": "MCPs timed out: [list failed tools], used fallbacks: [list shell commands]",
-    "session_summary": "Session X: 276 → X warnings remaining (Y% session improvement)",
-    "final_summary": "QWEN CLI cleanup completed: 276 → X warnings (Y% total improvement)",
-    "brain_update": "Update brain/multi_ai_coordination_strategy.json with QWEN CLI session results"
-  },
+  "final_deliverable_checklist": {
+    "technical_completion": [
+      "✅ Target warning category reduced by 40-50%",
+      "✅ All validation gates pass successfully",
+      "✅ TypeScript compilation maintained",
+      "✅ Build process integrity preserved"
+    ],
 
-  "forbidden_files": [
-    "frontend/src/pages/user/Profile.tsx",
-    "frontend/src/contexts/AuthContext.tsx",
-    "backend/src/routes/auth.ts",
-    "frontend/src/services/api.ts",
-    "Any Sequelize models",
-    "Any database files",
-    "Any authentication logic",
-    "Any betting business logic"
-  ]
+    "documentation_completion": [
+      "✅ Comprehensive session summary generated",
+      "✅ File modification details documented",
+      "✅ Warning count changes quantified",
+      "✅ MCP timeout strategies reported"
+    ],
+
+    "handoff_readiness": [
+      "✅ Context preserved for Gemini continuation",
+      "✅ Remaining work categorized by complexity",
+      "✅ Successful patterns documented for reuse",
+      "✅ Build stability assured for next phase"
+    ]
+  }
 }

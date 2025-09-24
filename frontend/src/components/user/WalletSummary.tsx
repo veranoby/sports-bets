@@ -8,21 +8,16 @@
 import React from "react";
 import { Wallet, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Card from "../shared/Card";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 
 export interface WalletSummaryProps {
   balance: number;
   frozenAmount: number;
-  onViewWallet?: () => void;
-  showQuickActions?: boolean;
 }
 
 const WalletSummary: React.FC<WalletSummaryProps> = ({
   balance,
   frozenAmount,
-  onViewWallet,
-  showQuickActions,
 }) => {
   const navigate = useNavigate();
   const { isWalletEnabled } = useFeatureFlags(); // Added feature flag check

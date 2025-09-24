@@ -131,7 +131,7 @@ const WalletPage: React.FC = () => {
         borderColor: "#596c95",
         borderWidth: 1,
         callbacks: {
-          label: function (context: unknown) {
+          label: function (context: any) {
             return `Balance: ${context.parsed.y.toFixed(2)}`;
           },
         },
@@ -167,7 +167,11 @@ const WalletPage: React.FC = () => {
     paymentData?: unknown,
   ) => {
     try {
-      await deposit(amount, paymentMethod, paymentData);
+      await deposit(
+        amount,
+        paymentMethod,
+        paymentData as Record<string, unknown>,
+      );
       setShowDepositModal(false);
       await handleRefreshBalance();
     } catch (error) {

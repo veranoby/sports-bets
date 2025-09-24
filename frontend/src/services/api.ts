@@ -4,6 +4,14 @@ import axios, {
   type AxiosRequestConfig,
 } from "axios";
 import type { Article } from "../types/article";
+import type {
+  ApiResponse,
+  ApiError,
+  Fight,
+  Venue,
+  Gallera,
+  Bet,
+} from "../types/index";
 
 const api = axios.create({
   baseURL: "/api", // The vite proxy in vite.config.ts will handle this
@@ -227,7 +235,13 @@ export const articlesAPI = {
   getFeatured: async (params: Record<string, unknown>) => {
     return apiCall("get", "/articles/featured", params);
   },
-  create: async (data: Partial<Article>) => {
+  create: async (data: {
+    title: string;
+    content: string;
+    summary: string;
+    venue_id?: string;
+    featured_image_url?: string;
+  }) => {
     return apiCall("post", "/articles", data);
   },
   update: async (id: string, data: Partial<Article>) => {

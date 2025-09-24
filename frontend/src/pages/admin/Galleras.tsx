@@ -184,7 +184,7 @@ const AdminGallerasPage: React.FC = () => {
     setEditingData(null);
   };
 
-  const handleSave = (updatedData: { user: UserType, venue?: VenueType }) => {
+  const handleSave = (updatedData: { user: UserType; venue?: VenueType }) => {
     handleCloseModal();
     fetchData(); // Refresh data
   };

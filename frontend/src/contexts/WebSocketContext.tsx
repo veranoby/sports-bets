@@ -156,7 +156,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   // 🎧 ADD LISTENER WITH LIMITS
   const addListener = useCallback(
-    (event: string, handler: (data: unknown) => void, componentId?: string) => { 
+    (event: string, handler: (data: unknown) => void, componentId?: string) => {
       if (!socketRef.current) {
         console.warn("⚠️ WebSocket: No active connection");
         return () => {};
@@ -300,7 +300,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           connectionPromiseRef.current = null;
           reject(error);
         });
-      } catch (error: unknown) { 
+      } catch (error: unknown) {
         console.error("❌ Error creating WebSocket:", error);
         setConnectionError(error.message);
         setIsConnecting(false);
@@ -313,7 +313,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [token]); // ✅ Only token as dependency
 
   // 📤 OPTIMIZED EMIT
-  const emit = useCallback((event: string, data?: unknown): boolean => { 
+  const emit = useCallback((event: string, data?: unknown): boolean => {
     if (!socketRef.current?.connected) {
       console.warn("⚠️ Socket not connected");
       return false;
@@ -463,7 +463,7 @@ export const useWebSocketEmit = () => {
     () => ({
       isConnected,
       emit,
-      emitBetCreated: (betData: unknown) => emit("bet_created", betData), 
+      emitBetCreated: (betData: unknown) => emit("bet_created", betData),
       emitBetAccepted: (betId: string) => emit("bet_accepted", { betId }),
       emitJoinFight: (fightId: string) => emit("join_fight", { fightId }),
       emitLeaveFight: (fightId: string) => emit("leave_fight", { fightId }),

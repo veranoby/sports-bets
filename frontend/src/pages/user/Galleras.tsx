@@ -261,7 +261,6 @@ const GallerasPage: React.FC = () => {
       if (galleraUsers.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
-           
           galleraUsers.data.users.map(async (user: GalleraUser) => {
             const articles = await articlesAPI.getAll({ author_id: user.id });
             const articleCount = articles.success

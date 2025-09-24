@@ -1,531 +1,472 @@
 {
-  "task_assignment": "GEMINI CLI - ESLint Warning Cleanup Continuation (Stage 2 of 3-AI Pipeline)",
-  "priority": "MEDIUM - Code quality improvement with token efficiency focus",
+  "task_assignment": "GEMINI CLI - Advanced TypeScript Specialization with Build Stability (Enhanced Phase 2 of 3-AI Pipeline)",
+  "version": "3.0",
+  "priority": "MEDIUM - TypeScript specialization with comprehensive build validation",
   "tool": "GEMINI CLI (External AI Tool)",
-  "pipeline_position": "QWEN CLI (35% done) → GEMINI CLI (50% target) → Claude (15% validation)",
-  "token_savings_target": "40-50% through specialized TypeScript/React expertise with MCP timeout strategies",
+  "pipeline_position": "Phase 2: QWEN CLI (foundation) → GEMINI CLI (specialization) → Claude (validation)",
+  "token_savings_target": "50% through React/TypeScript expertise with build stability assurance",
+  "updated": "2025-09-24",
+  "enhancement_focus": "Mandatory build validation, dependency management, integration testing",
 
-  "mcp_timeout_prevention": {
-    "lessons_from_qwen_cli": "60% of QWEN CLI session failed due to MCP timeouts (error -32001)",
-    "gemini_strategies": {
-      "native_tools_first": "Use Gemini CLI native tools before attempting complex operations",
-      "immediate_fallback": "Switch to alternative approach when MCP operations timeout",
-      "micro_sessions": "25-30 minute focused sessions to prevent MCP exhaustion",
-      "single_focus": "Complete one warning category per session, never multi-task"
-    },
-    "unknown_mcp_behavior": "Gemini CLI MCP timeout behavior unknown - apply defensive strategies from QWEN CLI experience"
-  },
-
-  "recommended_agents": {
-    "primary_agent": "--refactoring-expert --focus typescript --safe-mode",
-    "support_agent": "--frontend-architect --scope module --validate",
-    "validation_agent": "--quality-engineer --focus testing --safe-mode",
-    "agent_rationale": {
-      "refactoring_expert": "Specialized in systematic TypeScript cleanup, perfect for ESLint warning reduction",
-      "frontend_architect": "React/TypeScript domain knowledge for context-aware type replacements",
-      "quality_engineer": "Validates changes don't break functionality, ensures safety"
-    },
-    "forbidden_agents": [
-      "--backend-architect (frontend ESLint task only)",
-      "--security-engineer (could over-complicate simple type fixes)",
-      "--performance-engineer (not performance optimization)",
-      "--system-architect (too broad scope for focused cleanup)"
-    ]
-  },
-
-  "gemini_cli_workflow": {
-    "session_1_explicit_any": "--refactoring-expert --focus typescript --safe-mode",
-    "session_2_unused_vars": "--refactoring-expert --frontend-architect --scope module",
-    "session_3_exhaustive_deps": "--frontend-architect --quality-engineer --validate",
-    "session_validation": "--quality-engineer --focus testing --safe-mode",
-    "execution_pattern": "Single warning type completion → validate → commit → next session"
-  },
-
-  "current_eslint_status": {
-    "baseline_from_qwen_cli": {
-      "total_warnings": "200 remaining (down from 309)",
-      "qwen_progress": "63 warnings fixed (18% completion)",
-      "remaining_categories": {
-        "no_explicit_any": "84 remaining (was ~150)",
-        "no_unused_vars": "104 remaining (was ~45)",
-        "exhaustive_deps": "10 remaining (was ~40)",
-        "only_export_components": "2 remaining (was ~29)"
-      }
-    },
-    "gemini_target_work": {
-      "focus_categories": ["no_explicit_any", "no_unused_vars", "exhaustive_deps"],
-      "expected_reduction": "200 → 75-100 warnings (50% additional reduction)",
-      "session_targets": {
-        "session_1": "84 → 30-40 explicit-any warnings",
-        "session_2": "104 → 40-50 unused-vars warnings",
-        "session_3": "10 → 0-2 exhaustive-deps warnings"
-      }
-    },
-    "files_already_modified_by_qwen": [
-      "Multiple files with unused imports removed",
-      "Various files with any → unknown in catch blocks",
-      "useEffect dependencies partially fixed",
-      "Some eslint-disable comments added"
-    ]
-  },
-
-  "gemini_cli_session_decomposition": {
-    "session_1_explicit_any": {
-      "id": "gemini_session_1",
-      "focus": "Replace remaining 84 'no-explicit-any' warnings with proper TypeScript types",
-      "duration": "25-30 minutes",
-      "gemini_tools": {
-        "preferred": "Use Gemini CLI native search/edit tools",
-        "fallback": "Switch to alternative commands if MCP timeouts occur",
-        "validation": "Defer npm run lint to session end"
+  "pipeline_lessons_learned_integration": {
+    "success_patterns_to_maintain": {
+      "micro_session_approach": {
+        "optimal_duration": "20-30 minutes per session",
+        "evidence": "Prevents tool fatigue and enables focused specialization",
+        "mandatory_implementation": "All Gemini sessions must stay within 30-minute limit"
       },
-      "success_criteria": "84 → 30-40 explicit-any warnings, no functionality breaks",
-      "patterns_to_fix": [
-        "catch (error: any) → catch (error: unknown)",
-        "event: any → event: React.ChangeEvent<HTMLInputElement>",
-        "props: any → props: ComponentProps",
-        "data: any → data: ApiResponse<T>"
-      ],
-      "mcp_fallback_strategy": "If search fails, provide exact grep commands for manual execution"
-    },
-    "session_2_unused_vars": {
-      "id": "gemini_session_2",
-      "focus": "Remove remaining 104 'no-unused-vars' warnings",
-      "duration": "25-30 minutes",
-      "gemini_tools": {
-        "preferred": "Systematic file-by-file unused import removal",
-        "fallback": "Manual sed commands for import cleanup",
-        "validation": "Check compilation still works"
+      "progressive_specialization": {
+        "approach": "Build on QWEN foundation with advanced TypeScript patterns",
+        "evidence": "50% token savings achieved through specialized focus",
+        "mandatory_implementation": "Leverage QWEN work, avoid duplication"
       },
-      "success_criteria": "104 → 40-50 unused-vars warnings, zero compilation errors",
-      "approach": "Conservative removal - only obviously unused imports/variables",
-      "risk_mitigation": "Don't remove imports that might be used by other files"
-    },
-    "session_3_exhaustive_deps": {
-      "id": "gemini_session_3",
-      "focus": "Fix remaining 10 'exhaustive-deps' warnings",
-      "duration": "25-30 minutes",
-      "gemini_tools": {
-        "preferred": "React hooks expertise for proper dependency arrays",
-        "fallback": "Add missing dependencies conservatively",
-        "validation": "Ensure no infinite re-render loops"
-      },
-      "success_criteria": "10 → 0-2 exhaustive-deps warnings, React behavior preserved",
-      "approach": "Add missing dependencies or wrap functions in useCallback",
-      "high_risk": "Changes to useEffect can break component behavior"
-    },
-    "total_estimated_duration": "75-90 minutes across 3 focused sessions",
-    "execution_order": "Sequential sessions with validation between each"
-  },
-
-  "purpose_and_requirements": {
-    "specific_purpose": "Continue ESLint warning cleanup from QWEN CLI baseline (200 warnings) using Gemini CLI specialized TypeScript/React expertise to achieve 50% additional reduction",
-    "functional_requirements": [
-      "Reduce no-explicit-any warnings from 84 to 30-40 using proper TypeScript types",
-      "Remove unused variables/imports from 104 to 40-50 without breaking functionality",
-      "Fix useEffect dependency arrays from 10 to 0-2 warnings safely",
-      "Maintain all existing component functionality and behavior",
-      "Preserve React hook patterns and avoid infinite re-render loops"
-    ],
-    "non_functional_requirements": [
-      "TypeScript compilation must succeed after all changes",
-      "React development server must start without errors",
-      "No new console warnings or errors introduced",
-      "Component behavior preserved - no functional regressions",
-      "Build process must complete successfully"
-    ]
-  },
-
-  "inputs_and_outputs": {
-    "inputs": {
-      "eslint_baseline": {
-        "type": "Current warning state from QWEN CLI",
-        "total_warnings": "200 remaining",
-        "categories": {
-          "no_explicit_any": "84 warnings",
-          "no_unused_vars": "104 warnings",
-          "exhaustive_deps": "10 warnings",
-          "only_export_components": "2 warnings"
-        },
-        "validation": "Must build on QWEN CLI progress without reverting fixes"
-      },
-      "typescript_context": {
-        "type": "React/TypeScript project",
-        "framework": "React 18 with TypeScript, Tailwind CSS",
-        "patterns": "Existing interfaces and type definitions in codebase",
-        "validation": "Must follow established typing patterns"
+      "context_driven_development": {
+        "strategy": "Use comprehensive QWEN handoff documentation",
+        "evidence": "Reduces context gaps and prevents duplicate work",
+        "mandatory_implementation": "Review QWEN session results before starting"
       }
     },
-    "expected_outputs": {
-      "reduced_warnings": {
-        "format": "Significantly reduced ESLint warning count",
-        "targets": {
-          "no_explicit_any": "84 → 30-40 warnings",
-          "no_unused_vars": "104 → 40-50 warnings",
-          "exhaustive_deps": "10 → 0-2 warnings"
-        },
-        "validation": "npm run lint shows measurable improvement"
+
+    "improvement_areas_addressed": {
+      "build_stability_requirements": {
+        "identified_issue": "Gemini introduced TypeScript errors requiring Claude fixes",
+        "solution_implemented": "Mandatory build validation gates after each session",
+        "validation_gates": [
+          "npx tsc --noEmit (zero compilation errors required)",
+          "npm run build (successful build completion required)",
+          "Component rendering verification",
+          "Import dependency validation"
+        ]
       },
-      "maintained_functionality": {
-        "format": "All components continue to work as before",
-        "structure": "No breaking changes to component behavior",
-        "api_compatibility": "TypeScript compilation succeeds"
+      "dependency_management": {
+        "identified_issue": "Import/export dependencies required manual resolution",
+        "solution_implemented": "Pre-session dependency analysis and automated resolution",
+        "prevention_strategies": [
+          "Component dependency mapping before changes",
+          "Import/export validation after modifications",
+          "Circular dependency detection and prevention"
+        ]
+      },
+      "integration_assurance": {
+        "identified_issue": "Context gaps between Gemini and Claude phases",
+        "solution_implemented": "Comprehensive handoff with integration points",
+        "requirements": [
+          "Component architecture documentation",
+          "TypeScript interface definitions",
+          "Validation gate results",
+          "Integration testing checkpoints"
+        ]
       }
-    },
-    "edge_cases": [
-      "Type changes that break component interfaces",
-      "Removing imports that other files depend on",
-      "useEffect changes causing infinite re-renders",
-      "Gemini CLI MCP timeouts during long operations"
-    ]
-  },
-
-  "constraints_and_restrictions": {
-    "technical_limitations": [
-      "TypeScript compilation must not break during or after changes",
-      "React component behavior must remain identical after type changes",
-      "Cannot remove imports that might be used by other files in project",
-      "useEffect dependency changes must not create infinite re-render loops"
-    ],
-    "gemini_cli_limitations": [
-      "MCP timeout behavior unknown - assume similar to QWEN CLI issues",
-      "Must work with native Gemini CLI tools as primary approach",
-      "Sessions must be kept under 30 minutes to prevent MCP exhaustion",
-      "Cannot rely on continuous MCP availability during work"
-    ],
-    "safety_requirements": [
-      "No functional changes to component logic allowed",
-      "Must preserve all existing React hook patterns",
-      "Cannot modify component interfaces or prop types",
-      "Must maintain backward compatibility with all existing code"
-    ],
-    "coordination_requirements": [
-      "Must build upon QWEN CLI work without reverting previous fixes",
-      "Must prepare clean handoff to Claude for final validation",
-      "Must document any MCP timeout issues encountered",
-      "Must report exact warning count reductions achieved"
-    ]
-  },
-
-  "apis_and_integrations": {
-    "internal_apis": [
-      {
-        "endpoint": "PUT /api/users/profile",
-        "purpose": "Update user profile with venue/gallera fields",
-        "current_issue": "Returns 400 for venue/gallera profile updates",
-        "required_fields": "businessName, businessAddress, businessPhone, taxId, licenseNumber, identificationNumber",
-        "expected_response": "200 status with updated profile data"
-      }
-    ],
-    "external_dependencies": [
-      {
-        "library": "ReactQuill 3.x",
-        "purpose": "WYSIWYG editor for article creation",
-        "migration_required": "Upgrade from 2.0.0 to fix findDOMNode compatibility",
-        "css_imports": "react-quill/dist/quill.snow.css (single import location)"
-      }
-    ],
-    "database_schema": {
-      "users_table": "Contains profileInfo JSONB field for venue/gallera additional data",
-      "profile_fields": "businessName, businessAddress, businessPhone, taxId, licenseNumber for venues; identificationNumber for galleras",
-      "validation": "Backend validates role-specific required fields"
     }
   },
 
-  "test_driven_development": {
-    "unit_tests_before_implementation": [
-      {
-        "test": "ArticleEditor renders without console errors",
-        "file": "src/tests/components/ArticleEditor.test.tsx",
-        "assertion": "expect(console.error).not.toHaveBeenCalled()",
-        "setup": "Mock ReactQuill component, render ArticleEditor"
+  "enhanced_build_stability_focus": {
+    "mandatory_validation_gates": {
+      "gate_1_typescript_compilation": {
+        "command": "npx tsc --noEmit",
+        "success_criteria": "Zero TypeScript compilation errors",
+        "timeout": "120 seconds",
+        "failure_action": "Immediate session rollback and error analysis",
+        "critical_requirement": "MUST PASS - No exceptions"
       },
-      {
-        "test": "Profile form shows venue fields for venue users",
-        "file": "src/tests/pages/Profile.test.tsx",
-        "assertion": "expect(screen.getByLabelText('Business Name')).toBeInTheDocument()",
-        "setup": "Mock user with role='venue', render Profile component"
+      "gate_2_build_process": {
+        "command": "npm run build",
+        "success_criteria": "Successful build completion in dist/ folder",
+        "timeout": "180 seconds",
+        "failure_action": "Full session rollback required",
+        "critical_requirement": "MUST PASS - Build integrity essential"
       },
-      {
-        "test": "Profile form hides venue fields for regular users",
-        "file": "src/tests/pages/Profile.test.tsx",
-        "assertion": "expect(screen.queryByLabelText('Business Name')).not.toBeInTheDocument()",
-        "setup": "Mock user with role='user', render Profile component"
+      "gate_3_component_rendering": {
+        "command": "npm run dev & sleep 15 && curl -s http://localhost:3000 > /dev/null",
+        "success_criteria": "Development server starts without errors",
+        "timeout": "60 seconds",
+        "failure_action": "Component integration issue investigation",
+        "critical_requirement": "Component functionality preserved"
       },
-      {
-        "test": "Profile update succeeds for venue users",
-        "file": "src/tests/pages/Profile.test.tsx",
-        "assertion": "expect(mockApiCall).toHaveBeenCalledWith(expect.objectContaining({ businessName: 'Test Business' }))",
-        "setup": "Mock successful API response, submit venue profile form"
-      }
-    ],
-    "integration_tests": [
-      {
-        "test": "Article creation flow works end-to-end",
-        "scenario": "Click crear articulo → ReactQuill loads → Type content → Save article",
-        "success_criteria": "Article saved without errors, redirects to article list"
-      },
-      {
-        "test": "Venue profile update flow works end-to-end",
-        "scenario": "Venue user → Profile page → Fill business fields → Save → Success message",
-        "success_criteria": "Profile updated, no 400 errors, success notification shown"
-      }
-    ],
-    "mock_data": {
-      "venue_user": {
-        "id": "test-venue-001",
-        "role": "venue",
-        "email": "venue@test.com",
-        "profileInfo": {
-          "fullName": "Test Venue Owner",
-          "businessName": "Test Venue",
-          "businessAddress": "123 Test St",
-          "businessPhone": "+1234567890"
-        }
-      },
-      "gallera_user": {
-        "id": "test-gallera-001",
-        "role": "gallera",
-        "email": "gallera@test.com",
-        "profileInfo": {
-          "fullName": "Test Gallera Owner",
-          "identificationNumber": "ID123456789"
-        }
+      "gate_4_import_dependencies": {
+        "commands": [
+          "grep -r 'Cannot find module' src/ | wc -l",
+          "grep -r 'Module not found' src/ | wc -l"
+        ],
+        "success_criteria": "Zero broken import/export references",
+        "failure_action": "Fix imports before proceeding to Claude",
+        "critical_requirement": "Dependency integrity maintained"
       }
     },
-    "coverage_criteria": "Minimum 80% test coverage for modified components"
-  },
 
-  "development_phases": {
-    "phase_1_setup_and_tests": {
-      "duration": "10 minutes",
-      "tasks": [
-        "Create failing unit tests for ReactQuill compatibility",
-        "Create failing tests for venue/gallera profile fields",
-        "Set up test mocks for user roles and API responses"
-      ],
-      "checkpoint": "All tests written and failing as expected"
-    },
-    "phase_2_minimal_implementation": {
-      "duration": "20 minutes",
-      "tasks": [
-        "Fix ReactQuill findDOMNode error (upgrade to 3.x or ref-based solution)",
-        "Add conditional venue/gallera fields to Profile component",
-        "Extend UserProfileForm validation for new fields"
-      ],
-      "checkpoint": "All unit tests passing, components compile without errors"
-    },
-    "phase_3_integration_and_refinement": {
-      "duration": "10 minutes",
-      "tasks": [
-        "Test end-to-end article creation flow",
-        "Test end-to-end venue/gallera profile update flow",
-        "Refine error handling and validation messages"
-      ],
-      "checkpoint": "Integration tests passing, no console errors, 400 errors resolved"
+    "failure_recovery_protocols": {
+      "typescript_compilation_failure": {
+        "immediate_action": "Stop session, analyze TypeScript errors",
+        "recovery_steps": [
+          "Identify specific type errors introduced",
+          "Revert problematic type changes",
+          "Re-attempt with simpler type patterns",
+          "Document error patterns for future prevention"
+        ],
+        "escalation": "Claude intervention if errors persist after recovery attempt"
+      },
+      "build_process_failure": {
+        "immediate_action": "Full session rollback to last known good state",
+        "recovery_steps": [
+          "Restore git state: git reset --hard HEAD~1",
+          "Verify build process works again",
+          "Analyze build logs for failure cause",
+          "Restart session with reduced scope"
+        ],
+        "escalation": "Claude analysis for complex build issues"
+      },
+      "component_rendering_failure": {
+        "immediate_action": "Component integration analysis",
+        "recovery_steps": [
+          "Check for breaking changes to component interfaces",
+          "Verify component exports and imports",
+          "Test component in isolation",
+          "Fix integration issues or revert changes"
+        ],
+        "escalation": "Claude comprehensive integration testing"
+      }
     }
   },
 
-  "coding_conventions": {
-    "react_patterns": [
-      "Use functional components with hooks",
-      "Implement proper TypeScript interfaces for props",
-      "Use conditional rendering for role-specific fields: {user.role === 'venue' && <VenueFields />}",
-      "Follow existing form validation patterns from EditVenueGalleraModal.tsx"
-    ],
-    "styling_approach": [
-      "Use existing Tailwind CSS classes",
-      "Maintain consistent form field spacing and layout",
-      "Follow existing modal and form styling patterns",
-      "Ensure responsive design for all form fields"
-    ],
-    "file_structure": [
-      "Keep ArticleEditor.tsx in components/articles/",
-      "Profile.tsx remains in pages/user/",
-      "UserProfileForm.tsx in components/forms/",
-      "Tests in src/tests/ matching component structure"
-    ]
-  },
-
-  "context_injection": {
-    "existing_patterns_to_follow": [
-      {
-        "file": "frontend/src/components/admin/EditVenueGalleraModal.tsx",
-        "pattern": "Venue/gallera field handling and validation",
-        "specific_code": "businessName, businessAddress, businessPhone, taxId, licenseNumber fields",
-        "usage": "Copy validation patterns and field structure for Profile extension"
+  "enhanced_dependency_management": {
+    "pre_session_dependency_analysis": {
+      "component_mapping": {
+        "command": "grep -r 'import.*from.*\\.\\./' src/ | grep [target-components] | sort",
+        "purpose": "Map component interdependencies before modifications",
+        "analysis_output": "List of files that import target components"
       },
-      {
-        "file": "frontend/src/components/forms/UserProfileForm.tsx",
-        "pattern": "Form validation and submission",
-        "specific_code": "Form validation using react-hook-form or similar",
-        "usage": "Extend existing validation schema for venue/gallera fields"
+      "type_dependency_mapping": {
+        "command": "grep -r 'import.*type.*from' src/ | sort",
+        "purpose": "Identify TypeScript type dependencies",
+        "analysis_output": "Type import relationships across components"
       },
-      {
-        "file": "frontend/src/components/articles/ArticleEditor.tsx",
-        "pattern": "Current ReactQuill integration",
-        "specific_code": "ReactQuill component usage and configuration",
-        "usage": "Understand current implementation before fixing compatibility issues"
+      "export_analysis": {
+        "command": "grep -r '^export' src/ | grep [target-files]",
+        "purpose": "Document current exports before modification",
+        "analysis_output": "Baseline of component/type exports"
       }
-    ],
-    "architectural_decisions": [
-      "Role-based conditional rendering established in admin components",
-      "Form validation using consistent patterns across the app",
-      "TypeScript interfaces defined in types/index.ts",
-      "API calls using services/api.ts with proper error handling"
-    ],
-    "technical_constraints": [
-      "React 18 strict mode requires ReactQuill 3.x compatibility",
-      "Existing CSS classes should not be modified",
-      "ProfileInfo JSONB structure in database must be respected",
-      "Authentication context provides user role information"
-    ]
-  },
-
-  "risk_mitigation": {
-    "gemini_specific_failure_patterns": [
-      {
-        "pattern": "Over-engineering simple fixes",
-        "prevention": "Focus on minimal changes to fix ReactQuill compatibility, don't redesign entire component",
-        "detection": "If implementation includes >20 lines of new code for ReactQuill fix, it's over-engineered"
-      },
-      {
-        "pattern": "Breaking existing functionality",
-        "prevention": "Test existing article creation flow before and after changes",
-        "rollback": "git checkout -- components/articles/ if article creation breaks"
-      },
-      {
-        "pattern": "Incorrect form validation logic",
-        "prevention": "Follow exact patterns from EditVenueGalleraModal.tsx for field validation",
-        "detection": "If venue users can save profiles without required business fields, validation is wrong"
-      },
-      {
-        "pattern": "CSS conflicts with ReactQuill styles",
-        "prevention": "Import react-quill/dist/quill.snow.css only once, check for conflicts",
-        "detection": "If editor styling breaks, CSS conflict occurred"
-      }
-    ],
-    "system_integration_risks": [
-      {
-        "risk": "Profile API returns 400 after changes",
-        "mitigation": "Test with actual API calls, ensure backend expects new fields",
-        "fallback": "Revert to original Profile.tsx if API integration fails"
-      },
-      {
-        "risk": "ReactQuill upgrade breaks other components",
-        "mitigation": "Search for other ReactQuill usage before upgrading",
-        "fallback": "Use ref-based solution instead of library upgrade"
-      }
-    ],
-    "rollback_plan": [
-      "Phase 1: Revert specific component files if tests fail",
-      "Phase 2: Rollback package.json changes if ReactQuill upgrade breaks build",
-      "Phase 3: Full git checkout if system integration fails"
-    ]
-  },
-
-  "success_criteria": {
-    "objective_metrics": [
-      "no-explicit-any warnings: 84 → 30-40 (40-50% reduction)",
-      "no-unused-vars warnings: 104 → 40-50 (50-60% reduction)",
-      "exhaustive-deps warnings: 10 → 0-2 (80-100% reduction)",
-      "Total warnings: 200 → 75-100 (50% reduction overall)",
-      "TypeScript compilation: 0 errors after all changes"
-    ],
-    "functional_validation": [
-      "npm run build completes successfully after all changes",
-      "npm run dev starts without errors or new warnings",
-      "All React components render and behave identically",
-      "No new console errors or warnings introduced",
-      "No infinite re-render loops in components with useEffect changes"
-    ],
-    "pipeline_success": [
-      "Clean handoff to Claude with documented progress",
-      "Measurable improvement over QWEN CLI baseline",
-      "Clear remaining work identified for Claude completion",
-      "MCP timeout strategies documented if issues encountered",
-      "All git commits properly documented with warning counts"
-    ]
-  },
-
-  "recommended_agents": {
-    "primary_agent": "--frontend-architect --focus accessibility --safe-mode",
-    "support_agent": "--quality-engineer --validate --scope module",
-    "testing_agent": "--quality-engineer --focus testing --validate",
-    "agent_rationale": {
-      "frontend_architect": "Expert in React/TypeScript frontend issues, ReactQuill compatibility, component interfaces",
-      "quality_engineer": "Validates component functionality and form handling without breaking existing patterns",
-      "focus_accessibility": "Ensures form enhancements maintain accessibility standards for venue/gallera users"
     },
-    "forbidden_agents": [
-      "--backend-architect (frontend-only task)",
-      "--security-engineer (could over-secure forms)",
-      "--performance-engineer (not performance issue)",
-      "--system-architect (too broad for component fixes)"
+
+    "dependency_validation_workflow": {
+      "before_modifications": [
+        "Document all components that import target files",
+        "Identify type definitions that might be affected",
+        "Create dependency risk assessment",
+        "Plan modification sequence to minimize breaks"
+      ],
+      "during_modifications": [
+        "Check TypeScript compilation after each significant change",
+        "Verify component exports remain intact",
+        "Update import paths if components are moved or renamed",
+        "Test component rendering after interface changes"
+      ],
+      "after_modifications": [
+        "Full dependency validation across entire project",
+        "Integration testing for modified components",
+        "Verify no circular dependencies introduced",
+        "Document all dependency changes made"
+      ]
+    },
+
+    "automatic_dependency_resolution": {
+      "missing_exports": {
+        "detection": "TypeScript compilation errors about missing exports",
+        "resolution": "Add missing export statements or update import paths",
+        "validation": "Verify exports resolve correctly across project"
+      },
+      "type_import_issues": {
+        "detection": "Cannot find name or type errors in compilation",
+        "resolution": "Add proper type imports or export type definitions",
+        "validation": "Ensure type inference works correctly"
+      },
+      "circular_dependencies": {
+        "detection": "Use dependency analysis tools or compilation warnings",
+        "resolution": "Extract shared types to common files or break dependency cycles",
+        "prevention": "Check import patterns before moving code"
+      }
+    }
+  },
+
+  "enhanced_typescript_specialization": {
+    "advanced_pattern_implementations": {
+      "complex_type_inference": {
+        "focus": "Advanced TypeScript patterns building on QWEN foundation",
+        "examples": [
+          "Generic type constraints and conditional types",
+          "Advanced utility types (Pick, Omit, Partial, Required)",
+          "Complex union and intersection types",
+          "Type guards and type predicates"
+        ],
+        "build_stability_requirement": "All advanced patterns must compile successfully"
+      },
+      "react_typescript_specialization": {
+        "focus": "React-specific TypeScript patterns and optimizations",
+        "examples": [
+          "Advanced component prop typing with generics",
+          "Custom hook type definitions",
+          "Context and reducer type safety",
+          "Event handler type specifications"
+        ],
+        "integration_requirement": "All React patterns must render correctly"
+      },
+      "interface_design_optimization": {
+        "focus": "Component architecture and interface improvements",
+        "examples": [
+          "Extensible component interfaces",
+          "Type-safe component composition patterns",
+          "Advanced prop validation and defaults",
+          "Component API consistency improvements"
+        ],
+        "compatibility_requirement": "Maintain backward compatibility with existing usage"
+      }
+    },
+
+    "session_specialization_breakdown": {
+      "session_1_advanced_types": {
+        "id": "gemini_session_1_enhanced",
+        "focus": "Advanced TypeScript type replacements building on QWEN work",
+        "duration": "20-30 minutes",
+        "prerequisites": "Review QWEN handoff documentation",
+        "specialization_areas": [
+          "Complex generic types where QWEN used simple replacements",
+          "Advanced utility types for component props",
+          "Conditional types for better type inference",
+          "Type guards for runtime type safety"
+        ],
+        "build_stability_checkpoints": [
+          "TypeScript compilation after each complex type addition",
+          "Component rendering verification for type changes",
+          "Integration testing for modified interfaces"
+        ]
+      },
+      "session_2_react_patterns": {
+        "id": "gemini_session_2_enhanced",
+        "focus": "React-specific TypeScript optimizations",
+        "duration": "20-30 minutes",
+        "specialization_areas": [
+          "Custom hook type definitions and constraints",
+          "Context provider and consumer type safety",
+          "Event handler specifications with proper types",
+          "Component composition patterns with generics"
+        ],
+        "integration_requirements": [
+          "All React hooks must function correctly",
+          "Context usage must maintain type safety",
+          "Event handlers must work with proper type inference"
+        ]
+      },
+      "session_3_component_architecture": {
+        "id": "gemini_session_3_enhanced",
+        "focus": "Component interface optimization and architecture improvements",
+        "duration": "20-30 minutes",
+        "specialization_areas": [
+          "Component prop interface consolidation",
+          "Type-safe component composition",
+          "Advanced component pattern implementations",
+          "API consistency improvements across components"
+        ],
+        "compatibility_requirements": [
+          "Existing component usage must continue working",
+          "New interfaces must be backward compatible",
+          "Component rendering must remain identical"
+        ]
+      }
+    }
+  },
+
+  "enhanced_context_preservation": {
+    "qwen_handoff_integration": {
+      "required_qwen_documentation_review": {
+        "files_modified": "Understand exactly what files QWEN changed",
+        "warning_reductions": "Build on QWEN's ESLint warning progress",
+        "patterns_established": "Continue successful type patterns from QWEN",
+        "patterns_to_avoid": "Learn from QWEN's documented failures"
+      },
+      "work_coordination": {
+        "no_duplication": "Never redo work that QWEN completed successfully",
+        "build_on_foundation": "Use QWEN's foundation for advanced specialization",
+        "fill_gaps": "Address areas QWEN identified but couldn't handle",
+        "maintain_progress": "Preserve all QWEN warning reduction gains"
+      }
+    },
+
+    "claude_handoff_preparation": {
+      "comprehensive_documentation": {
+        "components_created_modified": "Detailed list of all component changes made",
+        "typescript_patterns_implemented": "Advanced patterns used and their rationale",
+        "build_validation_results": "Complete results from all validation gates",
+        "integration_points_identified": "Areas requiring Claude integration testing"
+      },
+      "context_gap_prevention": {
+        "decision_rationale": "Why specific TypeScript patterns were chosen",
+        "complexity_assessment": "Which areas require Claude's specialized attention",
+        "risk_mitigation": "Potential integration issues flagged for Claude",
+        "success_metrics": "Quantified improvements and validation results"
+      }
+    }
+  },
+
+  "enhanced_session_execution": {
+    "pre_session_requirements": {
+      "qwen_handoff_review": "Thoroughly review QWEN session documentation",
+      "dependency_baseline": "Establish current component dependency state",
+      "build_baseline": "Verify TypeScript compilation and build process work",
+      "git_backup": "Create checkpoint for rollback if needed"
+    },
+    "session_execution_pattern": {
+      "specialization_focus": "Advanced TypeScript patterns beyond QWEN scope",
+      "build_validation": "TypeScript compilation check after each significant change",
+      "integration_testing": "Component rendering verification throughout session",
+      "dependency_monitoring": "Watch for import/export issues during modifications"
+    },
+    "session_end_validation": {
+      "mandatory_gates": "All 4 validation gates must pass without exception",
+      "integration_verification": "Components render and function correctly",
+      "handoff_preparation": "Comprehensive documentation for Claude phase",
+      "context_preservation": "No information gaps for Claude continuation"
+    }
+  },
+
+  "success_criteria_enhanced": {
+    "technical_excellence": {
+      "typescript_advancement": "Advanced TypeScript patterns implemented successfully",
+      "build_stability_maintained": "100% of validation gates pass",
+      "component_integrity": "All components render and function correctly",
+      "dependency_resolution": "All import/export relationships intact"
+    },
+    "specialization_value": {
+      "beyond_qwen_scope": "Advanced patterns QWEN couldn't handle implemented",
+      "react_typescript_optimization": "React-specific improvements delivered",
+      "architecture_enhancement": "Component interfaces and patterns improved",
+      "type_safety_advancement": "Overall type safety significantly enhanced"
+    },
+    "pipeline_contribution": {
+      "foundation_utilization": "QWEN foundation effectively built upon",
+      "context_preservation": "Complete context maintained for Claude validation",
+      "integration_readiness": "Clean handoff prepared for Claude integration testing",
+      "token_efficiency": "50%+ token savings achieved through specialization"
+    }
+  },
+
+  "validation_gate_specifications": {
+    "level_2_component_validation": {
+      "applicable_to": "All Gemini CLI sessions",
+      "gate_sequence": [
+        {
+          "name": "TypeScript Compilation Verification",
+          "command": "npx tsc --noEmit",
+          "timeout": "120 seconds",
+          "success_criteria": "Exit code 0 with zero compilation errors",
+          "failure_action": "Immediate session rollback",
+          "critical_requirement": "Must pass - non-negotiable"
+        },
+        {
+          "name": "Build Process Completion",
+          "command": "npm run build",
+          "timeout": "180 seconds",
+          "success_criteria": "Successful dist/ folder generation",
+          "failure_action": "Full session rollback",
+          "critical_requirement": "Build integrity essential"
+        },
+        {
+          "name": "Import Dependency Integrity",
+          "commands": [
+            "grep -r 'Cannot find module' src/",
+            "grep -r 'Module not found' src/"
+          ],
+          "success_criteria": "Zero missing module errors",
+          "failure_action": "Fix imports before proceeding",
+          "critical_requirement": "Dependency integrity maintained"
+        },
+        {
+          "name": "Component Rendering Validation",
+          "command": "npm run dev & sleep 15 && curl -s http://localhost:3000",
+          "success_criteria": "Development server starts successfully",
+          "failure_action": "Component integration investigation",
+          "critical_requirement": "Functional correctness verified"
+        }
+      ]
+    }
+  },
+
+  "handoff_documentation_template": {
+    "session_summary_comprehensive": {
+      "ai_used": "GEMINI CLI",
+      "session_id": "[session_1/session_2/session_3]_enhanced",
+      "duration_actual": "Exact minutes spent on specialization work",
+      "focus_area": "Advanced TypeScript patterns and React specialization",
+      "qwen_foundation_utilized": "How QWEN work was built upon",
+      "validation_gates_status": "All 4 gates passed with detailed results"
+    },
+    "specialization_work_detailed": {
+      "components_modified": [
+        {
+          "component_path": "src/components/example/Component.tsx",
+          "changes_made": "Advanced generic types, React hook typing",
+          "interfaces_added": "New TypeScript interfaces created",
+          "patterns_implemented": "Specific advanced patterns used"
+        }
+      ],
+      "typescript_improvements": {
+        "advanced_types_added": "List of complex types implemented",
+        "react_patterns_optimized": "React-specific TypeScript improvements",
+        "type_safety_enhancements": "Areas where type safety was significantly improved",
+        "architectural_improvements": "Component architecture and interface optimizations"
+      }
+    },
+    "claude_handoff_context": {
+      "integration_points": "Components/areas requiring Claude integration testing",
+      "validation_results": "Comprehensive results from all validation gates",
+      "remaining_complexity": "Areas that may require Claude's architectural expertise",
+      "success_metrics": "Quantified TypeScript and component improvements achieved"
+    },
+    "build_stability_assurance": {
+      "typescript_compilation": "✅ Zero compilation errors across entire project",
+      "build_process": "✅ Complete build success with no warnings",
+      "component_rendering": "✅ All components render correctly in development",
+      "dependency_integrity": "✅ All import/export relationships intact"
+    }
+  },
+
+  "brain_system_integration": {
+    "real_time_updates": {
+      "session_progress": "Update brain system after each session completion",
+      "validation_results": "Record all validation gate results",
+      "pattern_success": "Document successful advanced TypeScript patterns",
+      "integration_insights": "Capture component integration learnings"
+    },
+    "continuous_optimization": {
+      "pattern_library_expansion": "Add successful patterns to reusable library",
+      "validation_gate_refinement": "Optimize validation timing and thresholds",
+      "handoff_quality_improvement": "Enhance Claude handoff based on feedback",
+      "specialization_area_expansion": "Identify new areas for Gemini specialization"
+    }
+  },
+
+  "final_deliverable_checklist": {
+    "technical_completion": [
+      "✅ Advanced TypeScript patterns successfully implemented",
+      "✅ All validation gates pass without exception",
+      "✅ Component architecture enhanced with type safety",
+      "✅ React-specific optimizations delivered"
+    ],
+    "build_stability_assurance": [
+      "✅ TypeScript compilation maintained throughout",
+      "✅ Build process integrity preserved",
+      "✅ Component rendering functionality verified",
+      "✅ Import/export dependencies intact"
+    ],
+    "pipeline_integration": [
+      "✅ QWEN foundation effectively built upon",
+      "✅ Context gaps eliminated for Claude handoff",
+      "✅ Specialization value clearly delivered",
+      "✅ Token efficiency targets achieved"
+    ],
+    "documentation_completion": [
+      "✅ Comprehensive session documentation generated",
+      "✅ Advanced pattern implementations documented",
+      "✅ Validation results thoroughly recorded",
+      "✅ Claude handoff context complete"
     ]
-  },
-
-  "agent_workflow": {
-    "phase_1_reactquill_fix": "--frontend-architect --focus accessibility --safe-mode",
-    "phase_2_profile_enhancement": "--frontend-architect --quality-engineer --scope module",
-    "phase_3_form_validation": "--quality-engineer --focus testing --validate",
-    "execution_pattern": "Fix ReactQuill first, then enhance Profile component with proper form validation"
-  },
-
-  "gemini_cli_execution_workflow": {
-    "pre_session_checklist": [
-      "Verify current ESLint warning count: npm run lint | tail -5",
-      "Check git status and create feature branch",
-      "Review QWEN CLI changes to understand baseline",
-      "Plan single warning category focus for session"
-    ],
-    "session_execution_pattern": [
-      "Use Gemini CLI native tools for search/edit operations",
-      "If MCP timeouts occur, switch immediately to fallback strategy",
-      "Focus on single warning type completion per session",
-      "NO npm run lint validation during active work",
-      "Commit changes at session end with warning count documentation"
-    ],
-    "mcp_fallback_procedures": [
-      "Document which MCP operations timed out",
-      "Provide exact shell commands as alternatives",
-      "Continue with available tools rather than stopping work",
-      "Report MCP issues for future Gemini CLI optimization"
-    ],
-    "session_end_validation": [
-      "npm run lint to verify warning count reduction",
-      "npm run build to ensure TypeScript compilation",
-      "git add . && git commit with descriptive message",
-      "Document progress for Claude handoff"
-    ]
-  },
-
-  "final_deliverables": {
-    "warning_reduction": [
-      "Measurable reduction in ESLint warnings from 200 → 75-100",
-      "Specific category improvements documented",
-      "TypeScript compilation maintained throughout",
-      "No functional regressions introduced"
-    ],
-    "documentation": [
-      "Session-by-session progress report",
-      "MCP timeout issues encountered (if any)",
-      "Remaining work clearly identified for Claude",
-      "Git commit history with warning count tracking"
-    ],
-    "handoff_package": [
-      "Clean codebase ready for Claude final validation",
-      "All changes properly committed and documented",
-      "Remaining 75-100 warnings categorized for Claude completion",
-      "No blocking issues or broken functionality"
-    ]
-  },
-
-  "forbidden_files": [
-    "frontend/src/pages/user/Profile.tsx (unless ESLint-related)",
-    "frontend/src/contexts/AuthContext.tsx (unless ESLint-related)",
-    "backend/src/routes/auth.ts (backend - not in scope)",
-    "Any database files (not in scope)",
-    "Any authentication business logic (not in scope)"
-  ]
+  }
 }

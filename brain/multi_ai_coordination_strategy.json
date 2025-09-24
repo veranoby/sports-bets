@@ -1,49 +1,200 @@
 {
   "metadata": {
     "purpose": "Comprehensive Multi-AI Coordination Strategy for GalloBets Platform",
+    "version": "2.0",
     "created": "2025-09-21",
-    "based_on": "Real experience from sistema-agri + GalloBets specific requirements",
+    "updated": "2025-09-24",
+    "based_on": "Successful 3-AI pipeline with identified improvement areas",
     "project": "GalloBets - Professional Cockfighting Streaming Platform",
-    "optimization_focus": "15-day MVP delivery with minimal WebSocket complexity"
+    "optimization_focus": "Build stability, context preservation, dependency resolution"
   },
 
-  "ai_capability_matrix": {
+  "pipeline_lessons_learned": {
+    "success_patterns_to_preserve": {
+      "micro_session_approach": {
+        "duration": "20-30 minutes per AI session",
+        "evidence": "Prevents MCP timeouts and tool fatigue",
+        "application": "All AI workflows must use micro-sessions"
+      },
+      "single_warning_type_focus": {
+        "approach": "Complete one ESLint category per session",
+        "evidence": "Higher success rate than multi-phase approaches",
+        "application": "No multi-tasking within AI sessions"
+      },
+      "native_tool_fallback": {
+        "strategy": "AI-native tools first, shell commands as backup",
+        "evidence": "60% of MCP timeouts resolved with fallback strategies",
+        "application": "All AIs need fallback command sets"
+      },
+      "progressive_specialization": {
+        "workflow": "QWEN (basic cleanup) → Gemini (specialized types) → Claude (validation)",
+        "evidence": "50% token savings achieved through specialization",
+        "application": "Maintain AI specialization boundaries"
+      }
+    },
+
+    "improvement_areas_identified": {
+      "build_stability_issues": {
+        "problem": "Gemini introduced TypeScript errors requiring Claude fixes",
+        "root_cause": "No compilation validation gates between AI phases",
+        "solution_required": "Mandatory TypeScript validation after each AI session"
+      },
+      "context_preservation_gaps": {
+        "problem": "Some work duplication between QWEN and Gemini sessions",
+        "root_cause": "Insufficient handoff documentation and progress tracking",
+        "solution_required": "Enhanced context transfer protocols"
+      },
+      "hook_dependency_issues": {
+        "problem": "Import/export dependencies required manual Claude resolution",
+        "root_cause": "AIs not aware of component interdependencies",
+        "solution_required": "Dependency analysis and automated resolution patterns"
+      }
+    }
+  },
+
+  "enhanced_coordination_workflows": {
+    "build_validation_gates": {
+      "mandatory_after_each_ai_session": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "success_criteria": "Zero compilation errors",
+          "failure_action": "Immediate rollback and Claude intervention"
+        },
+        "eslint_validation": {
+          "command": "npm run lint",
+          "success_criteria": "Warning count reduction without new errors",
+          "failure_action": "Revert problematic files and document issues"
+        },
+        "build_process": {
+          "command": "npm run build",
+          "success_criteria": "Successful build completion",
+          "failure_action": "Full session rollback required"
+        },
+        "import_dependency_check": {
+          "command": "grep -r 'import.*from.*undefined' src/ || echo 'No undefined imports'",
+          "success_criteria": "No undefined import references",
+          "failure_action": "Fix import paths before proceeding"
+        }
+      },
+      "validation_workflow": {
+        "step_1": "AI completes session work",
+        "step_2": "Run all validation gates automatically",
+        "step_3": "If any gate fails, trigger rollback procedure",
+        "step_4": "If all gates pass, document progress and handoff",
+        "step_5": "Update brain system with validation results"
+      }
+    },
+
+    "enhanced_handoff_documentation": {
+      "context_transfer_requirements": {
+        "work_completed": {
+          "files_modified": "Exact list of files changed",
+          "warning_counts": "Before/after ESLint warning counts by category",
+          "patterns_applied": "Specific TypeScript patterns used",
+          "edge_cases_handled": "Unusual cases encountered and resolved"
+        },
+        "remaining_work": {
+          "files_needing_attention": "Specific files with remaining issues",
+          "warning_categories": "ESLint categories and estimated counts",
+          "complexity_assessment": "High/medium/low risk remaining items",
+          "dependency_concerns": "Import/export issues to watch for"
+        },
+        "context_preservation": {
+          "decisions_made": "Why certain approaches were chosen",
+          "patterns_avoided": "What was tried and didn't work",
+          "ai_specific_notes": "Insights for the next AI in sequence",
+          "validation_results": "Results of all build validation gates"
+        }
+      },
+      "handoff_template": {
+        "session_summary": {
+          "ai_used": "[QWEN/Gemini/Claude]",
+          "duration": "Actual time spent",
+          "focus_area": "Specific warning category or task",
+          "files_changed": "List with line count changes",
+          "warnings_before": "Category counts before session",
+          "warnings_after": "Category counts after session",
+          "validation_status": "All gates passed/failed with details"
+        },
+        "next_ai_context": {
+          "recommended_focus": "Highest priority remaining work",
+          "avoid_files": "Files that caused issues or are fragile",
+          "patterns_to_continue": "Successful type patterns established",
+          "estimated_duration": "Time estimate for next AI session"
+        }
+      }
+    },
+
+    "dependency_resolution_automation": {
+      "import_export_patterns": {
+        "component_dependency_mapping": {
+          "pre_session_analysis": "Analyze component import/export relationships",
+          "command": "grep -r 'import.*from.*\\.\\./' src/ | sort | uniq",
+          "purpose": "Identify interdependencies before making changes"
+        },
+        "automatic_resolution_patterns": {
+          "missing_exports": {
+            "detection": "grep -r 'export.*[ComponentName]' src/",
+            "resolution": "Add export statement or update import path",
+            "validation": "Verify import resolves correctly"
+          },
+          "circular_dependencies": {
+            "detection": "Use circular dependency detection tool",
+            "resolution": "Extract shared types to common file",
+            "prevention": "Check before moving component code"
+          },
+          "type_import_issues": {
+            "detection": "TypeScript compilation errors about missing types",
+            "resolution": "Add proper type imports or export types",
+            "validation": "TypeScript compilation succeeds"
+          }
+        }
+      },
+      "dependency_check_workflow": {
+        "before_ai_session": [
+          "Map current component dependencies",
+          "Identify files that import/export target files",
+          "Create dependency risk assessment"
+        ],
+        "during_ai_session": [
+          "Check imports after each file modification",
+          "Validate component exports still work",
+          "Update import paths if components moved"
+        ],
+        "after_ai_session": [
+          "Full dependency validation across project",
+          "Test component rendering with new dependencies",
+          "Document any dependency changes made"
+        ]
+      }
+    }
+  },
+
+  "ai_capability_matrix_enhanced": {
     "claude_strengths": {
       "architectural_analysis": {
         "rating": "5/5",
         "evidence": "Excellent SSE/WebSocket hybrid design, betting system architecture",
+        "enhanced_role": "Primary validation engine for all AI handoffs",
         "optimal_tasks": [
           "SSE/WebSocket hybrid architecture implementation",
           "Fight temporal logic design and validation",
-          "Betting window system architecture",
           "Database schema optimization (PostgreSQL/Neon)",
+          "Multi-AI coordination orchestration",
+          "Build validation and dependency resolution",
+          "Context gap analysis and integration testing"
+        ]
+      },
+      "validation_expertise": {
+        "rating": "5/5",
+        "evidence": "Comprehensive error analysis and systematic debugging",
+        "new_responsibility": "Final validation of all AI work",
+        "mandatory_tasks": [
+          "TypeScript compilation validation after each AI session",
+          "Import/export dependency resolution",
           "Integration testing and gap filling",
-          "Brain system optimization and knowledge management",
-          "Multi-AI coordination orchestration"
-        ]
-      },
-      "domain_understanding": {
-        "rating": "5/5",
-        "evidence": "Deep understanding of cockfighting business, PAGO/DOY logic, operator hierarchy",
-        "optimal_tasks": [
-          "Betting business logic validation",
-          "PAGO/DOY proposal system design",
-          "Operator role hierarchy implementation",
-          "Fight status temporal transitions",
-          "Revenue model optimization",
-          "Streaming workflow integration"
-        ]
-      },
-      "quality_engineering": {
-        "rating": "5/5",
-        "evidence": "Comprehensive testing, error handling, performance optimization",
-        "optimal_tasks": [
-          "Database performance optimization (<500ms queries)",
-          "Connection pool management (Neon.tech)",
-          "Error handling and recovery patterns",
-          "Integration validation and debugging",
-          "Performance monitoring implementation",
-          "SSE/WebSocket optimization"
+          "Build stability assurance",
+          "Context preservation between AI handoffs"
         ]
       }
     },
@@ -52,1015 +203,321 @@
       "react_typescript_mastery": {
         "rating": "5/5",
         "evidence": "Perfect React + TypeScript patterns, component architecture",
+        "enhanced_validation": "Must pass TypeScript compilation gates",
         "optimal_tasks": [
           "React component implementation with TypeScript",
-          "Complex UI state management",
-          "Component architecture and props/emits patterns",
-          "Tailwind CSS responsive layouts",
-          "Frontend integration with backend APIs"
+          "Complex UI state management with build validation",
+          "Component architecture with dependency checking",
+          "Tailwind CSS responsive layouts with compilation verification"
         ]
       },
-      "gallobets_domain_implementation": {
-        "rating": "5/5",
-        "evidence": "Correctly interprets betting logic, fight windows, operator hierarchy",
-        "optimal_tasks": [
-          "CurrentBettingPanel implementation",
-          "FightControl operator interface",
-          "Real-time betting UI with SSE updates",
-          "Admin dashboard components",
-          "Operator limited interface implementation"
-        ]
-      },
-      "ui_ux_excellence": {
-        "rating": "5/5",
-        "evidence": "Professional betting interfaces, real-time updates, responsive design",
-        "optimal_tasks": [
-          "Responsive betting interfaces",
-          "Real-time SSE data visualization",
-          "Admin/Operator dashboards",
-          "Mobile-first betting panels",
-          "Professional streaming controls"
-        ]
-      }
-    },
-
-    "gemini_gaps": {
-      "component_dependency_planning": {
-        "rating": "3/5",
-        "evidence": "May create references to non-existent components",
-        "mitigation": "Claude pre-implementation dependency analysis required"
-      },
-      "sse_websocket_integration": {
-        "rating": "3/5",
-        "evidence": "May not fully understand minimal WebSocket approach",
-        "mitigation": "Claude architectural validation for real-time patterns"
-      },
-      "database_optimization": {
-        "rating": "2/5",
-        "evidence": "Frontend focus, limited backend optimization experience",
-        "mitigation": "Claude handles all database performance work"
-      }
-    },
-
-    "qwen_strengths": {
-      "ui_enhancement_excellence": {
-        "rating": "4/5",
-        "evidence": "News/Articles CRUD enhancement: 85% complete, high-quality implementation",
-        "optimal_tasks": [
-          "ReactQuill WYSIWYG editor integration",
-          "Modal component enhancement and resizing (4xl modal implementation)",
-          "Image upload functionality with preview",
-          "Visual component improvements (carousel, cards)",
-          "Component styling with Tailwind CSS",
-          "Form layout optimization"
-        ]
-      },
-      "gemini_collaboration_results": {
-        "rating": "7/10",
-        "evidence": "ReactQuill + Profile enhancements delivered successfully (Sept 2025)",
-        "successful_implementations": [
-          "ReactQuill findDOMNode fix via react-quill-new@3.6.0 upgrade",
-          "Profile component venue/gallera role extensions",
-          "Business validation fields for venue users",
-          "Registration fields for gallera users",
-          "TypeScript compliance maintained throughout"
+      "build_stability_improvements": {
+        "new_requirement": "All Gemini work must pass compilation before handoff",
+        "validation_gates": [
+          "TypeScript compilation (npx tsc --noEmit)",
+          "Build process completion (npm run build)",
+          "Import dependency verification",
+          "Component rendering verification"
         ],
-        "efficiency_achieved": {
-          "time_savings": "60-70% vs Claude equivalent work",
-          "token_efficiency": "Significant savings confirmed",
-          "quality_delivered": "7/10 - Functional code, minimal testing"
-        },
-        "optimization_opportunities": [
-          "Test coverage requires explicit mandates in prompts",
-          "Integration validation needs Claude oversight",
-          "Documentation minimal but adequate for iteration"
-        ]
-      },
-      "rapid_implementation": {
-        "rating": "4/5",
-        "evidence": "Fast code generation when properly constrained + 40% token savings achieved",
-        "optimal_tasks": [
-          "New component creation in isolated directories",
-          "Simple TypeScript error fixes (@typescript-eslint/no-explicit-any)",
-          "Documentation updates",
-          "Test file creation",
-          "UI/UX enhancement tasks"
-        ]
-      },
-      "pattern_following": {
-        "rating": "4/5",
-        "evidence": "Good at following explicit patterns when provided",
-        "optimal_tasks": [
-          "Following established React patterns",
-          "Implementing predefined component structures",
-          "Creating new files based on templates",
-          "Simple CRUD implementations",
-          "Component enhancement based on specifications"
-        ]
+        "failure_protocol": "Immediate rollback if any validation gate fails"
       }
     },
 
-    "qwen_critical_weaknesses": {
-      "destructive_optimization": {
-        "rating": "1/5",
-        "evidence": "Deletes working code, uses placeholder comments",
-        "absolute_prevention": [
-          "NEVER allow modifications to working authentication",
-          "NEVER touch Profile.tsx or AuthContext.tsx",
-          "Maximum 30-minute sessions with validation",
-          "Immediate rollback on any errors"
-        ]
-      },
-      "architectural_understanding": {
-        "rating": "2/5",
-        "evidence": "Doesn't understand SSE/WebSocket hybrid approach",
-        "absolute_prevention": [
-          "No real-time architecture changes",
-          "No modification of betting window logic",
-          "No changes to fight temporal transitions",
-          "Additive-only implementations"
-        ]
-      },
-      "database_work": {
-        "rating": "1/5",
-        "evidence": "Cannot handle database performance issues",
-        "absolute_prevention": [
-          "Never use QWEN for database optimization",
-          "Never modify Sequelize models or queries",
-          "Claude-only for all database work",
-          "No connection pool modifications"
-        ]
-      }
-    }
-  },
-
-  "gallobets_specific_workflows": {
-    "workflow_1_sse_implementation": {
-      "phase_1_claude_architecture": {
-        "responsibility": "Complete SSE architecture design",
-        "deliverables": [
-          "SSE service architecture with event types",
-          "Admin real-time update patterns",
-          "Event subscription management",
-          "Error recovery and reconnection logic",
-          "Testing strategy for SSE endpoints"
-        ],
-        "brain_consultation": "sdd_system.json + backlog.json for context"
-      },
-      "phase_2_gemini_implementation": {
-        "responsibility": "React components with SSE integration",
-        "deliverables": [
-          "useSSE hook implementation",
-          "Admin dashboard with real-time updates",
-          "System monitoring component",
-          "Event status indicators",
-          "Operator notification panels"
-        ],
-        "constraints": [
-          "Follow Claude SSE architecture exactly",
-          "Use EventSource API correctly",
-          "Implement reconnection logic",
-          "Handle SSE errors gracefully"
-        ]
-      },
-      "phase_3_claude_validation": {
-        "responsibility": "Integration validation and optimization",
-        "deliverables": [
-          "End-to-end SSE testing",
-          "Performance optimization (<1s latency)",
-          "Error recovery validation",
-          "Brain system updates with patterns"
-        ]
-      }
-    },
-
-    "workflow_2_betting_windows": {
-      "phase_1_claude_design": {
-        "responsibility": "Fight temporal logic and betting windows",
-        "deliverables": [
-          "State machine for fight status transitions",
-          "Betting window opening/closing logic",
-          "PAGO/DOY proposal system design",
-          "Database schema for temporal betting",
-          "API endpoints specification"
-        ]
-      },
-      "phase_2_gemini_ui": {
-        "responsibility": "Betting interface implementation",
-        "deliverables": [
-          "CurrentBettingPanel component",
-          "BetCard with accept/reject logic",
-          "FightStatusIndicator real-time",
-          "Countdown timer for betting windows",
-          "PAGO/DOY proposal modals"
-        ]
-      },
-      "phase_3_integration": {
-        "responsibility": "Claude validates full flow",
-        "deliverables": [
-          "Temporal logic verification",
-          "WebSocket minimal for proposals only",
-          "SSE for bet updates",
-          "Database consistency validation"
-        ]
-      }
-    },
-
-    "workflow_3_operator_dashboard": {
-      "approach": "Claude architecture → Gemini UI → Claude validation",
-      "claude_deliverables": [
-        "Operator permission matrix",
-        "Limited admin tools specification",
-        "Event assignment logic",
-        "Streaming control permissions"
-      ],
-      "gemini_deliverables": [
-        "OperatorDashboard main component",
-        "EventManagement limited interface",
-        "StreamingControls for assigned events",
-        "FightControl temporal transitions"
-      ],
-      "validation": [
-        "Permission enforcement testing",
-        "Hierarchy validation (cannot modify admins)",
-        "Event assignment verification"
-      ]
-    },
-
-    "workflow_4_database_performance": {
-      "approach": "Claude-only (QWEN absolutely forbidden)",
-      "critical_issues": [
-        "Queries taking 1-3+ seconds",
-        "ETIMEDOUT errors from Neon.tech",
-        "Connection pool exhaustion"
-      ],
-      "claude_solutions": [
-        "Query optimization with indexes",
-        "Connection pool configuration",
-        "Lazy loading implementation",
-        "Caching strategy for hot data",
-        "Database monitoring setup"
-      ],
-      "success_metrics": [
-        "Queries < 500ms average",
-        "Zero ETIMEDOUT in production",
-        "Connection pool stability"
-      ]
-    }
-  },
-
-  "testing_protocol_optimization": {
-    "claude_testing_responsibilities": {
-      "pre_implementation": [
-        "Test strategy for SSE/WebSocket hybrid",
-        "Database performance baseline",
-        "Integration test planning",
-        "Brain system validation"
-      ],
-      "during_implementation": [
-        "Real-time system validation",
-        "Betting window temporal testing",
-        "Performance monitoring setup",
-        "Quality gate enforcement"
-      ],
-      "post_implementation": [
-        "End-to-end betting flow validation",
-        "Operator hierarchy verification",
-        "Streaming integration testing",
-        "Brain system knowledge updates"
-      ]
-    },
-
-    "gemini_testing_responsibilities": {
-      "component_level": [
-        "React component unit tests",
-        "TypeScript compilation validation",
-        "Tailwind responsive testing",
-        "SSE hook functionality"
-      ],
-      "ui_ux_validation": [
-        "Betting interface usability",
-        "Real-time update visibility",
-        "Mobile responsiveness",
-        "Error state handling"
-      ],
-      "limited_scope": [
-        "NO database performance testing",
-        "NO WebSocket architecture decisions",
-        "NO backend optimization",
-        "NO Sequelize query modification"
-      ]
-    },
-
-    "qwen_testing_restrictions": {
-      "allowed_testing": [
-        "npm run build validation",
-        "TypeScript error count reduction",
-        "Component compilation verification",
-        "Documentation accuracy"
-      ],
-      "forbidden_testing": [
-        "NO real-time system testing",
-        "NO database query testing",
-        "NO authentication flow testing",
-        "NO architectural validation"
-      ]
-    }
-  },
-
-  "constructive_vs_destructive_patterns": {
-    "constructive_patterns": {
-      "claude_constructive": [
-        "SSE/WebSocket hybrid architecture",
-        "Database performance optimization",
-        "Fight temporal logic design",
-        "Integration gap identification",
-        "Brain system synthesis"
-      ],
-      "gemini_constructive": [
-        "React component creation with TypeScript",
-        "Betting UI implementation",
-        "Admin/Operator dashboards",
-        "Responsive Tailwind layouts",
-        "Real-time data visualization"
-      ],
-      "qwen_constructive": [
-        "Isolated component creation only",
-        "TypeScript any cleanup (simple cases)",
-        "Documentation updates",
-        "Test file templates",
-        "README content additions"
-      ]
-    },
-
-    "destructive_patterns_prevention": {
-      "claude_risks": {
-        "over_engineering": "Adding unnecessary WebSocket complexity",
-        "prevention": "Stick to minimal WebSocket (PAGO/DOY only)"
-      },
-      "gemini_risks": {
-        "incomplete_sse": "Not implementing full SSE patterns",
-        "prevention": "Claude provides complete SSE specification"
-      },
-      "qwen_destructive": {
-        "profile_deletion": "Deleted working Profile.tsx functionality",
-        "auth_breaking": "Modified authentication breaking login",
-        "placeholder_abuse": "Replaces code with comments",
-        "prevention": [
-          "FORBIDDEN FILES list in every command",
-          "30-minute maximum sessions",
-          "Immediate testing after changes",
-          "git commit before QWEN session",
-          "Claude validation required"
-        ]
-      }
-    }
-  },
-
-  "agent_activation_optimization": {
-    "claude_optimal_agents": {
-      "system_architect": {
-        "activation_triggers": [
-          "SSE/WebSocket design decisions",
-          "Database schema modifications",
-          "Betting system architecture",
-          "Performance optimization needs"
-        ],
-        "coordination_with": "All AIs for architectural validation"
-      },
-      "backend_engineer": {
-        "activation_triggers": [
-          "Sequelize query optimization",
-          "Connection pool management",
-          "API endpoint design",
-          "Real-time service implementation"
-        ],
-        "coordination_with": "Gemini for API contract"
-      },
-      "quality_engineer": {
-        "activation_triggers": [
-          "Integration testing design",
-          "Performance monitoring",
-          "Error handling patterns",
-          "System validation"
-        ],
-        "coordination_with": "All AIs for quality gates"
-      }
-    },
-
-    "gemini_optimal_agents": {
-      "frontend_architect": {
-        "activation_triggers": [
-          "React component architecture",
-          "State management design",
-          "UI/UX pattern definition",
-          "TypeScript interface design"
-        ],
-        "coordination_with": "Claude for API integration"
-      },
-      "ui_engineer": {
-        "activation_triggers": [
-          "Betting panel implementation",
-          "Dashboard component creation",
-          "Responsive layout design",
-          "Real-time UI updates"
-        ],
-        "coordination_with": "Claude for data flow"
-      }
-    },
-
-    "qwen_agent_restrictions": {
-      "safe_agents": [
-        "None - QWEN should work without agent complexity"
-      ],
-      "forbidden_agents": [
-        "system-architect: Will break architecture",
-        "backend-engineer: Will destroy database queries",
-        "quality-engineer: Will delete 'problematic' code"
-      ]
-    }
-  },
-
-  "qwen_optimization_strategies": {
-    "qwen_cli_optimization_v3": {
-      "critical_discovery": "QWEN CLI external tool failing 60% due to internal MCP timeouts during 4-hour ESLint cleanup",
-      "root_cause_analysis": {
-        "primary_issue": "QWEN CLI's internal MCPs timeout with error -32001",
-        "secondary_issue": "Long sessions (4h) overwhelm QWEN CLI capabilities",
-        "tertiary_issue": "Hardware/connectivity insufficient for QWEN CLI MCPs",
-        "quaternary_issue": "Over-reliance on shell commands when MCPs fail"
-      },
-      "solution_v3_qwen_cli_focused": {
-        "philosophy": "Short tasks, native QWEN CLI tools, fallback strategies",
+    "qwen_cli_optimizations": {
+      "mcp_timeout_mitigation": {
+        "rating": "4/5 with fallback strategies",
+        "evidence": "60% MCP failures resolved with shell command fallbacks",
+        "enhanced_approach": "Native tools first, immediate fallback when MCPs fail",
         "session_optimization": {
-          "duration": "45-60 minutes maximum per session",
-          "task_scope": "Single warning type per session (not multi-phase)",
-          "break_pattern": "Complete → validate → commit → report → new session",
-          "hardware_considerations": "Account for QWEN CLI MCP limitations"
-        },
-        "qwen_cli_tool_strategy": {
-          "preferred_tools": [
-            "search_file_content (instead of grep via shell)",
-            "read_file and edit (instead of sed via shell)",
-            "glob for file discovery",
-            "run_shell_command (only as backup when MCPs fail)"
-          ],
-          "fallback_when_mcps_fail": [
-            "Provide exact sed/awk commands for manual execution",
-            "Break complex operations into atomic steps",
-            "Use QWEN CLI's limited shell access strategically"
-          ]
-        }
-      }
-    },
-    "qwen_cli_prompt_patterns": {
-      "qwen_cli_native_workflow": {
-        "pattern": "MANDATORY: Use QWEN CLI native tools when MCPs timeout",
-        "template": "1) search_file_content for patterns 2) read_file to understand 3) edit for changes 4) Final run_shell_command for validation",
-        "validation": "Fallback to shell commands only when QWEN CLI MCPs fail"
-      },
-      "qwen_cli_session_structure": {
-        "pattern": "Single warning type per 45-60min session",
-        "template": "Focus ONLY on [unused-vars|explicit-any|exhaustive-deps] in this session, complete fully before next type",
-        "validation": "Validate completion before moving to next warning category"
-      },
-      "qwen_cli_fallback_strategy": {
-        "pattern": "When QWEN CLI MCPs timeout, provide manual commands",
-        "template": "If search_file_content fails, use: grep -r 'pattern' src/ | head -20",
-        "validation": "Always provide shell command alternatives for QWEN CLI"
-      },
-      "scope_constraint_enforcement": {
-        "pattern": "LIMIT: Only modify files explicitly listed in task scope",
-        "template": "ALLOWED FILES: [list specific files]. FORBIDDEN: Any file not in this list, authentication files, database files, core architecture",
-        "validation": "Before starting, confirm file list. After completion, verify no unlisted files modified"
-      }
-    },
-    "qwen_cli_task_strategy_v3": {
-      "critical_discovery": "QWEN CLI V2 failed due to internal MCP timeouts, not command specificity. V3 focuses on QWEN CLI-specific workflow optimization.",
-      "core_problem_v2": {
-        "qwen_cli_mcp_cascade": "QWEN CLI's internal MCP error -32001 disrupted 60% of work",
-        "tool_dependency": "Over-reliance on QWEN CLI MCPs for basic operations",
-        "session_length": "4-hour sessions vs 45-60min optimal for QWEN CLI",
-        "validation_timing": "Continuous validation vs end-of-session batch"
-      },
-      "solution_v3_qwen_cli_optimized": {
-        "philosophy": "QWEN CLI native tools + focused sessions + fallback strategies",
-        "session_structure": "45-60min focused work + validation + commit + report",
-        "tool_strategy": "search_file_content → read_file → edit → run_shell_command (fallback)",
-        "rollback_strategy": "Any QWEN CLI MCP failure = switch to manual commands",
-        "success_pattern": "Single warning type completion × multiple sessions = reliable progress"
-      },
-      "qwen_cli_task_templates": {
-        "unused_import_removal_qwen_cli": {
-          "step_1": "search_file_content for unused imports pattern='import.*{[^}]*FileText[^}]*}'",
-          "step_2": "read_file to understand file structure and verify unused status",
-          "step_3": "edit to remove unused import from specific line",
-          "fallback": "If search_file_content timeouts: grep -r 'import.*FileText' src/",
-          "validation_defer": "run_shell_command for npm run lint at session end only",
-          "rollback": "git checkout -- [filename] if session validation fails"
-        },
-        "explicit_any_fix_qwen_cli": {
-          "step_1": "search_file_content for 'any' types pattern=': any'",
-          "step_2": "read_file to understand context and determine correct type",
-          "step_3": "edit to replace specific ': any' with proper type",
-          "fallback": "If search fails: grep -n ': any' [filename]",
-          "validation_defer": "NO immediate TypeScript check - defer to session end",
-          "rollback": "edit back to 'any' if end-session validation fails"
-        },
-        "unused_variable_removal_qwen_cli": {
-          "step_1": "search_file_content for unused variable patterns",
-          "step_2": "read_file to verify variable is truly unused",
-          "step_3": "edit to remove the variable declaration line",
-          "fallback": "If search fails: grep -n 'const.*=' [filename] | grep unused",
-          "validation_defer": "Skip immediate lint check - batch validate at session end",
-          "rollback": "edit to restore variable if needed"
+          "duration": "20-30 minutes maximum (reduced from 45-60)",
+          "focus": "Single warning type only per session",
+          "tools": "QWEN CLI native tools with documented fallback commands",
+          "validation": "Deferred to session end to prevent MCP fatigue"
         }
       },
-      "qwen_cli_execution_optimization": {
-        "session_structure": "45-60min focused work → validation → commit → report",
-        "error_budget": "0 tolerance for QWEN CLI MCP failures - immediate fallback to manual",
-        "mcp_fallback": "When QWEN CLI MCPs timeout, provide exact shell commands",
-        "progress_tracking": "Update brain after successful QWEN CLI session completion",
-        "time_boxing": "Single warning type per session vs multi-phase approach",
-        "hardware_awareness": "Account for QWEN CLI performance limitations"
-      },
-      "qwen_cli_success_metrics": {
-        "time_efficiency": "V1: 30-40 hours vs V3: 3-4 focused sessions of 1h each",
-        "accuracy_rate": "V2: 18% completion (63/309 warnings) vs V3: target 80%+ per session",
-        "mcp_reliability": "V2: 60% MCP failures vs V3: fallback strategies prevent blocks",
-        "session_completion": "V2: 4h incomplete vs V3: 1h focused completion rate"
+      "context_preservation": {
+        "new_requirement": "Detailed session documentation for Gemini handoff",
+        "handoff_data": [
+          "Exact files modified and warning counts",
+          "Patterns applied and avoided",
+          "MCP timeout issues encountered",
+          "Remaining work categorized by complexity"
+        ]
       }
-    },
+    }
+  },
 
-    "json_prompt_structure_optimization": {
-      "critical_discovery": "Current JSON prompts (qwen-prompt.json, gemini-prompt.json) lack mandatory comprehensive structure, causing incomplete implementations and context gaps",
-      "mandatory_structure_requirements": {
-        "knowledge_verification": {
-          "purpose": "Prevent context gaps and implementation errors",
-          "required_content": [
-            "Document QUÉ knowledge del proyecto consultaste",
-            "List componentes/fases ya implementados que afectan esta tarea",
-            "Identifica gaps de conocimiento que podrían causar errores"
-          ],
-          "example": "knowledge_verification: { consulted: ['Profile.tsx current implementation', 'EditVenueGalleraModal.tsx patterns'], existing_components: ['UserProfileForm', 'VenueEntityForm'], knowledge_gaps: ['Backend API validation for venue fields'] }"
-        },
-        "task_decomposition": {
-          "purpose": "Atomic tasks prevent overwhelming target AI with complex multi-step operations",
-          "requirements": [
-            "Descompón en subtareas atómicas (máximo 10 minutos cada una)",
-            "Cada subtarea debe tener criterio de éxito medible",
-            "Ordena por dependencias técnicas"
-          ],
-          "example": "task_decomposition: { subtasks: [{ task: 'Fix ReactQuill import error', duration: '5 min', success_criteria: 'Article editor loads without console errors' }] }"
-        },
-        "purpose_and_requirements": {
-          "critical_specificity": "Abstract purposes lead to implementation drift - must be domain-specific",
-          "required_sections": [
-            "Propósito específico (qué problema resuelve exactamente)",
-            "Requisitos funcionales (qué debe hacer)",
-            "Requisitos no-funcionales (performance, seguridad, etc.)"
-          ]
-        },
-        "inputs_and_outputs": {
-          "prevent_undefined_behavior": "Missing I/O specifications cause target AI to make assumptions",
-          "required_specification": [
-            "Parámetros de entrada con tipos, validaciones y ejemplos",
-            "Formato de salida esperado con estructura completa",
-            "Casos edge que debe manejar"
-          ]
-        },
-        "test_driven_development": {
-          "implementation_prevention": "Tests must be written BEFORE implementation to prevent broken states",
-          "mandatory_approach": [
-            "Tests unitarios que debe superar ANTES de implementar",
-            "Tests de integración con sistemas existentes",
-            "Datos mock específicos del dominio",
-            "Criterios de cobertura (mínimo 80%)"
-          ]
-        },
-        "context_injection": {
-          "pattern_consistency": "Target AI needs exact patterns to follow - prevents architecture drift",
-          "required_references": [
-            "Referencias a código existente que debe seguir como patrón",
-            "Arquitectura/esquemas que debe respetar",
-            "Decisiones técnicas previas que impactan la implementación"
-          ]
-        },
-        "risk_mitigation": {
-          "ai_specific_failures": "Each AI has known failure patterns that must be explicitly prevented",
-          "prevention_strategies": [
-            "Identificar puntos de fallo comunes de la herramienta target",
-            "Estrategias para evitar alucinaciones/código inconsistente",
-            "Plan de rollback si la implementación falla"
-          ]
-        }
-      },
-      "current_json_audit": {
-        "qwen_prompt_json": {
-          "missing_sections": ["knowledge_verification", "context_injection", "test_driven_development"],
-          "weak_sections": ["risk_mitigation (only safety rules)", "inputs_and_outputs (no examples)"],
-          "causes_failure": "Abstract 'systematic_approach' without specific commands led to 90% failure rate"
-        },
-        "gemini_prompt_json": {
-          "missing_sections": ["knowledge_verification", "task_decomposition", "test_driven_development", "inputs_and_outputs"],
-          "weak_sections": ["context_injection (missing pattern references)", "risk_mitigation (no failure patterns)"],
-          "improvement_needed": "Add specific ReactQuill patterns, form validation examples, test specifications"
-        }
-      },
-      "implementation_strategy": {
-        "next_json_creation": "Must include ALL 12 mandatory sections with domain-specific content",
-        "validation_checklist": [
-          "✅ JSON específico enough para eliminar ambigüedad?",
-          "✅ Incluye todo contexto necesario del proyecto?",
-          "✅ Tests están definidos ANTES que implementación?",
-          "✅ Tareas están descompuestas atómicamente?",
-          "✅ Configuración específica para herramienta target?"
+  "optimized_execution_workflows": {
+    "3_ai_pipeline_v2": {
+      "phase_1_qwen_cli": {
+        "duration": "20-30 minutes",
+        "focus": "Single ESLint warning category",
+        "tools": "QWEN CLI native with shell fallbacks",
+        "deliverables": [
+          "Specific warning category 50%+ reduction",
+          "Detailed handoff documentation",
+          "MCP timeout mitigation report"
         ],
-        "token_efficiency_gain": "Complete structure upfront = 60% fewer iterations = major token savings"
-      }
-    },
-
-    "iterative_refinement_prevention": {
-      "problem": "Qwen enters infinite testing loops",
-      "solution_pattern": "Single implementation → Claude validation only",
-      "workflow": [
-        "1. Qwen implements feature completely",
-        "2. Qwen stops and reports completion",
-        "3. Claude validates and fixes issues",
-        "4. NO return to Qwen for 'improvements'"
-      ],
-      "exit_criteria": "Feature functional, no critical errors, TypeScript compiles"
-    },
-
-    "progressive_enhancement_methodology": {
-      "approach": "Additive-only implementations for Qwen",
-      "rules": [
-        "Never delete existing functionality",
-        "Never modify working authentication/auth patterns",
-        "Never replace working components - only extend",
-        "New files preferred over modifying existing"
-      ],
-      "validation_checkpoints": [
-        "Authentication still works",
-        "No broken imports introduced",
-        "No component duplicates created",
-        "TypeScript compilation successful"
-      ]
-    },
-
-    "quality_gate_enforcement": {
-      "mandatory_validations": [
-        "TypeScript compilation: npx tsc --noEmit",
-        "Import verification: Check all component imports resolve",
-        "Component duplication check: No duplicate component names",
-        "Authentication preservation: Login/logout still functional"
-      ],
-      "automatic_rollback_triggers": [
-        "TypeScript compilation errors",
-        "Authentication breaking",
-        "500/503 errors in core functionality",
-        "Import resolution failures"
-      ]
-    }
-  },
-
-  "token_optimization_strategies": {
-    "proven_40_percent_savings": {
-      "achieved_in": "News/Articles CRUD enhancement",
-      "methodology": [
-        "Claude provides ultra-specific component analysis",
-        "Qwen implements with minimal back-and-forth",
-        "Claude fixes only critical integration issues",
-        "Single validation cycle instead of iterative refinement"
-      ],
-      "success_metrics": [
-        "Implementation: 5,300 tokens (Qwen) vs 8,900 tokens (Claude solo)",
-        "Validation: 1,800 tokens (Claude) for critical fixes",
-        "Total: 7,100 tokens vs 10,700 tokens = 33.6% overall savings",
-        "Quality: 85% production-ready from Qwen + 15% Claude fixes"
-      ]
-    },
-
-    "scaling_strategies": {
-      "optimal_task_size": "3-5 related components per Qwen session",
-      "context_optimization": "Pre-analyze existing patterns, provide templates",
-      "handoff_efficiency": "Detailed specifications → Single implementation → Focused validation",
-      "repetitive_task_batching": "Group similar UI enhancements for pattern reuse"
-    },
-
-    "cost_optimization_matrix": {
-      "high_savings_tasks": [
-        "UI component enhancements (40% savings proven)",
-        "Modal resizing and styling (35-45% savings)",
-        "Form layout improvements (30-40% savings)",
-        "Visual component consistency (35% savings)"
-      ],
-      "medium_savings_tasks": [
-        "Simple TypeScript fixes (25-30% savings)",
-        "Documentation updates (20-25% savings)",
-        "Test file creation (15-25% savings)"
-      ],
-      "no_savings_tasks": [
-        "Architecture decisions (Claude required)",
-        "Database optimization (Claude only)",
-        "Integration debugging (Claude expertise needed)",
-        "Complex error resolution (Claude analysis required)"
-      ]
-    }
-  },
-
-  "optimal_coordination_timelines": {
-    "week_1_critical_path": {
-      "day_1_2_sse_architecture": {
-        "owner": "Claude",
-        "deliverables": ["Complete SSE service design", "Event type definitions", "Testing strategy"],
-        "handoff": "Gemini receives SSE specification"
+        "validation_gates": [
+          "TypeScript compilation check",
+          "ESLint warning count verification",
+          "Import dependency validation"
+        ],
+        "handoff_requirements": [
+          "Document exact changes made",
+          "List files modified with line counts",
+          "Categorize remaining warnings by complexity",
+          "Report any MCP timeout fallback strategies used"
+        ]
       },
-      "day_3_4_sse_implementation": {
-        "owner": "Gemini",
-        "deliverables": ["useSSE hook", "Admin real-time components", "System monitoring UI"],
-        "validation": "Claude validates integration"
-      },
-      "day_5_6_betting_windows": {
-        "owner": "Claude + Gemini",
-        "deliverables": ["Fight temporal logic", "CurrentBettingPanel", "PAGO/DOY modals"],
-        "critical": "WebSocket MINIMAL implementation"
-      },
-      "day_7_operator_dashboard": {
-        "owner": "Gemini (Claude spec)",
-        "deliverables": ["Complete operator interface", "Limited admin tools", "Event management"],
-        "validation": "Permission testing"
-      }
-    },
 
-    "week_2_optimization": {
-      "day_8_10_database": {
-        "owner": "Claude ONLY",
-        "deliverables": ["Query optimization", "Connection pool fix", "Performance <500ms"],
-        "forbidden": "QWEN absolutely excluded"
+      "phase_2_gemini_cli": {
+        "duration": "20-30 minutes",
+        "focus": "TypeScript specialization building on QWEN work",
+        "tools": "Gemini CLI with compilation validation",
+        "deliverables": [
+          "Advanced TypeScript pattern improvements",
+          "Component architecture optimizations",
+          "Build stability maintenance"
+        ],
+        "mandatory_validation_gates": [
+          "npx tsc --noEmit (zero errors required)",
+          "npm run build (successful completion required)",
+          "Import/export dependency verification",
+          "Component rendering validation"
+        ],
+        "failure_protocol": [
+          "Immediate rollback on any validation failure",
+          "Claude intervention for complex TypeScript errors",
+          "Session restart with simplified scope if needed"
+        ]
       },
-      "day_11_12_integration": {
-        "owner": "Claude + Gemini",
-        "deliverables": ["Full betting flow test", "Streaming integration", "Error handling"],
-        "focus": "End-to-end validation"
-      },
-      "day_13_14_polish": {
-        "owner": "Gemini (QWEN minimal)",
-        "deliverables": ["UI polish", "TypeScript cleanup", "Documentation"],
-        "qwen_allowed": "Only isolated new components"
-      },
-      "day_15_deployment": {
-        "owner": "Claude",
-        "deliverables": ["Production deployment", "Monitoring setup", "Launch validation"],
-        "celebration": "MVP complete! 🎉"
+
+      "phase_3_claude_validation": {
+        "duration": "15-20 minutes",
+        "focus": "Integration validation and gap filling",
+        "tools": "Native Claude with all MCPs available",
+        "deliverables": [
+          "Final TypeScript compilation verification",
+          "Integration testing completion",
+          "Context preservation for future work",
+          "Brain system updates with lessons learned"
+        ],
+        "comprehensive_validation": [
+          "All previous AI work functions correctly",
+          "No regressions in functionality",
+          "Build stability maintained",
+          "Dependency resolution complete"
+        ]
       }
     }
   },
 
-  "brain_system_integration": {
-    "critical_files": {
-      "sdd_system.json": {
-        "purpose": "Technical architecture decisions",
-        "update_frequency": "After architectural changes",
-        "gallobets_specific": "SSE/WebSocket patterns, database schema"
-      },
-      "backlog.json": {
-        "purpose": "Task tracking and progress",
-        "update_frequency": "After each work session",
-        "gallobets_specific": "MVP timeline tracking"
-      },
-      "prd_system.json": {
-        "purpose": "Business requirements",
-        "update_frequency": "When requirements change",
-        "gallobets_specific": "Betting logic, operator hierarchy"
+  "validation_gate_specifications": {
+    "typescript_compilation_gate": {
+      "command": "npx tsc --noEmit",
+      "timeout": "120 seconds",
+      "success_criteria": "Exit code 0 with no error output",
+      "failure_handling": {
+        "immediate_action": "Stop AI session, begin rollback",
+        "analysis": "Claude analyzes TypeScript errors",
+        "resolution": "Fix or revert changes causing compilation errors",
+        "prevention": "Update AI prompts to avoid error patterns"
       }
     },
 
-    "new_files_needed": {
-      "multi_ai_decision_matrix.json": {
-        "purpose": "Task routing to optimal AI",
-        "content": "GalloBets specific task classifications"
-      },
-      "gemini_optimization_patterns.json": {
-        "purpose": "Gemini excellence patterns for React/TypeScript",
-        "content": "Component patterns, SSE integration examples"
-      },
-      "database_performance_log.json": {
-        "purpose": "Track query optimization progress",
-        "content": "Before/after metrics, problem queries"
+    "build_validation_gate": {
+      "command": "npm run build",
+      "timeout": "180 seconds",
+      "success_criteria": "Successful build completion in dist/ folder",
+      "failure_handling": {
+        "immediate_action": "Full session rollback required",
+        "analysis": "Identify build-breaking changes",
+        "resolution": "Revert to last known good state",
+        "escalation": "Claude intervention for complex build issues"
       }
-    }
-  },
+    },
 
-  "emergency_protocols": {
-    "qwen_destructive_incident": {
-      "immediate_response": [
-        "STOP QWEN execution",
-        "git reset --hard HEAD",
-        "Test authentication still works",
-        "Document incident in brain"
+    "import_dependency_gate": {
+      "commands": [
+        "grep -r 'import.*from.*undefined' src/ | wc -l",
+        "grep -r 'Cannot find module' src/ | wc -l"
       ],
-      "prevention_reinforcement": [
-        "Add file to FORBIDDEN list",
-        "Reduce QWEN scope further",
-        "Update AI_UNIVERSAL_INSTRUCTIONS.json",
-        "Claude implements proper fix"
-      ]
-    },
-
-    "database_performance_crisis": {
-      "immediate_response": [
-        "Claude analyzes slow query log",
-        "Implement emergency indexes",
-        "Increase connection pool size",
-        "Add caching layer if critical"
-      ],
-      "long_term_fix": [
-        "Query optimization sprint",
-        "Database schema refinement",
-        "Consider read replicas",
-        "Monitoring dashboard implementation"
-      ]
-    },
-
-    "sse_connection_issues": {
-      "immediate_response": [
-        "Verify SSE endpoints responding",
-        "Check event source connections",
-        "Implement reconnection logic",
-        "Add fallback polling if needed"
-      ],
-      "prevention": [
-        "Robust error handling",
-        "Automatic reconnection",
-        "Connection state monitoring",
-        "User feedback on disconnect"
-      ]
-    }
-  },
-
-  "quality_metrics": {
-    "mvp_success_criteria": [
-      "SSE real-time updates working (<1s latency)",
-      "WebSocket MINIMAL for PAGO/DOY only",
-      "Database queries <500ms average",
-      "Zero authentication breaking changes",
-      "Operator dashboard fully functional",
-      "Fight temporal logic enforced",
-      "15-day timeline achieved"
-    ],
-
-    "ai_performance_tracking": [
-      "Claude: Architecture quality and integration success",
-      "Gemini: Component completeness and UI excellence",
-      "QWEN: Scope adherence (no destructive changes)"
-    ],
-
-    "coordination_effectiveness": [
-      "Clear handoffs between AIs",
-      "No duplicate work or conflicts",
-      "Brain system consistently updated",
-      "Timeline adherence to 15-day MVP"
-    ]
-  },
-
-  "gallobets_specific_optimizations": {
-    "betting_domain_coordination": {
-      "claude_leadership": {
-        "responsibility": "PAGO/DOY logic, fight windows, temporal transitions",
-        "expertise": "P2P betting systems, timeout mechanisms",
-        "validation_role": "Ensure betting integrity across all implementations"
-      },
-      "gemini_implementation": {
-        "responsibility": "Betting UI, real-time updates, user interactions",
-        "expertise": "React betting panels, countdown timers, proposal modals",
-        "guidance_source": "Claude specifications and API contracts"
-      },
-      "qwen_exclusion": {
-        "reason": "Cannot understand betting temporal logic",
-        "risk": "Would break fight status transitions",
-        "alternative": "Only documentation updates allowed"
+      "success_criteria": "Zero undefined imports or missing modules",
+      "failure_handling": {
+        "analysis": "Identify broken import/export relationships",
+        "resolution": "Fix import paths or add missing exports",
+        "prevention": "Pre-session dependency mapping"
       }
     },
 
-    "streaming_coordination": {
-      "rtmp_ownership": "Claude designs, validates RTMP integration",
-      "ui_controls": "Gemini implements streaming controls UI",
-      "monitoring": "Claude implements performance monitoring"
-    },
-
-    "database_performance_strategy": {
-      "claude_exclusive": "All database optimization work",
-      "gemini_ui": "Loading states and error handling",
-      "qwen_forbidden": "No database access whatsoever"
-    }
-  },
-
-  "error_resolution_workflows": {
-    "production_error_classification": {
-      "backend_critical": {
-        "examples": ["UUID syntax errors", "503 service failures", "Database performance issues"],
-        "assignment": "Claude with backend-architect agent",
-        "rationale": "Requires deep understanding of API contracts and database optimization"
-      },
-      "frontend_reactquill": {
-        "examples": ["findDOMNode errors", "Component integration conflicts", "CSS import issues"],
-        "assignment": "Gemini - React/TypeScript expertise",
-        "rationale": "React 18 compatibility and component architecture knowledge required"
-      },
-      "typescript_lint_cleanup": {
-        "examples": ["420 lint errors", "Unused imports", "Explicit any types"],
-        "assignment": "Qwen - automated cleanup",
-        "rationale": "Proven 30-50% token savings for systematic code cleanup tasks"
-      },
-      "profile_extension": {
-        "examples": ["Venue/Gallera additional fields", "Role-based UI components"],
-        "assignment": "Gemini - UI/UX focus",
-        "rationale": "Complex conditional rendering and form architecture required"
-      }
-    },
-
-    "cost_optimization_patterns": {
-      "claude_high_value": {
-        "tasks": ["Architecture decisions", "Database optimization", "Integration debugging"],
-        "token_efficiency": "High value, complex problems requiring expertise",
-        "delegation_strategy": "Handle personally, don't delegate"
-      },
-      "gemini_medium_savings": {
-        "tasks": ["React components", "UI/UX improvements", "Frontend integration"],
-        "token_efficiency": "25-35% savings through React/TypeScript focus",
-        "delegation_strategy": "Detailed specs → Single implementation → Validation"
-      },
-      "qwen_high_savings": {
-        "tasks": ["TypeScript fixes", "Import cleanup", "Simple component enhancements"],
-        "token_efficiency": "40% savings proven, up to 50% for repetitive tasks",
-        "delegation_strategy": "Ultra-specific prompts → Single execution → Claude validation only"
-      }
-    },
-
-    "commit_workflow_optimization": {
-      "pre_commit_failures": {
-        "lint_errors": "Assign to Qwen (420 errors → 0 errors efficiently)",
-        "type_errors": "Qwen specializes in systematic TypeScript cleanup",
-        "git_hooks": "Claude handles hook configuration and git workflow issues"
-      },
-      "commit_strategy": {
-        "approach": "Fix lint issues first (Qwen), then commit with comprehensive message",
-        "error_prevention": "Always validate TypeScript compilation before commit attempts",
-        "coordination": "Qwen fixes → Claude validates → Successful commit"
-      }
-    },
-
-    "eslint_warnings_strategy_v3": {
-      "discovery": "Husky pre-commit optimized (350→500 warnings), 309 warnings identified for cleanup",
-      "target": "309 warnings → <150 warnings (50%+ improvement)",
-      "strategy": "4-phase incremental approach with safety validations",
-      "phase_breakdown": {
-        "phase_1_safe": {
-          "target": "Unused variables & imports cleanup (60-80 warnings)",
-          "risk": "SAFE - No functional impact",
-          "validation": "npm run lint | grep 'no-unused-vars' | wc -l should be 0"
-        },
-        "phase_2_low": {
-          "target": "Basic TypeScript any replacements (80-120 warnings)",
-          "risk": "LOW - Simple type conversions",
-          "validation": "npm run lint | grep 'no-explicit-any' progress check"
-        },
-        "phase_3_medium": {
-          "target": "useEffect dependencies fix (40-50 warnings)",
-          "risk": "MEDIUM - React hooks dependencies",
-          "validation": "npm run lint | grep 'exhaustive-deps' reduction"
-        },
-        "phase_4_high": {
-          "target": "React fast refresh exports (25-30 warnings)",
-          "risk": "HIGH - Structural component changes",
-          "validation": "Build + render verification required"
-        }
-      },
-      "agent_coordination": {
-        "refactoring_expert": "Primary systematic code improvements",
-        "quality_engineer": "Phase validation and integration testing",
-        "python_expert": "Complex type inference support"
-      },
-      "safety_mechanisms": {
-        "incremental_commits": "Commit after each phase with validation",
-        "rollback_strategy": "git reset --hard HEAD~1 per phase failure",
-        "husky_buffer": "191 warnings buffer before blocking commits",
-        "no_functional_changes": "CRITICAL - preserve all business logic"
-      },
-      "efficiency_gains": {
-        "proven_approach": "Based on successful Gemini collaboration patterns",
-        "token_savings": "60-70% vs Claude doing equivalent systematic cleanup",
-        "time_estimate": "45-60 minutes vs 3-4 hours manual approach"
+    "eslint_progress_gate": {
+      "command": "npm run lint | grep -E 'error|warning' | wc -l",
+      "success_criteria": "Warning count reduction without new errors",
+      "failure_handling": {
+        "analysis": "Check for new warnings introduced",
+        "resolution": "Revert changes that added warnings",
+        "progress_tracking": "Document net warning reduction"
       }
     }
   },
 
-  "success_formula": {
-    "week_1": "SSE implementation + Betting windows + Operator dashboard",
-    "week_2": "Database optimization + Integration + Polish",
-    "coordination": "Claude architecture → Gemini UI → Claude validation",
-    "error_resolution": "Backend(Claude) → Frontend(Gemini) → Cleanup(Qwen) → Validation(Claude)",
-    "result": "Professional betting platform delivered in 15 days with optimized token usage"
+  "context_preservation_protocols": {
+    "session_state_management": {
+      "before_session": {
+        "current_state_snapshot": [
+          "git status and branch information",
+          "ESLint warning counts by category",
+          "TypeScript compilation status",
+          "Build process status"
+        ],
+        "dependency_mapping": [
+          "Component import/export relationships",
+          "Critical file interdependencies",
+          "Type definition locations"
+        ]
+      },
+
+      "during_session": {
+        "progress_tracking": [
+          "File-by-file changes documented",
+          "Warning count changes tracked",
+          "Pattern applications noted",
+          "Issues encountered recorded"
+        ],
+        "context_accumulation": [
+          "Successful approaches documented",
+          "Failed attempts and reasons noted",
+          "AI-specific insights captured",
+          "Edge cases and solutions recorded"
+        ]
+      },
+
+      "after_session": {
+        "comprehensive_handoff": [
+          "Complete session summary with metrics",
+          "Remaining work categorized and prioritized",
+          "Context for next AI with specific guidance",
+          "Validation gate results documented"
+        ],
+        "brain_system_updates": [
+          "Strategy refinements based on results",
+          "AI capability assessments updated",
+          "Pattern library additions",
+          "Failure prevention updates"
+        ]
+      }
+    },
+
+    "knowledge_transfer_optimization": {
+      "ai_to_ai_communication": {
+        "standardized_format": "JSON structure for consistent information transfer",
+        "required_fields": [
+          "work_completed",
+          "files_modified",
+          "patterns_applied",
+          "remaining_work",
+          "validation_results",
+          "ai_specific_notes"
+        ],
+        "quality_criteria": [
+          "Actionable information for next AI",
+          "Clear priorities and recommendations",
+          "Context sufficient to continue without gaps",
+          "Validation status clearly documented"
+        ]
+      }
+    }
+  },
+
+  "failure_recovery_protocols": {
+    "build_stability_failures": {
+      "typescript_compilation_errors": {
+        "detection": "npx tsc --noEmit returns non-zero exit code",
+        "immediate_response": [
+          "Stop current AI session immediately",
+          "Run git checkout -- [problematic-files]",
+          "Verify compilation returns to working state",
+          "Document error patterns for prevention"
+        ],
+        "escalation": "Claude analyzes TypeScript errors and provides fixes",
+        "prevention": "Update AI prompts with error patterns to avoid"
+      },
+
+      "build_process_failures": {
+        "detection": "npm run build fails to complete",
+        "immediate_response": [
+          "Full session rollback: git reset --hard HEAD~1",
+          "Verify build process returns to working state",
+          "Analyze build logs for failure cause",
+          "Update validation gates to catch similar issues earlier"
+        ],
+        "escalation": "Claude investigation for complex build issues",
+        "prevention": "Enhanced pre-session validation"
+      }
+    },
+
+    "context_preservation_failures": {
+      "work_duplication_detection": {
+        "signs": "AI attempting to modify already-fixed files",
+        "prevention": [
+          "Better handoff documentation",
+          "Clear file modification tracking",
+          "AI-specific work boundaries",
+          "Progress verification before starting"
+        ],
+        "resolution": "Update context transfer protocols"
+      },
+
+      "dependency_resolution_failures": {
+        "signs": "Import/export errors after AI sessions",
+        "immediate_response": [
+          "Run comprehensive dependency check",
+          "Fix broken imports/exports immediately",
+          "Document dependency patterns for future prevention",
+          "Update AI awareness of component relationships"
+        ],
+        "prevention": "Enhanced pre-session dependency mapping"
+      }
+    }
+  },
+
+  "success_metrics_enhanced": {
+    "build_stability_metrics": {
+      "typescript_compilation_success": "100% of AI sessions must pass compilation validation",
+      "build_process_reliability": "100% of AI sessions must maintain build capability",
+      "import_dependency_integrity": "Zero broken imports/exports after AI sessions",
+      "regression_prevention": "Zero functional regressions introduced by AI work"
+    },
+
+    "context_preservation_metrics": {
+      "handoff_quality_score": "Next AI can continue work without context gaps",
+      "work_duplication_elimination": "Zero duplicate work across AI sessions",
+      "knowledge_transfer_effectiveness": "All AI sessions build on previous work properly",
+      "progress_tracking_accuracy": "Documented progress matches actual changes"
+    },
+
+    "coordination_efficiency_metrics": {
+      "total_pipeline_duration": "3-AI pipeline completion in 90 minutes or less",
+      "token_usage_optimization": "50%+ token savings maintained through specialization",
+      "validation_overhead": "Validation gates add <15% overhead to total time",
+      "failure_recovery_time": "Issues resolved within one validation cycle"
+    }
+  },
+
+  "brain_system_integration_enhanced": {
+    "real_time_updates": {
+      "session_progress_tracking": "Update brain after each AI session completion",
+      "validation_results_storage": "Record all validation gate results",
+      "pattern_learning": "Capture successful and failed approaches",
+      "ai_capability_refinement": "Update AI strengths/weaknesses based on results"
+    },
+
+    "continuous_optimization": {
+      "weekly_strategy_review": "Analyze patterns and update coordination strategies",
+      "monthly_capability_assessment": "Review and update AI capability matrices",
+      "quarterly_workflow_optimization": "Major workflow improvements based on data",
+      "failure_pattern_analysis": "Systematic analysis of failure modes and prevention"
+    }
   }
 }

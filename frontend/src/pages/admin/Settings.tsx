@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, RefreshCw, AlertTriangle, CheckCircle, Database, DollarSign, Users, Activity } from "lucide-react";
+import {
+  Settings as SettingsIcon,
+  Save,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle,
+  Database,
+  DollarSign,
+  Users,
+  Activity,
+} from "lucide-react";
 
 type SettingValue = string | number | boolean | Record<string, unknown>;
 
@@ -7,7 +17,9 @@ const Settings: React.FC = () => {
   const [settings, setSettings] = useState<Record<string, SettingValue>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState<Record<string, SettingValue>>({});
+  const [pendingChanges, setPendingChanges] = useState<
+    Record<string, SettingValue>
+  >({});
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -144,7 +156,11 @@ const Settings: React.FC = () => {
     return value;
   };
 
-  const renderSettingInput = (key: string, value: SettingValue, type: string) => {
+  const renderSettingInput = (
+    key: string,
+    value: SettingValue,
+    type: string,
+  ) => {
     const currentValue = getCurrentValue(key);
 
     switch (type) {
@@ -216,7 +232,10 @@ const Settings: React.FC = () => {
   };
 
   const groupSettingsByCategory = () => {
-    const grouped: Record<string, Array<{ key: string; value: SettingValue }>> = {};
+    const grouped: Record<
+      string,
+      Array<{ key: string; value: SettingValue }>
+    > = {};
 
     // Define settings structure based on categories
     const settingsStructure = {

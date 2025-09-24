@@ -39,7 +39,7 @@ interface SystemHealth {
   status: "healthy" | "warning" | "error";
   responseTime: number;
   lastCheck: string;
-  details?: unknown; 
+  details?: unknown;
 }
 
 interface SystemMetrics {
@@ -133,7 +133,7 @@ const AdminMonitoringPage: React.FC = () => {
       setAlerts(
         alertsRes.success
           ? alertsRes.data?.filter(
-              (alert: AlertItem) => 
+              (alert: AlertItem) =>
                 alert.service.toLowerCase().includes("stream") ||
                 alert.service.toLowerCase().includes("rtmp"),
             ) || []

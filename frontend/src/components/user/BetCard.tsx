@@ -17,7 +17,6 @@ export interface BetCardProps {
 const BetCard: React.FC<BetCardProps> = ({ bet, onSelect, className }) => {
   // Configuración de colores según el estado y resultado
 
-
   // Formatear valores monetarios para consistencia
   return (
     <div

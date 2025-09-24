@@ -141,9 +141,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = (props) => {
 // The actual player implementation is moved to a separate component
 const Player: React.FC<VideoPlayerProps> = ({
   src,
-  streamId,  autoplay = false,
+  streamId,
+  autoplay = false,
   controls = true,
-  responsive = true,  onReady,
+  responsive = true,
+  onReady,
   onError,
   onPlay,
   onPause,

@@ -205,7 +205,8 @@ const LiveEvent = () => {
         fetchFights({ eventId }),
         fetchAvailableBets({ eventId }),
       ]);
-    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+    } catch (err: unknown) {
+      // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Error cargando evento");
     } finally {
       setLoading(false);
@@ -272,7 +273,8 @@ const LiveEvent = () => {
         await acceptBet(betId);
         // Refresh bets después de aceptar
         await fetchAvailableBets({ eventId });
-      } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
+      } catch (err: unknown) {
+        // Changed from 'any' to 'unknown' for better type safety
         setError(err.message || "Error aceptando apuesta");
       }
     },
