@@ -43,11 +43,11 @@ interface VideoPlayerProps {
   controls?: boolean;
   responsive?: boolean;
   enableAnalytics?: boolean;
-  onReady?: (player: any) => void;
-  onError?: (error: any) => void;
+  onReady?: (player: videojs.Player) => void;
+  onError?: (error: unknown) => void;
   onPlay?: () => void;
   onPause?: () => void;
-  onAnalyticsEvent?: (event: string, data: any) => void;
+  onAnalyticsEvent?: (event: string, data: Record<string, unknown>) => void;
   className?: string;
 }
 
@@ -141,13 +141,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = (props) => {
 // The actual player implementation is moved to a separate component
 const Player: React.FC<VideoPlayerProps> = ({
   src,
-  streamId,
-  eventId,
-  autoplay = false,
+  streamId,  autoplay = false,
   controls = true,
-  responsive = true,
-  enableAnalytics = true,
-  onReady,
+  responsive = true,  onReady,
   onError,
   onPlay,
   onPause,
@@ -155,9 +151,8 @@ const Player: React.FC<VideoPlayerProps> = ({
   className = "",
 }) => {
   const videoRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<videojs.Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!videoRef.current) return;

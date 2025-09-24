@@ -199,6 +199,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
 };
 
 // Hook personalizado para control manual de PWA
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePWAInstall = () => {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);

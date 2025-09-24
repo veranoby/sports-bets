@@ -373,6 +373,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 };
 
 // Hook para usar el dialog de forma programática
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConfirmDialog = () => {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;

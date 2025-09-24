@@ -52,7 +52,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           response?.data?.data?.articles &&
           response.data.articles.length > 0
         ) {
-          const articles = response.data.articles.map((article: any) => ({
+          const articles = response.data.articles.map((article: NewsItem) => ({
             id: article.id,
             title: article.title,
             content: article.excerpt || article.content,

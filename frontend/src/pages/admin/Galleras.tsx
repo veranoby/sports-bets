@@ -29,6 +29,14 @@ import { usersAPI, venuesAPI, gallerasAPI } from "../../services/api";
 // Tipos
 import type { User as UserType } from "../../types";
 
+interface VenueType {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  owner_id: string;
+}
+
 interface CombinedGalleraData {
   user: UserType;
   venue?: VenueType;
@@ -176,7 +184,7 @@ const AdminGallerasPage: React.FC = () => {
     setEditingData(null);
   };
 
-  const handleSave = (updatedData: any) => {
+  const handleSave = (updatedData: { user: UserType, venue?: VenueType }) => {
     handleCloseModal();
     fetchData(); // Refresh data
   };

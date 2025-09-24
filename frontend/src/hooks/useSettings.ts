@@ -40,7 +40,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     };
   };
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -75,7 +75,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setError, getAuthHeaders, adminMode, setPublicSettings, setSettings, fetchFeatureStatus]);
 
   const fetchFeatureStatus = async () => {
     try {
@@ -204,7 +204,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
   // Initial load
   useEffect(() => {
     fetchSettings();
-  }, [adminMode]);
+  }, [adminMode, fetchSettings]);
 
   return {
     settings,

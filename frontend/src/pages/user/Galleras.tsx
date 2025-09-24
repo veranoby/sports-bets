@@ -36,6 +36,22 @@ interface GalleraProfile {
   premiumLevel?: "bronze" | "silver" | "gold" | "platinum";
 }
 
+interface GalleraUser {
+  id: string;
+  username: string;
+  profileInfo?: {
+    galleraName?: string;
+    description?: string;
+    location?: string;
+    imageUrl?: string;
+    establishedDate?: string;
+    certified?: boolean;
+    rating?: number;
+    specialties?: string[];
+    premiumLevel?: "bronze" | "silver" | "gold" | "platinum";
+  };
+}
+
 // Enhanced Gallera Card Component - Following Events page sophistication with premium levels
 const GalleraCard = React.memo(
   ({ gallera, onClick }: { gallera: GalleraProfile; onClick: () => void }) => {
@@ -245,8 +261,8 @@ const GallerasPage: React.FC = () => {
       if (galleraUsers.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          galleraUsers.data.users.map(async (user: any) => {
+           
+          galleraUsers.data.users.map(async (user: GalleraUser) => {
             const articles = await articlesAPI.getAll({ author_id: user.id });
             const articleCount = articles.success
               ? articles.data.total || 0

@@ -29,11 +29,6 @@ const ArticlePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const execute = async () => {
-    // This is a placeholder for the actual execute function
-    // In a real implementation, this would contain the logic to fetch the article
-  };
-
   useEffect(() => {
     if (articleId) {
       const fetchArticle = async () => {
@@ -42,7 +37,7 @@ const ArticlePage: React.FC = () => {
           setError(null);
           const response = await apiClient.get(`/articles/${articleId}`);
           setArticle(response.data);
-        } catch (err: any) {
+        } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
           setError(err.message || "Error al cargar artículo");
         } finally {
           setLoading(false);

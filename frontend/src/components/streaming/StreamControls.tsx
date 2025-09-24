@@ -35,9 +35,16 @@ interface StreamConfig {
   fps: number;
 }
 
+interface StreamData {
+  streamId: string;
+  rtmpUrl: string;
+  streamKey: string;
+  hlsUrl: string;
+}
+
 interface StreamControlsProps {
   eventId: string;
-  onStreamStart?: (streamData: any) => void;
+  onStreamStart?: (streamData: StreamData) => void;
   onStreamStop?: () => void;
   className?: string;
 }
@@ -113,18 +120,20 @@ const StreamControls: React.FC<StreamControlsProps> = ({
     try {
       const response = await streamingAPI.startStream(eventId);
 
+      const streamData = response.data as StreamData;
+
       setStatus((prev) => ({
         ...prev,
         isLive: true,
-        streamId: (response.data as any)?.streamId || "",
-        rtmpUrl: (response.data as any)?.rtmpUrl || "",
-        streamKey: (response.data as any)?.streamKey || "",
-        hlsUrl: (response.data as any)?.hlsUrl || "",
+        streamId: streamData?.streamId || "",
+        rtmpUrl: streamData?.rtmpUrl || "",
+        streamKey: streamData?.streamKey || "",
+        hlsUrl: streamData?.hlsUrl || "",
         health: "healthy",
       }));
 
       onStreamStart?.(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Failed to start stream");
     } finally {
       setLoading(false);
@@ -153,7 +162,7 @@ const StreamControls: React.FC<StreamControlsProps> = ({
       }));
 
       onStreamStop?.();
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Failed to stop stream");
     } finally {
       setLoading(false);
@@ -336,7 +345,7 @@ const StreamControls: React.FC<StreamControlsProps> = ({
                     );
                     setConfig((prev) => ({
                       ...prev,
-                      quality: e.target.value as any,
+                      quality: e.target.value as "360p" | "480p" | "720p",
                       bitrate: selectedOption?.bitrate || prev.bitrate,
                     }));
                   }}

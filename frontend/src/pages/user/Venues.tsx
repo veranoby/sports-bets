@@ -39,6 +39,21 @@ interface VenueProfile {
   activeEvents?: number;
 }
 
+interface VenueUser {
+  id: string;
+  username: string;
+  profileInfo?: {
+    venueName?: string;
+    description?: string;
+    location?: string;
+    imageUrl?: string;
+    establishedDate?: string;
+    verified?: boolean;
+    rating?: number;
+    activeEvents?: number;
+  };
+}
+
 // Enhanced Venue Card Component - Following Events page sophistication
 const VenueCard = React.memo(
   ({ venue, onClick }: { venue: VenueProfile; onClick: () => void }) => {
@@ -176,7 +191,7 @@ const VenuesPage: React.FC = () => {
         const response = await usersAPI.getAll({ role: "venue" });
         if (response.success) {
           const venueProfiles = await Promise.all(
-            response.data.users.map(async (user: any) => {
+            response.data.users.map(async (user: VenueUser) => {
               const articles = await articlesAPI.getAll({ author_id: user.id });
               return {
                 id: user.id,

@@ -1,175 +1,267 @@
-# GEMINI.md - GalloBets React/TypeScript Development Guide
+# GEMINI CLI - GalloBets ESLint Cleanup Optimization Guide
 
 ## **PROJECT CONTEXT**
 **Sistema**: GalloBets - Professional Cockfighting Streaming Platform
 **Stack**: React + TypeScript + Tailwind CSS + SSE/WebSocket Hybrid
-**Timeline**: 15-day MVP sprint
-**Coordination**: Claude Architecture → Gemini Implementation → Claude Validation
+**Current Task**: ESLint Warning Cleanup (Stage 2 of 3-AI Pipeline)
+**Pipeline**: QWEN CLI (35% done) → **GEMINI CLI (50% target)** → Claude (15% validation)
+**Coordination**: Build on QWEN CLI baseline → Gemini specialized cleanup → Claude final validation
 
 ---
 
-## **CRITICAL INSTRUCTIONS FOR GEMINI**
+## **🚨 CRITICAL MCP TIMEOUT PREVENTION (LESSONS FROM QWEN CLI)**
 
-### **🧠 Brain System - MANDATORY CONSULTATION**
-```markdown
-BEFORE ANY IMPLEMENTATION:
-1. Read brain/multi_ai_coordination_strategy.json for overall strategy
-2. Read brain/gemini_optimization_patterns.json for React patterns
-3. Read brain/multi_ai_decision_matrix.json for task routing
-4. Read brain/sdd_system.json for technical architecture
-5. Read brain/prd_system.json for business requirements
-6. Check brain/backlog.json for current task status
+### **⚠️ QWEN CLI Failed 60% Due to MCP Timeouts (Error -32001)**
+```yaml
+Problem Discovered:
+  - QWEN CLI MCP operations timed out repeatedly
+  - 4-hour session completed only 18% of work (63/309 warnings)
+  - MCP errors disrupted systematic workflow
 
-NEVER START CODING WITHOUT BRAIN CONTEXT
+GEMINI CLI Strategy (Unknown MCP Behavior):
+  - Assume similar timeout risks exist
+  - Use native Gemini CLI tools first
+  - Immediate fallback when MCPs fail
+  - 25-30 minute focused micro-sessions
 ```
 
-### **🎯 Gemini Core Strengths - LEVERAGE THESE**
-- **React/TypeScript Mastery**: 5/5 - Professional component architecture
-- **SSE Integration**: 5/5 - Real-time UI updates excellence
-- **Betting UI Patterns**: 5/5 - Domain-specific interfaces
-- **Responsive Design**: 5/5 - Tailwind CSS expertise
-- **Operator Dashboards**: 5/5 - Role-based UI implementation
+### **🛡️ Defensive MCP Strategy for Gemini CLI**
+```yaml
+Session Structure:
+  - Duration: 25-30 minutes maximum
+  - Focus: Single warning type only
+  - Tools: Native Gemini CLI preferred
+  - Fallback: Manual commands when MCPs timeout
+  - Validation: Defer to session end
+
+If MCPs Timeout:
+  1. Document which tools failed
+  2. Switch to alternative approach immediately
+  3. Continue work with available tools
+  4. Report timeout patterns for optimization
+```
+
+### **🎯 Gemini CLI Strengths for ESLint Cleanup**
+- **TypeScript Expertise**: Specialized in type system cleanup
+- **React Pattern Recognition**: Understands component dependencies
+- **Systematic Refactoring**: Perfect for warning-by-warning approach
+- **Frontend Context**: Knows React/TS patterns vs generic fixes
 
 ---
 
-## **SSE IMPLEMENTATION PATTERNS (CRITICAL)**
+## **📊 ESLINT BASELINE FROM QWEN CLI**
 
-### **useSSE Hook - COMPLETE IMPLEMENTATION**
+### **Current Warning State (200 Total)**
+```yaml
+QWEN CLI Results (1 hour):
+  - Started: 309 warnings
+  - Fixed: 63 warnings (18% completion)
+  - Remaining: 200 warnings
+
+Category Breakdown:
+  - no-explicit-any: 84 remaining (GEMINI focus)
+  - no-unused-vars: 104 remaining (GEMINI focus)
+  - exhaustive-deps: 10 remaining (GEMINI focus)
+  - only-export-components: 2 remaining (leave for Claude)
+```
+
+### **Gemini CLI Target Goals**
+```yaml
+Session 1 (30 min): no-explicit-any
+  - Current: 84 warnings
+  - Target: 30-40 warnings (50% reduction)
+  - Focus: catch(error: any) → catch(error: unknown)
+
+Session 2 (30 min): no-unused-vars
+  - Current: 104 warnings
+  - Target: 40-50 warnings (50% reduction)
+  - Focus: Remove unused imports/variables safely
+
+Session 3 (30 min): exhaustive-deps
+  - Current: 10 warnings
+  - Target: 0-2 warnings (90% reduction)
+  - Focus: Add missing useEffect dependencies
+```
+
+---
+
+## **🔧 NATIVE GEMINI CLI TOOL STRATEGIES**
+
+### **Strategy 1: TypeScript 'any' Type Replacement**
 ```typescript
-import { useEffect, useState, useRef, useCallback } from 'react';
-
-interface UseSSEOptions {
-  onMessage?: (data: any) => void;
-  onError?: (error: Event) => void;
-  onOpen?: () => void;
-  reconnectInterval?: number;
-  maxReconnectAttempts?: number;
+// BEFORE (QWEN CLI missed these)
+catch (error: any) {
+  console.error('Error:', error);
 }
 
-function useSSE<T = any>(
-  url: string,
-  options: UseSSEOptions = {}
-): {
-  data: T | null;
-  error: Error | null;
-  isConnected: boolean;
-  reconnect: () => void;
-} {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const reconnectAttemptsRef = useRef(0);
-  
-  const {
-    onMessage,
-    onError,
-    onOpen,
-    reconnectInterval = 3000,
-    maxReconnectAttempts = 10
-  } = options;
-  
-  const connect = useCallback(() => {
-    // Implementation details...
-    // CRITICAL: Include reconnection logic
-    // CRITICAL: Proper cleanup on unmount
-    // CRITICAL: Error handling with backoff
-  }, [url, options]);
-  
+// AFTER (GEMINI specialization)
+catch (error: unknown) {
+  console.error('Error:', error);
+}
+
+// More GEMINI specialized patterns
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+// BEFORE: function handleData(data: any)
+function handleData<T>(data: ApiResponse<T>) {
+  return data.data;
+}
+
+// BEFORE: const response: any = await fetch(url);
+const response: Response = await fetch(url);
+const data: ApiResponse<User> = await response.json();
+```
+
+### **Strategy 2: Unused Import/Variable Removal**
+```typescript
+// BEFORE (Common QWEN CLI missed patterns)
+import React, { useState, useEffect, useMemo } from 'react'; // useMemo unused
+import { User, Event, Fight } from '../types'; // Fight unused
+import lodash from 'lodash'; // entirely unused
+
+const MyComponent = () => {
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false); // unused
+
+  // Component logic using only data, setData
+};
+
+// AFTER (GEMINI systematic cleanup)
+import React, { useState } from 'react';
+import { User } from '../types';
+
+const MyComponent = () => {
+  const [data, setData] = useState<User[]>([]);
+
+  // Component logic
+};
+```
+
+### **Strategy 3: useEffect Exhaustive Dependencies**
+```typescript
+// BEFORE (Common pattern QWEN CLI missed)
+const MyComponent = ({ userId }: { userId: string }) => {
+  const [userData, setUserData] = useState(null);
+
+  const fetchUserData = async () => {
+    const response = await api.get(`/users/${userId}`);
+    setUserData(response.data);
+  };
+
   useEffect(() => {
-    connect();
-    return () => {
-      eventSourceRef.current?.close();
-      clearTimeout(reconnectTimeoutRef.current);
-    };
-  }, [connect]);
-  
-  return { data, error, isConnected, reconnect };
-}
-```
+    fetchUserData();
+  }, []); // ❌ Missing userId dependency
 
-### **Admin Real-Time Dashboard Pattern**
-```typescript
-const SystemMonitoring: React.FC = () => {
-  const { data, isConnected, error } = useSSE<SystemStats>(
-    '/api/sse/system/stats'
-  );
-  
-  if (!isConnected) {
-    return <div className="text-yellow-600">Reconnecting...</div>;
-  }
-  
-  if (error) {
-    return <div className="text-red-600">Connection error</div>;
-  }
-  
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <StatCard title="Active Users" value={data?.activeUsers || 0} />
-      <StatCard title="Live Events" value={data?.liveEvents || 0} />
-      <StatCard title="Total Bets" value={data?.totalBets || 0} />
-    </div>
-  );
+  return <div>{userData?.name}</div>;
+};
+
+// AFTER (GEMINI specialized fix)
+const MyComponent = ({ userId }: { userId: string }) => {
+  const [userData, setUserData] = useState(null);
+
+  const fetchUserData = useCallback(async () => {
+    const response = await api.get(`/users/${userId}`);
+    setUserData(response.data);
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]); // ✅ Proper dependencies
+
+  return <div>{userData?.name}</div>;
 };
 ```
 
 ---
 
-## **BETTING COMPONENTS (DOMAIN CRITICAL)**
+## **⚡ MCP FALLBACK COMMANDS**
 
-### **CurrentBettingPanel - MAIN BETTING INTERFACE**
-```typescript
-interface CurrentBettingPanelProps {
-  fightId: string;
-  onCreateBet: (bet: BetData) => void;
-}
+### **When Gemini CLI MCPs Timeout**
+```bash
+# Manual search alternatives
+grep -rn "catch.*any" src/ | head -20
+grep -rn ": any" src/ | grep -v "node_modules" | head -20
+grep -rn "import.*{.*}" src/ | head -20
 
-const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({ 
-  fightId, 
-  onCreateBet 
-}) => {
-  const [availableBets, setAvailableBets] = useState<Bet[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  
-  // SSE for real-time bet updates
-  const { data } = useSSE<BetsUpdate>(`/api/sse/fights/${fightId}/bets`);
-  
-  useEffect(() => {
-    if (data?.bets) {
-      setAvailableBets(data.bets);
-    }
-  }, [data]);
-  
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Apuestas Disponibles</h3>
-        <button 
-          onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Nueva Apuesta
-        </button>
-      </div>
-      
-      <div className="space-y-2">
-        {availableBets.map(bet => (
-          <BetCard key={bet.id} bet={bet} />
-        ))}
-      </div>
-      
-      {showCreateModal && (
-        <CreateBetModal 
-          fightId={fightId}
-          onClose={() => setShowCreateModal(false)}
-          onCreate={onCreateBet}
-        />
-      )}
-    </div>
-  );
-};
+# Manual edit alternatives (provide exact sed commands)
+sed -i 's/catch (error: any)/catch (error: unknown)/g' filename.tsx
+sed -i 's/: any\b/: unknown/g' filename.tsx
+sed -i '/import.*unused/d' filename.tsx
+```
+
+## **🚀 GEMINI CLI SESSION SUCCESS PATTERN**
+
+### **Pre-Session Checklist**
+```bash
+☐ Check current warning count: npm run lint | tail -5
+☐ Create feature branch: git checkout -b feature/gemini-eslint-session-X
+☐ Review QWEN CLI changes to understand baseline
+☐ Choose single warning type focus (no-explicit-any OR no-unused-vars OR exhaustive-deps)
+☐ Set 30-minute timer
+```
+
+### **During Session (Native Tools Only)**
+```yaml
+Step 1: Search Phase
+  - Use native Gemini CLI search (NOT grep via MCP)
+  - If search times out → provide manual grep commands
+  - Focus only on chosen warning type
+
+Step 2: Edit Phase
+  - Use native Gemini CLI edit tools
+  - If edit fails → provide exact sed commands
+  - Make conservative, safe changes only
+
+Step 3: No Validation During Work
+  - NO npm run lint during active work
+  - NO TypeScript compilation checks
+  - Focus on completion, defer validation
+```
+
+### **End Session Validation**
+```bash
+# Only at session end (avoid MCP timeouts during work)
+npm run lint | grep [warning-type] | wc -l
+npm run build  # Check TypeScript compilation
+git add . && git commit -m "Gemini Session X: [warning-type] X→Y warnings"
+```
+
+---
+
+## **🎯 SUCCESS HANDOFF TO CLAUDE**
+
+### **Expected Gemini CLI Deliverables**
+```yaml
+Warning Reductions:
+  - no-explicit-any: 84 → 30-40 (50% reduction)
+  - no-unused-vars: 104 → 40-50 (50% reduction)
+  - exhaustive-deps: 10 → 0-2 (90% reduction)
+  - Total: 200 → 75-100 warnings (50% pipeline contribution)
+
+Quality Assurance:
+  - TypeScript compilation successful
+  - No new console errors introduced
+  - All component functionality preserved
+  - Git commits with clear progress tracking
+
+Documentation:
+  - MCP timeout issues encountered (if any)
+  - Remaining warning breakdown for Claude
+  - Any risky changes requiring Claude review
+```
+
+### **Claude Final Phase (15% remaining)**
+```yaml
+Claude Responsibilities:
+  - Validate all Gemini CLI changes
+  - Fix complex TypeScript issues Gemini couldn't handle
+  - Complete remaining 75-100 warnings to <50
+  - Integration testing and final validation
+  - Performance impact assessment
 ```
 
 ### **Fight Status Indicator with Countdown**

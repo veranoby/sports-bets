@@ -87,7 +87,7 @@ export const useMembershipCheck = () => {
   // Auto-check on mount
   useEffect(() => {
     checkMembership();
-  }, []);
+  }, [checkMembership]);
 
   return {
     membershipStatus,

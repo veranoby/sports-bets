@@ -38,7 +38,7 @@ const CreateEvent: React.FC = () => {
   }, []);
 
   const validateForm = () => {
-    const errors: any = {};
+    const errors: Record<string, string> = {}; // More specific type than 'any'
     if (!name || name.length < 3 || name.length > 255) {
       errors.name = "Name must be between 3 and 255 characters.";
     }

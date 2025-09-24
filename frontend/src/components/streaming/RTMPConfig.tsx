@@ -88,7 +88,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
     try {
       const response = await streamingAPI.getSystemStatus();
       setSystemHealth(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch system health:", err);
       setError("Failed to load system status");
     }
@@ -113,7 +113,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
 
       // Fetch OBS configuration for the new key
       await fetchOBSConfig(response.data.streamKey);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Failed to generate stream key");
     } finally {
       setGenerating(false);
@@ -124,7 +124,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
     try {
       const response = await streamingAPI.getOBSConfig(key);
       setOBSConfig(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch OBS config:", err);
     }
   };
@@ -142,7 +142,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
 
       // Refresh system health
       await fetchSystemHealth();
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Failed to revoke stream key");
     } finally {
       setLoading(false);

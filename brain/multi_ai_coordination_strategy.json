@@ -482,74 +482,113 @@
   },
 
   "qwen_optimization_strategies": {
-    "effective_prompt_patterns": {
-      "component_duplication_prevention": {
-        "pattern": "CRITICAL: Check for existing components before creating",
-        "template": "Before implementing [ComponentName], run: grep -r '[ComponentName]' frontend/src/components/ to verify no duplicates exist",
-        "validation": "List all files that import this component to ensure single source"
+    "qwen_cli_optimization_v3": {
+      "critical_discovery": "QWEN CLI external tool failing 60% due to internal MCP timeouts during 4-hour ESLint cleanup",
+      "root_cause_analysis": {
+        "primary_issue": "QWEN CLI's internal MCPs timeout with error -32001",
+        "secondary_issue": "Long sessions (4h) overwhelm QWEN CLI capabilities",
+        "tertiary_issue": "Hardware/connectivity insufficient for QWEN CLI MCPs",
+        "quaternary_issue": "Over-reliance on shell commands when MCPs fail"
       },
-      "import_conflict_prevention": {
-        "pattern": "CRITICAL: Validate all imports after component changes",
-        "template": "After editing component [ComponentName], validate imports: grep -r 'import.*[ComponentName]' frontend/src/ and fix broken paths",
-        "validation": "Run npx tsc --noEmit to check TypeScript compilation"
+      "solution_v3_qwen_cli_focused": {
+        "philosophy": "Short tasks, native QWEN CLI tools, fallback strategies",
+        "session_optimization": {
+          "duration": "45-60 minutes maximum per session",
+          "task_scope": "Single warning type per session (not multi-phase)",
+          "break_pattern": "Complete → validate → commit → report → new session",
+          "hardware_considerations": "Account for QWEN CLI MCP limitations"
+        },
+        "qwen_cli_tool_strategy": {
+          "preferred_tools": [
+            "search_file_content (instead of grep via shell)",
+            "read_file and edit (instead of sed via shell)",
+            "glob for file discovery",
+            "run_shell_command (only as backup when MCPs fail)"
+          ],
+          "fallback_when_mcps_fail": [
+            "Provide exact sed/awk commands for manual execution",
+            "Break complex operations into atomic steps",
+            "Use QWEN CLI's limited shell access strategically"
+          ]
+        }
+      }
+    },
+    "qwen_cli_prompt_patterns": {
+      "qwen_cli_native_workflow": {
+        "pattern": "MANDATORY: Use QWEN CLI native tools when MCPs timeout",
+        "template": "1) search_file_content for patterns 2) read_file to understand 3) edit for changes 4) Final run_shell_command for validation",
+        "validation": "Fallback to shell commands only when QWEN CLI MCPs fail"
+      },
+      "qwen_cli_session_structure": {
+        "pattern": "Single warning type per 45-60min session",
+        "template": "Focus ONLY on [unused-vars|explicit-any|exhaustive-deps] in this session, complete fully before next type",
+        "validation": "Validate completion before moving to next warning category"
+      },
+      "qwen_cli_fallback_strategy": {
+        "pattern": "When QWEN CLI MCPs timeout, provide manual commands",
+        "template": "If search_file_content fails, use: grep -r 'pattern' src/ | head -20",
+        "validation": "Always provide shell command alternatives for QWEN CLI"
       },
       "scope_constraint_enforcement": {
         "pattern": "LIMIT: Only modify files explicitly listed in task scope",
         "template": "ALLOWED FILES: [list specific files]. FORBIDDEN: Any file not in this list, authentication files, database files, core architecture",
         "validation": "Before starting, confirm file list. After completion, verify no unlisted files modified"
-      },
-      "reactive_quill_integration": {
-        "pattern": "ReactQuill requires CSS import consolidation",
-        "template": "When integrating ReactQuill: 1) Import 'react-quill/dist/quill.snow.css' only once 2) Use useMemo for toolbar config 3) Check existing ReactQuill components for conflicts",
-        "validation": "Search for existing ReactQuill imports to prevent CSS conflicts"
       }
     },
-    "micro_task_strategy_v2": {
-      "critical_discovery": "V1 strategy (abstract prompts) achieved only 10% success (43/420 errors) in 3-4 hours. V2 strategy (micro-tasks + exact commands) targets 95% success in 50 minutes.",
-      "core_problem_v1": {
-        "abstract_instructions": "Phase-based approach confused Qwen with too many decisions",
-        "multiple_files": "Qwen lost context switching between files",
-        "delayed_validation": "Errors accumulated without immediate feedback",
-        "missing_commands": "No specific sed/grep commands provided"
+    "qwen_cli_task_strategy_v3": {
+      "critical_discovery": "QWEN CLI V2 failed due to internal MCP timeouts, not command specificity. V3 focuses on QWEN CLI-specific workflow optimization.",
+      "core_problem_v2": {
+        "qwen_cli_mcp_cascade": "QWEN CLI's internal MCP error -32001 disrupted 60% of work",
+        "tool_dependency": "Over-reliance on QWEN CLI MCPs for basic operations",
+        "session_length": "4-hour sessions vs 45-60min optimal for QWEN CLI",
+        "validation_timing": "Continuous validation vs end-of-session batch"
       },
-      "solution_v2_micro_tasks": {
-        "philosophy": "One exact command + immediate validation + auto-rollback",
-        "time_per_task": "5 minutes maximum per micro-task",
-        "command_specificity": "Exact sed/grep commands, no interpretation needed",
-        "validation_immediate": "npm run lint after each change",
-        "rollback_automatic": "git checkout file if validation fails"
+      "solution_v3_qwen_cli_optimized": {
+        "philosophy": "QWEN CLI native tools + focused sessions + fallback strategies",
+        "session_structure": "45-60min focused work + validation + commit + report",
+        "tool_strategy": "search_file_content → read_file → edit → run_shell_command (fallback)",
+        "rollback_strategy": "Any QWEN CLI MCP failure = switch to manual commands",
+        "success_pattern": "Single warning type completion × multiple sessions = reliable progress"
       },
-      "micro_task_templates": {
-        "unused_import_removal": {
-          "template": "sed -i 's/, FileText//g; s/, User//g' src/components/admin/AdminSidebar.tsx",
-          "validation": "npm run lint --quiet src/components/admin/AdminSidebar.tsx",
-          "success_criteria": "Zero warnings for this file",
-          "rollback": "git checkout -- src/components/admin/AdminSidebar.tsx"
+      "qwen_cli_task_templates": {
+        "unused_import_removal_qwen_cli": {
+          "step_1": "search_file_content for unused imports pattern='import.*{[^}]*FileText[^}]*}'",
+          "step_2": "read_file to understand file structure and verify unused status",
+          "step_3": "edit to remove unused import from specific line",
+          "fallback": "If search_file_content timeouts: grep -r 'import.*FileText' src/",
+          "validation_defer": "run_shell_command for npm run lint at session end only",
+          "rollback": "git checkout -- [filename] if session validation fails"
         },
-        "explicit_any_fix": {
-          "template": "sed -i 's/: any/: ApiResponse/g' src/services/api.ts",
-          "validation": "npx tsc --noEmit --target src/services/api.ts",
-          "success_criteria": "TypeScript compilation clean",
-          "rollback": "git checkout -- src/services/api.ts"
+        "explicit_any_fix_qwen_cli": {
+          "step_1": "search_file_content for 'any' types pattern=': any'",
+          "step_2": "read_file to understand context and determine correct type",
+          "step_3": "edit to replace specific ': any' with proper type",
+          "fallback": "If search fails: grep -n ': any' [filename]",
+          "validation_defer": "NO immediate TypeScript check - defer to session end",
+          "rollback": "edit back to 'any' if end-session validation fails"
         },
-        "unused_variable_removal": {
-          "template": "sed -i '/const Title = Typography.Title;/d' src/components/admin/FightStatusManager.tsx",
-          "validation": "npm run lint --quiet src/components/admin/FightStatusManager.tsx",
-          "success_criteria": "Zero unused variable warnings",
-          "rollback": "git checkout -- src/components/admin/FightStatusManager.tsx"
+        "unused_variable_removal_qwen_cli": {
+          "step_1": "search_file_content for unused variable patterns",
+          "step_2": "read_file to verify variable is truly unused",
+          "step_3": "edit to remove the variable declaration line",
+          "fallback": "If search fails: grep -n 'const.*=' [filename] | grep unused",
+          "validation_defer": "Skip immediate lint check - batch validate at session end",
+          "rollback": "edit to restore variable if needed"
         }
       },
-      "execution_optimization": {
-        "session_structure": "1 file = 1 session = 5 minutes = 1 specific command",
-        "error_budget": "0 tolerance - any error triggers immediate rollback",
-        "progress_tracking": "Update brain with exact errors fixed after each session",
-        "time_boxing": "45 minutes total = 9 files maximum per coordination cycle"
+      "qwen_cli_execution_optimization": {
+        "session_structure": "45-60min focused work → validation → commit → report",
+        "error_budget": "0 tolerance for QWEN CLI MCP failures - immediate fallback to manual",
+        "mcp_fallback": "When QWEN CLI MCPs timeout, provide exact shell commands",
+        "progress_tracking": "Update brain after successful QWEN CLI session completion",
+        "time_boxing": "Single warning type per session vs multi-phase approach",
+        "hardware_awareness": "Account for QWEN CLI performance limitations"
       },
-      "success_metrics": {
-        "time_efficiency": "V1: 30-40 hours estimate vs V2: 50 minutes (48x faster)",
-        "accuracy_rate": "V1: 10% success vs V2: 95% target success",
-        "token_savings": "Same tokens as V1 but 95% better results",
-        "reliability": "Auto-rollback prevents broken states"
+      "qwen_cli_success_metrics": {
+        "time_efficiency": "V1: 30-40 hours vs V3: 3-4 focused sessions of 1h each",
+        "accuracy_rate": "V2: 18% completion (63/309 warnings) vs V3: target 80%+ per session",
+        "mcp_reliability": "V2: 60% MCP failures vs V3: fallback strategies prevent blocks",
+        "session_completion": "V2: 4h incomplete vs V3: 1h focused completion rate"
       }
     },
 

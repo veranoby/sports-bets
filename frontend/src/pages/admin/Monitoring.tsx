@@ -34,13 +34,12 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 // APIs (con fallback a mock)
 import { systemAPI } from "../../services/api";
 
-interface ServiceStatus {
-  service: string;
-  status: "healthy" | "degraded" | "down";
-  uptime: number;
+interface SystemHealth {
+  name: string;
+  status: "healthy" | "warning" | "error";
   responseTime: number;
   lastCheck: string;
-  details?: any;
+  details?: unknown; 
 }
 
 interface SystemMetrics {
@@ -134,7 +133,7 @@ const AdminMonitoringPage: React.FC = () => {
       setAlerts(
         alertsRes.success
           ? alertsRes.data?.filter(
-              (alert: any) =>
+              (alert: AlertItem) => 
                 alert.service.toLowerCase().includes("stream") ||
                 alert.service.toLowerCase().includes("rtmp"),
             ) || []

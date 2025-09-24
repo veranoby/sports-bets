@@ -1,176 +1,209 @@
 {
-  "task_assignment": "GEMINI - Frontend ReactQuill & Profile Enhancement",
-  "priority": "CRITICAL - Production errors blocking user functionality",
-  "token_savings_target": "25-35% through focused React/TypeScript expertise",
+  "task_assignment": "GEMINI CLI - ESLint Warning Cleanup Continuation (Stage 2 of 3-AI Pipeline)",
+  "priority": "MEDIUM - Code quality improvement with token efficiency focus",
+  "tool": "GEMINI CLI (External AI Tool)",
+  "pipeline_position": "QWEN CLI (35% done) → GEMINI CLI (50% target) → Claude (15% validation)",
+  "token_savings_target": "40-50% through specialized TypeScript/React expertise with MCP timeout strategies",
+
+  "mcp_timeout_prevention": {
+    "lessons_from_qwen_cli": "60% of QWEN CLI session failed due to MCP timeouts (error -32001)",
+    "gemini_strategies": {
+      "native_tools_first": "Use Gemini CLI native tools before attempting complex operations",
+      "immediate_fallback": "Switch to alternative approach when MCP operations timeout",
+      "micro_sessions": "25-30 minute focused sessions to prevent MCP exhaustion",
+      "single_focus": "Complete one warning category per session, never multi-task"
+    },
+    "unknown_mcp_behavior": "Gemini CLI MCP timeout behavior unknown - apply defensive strategies from QWEN CLI experience"
+  },
 
   "recommended_agents": {
-    "primary_agent": "--frontend-architect --focus accessibility --safe-mode",
-    "support_agent": "--quality-engineer --validate --scope module",
-    "testing_agent": "--quality-engineer --focus testing --validate",
+    "primary_agent": "--refactoring-expert --focus typescript --safe-mode",
+    "support_agent": "--frontend-architect --scope module --validate",
+    "validation_agent": "--quality-engineer --focus testing --safe-mode",
     "agent_rationale": {
-      "frontend_architect": "Expert in React/TypeScript frontend issues, ReactQuill compatibility, component interfaces",
-      "quality_engineer": "Validates component functionality and form handling without breaking existing patterns",
-      "focus_accessibility": "Ensures form enhancements maintain accessibility standards for venue/gallera users"
+      "refactoring_expert": "Specialized in systematic TypeScript cleanup, perfect for ESLint warning reduction",
+      "frontend_architect": "React/TypeScript domain knowledge for context-aware type replacements",
+      "quality_engineer": "Validates changes don't break functionality, ensures safety"
     },
     "forbidden_agents": [
-      "--backend-architect (frontend-only task)",
-      "--security-engineer (could over-secure forms)",
-      "--performance-engineer (not performance issue)",
-      "--system-architect (too broad for component fixes)"
+      "--backend-architect (frontend ESLint task only)",
+      "--security-engineer (could over-complicate simple type fixes)",
+      "--performance-engineer (not performance optimization)",
+      "--system-architect (too broad scope for focused cleanup)"
     ]
   },
 
-  "agent_workflow": {
-    "phase_1_reactquill_fix": "--frontend-architect --focus accessibility --safe-mode",
-    "phase_2_profile_enhancement": "--frontend-architect --quality-engineer --scope module",
-    "phase_3_form_validation": "--quality-engineer --focus testing --validate",
-    "execution_pattern": "Fix ReactQuill first, then enhance Profile component with proper form validation"
+  "gemini_cli_workflow": {
+    "session_1_explicit_any": "--refactoring-expert --focus typescript --safe-mode",
+    "session_2_unused_vars": "--refactoring-expert --frontend-architect --scope module",
+    "session_3_exhaustive_deps": "--frontend-architect --quality-engineer --validate",
+    "session_validation": "--quality-engineer --focus testing --safe-mode",
+    "execution_pattern": "Single warning type completion → validate → commit → next session"
   },
 
-  "knowledge_verification": {
-    "consulted_project_knowledge": [
-      "frontend/src/components/articles/ArticleEditor.tsx - Current ReactQuill 2.0.0 implementation with findDOMNode errors",
-      "frontend/src/components/articles/StandaloneArticleEditor.tsx - Duplicate ArticleEditor causing import conflicts",
-      "frontend/src/pages/user/Profile.tsx - Current basic user profile form without venue/gallera fields",
-      "frontend/src/components/admin/EditVenueGalleraModal.tsx - Reference pattern for venue/gallera field handling",
-      "frontend/src/components/forms/UserProfileForm.tsx - Base form component for profile updates",
-      "package.json - ReactQuill 2.0.0 dependency causing React 18 compatibility issues"
-    ],
-    "existing_components_affecting_task": [
-      "ArticleEditor.tsx (ReactQuill integration)",
-      "StandaloneArticleEditor.tsx (duplicate component)",
-      "Profile.tsx (basic user profile)",
-      "UserProfileForm.tsx (form validation)",
-      "EditVenueGalleraModal.tsx (venue/gallera patterns)"
-    ],
-    "knowledge_gaps_identified": [
-      "Backend API validation requirements for venue/gallera profile fields",
-      "ReactQuill 3.x migration breaking changes",
-      "CSS conflicts between multiple ReactQuill imports",
-      "Profile API endpoint response structure for venue/gallera users"
-    ]
-  },
-
-  "task_decomposition": {
-    "subtasks": [
-      {
-        "id": "1",
-        "task": "Fix ReactQuill findDOMNode compatibility error",
-        "duration": "10 minutes",
-        "success_criteria": "ArticleEditor component loads without console errors, crear articulo button functional",
-        "technical_approach": "Upgrade ReactQuill to 3.x or implement ref-based solution",
-        "dependencies": []
-      },
-      {
-        "id": "2",
-        "task": "Remove duplicate StandaloneArticleEditor component",
-        "duration": "5 minutes",
-        "success_criteria": "No import conflicts, single ArticleEditor source of truth",
-        "technical_approach": "Delete duplicate file, update import references",
-        "dependencies": ["1"]
-      },
-      {
-        "id": "3",
-        "task": "Analyze venue/gallera profile requirements",
-        "duration": "8 minutes",
-        "success_criteria": "Clear specification of additional fields needed for venue/gallera profiles",
-        "technical_approach": "Review EditVenueGalleraModal patterns, identify missing Profile fields",
-        "dependencies": []
-      },
-      {
-        "id": "4",
-        "task": "Extend Profile.tsx for venue/gallera roles",
-        "duration": "10 minutes",
-        "success_criteria": "Profile component handles venue/gallera fields, no 400 errors on save",
-        "technical_approach": "Conditional field rendering based on user role, extend form validation",
-        "dependencies": ["3"]
-      },
-      {
-        "id": "5",
-        "task": "Update UserProfileForm validation",
-        "duration": "7 minutes",
-        "success_criteria": "Form validation accepts venue/gallera specific fields, proper error handling",
-        "technical_approach": "Extend validation schema, add role-specific field validation",
-        "dependencies": ["4"]
+  "current_eslint_status": {
+    "baseline_from_qwen_cli": {
+      "total_warnings": "200 remaining (down from 309)",
+      "qwen_progress": "63 warnings fixed (18% completion)",
+      "remaining_categories": {
+        "no_explicit_any": "84 remaining (was ~150)",
+        "no_unused_vars": "104 remaining (was ~45)",
+        "exhaustive_deps": "10 remaining (was ~40)",
+        "only_export_components": "2 remaining (was ~29)"
       }
-    ],
-    "total_estimated_duration": "40 minutes",
-    "execution_order": "Sequential: 1→2→3→4→5"
+    },
+    "gemini_target_work": {
+      "focus_categories": ["no_explicit_any", "no_unused_vars", "exhaustive_deps"],
+      "expected_reduction": "200 → 75-100 warnings (50% additional reduction)",
+      "session_targets": {
+        "session_1": "84 → 30-40 explicit-any warnings",
+        "session_2": "104 → 40-50 unused-vars warnings",
+        "session_3": "10 → 0-2 exhaustive-deps warnings"
+      }
+    },
+    "files_already_modified_by_qwen": [
+      "Multiple files with unused imports removed",
+      "Various files with any → unknown in catch blocks",
+      "useEffect dependencies partially fixed",
+      "Some eslint-disable comments added"
+    ]
+  },
+
+  "gemini_cli_session_decomposition": {
+    "session_1_explicit_any": {
+      "id": "gemini_session_1",
+      "focus": "Replace remaining 84 'no-explicit-any' warnings with proper TypeScript types",
+      "duration": "25-30 minutes",
+      "gemini_tools": {
+        "preferred": "Use Gemini CLI native search/edit tools",
+        "fallback": "Switch to alternative commands if MCP timeouts occur",
+        "validation": "Defer npm run lint to session end"
+      },
+      "success_criteria": "84 → 30-40 explicit-any warnings, no functionality breaks",
+      "patterns_to_fix": [
+        "catch (error: any) → catch (error: unknown)",
+        "event: any → event: React.ChangeEvent<HTMLInputElement>",
+        "props: any → props: ComponentProps",
+        "data: any → data: ApiResponse<T>"
+      ],
+      "mcp_fallback_strategy": "If search fails, provide exact grep commands for manual execution"
+    },
+    "session_2_unused_vars": {
+      "id": "gemini_session_2",
+      "focus": "Remove remaining 104 'no-unused-vars' warnings",
+      "duration": "25-30 minutes",
+      "gemini_tools": {
+        "preferred": "Systematic file-by-file unused import removal",
+        "fallback": "Manual sed commands for import cleanup",
+        "validation": "Check compilation still works"
+      },
+      "success_criteria": "104 → 40-50 unused-vars warnings, zero compilation errors",
+      "approach": "Conservative removal - only obviously unused imports/variables",
+      "risk_mitigation": "Don't remove imports that might be used by other files"
+    },
+    "session_3_exhaustive_deps": {
+      "id": "gemini_session_3",
+      "focus": "Fix remaining 10 'exhaustive-deps' warnings",
+      "duration": "25-30 minutes",
+      "gemini_tools": {
+        "preferred": "React hooks expertise for proper dependency arrays",
+        "fallback": "Add missing dependencies conservatively",
+        "validation": "Ensure no infinite re-render loops"
+      },
+      "success_criteria": "10 → 0-2 exhaustive-deps warnings, React behavior preserved",
+      "approach": "Add missing dependencies or wrap functions in useCallback",
+      "high_risk": "Changes to useEffect can break component behavior"
+    },
+    "total_estimated_duration": "75-90 minutes across 3 focused sessions",
+    "execution_order": "Sequential sessions with validation between each"
   },
 
   "purpose_and_requirements": {
-    "specific_purpose": "Fix critical ReactQuill findDOMNode errors blocking article creation and extend Profile component to handle venue/gallera additional fields preventing 400 errors on profile updates",
+    "specific_purpose": "Continue ESLint warning cleanup from QWEN CLI baseline (200 warnings) using Gemini CLI specialized TypeScript/React expertise to achieve 50% additional reduction",
     "functional_requirements": [
-      "Article creation modal (crear articulo) works without console errors",
-      "ReactQuill editor loads and functions correctly with React 18",
-      "Profile form accepts and saves venue-specific fields (businessName, businessAddress, businessPhone, taxId, licenseNumber)",
-      "Profile form accepts and saves gallera-specific fields (identificationNumber, entity contact info, registration details)",
-      "Profile updates return 200 status for venue/gallera users instead of 400 errors"
+      "Reduce no-explicit-any warnings from 84 to 30-40 using proper TypeScript types",
+      "Remove unused variables/imports from 104 to 40-50 without breaking functionality",
+      "Fix useEffect dependency arrays from 10 to 0-2 warnings safely",
+      "Maintain all existing component functionality and behavior",
+      "Preserve React hook patterns and avoid infinite re-render loops"
     ],
     "non_functional_requirements": [
-      "ReactQuill component performance: <200ms load time",
-      "Profile form validation: <100ms response time",
-      "Backward compatibility: existing user profiles unaffected",
-      "Accessibility: form fields properly labeled and keyboard navigable",
-      "Error handling: clear validation messages for venue/gallera fields"
+      "TypeScript compilation must succeed after all changes",
+      "React development server must start without errors",
+      "No new console warnings or errors introduced",
+      "Component behavior preserved - no functional regressions",
+      "Build process must complete successfully"
     ]
   },
 
   "inputs_and_outputs": {
     "inputs": {
-      "reactquill_fix": {
-        "type": "Component enhancement",
-        "validation": "Must not break existing article creation functionality",
-        "example": "ArticleEditor component with ReactQuill 3.x integration"
-      },
-      "profile_enhancement": {
-        "type": "Form extension",
-        "validation": "Must preserve existing user profile functionality",
-        "parameters": {
-          "user_role": "string ('user' | 'venue' | 'gallera')",
-          "profile_data": "UserProfile interface extended with venue/gallera fields"
+      "eslint_baseline": {
+        "type": "Current warning state from QWEN CLI",
+        "total_warnings": "200 remaining",
+        "categories": {
+          "no_explicit_any": "84 warnings",
+          "no_unused_vars": "104 warnings",
+          "exhaustive_deps": "10 warnings",
+          "only_export_components": "2 warnings"
         },
-        "example": "Profile form with conditional venue fields: businessName, businessAddress, etc."
+        "validation": "Must build on QWEN CLI progress without reverting fixes"
+      },
+      "typescript_context": {
+        "type": "React/TypeScript project",
+        "framework": "React 18 with TypeScript, Tailwind CSS",
+        "patterns": "Existing interfaces and type definitions in codebase",
+        "validation": "Must follow established typing patterns"
       }
     },
     "expected_outputs": {
-      "reactquill_component": {
-        "format": "React functional component with ReactQuill 3.x",
-        "structure": "ArticleEditor.tsx with proper React 18 compatibility",
-        "validation": "No console errors, crear articulo functional"
+      "reduced_warnings": {
+        "format": "Significantly reduced ESLint warning count",
+        "targets": {
+          "no_explicit_any": "84 → 30-40 warnings",
+          "no_unused_vars": "104 → 40-50 warnings",
+          "exhaustive_deps": "10 → 0-2 warnings"
+        },
+        "validation": "npm run lint shows measurable improvement"
       },
-      "enhanced_profile": {
-        "format": "Extended Profile.tsx component",
-        "structure": "Conditional rendering based on user role, integrated venue/gallera fields",
-        "api_compatibility": "Profile updates return 200 for all user roles"
+      "maintained_functionality": {
+        "format": "All components continue to work as before",
+        "structure": "No breaking changes to component behavior",
+        "api_compatibility": "TypeScript compilation succeeds"
       }
     },
     "edge_cases": [
-      "User switches roles while editing profile",
-      "ReactQuill CSS conflicts with existing styles",
-      "Profile form validation with partial venue/gallera data",
-      "Network errors during profile save for venue/gallera users"
+      "Type changes that break component interfaces",
+      "Removing imports that other files depend on",
+      "useEffect changes causing infinite re-renders",
+      "Gemini CLI MCP timeouts during long operations"
     ]
   },
 
   "constraints_and_restrictions": {
     "technical_limitations": [
-      "React 18 strict mode compatibility required for ReactQuill",
-      "Existing UserProfileForm component architecture must be preserved",
-      "No breaking changes to Profile API contract",
-      "CSS imports must not conflict with existing ReactQuill components"
+      "TypeScript compilation must not break during or after changes",
+      "React component behavior must remain identical after type changes",
+      "Cannot remove imports that might be used by other files in project",
+      "useEffect dependency changes must not create infinite re-render loops"
     ],
-    "business_restrictions": [
-      "Venue users require businessName, businessAddress, businessPhone fields",
-      "Gallera users require identificationNumber and entity-specific contact info",
-      "Regular users must not see venue/gallera specific fields",
-      "Profile updates must maintain audit trail for venue/gallera entities"
+    "gemini_cli_limitations": [
+      "MCP timeout behavior unknown - assume similar to QWEN CLI issues",
+      "Must work with native Gemini CLI tools as primary approach",
+      "Sessions must be kept under 30 minutes to prevent MCP exhaustion",
+      "Cannot rely on continuous MCP availability during work"
     ],
-    "compatibility_requirements": [
-      "Must work with existing authentication system",
-      "Must integrate with current form validation patterns",
-      "Must support existing CSS/Tailwind styling approach",
-      "Must maintain TypeScript type safety"
+    "safety_requirements": [
+      "No functional changes to component logic allowed",
+      "Must preserve all existing React hook patterns",
+      "Cannot modify component interfaces or prop types",
+      "Must maintain backward compatibility with all existing code"
+    ],
+    "coordination_requirements": [
+      "Must build upon QWEN CLI work without reverting previous fixes",
+      "Must prepare clean handoff to Claude for final validation",
+      "Must document any MCP timeout issues encountered",
+      "Must report exact warning count reductions achieved"
     ]
   },
 
@@ -393,23 +426,25 @@
 
   "success_criteria": {
     "objective_metrics": [
-      "ReactQuill findDOMNode errors: 0 console errors (currently: multiple errors)",
-      "Article creation success rate: 100% (currently: fails due to console errors)",
-      "Venue profile update success: HTTP 200 response (currently: HTTP 400)",
-      "Gallera profile update success: HTTP 200 response (currently: HTTP 400)",
-      "Test coverage: ≥80% for modified components"
+      "no-explicit-any warnings: 84 → 30-40 (40-50% reduction)",
+      "no-unused-vars warnings: 104 → 40-50 (50-60% reduction)",
+      "exhaustive-deps warnings: 10 → 0-2 (80-100% reduction)",
+      "Total warnings: 200 → 75-100 (50% reduction overall)",
+      "TypeScript compilation: 0 errors after all changes"
     ],
     "functional_validation": [
-      "Click 'crear articulo' button → ReactQuill editor loads without errors",
-      "Venue user → Profile page → sees business fields → can save successfully",
-      "Gallera user → Profile page → sees identification fields → can save successfully",
-      "Regular user → Profile page → sees only basic fields → existing functionality preserved"
+      "npm run build completes successfully after all changes",
+      "npm run dev starts without errors or new warnings",
+      "All React components render and behave identically",
+      "No new console errors or warnings introduced",
+      "No infinite re-render loops in components with useEffect changes"
     ],
-    "integration_checks": [
-      "Article creation end-to-end flow works without console errors",
-      "Profile updates work for all user roles (user, venue, gallera)",
-      "No regression in existing user profile functionality",
-      "Backend API receives properly formatted venue/gallera profile data"
+    "pipeline_success": [
+      "Clean handoff to Claude with documented progress",
+      "Measurable improvement over QWEN CLI baseline",
+      "Clear remaining work identified for Claude completion",
+      "MCP timeout strategies documented if issues encountered",
+      "All git commits properly documented with warning counts"
     ]
   },
 
@@ -437,23 +472,60 @@
     "execution_pattern": "Fix ReactQuill first, then enhance Profile component with proper form validation"
   },
 
+  "gemini_cli_execution_workflow": {
+    "pre_session_checklist": [
+      "Verify current ESLint warning count: npm run lint | tail -5",
+      "Check git status and create feature branch",
+      "Review QWEN CLI changes to understand baseline",
+      "Plan single warning category focus for session"
+    ],
+    "session_execution_pattern": [
+      "Use Gemini CLI native tools for search/edit operations",
+      "If MCP timeouts occur, switch immediately to fallback strategy",
+      "Focus on single warning type completion per session",
+      "NO npm run lint validation during active work",
+      "Commit changes at session end with warning count documentation"
+    ],
+    "mcp_fallback_procedures": [
+      "Document which MCP operations timed out",
+      "Provide exact shell commands as alternatives",
+      "Continue with available tools rather than stopping work",
+      "Report MCP issues for future Gemini CLI optimization"
+    ],
+    "session_end_validation": [
+      "npm run lint to verify warning count reduction",
+      "npm run build to ensure TypeScript compilation",
+      "git add . && git commit with descriptive message",
+      "Document progress for Claude handoff"
+    ]
+  },
+
   "final_deliverables": {
-    "code_components": [
-      "Fixed ArticleEditor.tsx with ReactQuill 3.x compatibility",
-      "Enhanced Profile.tsx with venue/gallera conditional fields",
-      "Updated UserProfileForm.tsx with extended validation",
-      "Comprehensive test suite with ≥80% coverage"
+    "warning_reduction": [
+      "Measurable reduction in ESLint warnings from 200 → 75-100",
+      "Specific category improvements documented",
+      "TypeScript compilation maintained throughout",
+      "No functional regressions introduced"
     ],
     "documentation": [
-      "Implementation summary with changes made",
-      "Test results showing all success criteria met",
-      "Migration notes for ReactQuill upgrade (if applicable)"
+      "Session-by-session progress report",
+      "MCP timeout issues encountered (if any)",
+      "Remaining work clearly identified for Claude",
+      "Git commit history with warning count tracking"
     ],
-    "validation_evidence": [
-      "Screenshot/video of working 'crear articulo' functionality",
-      "API response logs showing 200 status for venue/gallera profile updates",
-      "Test coverage report showing ≥80% coverage",
-      "Console log showing zero ReactQuill errors"
+    "handoff_package": [
+      "Clean codebase ready for Claude final validation",
+      "All changes properly committed and documented",
+      "Remaining 75-100 warnings categorized for Claude completion",
+      "No blocking issues or broken functionality"
     ]
-  }
+  },
+
+  "forbidden_files": [
+    "frontend/src/pages/user/Profile.tsx (unless ESLint-related)",
+    "frontend/src/contexts/AuthContext.tsx (unless ESLint-related)",
+    "backend/src/routes/auth.ts (backend - not in scope)",
+    "Any database files (not in scope)",
+    "Any authentication business logic (not in scope)"
+  ]
 }

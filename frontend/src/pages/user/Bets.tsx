@@ -27,6 +27,35 @@ import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatu
 // ✅ TIPOS LOCALES PARA EVITAR DEPENDENCIAS EXTERNAS
 type TabType = "my_bets" | "available" | "history" | "stats";
 
+interface Bet {
+  id: string;
+  amount: number;
+  status: string;
+  result?: "win" | "loss";
+  potentialWin?: number;
+}
+
+interface ProposalReceivedData {
+  newProposal: Bet;
+}
+
+interface ProposalAcceptedData {
+  proposalId: string;
+}
+
+interface ProposalRejectedData {
+  proposalId: string;
+}
+
+interface BetProposalUpdateData {
+  proposalId: string;
+  updates: Partial<Bet>;
+}
+
+interface PagoProposedData {
+  newBet: Bet;
+}
+
 const UserBets: React.FC = () => {
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
   const navigate = useNavigate();
@@ -57,11 +86,11 @@ const UserBets: React.FC = () => {
   const { addListener, isConnected } = useWebSocketContext();
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
-  const handleProposalReceived = useCallback((data: any) => {
+  const handleProposalReceived = useCallback((data: ProposalReceivedData) => {
     setBetsRef.current((prev) => [...prev, data.newProposal]);
   }, []);
 
-  const handleProposalAccepted = useCallback((data: any) => {
+  const handleProposalAccepted = useCallback((data: ProposalAcceptedData) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
         bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet,
@@ -69,13 +98,13 @@ const UserBets: React.FC = () => {
     );
   }, []);
 
-  const handleProposalRejected = useCallback((data: any) => {
+  const handleProposalRejected = useCallback((data: ProposalRejectedData) => {
     setBetsRef.current((prev) =>
       prev.filter((bet) => bet.id !== data.proposalId),
     );
   }, []);
 
-  const handleBetProposalUpdate = useCallback((data: any) => {
+  const handleBetProposalUpdate = useCallback((data: BetProposalUpdateData) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
         bet.id === data.proposalId ? { ...bet, ...data.updates } : bet,
@@ -83,7 +112,7 @@ const UserBets: React.FC = () => {
     );
   }, []);
 
-  const handlePagoProposed = useCallback((data: any) => {
+  const handlePagoProposed = useCallback((data: PagoProposedData) => {
     setBetsRef.current((prev) => [...prev, data.newBet]);
   }, []);
 

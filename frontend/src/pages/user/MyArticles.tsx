@@ -6,6 +6,12 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import { Edit, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 
+interface Article {
+  id: string;
+  title: string;
+  status: string;
+}
+
 const MyArticlesPage: React.FC = () => {
   const { user } = useAuth();
   const [articles, setArticles] = useState([]);
@@ -64,7 +70,7 @@ const MyArticlesPage: React.FC = () => {
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <ul className="divide-y divide-gray-200">
-            {articles.map((article: any) => (
+            {articles.map((article: Article) => (
               <li
                 key={article.id}
                 className="p-4 hover:bg-gray-50 flex justify-between items-center"

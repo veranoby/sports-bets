@@ -168,18 +168,21 @@
     
     "typescript_errors": {
       "severity": "MEDIUM",
-      "impact": "370+ @typescript-eslint/no-explicit-any errors",
-      "owner": "QWEN with Claude validation",
-      "solution": "Gradual cleanup on day 13-14",
-      "restrictions": "QWEN limited to simple type additions only"
+      "impact": "309 ESLint warnings remaining (63 fixed, 276 pending)",
+      "owner": "QWEN CLI with Claude validation",
+      "solution": "QWEN CLI optimized sessions with MCP fallback strategy",
+      "latest_status": "18% completion - QWEN CLI MCP timeouts prevented full completion",
+      "new_approach": "45-60min focused sessions per warning type + immediate MCP fallback",
+      "tool_strategy": "search_file_content → read_file → edit → run_shell_command (fallback)",
+      "restrictions": "QWEN CLI single warning type focus, immediate fallback when MCPs timeout"
     },
     
     "authentication_fragility": {
       "severity": "HIGH",
-      "impact": "QWEN previously broke Profile.tsx and auth",
+      "impact": "QWEN CLI previously broke Profile.tsx and auth",
       "owner": "Claude ONLY",
-      "solution": "FORBIDDEN files list enforced",
-      "prevention": "Git backup before any QWEN session"
+      "solution": "FORBIDDEN files list enforced for QWEN CLI",
+      "prevention": "Git backup before any QWEN CLI session, strict scope limitations"
     }
   },
 
@@ -231,7 +234,7 @@
       "Integration validation",
       "Deployment coordination"
     ],
-    
+
     "gemini_primary": [
       "React component creation",
       "TypeScript interfaces",
@@ -240,15 +243,16 @@
       "Responsive design",
       "Admin/Operator dashboards"
     ],
-    
-    "qwen_limited": [
-      "Simple TypeScript cleanup",
+
+    "qwen_cli_specialized": [
+      "ESLint warning cleanup (single type per session)",
+      "TypeScript 'any' type replacements",
+      "Unused import/variable removal",
       "New test file creation",
-      "Documentation updates",
-      "CSS styling additions"
+      "Documentation updates"
     ],
-    
-    "forbidden_for_qwen": [
+
+    "forbidden_for_qwen_cli": [
       "Profile.tsx",
       "AuthContext.tsx",
       "auth.ts",
@@ -256,7 +260,8 @@
       "Any database work",
       "Any authentication logic",
       "Any betting logic",
-      "Any real-time systems"
+      "Any real-time systems",
+      "Complex multi-file refactoring"
     ]
   },
 

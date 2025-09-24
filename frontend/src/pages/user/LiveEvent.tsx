@@ -205,7 +205,7 @@ const LiveEvent = () => {
         fetchFights({ eventId }),
         fetchAvailableBets({ eventId }),
       ]);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Error cargando evento");
     } finally {
       setLoading(false);
@@ -224,7 +224,7 @@ const LiveEvent = () => {
   useWebSocketListener(
     "fight_updated",
     useCallback(
-      (data: any) => {
+      (data: Fight) => {
         console.log("🥊 Fight actualizada:", data);
         if (data.eventId === eventId) {
           fetchFights({ eventId });
@@ -237,7 +237,7 @@ const LiveEvent = () => {
   useWebSocketListener(
     "bet_created",
     useCallback(
-      (data: any) => {
+      (data: Bet & { eventId: string }) => {
         console.log("💰 Nueva apuesta:", data);
         if (data.eventId === eventId) {
           fetchAvailableBets({ eventId });
@@ -250,7 +250,7 @@ const LiveEvent = () => {
   useWebSocketListener(
     "event_updated",
     useCallback(
-      (data: any) => {
+      (data: Partial<EventData>) => {
         console.log("📺 Evento actualizado:", data);
         if (data.id === eventId) {
           setCurrentEvent((prev) => (prev ? { ...prev, ...data } : null));
@@ -272,7 +272,7 @@ const LiveEvent = () => {
         await acceptBet(betId);
         // Refresh bets después de aceptar
         await fetchAvailableBets({ eventId });
-      } catch (err: any) {
+      } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
         setError(err.message || "Error aceptando apuesta");
       }
     },

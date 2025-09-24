@@ -1,141 +1,193 @@
 {
-  "task_id": "eslint_warnings_cleanup_v2",
+  "task_id": "eslint_warnings_cleanup_qwen_cli_v3",
   "priority": "medium",
-  "estimated_duration": "45-60 minutes",
+  "estimated_duration": "45-60 minutes per session",
+  "tool": "QWEN CLI (External Command Line Tool)",
+  "approach": "Single warning type focus with MCP timeout mitigation",
 
-  "required_agents": [
-    "refactoring-expert",
-    "quality-engineer",
-    "python-expert"
-  ],
-
-  "agent_usage_strategy": {
-    "refactoring-expert": "Primary agent for systematic code improvements and TypeScript type fixes",
-    "quality-engineer": "Validation agent to verify each phase completion and test integration",
-    "python-expert": "Support agent for complex type inference and dependency analysis"
+  "qwen_cli_optimization": {
+    "mcp_timeout_prevention": "Use native QWEN CLI tools with immediate fallback to shell commands",
+    "session_structure": "45-60min focused work + validation + commit + report",
+    "tool_hierarchy": [
+      "1. search_file_content (QWEN CLI native - preferred)",
+      "2. read_file (QWEN CLI native - preferred)",
+      "3. edit (QWEN CLI native - preferred)",
+      "4. run_shell_command (fallback when MCPs timeout)"
+    ],
+    "success_pattern": "Complete single warning type per session vs multi-phase approach"
   },
 
-  "task_description": "Fix 309 ESLint warnings systematically using incremental phased approach with safety validations",
+  "task_description": "Fix remaining 276 ESLint warnings using QWEN CLI native tools with MCP timeout fallback strategies",
 
   "context_injection": {
     "project_type": "React + TypeScript frontend (GalloBets streaming platform)",
-    "warning_categories": {
-      "no-explicit-any": "~180 warnings - Replace 'any' with specific types",
-      "no-unused-vars": "~60 warnings - Remove unused imports/variables",
-      "exhaustive-deps": "~40 warnings - Fix useEffect dependencies",
-      "only-export-components": "~29 warnings - Fix React fast refresh exports"
+    "current_status": "63 warnings already fixed (18% completion), 276 warnings remaining",
+    "previous_session_issues": "60% MCP timeouts during 4-hour session prevented completion",
+    "warning_categories_remaining": {
+      "no-explicit-any": "~150 warnings remaining - Replace 'any' with specific types",
+      "no-unused-vars": "~45 warnings remaining - Remove unused imports/variables",
+      "exhaustive-deps": "~40 warnings remaining - Fix useEffect dependencies",
+      "only-export-components": "~29 warnings remaining - Fix React fast refresh exports"
     },
-    "current_warning_count": 309,
+    "current_warning_count": 276,
     "husky_limit": 500,
-    "safety_margin": "191 warnings buffer before Husky blocks commits"
+    "safety_margin": "224 warnings buffer before Husky blocks commits"
   },
 
   "constraints": {
     "no_functional_changes": "CRITICAL - Do not modify component functionality or business logic",
-    "incremental_commits": "REQUIRED - Commit after each phase with validation",
+    "single_session_commits": "REQUIRED - Commit after completing single warning type",
     "preserve_patterns": "Follow existing TypeScript patterns in codebase",
-    "test_validation": "Run npm run lint after each phase to verify warning reduction",
-    "rollback_strategy": "Each phase must be reversible via git reset"
+    "qwen_cli_mcp_fallback": "When MCPs timeout, immediately switch to run_shell_command",
+    "session_validation": "Use run_shell_command 'npm run lint' only at session end",
+    "rollback_strategy": "Session must be reversible via git checkout for failed files"
   },
 
-  "task_decomposition": {
-    "phase_1": {
+  "qwen_cli_session_types": {
+    "session_1_unused_vars": {
       "title": "Unused Variables & Imports Cleanup",
       "risk_level": "SAFE",
-      "target_warnings": "60-80 warnings",
-      "description": "Remove unused imports, variables, and dead code",
-      "validation": "npm run lint | grep 'no-unused-vars' | wc -l should be 0",
-      "commit_message": "Phase 1: Remove unused variables and imports"
+      "target_warnings": "45 remaining no-unused-vars warnings",
+      "duration": "45-60 minutes",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content for unused import patterns",
+        "step_2": "read_file to understand file structure and verify unused status",
+        "step_3": "edit to remove unused imports/variables",
+        "fallback": "run_shell_command 'grep -rn \"import.*unused\" src/' if MCPs timeout"
+      },
+      "validation": "run_shell_command 'npm run lint | grep no-unused-vars | wc -l'",
+      "commit_message": "QWEN CLI Session 1: Remove unused variables and imports"
     },
 
-    "phase_2": {
-      "title": "Basic TypeScript Any Replacements",
+    "session_2_explicit_any": {
+      "title": "TypeScript Any Types Replacement",
       "risk_level": "LOW",
-      "target_warnings": "80-120 warnings",
-      "description": "Replace obvious 'any' types with specific types (events, props, simple objects)",
+      "target_warnings": "150 remaining no-explicit-any warnings",
+      "duration": "45-60 minutes",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content ': any' to find all instances",
+        "step_2": "read_file to understand context and determine correct type",
+        "step_3": "edit to replace ': any' with specific types",
+        "fallback": "run_shell_command 'grep -rn \": any\" src/' if MCPs timeout"
+      },
       "patterns_to_fix": [
         "event: any → event: React.ChangeEvent<HTMLInputElement>",
         "props: any → props: ComponentProps",
         "data: any → data: ApiResponse",
         "error: any → error: Error"
       ],
-      "validation": "npm run lint | grep 'no-explicit-any' | head -20 to verify progress",
-      "commit_message": "Phase 2: Replace basic any types with specific TypeScript types"
+      "validation": "run_shell_command 'npm run lint | grep no-explicit-any | wc -l'",
+      "commit_message": "QWEN CLI Session 2: Replace any types with specific TypeScript types"
     },
 
-    "phase_3": {
+    "session_3_exhaustive_deps": {
       "title": "useEffect Dependencies Fix",
       "risk_level": "MEDIUM",
-      "target_warnings": "40-50 warnings",
-      "description": "Add missing dependencies to useEffect arrays or wrap in useCallback",
+      "target_warnings": "40 remaining exhaustive-deps warnings",
+      "duration": "45-60 minutes",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content 'useEffect' to find all instances",
+        "step_2": "read_file to understand dependencies and effects",
+        "step_3": "edit to add missing dependencies conservatively",
+        "fallback": "run_shell_command 'grep -rn \"useEffect\" src/' if MCPs timeout"
+      },
       "approach": "Conservative - only add obviously safe dependencies",
-      "validation": "npm run lint | grep 'exhaustive-deps' | wc -l should be significantly reduced",
-      "commit_message": "Phase 3: Fix useEffect dependency arrays"
+      "validation": "run_shell_command 'npm run lint | grep exhaustive-deps | wc -l'",
+      "commit_message": "QWEN CLI Session 3: Fix useEffect dependency arrays"
     },
 
-    "phase_4": {
+    "session_4_export_components": {
       "title": "React Fast Refresh Exports",
       "risk_level": "HIGH",
-      "target_warnings": "25-30 warnings",
-      "description": "Move constants/utilities out of component files to fix fast refresh",
+      "target_warnings": "29 remaining only-export-components warnings",
+      "duration": "45-60 minutes",
+      "qwen_cli_workflow": {
+        "step_1": "search_file_content 'export' to find non-component exports",
+        "step_2": "read_file to identify constants/utilities in component files",
+        "step_3": "edit to move constants to separate files (only if obvious)",
+        "fallback": "run_shell_command 'grep -rn \"export const\" src/' if MCPs timeout"
+      },
       "approach": "Only if confident - move obvious constants to separate files",
-      "validation": "Verify no build errors and components still render properly",
-      "commit_message": "Phase 4: Fix React fast refresh export warnings"
+      "validation": "run_shell_command 'npm run lint | grep only-export-components | wc -l'",
+      "commit_message": "QWEN CLI Session 4: Fix React fast refresh export warnings"
     }
   },
 
   "success_criteria": {
-    "primary": "Reduce ESLint warnings from 309 to under 150 (>50% improvement)",
-    "secondary": "Maintain all functionality - no broken components or features",
-    "tertiary": "Improve TypeScript type safety without introducing new errors",
+    "per_session": "Complete one warning type per 45-60min session with measurable reduction",
+    "overall_target": "Reduce 276 remaining warnings to under 100 (>65% reduction from current state)",
+    "functionality": "Maintain all functionality - no broken components or features",
+    "type_safety": "Improve TypeScript type safety without introducing new errors",
     "validation_commands": [
-      "npm run lint | tail -10",
-      "npm run build",
-      "npm run dev (verify no console errors)"
+      "run_shell_command 'npm run lint | tail -10'",
+      "run_shell_command 'npm run build'",
+      "Optional: run_shell_command 'npm run dev' to verify no console errors"
     ]
   },
 
-  "execution_workflow": {
-    "pre_execution": [
-      "git status (ensure clean working tree)",
-      "npm run lint | wc -l (baseline warning count)",
-      "git checkout -b feature/eslint-cleanup-qwen"
+  "qwen_cli_execution_workflow": {
+    "pre_session": [
+      "run_shell_command 'git status' (ensure clean working tree)",
+      "run_shell_command 'npm run lint | tail -5' (current warning count)",
+      "run_shell_command 'git checkout -b feature/eslint-cleanup-qwen-session-X'"
     ],
 
-    "phase_execution": [
-      "Execute phase changes using refactoring-expert agent",
-      "Run npm run lint to verify warning reduction",
-      "Use quality-engineer agent to validate no functionality breaks",
-      "git add . && git commit -m '[phase message]'",
-      "Continue to next phase only if validation passes"
+    "session_execution": [
+      "PREFERRED: Use search_file_content to find warning patterns",
+      "PREFERRED: Use read_file to understand context",
+      "PREFERRED: Use edit to make specific changes",
+      "FALLBACK: Use run_shell_command when QWEN CLI MCPs timeout",
+      "Focus on single warning type completion (no multi-tasking)"
     ],
 
-    "post_execution": [
-      "Final npm run lint count verification",
-      "npm run build (ensure no build errors)",
-      "git push origin feature/eslint-cleanup-qwen",
-      "Report final statistics: warnings reduced from 309 to X"
+    "session_validation": [
+      "run_shell_command 'npm run lint | grep [warning-type] | wc -l'",
+      "Verify significant reduction in target warning type",
+      "run_shell_command 'npm run build' (ensure no build errors)",
+      "run_shell_command 'git add . && git commit -m \"[session message]\"'"
+    ],
+
+    "session_reporting": [
+      "Document MCPs that timed out for future optimization",
+      "Report warning reduction: [warning-type] X → Y warnings",
+      "Note any fallback commands used",
+      "Plan next session focus area"
     ]
   },
 
-  "rollback_procedures": {
-    "phase_failure": "git reset --hard HEAD~1 (undo last phase)",
-    "complete_failure": "git checkout main && git branch -D feature/eslint-cleanup-qwen",
-    "partial_success": "Stop at successful phase, document progress in brain/"
+  "qwen_cli_rollback_procedures": {
+    "session_failure": "run_shell_command 'git reset --hard HEAD~1' (undo last session)",
+    "partial_file_failure": "run_shell_command 'git checkout -- [problematic-files]' (selective rollback)",
+    "mcp_timeout_recovery": "Switch to run_shell_command immediately, continue session",
+    "complete_failure": "run_shell_command 'git checkout main && git branch -D feature/eslint-cleanup-qwen-session-X'",
+    "partial_success": "Commit successful changes, document which MCPs failed, plan next session"
   },
 
   "expected_outcomes": {
-    "warning_reduction": "150-200 warnings eliminated (50-65% improvement)",
+    "session_completion": "Complete single warning type per 45-60min session",
+    "warning_reduction": "176-200 warnings eliminated (65-75% improvement from 276 remaining)",
+    "mcp_reliability": "Proven fallback strategy when QWEN CLI MCPs timeout",
     "type_safety": "Improved TypeScript coverage and type inference",
     "code_quality": "Cleaner codebase with better maintainability",
-    "development_experience": "Fewer ESLint distractions during development",
-    "husky_compliance": "Comfortable margin below 500 warning limit"
+    "development_experience": "Fewer ESLint distractions during development"
   },
 
-  "reporting_format": {
-    "phase_completion": "Phase X completed: Y warnings → Z warnings (Δ reduction)",
-    "final_summary": "ESLint cleanup completed: 309 → X warnings (Y% improvement)",
-    "failure_report": "Stopped at Phase X due to: [reason] - Rollback to previous state",
-    "brain_update": "Update brain/multi_ai_coordination_strategy.json with results"
-  }
+  "qwen_cli_reporting_format": {
+    "session_completion": "QWEN CLI Session X completed: [warning-type] Y → Z warnings (Δ reduction)",
+    "mcp_timeout_report": "MCPs timed out: [list failed tools], used fallbacks: [list shell commands]",
+    "session_summary": "Session X: 276 → X warnings remaining (Y% session improvement)",
+    "final_summary": "QWEN CLI cleanup completed: 276 → X warnings (Y% total improvement)",
+    "brain_update": "Update brain/multi_ai_coordination_strategy.json with QWEN CLI session results"
+  },
+
+  "forbidden_files": [
+    "frontend/src/pages/user/Profile.tsx",
+    "frontend/src/contexts/AuthContext.tsx",
+    "backend/src/routes/auth.ts",
+    "frontend/src/services/api.ts",
+    "Any Sequelize models",
+    "Any database files",
+    "Any authentication logic",
+    "Any betting business logic"
+  ]
 }

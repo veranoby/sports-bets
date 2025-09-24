@@ -38,6 +38,11 @@ interface EventStats {
   popularityTrend: "up" | "down" | "stable";
 }
 
+interface EventStatsUpdate {
+  eventId: string;
+  stats: EventStats;
+}
+
 interface LiveEventExtended {
   id: string;
   name: string;
@@ -200,7 +205,7 @@ const LiveEventsWidget: React.FC = () => {
 
   useWebSocketListener(
     "event_stats_updated",
-    useCallback((data: any) => {
+    useCallback((data: EventStatsUpdate) => {
       // Actualizar estadísticas en tiempo real
       console.log("Event stats updated:", data);
     }, []),

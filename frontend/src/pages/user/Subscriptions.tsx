@@ -47,9 +47,9 @@ const SubscriptionsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const plansData = await fetchPlans();
 
@@ -78,7 +78,7 @@ const SubscriptionsPage: React.FC = () => {
     } catch (err) {
       console.error("Error loading data:", err);
     }
-  };
+  }, [fetchPlans, setPlans, fetchCurrent]);
 
   const handleSubscribe = async (planId: string) => {
     try {

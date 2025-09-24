@@ -224,20 +224,25 @@
       }
     },
 
-    "qwen_restricted_scenarios": {
+    "qwen_cli_restricted_scenarios": {
       "typescript_cleanup": {
         "strict_conditions": [
           "ONLY @typescript-eslint/no-explicit-any errors",
           "Simple type additions only",
           "No logic changes",
-          "Max 10 files per session"
+          "Single warning type per 45-60min session"
         ],
-        "risk_assessment": "LOW if properly constrained",
+        "risk_assessment": "LOW if QWEN CLI uses native tools with fallback strategies",
+        "qwen_cli_tool_requirements": [
+          "PREFERRED: search_file_content, read_file, edit",
+          "FALLBACK: run_shell_command when MCPs timeout",
+          "FORBIDDEN: Complex multi-step MCP operations"
+        ],
         "safety_requirements": [
           "Backup before session",
-          "Test after every file",
-          "Stop if any errors",
-          "Claude validation after"
+          "QWEN CLI native tools first",
+          "Immediate fallback when MCPs fail",
+          "Single session validation at end"
         ]
       },
 

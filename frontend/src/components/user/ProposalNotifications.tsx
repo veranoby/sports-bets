@@ -39,7 +39,7 @@ const ProposalNotifications = () => {
 
   useEffect(() => {
     getPendingProposals().then(setProposals);
-  }, []);
+  }, [getPendingProposals]);
 
   useWebSocketListener("proposal:received", handleProposalReceived);
   useWebSocketListener("proposal:accepted", handleProposalAccepted);

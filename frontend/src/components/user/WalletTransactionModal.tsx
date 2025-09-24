@@ -21,7 +21,7 @@ interface WalletTransactionModalProps {
   onDeposit?: (
     amount: number,
     paymentMethod: string,
-    paymentData?: any,
+    paymentData?: Record<string, unknown>,
   ) => Promise<void>;
   // Withdraw specific props
   onWithdraw?: (

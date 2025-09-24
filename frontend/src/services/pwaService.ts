@@ -1,6 +1,6 @@
 // src/services/pwaService.ts
 
-let deferredPrompt: any;
+let deferredPrompt: any = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
   // Prevent the mini-infobar from appearing on mobile

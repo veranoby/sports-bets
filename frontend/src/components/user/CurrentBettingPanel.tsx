@@ -168,7 +168,7 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
         setShowCreateBetModal(false);
         fetchBettingData(); // Refresh available bets
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating bet:", error);
       // Handle error (show notification)
     }

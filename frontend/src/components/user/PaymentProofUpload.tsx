@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Upload, Button, Select, Input, notification } from "antd";
+import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 import { InboxOutlined } from "@ant-design/icons";
 import { Upload as UploadIcon, CreditCard, DollarSign } from "lucide-react";
 import { userAPI } from "../../services/api";
@@ -16,7 +17,7 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
     "bank_transfer" | "paypal"
   >("bank_transfer");
   const [uploading, setUploading] = useState<boolean>(false);
-  const [fileList, setFileList] = useState<any[]>([]);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   const paymentDescriptions = {
     bank_transfer: `galleros.net usuario ${assignedUsername} plan [24h/mensual]`,
@@ -28,8 +29,8 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
     multiple: false,
     fileList,
     beforeUpload: () => false, // Prevent auto upload
-    onChange: ({ fileList: newFileList }: any) => {
-      setFileList(newFileList.slice(-1)); // Keep only the latest file
+    onChange: (info: UploadChangeParam) => {
+      setFileList(info.fileList.slice(-1)); // Keep only the latest file
     },
     accept: "image/*",
   };

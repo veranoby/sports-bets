@@ -3,7 +3,7 @@
 // Refactorizado: tabs → grid cards, reutilización componentes
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavigateOptions } from "react-router-dom";
 import {
   Users,
   Building2,
@@ -204,7 +204,7 @@ const AdminDashboard: React.FC = () => {
 
   // Navegación con filtros
   const navigateToSection = useCallback(
-    (path: string, options?: any) => {
+    (path: string, options?: NavigateOptions) => {
       navigate(path, options);
     },
     [navigate],

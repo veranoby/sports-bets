@@ -5,6 +5,15 @@
 import type { FieldConfig, ActionConfig } from "../shared/GenericDetailModal";
 import type { Bet, Transaction, Event } from "../../types";
 
+interface Fighters {
+  red: string;
+  blue: string;
+}
+
+interface Venue {
+  name: string;
+}
+
 // ============================================================================
 // BET DETAIL CONFIGURATION - Preserva funcionalidad de BetDetailModal
 // ============================================================================
@@ -21,7 +30,7 @@ export const BET_DETAIL_FIELDS: FieldConfig[] = [
   {
     key: "fighterNames",
     label: "Peleadores",
-    render: (fighters: any) => (
+    render: (fighters: Fighters) => (
       <span>
         {fighters?.red || "N/A"} vs {fighters?.blue || "N/A"}
       </span>
@@ -123,7 +132,7 @@ export const EVENT_DETAIL_FIELDS: FieldConfig[] = [
   {
     key: "venue",
     label: "Venue",
-    render: (venue: any, event: Event) => (
+    render: (venue: Venue, event: Event) => (
       <span>{venue?.name || event.venueId || "N/A"}</span>
     ),
   },

@@ -43,7 +43,7 @@ const VenueApprovalPanel: React.FC = () => {
       setError(null);
       const response = await venuesAPI.getAll({ status: "pending" });
       setVenues(response.data.venues || []);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Error al cargar venues");
     } finally {
       setIsLoading(false);
@@ -60,7 +60,7 @@ const VenueApprovalPanel: React.FC = () => {
       setIsUpdating(true);
       await venuesAPI.updateStatus(venueId, "approved");
       setVenues(venues.filter((venue) => venue.id !== venueId));
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Error al aprobar venue");
     } finally {
       setIsUpdating(false);
@@ -87,7 +87,7 @@ const VenueApprovalPanel: React.FC = () => {
       );
       setVenues(venues.filter((venue) => venue.id !== selectedVenue.id));
       setShowRejectModal(false);
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for better type safety
       setError(err.message || "Error al rechazar venue");
     } finally {
       setIsUpdating(false);

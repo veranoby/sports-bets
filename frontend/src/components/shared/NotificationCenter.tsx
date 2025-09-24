@@ -44,7 +44,7 @@ const NotificationCenter: React.FC = memo(() => {
 
       if (!isMountedRef.current) return;
 
-      const formattedNotifications = response.data.map((n: any) => ({
+      const formattedNotifications = response.data.map((n: Notification) => ({
         ...n,
         timestamp: new Date(n.timestamp || n.createdAt),
       }));

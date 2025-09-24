@@ -1,12 +1,13 @@
-# QWEN.md - GalloBets Safety-First Development Protocol
+# QWEN CLI - GalloBets Optimized Development Protocol
 
 ## **🚨 CRITICAL SAFETY NOTICE**
-**QWEN has demonstrated DESTRUCTIVE behavior in GalloBets. These protocols are MANDATORY.**
+**QWEN CLI has shown MCP timeout issues. These protocols optimize for QWEN CLI specific limitations.**
 
 **Project**: GalloBets - Professional Cockfighting Streaming Platform
 **Stack**: React + TypeScript + Node.js + PostgreSQL
-**QWEN Role**: EXTREMELY LIMITED - Only isolated, safe tasks
-**Evidence**: Destroyed Profile.tsx, broke authentication, uses placeholder comments
+**Tool**: QWEN CLI (External Tool) - NOT QWEN MCP
+**QWEN CLI Role**: ESLint cleanup specialist with MCP timeout mitigation
+**Evidence**: 60% MCP timeouts during 4h session, 18% completion rate (63/309 warnings)
 
 ---
 
@@ -129,25 +130,39 @@ echo "Betting: working" >> qwen_session.log
 
 ---
 
-## **🎯 QWEN API OPTIMIZATION SPECIALIST**
+## **🎯 QWEN CLI OPTIMIZATION SPECIALIST (V3)**
 
 ### **ROLE DEFINITION**
-- **Agent**: Qwen Coder
-- **Phase**: API Optimization + Monitoring Enhancement (Expanded from Gemini)
-- **Scope**: Safe API improvements with EXTREME safety protocols
+- **Tool**: QWEN CLI (External Command Line Tool)
+- **Phase**: ESLint Warning Cleanup + TypeScript Improvements (Native QWEN CLI Tools)
+- **Scope**: 45-60 minute focused sessions with MCP timeout mitigation
+- **Critical Change**: Use QWEN CLI native tools first, fallback strategies when MCPs timeout
 
-### **COORDINATION PROTOCOL**
+### **🚨 QWEN CLI MCP TIMEOUT PREVENTION PROTOCOL (V3)**
 
-#### **Pre-Work Checklist**
-1. ✅ **Read brain/performance_optimization.json** - Understand current optimization status
-2. ✅ **Check claude-prompt.json** - Verify Claude's assigned tasks to avoid overlap
-3. ✅ **Verify backend is running** - Ensure port 3001 is active and responding
-4. ✅ **Safety validation** - Confirm all tasks are within SAFE ZONE
+#### **Root Cause Analysis for QWEN CLI**
+- **Primary Issue**: QWEN CLI's internal MCP error -32001 disrupted 60% of 4-hour session
+- **Secondary Issue**: Hardware/connectivity insufficient for QWEN CLI MCP operations
+- **Tertiary Issue**: Long sessions (4h) overwhelm QWEN CLI capabilities
+- **Quaternary Issue**: Over-reliance on shell commands when QWEN CLI MCPs fail
 
-#### **Communication with Claude**
-- **Status Updates**: Update brain files after each major completion
-- **Error Reporting**: Document any blocking issues in brain/issues.json
-- **Completion Notification**: Clear indication when phase is complete
+#### **V3 Solution: QWEN CLI Native Tools + Fallback Strategies**
+1. ✅ **Use QWEN CLI native tools first** - search_file_content, read_file, edit
+2. ✅ **Immediate fallback** - When MCPs timeout, switch to run_shell_command
+3. ✅ **45-60 minute focused sessions** - Single warning type completion
+4. ✅ **End-session validation** - run_shell_command for npm run lint only at end
+
+#### **New QWEN CLI Session Structure**
+```
+Session 1 (45-60 min): Single warning type focus
+├─ search_file_content to find patterns
+├─ read_file to understand context
+├─ edit to make specific changes
+├─ FALLBACK: Manual shell commands if MCPs timeout
+└─ run_shell_command: npm run lint (validation at end)
+
+Session Break: Commit + Report + Plan next session
+```
 
 #### **Progress Tracking**
 ```json
@@ -254,23 +269,45 @@ const limiter = rateLimit({
 
 ---
 
-## **✅ QWEN SAFE TASKS ONLY**
+## **✅ QWEN CLI SAFE TASKS ONLY (V3 - OPTIMIZED WORKFLOW)**
 
-### **Task 1: Simple TypeScript 'any' Cleanup**
+### **Task 1: Simple TypeScript 'any' Cleanup (QWEN CLI Optimized)**
 ```bash
-# SAFE COMMAND TEMPLATE
-qwen "Fix @typescript-eslint/no-explicit-any in [filename].tsx
+# V3 QWEN CLI COMMAND TEMPLATE
+qwen cli "Fix @typescript-eslint/no-explicit-any warnings - QWEN CLI OPTIMIZED
+
+QWEN CLI MCP TIMEOUT PREVENTION:
+🚫 NO complex multi-tool operations
+🚫 NO immediate npm validation during work
+🚫 NO shell commands unless MCPs fail
+⏱️ MAXIMUM 45-60 minutes
+🎯 FOCUS: Only 'explicit-any' warnings this session
+
+QWEN CLI PREFERRED WORKFLOW:
+✅ search_file_content ': any' to find all instances
+✅ read_file to understand structure and context
+✅ edit each ': any' to proper type
+✅ FALLBACK: run_shell_command if MCPs timeout
+
+FALLBACK COMMANDS (if MCPs timeout):
+⚡ run_shell_command "grep -rn ': any' src/ | head -20"
+⚡ run_shell_command "sed -i 's/: any/: ApiResponse/g' src/file.ts"
+
+SAFETY RULES:
 🚫 Do NOT change any logic
 🚫 Do NOT remove any code
 🚫 Do NOT use placeholder comments
 🚫 ONLY add type definitions
-🚫 Maximum 10 type fixes
+🚫 Focus on single warning type
 ✅ Types must match actual usage
-✅ Test compilation after each fix"
+✅ Complete category before moving to next"
 
-# Example safe fix:
-# Before: const data: any = response.data;
-# After:  const data: ApiResponse = response.data;
+# Example QWEN CLI workflow:
+# 1. search_file_content ': any' to locate
+# 2. read_file to understand context
+# 3. edit ': any' → ': ApiResponse'
+# 4. Continue until all explicit-any warnings fixed
+# 5. run_shell_command "npm run lint" (end validation)
 ```
 
 ### **Task 2: New Test File Creation**
@@ -374,9 +411,28 @@ FORBIDDEN - Claude ONLY:
 ☐ Claude available for validation
 ```
 
-### **Step 2: Safe Command Structure**
+### **Step 2: QWEN CLI Optimized Command Structure (V3)**
 ```bash
-qwen "[SPECIFIC SAFE TASK]
+qwen cli "[SPECIFIC SAFE TASK - QWEN CLI NATIVE TOOLS + FALLBACK]
+
+QWEN CLI MCP TIMEOUT PREVENTION:
+🚫 NO complex multi-step MCP operations
+🚫 NO immediate validation during work
+🚫 NO shell commands unless MCPs timeout
+⏱️ MAXIMUM 45-60 minutes per session
+🎯 SINGLE warning type focus per session
+
+QWEN CLI NATIVE TOOLS PREFERRED:
+✅ search_file_content to find patterns
+✅ read_file to understand context
+✅ edit to make specific changes
+✅ glob for file discovery
+
+FALLBACK WHEN MCPs TIMEOUT:
+⚡ run_shell_command with exact commands:
+   - grep -rn 'pattern' src/
+   - sed -i 's/old/new/g' filename
+   - npm run lint (validation only)
 
 SAFETY RULES:
 🚫 Do NOT delete any existing code
@@ -385,39 +441,60 @@ SAFETY RULES:
 🚫 Do NOT change imports or hooks
 🚫 Do NOT optimize working code
 🚫 Do NOT touch authentication
-🚫 MAXIMUM [X] lines changed
 
 REQUIREMENTS:
 ✅ Preserve ALL existing functionality
-✅ Test after every change
+✅ Use QWEN CLI tools strategically
 ✅ Follow existing patterns exactly
-✅ Add only what's specified"
+✅ Add only what's specified
+✅ Complete single warning type per session"
 ```
 
-### **Step 3: During Session Monitoring**
+### **Step 3: QWEN CLI Session Monitoring (V3)**
 ```bash
-# Every 10 lines
-npm run dev  # Must compile
-npm test     # Must pass
+# During 45-60min focused session
+FOCUS ON SINGLE WARNING TYPE ONLY
+search_file_content → read_file → edit → Continue
 
-# If ANY errors
-echo "ERROR DETECTED - ABORTING" >> qwen_session.log
-git reset --hard HEAD
-# STOP QWEN IMMEDIATELY
+# PREFERRED workflow (when QWEN CLI MCPs work):
+# search_file_content 'pattern'  ✅ (QWEN CLI native)
+# read_file filename              ✅ (QWEN CLI native)
+# edit filename                   ✅ (QWEN CLI native)
+
+# FALLBACK workflow (when QWEN CLI MCPs timeout):
+# run_shell_command "grep -rn 'pattern' src/"
+# run_shell_command "sed -i 's/old/new/g' filename"
+
+# If QWEN CLI MCP fails:
+Switch immediately to manual commands
+Document which MCPs failed for future optimization
+Continue with run_shell_command approach
+
+# Session end signal:
+COMPLETE single warning type (e.g., all unused-vars)
+THEN validate with run_shell_command "npm run lint"
 ```
 
-### **Step 4: Post-Session Validation**
+### **Step 4: QWEN CLI End-Session Validation (V3)**
 ```bash
-# Test critical paths
-- [ ] Login still works
-- [ ] Profile edit works
-- [ ] Betting panel loads
-- [ ] No console errors
-- [ ] TypeScript compiles
+# END of 45-60min session validation
+# Use run_shell_command for validation in same session
 
-# If anything broken
-git reset --hard HEAD
-# Request Claude to fix properly
+run_shell_command "npm run lint | tail -10"  # Check warning count
+# Success: commit changes and report progress
+# Failure: analyze what went wrong, selective rollback
+
+# Critical validation points:
+- [ ] Target warning type significantly reduced
+- [ ] No new errors introduced
+- [ ] Files still compile
+- [ ] Specific progress measurable (e.g., 50 → 30 unused-vars)
+
+# If validation fails:
+Analyze specific failures
+run_shell_command "git checkout -- [problematic-files]"
+Report partial success and lessons learned
+Plan next session focus area
 ```
 
 ---

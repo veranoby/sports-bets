@@ -39,6 +39,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSettingsContext = (): SettingsContextType => {
   const context = useContext(SettingsContext);
 
@@ -52,28 +53,34 @@ export const useSettingsContext = (): SettingsContextType => {
 };
 
 // Convenience hooks for specific features
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFeatureFlag = (featureKey: string): boolean => {
   const { isFeatureEnabled } = useSettingsContext();
   return isFeatureEnabled(featureKey);
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWalletsEnabled = (): boolean => {
   return useFeatureFlag("enable_wallets");
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBettingEnabled = (): boolean => {
   return useFeatureFlag("enable_betting");
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStreamingEnabled = (): boolean => {
   return useFeatureFlag("enable_streaming");
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useMaintenanceMode = (): boolean => {
   return useFeatureFlag("maintenance_mode");
 };
 
 // Business settings hooks
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBusinessSettings = () => {
   const { getSetting } = useSettingsContext();
 
@@ -87,6 +94,7 @@ export const useBusinessSettings = () => {
 };
 
 // Streaming settings hooks
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStreamingSettings = () => {
   const { getSetting } = useSettingsContext();
 

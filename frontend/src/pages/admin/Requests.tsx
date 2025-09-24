@@ -52,6 +52,13 @@ interface WithdrawalRequest {
   };
 }
 
+interface ProcessRequestPayload {
+  status: "in_process" | "rejected" | "completed";
+  rejectionReason?: string;
+  transferProof?: string;
+  processNotes?: string;
+}
+
 const AdminRequestsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -193,7 +200,7 @@ const AdminRequestsPage: React.FC = () => {
     try {
       setProcessing(requestId);
 
-      const payload: any = {
+      const payload: ProcessRequestPayload = {
         status:
           action === "approve"
             ? "in_process"

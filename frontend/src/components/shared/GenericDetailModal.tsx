@@ -9,19 +9,19 @@ import StatusChip from "./StatusChip";
 import { Copy } from "lucide-react";
 
 // Types para configuración flexible
-export interface FieldConfig {
-  key: string;
+export interface FieldConfig<T> {
+  key: keyof T;
   label: string;
-  render?: (value: any, data: any) => React.ReactNode;
+  render?: (value: T[keyof T], data: T) => React.ReactNode;
   copyable?: boolean;
-  conditional?: (data: any) => boolean;
+  conditional?: (data: T) => boolean;
 }
 
-export interface ActionConfig {
+export interface ActionConfig<T> {
   label: string;
-  onClick: (data: any) => void;
+  onClick: (data: T) => void;
   variant: "primary" | "danger" | "success";
-  conditional?: (data: any) => boolean;
+  conditional?: (data: T) => boolean;
   className?: string;
 }
 
@@ -30,8 +30,8 @@ interface GenericDetailModalProps<T> {
   data: T | null;
   isOpen: boolean;
   onClose: () => void;
-  fields: FieldConfig[];
-  actions?: ActionConfig[];
+  fields: FieldConfig<T>[];
+  actions?: ActionConfig<T>[];
   className?: string;
 }
 
@@ -52,13 +52,13 @@ const GenericDetailModal = <
     navigator.clipboard.writeText(value);
   };
 
-  const renderField = (field: FieldConfig) => {
+  const renderField = (field: FieldConfig<T>) => {
     // Skip field if conditional returns false
     if (field.conditional && !field.conditional(data)) {
       return null;
     }
 
-    const value = (data as any)[field.key];
+    const value = data[field.key];
 
     return (
       <div key={field.key} className="flex justify-between items-center">
@@ -93,7 +93,7 @@ const GenericDetailModal = <
     );
   };
 
-  const renderAction = (action: ActionConfig) => {
+  const renderAction = (action: ActionConfig<T>) => {
     // Skip action if conditional returns false
     if (action.conditional && !action.conditional(data)) {
       return null;

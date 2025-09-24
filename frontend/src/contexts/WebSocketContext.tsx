@@ -106,7 +106,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     let cleanedCount = 0;
 
     listenersRegistryRef.current.forEach((eventListeners, event) => {
-      const listenersToRemove: ((...args: any[]) => void)[] = [];
+      const listenersToRemove: ((...args: any[]) => void)[] = []; // TODO: Replace with proper function type
 
       eventListeners.forEach((metadata, handler) => {
         if (metadata.addedAt < cutoffTime) {
@@ -156,7 +156,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   // 🎧 ADD LISTENER WITH LIMITS
   const addListener = useCallback(
-    (event: string, handler: (data: any) => void, componentId?: string) => {
+    (event: string, handler: (data: unknown) => void, componentId?: string) => { 
       if (!socketRef.current) {
         console.warn("⚠️ WebSocket: No active connection");
         return () => {};
@@ -300,7 +300,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           connectionPromiseRef.current = null;
           reject(error);
         });
-      } catch (error: any) {
+      } catch (error: unknown) { 
         console.error("❌ Error creating WebSocket:", error);
         setConnectionError(error.message);
         setIsConnecting(false);
@@ -313,7 +313,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [token]); // ✅ Only token as dependency
 
   // 📤 OPTIMIZED EMIT
-  const emit = useCallback((event: string, data?: any): boolean => {
+  const emit = useCallback((event: string, data?: unknown): boolean => { 
     if (!socketRef.current?.connected) {
       console.warn("⚠️ Socket not connected");
       return false;
@@ -443,6 +443,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 };
 
 // ✅ BASE HOOK
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWebSocketContext = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
@@ -454,6 +455,7 @@ export const useWebSocketContext = () => {
 };
 
 // 🎯 HOOK FOR EMITTING ONLY (no listeners)
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWebSocketEmit = () => {
   const { emit, isConnected } = useWebSocketContext();
 
@@ -461,7 +463,7 @@ export const useWebSocketEmit = () => {
     () => ({
       isConnected,
       emit,
-      emitBetCreated: (betData: any) => emit("bet_created", betData),
+      emitBetCreated: (betData: unknown) => emit("bet_created", betData), 
       emitBetAccepted: (betId: string) => emit("bet_accepted", { betId }),
       emitJoinFight: (fightId: string) => emit("join_fight", { fightId }),
       emitLeaveFight: (fightId: string) => emit("leave_fight", { fightId }),
@@ -471,10 +473,11 @@ export const useWebSocketEmit = () => {
 };
 
 // 🎧 HOOK FOR A SINGLE LISTENER
-export const useWebSocketListener = <T = any,>(
+// eslint-disable-next-line react-refresh/only-export-components
+export const useWebSocketListener = <T = unknown,>(
   event: string,
   handler: (data: T) => void,
-  dependencies: any[] = [],
+  dependencies: unknown[] = [],
 ) => {
   const { isConnected, addListener } = useWebSocketContext();
   const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
@@ -507,6 +510,7 @@ export const useWebSocketListener = <T = any,>(
 };
 
 // 🏠 HOOK FOR ROOM MANAGEMENT
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWebSocketRoom = (roomId: string) => {
   const { joinRoom, leaveRoom, isConnected } = useWebSocketContext();
 

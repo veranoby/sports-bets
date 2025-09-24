@@ -50,13 +50,18 @@ interface Article {
   venue_name?: string;
 }
 
+interface Venue {
+  id: string;
+  name: string;
+}
+
 const AdminArticlesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Estados principales
   const [articles, setArticles] = useState<Article[]>([]);
-  const [venues, setVenues] = useState<any[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -234,7 +239,7 @@ const AdminArticlesPage: React.FC = () => {
     }
   };
 
-  const handleEditArticle = async (articleId: string, data: any) => {
+  const handleEditArticle = async (articleId: string, data: Partial<Article>) => {
     const res = await articlesAPI.update(articleId, data);
     if (res.success) {
       setArticles(

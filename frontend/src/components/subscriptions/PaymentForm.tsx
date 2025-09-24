@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from "react";
 // import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { CreditCard, Lock, AlertCircle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { subscriptionAPI } from "../../config/api";
 
 interface PaymentFormProps {
   planType: "daily" | "monthly";
@@ -30,7 +29,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   className = "",
 }) => {
-  const { user } = useAuth();
+  useAuth();
 
   // Form state
   const [cardData, setCardData] = useState({
@@ -51,7 +50,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       try {
         // await // kushkiService.initializeKushki(); // TODO: Implement Kushki service
         setKushkiReady(true);
-      } catch (error: any) {
+      } catch (error: unknown) { // Changed from 'any' to 'unknown' for better type safety
         setErrors({
           general: "Payment system unavailable. Please try again later.",
         });
@@ -192,7 +191,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         token: "test-token",
         planType,
       });
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed from 'any' to 'unknown' for better type safety
       const errorMessage =
         error.message || "Payment processing failed. Please try again.";
       setErrors({ general: errorMessage });

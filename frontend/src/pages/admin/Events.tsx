@@ -100,18 +100,51 @@ interface Fight {
   notes?: string;
 }
 
+interface Bet {
+  id: string;
+  amount: number;
+  odds: number;
+  choice: string;
+  createdBy: string;
+  createdAt: string;
+  status: "active" | "matched" | "won" | "lost";
+}
+
+interface Incident {
+  id: string;
+  timestamp: string;
+  type: string;
+  description: string;
+}
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
+interface Venue {
+  id: string;
+  name: string;
+  location: string;
+}
+
+interface StreamStatus {
+  status: "offline" | "live" | "error";
+  timestamp: string;
+}
+
 interface EventDetailData {
   event: Event;
   fights: Fight[];
-  liveBets: any[];
+  liveBets: Bet[];
   streamInfo: {
     status: "offline" | "live" | "error";
     url?: string;
     viewers?: number;
-    bitrate?: number;
-    uptime?: number;
+    latency?: number;
   };
-  incidents: any[];
+  incidents: Incident[];
   stats: {
     totalUsers: number;
     activeBets: number;
@@ -126,13 +159,13 @@ const AdminEventsPage: React.FC = () => {
 
   // Estados principales
   const [events, setEvents] = useState<Event[]>([]);
-  const [operators, setOperators] = useState<any[]>([]);
-  const [venues, setVenues] = useState<any[]>([]);
+  const [operators, setOperators] = useState<User[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Estado de transmisión en tiempo real usando SSE
-  const [streamStatuses, setStreamStatuses] = useState<Record<string, any>>({});
+  const [streamStatuses, setStreamStatuses] = useState<Record<string, StreamStatus>>({});
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState(

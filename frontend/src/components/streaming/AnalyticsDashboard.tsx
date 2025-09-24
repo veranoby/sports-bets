@@ -142,7 +142,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     trend,
     color = "blue",
   }: {
-    icon: any;
+    icon: React.ElementType;
     title: string;
     value: string | number;
     subtitle?: string;
