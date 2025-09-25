@@ -2,20 +2,18 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, Navigate } from "react-router-dom"; // Added Navigate import
+import { Navigate } from "react-router-dom"; // Added Navigate import
 import {
   Activity,
   TrendingUp,
   DollarSign,
   Award,
   Plus,
-  ArrowLeft,
-  Bell,
 } from "lucide-react";
 
 // ✅ SOLO IMPORTACIONES DE COMPONENTES EXISTENTES
 import { useBets, useWallet } from "../../hooks/useApi";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
+
 import BetCard from "../../components/user/BetCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
@@ -58,7 +56,6 @@ interface PagoProposedData {
 
 const UserBets: React.FC = () => {
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
-  const navigate = useNavigate();
 
   // Estados principales
   const [activeTab, setActiveTab] = useState<TabType>("my_bets");
@@ -66,9 +63,9 @@ const UserBets: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // API Hooks
-  const { bets, loading, error, fetchMyBets, cancelBet, acceptBet } = useBets();
+  const { bets, loading, fetchMyBets, cancelBet, acceptBet } = useBets();
 
-  const { wallet } = useWallet();
+  useWallet();
 
   // Estados para estadísticas calculadas localmente
   const [betStats, setBetStats] = useState({
@@ -82,8 +79,7 @@ const UserBets: React.FC = () => {
     netProfit: 0,
   });
 
-  // WebSocket para actualizaciones
-  const { addListener, isConnected } = useWebSocketContext();
+
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
   const handleProposalReceived = useCallback((data: ProposalReceivedData) => {

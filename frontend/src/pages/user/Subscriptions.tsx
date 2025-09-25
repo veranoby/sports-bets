@@ -80,7 +80,7 @@ const SubscriptionsPage: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async () => {
     try {
       await createSubscription();
       await loadData(); // Recargar datos
@@ -253,7 +253,7 @@ const SubscriptionsPage: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleSubscribe(plan.id);
+                      handleSubscribe();
                     }}
                     disabled={loading}
                     className="btn-primary w-full flex items-center justify-center gap-2"

@@ -2,8 +2,8 @@
 // 📰 GESTIÓN NOTICIAS/ARTÍCULOS ADMIN - Layout 2 secciones optimizado
 // Secciones: Pendientes Aprobación → Gestión General (filtros + historial)
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   FileText,
   Search,
@@ -53,7 +53,7 @@ interface Venue {
 }
 
 const AdminArticlesPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // Estados principales
   const [articles, setArticles] = useState<Article[]>([]);
@@ -79,18 +79,18 @@ const AdminArticlesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get("page") || "1"),
   );
-  const [pageSize] = useState(25);
+
 
   // Selección múltiple
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Modal crear/editar
-  const [showArticleModal, setShowArticleModal] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [showArticleModal] = useState(false);
+  const [editingArticle] = useState<Article | null>(null);
 
   // Modal preview
-  const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
+  const [previewArticle] = useState<Article | null>(null);
 
   // Fetch inicial
   useEffect(() => {

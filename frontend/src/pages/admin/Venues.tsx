@@ -3,7 +3,6 @@
 // Muestra usuarios con rol "venue" y sus entidades de venue asociadas
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Users,
   Plus,
@@ -35,7 +34,6 @@ interface CombinedVenueData {
 }
 
 const AdminVenuesPage: React.FC = () => {
-  const navigate = useNavigate();
 
   // Estados
   const [combinedData, setCombinedData] = useState<CombinedVenueData[]>([]);
@@ -103,7 +101,7 @@ const AdminVenuesPage: React.FC = () => {
   } | null>(null);
 
   // Handlers para edición dual
-  const handleEdit = (userId: string, venueId?: string) => {
+  const handleEdit = (userId: string) => {
     const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
       setEditingData({ user: userData.user, venue: userData.venue });
@@ -255,7 +253,7 @@ const AdminVenuesPage: React.FC = () => {
 
               <div className="mt-4 flex justify-end gap-3">
                 <button
-                  onClick={() => handleEdit(user.id, venue?.id)}
+                  onClick={() => handleEdit(user.id)}
                   className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                 >
                   <Edit className="w-4 h-4" />

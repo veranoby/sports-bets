@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Search,
   Shield,
   ChevronRight,
   Calendar,
@@ -19,7 +18,6 @@ import { articlesAPI, usersAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
-import Badge from "../../components/shared/Badge";
 import Card from "../../components/shared/Card";
 
 interface GalleraProfile {

@@ -2,7 +2,7 @@
 // Archivo: frontend/src/components/user/BettingPanel.tsx (REEMPLAZAR COMPLETO)
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useBets, useWallet } from "../../hooks/useApi";
+import { useBets } from "../../hooks/useApi";
 import { useWebSocketRoom } from "../../hooks/useWebSocket";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { Plus, Zap } from "lucide-react";

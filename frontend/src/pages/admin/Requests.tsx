@@ -10,13 +10,7 @@ import {
   XCircle,
   Download,
   Search,
-  Filter,
   Eye,
-  FileText,
-  AlertTriangle,
-  User,
-  Calendar,
-  CreditCard,
   X,
   RefreshCw,
   Banknote,
@@ -28,7 +22,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // APIs
-import { walletAPI, usersAPI } from "../../services/api";
+import { walletAPI } from "../../services/api";
 
 interface WithdrawalRequest {
   id: string;
@@ -60,7 +54,7 @@ interface ProcessRequestPayload {
 }
 
 const AdminRequestsPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // Estados principales
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
@@ -120,7 +114,6 @@ const AdminRequestsPage: React.FC = () => {
   const {
     newRequests,
     inProcessRequests,
-    completedRequests,
     filteredRequests,
   } = useMemo(() => {
     let filtered = [...requests];
@@ -128,9 +121,6 @@ const AdminRequestsPage: React.FC = () => {
     // Categorizar por estado
     const newReqs = requests.filter((r) => r.status === "pending");
     const processReqs = requests.filter((r) => r.status === "in_process");
-    const completedReqs = requests.filter((r) =>
-      ["completed", "rejected", "failed"].includes(r.status),
-    );
 
     // Aplicar filtros
     if (searchTerm) {
@@ -171,7 +161,6 @@ const AdminRequestsPage: React.FC = () => {
     return {
       newRequests: newReqs,
       inProcessRequests: processReqs,
-      completedRequests: completedReqs,
       filteredRequests: filtered.sort(
         (a, b) =>
           new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime(),

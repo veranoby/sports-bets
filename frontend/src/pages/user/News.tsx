@@ -3,7 +3,7 @@
 // Server-side filtering para eficiencia de costos
 
 import React, { useState, useEffect } from "react";
-import { Search, Calendar, ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { articlesAPI } from "../../services/api";
@@ -15,21 +15,13 @@ import SearchInput from "../../components/shared/SearchInput";
 import ArticleManagement from "../../components/articles/ArticleManagement";
 import type { Article } from "../../types/article";
 
-interface ArticleItem {
-  id: string;
-  title: string;
-  summary: string;
-  published_at: string;
-  author_name?: string;
-  venue_name?: string;
-  featured_image_url?: string;
-}
+
 
 const NewsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth(); // Added auth hook
   const [search, setSearch] = useState("");
-  const [venueFilter, setVenueFilter] = useState("");
+  const venueFilter = "";
   const [page, setPage] = useState(1);
 
   // ✅ Estados locales para artículos y paginación

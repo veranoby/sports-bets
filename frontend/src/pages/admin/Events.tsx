@@ -8,10 +8,8 @@ import {
   Calendar,
   Play,
   Square,
-  Eye,
   Plus,
   Settings,
-  Users,
   DollarSign,
   Activity,
   AlertTriangle,
@@ -19,15 +17,10 @@ import {
   CheckCircle,
   XCircle,
   Edit,
-  Trash2,
-  Monitor,
   Radio,
   Target,
   BarChart3,
   X,
-  Search,
-  Filter,
-  Zap,
   User,
   Building2,
   Video,
@@ -154,13 +147,11 @@ interface EventDetailData {
 
 const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   // Estados principales
   const [events, setEvents] = useState<Event[]>([]);
-  const [operators, setOperators] = useState<User[]>([]);
-  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -197,16 +188,12 @@ const AdminEventsPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [eventsRes, operatorsRes, venuesRes] = await Promise.all([
-        eventsAPI.getAll({
-          limit: 500,
-          includeVenue: true,
-          includeOperator: true,
-          includeStats: true,
-        }),
-        usersAPI.getOperators(),
-        venuesAPI.getAll({ status: "active", limit: 100 }),
-      ]);
+      const eventsRes = await eventsAPI.getAll({
+        limit: 500,
+        includeVenue: true,
+        includeOperator: true,
+        includeStats: true,
+      });
 
       let eventData = eventsRes.data?.events || [];
 
@@ -216,8 +203,6 @@ const AdminEventsPage: React.FC = () => {
       }
 
       setEvents(eventData);
-      setOperators(operatorsRes.data || []);
-      setVenues(venuesRes.data?.venues || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading events");
     } finally {
@@ -352,50 +337,7 @@ const AdminEventsPage: React.FC = () => {
     }
   };
 
-  // Acciones de pelea
-  const handleFightAction = async (
-    fightId: string,
-    action: string,
-    result?: string,
-  ) => {
-    try {
-      setOperationInProgress(`fight-${fightId}-${action}`);
 
-      let response;
-      switch (action) {
-        case "open-betting":
-          response = await fightsAPI.openBetting(fightId);
-          break;
-        case "close-betting":
-          response = await fightsAPI.closeBetting(fightId);
-          break;
-        case "start-fight":
-          response = await fightsAPI.updateStatus(fightId, "live");
-          break;
-        case "record-result":
-          response = await fightsAPI.recordResult(fightId, result);
-          break;
-      }
-
-      // Actualizar fights en detail
-      if (eventDetailData) {
-        setEventDetailData({
-          ...eventDetailData,
-          fights: eventDetailData.fights.map((f) =>
-            f.id === fightId ? { ...f, ...response.data } : f,
-          ),
-        });
-      }
-    } catch (err) {
-      setError(
-        `Error en pelea: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`,
-      );
-    } finally {
-      setOperationInProgress(null);
-    }
-  };
 
   const handleFightCreated = (newFight: Fight) => {
     if (eventDetailData) {
@@ -456,27 +398,7 @@ const AdminEventsPage: React.FC = () => {
     );
   };
 
-  const FightStatusBadge = ({ status }: { status: string }) => {
-    const colors = {
-      upcoming: "bg-gray-100 text-gray-800",
-      betting: "bg-yellow-100 text-yellow-800",
-      live: "bg-red-100 text-red-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
-    };
 
-    return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          colors[status as keyof typeof colors] || colors.upcoming
-        }`}
-      >
-        {status === "live" && <span className="animate-pulse mr-1">🥊</span>}
-        {status === "betting" && <span className="mr-1">💰</span>}
-        {status}
-      </span>
-    );
-  };
 
   if (loading) {
     return <LoadingSpinner text="Cargando eventos..." />;

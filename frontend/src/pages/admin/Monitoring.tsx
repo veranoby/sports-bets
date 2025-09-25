@@ -3,8 +3,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Server,
-  Database,
   Wifi,
   Zap,
   Users,
@@ -15,14 +13,12 @@ import {
   Clock,
   RefreshCw,
   TrendingUp,
-  TrendingDown,
   Monitor,
   HardDrive,
   Cpu,
   MemoryStick,
   Eye,
   X,
-  Settings,
   Download,
 } from "lucide-react";
 
@@ -34,13 +30,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 // APIs (con fallback a mock)
 import { systemAPI } from "../../services/api";
 
-interface SystemHealth {
-  name: string;
-  status: "healthy" | "warning" | "error";
-  responseTime: number;
-  lastCheck: string;
-  details?: unknown;
-}
+
 
 interface SystemMetrics {
   cpu: {

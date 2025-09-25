@@ -16,7 +16,6 @@ import {
   Calendar,
   Shield,
   Star,
-  Users,
   Sparkles,
   Crown,
   Award,

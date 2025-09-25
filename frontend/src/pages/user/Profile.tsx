@@ -5,22 +5,17 @@ import {
   Shield,
   Calendar,
   Camera,
-  Lock,
-  Key,
-  Crown,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserProfileForm from "../../components/forms/UserProfileForm";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
-import PaymentProofUpload from "../../components/user/PaymentProofUpload";
 
 const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
-  const { membershipStatus, refreshMembership } = useMembershipCheck();
+  useMembershipCheck();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleSaveSuccess = useCallback(async () => {
     await refreshUser();

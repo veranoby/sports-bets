@@ -162,19 +162,17 @@ const LiveEvent = () => {
 
   // ✅ FIX: Usar useEvents + fetchEventById en lugar de useEvent
   const {
-    events,
     fetchEventById,
     loading: eventLoading,
     error: eventError,
   } = useEvents();
 
-  const { fights, fetchFights, loading: fightsLoading } = useFights();
+  const { fights, fetchFights } = useFights();
 
   const {
     bets,
     fetchAvailableBets,
     acceptBet,
-    loading: betsLoading,
   } = useBets();
 
   // Estados locales

@@ -251,6 +251,13 @@ export interface UserSubscription {
   manual_expires_at?: string;
 }
 
+export interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+}
+
 // 3. NAVIGATION PAGE TYPE (agregar si falta)
 export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
 

@@ -3,7 +3,6 @@
 // Muestra usuarios con rol "gallera" y sus entidades de gallera asociadas
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Users,
   Plus,
@@ -43,7 +42,7 @@ interface CombinedGalleraData {
 }
 
 const AdminGallerasPage: React.FC = () => {
-  const navigate = useNavigate();
+
 
   // Estados
   const [combinedData, setCombinedData] = useState<CombinedGalleraData[]>([]);
@@ -126,7 +125,7 @@ const AdminGallerasPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Handlers para edición dual
-  const handleEdit = (userId: string, venueId?: string) => {
+  const handleEdit = (userId: string) => {
     const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
       setEditingData({ user: userData.user, venue: userData.venue });
@@ -184,7 +183,7 @@ const AdminGallerasPage: React.FC = () => {
     setEditingData(null);
   };
 
-  const handleSave = (updatedData: { user: UserType; venue?: VenueType }) => {
+  const handleSave = () => {
     handleCloseModal();
     fetchData(); // Refresh data
   };

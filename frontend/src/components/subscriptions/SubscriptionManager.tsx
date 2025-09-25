@@ -52,12 +52,7 @@ interface PaginationInfo {
   hasMore: boolean;
 }
 
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  features: string[];
-}
+
 
 const SubscriptionManager: React.FC = () => {
   useAuth();

@@ -161,7 +161,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
       await onWithdraw?.(amount, accountNumber, accountType, bankName);
       setLoading(false);
       setConfirmationStep(2);
-    } catch (_error) {
+    } catch {
       setLoading(false);
       setError("Error en verificación de identidad");
     }

@@ -5,8 +5,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  Search,
-  Filter,
   Calendar,
   Play,
   Clock,
@@ -17,7 +15,6 @@ import {
   ChevronRight,
   Lock,
   Eye,
-  Archive,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +22,6 @@ import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 // ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
@@ -34,7 +30,6 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import StatusChip from "../../components/shared/StatusChip";
-import Badge from "../../components/shared/Badge";
 import SearchInput from "../../components/shared/SearchInput";
 
 // Tipos
@@ -50,7 +45,6 @@ const EventCard = React.memo(
     variant?: "upcoming" | "archived";
   }) => {
     const isLive = event.status === "in-progress";
-    const isUpcoming = event.status === "scheduled";
     const { isBettingEnabled } = useFeatureFlags();
 
     return (
@@ -155,9 +149,6 @@ const EventsPage: React.FC = () => {
     "all",
   );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [activeTab, setActiveTab] = useState<"upcoming" | "archived">(
-    "upcoming",
-  );
 
   // ✅ Referencia estable para fetchEvents
   const fetchEventsRef = useRef(fetchEvents);
@@ -166,16 +157,9 @@ const EventsPage: React.FC = () => {
   }, [fetchEvents]);
 
   // WebSocket para actualizaciones en tiempo real
-  const { addListener, removeListener, isConnected } = useWebSocketContext();
+  const { isConnected } = useWebSocketContext();
 
-  // ✅ Handlers memoizados
-  const addNotification = useCallback(
-    (message: string, type: "info" | "success" | "error") => {
-      console.log(`Notification: ${message} (${type})`);
-      // Implementar sistema de notificaciones si necesario
-    },
-    [],
-  );
+
 
   // Cargar eventos al montar
   useEffect(() => {
@@ -213,13 +197,7 @@ const EventsPage: React.FC = () => {
     setSearchTerm(searchValue);
   };
 
-  const handleEventClick = (event: Event) => {
-    if (event.status === "in-progress") {
-      navigate(`/live-event/${event.id}`);
-    } else {
-      setSelectedEvent(event);
-    }
-  };
+
 
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);

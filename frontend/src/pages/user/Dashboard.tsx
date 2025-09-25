@@ -26,7 +26,6 @@ import Badge from "../../components/shared/Badge"; // Added Badge import
 // Componentes del usuario
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
-import ArticleManagement from "../../components/articles/ArticleManagement"; // Added
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();

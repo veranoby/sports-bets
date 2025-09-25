@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Search,
   MapPin,
   Users,
   ChevronRight,
@@ -22,9 +21,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { usersAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
-import Card from "../../components/shared/Card";
 import SearchInput from "../../components/shared/SearchInput";
-import Badge from "../../components/shared/Badge";
+import Card from "../../components/shared/Card";
 
 interface VenueProfile {
   id: string;

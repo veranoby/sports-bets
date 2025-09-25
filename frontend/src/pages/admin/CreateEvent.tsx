@@ -1,7 +1,7 @@
 // frontend/src/pages/admin/CreateEvent.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { venuesAPI, usersAPI, eventsAPI } from "../../config/api";
+import { venuesAPI, eventsAPI } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import Card from "../../components/shared/Card";
@@ -28,7 +28,7 @@ const CreateEvent: React.FC = () => {
           limit: 1000,
         });
         setVenues(venuesRes.data?.venues || []);
-      } catch (_err) {
+      } catch {
         setError("Failed to load necessary data. Please try again.");
       } finally {
         setLoading(false);
@@ -70,7 +70,7 @@ const CreateEvent: React.FC = () => {
       };
       await eventsAPI.create(eventData);
       navigate("/admin/events");
-    } catch (_err) {
+    } catch {
       setError("Failed to create event. Please try again.");
     } finally {
       setLoading(false);

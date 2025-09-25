@@ -6,13 +6,9 @@ import { useSearchParams } from "react-router-dom";
 import {
   DollarSign,
   TrendingUp,
-  TrendingDown,
   BarChart3,
   PieChart,
   Download,
-  Calendar,
-  Filter,
-  Wallet,
   CreditCard,
   ArrowUp,
   ArrowDown,
@@ -31,9 +27,6 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 // APIs
 import {
   walletAPI,
-  betsAPI,
-  eventsAPI,
-  subscriptionsAPI,
 } from "../../config/api";
 
 interface FinancialMetrics {
@@ -122,7 +115,7 @@ const AdminFinancePage: React.FC = () => {
       setTransactions(transactionsRes.data?.transactions || []);
       setRevenueBySource(revenueRes.data || null);
       setTrendData(trendsRes.data || []);
-    } catch (_err) {
+    } catch {
       setError("Error al cargar datos financieros");
       setMetrics(null);
       setTransactions([]);
@@ -497,7 +490,7 @@ const AdminFinancePage: React.FC = () => {
             Tendencia de Ingresos
           </h3>
           <div className="space-y-3">
-            {trendData.slice(-7).map((day, index) => (
+            {trendData.slice(-7).map((day) => (
               <div key={day.date} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">
                   {new Date(day.date).toLocaleDateString("es", {

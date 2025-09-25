@@ -3,8 +3,7 @@
 // Muestra todos los usuarios con rol "operator"
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Users, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 // Componentes reutilizados
 import Card from "../../components/shared/Card";
@@ -21,7 +20,7 @@ import { usersAPI } from "../../services/api";
 import type { User } from "../../types";
 
 const AdminOperatorsPage: React.FC = () => {
-  const navigate = useNavigate();
+
 
   // Estados
   const [operators, setOperators] = useState<User[]>([]);

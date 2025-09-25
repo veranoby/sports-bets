@@ -16,7 +16,6 @@ import {
   Trash2,
   Plus,
   Search,
-  Filter,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -98,7 +97,7 @@ const NotificationsAdminPage: React.FC = () => {
     try {
       setOperationInProgress("sending");
 
-      const response = await notificationsAPI.create(notificationData);
+      await notificationsAPI.create(notificationData);
 
       setSuccessMsg("Notificación enviada exitosamente");
       setIsCreateModalOpen(false);
@@ -124,7 +123,7 @@ const NotificationsAdminPage: React.FC = () => {
     try {
       setOperationInProgress("scheduling");
 
-      const response = await notificationsAPI.create({
+      await notificationsAPI.create({
         ...notificationData,
         status: "scheduled",
       });
