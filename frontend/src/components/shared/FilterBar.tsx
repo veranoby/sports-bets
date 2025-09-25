@@ -55,7 +55,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
     primaryButton: "btn-primary",
     cardBackground: "card-background",
   };
-  const [activeFilters, setActiveFilters] = useState<Record<string, FilterValue>>({});
+  const [activeFilters, setActiveFilters] = useState<
+    Record<string, FilterValue>
+  >({});
   const [showFilters, setShowFilters] = useState(false);
 
   // Contar filtros activos
@@ -91,7 +93,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       case "select":
         return (
           <select
-            value={activeFilters[filter.key] || ""}
+            value={(activeFilters[filter.key] as string) || ""}
             onChange={(e) => handleFilterChange(filter.key, e.target.value)}
             className={`${theme.input} min-w-32`}
           >
@@ -107,7 +109,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         );
 
       case "multiselect": {
-        const selectedValues = activeFilters[filter.key] || [];
+        const selectedValues = (activeFilters[filter.key] as string[]) || [];
         return (
           <div className="relative">
             <button
@@ -155,9 +157,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
         return (
           <input
             type="number"
-            value={activeFilters[filter.key] || ""}
+            value={(activeFilters[filter.key] as string) || ""}
             onChange={(e) => handleFilterChange(filter.key, e.target.value)}
             placeholder={filter.placeholder}
+            className={`${theme.input} min-w-32`}
           />
         );
 

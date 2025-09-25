@@ -10,8 +10,17 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+interface GtagEventParams {
+  [key: string]: string | number | undefined;
+  user_role?: string;
+}
+
 interface WindowWithGtag extends Window {
-  gtag: (type: 'event', eventName: string, eventParams: { [key: string]: string | undefined }) => void;
+  gtag?: (
+    type: "event",
+    eventName: string,
+    eventParams?: GtagEventParams,
+  ) => void;
 }
 
 interface NavigatorWithStandalone extends Navigator {
@@ -46,7 +55,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
     // Verificar si ya está instalado
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as { standalone?: boolean }).standalone;
+      (window.navigator as NavigatorWithStandalone).standalone;
     setIsInstalled(isStandalone);
 
     // Handler para beforeinstallprompt
@@ -93,9 +102,10 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
 
-      // Analytics tracking
-      if ((window as WindowWithGtag).gtag) {
-        (window as WindowWithGtag).gtag("event", "pwa_install_" + outcome, {
+      // Analytics tracking with proper type checking
+      const windowWithGtag = window as WindowWithGtag;
+      if (windowWithGtag.gtag) {
+        windowWithGtag.gtag("event", "pwa_install_" + outcome, {
           user_role: user?.role,
         });
       }
@@ -108,9 +118,10 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   const handleDismiss = () => {
     setIsVisible(false);
 
-    // Analytics tracking
-    if ((window as WindowWithGtag).gtag) {
-      (window as WindowWithGtag).gtag("event", "pwa_install_dismissed", {
+    // Analytics tracking with proper type checking
+    const windowWithGtag = window as WindowWithGtag;
+    if (windowWithGtag.gtag) {
+      windowWithGtag.gtag("event", "pwa_install_dismissed", {
         user_role: user?.role,
       });
     }

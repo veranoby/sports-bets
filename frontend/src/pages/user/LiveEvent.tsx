@@ -27,7 +27,7 @@ import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // Tipos TypeScript
-type Fight = {
+interface Fight {
   id: string;
   redCorner: string;
   blueCorner: string;
@@ -35,9 +35,11 @@ type Fight = {
   status: "scheduled" | "betting" | "live" | "completed";
   number: number;
   eventId: string;
-};
+  redFighter?: string;
+  blueFighter?: string;
+}
 
-type Bet = {
+interface Bet {
   id: string;
   amount: number;
   odds: number;
@@ -45,9 +47,9 @@ type Bet = {
   createdBy: string;
   createdAt: string;
   status: "active" | "matched" | "won" | "lost";
-};
+}
 
-type EventData = {
+interface EventData {
   id: string;
   name: string;
   description?: string;
@@ -62,7 +64,7 @@ type EventData = {
   currentViewers?: number;
   totalFights: number;
   completedFights: number;
-};
+}
 
 // ✅ Componentes memoizados para prevenir re-renders
 const VideoPlayer = memo(
@@ -85,7 +87,7 @@ const VideoPlayer = memo(
   ),
 );
 
-const ChatComponent = memo(() => (
+const ChatComponent = memo(({ eventId }: { eventId?: string }) => (
   <div className="bg-[#1a1f37]/50 rounded-lg p-4">
     <h3 className="text-theme-primary font-semibold mb-3">Chat en Vivo</h3>
     <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -168,7 +170,6 @@ const LiveEvent = () => {
   } = useEvents();
 
   const { fights, fetchFights } = useFights();
-
   const { bets, fetchAvailableBets, acceptBet } = useBets();
 
   // Estados locales
@@ -200,8 +201,9 @@ const LiveEvent = () => {
         fetchAvailableBets({ eventId }),
       ]);
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Error cargando evento");
+      const errorMessage =
+        err instanceof Error ? err.message : "Error cargando evento";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -268,8 +270,9 @@ const LiveEvent = () => {
         // Refresh bets después de aceptar
         await fetchAvailableBets({ eventId });
       } catch (err: unknown) {
-        // Changed from 'any' to 'unknown' for better type safety
-        setError(err.message || "Error aceptando apuesta");
+        const errorMessage =
+          err instanceof Error ? err.message : "Error aceptando apuesta";
+        setError(errorMessage);
       }
     },
     [acceptBet, fetchAvailableBets, eventId],
@@ -422,7 +425,7 @@ const LiveEvent = () => {
             <div className="flex items-center justify-between">
               <div className="text-center">
                 <p className="font-medium text-theme-primary">
-                  {currentFight.redCorner}
+                  {currentFight.redCorner || currentFight.redFighter}
                 </p>
                 <p className="text-sm text-theme-light">Esquina Roja</p>
               </div>
@@ -436,7 +439,7 @@ const LiveEvent = () => {
 
               <div className="text-center">
                 <p className="font-medium text-theme-primary">
-                  {currentFight.blueCorner}
+                  {currentFight.blueCorner || currentFight.blueFighter}
                 </p>
                 <p className="text-sm text-theme-light">Esquina Azul</p>
               </div>
@@ -485,7 +488,9 @@ const LiveEvent = () => {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as "available" | "my_bets" | "info")}
+                onClick={() =>
+                  setActiveTab(tab.key as "available" | "my_bets" | "info")
+                }
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab.key
                     ? "bg-[#596c95] text-white"
@@ -630,7 +635,8 @@ const LiveEvent = () => {
                           </span>
                         </div>
                         <p className="text-sm text-theme-light mt-1">
-                          {fight.redCorner} vs {fight.blueCorner}
+                          {fight.redCorner || fight.redFighter} vs{" "}
+                          {fight.blueCorner || fight.blueFighter}
                         </p>
                       </div>
                     ))}

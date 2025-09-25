@@ -8,16 +8,19 @@ import {
 import { articlesAPI } from "../../services/api";
 import type { Article } from "../../types/article";
 
-interface NewsItem extends Article {
+interface BannerArticle {
+  id: string;
+  title: string;
   content: string;
   excerpt?: string;
   published_at?: string;
   created_at?: string;
   featured_image?: string;
+  featured_image_url?: string;
 }
 
 // Fallback news for when API is not available or no featured articles exist
-const fallbackNews: NewsItem[] = [
+const fallbackNews: BannerArticle[] = [
   {
     id: "fallback-1",
     title: "¡Bienvenido a Galleros.Net!",
@@ -33,7 +36,7 @@ const fallbackNews: NewsItem[] = [
 ];
 
 const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
-  const [news, setNews] = useState<NewsItem[]>(fallbackNews);
+  const [news, setNews] = useState<BannerArticle[]>(fallbackNews);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,24 +53,28 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
 
         if (
           response?.data?.data?.articles &&
-          response.data.articles.length > 0
+          response.data.data.articles.length > 0
         ) {
-          const articles = response.data.articles.map((article: NewsItem) => ({
-            id: article.id,
-            title: article.title,
-            content: article.excerpt || article.content,
-            published_at: article.published_at || article.created_at,
-            featured_image:
-              article.featured_image_url || article.featured_image,
-          }));
+          const articles = response.data.data.articles.map(
+            (article: Article & BannerArticle) => ({
+              id: article.id,
+              title: article.title,
+              content: article.excerpt || article.content,
+              published_at: article.published_at || article.created_at,
+              featured_image:
+                article.featured_image_url || article.featured_image,
+            }),
+          );
           setNews(articles);
         } else {
           // No featured articles found, use fallback
           setNews(fallbackNews);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.warn("Failed to fetch featured news, using fallback:", err);
-        setError(err.message);
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        setError(errorMessage);
         setNews(fallbackNews);
       } finally {
         setLoading(false);

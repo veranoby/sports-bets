@@ -1,472 +1,229 @@
 {
-  "task_assignment": "GEMINI CLI - Advanced TypeScript Specialization with Build Stability (Enhanced Phase 2 of 3-AI Pipeline)",
-  "version": "3.0",
-  "priority": "MEDIUM - TypeScript specialization with comprehensive build validation",
-  "tool": "GEMINI CLI (External AI Tool)",
-  "pipeline_position": "Phase 2: QWEN CLI (foundation) → GEMINI CLI (specialization) → Claude (validation)",
-  "token_savings_target": "50% through React/TypeScript expertise with build stability assurance",
-  "updated": "2025-09-24",
-  "enhancement_focus": "Mandatory build validation, dependency management, integration testing",
+  "role": "frontend_architect",
+  "project": "GalloBets - Professional Cockfighting Streaming Platform",
+  "task": "SSE Frontend Hooks Implementation - Phase 2",
+  "pipeline_phase": "Days 3-4 - Frontend SSE Integration",
+  "handoff_from": "Claude (SSE backend architecture completed)",
 
-  "pipeline_lessons_learned_integration": {
-    "success_patterns_to_maintain": {
-      "micro_session_approach": {
-        "optimal_duration": "20-30 minutes per session",
-        "evidence": "Prevents tool fatigue and enables focused specialization",
-        "mandatory_implementation": "All Gemini sessions must stay within 30-minute limit"
-      },
-      "progressive_specialization": {
-        "approach": "Build on QWEN foundation with advanced TypeScript patterns",
-        "evidence": "50% token savings achieved through specialized focus",
-        "mandatory_implementation": "Leverage QWEN work, avoid duplication"
-      },
-      "context_driven_development": {
-        "strategy": "Use comprehensive QWEN handoff documentation",
-        "evidence": "Reduces context gaps and prevents duplicate work",
-        "mandatory_implementation": "Review QWEN session results before starting"
-      }
-    },
-
-    "improvement_areas_addressed": {
-      "build_stability_requirements": {
-        "identified_issue": "Gemini introduced TypeScript errors requiring Claude fixes",
-        "solution_implemented": "Mandatory build validation gates after each session",
-        "validation_gates": [
-          "npx tsc --noEmit (zero compilation errors required)",
-          "npm run build (successful build completion required)",
-          "Component rendering verification",
-          "Import dependency validation"
-        ]
-      },
-      "dependency_management": {
-        "identified_issue": "Import/export dependencies required manual resolution",
-        "solution_implemented": "Pre-session dependency analysis and automated resolution",
-        "prevention_strategies": [
-          "Component dependency mapping before changes",
-          "Import/export validation after modifications",
-          "Circular dependency detection and prevention"
-        ]
-      },
-      "integration_assurance": {
-        "identified_issue": "Context gaps between Gemini and Claude phases",
-        "solution_implemented": "Comprehensive handoff with integration points",
-        "requirements": [
-          "Component architecture documentation",
-          "TypeScript interface definitions",
-          "Validation gate results",
-          "Integration testing checkpoints"
-        ]
-      }
-    }
-  },
-
-  "enhanced_build_stability_focus": {
-    "mandatory_validation_gates": {
-      "gate_1_typescript_compilation": {
-        "command": "npx tsc --noEmit",
-        "success_criteria": "Zero TypeScript compilation errors",
-        "timeout": "120 seconds",
-        "failure_action": "Immediate session rollback and error analysis",
-        "critical_requirement": "MUST PASS - No exceptions"
-      },
-      "gate_2_build_process": {
-        "command": "npm run build",
-        "success_criteria": "Successful build completion in dist/ folder",
-        "timeout": "180 seconds",
-        "failure_action": "Full session rollback required",
-        "critical_requirement": "MUST PASS - Build integrity essential"
-      },
-      "gate_3_component_rendering": {
-        "command": "npm run dev & sleep 15 && curl -s http://localhost:3000 > /dev/null",
-        "success_criteria": "Development server starts without errors",
-        "timeout": "60 seconds",
-        "failure_action": "Component integration issue investigation",
-        "critical_requirement": "Component functionality preserved"
-      },
-      "gate_4_import_dependencies": {
-        "commands": [
-          "grep -r 'Cannot find module' src/ | wc -l",
-          "grep -r 'Module not found' src/ | wc -l"
-        ],
-        "success_criteria": "Zero broken import/export references",
-        "failure_action": "Fix imports before proceeding to Claude",
-        "critical_requirement": "Dependency integrity maintained"
-      }
-    },
-
-    "failure_recovery_protocols": {
-      "typescript_compilation_failure": {
-        "immediate_action": "Stop session, analyze TypeScript errors",
-        "recovery_steps": [
-          "Identify specific type errors introduced",
-          "Revert problematic type changes",
-          "Re-attempt with simpler type patterns",
-          "Document error patterns for future prevention"
-        ],
-        "escalation": "Claude intervention if errors persist after recovery attempt"
-      },
-      "build_process_failure": {
-        "immediate_action": "Full session rollback to last known good state",
-        "recovery_steps": [
-          "Restore git state: git reset --hard HEAD~1",
-          "Verify build process works again",
-          "Analyze build logs for failure cause",
-          "Restart session with reduced scope"
-        ],
-        "escalation": "Claude analysis for complex build issues"
-      },
-      "component_rendering_failure": {
-        "immediate_action": "Component integration analysis",
-        "recovery_steps": [
-          "Check for breaking changes to component interfaces",
-          "Verify component exports and imports",
-          "Test component in isolation",
-          "Fix integration issues or revert changes"
-        ],
-        "escalation": "Claude comprehensive integration testing"
-      }
-    }
-  },
-
-  "enhanced_dependency_management": {
-    "pre_session_dependency_analysis": {
-      "component_mapping": {
-        "command": "grep -r 'import.*from.*\\.\\./' src/ | grep [target-components] | sort",
-        "purpose": "Map component interdependencies before modifications",
-        "analysis_output": "List of files that import target components"
-      },
-      "type_dependency_mapping": {
-        "command": "grep -r 'import.*type.*from' src/ | sort",
-        "purpose": "Identify TypeScript type dependencies",
-        "analysis_output": "Type import relationships across components"
-      },
-      "export_analysis": {
-        "command": "grep -r '^export' src/ | grep [target-files]",
-        "purpose": "Document current exports before modification",
-        "analysis_output": "Baseline of component/type exports"
-      }
-    },
-
-    "dependency_validation_workflow": {
-      "before_modifications": [
-        "Document all components that import target files",
-        "Identify type definitions that might be affected",
-        "Create dependency risk assessment",
-        "Plan modification sequence to minimize breaks"
-      ],
-      "during_modifications": [
-        "Check TypeScript compilation after each significant change",
-        "Verify component exports remain intact",
-        "Update import paths if components are moved or renamed",
-        "Test component rendering after interface changes"
-      ],
-      "after_modifications": [
-        "Full dependency validation across entire project",
-        "Integration testing for modified components",
-        "Verify no circular dependencies introduced",
-        "Document all dependency changes made"
-      ]
-    },
-
-    "automatic_dependency_resolution": {
-      "missing_exports": {
-        "detection": "TypeScript compilation errors about missing exports",
-        "resolution": "Add missing export statements or update import paths",
-        "validation": "Verify exports resolve correctly across project"
-      },
-      "type_import_issues": {
-        "detection": "Cannot find name or type errors in compilation",
-        "resolution": "Add proper type imports or export type definitions",
-        "validation": "Ensure type inference works correctly"
-      },
-      "circular_dependencies": {
-        "detection": "Use dependency analysis tools or compilation warnings",
-        "resolution": "Extract shared types to common files or break dependency cycles",
-        "prevention": "Check import patterns before moving code"
-      }
-    }
-  },
-
-  "enhanced_typescript_specialization": {
-    "advanced_pattern_implementations": {
-      "complex_type_inference": {
-        "focus": "Advanced TypeScript patterns building on QWEN foundation",
-        "examples": [
-          "Generic type constraints and conditional types",
-          "Advanced utility types (Pick, Omit, Partial, Required)",
-          "Complex union and intersection types",
-          "Type guards and type predicates"
-        ],
-        "build_stability_requirement": "All advanced patterns must compile successfully"
-      },
-      "react_typescript_specialization": {
-        "focus": "React-specific TypeScript patterns and optimizations",
-        "examples": [
-          "Advanced component prop typing with generics",
-          "Custom hook type definitions",
-          "Context and reducer type safety",
-          "Event handler type specifications"
-        ],
-        "integration_requirement": "All React patterns must render correctly"
-      },
-      "interface_design_optimization": {
-        "focus": "Component architecture and interface improvements",
-        "examples": [
-          "Extensible component interfaces",
-          "Type-safe component composition patterns",
-          "Advanced prop validation and defaults",
-          "Component API consistency improvements"
-        ],
-        "compatibility_requirement": "Maintain backward compatibility with existing usage"
-      }
-    },
-
-    "session_specialization_breakdown": {
-      "session_1_advanced_types": {
-        "id": "gemini_session_1_enhanced",
-        "focus": "Advanced TypeScript type replacements building on QWEN work",
-        "duration": "20-30 minutes",
-        "prerequisites": "Review QWEN handoff documentation",
-        "specialization_areas": [
-          "Complex generic types where QWEN used simple replacements",
-          "Advanced utility types for component props",
-          "Conditional types for better type inference",
-          "Type guards for runtime type safety"
-        ],
-        "build_stability_checkpoints": [
-          "TypeScript compilation after each complex type addition",
-          "Component rendering verification for type changes",
-          "Integration testing for modified interfaces"
-        ]
-      },
-      "session_2_react_patterns": {
-        "id": "gemini_session_2_enhanced",
-        "focus": "React-specific TypeScript optimizations",
-        "duration": "20-30 minutes",
-        "specialization_areas": [
-          "Custom hook type definitions and constraints",
-          "Context provider and consumer type safety",
-          "Event handler specifications with proper types",
-          "Component composition patterns with generics"
-        ],
-        "integration_requirements": [
-          "All React hooks must function correctly",
-          "Context usage must maintain type safety",
-          "Event handlers must work with proper type inference"
-        ]
-      },
-      "session_3_component_architecture": {
-        "id": "gemini_session_3_enhanced",
-        "focus": "Component interface optimization and architecture improvements",
-        "duration": "20-30 minutes",
-        "specialization_areas": [
-          "Component prop interface consolidation",
-          "Type-safe component composition",
-          "Advanced component pattern implementations",
-          "API consistency improvements across components"
-        ],
-        "compatibility_requirements": [
-          "Existing component usage must continue working",
-          "New interfaces must be backward compatible",
-          "Component rendering must remain identical"
-        ]
-      }
-    }
-  },
-
-  "enhanced_context_preservation": {
-    "qwen_handoff_integration": {
-      "required_qwen_documentation_review": {
-        "files_modified": "Understand exactly what files QWEN changed",
-        "warning_reductions": "Build on QWEN's ESLint warning progress",
-        "patterns_established": "Continue successful type patterns from QWEN",
-        "patterns_to_avoid": "Learn from QWEN's documented failures"
-      },
-      "work_coordination": {
-        "no_duplication": "Never redo work that QWEN completed successfully",
-        "build_on_foundation": "Use QWEN's foundation for advanced specialization",
-        "fill_gaps": "Address areas QWEN identified but couldn't handle",
-        "maintain_progress": "Preserve all QWEN warning reduction gains"
-      }
-    },
-
-    "claude_handoff_preparation": {
-      "comprehensive_documentation": {
-        "components_created_modified": "Detailed list of all component changes made",
-        "typescript_patterns_implemented": "Advanced patterns used and their rationale",
-        "build_validation_results": "Complete results from all validation gates",
-        "integration_points_identified": "Areas requiring Claude integration testing"
-      },
-      "context_gap_prevention": {
-        "decision_rationale": "Why specific TypeScript patterns were chosen",
-        "complexity_assessment": "Which areas require Claude's specialized attention",
-        "risk_mitigation": "Potential integration issues flagged for Claude",
-        "success_metrics": "Quantified improvements and validation results"
-      }
-    }
-  },
-
-  "enhanced_session_execution": {
-    "pre_session_requirements": {
-      "qwen_handoff_review": "Thoroughly review QWEN session documentation",
-      "dependency_baseline": "Establish current component dependency state",
-      "build_baseline": "Verify TypeScript compilation and build process work",
-      "git_backup": "Create checkpoint for rollback if needed"
-    },
-    "session_execution_pattern": {
-      "specialization_focus": "Advanced TypeScript patterns beyond QWEN scope",
-      "build_validation": "TypeScript compilation check after each significant change",
-      "integration_testing": "Component rendering verification throughout session",
-      "dependency_monitoring": "Watch for import/export issues during modifications"
-    },
-    "session_end_validation": {
-      "mandatory_gates": "All 4 validation gates must pass without exception",
-      "integration_verification": "Components render and function correctly",
-      "handoff_preparation": "Comprehensive documentation for Claude phase",
-      "context_preservation": "No information gaps for Claude continuation"
-    }
-  },
-
-  "success_criteria_enhanced": {
-    "technical_excellence": {
-      "typescript_advancement": "Advanced TypeScript patterns implemented successfully",
-      "build_stability_maintained": "100% of validation gates pass",
-      "component_integrity": "All components render and function correctly",
-      "dependency_resolution": "All import/export relationships intact"
-    },
-    "specialization_value": {
-      "beyond_qwen_scope": "Advanced patterns QWEN couldn't handle implemented",
-      "react_typescript_optimization": "React-specific improvements delivered",
-      "architecture_enhancement": "Component interfaces and patterns improved",
-      "type_safety_advancement": "Overall type safety significantly enhanced"
-    },
-    "pipeline_contribution": {
-      "foundation_utilization": "QWEN foundation effectively built upon",
-      "context_preservation": "Complete context maintained for Claude validation",
-      "integration_readiness": "Clean handoff prepared for Claude integration testing",
-      "token_efficiency": "50%+ token savings achieved through specialization"
-    }
-  },
-
-  "validation_gate_specifications": {
-    "level_2_component_validation": {
-      "applicable_to": "All Gemini CLI sessions",
-      "gate_sequence": [
-        {
-          "name": "TypeScript Compilation Verification",
-          "command": "npx tsc --noEmit",
-          "timeout": "120 seconds",
-          "success_criteria": "Exit code 0 with zero compilation errors",
-          "failure_action": "Immediate session rollback",
-          "critical_requirement": "Must pass - non-negotiable"
-        },
-        {
-          "name": "Build Process Completion",
-          "command": "npm run build",
-          "timeout": "180 seconds",
-          "success_criteria": "Successful dist/ folder generation",
-          "failure_action": "Full session rollback",
-          "critical_requirement": "Build integrity essential"
-        },
-        {
-          "name": "Import Dependency Integrity",
-          "commands": [
-            "grep -r 'Cannot find module' src/",
-            "grep -r 'Module not found' src/"
-          ],
-          "success_criteria": "Zero missing module errors",
-          "failure_action": "Fix imports before proceeding",
-          "critical_requirement": "Dependency integrity maintained"
-        },
-        {
-          "name": "Component Rendering Validation",
-          "command": "npm run dev & sleep 15 && curl -s http://localhost:3000",
-          "success_criteria": "Development server starts successfully",
-          "failure_action": "Component integration investigation",
-          "critical_requirement": "Functional correctness verified"
-        }
-      ]
-    }
-  },
-
-  "handoff_documentation_template": {
-    "session_summary_comprehensive": {
-      "ai_used": "GEMINI CLI",
-      "session_id": "[session_1/session_2/session_3]_enhanced",
-      "duration_actual": "Exact minutes spent on specialization work",
-      "focus_area": "Advanced TypeScript patterns and React specialization",
-      "qwen_foundation_utilized": "How QWEN work was built upon",
-      "validation_gates_status": "All 4 gates passed with detailed results"
-    },
-    "specialization_work_detailed": {
-      "components_modified": [
-        {
-          "component_path": "src/components/example/Component.tsx",
-          "changes_made": "Advanced generic types, React hook typing",
-          "interfaces_added": "New TypeScript interfaces created",
-          "patterns_implemented": "Specific advanced patterns used"
-        }
-      ],
-      "typescript_improvements": {
-        "advanced_types_added": "List of complex types implemented",
-        "react_patterns_optimized": "React-specific TypeScript improvements",
-        "type_safety_enhancements": "Areas where type safety was significantly improved",
-        "architectural_improvements": "Component architecture and interface optimizations"
-      }
-    },
-    "claude_handoff_context": {
-      "integration_points": "Components/areas requiring Claude integration testing",
-      "validation_results": "Comprehensive results from all validation gates",
-      "remaining_complexity": "Areas that may require Claude's architectural expertise",
-      "success_metrics": "Quantified TypeScript and component improvements achieved"
-    },
-    "build_stability_assurance": {
-      "typescript_compilation": "✅ Zero compilation errors across entire project",
-      "build_process": "✅ Complete build success with no warnings",
-      "component_rendering": "✅ All components render correctly in development",
-      "dependency_integrity": "✅ All import/export relationships intact"
-    }
-  },
-
-  "brain_system_integration": {
-    "real_time_updates": {
-      "session_progress": "Update brain system after each session completion",
-      "validation_results": "Record all validation gate results",
-      "pattern_success": "Document successful advanced TypeScript patterns",
-      "integration_insights": "Capture component integration learnings"
-    },
-    "continuous_optimization": {
-      "pattern_library_expansion": "Add successful patterns to reusable library",
-      "validation_gate_refinement": "Optimize validation timing and thresholds",
-      "handoff_quality_improvement": "Enhance Claude handoff based on feedback",
-      "specialization_area_expansion": "Identify new areas for Gemini specialization"
-    }
-  },
-
-  "final_deliverable_checklist": {
-    "technical_completion": [
-      "✅ Advanced TypeScript patterns successfully implemented",
-      "✅ All validation gates pass without exception",
-      "✅ Component architecture enhanced with type safety",
-      "✅ React-specific optimizations delivered"
-    ],
-    "build_stability_assurance": [
-      "✅ TypeScript compilation maintained throughout",
-      "✅ Build process integrity preserved",
-      "✅ Component rendering functionality verified",
-      "✅ Import/export dependencies intact"
-    ],
-    "pipeline_integration": [
-      "✅ QWEN foundation effectively built upon",
-      "✅ Context gaps eliminated for Claude handoff",
-      "✅ Specialization value clearly delivered",
-      "✅ Token efficiency targets achieved"
-    ],
-    "documentation_completion": [
-      "✅ Comprehensive session documentation generated",
-      "✅ Advanced pattern implementations documented",
-      "✅ Validation results thoroughly recorded",
-      "✅ Claude handoff context complete"
+  "context": {
+    "project_status": "15-day MVP Sprint - Day 1-2 completed (SSE backend ready)",
+    "tech_stack": "React + TypeScript + Tailwind CSS + SSE (Server-Sent Events)",
+    "backend_integration": "Complete SSE service and 8 admin channels operational",
+    "critical_success_factors": [
+      "Real-time admin dashboard updates",
+      "Zero manual refresh needed",
+      "Robust error handling with reconnection",
+      "Channel-based event filtering"
     ]
+  },
+
+  "sse_backend_completed": {
+    "service": "✅ /backend/src/services/sseService.ts - Production ready",
+    "routes": "✅ /backend/src/routes/sse.ts - 8 admin channels + stats/test endpoints",
+    "event_types": "✅ 25+ event types defined (fights, bets, system, streaming, etc.)",
+    "authentication": "✅ JWT required, role-based access (admin/operator)",
+    "error_handling": "✅ Connection cleanup, heartbeats, reconnection support"
+  },
+
+  "available_sse_endpoints": {
+    "admin_system": {
+      "url": "/api/sse/admin/system",
+      "purpose": "System health, performance, database monitoring",
+      "events": ["SYSTEM_STATUS", "DATABASE_PERFORMANCE", "SYSTEM_MAINTENANCE"],
+      "access": "admin + operator"
+    },
+    "admin_fights": {
+      "url": "/api/sse/admin/fights",
+      "purpose": "Fight status, betting windows, fight management",
+      "events": ["FIGHT_STATUS_UPDATE", "BETTING_WINDOW_OPENED", "BETTING_WINDOW_CLOSED"],
+      "access": "admin + operator"
+    },
+    "admin_bets": {
+      "url": "/api/sse/admin/bets",
+      "purpose": "Betting activity, PAGO/DOY proposals, bet matching",
+      "events": ["NEW_BET", "BET_MATCHED", "PAGO_PROPOSAL", "DOY_PROPOSAL"],
+      "access": "admin + operator"
+    },
+    "admin_users": {
+      "url": "/api/sse/admin/users",
+      "purpose": "User activity, registrations, verifications",
+      "events": ["USER_REGISTERED", "USER_VERIFIED", "ADMIN_ACTION"],
+      "access": "admin + operator"
+    },
+    "admin_finance": {
+      "url": "/api/sse/admin/finance",
+      "purpose": "Wallet transactions, payments, payouts",
+      "events": ["WALLET_TRANSACTION", "PAYMENT_PROCESSED", "SUBSCRIPTION_UPDATED"],
+      "access": "admin + operator"
+    },
+    "admin_streaming": {
+      "url": "/api/sse/admin/streaming",
+      "purpose": "Stream status, viewer counts, errors",
+      "events": ["STREAM_STARTED", "STREAM_ENDED", "VIEWER_COUNT_UPDATE"],
+      "access": "admin + operator"
+    },
+    "admin_notifications": {
+      "url": "/api/sse/admin/notifications",
+      "purpose": "High-priority alerts from all systems",
+      "events": ["ALERT", "SYSTEM_MAINTENANCE"],
+      "access": "admin + operator"
+    },
+    "admin_global": {
+      "url": "/api/sse/admin/global",
+      "purpose": "Super admin view of ALL system events",
+      "events": ["ALL_EVENT_TYPES"],
+      "access": "admin ONLY"
+    }
+  },
+
+  "your_tasks": [
+    {
+      "priority": "P0 - CRITICAL",
+      "task": "Create useSSE React hook with reconnection logic",
+      "file": "/frontend/src/hooks/useSSE.ts",
+      "requirements": [
+        "EventSource with automatic reconnection",
+        "Exponential backoff on connection failures",
+        "Event filtering by type",
+        "Connection state management (connecting/connected/error)",
+        "JWT token authentication in headers",
+        "Cleanup on unmount"
+      ],
+      "example_usage": "const { data, isConnected, error } = useSSE('/api/sse/admin/system');"
+    },
+    {
+      "priority": "P0 - CRITICAL",
+      "task": "Create useMultiSSE hook for multiple channels",
+      "file": "/frontend/src/hooks/useMultiSSE.ts",
+      "requirements": [
+        "Subscribe to multiple SSE channels simultaneously",
+        "Channel-specific event handling",
+        "Consolidated connection state",
+        "Efficient resource management"
+      ],
+      "example_usage": "const sse = useMultiSSE(['system', 'fights', 'bets']);"
+    },
+    {
+      "priority": "P0 - CRITICAL",
+      "task": "Update Events.tsx admin page with real-time SSE",
+      "file": "/frontend/src/pages/admin/Events.tsx",
+      "requirements": [
+        "Connect to admin/fights + admin/streaming channels",
+        "Real-time event status updates (no manual refresh)",
+        "Fight status transitions display",
+        "Stream status indicators",
+        "Betting window countdown timers"
+      ]
+    },
+    {
+      "priority": "P0 - CRITICAL",
+      "task": "Update Monitoring.tsx with real-time system metrics",
+      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "requirements": [
+        "Connect to admin/system channel",
+        "Real-time system health indicators",
+        "Database performance monitoring",
+        "Live connection statistics",
+        "Alert notifications display"
+      ]
+    },
+    {
+      "priority": "P1 - HIGH",
+      "task": "Create LiveSystemStatus component",
+      "file": "/frontend/src/components/admin/LiveSystemStatus.tsx",
+      "requirements": [
+        "Real-time system health badges",
+        "Performance metrics display",
+        "Service status indicators",
+        "Connection health monitoring"
+      ]
+    },
+    {
+      "priority": "P1 - HIGH",
+      "task": "Create LiveEventMonitor component",
+      "file": "/frontend/src/components/admin/LiveEventMonitor.tsx",
+      "requirements": [
+        "Event cards with live status updates",
+        "Fight progress tracking",
+        "Betting activity indicators",
+        "Stream viewer counts"
+      ]
+    },
+    {
+      "priority": "P1 - HIGH",
+      "task": "Create SSEErrorBoundary component",
+      "file": "/frontend/src/components/admin/SSEErrorBoundary.tsx",
+      "requirements": [
+        "Graceful error handling for SSE failures",
+        "Retry mechanisms",
+        "Fallback UI display",
+        "Error reporting to admin"
+      ]
+    }
+  ],
+
+  "technical_requirements": {
+    "authentication": {
+      "method": "JWT token in Authorization header or EventSource init options",
+      "token_source": "useAuth hook or localStorage",
+      "error_handling": "401/403 → redirect to login, retry with fresh token"
+    },
+    "event_format": {
+      "structure": {
+        "id": "unique event identifier",
+        "type": "SSEEventType enum value",
+        "data": "event payload object",
+        "timestamp": "ISO string",
+        "priority": "low | medium | high | critical",
+        "metadata": "optional event context"
+      }
+    },
+    "connection_management": {
+      "heartbeat": "Server sends every 30 seconds",
+      "timeout": "60 seconds for connection failure",
+      "reconnection": "Exponential backoff: 1s, 2s, 4s, 8s, max 30s",
+      "cleanup": "Close connections on component unmount"
+    }
+  },
+
+  "integration_patterns": {
+    "basic_sse_usage": {
+      "code": "const SystemMonitor = () => {\n  const { data, isConnected, error } = useSSE('/api/sse/admin/system');\n  \n  if (error) return <SSEErrorFallback error={error} />;\n  if (!isConnected) return <SSEConnecting />;\n  \n  return (\n    <div className=\"system-status\">\n      {data?.type === 'SYSTEM_STATUS' && (\n        <SystemHealthBadge status={data.data.status} />\n      )}\n    </div>\n  );\n};"
+    },
+    "multi_channel_usage": {
+      "code": "const AdminDashboard = () => {\n  const sse = useMultiSSE({\n    system: '/api/sse/admin/system',\n    fights: '/api/sse/admin/fights',\n    bets: '/api/sse/admin/bets'\n  });\n  \n  useEffect(() => {\n    if (sse.system.data?.type === 'DATABASE_PERFORMANCE') {\n      setDbMetrics(sse.system.data.data);\n    }\n    if (sse.fights.data?.type === 'FIGHT_STATUS_UPDATE') {\n      updateFightStatus(sse.fights.data.data);\n    }\n  }, [sse]);\n};"
+    }
+  },
+
+  "success_criteria": {
+    "functional": [
+      "Admin pages show real-time updates without manual refresh",
+      "Fight status changes appear instantly in admin interface",
+      "System health metrics update continuously",
+      "PAGO/DOY proposals display in real-time",
+      "Connection errors are handled gracefully"
+    ],
+    "technical": [
+      "SSE connections are stable and performant",
+      "Memory usage remains constant (no leaks)",
+      "Reconnection works after network interruptions",
+      "Authentication is properly maintained",
+      "Multiple channels work simultaneously"
+    ]
+  },
+
+  "timeline": {
+    "duration": "Days 3-4 (approximately 16 hours)",
+    "phase_1": "SSE hooks and core functionality (Day 3)",
+    "phase_2": "Admin component integration and testing (Day 4)",
+    "handoff_to_claude": "Day 5 - Integration validation and betting logic implementation"
+  },
+
+  "coordination_notes": {
+    "backend_ready": "SSE backend is production-ready and tested",
+    "no_backend_changes": "Do NOT modify backend SSE service or routes",
+    "focus_frontend": "Pure frontend React/TypeScript implementation only",
+    "websocket_separate": "WebSocket for PAGO/DOY is separate system - DO NOT modify",
+    "next_phase": "Claude will handle betting window logic integration (Days 5-6)"
   }
 }
