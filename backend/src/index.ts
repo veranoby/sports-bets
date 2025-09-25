@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { createServer } from "http";
 import { config } from "dotenv";
 import { validateEnvironment, logEnvironmentStatus } from "./config/envValidator";
 import { connectDatabase } from "./config/database";
@@ -8,6 +9,10 @@ import { logger } from "./config/logger";
 import { errorHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import { performanceMonitoring } from "./middleware/performanceMonitoring";
+
+// Import SSE and WebSocket services
+import { websocketService } from "./services/websocketService";
+import DatabaseHooks from "./services/databaseHooks";
 
 // Importar rutas
 import authRoutes from "./routes/auth";
@@ -42,10 +47,12 @@ import { checkMaintenanceMode, injectPublicSettings } from "./middleware/setting
 
 class Server {
   private app: express.Application;
+  private httpServer: any;
   private port: string | number;
 
   constructor() {
     this.app = express();
+    this.httpServer = createServer(this.app);
     this.port = process.env.PORT || 3001;
 
     // Inicializar Redis (no bloqueante)
@@ -169,16 +176,58 @@ class Server {
       // Conectar a la base de datos
       await connectDatabase();
 
-      // Iniciar el servidor
-      this.app.listen(this.port, () => {
+      // Initialize database hooks for SSE integration
+      DatabaseHooks.setupDatabaseHooks();
+      DatabaseHooks.setupPerformanceHooks();
+
+      // Initialize WebSocket service for PAGO/DOY proposals
+      websocketService.initialize(this.httpServer);
+
+      // Iniciar el servidor HTTP
+      this.httpServer.listen(this.port, () => {
         logger.info(`🚀 Server running on port ${this.port}`);
         logger.info(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
         logger.info(`📊 Health check: http://localhost:${this.port}/health`);
+        logger.info(`📡 SSE endpoints: http://localhost:${this.port}/api/sse/admin/*`);
+        logger.info(`🔌 WebSocket endpoint: ws://localhost:${this.port}/socket.io (PAGO/DOY only)`);
       });
+
+      // Graceful shutdown handling
+      this.setupGracefulShutdown();
+
     } catch (error) {
       logger.error("Failed to start server:", error);
       process.exit(1);
     }
+  }
+
+  private setupGracefulShutdown(): void {
+    const gracefulShutdown = (signal: string) => {
+      logger.info(`🔄 Received ${signal}. Starting graceful shutdown...`);
+
+      // Close HTTP server
+      this.httpServer.close(() => {
+        logger.info('✅ HTTP server closed');
+
+        // Shutdown WebSocket service
+        websocketService.shutdown();
+
+        // Remove database hooks
+        DatabaseHooks.removeAllHooks();
+
+        logger.info('✅ Graceful shutdown completed');
+        process.exit(0);
+      });
+
+      // Force close after 10 seconds
+      setTimeout(() => {
+        logger.error('❌ Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   }
 
   public getApp(): express.Application {

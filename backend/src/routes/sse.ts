@@ -1,79 +1,395 @@
 import express from 'express';
-import { sseService } from '../services/sseService';
+import { sseService, AdminChannel, SSEEventType } from '../services/sseService';
+import { authenticate, authorize } from '../middleware/auth';
+import { logger } from '../config/logger';
 
 const router = express.Router();
 
-console.log('🔄 SSE routes loading...');
+logger.info('🔄 SSE routes loading with admin authentication...');
 
-// Middleware to set SSE headers
-const sseHeaders = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-  next();
+/**
+ * SSE Authentication Middleware
+ * Handles authentication for SSE connections with proper error handling
+ */
+const sseAuthenticate = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  try {
+    await authenticate(req, res, next);
+  } catch (error) {
+    logger.error('SSE Authentication failed:', error);
+    res.status(401).json({ error: 'Authentication required for SSE connection' });
+  }
 };
 
-// Admin SSE endpoint for system status
-router.get('/admin/system-status', sseHeaders, (req, res) => {
-  const clientId = sseService.addConnection(res);
-  console.log(`Client connected to system-status: ${clientId}`);
+/**
+ * ADMIN SSE ENDPOINTS - Authenticated and Role-Based
+ */
 
-  // Send a confirmation message
-  sseService.sendToClient(clientId, { type: 'SYSTEM_STATUS_CONNECTED', data: 'Connection established' });
+// Admin System Monitoring Channel
+router.get('/admin/system',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.SYSTEM_MONITORING,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
 
-  req.on('close', () => {
-    sseService.removeConnection(clientId);
-    console.log(`Client disconnected from system-status: ${clientId}`);
-  });
-});
+    logger.info(`👤 Admin system monitoring connected: ${req.user!.username} (${connectionId})`);
 
-// Admin SSE endpoint for event updates
-router.get('/admin/events/:eventId', sseHeaders, (req, res) => {
-  const { eventId } = req.params;
-  const clientId = sseService.addConnection(res, `event-${eventId}`);
-  console.log(`Client connected to event updates: ${clientId} for event ${eventId}`);
+    // Handle connection cleanup on disconnect
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`👤 Admin system monitoring disconnected: ${req.user!.username} (${connectionId})`);
+    });
 
-  req.on('close', () => {
-    sseService.removeConnection(clientId);
-    console.log(`Client disconnected from event updates: ${clientId}`);
-  });
-});
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
 
-// Admin SSE endpoint for notifications
-router.get('/admin/notifications', sseHeaders, (req, res) => {
-  const clientId = sseService.addConnection(res, 'admin-notifications');
-  console.log(`Client connected to admin notifications: ${clientId}`);
+// Admin Fight Management Channel
+router.get('/admin/fights',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.FIGHT_MANAGEMENT,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
 
-  req.on('close', () => {
-    sseService.removeConnection(clientId);
-    console.log(`Client disconnected from admin notifications: ${clientId}`);
-  });
-});
+    logger.info(`⚔️ Admin fight management connected: ${req.user!.username} (${connectionId})`);
 
-// Streaming SSE endpoint for event stream status
-router.get('/events/:eventId/stream', sseHeaders, (req, res) => {
-  const { eventId } = req.params;
-  const clientId = sseService.addConnection(res, `stream-${eventId}`);
-  console.log(`Client connected to stream status: ${clientId} for event ${eventId}`);
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`⚔️ Admin fight management disconnected: ${req.user!.username} (${connectionId})`);
+    });
 
-  req.on('close', () => {
-    sseService.removeConnection(clientId);
-    console.log(`Client disconnected from stream status: ${clientId}`);
-  });
-});
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
 
-// Streaming SSE endpoint for betting updates
-router.get('/fights/:fightId/bets', sseHeaders, (req, res) => {
-  const { fightId } = req.params;
-  const clientId = sseService.addConnection(res, `fight-${fightId}`);
-  console.log(`Client connected to bet updates: ${clientId} for fight ${fightId}`);
+// Admin Bet Monitoring Channel
+router.get('/admin/bets',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.BET_MONITORING,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        fightFilters: req.query.fightIds ? String(req.query.fightIds).split(',') : undefined
+      }
+    );
 
-  req.on('close', () => {
-    sseService.removeConnection(clientId);
-    console.log(`Client disconnected from bet updates: ${clientId}`);
-  });
-});
+    logger.info(`💰 Admin bet monitoring connected: ${req.user!.username} (${connectionId})`);
 
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`💰 Admin bet monitoring disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Admin User Management Channel
+router.get('/admin/users',
+  sseAuthenticate,
+  authorize('admin'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.USER_MANAGEMENT,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`👥 Admin user management connected: ${req.user!.username} (${connectionId})`);
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`👥 Admin user management disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Admin Financial Monitoring Channel
+router.get('/admin/finance',
+  sseAuthenticate,
+  authorize('admin'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.FINANCIAL_MONITORING,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`💵 Admin financial monitoring connected: ${req.user!.username} (${connectionId})`);
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`💵 Admin financial monitoring disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Admin Streaming Monitoring Channel
+router.get('/admin/streaming',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.STREAMING_MONITORING,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`📹 Admin streaming monitoring connected: ${req.user!.username} (${connectionId})`);
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`📹 Admin streaming monitoring disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Admin Notifications Channel
+router.get('/admin/notifications',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.NOTIFICATIONS,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`🔔 Admin notifications connected: ${req.user!.username} (${connectionId})`);
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`🔔 Admin notifications disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Admin Global Channel (all events)
+router.get('/admin/global',
+  sseAuthenticate,
+  authorize('admin'),
+  (req, res) => {
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.GLOBAL,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`🌐 Admin global monitoring connected: ${req.user!.username} (${connectionId})`);
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`🌐 Admin global monitoring disconnected: ${req.user!.username} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+/**
+ * SSE CONNECTION MANAGEMENT ENDPOINTS
+ */
+
+// Get SSE connection statistics
+router.get('/admin/stats',
+  sseAuthenticate,
+  authorize('admin'),
+  (req, res) => {
+    try {
+      const stats = sseService.getConnectionStats();
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      logger.error('Error getting SSE stats:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve SSE statistics'
+      });
+    }
+  }
+);
+
+// Test SSE event broadcast (for testing purposes)
+router.post('/admin/test-broadcast',
+  sseAuthenticate,
+  authorize('admin'),
+  (req, res) => {
+    try {
+      const { channel, eventType, data } = req.body;
+
+      if (!channel || !eventType) {
+        return res.status(400).json({
+          success: false,
+          error: 'Channel and eventType are required'
+        });
+      }
+
+      const event = {
+        id: Date.now().toString(),
+        type: eventType as SSEEventType,
+        data: data || { message: 'Test broadcast from admin', timestamp: new Date() },
+        timestamp: new Date(),
+        priority: 'medium' as const,
+        metadata: {
+          adminId: req.user!.id
+        }
+      };
+
+      const sentCount = sseService.broadcastToChannel(channel, event);
+
+      res.json({
+        success: true,
+        data: {
+          eventId: event.id,
+          channel,
+          eventType,
+          sentToConnections: sentCount
+        }
+      });
+
+      logger.info(`📡 Test broadcast sent by ${req.user!.username}: ${eventType} to ${channel} (${sentCount} connections)`);
+    } catch (error) {
+      logger.error('Error sending test broadcast:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send test broadcast'
+      });
+    }
+  }
+);
+
+/**
+ * LEGACY ENDPOINTS (for backwards compatibility)
+ * These will be deprecated in future versions
+ */
+
+// Legacy system status endpoint
+router.get('/admin/system-status',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    logger.warn('⚠️ Using deprecated SSE endpoint /admin/system-status - use /admin/system instead');
+
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.SYSTEM_MONITORING,
+      req.user!.id,
+      req.user!.role
+    );
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+// Legacy event updates endpoint
+router.get('/admin/events/:eventId',
+  sseAuthenticate,
+  authorize('admin', 'operator'),
+  (req, res) => {
+    logger.warn('⚠️ Using deprecated SSE endpoint /admin/events/:eventId - use /admin/fights instead');
+
+    const connectionId = sseService.addConnection(
+      res,
+      AdminChannel.FIGHT_MANAGEMENT,
+      req.user!.id,
+      req.user!.role,
+      {
+        eventFilters: [req.params.eventId]
+      }
+    );
+
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
 
 export default router;
