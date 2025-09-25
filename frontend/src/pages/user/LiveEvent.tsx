@@ -169,11 +169,7 @@ const LiveEvent = () => {
 
   const { fights, fetchFights } = useFights();
 
-  const {
-    bets,
-    fetchAvailableBets,
-    acceptBet,
-  } = useBets();
+  const { bets, fetchAvailableBets, acceptBet } = useBets();
 
   // Estados locales
   const [currentEvent, setCurrentEvent] = useState<EventData | null>(null);
@@ -489,7 +485,7 @@ const LiveEvent = () => {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
+                onClick={() => setActiveTab(tab.key as "available" | "my_bets" | "info")}
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab.key
                     ? "bg-[#596c95] text-white"

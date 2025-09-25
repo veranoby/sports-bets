@@ -12,7 +12,7 @@ interface BetHistoryTableProps {
 
 const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
   const { loading } = useBets();
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
   // Define columns for AdvancedTable
   const columns = useMemo(

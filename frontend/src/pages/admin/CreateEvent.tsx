@@ -7,17 +7,22 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import Card from "../../components/shared/Card";
 import { ArrowLeft } from "lucide-react";
 
+interface Venue {
+  id: string;
+  name: string;
+}
+
 const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [venueId, setVenueId] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
 
-  const [venues, setVenues] = useState<any[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [formErrors, setFormErrors] = useState<any>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchData = async () => {

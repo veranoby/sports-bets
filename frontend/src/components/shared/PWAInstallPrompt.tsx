@@ -10,6 +10,14 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+interface WindowWithGtag extends Window {
+  gtag: (type: 'event', eventName: string, eventParams: { [key: string]: string | undefined }) => void;
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 interface PWAInstallPromptProps {
   showFor?: ("user" | "venue")[];
   delay?: number;
@@ -86,8 +94,8 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
       const { outcome } = await deferredPrompt.userChoice;
 
       // Analytics tracking
-      if ((window as any).gtag) {
-        (window as any).gtag("event", "pwa_install_" + outcome, {
+      if ((window as WindowWithGtag).gtag) {
+        (window as WindowWithGtag).gtag("event", "pwa_install_" + outcome, {
           user_role: user?.role,
         });
       }
@@ -101,8 +109,8 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
     setIsVisible(false);
 
     // Analytics tracking
-    if ((window as any).gtag) {
-      (window as any).gtag("event", "pwa_install_dismissed", {
+    if ((window as WindowWithGtag).gtag) {
+      (window as WindowWithGtag).gtag("event", "pwa_install_dismissed", {
         user_role: user?.role,
       });
     }
@@ -209,7 +217,7 @@ export const usePWAInstall = () => {
   useEffect(() => {
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone;
+      (window.navigator as NavigatorWithStandalone).standalone;
     setIsInstalled(isStandalone);
 
     const handleBeforeInstallPrompt = (e: Event) => {

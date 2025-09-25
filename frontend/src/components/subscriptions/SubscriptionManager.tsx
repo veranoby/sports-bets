@@ -52,8 +52,6 @@ interface PaginationInfo {
   hasMore: boolean;
 }
 
-
-
 const SubscriptionManager: React.FC = () => {
   useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -290,7 +288,7 @@ const SubscriptionManager: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as "overview" | "history" | "plans")}
                 className={`flex items-center px-1 py-4 border-b-2 font-medium text-sm transition-colors ${
                   isActive
                     ? "border-blue-500 text-blue-600"

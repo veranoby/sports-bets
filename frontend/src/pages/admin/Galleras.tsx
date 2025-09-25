@@ -42,8 +42,6 @@ interface CombinedGalleraData {
 }
 
 const AdminGallerasPage: React.FC = () => {
-
-
   // Estados
   const [combinedData, setCombinedData] = useState<CombinedGalleraData[]>([]);
   const [loading, setLoading] = useState(true);

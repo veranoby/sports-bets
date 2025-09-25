@@ -248,7 +248,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         if (isConnected) {
           emit("stream_key_generated", {
             eventId: event.id,
-            streamKey: (response.data as any)?.streamKey,
+            streamKey: response.data?.streamKey,
             timestamp: new Date().toISOString(),
           });
         }

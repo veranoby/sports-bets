@@ -36,6 +36,8 @@ interface FilterBarProps {
   onExport?: (format: string) => void;
 }
 
+type FilterValue = string | string[] | number | Date | [Date, Date] | null;
+
 const FilterBar: React.FC<FilterBarProps> = ({
   searchPlaceholder = "Buscar...",
   onSearch,
@@ -53,7 +55,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     primaryButton: "btn-primary",
     cardBackground: "card-background",
   };
-  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [activeFilters, setActiveFilters] = useState<Record<string, FilterValue>>({});
   const [showFilters, setShowFilters] = useState(false);
 
   // Contar filtros activos

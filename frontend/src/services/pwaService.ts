@@ -1,12 +1,17 @@
 // src/services/pwaService.ts
 
-let deferredPrompt: any = null;
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
   // Prevent the mini-infobar from appearing on mobile
   e.preventDefault();
   // Stash the event so it can be triggered later.
-  deferredPrompt = e;
+  deferredPrompt = e as BeforeInstallPromptEvent;
   // Update UI to notify the user they can install the PWA
   // This could be done by dispatching a custom event
   window.dispatchEvent(new CustomEvent("pwa-installable", { detail: true }));

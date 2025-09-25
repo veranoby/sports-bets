@@ -1,11 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  User,
-  Edit3,
-  Shield,
-  Calendar,
-  Camera,
-} from "lucide-react";
+import { User, Edit3, Shield, Calendar, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserProfileForm from "../../components/forms/UserProfileForm";

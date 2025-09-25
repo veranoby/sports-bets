@@ -337,8 +337,6 @@ const AdminEventsPage: React.FC = () => {
     }
   };
 
-
-
   const handleFightCreated = (newFight: Fight) => {
     if (eventDetailData) {
       setEventDetailData({
@@ -397,8 +395,6 @@ const AdminEventsPage: React.FC = () => {
       </span>
     );
   };
-
-
 
   if (loading) {
     return <LoadingSpinner text="Cargando eventos..." />;

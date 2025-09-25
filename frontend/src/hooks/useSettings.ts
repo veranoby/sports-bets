@@ -32,13 +32,13 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem("token");
     return {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
-  };
+  }, []);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -85,7 +85,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     fetchFeatureStatus,
   ]);
 
-  const fetchFeatureStatus = async () => {
+  const fetchFeatureStatus = useCallback(async () => {
     try {
       const response = await fetch("/api/settings/features/status", {
         headers: getAuthHeaders(),
@@ -98,7 +98,7 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     } catch (error) {
       console.error("Error fetching feature status:", error);
     }
-  };
+  }, [getAuthHeaders]);
 
   const updateSetting = async (
     key: string,

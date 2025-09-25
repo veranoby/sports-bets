@@ -30,8 +30,6 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 // APIs (con fallback a mock)
 import { systemAPI } from "../../services/api";
 
-
-
 interface SystemMetrics {
   cpu: {
     usage: number;

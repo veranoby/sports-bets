@@ -39,8 +39,8 @@ const SubscriptionsPage: React.FC = () => {
   const subscription = null;
   const loading = false;
   const error = null;
-  const fetchPlans = async () => ({ data: [] });
-  const fetchCurrent = async () => ({ data: null });
+  const fetchPlans = useCallback(async () => ({ data: [] }), []);
+  const fetchCurrent = useCallback(async () => ({ data: null }), []);
   const createSubscription = async () => ({ data: null });
   const cancelSubscription = async () => ({ data: null });
   const toggleAutoRenew = async () => ({ data: null });
@@ -67,7 +67,7 @@ const SubscriptionsPage: React.FC = () => {
 
       const apiPlans = Array.isArray(plansData)
         ? plansData
-        : (plansData as any)?.data || [];
+        : (plansData as { data: Plan[] })?.data || [];
 
       setPlans([freePlan, ...apiPlans]);
       await fetchCurrent();
@@ -113,7 +113,7 @@ const SubscriptionsPage: React.FC = () => {
     return <LoadingSpinner text="Cargando información de suscripciones..." />;
   }
 
-  const plansArray = Array.isArray(plans) ? plans : (plans as any)?.data || [];
+  const plansArray = plans;
 
   return (
     <div className="space-y-6">

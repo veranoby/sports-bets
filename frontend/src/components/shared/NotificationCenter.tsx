@@ -98,7 +98,8 @@ const NotificationCenter: React.FC = memo(() => {
       return;
     }
 
-    console.log(`🎧 ${componentIdRef.current} registrando listeners WebSocket`);
+    const componentId = componentIdRef.current;
+    console.log(`🎧 ${componentId} registrando listeners WebSocket`);
 
     addListener("notification:new", handleNewNotification);
     addListener("notification:update", handleUpdateNotification);
@@ -107,7 +108,7 @@ const NotificationCenter: React.FC = memo(() => {
     return () => {
       if (listenersRegisteredRef.current) {
         console.log(
-          `🧹 ${componentIdRef.current} limpiando listeners WebSocket`,
+          `🧹 ${componentId} limpiando listeners WebSocket`,
         );
         // Cleanup handled by addListener return value
         listenersRegisteredRef.current = false;
@@ -124,9 +125,10 @@ const NotificationCenter: React.FC = memo(() => {
   useEffect(() => {
     isMountedRef.current = true;
 
+    const componentId = componentIdRef.current;
     return () => {
       console.log(
-        `🗑️ ${componentIdRef.current} desmontando - cleanup completo`,
+        `🗑️ ${componentId} desmontando - cleanup completo`,
       );
       isMountedRef.current = false;
 

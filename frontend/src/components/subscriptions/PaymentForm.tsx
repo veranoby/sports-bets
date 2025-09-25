@@ -155,7 +155,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     // }
 
     return true;
-  }, [cardData]);
+  }, []);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {

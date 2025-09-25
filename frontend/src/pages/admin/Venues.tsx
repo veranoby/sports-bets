@@ -34,7 +34,6 @@ interface CombinedVenueData {
 }
 
 const AdminVenuesPage: React.FC = () => {
-
   // Estados
   const [combinedData, setCombinedData] = useState<CombinedVenueData[]>([]);
   const [loading, setLoading] = useState(true);

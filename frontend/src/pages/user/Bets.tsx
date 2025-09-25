@@ -3,13 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom"; // Added Navigate import
-import {
-  Activity,
-  TrendingUp,
-  DollarSign,
-  Award,
-  Plus,
-} from "lucide-react";
+import { Activity, TrendingUp, DollarSign, Award, Plus } from "lucide-react";
 
 // ✅ SOLO IMPORTACIONES DE COMPONENTES EXISTENTES
 import { useBets, useWallet } from "../../hooks/useApi";
@@ -78,8 +72,6 @@ const UserBets: React.FC = () => {
     winRate: 0,
     netProfit: 0,
   });
-
-
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
   const handleProposalReceived = useCallback((data: ProposalReceivedData) => {

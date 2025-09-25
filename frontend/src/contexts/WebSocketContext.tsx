@@ -106,7 +106,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     let cleanedCount = 0;
 
     listenersRegistryRef.current.forEach((eventListeners, event) => {
-      const listenersToRemove: ((...args: any[]) => void)[] = []; // TODO: Replace with proper function type
+      const listenersToRemove: ((...args: unknown[]) => void)[] = [];
 
       eventListeners.forEach((metadata, handler) => {
         if (metadata.addedAt < cutoffTime) {
@@ -395,6 +395,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   // 🧹 CLEANUP ON UNMOUNT
   useEffect(() => {
+    const listenersRegistry = listenersRegistryRef.current;
+    const pendingRooms = pendingRoomsRef.current;
+
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -403,8 +406,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       if (cleanupIntervalRef.current) {
         clearInterval(cleanupIntervalRef.current);
       }
-      listenersRegistryRef.current.clear();
-      pendingRoomsRef.current.clear();
+      listenersRegistry.clear();
+      pendingRooms.clear();
       cleanupAttemptsRef.current = 0; // Reset cleanup attempts
     };
   }, []);
@@ -483,7 +486,8 @@ export const useWebSocketListener = <T = unknown,>(
   const componentIdRef = useRef(`listener-${event}-${Date.now()}`);
   const cleanupRef = useRef<(() => void) | null>(null);
 
-  const stableHandler = useCallback(handler, dependencies);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableHandler = useCallback(handler, [...dependencies]);
 
   useEffect(() => {
     if (!event || !isConnected) return;

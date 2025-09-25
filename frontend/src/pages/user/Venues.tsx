@@ -185,7 +185,7 @@ const VenuesPage: React.FC = () => {
         const response = await usersAPI.getAll({ role: "venue" });
         if (response.success) {
           const venueProfiles = await Promise.all(
-            ((response.data as any)?.users || []).map(
+            ((response.data as { users: VenueUser[] })?.users || []).map(
               async (user: VenueUser) => {
                 const articles = await articlesAPI.getAll({
                   author_id: user.id,
@@ -199,7 +199,7 @@ const VenuesPage: React.FC = () => {
                     "Ubicación no especificada",
                   imageUrl: undefined,
                   articlesCount: articles.success
-                    ? (articles.data as any)?.total || 0
+                    ? (articles.data as { total: number })?.total || 0
                     : 0,
                   establishedDate: user.createdAt,
                   isVerified:

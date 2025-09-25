@@ -15,8 +15,6 @@ import SearchInput from "../../components/shared/SearchInput";
 import ArticleManagement from "../../components/articles/ArticleManagement";
 import type { Article } from "../../types/article";
 
-
-
 const NewsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth(); // Added auth hook
@@ -43,8 +41,8 @@ const NewsPage: React.FC = () => {
         status: "published",
       });
       if (response.success) {
-        setArticles((response.data as any)?.articles || []);
-        setTotalPages((response.data as any)?.totalPages || 1);
+        setArticles((response.data as { articles: Article[]; totalPages: number; })?.articles || []);
+        setTotalPages((response.data as { articles: Article[]; totalPages: number; })?.totalPages || 1);
       } else {
         setError(response.error || "Error al cargar artículos");
       }

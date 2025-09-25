@@ -47,12 +47,12 @@ const Toast: React.FC<ToastProps> = ({
     }
   }, [duration, persistent, handleClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsLeaving(true);
     setTimeout(() => {
       onClose(id);
     }, 300);
-  };
+  }, [onClose, id]);
 
   // Configuración por tipo
   const config = {

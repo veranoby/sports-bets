@@ -25,9 +25,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // APIs
-import {
-  walletAPI,
-} from "../../config/api";
+import { walletAPI } from "../../config/api";
 
 interface FinancialMetrics {
   totalRevenue: number;

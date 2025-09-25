@@ -13,6 +13,18 @@ type PaymentMethod = "card" | "transfer";
 type TransactionMode = "deposit" | "withdraw";
 type DepositStep = "amount" | "payment" | "success";
 
+interface TransactionConfig {
+  title: string;
+  MIN_AMOUNT: number;
+  MAX_AMOUNT: number;
+  submitText: string;
+  successText: string;
+  FEE_PERCENTAGE?: number;
+  PROCESSING_FEE?: number;
+  HIGH_AMOUNT_THRESHOLD?: number;
+  PROCESSING_TIME?: string;
+}
+
 interface WalletTransactionModalProps {
   mode: TransactionMode;
   isOpen: boolean;
@@ -58,7 +70,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
   const [identityVerification, setIdentityVerification] = useState(false);
 
   // Configuration based on mode
-  const config = {
+  const config: TransactionConfig = {
     deposit: {
       title: "Depositar Fondos",
       MIN_AMOUNT: 10,
@@ -136,7 +148,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         setTimeout(
           () => {
             setLoading(false);
-            if (amount > (config as any).HIGH_AMOUNT_THRESHOLD) {
+            if (config.HIGH_AMOUNT_THRESHOLD && amount > config.HIGH_AMOUNT_THRESHOLD) {
               setIdentityVerification(true);
             } else {
               setConfirmationStep(2);
@@ -185,9 +197,9 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
 
   const getTotalAmount = () => {
     if (mode === "deposit") {
-      return amount + amount * (config as any).FEE_PERCENTAGE;
+      return amount + amount * (config.FEE_PERCENTAGE || 0);
     } else {
-      return amount - (config as any).PROCESSING_FEE;
+      return amount - (config.PROCESSING_FEE || 0);
     }
   };
 
@@ -254,7 +266,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           </div>
           <div className="flex justify-between text-sm">
             <span>Comisión (5%):</span>
-            <span>${(amount * (config as any).FEE_PERCENTAGE).toFixed(2)}</span>
+            <span>${(amount * (config.FEE_PERCENTAGE || 0)).toFixed(2)}</span>
           </div>
           <hr className="my-2" />
           <div className="flex justify-between font-semibold">
@@ -284,7 +296,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           <div className="text-green-500 text-4xl mb-4">✅</div>
           <h3 className="text-lg font-semibold mb-2">{config.successText}</h3>
           <p className="text-gray-600">
-            Tu retiro será procesado en {(config as any).PROCESSING_TIME}.
+            Tu retiro será procesado en {config.PROCESSING_TIME || 'N/A'}.
           </p>
         </div>
       );
@@ -300,7 +312,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
                 Verificación Requerida
               </h4>
               <p className="text-sm text-yellow-700">
-                Por montos superiores a ${(config as any).HIGH_AMOUNT_THRESHOLD}
+                Por montos superiores a ${config.HIGH_AMOUNT_THRESHOLD || 0}
                 , necesitamos verificar tu identidad.
               </p>
             </div>
@@ -394,7 +406,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           </div>
           <div className="flex justify-between text-sm">
             <span>Comisión:</span>
-            <span>${(config as any).PROCESSING_FEE}</span>
+            <span>${config.PROCESSING_FEE || 0}</span>
           </div>
           <hr className="my-2" />
           <div className="flex justify-between font-semibold">
@@ -402,7 +414,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
             <span>${getTotalAmount().toFixed(2)}</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Tiempo de procesamiento: {(config as any).PROCESSING_TIME}
+            Tiempo de procesamiento: {config.PROCESSING_TIME || 'N/A'}
           </p>
         </div>
 

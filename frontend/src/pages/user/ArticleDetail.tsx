@@ -4,10 +4,11 @@ import { apiClient } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import Card from "../../components/shared/Card";
 import SocialShare from "../../components/shared/SocialShare";
+import type { Article } from "../../types/article";
 
 const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [article, setArticle] = useState<any>(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

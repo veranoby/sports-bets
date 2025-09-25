@@ -159,8 +159,6 @@ const EventsPage: React.FC = () => {
   // WebSocket para actualizaciones en tiempo real
   const { isConnected } = useWebSocketContext();
 
-
-
   // Cargar eventos al montar
   useEffect(() => {
     fetchEvents();
@@ -196,8 +194,6 @@ const EventsPage: React.FC = () => {
     const searchValue = typeof value === "string" ? value : value.target.value;
     setSearchTerm(searchValue);
   };
-
-
 
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);
@@ -289,7 +285,7 @@ const EventsPage: React.FC = () => {
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  onClick={() => setStatusFilter(key as any)}
+                  onClick={() => setStatusFilter(key as "all" | "live" | "upcoming")}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
                     statusFilter === key
                       ? "bg-gradient-to-r from-blue-300 to-blue-400 text-white shadow-md"

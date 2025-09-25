@@ -80,7 +80,6 @@ const AdminArticlesPage: React.FC = () => {
     parseInt(searchParams.get("page") || "1"),
   );
 
-
   // Selección múltiple
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);

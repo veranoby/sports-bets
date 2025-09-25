@@ -57,7 +57,7 @@ const VenueDetailPage: React.FC = () => {
 
         const articlesResponse = await articlesAPI.getAll({ author_id: id });
         if (articlesResponse.success) {
-          setArticles((articlesResponse.data as any)?.articles || []);
+          setArticles((articlesResponse.data as { articles: ArticleLite[] })?.articles || []);
         }
       } catch (err) {
         console.error("Error fetching venue data:", err);

@@ -182,7 +182,7 @@ const ArticleManagement: React.FC = () => {
         includeAuthor: true,
       });
 
-      setArticles((response.data as any)?.articles || []);
+      setArticles((response.data as { articles: Article[] })?.articles || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading articles");
     } finally {

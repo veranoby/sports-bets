@@ -111,11 +111,7 @@ const AdminRequestsPage: React.FC = () => {
   }, []);
 
   // Filtrado por categorías
-  const {
-    newRequests,
-    inProcessRequests,
-    filteredRequests,
-  } = useMemo(() => {
+  const { newRequests, inProcessRequests, filteredRequests } = useMemo(() => {
     let filtered = [...requests];
 
     // Categorizar por estado

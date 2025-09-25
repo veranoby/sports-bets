@@ -20,8 +20,6 @@ import { usersAPI } from "../../services/api";
 import type { User } from "../../types";
 
 const AdminOperatorsPage: React.FC = () => {
-
-
   // Estados
   const [operators, setOperators] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

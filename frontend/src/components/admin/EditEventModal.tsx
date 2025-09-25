@@ -49,7 +49,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     setError(null);
 
     try {
-      const submissionData: any = {
+      const submissionData: Partial<Event> = {
         name: formData.name,
         scheduledDate: formData.scheduledDate
           ? new Date(formData.scheduledDate).toISOString()

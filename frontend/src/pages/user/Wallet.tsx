@@ -27,6 +27,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  TooltipItem,
 } from "chart.js";
 import { Navigate } from "react-router-dom"; // Added Navigate import
 
@@ -131,7 +132,7 @@ const WalletPage: React.FC = () => {
         borderColor: "#596c95",
         borderWidth: 1,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: TooltipItem<"line">) {
             return `Balance: ${context.parsed.y.toFixed(2)}`;
           },
         },
