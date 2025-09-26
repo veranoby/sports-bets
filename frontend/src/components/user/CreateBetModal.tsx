@@ -39,7 +39,7 @@ const CreateBetModal = ({
         side: side === "red" ? "blue" : "red",
         minAmount: Number(amount) - range,
         maxAmount: Number(amount) + range,
-      }).then(response => {
+      }).then((response) => {
         if (response.success && Array.isArray(response.data.bets)) {
           setSuggestions(response.data.bets as BetData[]);
         }

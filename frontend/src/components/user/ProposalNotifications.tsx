@@ -36,10 +36,10 @@ const ProposalNotifications = () => {
   );
 
   useEffect(() => {
-    getPendingProposals().then(response => {
-        if (response.success && Array.isArray(response.data)) {
-            setProposals(response.data as Proposal[]);
-        }
+    getPendingProposals().then((response) => {
+      if (response.success && Array.isArray(response.data)) {
+        setProposals(response.data as Proposal[]);
+      }
     });
   }, [getPendingProposals]);
 

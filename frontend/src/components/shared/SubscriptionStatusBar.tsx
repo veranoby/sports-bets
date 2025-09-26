@@ -11,7 +11,12 @@ import type { Subscription } from "../../types";
 const SubscriptionStatusBar: React.FC = () => {
   const { subscription, loading } = useSubscriptions();
 
-  if (loading || !subscription || (subscription as Subscription).status !== "active") return null;
+  if (
+    loading ||
+    !subscription ||
+    (subscription as Subscription).status !== "active"
+  )
+    return null;
 
   const typedSubscription = subscription as Subscription;
 

@@ -282,7 +282,11 @@ export type FightResult = "red" | "blue" | "draw" | "no_contest";
 
 // 5. STREAMING TYPES (agregar si faltan)
 export type StreamQuality = "720p" | "480p" | "360p";
-export type StreamStatus = "connected" | "disconnected" | "retrying" | "connecting";
+export type StreamStatus =
+  | "connected"
+  | "disconnected"
+  | "retrying"
+  | "connecting";
 
 // Tipos para StatsGrid
 export interface StatCard {

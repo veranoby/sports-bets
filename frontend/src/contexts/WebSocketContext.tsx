@@ -304,7 +304,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         console.error("❌ Error creating WebSocket:", error);
         let errorMessage = "Failed to create WebSocket";
         if (error instanceof Error) {
-            errorMessage = error.message;
+          errorMessage = error.message;
         }
         setConnectionError(errorMessage);
         setIsConnecting(false);
@@ -348,7 +348,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     let mounted = true;
     let connectTimer: NodeJS.Timeout;
 
-    if (isAuthenticated && token && user?.subscription?.status === 'active') {
+    if (isAuthenticated && token && user?.subscription?.status === "active") {
       // Small delay to avoid rapid reconnections
       connectTimer = setTimeout(() => {
         if (mounted && !socketRef.current?.connected && !isConnecting) {
@@ -480,7 +480,7 @@ export const useWebSocketEmit = () => {
 };
 
 // 🎧 HOOK FOR A SINGLE LISTENER
- 
+
 export const useWebSocketListener = <T = unknown,>(
   event: string,
   handler: (data: T) => void,

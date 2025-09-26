@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import useSSE from './useSSE';
-import type { SSEEvent } from './useSSE';
+import { useState, useEffect, useCallback } from "react";
+import useSSE from "./useSSE";
+import type { SSEEvent } from "./useSSE";
 
 interface StreamStatusData {
   eventId: string;
@@ -14,7 +14,7 @@ interface UseStreamStatusReturn {
   isLive: boolean;
   viewers: number;
   streamUrl: string | null;
-  status: 'connecting' | 'connected' | 'disconnected' | 'error';
+  status: "connecting" | "connected" | "disconnected" | "error";
   error: Error | null;
 }
 
@@ -24,10 +24,12 @@ const useStreamStatus = (eventId: string): UseStreamStatusReturn => {
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
 
   // Connect to the admin streaming SSE channel
-  const { lastEvent, status, error } = useSSE<StreamStatusData>('/api/sse/admin/streaming');
+  const { lastEvent, status, error } = useSSE<StreamStatusData>(
+    "/api/sse/admin/streaming",
+  );
 
   useEffect(() => {
-    if (lastEvent && lastEvent.type === 'STREAM_STATUS_UPDATE') {
+    if (lastEvent && lastEvent.type === "STREAM_STATUS_UPDATE") {
       const data = lastEvent.data;
       if (data.eventId === eventId) {
         setIsLive(data.isLive);

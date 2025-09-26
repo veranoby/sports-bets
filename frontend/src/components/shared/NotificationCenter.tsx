@@ -52,7 +52,6 @@ const NotificationCenter: React.FC = memo(() => {
         }));
         setNotifications(formattedNotifications);
       }
-
     } catch (error) {
       console.error("Error fetching notifications:", error);
       if (isMountedRef.current) {

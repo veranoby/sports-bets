@@ -51,7 +51,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         // await // kushkiService.initializeKushki(); // TODO: Implement Kushki service
         setKushkiReady(true);
       } catch (error: unknown) {
-        let errorMessage = "Payment system unavailable. Please try again later.";
+        let errorMessage =
+          "Payment system unavailable. Please try again later.";
         if (error instanceof Error) {
           errorMessage = error.message;
         }

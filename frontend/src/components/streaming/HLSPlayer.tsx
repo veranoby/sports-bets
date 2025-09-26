@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
+import React, { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 
 interface HLSPlayerProps {
   streamUrl: string;
@@ -22,7 +22,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
 
   useEffect(() => {
     if (!streamUrl) {
-      setError('No stream URL provided.');
+      setError("No stream URL provided.");
       setIsLoading(false);
       return;
     }
@@ -42,7 +42,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             if (autoplay) {
               video.play().catch(() => {
-                console.warn('Autoplay was prevented by the browser.');
+                console.warn("Autoplay was prevented by the browser.");
               });
             }
             setIsLoading(false);
@@ -52,32 +52,34 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
             if (data.fatal) {
               const errorMessage = `HLS.js fatal error: ${data.type} - ${data.details}`;
               console.error(errorMessage);
-              setError('Error loading stream. It may be offline or unavailable.');
+              setError(
+                "Error loading stream. It may be offline or unavailable.",
+              );
               if (onError) onError(data);
             }
           });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
           video.src = streamUrl;
-          video.addEventListener('loadedmetadata', () => {
+          video.addEventListener("loadedmetadata", () => {
             if (autoplay) {
               video.play().catch(() => {
-                console.warn('Autoplay was prevented by the browser.');
+                console.warn("Autoplay was prevented by the browser.");
               });
             }
             setIsLoading(false);
           });
-          video.addEventListener('error', () => {
-            const errorMessage = 'Native HLS playback error.';
+          video.addEventListener("error", () => {
+            const errorMessage = "Native HLS playback error.";
             console.error(errorMessage);
-            setError('Error loading stream.');
+            setError("Error loading stream.");
             if (onError) onError(errorMessage);
           });
         } else {
-          throw new Error('HLS is not supported on this browser.');
+          throw new Error("HLS is not supported on this browser.");
         }
       } catch (e: any) {
-        console.error('Player initialization error:', e);
-        setError('Could not initialize video player.');
+        console.error("Player initialization error:", e);
+        setError("Could not initialize video player.");
         if (onError) onError(e);
         setIsLoading(false);
       }
@@ -110,7 +112,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
         ref={videoRef}
         controls={controls && !error}
         muted={muted}
-        className={`w-full h-full object-contain ${isLoading || error ? 'hidden' : ''}`}
+        className={`w-full h-full object-contain ${isLoading || error ? "hidden" : ""}`}
         playsInline
       />
     </div>

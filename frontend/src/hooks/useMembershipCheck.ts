@@ -50,7 +50,8 @@ export const useMembershipCheck = () => {
       // API verification needed
       setLoading(true);
       try {
-        const response = await authAPI.checkMembershipStatus() as ApiResponse<MembershipStatus>;
+        const response =
+          (await authAPI.checkMembershipStatus()) as ApiResponse<MembershipStatus>;
         const status: MembershipStatus = response.data;
 
         // Update localStorage

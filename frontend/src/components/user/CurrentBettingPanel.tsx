@@ -24,7 +24,6 @@ import useSSE from "../../hooks/useSSE";
 import { eventsAPI, betsAPI } from "../../services/api";
 import type { ApiResponse } from "../../types";
 
-
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -92,15 +91,21 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
   const fetchBettingData = useCallback(async () => {
     try {
       setLoading(true);
-      const response: ApiResponse<BettingData> = await (eventsAPI.getCurrentBetting(eventId) as any);
+      const response: ApiResponse<BettingData> =
+        await (eventsAPI.getCurrentBetting(eventId) as any);
 
       if (response.success) {
         const bettingDataResponse = response.data as BettingData;
         setBettingData(bettingDataResponse);
 
         // Start countdown if betting is open
-        if (bettingDataResponse.bettingOpen && bettingDataResponse.currentFight?.bettingOpenedAt) {
-          const openedAt = new Date(bettingDataResponse.currentFight.bettingOpenedAt).getTime();
+        if (
+          bettingDataResponse.bettingOpen &&
+          bettingDataResponse.currentFight?.bettingOpenedAt
+        ) {
+          const openedAt = new Date(
+            bettingDataResponse.currentFight.bettingOpenedAt,
+          ).getTime();
           const now = Date.now();
           const elapsed = Math.floor((now - openedAt) / 1000);
           const maxBettingTime = 5 * 60; // 5 minutes
@@ -459,15 +464,15 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
           </div>
 
           <Select
-                value={betForm.type}
-                onChange={(value) =>
-                  setBetForm((prev) => ({ ...prev, type: value }))
-                }
-                style={{ width: "100%", marginTop: 8 }}
-              >
-                <Option value="pago">PAGO - Ofrecer apuesta</Option>
-                <Option value="doy">DOY - Aceptar apuesta existente</Option>
-              </Select>
+            value={betForm.type}
+            onChange={(value) =>
+              setBetForm((prev) => ({ ...prev, type: value }))
+            }
+            style={{ width: "100%", marginTop: 8 }}
+          >
+            <Option value="pago">PAGO - Ofrecer apuesta</Option>
+            <Option value="doy">DOY - Aceptar apuesta existente</Option>
+          </Select>
 
           <Divider />
 

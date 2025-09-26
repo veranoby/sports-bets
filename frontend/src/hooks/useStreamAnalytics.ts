@@ -207,13 +207,13 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     };
 
     const cleanup = [
-        addListener("connect", handleConnection),
-        addListener("disconnect", handleDisconnection),
-        addListener(`stream:${eventId}:analytics`, handleAnalyticsUpdate),
-        addListener(`stream:${eventId}:viewer_join`, handleViewerJoin),
-        addListener(`stream:${eventId}:viewer_leave`, handleViewerLeave),
-        addListener(`stream:${eventId}:quality_change`, handleQualityChange),
-        addListener(`stream:${eventId}:status`, handleStreamStatus),
+      addListener("connect", handleConnection),
+      addListener("disconnect", handleDisconnection),
+      addListener(`stream:${eventId}:analytics`, handleAnalyticsUpdate),
+      addListener(`stream:${eventId}:viewer_join`, handleViewerJoin),
+      addListener(`stream:${eventId}:viewer_leave`, handleViewerLeave),
+      addListener(`stream:${eventId}:quality_change`, handleQualityChange),
+      addListener(`stream:${eventId}:status`, handleStreamStatus),
     ];
 
     if (isConnected) {
@@ -221,12 +221,20 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     }
 
     return () => {
-        cleanup.forEach(fn => fn());
+      cleanup.forEach((fn) => fn());
       if (eventId) {
         emit("leave_stream", { eventId, streamId });
       }
     };
-  }, [addListener, emit, eventId, streamId, realtime, flushEventBuffer, isConnected]);
+  }, [
+    addListener,
+    emit,
+    eventId,
+    streamId,
+    realtime,
+    flushEventBuffer,
+    isConnected,
+  ]);
 
   useEffect(() => {
     if (!autoRefresh) return;
@@ -236,9 +244,8 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     const intervalId = setInterval(() => {
       fetchAnalytics();
     }, refreshInterval);
-    
-    refreshIntervalRef.current = intervalId as unknown as number;
 
+    refreshIntervalRef.current = intervalId as unknown as number;
 
     return () => {
       if (refreshIntervalRef.current) {

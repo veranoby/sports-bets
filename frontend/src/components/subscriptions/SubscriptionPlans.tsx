@@ -40,7 +40,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
       const response = await subscriptionAPI.getPlans();
       setPlans(response.data);
-        } catch (err: unknown) {
+    } catch (err: unknown) {
       let errorMessage = "Failed to load subscription plans";
       if (err instanceof Error) {
         errorMessage = err.message;

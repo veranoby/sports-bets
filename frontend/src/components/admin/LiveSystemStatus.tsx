@@ -1,6 +1,6 @@
-import React from 'react';
-import useSSE from '../../hooks/useSSE';
-import type { SSEEvent, ConnectionStatus } from '../../hooks/useMultiSSE'; // Re-using types
+import React from "react";
+import useSSE from "../../hooks/useSSE";
+import type { SSEEvent, ConnectionStatus } from "../../hooks/useMultiSSE"; // Re-using types
 
 // Assuming these types for the data payload from the 'admin_system' channel
 interface SystemStatusData {
@@ -15,10 +15,10 @@ interface SystemHealthBadgeProps {
 
 const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({ status }) => {
   const statusConfig = {
-    connecting: { text: 'Connecting', color: 'bg-yellow-400' },
-    connected: { text: 'Connected', color: 'bg-green-500' },
-    disconnected: { text: 'Disconnected', color: 'bg-gray-400' },
-    error: { text: 'Error', color: 'bg-red-500' },
+    connecting: { text: "Connecting", color: "bg-yellow-400" },
+    connected: { text: "Connected", color: "bg-green-500" },
+    disconnected: { text: "Disconnected", color: "bg-gray-400" },
+    error: { text: "Error", color: "bg-red-500" },
   };
 
   const { text, color } = statusConfig[status];
@@ -32,11 +32,18 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({ status }) => {
 };
 
 const LiveSystemStatus: React.FC = () => {
-    const { lastEvent, status, error } = useSSE<SystemStatusData>('/api/sse/admin/system');
+  const { lastEvent, status, error } = useSSE<SystemStatusData>(
+    "/api/sse/admin/system",
+  );
 
   const renderValue = (value: number | undefined, unit: string) => {
     if (value === undefined) return <span className="text-gray-400">N/A</span>;
-    return <span className="font-semibold">{value.toFixed(2)}{unit}</span>;
+    return (
+      <span className="font-semibold">
+        {value.toFixed(2)}
+        {unit}
+      </span>
+    );
   };
 
   return (
@@ -51,15 +58,15 @@ const LiveSystemStatus: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
         <div>
           <p className="text-sm text-gray-600">CPU Usage</p>
-          {renderValue(lastEvent?.data?.cpuUsage, '%')}
+          {renderValue(lastEvent?.data?.cpuUsage, "%")}
         </div>
         <div>
           <p className="text-sm text-gray-600">Memory Usage</p>
-          {renderValue(lastEvent?.data?.memoryUsage, '%')}
+          {renderValue(lastEvent?.data?.memoryUsage, "%")}
         </div>
         <div>
           <p className="text-sm text-gray-600">DB Latency</p>
-          {renderValue(lastEvent?.data?.dbLatency, 'ms')}
+          {renderValue(lastEvent?.data?.dbLatency, "ms")}
         </div>
       </div>
     </div>

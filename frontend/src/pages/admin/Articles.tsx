@@ -90,11 +90,10 @@ const AdminArticlesPage: React.FC = () => {
 
   // Modal preview
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
-  
-  // Estados para artículos pendientes y funciones
+
+  // Estados para artículos pendientes
   const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
-  
+
   // Funciones auxiliares que faltan
   const fetchData = async () => {
     setLoading(true);
@@ -113,7 +112,11 @@ const AdminArticlesPage: React.FC = () => {
       setArticles(articlesRes.data?.articles || []);
       setVenues(venuesRes.data?.venues || []);
       // Actualizar pendientes
-      setPendingArticles(articlesRes.data?.articles?.filter((a: Article) => a.status === "pending") || []);
+      setPendingArticles(
+        articlesRes.data?.articles?.filter(
+          (a: Article) => a.status === "pending",
+        ) || [],
+      );
     } else {
       setError(
         articlesRes.error || venuesRes.error || "Error loading articles",
@@ -121,20 +124,23 @@ const AdminArticlesPage: React.FC = () => {
     }
     setLoading(false);
   };
-  
+
   // Filtrar artículos según filtros
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = !searchTerm || 
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredArticles = articles.filter((article) => {
+    const matchesSearch =
+      !searchTerm ||
+      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.content.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || article.status === statusFilter;
-    const matchesAuthor = !authorFilter || 
-      (article.author_name && article.author_name.toLowerCase().includes(authorFilter.toLowerCase()));
+    const matchesAuthor =
+      !authorFilter ||
+      (article.author_name &&
+        article.author_name.toLowerCase().includes(authorFilter.toLowerCase()));
     const matchesVenue = !venueFilter || article.venue_id === venueFilter;
-    
+
     return matchesSearch && matchesStatus && matchesAuthor && matchesVenue;
   });
-  
+
   // Calcular total de páginas
   const totalPages = Math.ceil(filteredArticles.length / 10); // 10 artículos por página
 
@@ -172,7 +178,7 @@ const AdminArticlesPage: React.FC = () => {
       ? text.substring(0, maxLength) + "..."
       : text;
   };
-  
+
   // Funciones que faltan
   const openPreview = (article: Article) => {
     setPreviewArticle(article);
@@ -184,7 +190,7 @@ const AdminArticlesPage: React.FC = () => {
 
   const handleApproveArticle = async (articleId: string) => {
     // Aprobar artículo
-    const result = await articlesAPI.update(articleId, { status: 'published' });
+    const result = await articlesAPI.update(articleId, { status: "published" });
     if (result.success) {
       fetchData(); // Refrescar lista
     }
@@ -192,7 +198,7 @@ const AdminArticlesPage: React.FC = () => {
 
   const handleRejectArticle = async (articleId: string) => {
     // Rechazar artículo
-    const result = await articlesAPI.update(articleId, { status: 'archived' });
+    const result = await articlesAPI.update(articleId, { status: "archived" });
     if (result.success) {
       fetchData(); // Refrescar lista
     }
@@ -201,9 +207,11 @@ const AdminArticlesPage: React.FC = () => {
   const handleBulkApprove = async () => {
     // Aprobar artículos seleccionados
     const results = await Promise.all(
-      selectedArticles.map(id => articlesAPI.update(id, { status: 'published' }))
+      selectedArticles.map((id) =>
+        articlesAPI.update(id, { status: "published" }),
+      ),
     );
-    if (results.every(r => r.success)) {
+    if (results.every((r) => r.success)) {
       setSelectedArticles([]);
       setShowBulkActions(false);
       fetchData(); // Refrescar lista
@@ -213,9 +221,11 @@ const AdminArticlesPage: React.FC = () => {
   const handleBulkReject = async () => {
     // Rechazar artículos seleccionados
     const results = await Promise.all(
-      selectedArticles.map(id => articlesAPI.update(id, { status: 'archived' }))
+      selectedArticles.map((id) =>
+        articlesAPI.update(id, { status: "archived" }),
+      ),
     );
-    if (results.every(r => r.success)) {
+    if (results.every((r) => r.success)) {
       setSelectedArticles([]);
       setShowBulkActions(false);
       fetchData(); // Refrescar lista
@@ -228,15 +238,15 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const toggleArticleSelection = (articleId: string) => {
-    setSelectedArticles(prev =>
+    setSelectedArticles((prev) =>
       prev.includes(articleId)
-        ? prev.filter(id => id !== articleId)
-        : [...prev, articleId]
+        ? prev.filter((id) => id !== articleId)
+        : [...prev, articleId],
     );
   };
 
   const selectAllVisible = () => {
-    const visibleIds = filteredArticles.map(a => a.id);
+    const visibleIds = filteredArticles.map((a) => a.id);
     setSelectedArticles(visibleIds);
   };
 
@@ -252,8 +262,11 @@ const AdminArticlesPage: React.FC = () => {
     // Esta función se puede implementar más adelante
   };
 
-  const handleToggleStatus = async (articleId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'published' ? 'archived' : 'published';
+  const handleToggleStatus = async (
+    articleId: string,
+    currentStatus: string,
+  ) => {
+    const newStatus = currentStatus === "published" ? "archived" : "published";
     const result = await articlesAPI.update(articleId, { status: newStatus });
     if (result.success) {
       fetchData(); // Refrescar lista

@@ -103,7 +103,10 @@ const SubscriptionManager: React.FC = () => {
         offset,
       });
 
-      const responseData = response.data as {rows: PaymentHistory[], count: number};
+      const responseData = response.data as {
+        rows: PaymentHistory[];
+        count: number;
+      };
 
       if (offset === 0) {
         setPaymentHistory(responseData.rows);
@@ -115,7 +118,7 @@ const SubscriptionManager: React.FC = () => {
         total: responseData.count,
         limit,
         offset,
-        hasMore: (offset + limit) < responseData.count
+        hasMore: offset + limit < responseData.count,
       });
     } catch (err: unknown) {
       let errorMessage = "Failed to load payment history";

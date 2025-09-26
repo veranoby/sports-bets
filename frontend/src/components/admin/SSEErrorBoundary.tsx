@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import type { ErrorInfo, ReactNode } from 'react';
+import React, { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -38,11 +38,17 @@ class SSEErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"
+          role="alert"
+        >
           <p className="font-bold">Real-time Update Error</p>
-          <p>There was a problem with the live data connection. Some information may be outdated.</p>
+          <p>
+            There was a problem with the live data connection. Some information
+            may be outdated.
+          </p>
           <p className="text-sm mt-2">Error: {this.state.error?.message}</p>
-          <button 
+          <button
             onClick={this.handleRetry}
             className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
           >

@@ -151,10 +151,16 @@ export const userAPI = {
 
 // Wrap the axios client to return ApiResponse format
 export const apiClient = {
-  get: async <T>(endpoint: string, config?: { params?: Record<string, unknown> }): Promise<ApiResponse<T>> => {
+  get: async <T>(
+    endpoint: string,
+    config?: { params?: Record<string, unknown> },
+  ): Promise<ApiResponse<T>> => {
     return apiCall<T>("get", endpoint, config?.params);
   },
-  post: async <T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> => {
+  post: async <T>(
+    endpoint: string,
+    data?: unknown,
+  ): Promise<ApiResponse<T>> => {
     return apiCall<T>("post", endpoint, data);
   },
   put: async <T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> => {
@@ -240,10 +246,18 @@ export const streamingAPI = {
   stopStream: async (streamId: string) => {
     return apiCall("post", `/streaming/${streamId}/stop`);
   },
-  getStreamAnalytics: async (streamId?: string, params?: { timeRange?: "1h" | "24h" | "7d" | "30d"; metrics?: string; }) => {
+  getStreamAnalytics: async (
+    streamId?: string,
+    params?: { timeRange?: "1h" | "24h" | "7d" | "30d"; metrics?: string },
+  ) => {
     return apiCall("get", `/streaming/analytics/${streamId || ""}`, { params });
   },
-  trackViewerEvent: async (data: { eventId: string; event: string; data?: Record<string, unknown>; timestamp: string; }) => {
+  trackViewerEvent: async (data: {
+    eventId: string;
+    event: string;
+    data?: Record<string, unknown>;
+    timestamp: string;
+  }) => {
     return apiCall("post", "/streaming/analytics/event", data);
   },
 };

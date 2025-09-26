@@ -6,7 +6,18 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { apiClient, betsAPI } from "../services/api";
-import type { ApiResponse, Bet, Event, Fight, User, Venue, Wallet, Transaction, Subscription, BetType } from "../types";
+import type {
+  ApiResponse,
+  Bet,
+  Event,
+  Fight,
+  User,
+  Venue,
+  Wallet,
+  Transaction,
+  Subscription,
+  BetType,
+} from "../types";
 
 // ====================== TYPES ======================
 interface WalletData {
@@ -164,7 +175,10 @@ export function useWallet() {
       setError(null);
 
       console.log("🔍 Fetching wallet from /wallet endpoint...");
-      const response = await apiClient.get<{wallet: WalletData, recentTransactions: TransactionData[]}>("/wallet");
+      const response = await apiClient.get<{
+        wallet: WalletData;
+        recentTransactions: TransactionData[];
+      }>("/wallet");
 
       if (response.success) {
         console.log("📦 Raw wallet response:", response.data);
@@ -226,7 +240,9 @@ export function useWallet() {
     }) => {
       try {
         setLoading(true);
-        const response = await apiClient.get<{data: {transactions: TransactionData[]}}>("/wallet/transactions", {
+        const response = await apiClient.get<{
+          data: { transactions: TransactionData[] };
+        }>("/wallet/transactions", {
           params,
         });
 
@@ -445,23 +461,27 @@ export function useBets() {
       minAmount: number;
       maxAmount: number;
     }) => {
-      return execute(() => apiClient.get(`/bets/available/${params.fightId}`, { params }));
+      return execute(() =>
+        apiClient.get(`/bets/available/${params.fightId}`, { params }),
+      );
     },
     [execute],
   );
 
   const acceptProposal = useCallback(
-    (betId: string) => execute(() => apiClient.put(`/bets/${betId}/accept-proposal`)),
+    (betId: string) =>
+      execute(() => apiClient.put(`/bets/${betId}/accept-proposal`)),
     [execute],
   );
 
   const rejectProposal = useCallback(
-    (betId: string) => execute(() => apiClient.put(`/bets/${betId}/reject-proposal`)),
+    (betId: string) =>
+      execute(() => apiClient.put(`/bets/${betId}/reject-proposal`)),
     [execute],
   );
 
   const getPendingProposals = useCallback(() => {
-    return execute(() => apiClient.get('/bets/pending-proposals'));
+    return execute(() => apiClient.get("/bets/pending-proposals"));
   }, [execute]);
 
   return {
@@ -821,18 +841,20 @@ export function useSubscriptions() {
       autoRenew?: boolean;
       paymentData?: Record<string, unknown>;
     }) => {
-      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));
+      return execute(() =>
+        apiClient.post("/subscriptions/create", subscriptionData),
+      );
     },
-    [execute]
+    [execute],
   );
 
   const cancelSubscription = useCallback(
     (subscriptionId: string) => {
       return execute(() =>
-        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)
+        apiClient.put(`/subscriptions/${subscriptionId}/cancel`),
       );
     },
-    [execute]
+    [execute],
   );
 
   const toggleAutoRenew = useCallback(
@@ -840,10 +862,10 @@ export function useSubscriptions() {
       return execute(() =>
         apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {
           autoRenew,
-        })
+        }),
       );
     },
-    [execute]
+    [execute],
   );
 
   const checkAccess = useCallback(() => {

@@ -15,8 +15,8 @@ import type { User, ApiResponse } from "../types";
 
 // Tipos locales para respuestas del backend
 interface AuthResponse {
-    token: string;
-    user: User;
+  token: string;
+  user: User;
 }
 
 interface ProfileResponseData {
@@ -108,7 +108,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 🔧 MEJORA: No setear isLoading inmediatamente para evitar re-renders
         // que puedan interfierir con el manejo de errores en el componente
 
-        const response = await authAPI.login(credentials) as ApiResponse<AuthResponse>;
+        const response = (await authAPI.login(
+          credentials,
+        )) as ApiResponse<AuthResponse>;
 
         if (response.success) {
           const { token: authToken, user: userData } = response.data; // Backend response now direct
@@ -121,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await new Promise((resolve) => setTimeout(resolve, 50));
 
           try {
-            const me = await usersAPI.getProfile() as ProfileResponse;
+            const me = (await usersAPI.getProfile()) as ProfileResponse;
             if (me.success) {
               const u = me.data.user as User;
               setUser({ ...u, subscription: me.data.subscription });
@@ -156,7 +158,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isOperatingRef.current = true;
 
       try {
-        const response = await authAPI.register(userData) as ApiResponse<AuthResponse>;
+        const response = (await authAPI.register(
+          userData,
+        )) as ApiResponse<AuthResponse>;
 
         if (response.success) {
           const { token: authToken, user: newUserData } = response.data; // Backend response now direct
@@ -165,7 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem("token", authToken);
 
           try {
-            const me = await usersAPI.getProfile() as ProfileResponse;
+            const me = (await usersAPI.getProfile()) as ProfileResponse;
             if (me.success) {
               const u = me.data.user as User;
               setUser({ ...u, subscription: me.data.subscription });
@@ -204,7 +208,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!token || isOperatingRef.current) return;
 
     try {
-      const response = await usersAPI.getProfile() as ProfileResponse;
+      const response = (await usersAPI.getProfile()) as ProfileResponse;
       if (response.success) {
         const u = response.data.user as User;
         setUser({ ...u, subscription: response.data.subscription });

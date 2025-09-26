@@ -51,7 +51,9 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           type: "banner",
         });
 
-        const responseData = response.data as { articles: (Article & BannerArticle)[] };
+        const responseData = response.data as {
+          articles: (Article & BannerArticle)[];
+        };
 
         if (
           responseData?.articles &&

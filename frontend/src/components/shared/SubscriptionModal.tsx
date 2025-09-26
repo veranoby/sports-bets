@@ -72,7 +72,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     }
   };
 
-// ... (rest of the file)
+  // ... (rest of the file)
 
   const handleCancelSubscription = async () => {
     if (!(subscription as Subscription)?.id) return;

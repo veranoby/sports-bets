@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // As per technical_requirements.event_format
 export interface SSEEvent<T> {
@@ -6,11 +6,15 @@ export interface SSEEvent<T> {
   type: string;
   data: T;
   timestamp: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: "low" | "medium" | "high" | "critical";
   metadata?: any;
 }
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "error";
 
 interface UseSSEReturn<T> {
   lastEvent: SSEEvent<T> | null;
@@ -24,34 +28,34 @@ const MAX_RECONNECT_DELAY = 30000; // 30 seconds, as per connection_management
 
 const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
   const [lastEvent, setLastEvent] = useState<SSEEvent<T> | null>(null);
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+  const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<T | null>(null);
-  
+
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
 
   const connect = useCallback(() => {
     if (!url) {
-      setStatus('disconnected');
+      setStatus("disconnected");
       return;
     }
-    
+
     // Ensure no parallel connections
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
 
     // Retrieve token for auth
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      setStatus('error');
-      setError(new Error('Authentication token not found.'));
+      setStatus("error");
+      setError(new Error("Authentication token not found."));
       return;
     }
 
-    setStatus('connecting');
+    setStatus("connecting");
     setError(null);
 
     try {
@@ -64,7 +68,7 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
 
       es.onopen = () => {
         console.log(`[SSE] Connection established to ${url}`);
-        setStatus('connected');
+        setStatus("connected");
         retryCountRef.current = 0; // Reset on successful connection
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -77,26 +81,30 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
           setLastEvent(parsedData);
           setData(parsedData.data);
         } catch (e) {
-          console.error('[SSE] Failed to parse event data:', event.data);
+          console.error("[SSE] Failed to parse event data:", event.data);
         }
       };
 
       es.onerror = () => {
-        console.error(`[SSE] Error with connection to ${url}. Attempting to reconnect.`);
+        console.error(
+          `[SSE] Error with connection to ${url}. Attempting to reconnect.`,
+        );
         es.close();
-        setStatus('error');
-        
+        setStatus("error");
+
         // Exponential backoff as required
-        const delay = Math.min(MAX_RECONNECT_DELAY, 1000 * Math.pow(2, retryCountRef.current));
+        const delay = Math.min(
+          MAX_RECONNECT_DELAY,
+          1000 * Math.pow(2, retryCountRef.current),
+        );
         retryCountRef.current++;
-        
+
         console.log(`[SSE] Reconnecting in ${delay}ms...`);
         reconnectTimeoutRef.current = setTimeout(connect, delay);
       };
-
     } catch (e) {
-      console.error('[SSE] Could not create EventSource:', e);
-      setStatus('error');
+      console.error("[SSE] Could not create EventSource:", e);
+      setStatus("error");
       setError(e as Error);
     }
   }, [url]);
@@ -116,7 +124,13 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
     };
   }, [connect, url]);
 
-  return { lastEvent, status, error, eventSourceInstance: eventSourceRef.current, data };
+  return {
+    lastEvent,
+    status,
+    error,
+    eventSourceInstance: eventSourceRef.current,
+    data,
+  };
 };
 
 export default useSSE;

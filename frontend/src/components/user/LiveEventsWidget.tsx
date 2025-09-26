@@ -217,8 +217,10 @@ const LiveEventsWidget: React.FC = () => {
       (event): LiveEventExtended => ({
         ...event,
         venue: {
-            name: (event.venue as { name: string })?.name || "Unknown Venue",
-            location: (event.venue as { location: string })?.location || "Unknown Location",
+          name: (event.venue as { name: string })?.name || "Unknown Venue",
+          location:
+            (event.venue as { location: string })?.location ||
+            "Unknown Location",
         },
         peakViewers: event.currentViewers
           ? event.currentViewers + Math.floor(Math.random() * 100)

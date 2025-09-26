@@ -46,7 +46,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import useMultiSSE from "../../hooks/useMultiSSE";
 import type { Event, Fight, EventDetailData } from "../../types";
 
-
 const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -55,31 +54,46 @@ const AdminEventsPage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
-  const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "today");
+
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "",
+  );
+  const [dateFilter, setDateFilter] = useState(
+    searchParams.get("date") || "today",
+  );
 
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [eventDetailData, setEventDetailData] = useState<EventDetailData | null>(null);
+  const [eventDetailData, setEventDetailData] =
+    useState<EventDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
 
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  );
 
   // SSE Channels
-  const sseChannels = useMemo(() => ({
-    fights: '/api/sse/admin/fights',
-    streaming: '/api/sse/admin/streaming',
-  }), []);
+  const sseChannels = useMemo(
+    () => ({
+      fights: "/api/sse/admin/fights",
+      streaming: "/api/sse/admin/streaming",
+    }),
+    [],
+  );
   const sseState = useMultiSSE<any>(sseChannels);
 
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const eventsRes = await eventsAPI.getAll({ limit: 500, includeVenue: true, includeOperator: true, includeStats: true });
+      const eventsRes = await eventsAPI.getAll({
+        limit: 500,
+        includeVenue: true,
+        includeOperator: true,
+        includeStats: true,
+      });
       let eventData = eventsRes.data?.events || [];
       if (user?.role === "operator") {
         eventData = eventData.filter((event) => event.operatorId === user.id);
@@ -100,22 +114,50 @@ const AdminEventsPage: React.FC = () => {
   useEffect(() => {
     const fightEvent = sseState.fights?.lastEvent;
     if (fightEvent) {
-      if (fightEvent.type === 'FIGHT_STATUS_UPDATE') {
+      if (fightEvent.type === "FIGHT_STATUS_UPDATE") {
         const updatedFight = fightEvent.data as Fight;
-        setEvents(prevEvents => prevEvents.map(e => e.id === updatedFight.eventId ? { ...e, fights: e.fights?.map(f => f.id === updatedFight.id ? updatedFight : f) || [] } : e));
-        if (eventDetailData && eventDetailData.event.id === updatedFight.eventId) {
-          setEventDetailData(prev => ({ ...prev, fights: prev.fights?.map(f => f.id === updatedFight.id ? updatedFight : f) || [] }));
+        setEvents((prevEvents) =>
+          prevEvents.map((e) =>
+            e.id === updatedFight.eventId
+              ? {
+                  ...e,
+                  fights:
+                    e.fights?.map((f) =>
+                      f.id === updatedFight.id ? updatedFight : f,
+                    ) || [],
+                }
+              : e,
+          ),
+        );
+        if (
+          eventDetailData &&
+          eventDetailData.event.id === updatedFight.eventId
+        ) {
+          setEventDetailData((prev) => ({
+            ...prev,
+            fights:
+              prev.fights?.map((f) =>
+                f.id === updatedFight.id ? updatedFight : f,
+              ) || [],
+          }));
         }
       }
     }
 
     const streamEvent = sseState.streaming?.lastEvent;
     if (streamEvent) {
-      if (streamEvent.type === 'STREAM_STATUS_UPDATE') {
+      if (streamEvent.type === "STREAM_STATUS_UPDATE") {
         const { eventId, status } = streamEvent.data;
-        setEvents(prevEvents => prevEvents.map(e => e.id === eventId ? { ...e, streamStatus: status } : e));
+        setEvents((prevEvents) =>
+          prevEvents.map((e) =>
+            e.id === eventId ? { ...e, streamStatus: status } : e,
+          ),
+        );
         if (eventDetailData && eventDetailData.event.id === eventId) {
-          setEventDetailData(prev => ({ ...prev, event: { ...prev.event, streamStatus: status } }));
+          setEventDetailData((prev) => ({
+            ...prev,
+            event: { ...prev.event, streamStatus: status },
+          }));
         }
       }
     }
@@ -128,7 +170,10 @@ const AdminEventsPage: React.FC = () => {
         eventsAPI.getById(eventId),
         fightsAPI.getAll({ eventId }),
       ]);
-      setEventDetailData({ event: eventRes.data, fights: fightsRes.data?.fights || [] });
+      setEventDetailData({
+        event: eventRes.data,
+        fights: fightsRes.data?.fights || [],
+      });
     } catch (err) {
       console.error("Error loading event detail:", err);
     } finally {
@@ -138,7 +183,9 @@ const AdminEventsPage: React.FC = () => {
 
   const { todayEvents, filteredEvents } = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
-    const todayEvts = events.filter(e => e.scheduledDate.startsWith(today) || e.status === "live");
+    const todayEvts = events.filter(
+      (e) => e.scheduledDate.startsWith(today) || e.status === "live",
+    );
     let filtered = [...events];
     if (statusFilter) {
       filtered = filtered.filter((e) => e.status === statusFilter);
@@ -150,7 +197,14 @@ const AdminEventsPage: React.FC = () => {
       weekAgo.setDate(weekAgo.getDate() - 7);
       filtered = filtered.filter((e) => new Date(e.scheduledDate) >= weekAgo);
     }
-    return { todayEvents: todayEvts, filteredEvents: filtered.sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()) };
+    return {
+      todayEvents: todayEvts,
+      filteredEvents: filtered.sort(
+        (a, b) =>
+          new Date(b.scheduledDate).getTime() -
+          new Date(a.scheduledDate).getTime(),
+      ),
+    };
   }, [events, statusFilter, dateFilter]);
 
   const handleEventAction = async (eventId: string, action: string) => {
@@ -158,20 +212,40 @@ const AdminEventsPage: React.FC = () => {
     try {
       setOperationInProgress(`${eventId}-${action}`);
       switch (action) {
-        case "activate": response = await eventsAPI.activate(eventId); break;
-        case "start-stream": response = await eventsAPI.startStream(eventId); break;
-        case "stop-stream": response = await eventsAPI.stopStream(eventId); break;
-        case "complete": response = await eventsAPI.complete(eventId); break;
-        case "cancel": response = await eventsAPI.cancel(eventId); break;
+        case "activate":
+          response = await eventsAPI.activate(eventId);
+          break;
+        case "start-stream":
+          response = await eventsAPI.startStream(eventId);
+          break;
+        case "stop-stream":
+          response = await eventsAPI.stopStream(eventId);
+          break;
+        case "complete":
+          response = await eventsAPI.complete(eventId);
+          break;
+        case "cancel":
+          response = await eventsAPI.cancel(eventId);
+          break;
       }
-      if (response) { // Check if response is not null
-        setEvents(events.map((e) => (e.id === eventId ? { ...e, ...response.data } : e)));
+      if (response) {
+        // Check if response is not null
+        setEvents(
+          events.map((e) =>
+            e.id === eventId ? { ...e, ...response.data } : e,
+          ),
+        );
         if (selectedEventId === eventId && eventDetailData) {
-          setEventDetailData({ ...eventDetailData, event: { ...eventDetailData.event, ...response.data } });
+          setEventDetailData({
+            ...eventDetailData,
+            event: { ...eventDetailData.event, ...response.data },
+          });
         }
       }
     } catch (err) {
-      setError(`Error en ${action}: ${err instanceof Error ? err.message : "Error desconocido"}`);
+      setError(
+        `Error en ${action}: ${err instanceof Error ? err.message : "Error desconocido"}`,
+      );
     } finally {
       setOperationInProgress(null);
     }
@@ -179,7 +253,10 @@ const AdminEventsPage: React.FC = () => {
 
   const handleFightCreated = (newFight: Fight) => {
     if (eventDetailData) {
-      setEventDetailData({ ...eventDetailData, fights: [...eventDetailData.fights, newFight] });
+      setEventDetailData({
+        ...eventDetailData,
+        fights: [...eventDetailData.fights, newFight],
+      });
     }
     setIsCreateFightModalOpen(false);
   };
@@ -211,7 +288,14 @@ const AdminEventsPage: React.FC = () => {
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
     };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status as keyof typeof colors] || colors.scheduled}`}>{status === "live" && <span className="animate-pulse mr-1">🔴</span>}{status}</span>;
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status as keyof typeof colors] || colors.scheduled}`}
+      >
+        {status === "live" && <span className="animate-pulse mr-1">🔴</span>}
+        {status}
+      </span>
+    );
   };
 
   if (loading) {
@@ -339,7 +423,9 @@ const AdminEventsPage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
-                          <span>{event.operator?.username || "Sin asignar"}</span>
+                          <span>
+                            {event.operator?.username || "Sin asignar"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -364,7 +450,9 @@ const AdminEventsPage: React.FC = () => {
                       {/* Controles rápidos según estado */}
                       {event.status === "scheduled" && (
                         <button
-                          onClick={() => handleEventAction(event.id, "activate")}
+                          onClick={() =>
+                            handleEventAction(event.id, "activate")
+                          }
                           disabled={
                             operationInProgress === `${event.id}-activate`
                           }
@@ -383,7 +471,8 @@ const AdminEventsPage: React.FC = () => {
                                 handleEventAction(event.id, "start-stream")
                               }
                               disabled={
-                                operationInProgress === `${event.id}-start-stream`
+                                operationInProgress ===
+                                `${event.id}-start-stream`
                               }
                               className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
                             >
@@ -396,7 +485,8 @@ const AdminEventsPage: React.FC = () => {
                                 handleEventAction(event.id, "stop-stream")
                               }
                               disabled={
-                                operationInProgress === `${event.id}-stop-stream`
+                                operationInProgress ===
+                                `${event.id}-stop-stream`
                               }
                               className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
                             >
@@ -407,9 +497,12 @@ const AdminEventsPage: React.FC = () => {
                         </>
                       )}
 
-                      {(event.status === "active" || event.status === "live") && (
+                      {(event.status === "active" ||
+                        event.status === "live") && (
                         <button
-                          onClick={() => handleEventAction(event.id, "complete")}
+                          onClick={() =>
+                            handleEventAction(event.id, "complete")
+                          }
                           disabled={
                             operationInProgress === `${event.id}-complete`
                           }
@@ -518,7 +611,9 @@ const AdminEventsPage: React.FC = () => {
                     Editar
                   </button>
                   <button
-                    onClick={() => handleEventAction(selectedEventId!, "cancel")}
+                    onClick={() =>
+                      handleEventAction(selectedEventId!, "cancel")
+                    }
                     className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
                   >
                     <XCircle className="w-4 h-4" />
@@ -578,8 +673,8 @@ const AdminEventsPage: React.FC = () => {
                             });
                             setEvents(
                               events.map((e) =>
-                                e.id === updatedEvent.id ? updatedEvent : e
-                              )
+                                e.id === updatedEvent.id ? updatedEvent : e,
+                              ),
                             );
                           }}
                           disabled={operationInProgress !== null}
@@ -613,7 +708,7 @@ const AdminEventsPage: React.FC = () => {
                                 </label>
                                 <p className="text-sm text-gray-900">
                                   {new Date(
-                                    eventDetailData.event.scheduledDate
+                                    eventDetailData.event.scheduledDate,
                                   ).toLocaleString()}
                                 </p>
                               </div>
@@ -648,7 +743,8 @@ const AdminEventsPage: React.FC = () => {
                                 </label>
                                 <p className="text-sm text-gray-900">
                                   {eventDetailData.event.completedFights} /{" "}
-                                  {eventDetailData.event.totalFights} completadas
+                                  {eventDetailData.event.totalFights}{" "}
+                                  completadas
                                 </p>
                               </div>
                               <div>
@@ -690,15 +786,18 @@ const AdminEventsPage: React.FC = () => {
                                 <div className="flex items-center gap-2 mt-1">
                                   <div
                                     className={`w-3 h-3 rounded-full ${
-                                      eventDetailData.event.streamStatus === "connected"
+                                      eventDetailData.event.streamStatus ===
+                                      "connected"
                                         ? "bg-red-500 animate-pulse"
-                                        : eventDetailData.event.streamStatus === "error"
+                                        : eventDetailData.event.streamStatus ===
+                                            "error"
                                           ? "bg-red-500"
                                           : "bg-gray-400"
                                     }`}
                                   ></div>
                                   <span className="text-sm capitalize">
-                                    {eventDetailData.event.streamStatus || "offline"}
+                                    {eventDetailData.event.streamStatus ||
+                                      "offline"}
                                   </span>
                                 </div>
                               </div>
@@ -719,11 +818,12 @@ const AdminEventsPage: React.FC = () => {
                                   onClick={() =>
                                     handleEventAction(
                                       eventDetailData.event.id,
-                                      "start-stream"
+                                      "start-stream",
                                     )
                                   }
                                   disabled={
-                                    eventDetailData.event.streamStatus === "connected" ||
+                                    eventDetailData.event.streamStatus ===
+                                      "connected" ||
                                     operationInProgress?.includes("stream")
                                   }
                                   className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
@@ -735,11 +835,12 @@ const AdminEventsPage: React.FC = () => {
                                   onClick={() =>
                                     handleEventAction(
                                       eventDetailData.event.id,
-                                      "stop-stream"
+                                      "stop-stream",
                                     )
                                   }
                                   disabled={
-                                    eventDetailData.event.streamStatus !== "connected" ||
+                                    eventDetailData.event.streamStatus !==
+                                      "connected" ||
                                     operationInProgress?.includes("stream")
                                   }
                                   className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
@@ -836,7 +937,9 @@ const AdminEventsPage: React.FC = () => {
                                   setEventDetailData({
                                     ...eventDetailData,
                                     fights: eventDetailData.fights.map((f) =>
-                                      f.id === updatedFight.id ? updatedFight : f
+                                      f.id === updatedFight.id
+                                        ? updatedFight
+                                        : f,
                                     ),
                                   });
                                 }}

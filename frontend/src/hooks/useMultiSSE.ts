@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // Types should be in a separate file, e.g., frontend/src/types/sse.ts
 // For now, defining them here as per the prompt structure.
@@ -7,11 +7,15 @@ export interface SSEEvent<T> {
   type: string;
   data: T;
   timestamp: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: "low" | "medium" | "high" | "critical";
   metadata?: any;
 }
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "error";
 
 export interface SSEChannelState<T> {
   lastEvent: SSEEvent<T> | null;
@@ -23,11 +27,17 @@ export type MultiSSEState<T> = Record<string, SSEChannelState<T>>;
 
 const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 
-const useMultiSSE = <T>(channels: Record<string, string | null>): MultiSSEState<T> => {
+const useMultiSSE = <T>(
+  channels: Record<string, string | null>,
+): MultiSSEState<T> => {
   const [states, setStates] = useState<MultiSSEState<T>>(() => {
     const initialState: MultiSSEState<T> = {};
-    Object.keys(channels).forEach(key => {
-      initialState[key] = { lastEvent: null, status: 'disconnected', error: null };
+    Object.keys(channels).forEach((key) => {
+      initialState[key] = {
+        lastEvent: null,
+        status: "disconnected",
+        error: null,
+      };
     });
     return initialState;
   });
@@ -38,22 +48,37 @@ const useMultiSSE = <T>(channels: Record<string, string | null>): MultiSSEState<
 
   const connect = useCallback((key: string, url: string) => {
     // Retrieve token for auth
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      setStates(prev => ({ ...prev, [key]: { lastEvent: null, status: 'error', error: new Error('Authentication token not found.') } }));
+      setStates((prev) => ({
+        ...prev,
+        [key]: {
+          lastEvent: null,
+          status: "error",
+          error: new Error("Authentication token not found."),
+        },
+      }));
       return;
     }
 
-    setStates(prev => ({ ...prev, [key]: { lastEvent: null, status: 'connecting', error: null } }));
+    setStates((prev) => ({
+      ...prev,
+      [key]: { lastEvent: null, status: "connecting", error: null },
+    }));
 
     const fullUrl = `${url}?token=${token}`;
     const es = new EventSource(fullUrl);
     eventSourcesRef.current[key] = es;
 
     es.onopen = () => {
-      console.log(`[SSE] Connection established to ${url} for channel [${key}]`);
+      console.log(
+        `[SSE] Connection established to ${url} for channel [${key}]`,
+      );
       retryCountsRef.current[key] = 0;
-      setStates(prev => ({ ...prev, [key]: { ...prev[key], status: 'connected', error: null } }));
+      setStates((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], status: "connected", error: null },
+      }));
       if (reconnectTimeoutsRef.current[key]) {
         clearTimeout(reconnectTimeoutsRef.current[key]);
       }
@@ -62,25 +87,41 @@ const useMultiSSE = <T>(channels: Record<string, string | null>): MultiSSEState<
     es.onmessage = (event: MessageEvent) => {
       try {
         const parsedData: SSEEvent<T> = JSON.parse(event.data);
-        setStates(prev => ({ ...prev, [key]: { ...prev[key], lastEvent: parsedData } }));
+        setStates((prev) => ({
+          ...prev,
+          [key]: { ...prev[key], lastEvent: parsedData },
+        }));
       } catch (e) {
-        console.error(`[SSE] Failed to parse event data for channel [${key}]:`, event.data);
+        console.error(
+          `[SSE] Failed to parse event data for channel [${key}]:`,
+          event.data,
+        );
       }
     };
 
     es.onerror = () => {
-      console.error(`[SSE] Error with connection to ${url} for channel [${key}]. Attempting to reconnect.`);
+      console.error(
+        `[SSE] Error with connection to ${url} for channel [${key}]. Attempting to reconnect.`,
+      );
       es.close();
-      setStates(prev => ({ ...prev, [key]: { ...prev[key], status: 'error' } }));
+      setStates((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], status: "error" },
+      }));
 
       const retryCount = retryCountsRef.current[key] || 0;
-      const delay = Math.min(MAX_RECONNECT_DELAY, 1000 * Math.pow(2, retryCount));
+      const delay = Math.min(
+        MAX_RECONNECT_DELAY,
+        1000 * Math.pow(2, retryCount),
+      );
       retryCountsRef.current[key] = retryCount + 1;
 
       console.log(`[SSE] Reconnecting channel [${key}] in ${delay}ms...`);
-      reconnectTimeoutsRef.current[key] = setTimeout(() => connect(key, url), delay);
+      reconnectTimeoutsRef.current[key] = setTimeout(
+        () => connect(key, url),
+        delay,
+      );
     };
-
   }, []);
 
   useEffect(() => {
@@ -92,8 +133,10 @@ const useMultiSSE = <T>(channels: Record<string, string | null>): MultiSSEState<
     });
 
     return () => {
-      Object.values(eventSourcesRef.current).forEach(es => es.close());
-      Object.values(reconnectTimeoutsRef.current).forEach(timeout => clearTimeout(timeout));
+      Object.values(eventSourcesRef.current).forEach((es) => es.close());
+      Object.values(reconnectTimeoutsRef.current).forEach((timeout) =>
+        clearTimeout(timeout),
+      );
     };
   }, [channels, connect]);
 

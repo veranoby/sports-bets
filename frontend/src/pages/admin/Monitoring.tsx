@@ -66,8 +66,12 @@ const AdminMonitoringPage: React.FC = () => {
 
     if (isOperator) {
       // Operadores solo ven alertas de streaming y stats limitadas
-      const alertsRes = await systemAPI.getAlerts().catch(() => ({ success: true, data: [] }));
-      const statsRes = await systemAPI.getLiveStats().catch(() => ({ success: true, data: null }));
+      const alertsRes = await systemAPI
+        .getAlerts()
+        .catch(() => ({ success: true, data: [] }));
+      const statsRes = await systemAPI
+        .getLiveStats()
+        .catch(() => ({ success: true, data: null }));
 
       setAlerts(
         alertsRes.success
@@ -83,7 +87,9 @@ const AdminMonitoringPage: React.FC = () => {
         activeUsers: statsRes.success ? statsRes.data?.activeUsers || 0 : 0,
         liveEvents: statsRes.success ? statsRes.data?.liveEvents || 0 : 0,
         activeBets: 0,
-        connectionCount: statsRes.success ? statsRes.data?.connectionCount || 0 : 0,
+        connectionCount: statsRes.success
+          ? statsRes.data?.connectionCount || 0
+          : 0,
         requestsPerMinute: 0,
         errorRate: 0,
       });
@@ -128,8 +134,8 @@ const AdminMonitoringPage: React.FC = () => {
     a.download = `system_report_${new Date().toISOString().split("T")[0]}.json`;
     a.click();
   };
-  
-    const getAlertColor = (level: string) => {
+
+  const getAlertColor = (level: string) => {
     switch (level) {
       case "critical":
         return "bg-red-100 text-red-800 border-red-200";
@@ -141,7 +147,6 @@ const AdminMonitoringPage: React.FC = () => {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
-
 
   if (loading) {
     return <LoadingSpinner text="Cargando monitoreo del sistema..." />;
@@ -231,11 +236,10 @@ const AdminMonitoringPage: React.FC = () => {
 
       <SSEErrorBoundary>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {!isOperator && <LiveSystemStatus />}
-            <LiveEventMonitor />
+          {!isOperator && <LiveSystemStatus />}
+          <LiveEventMonitor />
         </div>
       </SSEErrorBoundary>
-
 
       {/* Alertas y logs */}
       <Card className="p-6">
