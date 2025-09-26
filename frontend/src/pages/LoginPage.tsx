@@ -178,7 +178,6 @@ const LoginPage: React.FC = () => {
               <div className="mb-4">
                 <ErrorMessage
                   error={error}
-                  variant="card"
                   closeable={true}
                   onClose={clearError}
                   className="border-l-4 border-l-red-500 bg-red-50 shadow-sm animate-slide-down"

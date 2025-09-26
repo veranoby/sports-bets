@@ -27,8 +27,8 @@ import {
   Tooltip,
   Legend,
   Filler,
-  TooltipItem,
 } from "chart.js";
+import type { TooltipItem } from "chart.js";
 import { Navigate } from "react-router-dom"; // Added Navigate import
 
 // Hooks y contextos

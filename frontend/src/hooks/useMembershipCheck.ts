@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { authAPI } from "../services/api";
+import type { ApiResponse } from "../types";
 
 interface MembershipStatus {
   membership_valid: boolean;
@@ -49,7 +50,7 @@ export const useMembershipCheck = () => {
       // API verification needed
       setLoading(true);
       try {
-        const response = await authAPI.checkMembershipStatus();
+        const response = await authAPI.checkMembershipStatus() as ApiResponse<MembershipStatus>;
         const status: MembershipStatus = response.data;
 
         // Update localStorage

@@ -47,7 +47,10 @@ const UserProfilePage: React.FC = () => {
         setUser(userResponse.data as User);
 
         const articlesResponse = await articlesAPI.getAll({ author_id: id });
-        setArticles((articlesResponse.data as { articles: ArticleLite[] })?.articles || []);
+        setArticles(
+          (articlesResponse.data as { articles: ArticleLite[] })?.articles ||
+            [],
+        );
       } catch (err) {
         console.error("Error fetching profile data:", err);
         setError("No se pudo cargar el perfil. Inténtalo de nuevo.");

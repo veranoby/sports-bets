@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useBets } from "../../hooks/useApi";
 import Modal from "../shared/Modal";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { Bet } from "../../types";
+import type { Bet, BetData } from "../../types";
 
 const CreateBetModal = ({
   fightId,
@@ -22,9 +22,9 @@ const CreateBetModal = ({
   const [doyAmount, setDoyAmount] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { createBet, getCompatibleBets } = useBets();
-  const [suggestions, setSuggestions] = useState<Bet[]>([]);
+  const [suggestions, setSuggestions] = useState<BetData[]>([]);
   const [pagoProposal, setPagoProposal] = useState<{
-    bet: Bet;
+    bet: BetData;
     amount: string;
   } | null>(null);
 
@@ -39,7 +39,11 @@ const CreateBetModal = ({
         side: side === "red" ? "blue" : "red",
         minAmount: Number(amount) - range,
         maxAmount: Number(amount) + range,
-      }).then(setSuggestions);
+      }).then(response => {
+        if (response.success && Array.isArray(response.data.bets)) {
+          setSuggestions(response.data.bets as BetData[]);
+        }
+      });
     }
   }, [amount, side, fightId, getCompatibleBets]);
 
@@ -53,7 +57,7 @@ const CreateBetModal = ({
     }
   };
 
-  const handleProposePago = (bet: Bet) => {
+  const handleProposePago = (bet: BetData) => {
     setPagoProposal({ bet, amount: "" });
   };
 

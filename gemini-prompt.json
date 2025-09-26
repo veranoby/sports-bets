@@ -1,229 +1,101 @@
 {
-  "role": "frontend_architect",
-  "project": "GalloBets - Professional Cockfighting Streaming Platform",
-  "task": "SSE Frontend Hooks Implementation - Phase 2",
-  "pipeline_phase": "Days 3-4 - Frontend SSE Integration",
-  "handoff_from": "Claude (SSE backend architecture completed)",
+  "task": "Frontend Streaming Integration for MVP Launch",
+  "priority": "CRITICAL - MVP launch in 2 days",
+  "estimated_time": "15-20 minutes",
 
-  "context": {
-    "project_status": "15-day MVP Sprint - Day 1-2 completed (SSE backend ready)",
-    "tech_stack": "React + TypeScript + Tailwind CSS + SSE (Server-Sent Events)",
-    "backend_integration": "Complete SSE service and 8 admin channels operational",
-    "critical_success_factors": [
-      "Real-time admin dashboard updates",
-      "Zero manual refresh needed",
-      "Robust error handling with reconnection",
-      "Channel-based event filtering"
-    ]
+  "AGENT_ACTIVATION": [
+    "frontend-architect",
+    "quality-engineer"
+  ],
+
+  "CONTEXT": {
+    "situation": "Backend TypeScript fixed. SSE implementation complete. Need frontend HLS player integration and streaming guide updates.",
+    "goal": "Complete streaming system for OBS Studio testing by operators",
+    "constraint": "NO destructive edits. Only add streaming functionality."
   },
 
-  "sse_backend_completed": {
-    "service": "✅ /backend/src/services/sseService.ts - Production ready",
-    "routes": "✅ /backend/src/routes/sse.ts - 8 admin channels + stats/test endpoints",
-    "event_types": "✅ 25+ event types defined (fights, bets, system, streaming, etc.)",
-    "authentication": "✅ JWT required, role-based access (admin/operator)",
-    "error_handling": "✅ Connection cleanup, heartbeats, reconnection support"
+  "STREAMING_INFRASTRUCTURE": {
+    "rtmp_server": "✅ /rtmp-server.js - Port 1935 ready",
+    "hls_output": "✅ Port 8000 for HLS streams",
+    "backend_sse": "✅ Stream events via /api/sse/admin/streaming",
+    "obs_studio": "✅ User has OBS locally installed",
+    "testing_needed": "Frontend HLS player + integration guides"
   },
 
-  "available_sse_endpoints": {
-    "admin_system": {
-      "url": "/api/sse/admin/system",
-      "purpose": "System health, performance, database monitoring",
-      "events": ["SYSTEM_STATUS", "DATABASE_PERFORMANCE", "SYSTEM_MAINTENANCE"],
-      "access": "admin + operator"
-    },
-    "admin_fights": {
-      "url": "/api/sse/admin/fights",
-      "purpose": "Fight status, betting windows, fight management",
-      "events": ["FIGHT_STATUS_UPDATE", "BETTING_WINDOW_OPENED", "BETTING_WINDOW_CLOSED"],
-      "access": "admin + operator"
-    },
-    "admin_bets": {
-      "url": "/api/sse/admin/bets",
-      "purpose": "Betting activity, PAGO/DOY proposals, bet matching",
-      "events": ["NEW_BET", "BET_MATCHED", "PAGO_PROPOSAL", "DOY_PROPOSAL"],
-      "access": "admin + operator"
-    },
-    "admin_users": {
-      "url": "/api/sse/admin/users",
-      "purpose": "User activity, registrations, verifications",
-      "events": ["USER_REGISTERED", "USER_VERIFIED", "ADMIN_ACTION"],
-      "access": "admin + operator"
-    },
-    "admin_finance": {
-      "url": "/api/sse/admin/finance",
-      "purpose": "Wallet transactions, payments, payouts",
-      "events": ["WALLET_TRANSACTION", "PAYMENT_PROCESSED", "SUBSCRIPTION_UPDATED"],
-      "access": "admin + operator"
-    },
-    "admin_streaming": {
-      "url": "/api/sse/admin/streaming",
-      "purpose": "Stream status, viewer counts, errors",
-      "events": ["STREAM_STARTED", "STREAM_ENDED", "VIEWER_COUNT_UPDATE"],
-      "access": "admin + operator"
-    },
-    "admin_notifications": {
-      "url": "/api/sse/admin/notifications",
-      "purpose": "High-priority alerts from all systems",
-      "events": ["ALERT", "SYSTEM_MAINTENANCE"],
-      "access": "admin + operator"
-    },
-    "admin_global": {
-      "url": "/api/sse/admin/global",
-      "purpose": "Super admin view of ALL system events",
-      "events": ["ALL_EVENT_TYPES"],
-      "access": "admin ONLY"
-    }
-  },
-
-  "your_tasks": [
+  "SPECIFIC_TASKS": [
     {
-      "priority": "P0 - CRITICAL",
-      "task": "Create useSSE React hook with reconnection logic",
-      "file": "/frontend/src/hooks/useSSE.ts",
+      "file": "frontend/src/components/streaming/HLSPlayer.tsx",
+      "action": "CREATE",
       "requirements": [
-        "EventSource with automatic reconnection",
-        "Exponential backoff on connection failures",
-        "Event filtering by type",
-        "Connection state management (connecting/connected/error)",
-        "JWT token authentication in headers",
-        "Cleanup on unmount"
-      ],
-      "example_usage": "const { data, isConnected, error } = useSSE('/api/sse/admin/system');"
-    },
-    {
-      "priority": "P0 - CRITICAL",
-      "task": "Create useMultiSSE hook for multiple channels",
-      "file": "/frontend/src/hooks/useMultiSSE.ts",
-      "requirements": [
-        "Subscribe to multiple SSE channels simultaneously",
-        "Channel-specific event handling",
-        "Consolidated connection state",
-        "Efficient resource management"
-      ],
-      "example_usage": "const sse = useMultiSSE(['system', 'fights', 'bets']);"
-    },
-    {
-      "priority": "P0 - CRITICAL",
-      "task": "Update Events.tsx admin page with real-time SSE",
-      "file": "/frontend/src/pages/admin/Events.tsx",
-      "requirements": [
-        "Connect to admin/fights + admin/streaming channels",
-        "Real-time event status updates (no manual refresh)",
-        "Fight status transitions display",
-        "Stream status indicators",
-        "Betting window countdown timers"
+        "React component for HLS video playback",
+        "Use hls.js library for HLS support",
+        "Props: streamUrl, controls, autoplay, onError",
+        "Error handling for stream not available",
+        "Responsive design with Tailwind CSS",
+        "Loading and buffering states"
       ]
     },
     {
-      "priority": "P0 - CRITICAL",
-      "task": "Update Monitoring.tsx with real-time system metrics",
-      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "file": "frontend/src/hooks/useStreamStatus.ts",
+      "action": "CREATE",
       "requirements": [
-        "Connect to admin/system channel",
-        "Real-time system health indicators",
-        "Database performance monitoring",
-        "Live connection statistics",
-        "Alert notifications display"
+        "Custom hook for stream status monitoring",
+        "Connect to SSE for STREAM_STATUS_UPDATE events",
+        "Return: isLive, viewers, streamUrl, error",
+        "Auto-retry on connection failures"
       ]
     },
     {
-      "priority": "P1 - HIGH",
-      "task": "Create LiveSystemStatus component",
-      "file": "/frontend/src/components/admin/LiveSystemStatus.tsx",
+      "file": "STREAMING-TESTING-OPERADORES.md",
+      "action": "UPDATE",
       "requirements": [
-        "Real-time system health badges",
-        "Performance metrics display",
-        "Service status indicators",
-        "Connection health monitoring"
+        "Fix port 5174 → 5173 (frontend dev server)",
+        "Add OBS Studio streaming setup steps",
+        "Add validation checklist for operators",
+        "Simplify language for non-technical users"
       ]
     },
     {
-      "priority": "P1 - HIGH",
-      "task": "Create LiveEventMonitor component",
-      "file": "/frontend/src/components/admin/LiveEventMonitor.tsx",
+      "file": "frontend/src/pages/admin/Streaming.tsx",
+      "action": "UPDATE",
       "requirements": [
-        "Event cards with live status updates",
-        "Fight progress tracking",
-        "Betting activity indicators",
-        "Stream viewer counts"
-      ]
-    },
-    {
-      "priority": "P1 - HIGH",
-      "task": "Create SSEErrorBoundary component",
-      "file": "/frontend/src/components/admin/SSEErrorBoundary.tsx",
-      "requirements": [
-        "Graceful error handling for SSE failures",
-        "Retry mechanisms",
-        "Fallback UI display",
-        "Error reporting to admin"
+        "Add HLSPlayer component for stream preview",
+        "Add useStreamStatus hook for live monitoring",
+        "Display stream URL, status, viewer count",
+        "Add stream start/stop controls for operators"
       ]
     }
   ],
 
-  "technical_requirements": {
-    "authentication": {
-      "method": "JWT token in Authorization header or EventSource init options",
-      "token_source": "useAuth hook or localStorage",
-      "error_handling": "401/403 → redirect to login, retry with fresh token"
-    },
-    "event_format": {
-      "structure": {
-        "id": "unique event identifier",
-        "type": "SSEEventType enum value",
-        "data": "event payload object",
-        "timestamp": "ISO string",
-        "priority": "low | medium | high | critical",
-        "metadata": "optional event context"
-      }
-    },
-    "connection_management": {
-      "heartbeat": "Server sends every 30 seconds",
-      "timeout": "60 seconds for connection failure",
-      "reconnection": "Exponential backoff: 1s, 2s, 4s, 8s, max 30s",
-      "cleanup": "Close connections on component unmount"
-    }
-  },
+  "FRONTEND_DEPENDENCIES": [
+    "npm install hls.js @types/hls.js",
+    "Ensure React 18+ for streaming components"
+  ],
 
-  "integration_patterns": {
-    "basic_sse_usage": {
-      "code": "const SystemMonitor = () => {\n  const { data, isConnected, error } = useSSE('/api/sse/admin/system');\n  \n  if (error) return <SSEErrorFallback error={error} />;\n  if (!isConnected) return <SSEConnecting />;\n  \n  return (\n    <div className=\"system-status\">\n      {data?.type === 'SYSTEM_STATUS' && (\n        <SystemHealthBadge status={data.data.status} />\n      )}\n    </div>\n  );\n};"
-    },
-    "multi_channel_usage": {
-      "code": "const AdminDashboard = () => {\n  const sse = useMultiSSE({\n    system: '/api/sse/admin/system',\n    fights: '/api/sse/admin/fights',\n    bets: '/api/sse/admin/bets'\n  });\n  \n  useEffect(() => {\n    if (sse.system.data?.type === 'DATABASE_PERFORMANCE') {\n      setDbMetrics(sse.system.data.data);\n    }\n    if (sse.fights.data?.type === 'FIGHT_STATUS_UPDATE') {\n      updateFightStatus(sse.fights.data.data);\n    }\n  }, [sse]);\n};"
-    }
-  },
+  "VALIDATION_COMMANDS": [
+    "cd frontend && npm run build",
+    "cd frontend && npm run lint",
+    "Test HLS player with: http://localhost:8000/live/STREAM_NAME/index.m3u8"
+  ],
 
-  "success_criteria": {
-    "functional": [
-      "Admin pages show real-time updates without manual refresh",
-      "Fight status changes appear instantly in admin interface",
-      "System health metrics update continuously",
-      "PAGO/DOY proposals display in real-time",
-      "Connection errors are handled gracefully"
-    ],
-    "technical": [
-      "SSE connections are stable and performant",
-      "Memory usage remains constant (no leaks)",
-      "Reconnection works after network interruptions",
-      "Authentication is properly maintained",
-      "Multiple channels work simultaneously"
-    ]
-  },
+  "SUCCESS_CRITERIA": [
+    "HLS player component renders correctly",
+    "SSE stream status updates working",
+    "Frontend builds without errors",
+    "Streaming guides updated with correct ports",
+    "Ready for OBS Studio operator testing"
+  ],
 
-  "timeline": {
-    "duration": "Days 3-4 (approximately 16 hours)",
-    "phase_1": "SSE hooks and core functionality (Day 3)",
-    "phase_2": "Admin component integration and testing (Day 4)",
-    "handoff_to_claude": "Day 5 - Integration validation and betting logic implementation"
-  },
+  "RESTRICTIONS": [
+    "DO NOT modify existing SSE implementation",
+    "DO NOT change authentication system",
+    "DO NOT alter database models",
+    "ONLY add streaming display functionality"
+  ],
 
-  "coordination_notes": {
-    "backend_ready": "SSE backend is production-ready and tested",
-    "no_backend_changes": "Do NOT modify backend SSE service or routes",
-    "focus_frontend": "Pure frontend React/TypeScript implementation only",
-    "websocket_separate": "WebSocket for PAGO/DOY is separate system - DO NOT modify",
-    "next_phase": "Claude will handle betting window logic integration (Days 5-6)"
+  "COORDINATION_NOTES": {
+    "previous_ai": "QWEN fixed backend TypeScript compilation",
+    "next_step": "Claude validates integration and prepares operator testing",
+    "handoff_signal": "Frontend streaming complete - ready for validation"
   }
 }

@@ -17,7 +17,7 @@ interface Venue {
 // ============================================================================
 // BET DETAIL CONFIGURATION - Preserva funcionalidad de BetDetailModal
 // ============================================================================
-export const BET_DETAIL_FIELDS: FieldConfig[] = [
+export const BET_DETAIL_FIELDS: FieldConfig<Bet>[] = [
   {
     key: "id",
     label: "ID",
@@ -60,7 +60,7 @@ export const BET_DETAIL_FIELDS: FieldConfig[] = [
 
 export const getBetActions = (
   onCancelBet?: (betId: string) => void,
-): ActionConfig[] => [
+): ActionConfig<Bet>[] => [
   {
     label: "Cancelar apuesta",
     onClick: (bet: Bet) => onCancelBet?.(bet.id),
@@ -73,7 +73,7 @@ export const getBetActions = (
 // ============================================================================
 // TRANSACTION DETAIL CONFIGURATION - Preserva funcionalidad de TransactionDetailModal
 // ============================================================================
-export const TRANSACTION_DETAIL_FIELDS: FieldConfig[] = [
+export const TRANSACTION_DETAIL_FIELDS: FieldConfig<Transaction>[] = [
   {
     key: "id",
     label: "ID",
@@ -106,12 +106,12 @@ export const TRANSACTION_DETAIL_FIELDS: FieldConfig[] = [
 ];
 
 // No actions específicas para Transaction actualmente
-export const TRANSACTION_ACTIONS: ActionConfig[] = [];
+export const TRANSACTION_ACTIONS: ActionConfig<Transaction>[] = [];
 
 // ============================================================================
 // EVENT DETAIL CONFIGURATION - Preserva funcionalidad de EventDetailModal
 // ============================================================================
-export const EVENT_DETAIL_FIELDS: FieldConfig[] = [
+export const EVENT_DETAIL_FIELDS: FieldConfig<Event>[] = [
   {
     key: "id",
     label: "ID",
@@ -132,7 +132,7 @@ export const EVENT_DETAIL_FIELDS: FieldConfig[] = [
   {
     key: "venue",
     label: "Venue",
-    render: (venue: Venue, event: Event) => (
+    render: (venue: Venue | undefined, event: Event) => (
       <span>{venue?.name || event.venueId || "N/A"}</span>
     ),
   },
@@ -156,7 +156,7 @@ export const EVENT_DETAIL_FIELDS: FieldConfig[] = [
 
 export const getEventActions = (
   onActivateEvent?: (eventId: string) => void,
-): ActionConfig[] => [
+): ActionConfig<Event>[] => [
   {
     label: "Activar evento",
     onClick: (event: Event) => onActivateEvent?.(event.id),

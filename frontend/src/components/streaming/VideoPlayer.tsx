@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import videojs from "video.js";
+const videojsAny: any = videojs;
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 import { Crown } from "lucide-react";
@@ -43,7 +44,7 @@ interface VideoPlayerProps {
   controls?: boolean;
   responsive?: boolean;
   enableAnalytics?: boolean;
-  onReady?: (player: videojs.Player) => void;
+  onReady?: (player: any) => void;
   onError?: (error: unknown) => void;
   onPlay?: () => void;
   onPause?: () => void;
@@ -152,9 +153,10 @@ const Player: React.FC<VideoPlayerProps> = ({
   onAnalyticsEvent,
   className = "",
 }) => {
-  const videoRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<videojs.Player | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -170,12 +172,12 @@ const Player: React.FC<VideoPlayerProps> = ({
         hls: {
           enableLowInitialPlaylist: true,
           smoothQualityChange: true,
-          overrideNative: !videojs.browser.IS_SAFARI,
+          overrideNative: !videojsAny.browser.IS_SAFARI,
         },
       },
     };
 
-    const player = videojs(videoRef.current, options);
+    const player = videojsAny(videoRef.current, options);
     playerRef.current = player;
 
     player.ready(() => {
@@ -183,11 +185,20 @@ const Player: React.FC<VideoPlayerProps> = ({
       onReady?.(player);
     });
 
+    player.on("error", () => {
+      const playerError = player.error();
+      if (playerError) {
+        const errorMessage = `${playerError.message} (Code: ${playerError.code})`;
+        setError(errorMessage);
+        onError?.(playerError);
+      }
+    });
+
     // ... (all other event listeners and handlers remain the same)
 
     return () => {
       if (playerRef.current) {
-        playerRef.current.dispose();
+        (playerRef.current as any).dispose();
         playerRef.current = null;
       }
     };
@@ -223,7 +234,7 @@ const Player: React.FC<VideoPlayerProps> = ({
     >
       <div data-vjs-player>
         <video
-          ref={playerRef}
+          ref={videoRef}
           className="video-js vjs-default-skin w-full"
           playsInline
           data-testid="video-element"

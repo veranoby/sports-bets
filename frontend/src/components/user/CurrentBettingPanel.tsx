@@ -21,7 +21,9 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import useSSE from "../../hooks/useSSE";
-import { eventsAPI, betsAPI } from "../../config/api";
+import { eventsAPI, betsAPI } from "../../services/api";
+import type { ApiResponse } from "../../types";
+
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -38,7 +40,7 @@ interface Fight {
 
 interface AvailableBet {
   id: string;
-  type: "PAGO" | "DOY";
+  type: "pago" | "doy";
   amount: number;
   side: "red" | "blue";
   odds?: number;
@@ -79,7 +81,7 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
   const [betForm, setBetForm] = useState({
     amount: 50,
     side: "red" as "red" | "blue",
-    type: "PAGO" as "PAGO" | "DOY",
+    type: "pago" as "pago" | "doy",
   });
   const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
 
@@ -90,20 +92,25 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
   const fetchBettingData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = (await eventsAPI.getCurrentBetting(eventId)) as BettingData;
+      const response: ApiResponse<BettingData> = await (eventsAPI.getCurrentBetting(eventId) as any);
 
-      setBettingData(data);
+      if (response.success) {
+        const bettingDataResponse = response.data as BettingData;
+        setBettingData(bettingDataResponse);
 
-      // Start countdown if betting is open
-      if (data.bettingOpen && data.currentFight?.bettingOpenedAt) {
-        const openedAt = new Date(data.currentFight.bettingOpenedAt).getTime();
-        const now = Date.now();
-        const elapsed = Math.floor((now - openedAt) / 1000);
-        const maxBettingTime = 5 * 60; // 5 minutes
-        const remaining = Math.max(0, maxBettingTime - elapsed);
-        setCountdownSeconds(remaining);
+        // Start countdown if betting is open
+        if (bettingDataResponse.bettingOpen && bettingDataResponse.currentFight?.bettingOpenedAt) {
+          const openedAt = new Date(bettingDataResponse.currentFight.bettingOpenedAt).getTime();
+          const now = Date.now();
+          const elapsed = Math.floor((now - openedAt) / 1000);
+          const maxBettingTime = 5 * 60; // 5 minutes
+          const remaining = Math.max(0, maxBettingTime - elapsed);
+          setCountdownSeconds(remaining);
+        } else {
+          setCountdownSeconds(null);
+        }
       } else {
-        setCountdownSeconds(null);
+        throw new Error(response.error || "Failed to fetch betting data");
       }
     } catch (error) {
       console.error("Error fetching betting data:", error);
@@ -158,7 +165,7 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
     try {
       const response = await betsAPI.create({
         fightId: bettingData.currentFight.id,
-        type: betForm.type,
+        betType: betForm.type,
         amount: betForm.amount,
         side: betForm.side,
       });
@@ -340,11 +347,11 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
               <List.Item
                 actions={[
                   <Button
-                    type={bet.type === "PAGO" ? "primary" : "default"}
+                    type={bet.type === "pago" ? "primary" : "default"}
                     size="small"
                     disabled={bet.user.id === userId}
                   >
-                    {bet.type === "PAGO" ? "Aceptar PAGO" : "Ver DOY"}
+                    {bet.type === "pago" ? "Aceptar PAGO" : "Ver DOY"}
                   </Button>,
                 ]}
               >
@@ -374,7 +381,7 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
                         count={bet.type}
                         style={{
                           backgroundColor:
-                            bet.type === "PAGO" ? "#52c41a" : "#1890ff",
+                            bet.type === "pago" ? "#52c41a" : "#1890ff",
                           marginLeft: 8,
                         }}
                       />
@@ -451,19 +458,16 @@ const CurrentBettingPanel: React.FC<CurrentBettingPanelProps> = ({
             </Select>
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <Text strong>Tipo de apuesta:</Text>
-            <Select
-              value={betForm.type}
-              onChange={(value) =>
-                setBetForm((prev) => ({ ...prev, type: value }))
-              }
-              style={{ width: "100%", marginTop: 8 }}
-            >
-              <Option value="PAGO">PAGO - Ofrecer apuesta</Option>
-              <Option value="DOY">DOY - Aceptar apuesta existente</Option>
-            </Select>
-          </div>
+          <Select
+                value={betForm.type}
+                onChange={(value) =>
+                  setBetForm((prev) => ({ ...prev, type: value }))
+                }
+                style={{ width: "100%", marginTop: 8 }}
+              >
+                <Option value="pago">PAGO - Ofrecer apuesta</Option>
+                <Option value="doy">DOY - Aceptar apuesta existente</Option>
+              </Select>
 
           <Divider />
 

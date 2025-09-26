@@ -6,13 +6,16 @@
 import React from "react";
 import { Crown, AlertTriangle } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
+import type { Subscription } from "../../types";
 
 const SubscriptionStatusBar: React.FC = () => {
   const { subscription, loading } = useSubscriptions();
 
-  if (loading || !subscription || subscription.status !== "active") return null;
+  if (loading || !subscription || (subscription as Subscription).status !== "active") return null;
 
-  const endDate = new Date(subscription.endDate);
+  const typedSubscription = subscription as Subscription;
+
+  const endDate = new Date(typedSubscription.endDate);
   const now = new Date();
   const timeLeft = endDate.getTime() - now.getTime();
   const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
@@ -34,7 +37,7 @@ const SubscriptionStatusBar: React.FC = () => {
       <span className="font-medium">
         {isExpiringSoon
           ? `Plan expira en ${hoursLeft}h`
-          : `Plan ${subscription.plan} activo`}
+          : `Plan ${typedSubscription.plan} activo`}
       </span>
       <span className="text-xs opacity-75">
         hasta{" "}

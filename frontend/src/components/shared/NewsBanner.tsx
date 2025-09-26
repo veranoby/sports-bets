@@ -51,11 +51,14 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           type: "banner",
         });
 
+        const responseData = response.data as { articles: (Article & BannerArticle)[] };
+
         if (
-          response?.data?.data?.articles &&
-          response.data.data.articles.length > 0
+          responseData?.articles &&
+          Array.isArray(responseData.articles) &&
+          responseData.articles.length > 0
         ) {
-          const articles = response.data.data.articles.map(
+          const articles = responseData.articles.map(
             (article: Article & BannerArticle) => ({
               id: article.id,
               title: article.title,

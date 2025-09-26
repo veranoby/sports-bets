@@ -1,7 +1,7 @@
 // backend/src/services/notificationService.ts
 // Servicio de notificaciones para SSE y alertas del sistema
 
-import { sseService } from './sseService';
+import { sseService, SSEEventType } from './sseService';
 
 interface NotificationData {
   type: 'event' | 'fight' | 'bet' | 'system';
@@ -21,12 +21,24 @@ class NotificationService {
       id: `notification_${Date.now()}`
     };
 
-    // Broadcast a todos los clientes SSE si no hay userId específico
+    // Broadcast notification via SSE
     if (!notification.userId) {
-      sseService.broadcast(JSON.stringify(notificationWithTimestamp));
+      sseService.broadcastToAllAdmin({
+        id: notificationWithTimestamp.id,
+        type: SSEEventType.NOTIFICATION,
+        data: notificationWithTimestamp,
+        timestamp: new Date(),
+        priority: 'medium'
+      });
     } else {
       // Enviar a usuario específico (implementar cuando sea necesario)
-      sseService.broadcast(JSON.stringify(notificationWithTimestamp));
+      sseService.broadcastToAllAdmin({
+        id: notificationWithTimestamp.id,
+        type: SSEEventType.USER_NOTIFICATION,
+        data: notificationWithTimestamp,
+        timestamp: new Date(),
+        priority: 'medium'
+      });
     }
 
     return notificationWithTimestamp;

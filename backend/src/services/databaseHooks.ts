@@ -50,8 +50,7 @@ export class DatabaseHooks {
     Fight.addHook('afterUpdate', (fight: Fight) => {
       // Check if status changed
       if (fight.changed('status')) {
-        const previousValues = fight._previousDataValues as any;
-        const oldStatus = previousValues?.status;
+        const oldStatus = (fight as any)._previousDataValues?.status;
         const newStatus = fight.status;
 
         if (oldStatus && oldStatus !== newStatus) {
@@ -95,7 +94,7 @@ export class DatabaseHooks {
     Fight.addHook('afterUpdate', (fight: Fight) => {
       // Broadcast general fight update if significant fields changed
       const significantFields = ['redCorner', 'blueCorner', 'weight', 'notes', 'startTime', 'endTime'];
-      const changedSignificantFields = significantFields.filter(field => fight.changed(field));
+      const changedSignificantFields = significantFields.filter(field => fight.changed(field as keyof Fight));
 
       if (changedSignificantFields.length > 0) {
         SSEIntegration.broadcastCustomAdminEvent(
@@ -173,8 +172,7 @@ export class DatabaseHooks {
     Bet.addHook('afterUpdate', (bet: Bet) => {
       // Check if proposal status changed
       if (bet.changed('proposalStatus')) {
-        const previousValues = bet._previousDataValues as any;
-        const oldStatus = previousValues?.proposalStatus;
+        const oldStatus = (bet as any)._previousDataValues?.proposalStatus;
         const newStatus = bet.proposalStatus;
 
         if (oldStatus === 'pending' && newStatus === 'accepted') {
@@ -315,8 +313,7 @@ export class DatabaseHooks {
     User.addHook('afterUpdate', (user: User) => {
       // Check if verification level changed
       if (user.changed('profileInfo')) {
-        const previousValues = user._previousDataValues as any;
-        const oldProfileInfo = previousValues?.profileInfo;
+        const oldProfileInfo = (user as any)._previousDataValues?.profileInfo;
         const newProfileInfo = user.profileInfo;
 
         const oldVerificationLevel = oldProfileInfo?.verificationLevel || 'none';
@@ -353,8 +350,7 @@ export class DatabaseHooks {
 
       // Check if user role changed (admin action)
       if (user.changed('role')) {
-        const previousValues = user._previousDataValues as any;
-        const oldRole = previousValues?.role;
+        const oldRole = (user as any)._previousDataValues?.role;
         const newRole = user.role;
 
         SSEIntegration.broadcastCustomAdminEvent(
@@ -385,11 +381,11 @@ export class DatabaseHooks {
     const models = [Fight, Bet, User];
 
     models.forEach(model => {
-      model.addHook('beforeFind', (options: any) => {
+      (model as any).addHook('beforeFind', (options: any) => {
         options._startTime = Date.now();
       });
 
-      model.addHook('afterFind', (instances: any, options: any) => {
+      (model as any).addHook('afterFind', (instances: any, options: any) => {
         if (options._startTime) {
           const duration = Date.now() - options._startTime;
 
@@ -430,12 +426,12 @@ export class DatabaseHooks {
    * Remove all database hooks (for testing or shutdown)
    */
   static removeAllHooks(): void {
-    Fight.removeHook('afterCreate');
-    Fight.removeHook('afterUpdate');
-    Bet.removeHook('afterCreate');
-    Bet.removeHook('afterUpdate');
-    User.removeHook('afterCreate');
-    User.removeHook('afterUpdate');
+    Fight.removeHook('afterCreate', 'DatabaseHooks.fightCreate');
+    Fight.removeHook('afterUpdate', 'DatabaseHooks.fightUpdate');
+    Bet.removeHook('afterCreate', 'DatabaseHooks.betCreate');
+    Bet.removeHook('afterUpdate', 'DatabaseHooks.betUpdate');
+    User.removeHook('afterCreate', 'DatabaseHooks.userCreate');
+    User.removeHook('afterUpdate', 'DatabaseHooks.userUpdate');
 
     logger.info('🔗 All database hooks removed');
   }

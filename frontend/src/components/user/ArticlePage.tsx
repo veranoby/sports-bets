@@ -38,8 +38,11 @@ const ArticlePage: React.FC = () => {
           const response = await apiClient.get(`/articles/${articleId}`);
           setArticle(response.data);
         } catch (err: unknown) {
-          // Changed from 'any' to 'unknown' for better type safety
-          setError(err.message || "Error al cargar artículo");
+          let errorMessage = "Error al cargar artículo";
+          if (err instanceof Error) {
+            errorMessage = err.message;
+          }
+          setError(errorMessage);
         } finally {
           setLoading(false);
         }

@@ -1,26 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { streamingAPI } from "../services/api";
-import { useWebSocket } from "../contexts/WebSocketContext";
-
-interface StreamAnalytics {
-  streamId?: string;
-  currentViewers: number;
-  peakViewers: number;
-  averageViewTime: number;
-  totalViews: number;
-  viewersByRegion: Record<string, number>;
-  qualityDistribution: Record<string, number>;
-  duration: number;
-  bufferRatio: number;
-  errorRate: number;
-}
-
-interface ViewerEvent {
-  eventId: string;
-  event: string;
-  data?: Record<string, unknown>;
-  timestamp: string;
-}
+import { useWebSocketContext } from "../contexts/WebSocketContext";
+import type { StreamAnalytics, ViewerEvent } from "../types/streaming";
 
 interface UseStreamAnalyticsOptions {
   streamId?: string;
@@ -42,14 +23,12 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
   const [analytics, setAnalytics] = useState<StreamAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
 
-  const { socket, isConnected: wsConnected } = useWebSocket();
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { isConnected, emit, addListener } = useWebSocketContext();
+  const refreshIntervalRef = useRef<number | null>(null);
   const eventBuffer = useRef<ViewerEvent[]>([]);
-  const componentMountedRef = useRef(true); // Track if component is mounted
+  const componentMountedRef = useRef(true);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       componentMountedRef.current = false;
@@ -59,7 +38,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     };
   }, []);
 
-  // Fetch analytics data
   const fetchAnalytics = useCallback(
     async (timeRange?: "1h" | "24h" | "7d" | "30d") => {
       if (!componentMountedRef.current) return;
@@ -72,8 +50,10 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
           timeRange: timeRange || "1h",
         });
 
-        if (componentMountedRef.current) {
-          setAnalytics(response.data);
+        if (componentMountedRef.current && response.success) {
+          setAnalytics(response.data as StreamAnalytics);
+        } else if (componentMountedRef.current) {
+          setError(response.error || "Failed to load analytics");
         }
       } catch (err: unknown) {
         if (componentMountedRef.current) {
@@ -93,7 +73,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     [streamId],
   );
 
-  // Track viewer event
   const trackEvent = useCallback(
     async (eventData: { event: string; data?: Record<string, unknown> }) => {
       if (!eventId) {
@@ -109,8 +88,7 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
       };
 
       try {
-        // Buffer events for batch sending if offline
-        if (!wsConnected) {
+        if (!isConnected) {
           eventBuffer.current.push(viewerEvent);
           return;
         }
@@ -118,14 +96,12 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
         await streamingAPI.trackViewerEvent(viewerEvent);
       } catch (err) {
         console.error("Event tracking failed:", err);
-        // Buffer failed events
         eventBuffer.current.push(viewerEvent);
       }
     },
-    [eventId, wsConnected],
+    [eventId, isConnected],
   );
 
-  // Send buffered events
   const flushEventBuffer = useCallback(async () => {
     if (eventBuffer.current.length === 0) return;
 
@@ -137,20 +113,17 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
         const res = await streamingAPI.trackViewerEvent(event);
         if (!res.success) {
           console.error("Failed to send buffered event:", res.error);
-          // Re-buffer failed events
           eventBuffer.current.push(event);
         }
       } catch (err) {
         console.error("Failed to send buffered event:", err);
-        // Re-buffer failed events
         eventBuffer.current.push(event);
       }
     }
   }, []);
 
-  // Real-time WebSocket handlers
   useEffect(() => {
-    if (!realtime || !socket || !eventId) return;
+    if (!realtime || !addListener || !emit || !eventId) return;
 
     const handleAnalyticsUpdate = (data: Partial<StreamAnalytics>) => {
       if (componentMountedRef.current) {
@@ -224,59 +197,48 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
 
     const handleConnection = () => {
       if (componentMountedRef.current) {
-        setIsConnected(true);
-        // Subscribe to stream-specific events
-        socket.emit("join_stream", { eventId, streamId });
-        // Flush buffered events
+        emit("join_stream", { eventId, streamId });
         flushEventBuffer();
       }
     };
 
     const handleDisconnection = () => {
-      if (componentMountedRef.current) {
-        setIsConnected(false);
-      }
+      // Context handles this
     };
 
-    // WebSocket event listeners
-    socket.on("connect", handleConnection);
-    socket.on("disconnect", handleDisconnection);
-    socket.on(`stream:${eventId}:analytics`, handleAnalyticsUpdate);
-    socket.on(`stream:${eventId}:viewer_join`, handleViewerJoin);
-    socket.on(`stream:${eventId}:viewer_leave`, handleViewerLeave);
-    socket.on(`stream:${eventId}:quality_change`, handleQualityChange);
-    socket.on(`stream:${eventId}:status`, handleStreamStatus);
+    const cleanup = [
+        addListener("connect", handleConnection),
+        addListener("disconnect", handleDisconnection),
+        addListener(`stream:${eventId}:analytics`, handleAnalyticsUpdate),
+        addListener(`stream:${eventId}:viewer_join`, handleViewerJoin),
+        addListener(`stream:${eventId}:viewer_leave`, handleViewerLeave),
+        addListener(`stream:${eventId}:quality_change`, handleQualityChange),
+        addListener(`stream:${eventId}:status`, handleStreamStatus),
+    ];
 
-    if (socket.connected) {
+    if (isConnected) {
       handleConnection();
     }
 
     return () => {
-      socket.off("connect", handleConnection);
-      socket.off("disconnect", handleDisconnection);
-      socket.off(`stream:${eventId}:analytics`, handleAnalyticsUpdate);
-      socket.off(`stream:${eventId}:viewer_join`, handleViewerJoin);
-      socket.off(`stream:${eventId}:viewer_leave`, handleViewerLeave);
-      socket.off(`stream:${eventId}:quality_change`, handleQualityChange);
-      socket.off(`stream:${eventId}:status`, handleStreamStatus);
-
+        cleanup.forEach(fn => fn());
       if (eventId) {
-        socket.emit("leave_stream", { eventId, streamId });
+        emit("leave_stream", { eventId, streamId });
       }
     };
-  }, [socket, eventId, streamId, realtime, flushEventBuffer]);
+  }, [addListener, emit, eventId, streamId, realtime, flushEventBuffer, isConnected]);
 
-  // Auto-refresh analytics
   useEffect(() => {
     if (!autoRefresh) return;
 
-    // Initial fetch
     fetchAnalytics();
 
-    // Set up refresh interval
-    refreshIntervalRef.current = setInterval(() => {
+    const intervalId = setInterval(() => {
       fetchAnalytics();
     }, refreshInterval);
+    
+    refreshIntervalRef.current = intervalId as unknown as number;
+
 
     return () => {
       if (refreshIntervalRef.current) {
@@ -285,7 +247,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     };
   }, [autoRefresh, refreshInterval, fetchAnalytics]);
 
-  // Helper methods for common tracking events
   const trackPlay = useCallback(
     () => trackEvent({ event: "play" }),
     [trackEvent],
@@ -313,27 +274,20 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
   );
 
   return {
-    // State
     analytics,
     loading,
     error,
     isConnected,
     hasBufferedEvents: eventBuffer.current.length > 0,
-
-    // Methods
     fetchAnalytics,
     trackEvent,
     flushEventBuffer,
-
-    // Common event helpers
     trackPlay,
     trackPause,
     trackBuffer,
     trackError,
     trackQualityChange,
     trackViewTime,
-
-    // Utility
     refresh: () => fetchAnalytics(),
     clearError: () => setError(null),
   };

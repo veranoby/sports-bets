@@ -81,11 +81,13 @@ const SubscriptionManager: React.FC = () => {
       setError(null);
 
       const response = await subscriptionAPI.getCurrentSubscription();
-      setSubscription(response.data);
+      setSubscription(response.data as Subscription);
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      console.error("Failed to fetch subscription:", err);
-      setError(err.message || "Failed to load subscription information");
+      let errorMessage = "Failed to load subscription information";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -101,23 +103,26 @@ const SubscriptionManager: React.FC = () => {
         offset,
       });
 
+      const responseData = response.data as {rows: PaymentHistory[], count: number};
+
       if (offset === 0) {
-        setPaymentHistory(response.data);
+        setPaymentHistory(responseData.rows);
       } else {
-        setPaymentHistory((prev) => [...prev, ...response.data]);
+        setPaymentHistory((prev) => [...prev, ...responseData.rows]);
       }
 
-      setPagination(
-        (response as { pagination: PaginationInfo }).pagination || {
-          current: 1,
-          total: 0,
-          pageSize: 10,
-        },
-      );
+      setPagination({
+        total: responseData.count,
+        limit,
+        offset,
+        hasMore: (offset + limit) < responseData.count
+      });
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      console.error("Failed to fetch payment history:", err);
-      setError(err.message || "Failed to load payment history");
+      let errorMessage = "Failed to load payment history";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setHistoryLoading(false);
     }
@@ -155,9 +160,11 @@ const SubscriptionManager: React.FC = () => {
       setShowCancelDialog(false);
       setCancelReason("");
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      console.error("Failed to cancel subscription:", err);
-      setError(err.message || "Failed to cancel subscription");
+      let errorMessage = "Failed to cancel subscription";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setCancelling(false);
     }
@@ -177,9 +184,11 @@ const SubscriptionManager: React.FC = () => {
       // Refresh subscription data
       await fetchSubscription();
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      console.error("Failed to toggle auto-renew:", err);
-      setError(err.message || "Failed to update auto-renew setting");
+      let errorMessage = "Failed to update auto-renew setting";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setTogglingRenew(false);
     }
@@ -242,7 +251,7 @@ const SubscriptionManager: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Spin size="large" tip="Loading subscription details..." />
+        <p>Loading subscription details...</p>
       </div>
     );
   }
@@ -288,7 +297,9 @@ const SubscriptionManager: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as "overview" | "history" | "plans")}
+                onClick={() =>
+                  setActiveTab(tab.id as "overview" | "history" | "plans")
+                }
                 className={`flex items-center px-1 py-4 border-b-2 font-medium text-sm transition-colors ${
                   isActive
                     ? "border-blue-500 text-blue-600"

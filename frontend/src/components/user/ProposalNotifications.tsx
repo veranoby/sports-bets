@@ -36,7 +36,11 @@ const ProposalNotifications = () => {
   );
 
   useEffect(() => {
-    getPendingProposals().then(setProposals);
+    getPendingProposals().then(response => {
+        if (response.success && Array.isArray(response.data)) {
+            setProposals(response.data as Proposal[]);
+        }
+    });
   }, [getPendingProposals]);
 
   useWebSocketListener("proposal:received", handleProposalReceived);

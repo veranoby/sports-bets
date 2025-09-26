@@ -75,6 +75,7 @@ export interface Event {
   fights?: Fight[];
   startTime: string;
   // Additional properties for UI
+  streamStatus?: StreamStatus;
   currentViewers?: number;
   activeBets?: number;
   description?: string;
@@ -103,7 +104,7 @@ export interface Fight {
 export type BetSide = "red" | "blue";
 export type BetStatus = "pending" | "active" | "settled" | "cancelled";
 export type BetResult = "win" | "loss" | "draw" | "void";
-export type BetType = "flat" | "doy";
+export type BetType = "flat" | "doy" | "pago";
 export type ProposalStatus = "none" | "pending" | "accepted" | "rejected";
 
 // 2. INTERFACE BET COMPLETA (reemplazar la existente)
@@ -249,6 +250,15 @@ export interface UserSubscription {
   features: string[];
   remainingDays: number;
   manual_expires_at?: string;
+  [key: string]: unknown; // Allow additional properties for compatibility
+}
+
+export interface Proposal {
+  id: string;
+  proposer: User; // Could be a string ID, but using full User object based on context
+  originalAmount: number;
+  pagoAmount: number;
+  createdAt: string; // ISO date string format
 }
 
 export interface Plan {
@@ -272,7 +282,7 @@ export type FightResult = "red" | "blue" | "draw" | "no_contest";
 
 // 5. STREAMING TYPES (agregar si faltan)
 export type StreamQuality = "720p" | "480p" | "360p";
-export type StreamStatus = "connected" | "disconnected" | "retrying";
+export type StreamStatus = "connected" | "disconnected" | "retrying" | "connecting";
 
 // Tipos para StatsGrid
 export interface StatCard {
@@ -359,4 +369,9 @@ export interface EventData extends Event {
   currentViewers?: number;
   activeBets?: number;
   totalViewers?: number;
+}
+
+export interface EventDetailData {
+  event: Event;
+  fights: Fight[];
 }

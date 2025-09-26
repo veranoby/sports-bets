@@ -1,13 +1,14 @@
 // frontend/src/components/shared/SubscriptionModal.tsx
 // Modal usando useSubscriptions existente de useApi.ts
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Check, Crown, Clock, CreditCard } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
 import Modal from "./Modal";
 import Card from "./Card";
 import StatusChip from "./StatusChip";
 import LoadingSpinner from "./LoadingSpinner";
+import type { Subscription } from "../../types";
 
 interface Plan {
   id: string;
@@ -44,7 +45,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const loadPlans = useCallback(async () => {
     try {
       const response = await fetchPlans();
-      setPlans(response);
+      if (response.success && Array.isArray(response.data)) {
+        setPlans(response.data as Plan[]);
+      }
     } catch (err) {
       console.error("Error loading plans:", err);
     }
@@ -69,11 +72,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     }
   };
 
+// ... (rest of the file)
+
   const handleCancelSubscription = async () => {
-    if (!subscription?.id) return;
+    if (!(subscription as Subscription)?.id) return;
 
     try {
-      await cancelSubscription(subscription.id);
+      await cancelSubscription((subscription as Subscription).id);
       onClose();
     } catch (err) {
       console.error("Error canceling subscription:", err);
@@ -104,7 +109,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
       {error && (
         <Card variant="error" className="mb-6">
-          <p>{error}</p>
+          <p>{String(error)}</p>
         </Card>
       )}
 

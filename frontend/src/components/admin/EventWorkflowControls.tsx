@@ -241,14 +241,15 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
     try {
       const response = await eventAPI.generateStreamKey(event.id);
       if (response.success) {
-        onEventUpdate(response.data as Event);
+        const updatedEvent = response.data as Event;
+        onEventUpdate(updatedEvent);
         message.success("Stream key generated successfully");
 
         // Emit real-time update
         if (isConnected) {
           emit("stream_key_generated", {
             eventId: event.id,
-            streamKey: response.data?.streamKey,
+            streamKey: updatedEvent.streamKey,
             timestamp: new Date().toISOString(),
           });
         }

@@ -89,7 +89,54 @@ const AdminArticlesPage: React.FC = () => {
   const [editingArticle] = useState<Article | null>(null);
 
   // Modal preview
-  const [previewArticle] = useState<Article | null>(null);
+  const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
+  
+  // Estados para artículos pendientes y funciones
+  const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  
+  // Funciones auxiliares que faltan
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    const articlesRes = await articlesAPI.getAll({
+      limit: 1000,
+      includeAuthor: true,
+      includeVenue: true,
+    });
+    const venuesRes = await venuesAPI.getAll({
+      status: "active",
+      limit: 100,
+    });
+
+    if (articlesRes.success && venuesRes.success) {
+      setArticles(articlesRes.data?.articles || []);
+      setVenues(venuesRes.data?.venues || []);
+      // Actualizar pendientes
+      setPendingArticles(articlesRes.data?.articles?.filter((a: Article) => a.status === "pending") || []);
+    } else {
+      setError(
+        articlesRes.error || venuesRes.error || "Error loading articles",
+      );
+    }
+    setLoading(false);
+  };
+  
+  // Filtrar artículos según filtros
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = !searchTerm || 
+      article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      article.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || article.status === statusFilter;
+    const matchesAuthor = !authorFilter || 
+      (article.author_name && article.author_name.toLowerCase().includes(authorFilter.toLowerCase()));
+    const matchesVenue = !venueFilter || article.venue_id === venueFilter;
+    
+    return matchesSearch && matchesStatus && matchesAuthor && matchesVenue;
+  });
+  
+  // Calcular total de páginas
+  const totalPages = Math.ceil(filteredArticles.length / 10); // 10 artículos por página
 
   // Fetch inicial
   useEffect(() => {
@@ -124,6 +171,98 @@ const AdminArticlesPage: React.FC = () => {
     return text.length > maxLength
       ? text.substring(0, maxLength) + "..."
       : text;
+  };
+  
+  // Funciones que faltan
+  const openPreview = (article: Article) => {
+    setPreviewArticle(article);
+  };
+
+  const closePreview = () => {
+    setPreviewArticle(null);
+  };
+
+  const handleApproveArticle = async (articleId: string) => {
+    // Aprobar artículo
+    const result = await articlesAPI.update(articleId, { status: 'published' });
+    if (result.success) {
+      fetchData(); // Refrescar lista
+    }
+  };
+
+  const handleRejectArticle = async (articleId: string) => {
+    // Rechazar artículo
+    const result = await articlesAPI.update(articleId, { status: 'archived' });
+    if (result.success) {
+      fetchData(); // Refrescar lista
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    // Aprobar artículos seleccionados
+    const results = await Promise.all(
+      selectedArticles.map(id => articlesAPI.update(id, { status: 'published' }))
+    );
+    if (results.every(r => r.success)) {
+      setSelectedArticles([]);
+      setShowBulkActions(false);
+      fetchData(); // Refrescar lista
+    }
+  };
+
+  const handleBulkReject = async () => {
+    // Rechazar artículos seleccionados
+    const results = await Promise.all(
+      selectedArticles.map(id => articlesAPI.update(id, { status: 'archived' }))
+    );
+    if (results.every(r => r.success)) {
+      setSelectedArticles([]);
+      setShowBulkActions(false);
+      fetchData(); // Refrescar lista
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedArticles([]);
+    setShowBulkActions(false);
+  };
+
+  const toggleArticleSelection = (articleId: string) => {
+    setSelectedArticles(prev =>
+      prev.includes(articleId)
+        ? prev.filter(id => id !== articleId)
+        : [...prev, articleId]
+    );
+  };
+
+  const selectAllVisible = () => {
+    const visibleIds = filteredArticles.map(a => a.id);
+    setSelectedArticles(visibleIds);
+  };
+
+  const openCreateModal = () => {
+    // Esta función se puede implementar más adelante
+  };
+
+  const closeArticleModal = () => {
+    // Esta función se puede implementar más adelante
+  };
+
+  const openEditModal = (article: Article) => {
+    // Esta función se puede implementar más adelante
+  };
+
+  const handleToggleStatus = async (articleId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'published' ? 'archived' : 'published';
+    const result = await articlesAPI.update(articleId, { status: newStatus });
+    if (result.success) {
+      fetchData(); // Refrescar lista
+    }
+  };
+
+  const handleArticleSaved = () => {
+    fetchData(); // Refrescar lista después de guardar
+    closeArticleModal();
   };
 
   if (loading) {

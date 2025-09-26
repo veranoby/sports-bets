@@ -57,7 +57,8 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
         ]);
 
         if (mounted.current) {
-          setHasAccess(accessResult?.data?.hasAccess || false);
+                    const hasAccess = ((accessResult?.data as unknown) as { hasAccess: boolean })?.hasAccess || false;
+          setHasAccess(hasAccess);
         }
       } catch (err) {
         if (mounted.current) {

@@ -9,7 +9,7 @@ import { Event } from "../models/Event";
 import { Subscription } from "../models/Subscription";
 import { rtmpService } from "../services/rtmpService";
 import rateLimit from "express-rate-limit";
-import { sseService } from "../services/sseService";
+import { sseService, SSEEventType } from "../services/sseService";
 import { StreamingSecurityService } from "../services/streamingSecurityService";
 
 const router = Router();
@@ -211,7 +211,7 @@ router.post(
       });
 
       // Broadcast stream status via SSE
-      sseService.broadcastToEvent(eventId, {
+      sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
         type: 'stream_status',
         status: 'live',
         streamId: streamResult.streamId,
@@ -306,7 +306,7 @@ router.post(
 
       // Broadcast stream status via SSE
       if (targetStream.eventId) {
-        sseService.broadcastToEvent(targetStream.eventId, {
+        sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
           type: 'stream_status',
           status: 'ended',
           streamId: targetStream.streamId,

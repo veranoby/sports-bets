@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface UseSettingsReturn {
   settings: Record<string, unknown>;
@@ -39,6 +39,21 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
       "Content-Type": "application/json",
     };
   }, []);
+
+  const fetchFeatureStatus = useCallback(async () => {
+    try {
+      const response = await fetch("/api/settings/features/status", {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFeatureStatus(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching feature status:", error);
+    }
+  }, [getAuthHeaders]);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -84,21 +99,6 @@ const useSettings = (adminMode: boolean = false): UseSettingsReturn => {
     setSettings,
     fetchFeatureStatus,
   ]);
-
-  const fetchFeatureStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/settings/features/status", {
-        headers: getAuthHeaders(),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFeatureStatus(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching feature status:", error);
-    }
-  }, [getAuthHeaders]);
 
   const updateSetting = async (
     key: string,

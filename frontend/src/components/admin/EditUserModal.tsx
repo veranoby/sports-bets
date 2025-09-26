@@ -8,7 +8,7 @@ import ErrorMessage from "../shared/ErrorMessage";
 
 import SubscriptionTabs from "./SubscriptionTabs";
 import { User, X } from "lucide-react";
-import type { User as UserType } from "../../types";
+import type { User as UserType, UserSubscription } from "../../types";
 
 interface EditUserFormData {
   username: string;
@@ -111,6 +111,34 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubscriptionUpdate = (subscriptionData: {
+    type?: "free" | "daily" | "monthly";
+    status?: "active" | "cancelled" | "expired" | "pending";
+    expiresAt?: string | null;
+    features?: string[];
+    remainingDays?: number;
+    manual_expires_at?: string;
+    membership_type?: string;
+    assigned_username?: string;
+  }) => {
+    // Convert SubscriptionTabs data to UserSubscription format
+    const userSubscription: UserSubscription = {
+      type: subscriptionData.type || "free",
+      status: subscriptionData.status || "active",
+      expiresAt:
+        subscriptionData.expiresAt ||
+        subscriptionData.manual_expires_at ||
+        null,
+      features: subscriptionData.features || [],
+      remainingDays: subscriptionData.remainingDays || 0,
+    };
+
+    onUserUpdated({
+      ...user,
+      subscription: userSubscription,
+    });
   };
 
   return (
@@ -289,23 +317,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             <SubscriptionTabs
               userId={user.id}
               subscription={user.subscription}
-              onSave={(subscriptionData) => {
-                // Actualizar los datos del usuario con la nueva suscripción
-                const userSubscription: typeof user.subscription = {
-                  type: subscriptionData.type || "free",
-                  status: subscriptionData.status || "active",
-                  expiresAt:
-                    subscriptionData.expiresAt ||
-                    subscriptionData.manual_expires_at ||
-                    null,
-                  features: subscriptionData.features || [],
-                  remainingDays: subscriptionData.remainingDays || 0,
-                };
-                onUserUpdated({
-                  ...user,
-                  subscription: userSubscription,
-                });
-              }}
+              onSave={handleSubscriptionUpdate}
               onCancel={onClose}
             />
           )}

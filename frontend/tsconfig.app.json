@@ -29,5 +29,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipDefaultLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "src/types"]
 }

@@ -7,6 +7,7 @@ import type { Article } from "../types/article";
 import type {
   ApiResponse,
   ApiError,
+  Event,
   Fight,
   Venue,
   Gallera,
@@ -38,7 +39,7 @@ const apiCall = async <T>(
   headers?: AxiosRequestConfig["headers"],
 ): Promise<ApiResponse<T>> => {
   try {
-    const response = await api.request<T>({
+    const response = await api.request<ApiResponse<T>>({
       method,
       url: endpoint,
       data:
@@ -52,7 +53,7 @@ const apiCall = async <T>(
       headers,
     });
     // Return backend response directly (it already has success/data structure)
-    return response.data as ApiResponse<T>;
+    return response.data;
   } catch (error) {
     console.error(`Error at ${endpoint}:`, error);
     const err = error as AxiosError<unknown>;
@@ -148,7 +149,24 @@ export const userAPI = {
   },
 };
 
-export const apiClient = api;
+// Wrap the axios client to return ApiResponse format
+export const apiClient = {
+  get: async <T>(endpoint: string, config?: { params?: Record<string, unknown> }): Promise<ApiResponse<T>> => {
+    return apiCall<T>("get", endpoint, config?.params);
+  },
+  post: async <T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> => {
+    return apiCall<T>("post", endpoint, data);
+  },
+  put: async <T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> => {
+    return apiCall<T>("put", endpoint, data);
+  },
+  delete: async <T>(endpoint: string): Promise<ApiResponse<T>> => {
+    return apiCall<T>("delete", endpoint);
+  },
+};
+
+// Keep raw axios client for internal use
+export const rawApiClient = api;
 
 export const authAPI = {
   login: async (credentials: { login: string; password: string }) => {
@@ -160,6 +178,15 @@ export const authAPI = {
 };
 
 export const eventsAPI = {
+  getAll: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/events", params);
+  },
+  getById: async (id: string) => {
+    return apiCall("get", `/events/${id}`);
+  },
+  create: async (data: Partial<Event>) => {
+    return apiCall("post", "/events", data);
+  },
   update: async (id: string, data: Partial<Event>) => {
     return apiCall("put", `/events/${id}`, data);
   },
@@ -172,6 +199,9 @@ export const eventsAPI = {
   },
   generateStreamKey: async (eventId: string) => {
     return apiCall("post", `/events/${eventId}/stream-key`);
+  },
+  getCurrentBetting: async (eventId: string) => {
+    return apiCall("get", `/events/${eventId}/current-betting`);
   },
 };
 
@@ -210,6 +240,12 @@ export const streamingAPI = {
   stopStream: async (streamId: string) => {
     return apiCall("post", `/streaming/${streamId}/stop`);
   },
+  getStreamAnalytics: async (streamId?: string, params?: { timeRange?: "1h" | "24h" | "7d" | "30d"; metrics?: string; }) => {
+    return apiCall("get", `/streaming/analytics/${streamId || ""}`, { params });
+  },
+  trackViewerEvent: async (data: { eventId: string; event: string; data?: Record<string, unknown>; timestamp: string; }) => {
+    return apiCall("post", "/streaming/analytics/event", data);
+  },
 };
 
 // Add missing APIs and aliases for components
@@ -225,6 +261,23 @@ export const betsAPI = {
   },
   accept: async (betId: string) => {
     return apiCall("post", `/bets/${betId}/accept`);
+  },
+  getCompatibleBets: async (params: {
+    fightId: string;
+    side: "red" | "blue";
+    minAmount: number;
+    maxAmount: number;
+  }) => {
+    return apiCall("get", "/bets/compatible", params);
+  },
+  acceptProposal: async (betId: string) => {
+    return apiCall("post", `/bets/${betId}/accept-proposal`);
+  },
+  rejectProposal: async (betId: string) => {
+    return apiCall("post", `/bets/${betId}/reject-proposal`);
+  },
+  getPendingProposals: async () => {
+    return apiCall("get", "/bets/pending-proposals");
   },
 };
 
@@ -258,6 +311,12 @@ export const walletAPI = {
   },
   addFunds: async (amount: number) => {
     return apiCall("post", "/wallet/add-funds", { amount });
+  },
+  getTransactions: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/transactions", params);
+  },
+  getStats: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/stats", params);
   },
 };
 

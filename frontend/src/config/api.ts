@@ -73,6 +73,9 @@ export const eventsAPI = {
     upcoming?: boolean;
     limit?: number;
     offset?: number;
+    includeVenue?: boolean;
+    includeOperator?: boolean;
+    includeStats?: boolean;
   }) => apiClient.get("/events", { params }),
 
   getById: (id: string) => apiClient.get(`/events/${id}`),
@@ -103,6 +106,8 @@ export const eventsAPI = {
     apiClient.get(`/events/${id}/current-betting`),
 
   delete: (id: string) => apiClient.delete(`/events/${id}`),
+
+  cancel: (id: string) => apiClient.post(`/events/${id}/cancel`),
 };
 
 export const fightsAPI = {
@@ -160,7 +165,7 @@ export const betsAPI = {
     amount: number;
     ratio?: number;
     isOffer?: boolean;
-    type?: "PAGO" | "DOY";
+    type?: "pago" | "doy";
   }) => apiClient.post("/bets", data),
 
   accept: (betId: string) => apiClient.post(`/bets/${betId}/accept`),

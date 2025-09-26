@@ -148,7 +148,10 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         setTimeout(
           () => {
             setLoading(false);
-            if (config.HIGH_AMOUNT_THRESHOLD && amount > config.HIGH_AMOUNT_THRESHOLD) {
+            if (
+              config.HIGH_AMOUNT_THRESHOLD &&
+              amount > config.HIGH_AMOUNT_THRESHOLD
+            ) {
               setIdentityVerification(true);
             } else {
               setConfirmationStep(2);
@@ -296,7 +299,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
           <div className="text-green-500 text-4xl mb-4">✅</div>
           <h3 className="text-lg font-semibold mb-2">{config.successText}</h3>
           <p className="text-gray-600">
-            Tu retiro será procesado en {config.PROCESSING_TIME || 'N/A'}.
+            Tu retiro será procesado en {config.PROCESSING_TIME || "N/A"}.
           </p>
         </div>
       );
@@ -312,8 +315,8 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
                 Verificación Requerida
               </h4>
               <p className="text-sm text-yellow-700">
-                Por montos superiores a ${config.HIGH_AMOUNT_THRESHOLD || 0}
-                , necesitamos verificar tu identidad.
+                Por montos superiores a ${config.HIGH_AMOUNT_THRESHOLD || 0},
+                necesitamos verificar tu identidad.
               </p>
             </div>
           </div>
@@ -414,7 +417,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
             <span>${getTotalAmount().toFixed(2)}</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Tiempo de procesamiento: {config.PROCESSING_TIME || 'N/A'}
+            Tiempo de procesamiento: {config.PROCESSING_TIME || "N/A"}
           </p>
         </div>
 

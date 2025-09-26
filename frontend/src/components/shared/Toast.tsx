@@ -2,7 +2,7 @@
 // ================================================================
 // 🍞 TOAST: Sistema de notificaciones unificado para toda la app
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from "lucide-react";
 
 // Types
@@ -33,6 +33,13 @@ const Toast: React.FC<ToastProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onClose(id);
+    }, 300);
+  }, [onClose, id]);
+
   useEffect(() => {
     // Animación de entrada
     setTimeout(() => setIsVisible(true), 50);
@@ -46,13 +53,6 @@ const Toast: React.FC<ToastProps> = ({
       return () => clearTimeout(timer);
     }
   }, [duration, persistent, handleClose]);
-
-  const handleClose = useCallback(() => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onClose(id);
-    }, 300);
-  }, [onClose, id]);
 
   // Configuración por tipo
   const config = {

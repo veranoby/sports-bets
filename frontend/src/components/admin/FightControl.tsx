@@ -91,7 +91,8 @@ const FightControl: React.FC<FightControlProps> = ({
           ...fight,
           status: "betting",
           bettingOpenedAt:
-            (response.data as Partial<Fight>)?.bettingOpenedAt || new Date().toISOString(),
+            (response.data as Partial<Fight>)?.bettingOpenedAt ||
+            new Date().toISOString(),
         });
       }
     } catch (error: unknown) {

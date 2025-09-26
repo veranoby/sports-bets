@@ -302,7 +302,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         });
       } catch (error: unknown) {
         console.error("❌ Error creating WebSocket:", error);
-        setConnectionError(error.message);
+        let errorMessage = "Failed to create WebSocket";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        setConnectionError(errorMessage);
         setIsConnecting(false);
         connectionPromiseRef.current = null;
         reject(error);
@@ -344,7 +348,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     let mounted = true;
     let connectTimer: NodeJS.Timeout;
 
-    if (isAuthenticated && token && user?.hasActiveSubscription) {
+    if (isAuthenticated && token && user?.subscription?.status === 'active') {
       // Small delay to avoid rapid reconnections
       connectTimer = setTimeout(() => {
         if (mounted && !socketRef.current?.connected && !isConnecting) {
@@ -387,7 +391,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [
     isAuthenticated,
     token,
-    user?.hasActiveSubscription,
+    user?.subscription?.status,
     isConnecting,
     cleanupOrphanedListeners,
     createConnection,
@@ -476,7 +480,7 @@ export const useWebSocketEmit = () => {
 };
 
 // 🎧 HOOK FOR A SINGLE LISTENER
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export const useWebSocketListener = <T = unknown,>(
   event: string,
   handler: (data: T) => void,

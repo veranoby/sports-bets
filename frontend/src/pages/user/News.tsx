@@ -41,8 +41,14 @@ const NewsPage: React.FC = () => {
         status: "published",
       });
       if (response.success) {
-        setArticles((response.data as { articles: Article[]; totalPages: number; })?.articles || []);
-        setTotalPages((response.data as { articles: Article[]; totalPages: number; })?.totalPages || 1);
+        setArticles(
+          (response.data as { articles: Article[]; totalPages: number })
+            ?.articles || [],
+        );
+        setTotalPages(
+          (response.data as { articles: Article[]; totalPages: number })
+            ?.totalPages || 1,
+        );
       } else {
         setError(response.error || "Error al cargar artículos");
       }

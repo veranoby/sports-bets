@@ -132,10 +132,13 @@ const StreamControls: React.FC<StreamControlsProps> = ({
         health: "healthy",
       }));
 
-      onStreamStart?.(response.data);
+      onStreamStart?.(streamData);
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Failed to start stream");
+      let errorMessage = "Failed to start stream";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -164,8 +167,11 @@ const StreamControls: React.FC<StreamControlsProps> = ({
 
       onStreamStop?.();
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Failed to stop stream");
+      let errorMessage = "Failed to stop stream";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

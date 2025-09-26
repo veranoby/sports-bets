@@ -8,7 +8,12 @@ import ErrorMessage from "../shared/ErrorMessage";
 import SubscriptionTabs from "./SubscriptionTabs";
 import { User, Building2, CreditCard, X, Info } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
-import type { User as UserType, Venue, Gallera } from "../../types";
+import type {
+  User as UserType,
+  Venue,
+  Gallera,
+  UserSubscription,
+} from "../../types";
 
 interface EditVenueGalleraModalProps {
   user: UserType;
@@ -198,6 +203,34 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubscriptionUpdate = (subscriptionData: {
+    type?: "free" | "daily" | "monthly";
+    status?: "active" | "cancelled" | "expired" | "pending";
+    expiresAt?: string | null;
+    features?: string[];
+    remainingDays?: number;
+    manual_expires_at?: string;
+    membership_type?: string;
+    assigned_username?: string;
+  }) => {
+    // Convert SubscriptionTabs data to UserSubscription format
+    const userSubscription: UserSubscription = {
+      type: subscriptionData.type || "free",
+      status: subscriptionData.status || "active",
+      expiresAt:
+        subscriptionData.expiresAt ||
+        subscriptionData.manual_expires_at ||
+        null,
+      features: subscriptionData.features || [],
+      remainingDays: subscriptionData.remainingDays || 0,
+    };
+
+    onSaved({
+      user: { ...user, subscription: userSubscription },
+      venue,
+    });
   };
 
   return (
@@ -426,7 +459,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   <input
                     type="tel"
                     name="contactInfo.phone"
-                    value={entityData.contactInfo.phone}
+                    value={entityData.contactInfo?.phone}
                     onChange={handleEntityChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -439,7 +472,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   <input
                     type="email"
                     name="contactInfo.email"
-                    value={entityData.contactInfo.email}
+                    value={entityData.contactInfo?.email}
                     onChange={handleEntityChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -453,7 +486,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                 <input
                   type="url"
                   name="contactInfo.website"
-                  value={entityData.contactInfo.website}
+                  value={entityData.contactInfo?.website}
                   onChange={handleEntityChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -466,7 +499,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                 <input
                   type="text"
                   name="contactInfo.address"
-                  value={entityData.contactInfo.address}
+                  value={entityData.contactInfo?.address}
                   onChange={handleEntityChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -495,23 +528,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
             <SubscriptionTabs
               userId={user.id}
               subscription={user.subscription}
-              onSave={(subscriptionData) => {
-                // Actualizar los datos del usuario con la nueva suscripción
-                const userSubscription: typeof user.subscription = {
-                  type: subscriptionData.type || "free",
-                  status: subscriptionData.status || "active",
-                  expiresAt:
-                    subscriptionData.expiresAt ||
-                    subscriptionData.manual_expires_at ||
-                    null,
-                  features: subscriptionData.features || [],
-                  remainingDays: subscriptionData.remainingDays || 0,
-                };
-                onSaved({
-                  user: { ...user, subscription: userSubscription },
-                  venue,
-                });
-              }}
+              onSave={handleSubscriptionUpdate}
               onCancel={onClose}
             />
           )}

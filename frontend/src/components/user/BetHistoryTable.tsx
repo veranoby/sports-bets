@@ -12,7 +12,7 @@ interface BetHistoryTableProps {
 
 const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
   const { loading } = useBets();
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filters, setFilters] = useState<Record<string, string | number | Date | string[] | [Date, Date]>>({});
 
   // Define columns for AdvancedTable
   const columns = useMemo(
@@ -99,7 +99,7 @@ const BetHistoryTable = ({ bets, onBetClick }: BetHistoryTableProps) => {
       if (filters.side && bet.side !== filters.side) return false;
       if (
         filters.eventName &&
-        !bet.eventName.toLowerCase().includes(filters.eventName.toLowerCase())
+        !bet.eventName.toLowerCase().includes((filters.eventName as string).toLowerCase())
       )
         return false;
       return true;

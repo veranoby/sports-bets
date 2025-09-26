@@ -21,6 +21,7 @@ interface Notification {
   status: "unread" | "read" | "archived";
   type: "info" | "warning" | "error" | "success" | "bet_proposal";
   metadata?: Record<string, unknown>;
+  createdAt?: Date | string; // Add createdAt as an optional property
 }
 
 const NotificationCenter: React.FC = memo(() => {
@@ -40,16 +41,18 @@ const NotificationCenter: React.FC = memo(() => {
 
     try {
       setLoading(true);
-      const response = await apiClient.get("/notifications");
+      const response = await apiClient.get<Notification[]>("/notifications");
 
       if (!isMountedRef.current) return;
 
-      const formattedNotifications = response.data.map((n: Notification) => ({
-        ...n,
-        timestamp: new Date(n.timestamp || n.createdAt),
-      }));
+      if (response.data) {
+        const formattedNotifications = response.data.map((n) => ({
+          ...n,
+          timestamp: new Date(n.timestamp || n.createdAt!),
+        }));
+        setNotifications(formattedNotifications);
+      }
 
-      setNotifications(formattedNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       if (isMountedRef.current) {
@@ -107,9 +110,7 @@ const NotificationCenter: React.FC = memo(() => {
 
     return () => {
       if (listenersRegisteredRef.current) {
-        console.log(
-          `🧹 ${componentId} limpiando listeners WebSocket`,
-        );
+        console.log(`🧹 ${componentId} limpiando listeners WebSocket`);
         // Cleanup handled by addListener return value
         listenersRegisteredRef.current = false;
       }
@@ -127,9 +128,7 @@ const NotificationCenter: React.FC = memo(() => {
 
     const componentId = componentIdRef.current;
     return () => {
-      console.log(
-        `🗑️ ${componentId} desmontando - cleanup completo`,
-      );
+      console.log(`🗑️ ${componentId} desmontando - cleanup completo`);
       isMountedRef.current = false;
 
       // Forzar cleanup de listeners si aún están registrados

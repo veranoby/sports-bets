@@ -425,7 +425,7 @@ const LiveEvent = () => {
             <div className="flex items-center justify-between">
               <div className="text-center">
                 <p className="font-medium text-theme-primary">
-                  {currentFight.redCorner || currentFight.redFighter}
+                  {currentFight.redCorner}
                 </p>
                 <p className="text-sm text-theme-light">Esquina Roja</p>
               </div>
@@ -439,7 +439,7 @@ const LiveEvent = () => {
 
               <div className="text-center">
                 <p className="font-medium text-theme-primary">
-                  {currentFight.blueCorner || currentFight.blueFighter}
+                  {currentFight.blueCorner}
                 </p>
                 <p className="text-sm text-theme-light">Esquina Azul</p>
               </div>
@@ -635,8 +635,7 @@ const LiveEvent = () => {
                           </span>
                         </div>
                         <p className="text-sm text-theme-light mt-1">
-                          {fight.redCorner || fight.redFighter} vs{" "}
-                          {fight.blueCorner || fight.blueFighter}
+                          {fight.redCorner} vs {fight.blueCorner}
                         </p>
                       </div>
                     ))}

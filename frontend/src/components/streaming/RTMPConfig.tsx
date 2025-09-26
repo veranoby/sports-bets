@@ -87,7 +87,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const fetchSystemHealth = async () => {
     try {
       const response = await streamingAPI.getSystemStatus();
-      setSystemHealth(response.data);
+      setSystemHealth(response.data as SystemHealth);
     } catch (err: unknown) {
       // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch system health:", err);
@@ -106,17 +106,20 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       setError(null);
 
       const response = await streamingAPI.generateStreamKey({ eventId });
-      setStreamKey(response.data);
+      setStreamKey(response.data as StreamKey);
 
       if (onStreamKeyGenerated) {
-        onStreamKeyGenerated(response.data.streamKey);
+        onStreamKeyGenerated((response.data as StreamKey).streamKey);
       }
 
       // Fetch OBS configuration for the new key
-      await fetchOBSConfig(response.data.streamKey);
+      await fetchOBSConfig((response.data as StreamKey).streamKey);
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Failed to generate stream key");
+      let errorMessage = "Failed to generate stream key";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setGenerating(false);
     }
@@ -125,7 +128,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const fetchOBSConfig = async (key: string) => {
     try {
       const response = await streamingAPI.getOBSConfig(key);
-      setOBSConfig(response.data);
+      setOBSConfig(response.data as OBSConfig);
     } catch (err: unknown) {
       // Changed from 'any' to 'unknown' for better type safety
       console.error("Failed to fetch OBS config:", err);
@@ -146,8 +149,11 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
       // Refresh system health
       await fetchSystemHealth();
     } catch (err: unknown) {
-      // Changed from 'any' to 'unknown' for better type safety
-      setError(err.message || "Failed to revoke stream key");
+      let errorMessage = "Failed to revoke stream key";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

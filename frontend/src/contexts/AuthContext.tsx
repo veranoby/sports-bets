@@ -11,9 +11,14 @@ import React, {
   useRef,
 } from "react";
 import { authAPI, usersAPI } from "../services/api";
-import type { User } from "../types";
+import type { User, ApiResponse } from "../types";
 
 // Tipos locales para respuestas del backend
+interface AuthResponse {
+    token: string;
+    user: User;
+}
+
 interface ProfileResponseData {
   user: User;
   wallet: unknown;
@@ -103,10 +108,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 🔧 MEJORA: No setear isLoading inmediatamente para evitar re-renders
         // que puedan interfierir con el manejo de errores en el componente
 
-        const response = await authAPI.login(credentials);
+        const response = await authAPI.login(credentials) as ApiResponse<AuthResponse>;
 
         if (response.success) {
-          const { token: authToken } = response.data; // Backend response now direct
+          const { token: authToken, user: userData } = response.data; // Backend response now direct
 
           // Guardar token y luego cargar perfil unificado (incluye subscription)
           localStorage.setItem("token", authToken);
@@ -116,14 +121,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await new Promise((resolve) => setTimeout(resolve, 50));
 
           try {
-            const me = await usersAPI.getProfile();
+            const me = await usersAPI.getProfile() as ProfileResponse;
             if (me.success) {
               const u = me.data.user as User;
               setUser({ ...u, subscription: me.data.subscription });
             }
           } catch {
             // Si falla el fetch del perfil, al menos mantener usuario básico del login
-            setUser(response.data.user); // Fixed: user is in data.data, not data
+            setUser(userData); // Fixed: user is in data.data, not data
           }
         } else {
           throw new Error(response.error || "Error al iniciar sesión");
@@ -151,23 +156,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isOperatingRef.current = true;
 
       try {
-        const response = await authAPI.register(userData);
+        const response = await authAPI.register(userData) as ApiResponse<AuthResponse>;
 
         if (response.success) {
-          const { token: authToken } = response.data; // Backend response now direct
+          const { token: authToken, user: newUserData } = response.data; // Backend response now direct
 
           setToken(authToken);
           localStorage.setItem("token", authToken);
 
           try {
-            const me = await usersAPI.getProfile();
+            const me = await usersAPI.getProfile() as ProfileResponse;
             if (me.success) {
               const u = me.data.user as User;
               setUser({ ...u, subscription: me.data.subscription });
             }
           } catch {
             // fallback a user devuelto por register
-            setUser(response.data.user); // Fixed: user is in data.data
+            setUser(newUserData); // Fixed: user is in data.data
           }
         } else {
           throw new Error(response.error || "Error al registrarse");
@@ -199,7 +204,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!token || isOperatingRef.current) return;
 
     try {
-      const response = await usersAPI.getProfile();
+      const response = await usersAPI.getProfile() as ProfileResponse;
       if (response.success) {
         const u = response.data.user as User;
         setUser({ ...u, subscription: response.data.subscription });

@@ -73,7 +73,13 @@
       "Bash(ss:*)",
       "Bash(/bashes)",
       "Bash(psql:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(eslint:*)",
+      "Bash(wargs grep -l \"any\")",
+      "Bash(NODE_ENV=development timeout 10s npm run start:dev)",
+      "Bash(npx vite:*)",
+      "Bash(npx:*)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": []

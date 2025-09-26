@@ -8,6 +8,9 @@ export enum SSEEventType {
   SYSTEM_STATUS = 'SYSTEM_STATUS',
   SYSTEM_MAINTENANCE = 'SYSTEM_MAINTENANCE',
   DATABASE_PERFORMANCE = 'DATABASE_PERFORMANCE',
+  STREAM_STATUS_UPDATE = 'STREAM_STATUS_UPDATE',
+  NOTIFICATION = 'NOTIFICATION',
+  USER_NOTIFICATION = 'USER_NOTIFICATION',
 
   // Fight Management Events
   FIGHT_STATUS_UPDATE = 'FIGHT_STATUS_UPDATE',
@@ -52,7 +55,7 @@ export enum SSEEventType {
 }
 
 // SSE Event Data Interface
-export interface SSEEvent {
+interface SSEEvent {
   id: string;
   type: SSEEventType;
   data: any;
@@ -65,6 +68,8 @@ export interface SSEEvent {
     fightId?: string;
     betId?: string;
     adminId?: string;
+    amount?: number;
+    streamId?: string;
   };
 }
 
@@ -553,4 +558,4 @@ class GalloBetsSSEService {
 export const sseService = new GalloBetsSSEService();
 
 // Export types for use in other modules
-export { AdminChannel, SSEConnection, SSEEvent };
+export type { SSEConnection, SSEEvent };

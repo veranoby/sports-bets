@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { apiClient, betsAPI } from "../services/api";
+import type { ApiResponse, Bet, Event, Fight, User, Venue, Wallet, Transaction, Subscription, BetType } from "../types";
 
 // ====================== TYPES ======================
 interface WalletData {
@@ -43,6 +44,8 @@ interface EventData {
   scheduledDate: string;
   venue?: Record<string, unknown>;
   operator?: Record<string, unknown>;
+  currentViewers?: number;
+  activeBets?: number;
 }
 
 interface FightData {
@@ -161,7 +164,7 @@ export function useWallet() {
       setError(null);
 
       console.log("🔍 Fetching wallet from /wallet endpoint...");
-      const response = await apiClient.get("/wallet");
+      const response = await apiClient.get<{wallet: WalletData, recentTransactions: TransactionData[]}>("/wallet");
 
       if (response.success) {
         console.log("📦 Raw wallet response:", response.data);
@@ -223,7 +226,7 @@ export function useWallet() {
     }) => {
       try {
         setLoading(true);
-        const response = await apiClient.get("/wallet/transactions", {
+        const response = await apiClient.get<{data: {transactions: TransactionData[]}}>("/wallet/transactions", {
           params,
         });
 
@@ -442,23 +445,23 @@ export function useBets() {
       minAmount: number;
       maxAmount: number;
     }) => {
-      return execute(() => betsAPI.getCompatibleBets(params));
+      return execute(() => apiClient.get(`/bets/available/${params.fightId}`, { params }));
     },
     [execute],
   );
 
   const acceptProposal = useCallback(
-    (betId: string) => execute(() => betsAPI.acceptProposal(betId)),
+    (betId: string) => execute(() => apiClient.put(`/bets/${betId}/accept-proposal`)),
     [execute],
   );
 
   const rejectProposal = useCallback(
-    (betId: string) => execute(() => betsAPI.rejectProposal(betId)),
+    (betId: string) => execute(() => apiClient.put(`/bets/${betId}/reject-proposal`)),
     [execute],
   );
 
   const getPendingProposals = useCallback(() => {
-    return execute(() => betsAPI.getPendingProposals());
+    return execute(() => apiClient.get('/bets/pending-proposals'));
   }, [execute]);
 
   return {
@@ -796,7 +799,70 @@ export function useNotifications() {
   };
 }
 
-// ====================== SUBSCRIPTIONS HOOK ======================\nexport function useSubscriptions() {\n  const { data, loading, error, execute } = useAsyncOperation<Record<string, unknown>>();\n\n  const fetchPlans = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions/plans"));\n  }, [execute]);\n\n  const fetchCurrent = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions/current"));\n  }, [execute]);\n\n  const fetchMy = useCallback(() => {\n    return execute(() => apiClient.get("/subscriptions"));\n  }, [execute]);\n\n  const createSubscription = useCallback(\n    (subscriptionData: {\n      plan: "daily" | "monthly";\n      autoRenew?: boolean;\n      paymentData?: Record<string, unknown>;\n    }) => {\n      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));\n    },\n    [execute]\n  );\n\n  const cancelSubscription = useCallback(\n    (subscriptionId: string) => {\n      return execute(() =>\n        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)\n      );\n    },\n    [execute]\n  );\n\n  const toggleAutoRenew = useCallback(\n    (subscriptionId: string, autoRenew: boolean) => {\n      return execute(() =>\n        apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {\n          autoRenew,\n        })\n      );\n    },\n    [execute]\n  );\n\n  const checkAccess = useCallback(() => {\n    return execute(() => apiClient.post("/subscriptions/check-access"));\n  }, [execute]);\n\n  return {\n    subscription: data,\n    loading,\n    error,\n    fetchPlans,\n    fetchCurrent,\n    fetchMy,\n    createSubscription,\n    cancelSubscription,\n    toggleAutoRenew,\n    checkAccess,\n  };\n}
+// ====================== SUBSCRIPTIONS HOOK ======================
+export function useSubscriptions() {
+  const { data, loading, error, execute } = useAsyncOperation<Subscription>();
+
+  const fetchPlans = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions/plans"));
+  }, [execute]);
+
+  const fetchCurrent = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions/current"));
+  }, [execute]);
+
+  const fetchMy = useCallback(() => {
+    return execute(() => apiClient.get("/subscriptions"));
+  }, [execute]);
+
+  const createSubscription = useCallback(
+    (subscriptionData: {
+      plan: "daily" | "monthly";
+      autoRenew?: boolean;
+      paymentData?: Record<string, unknown>;
+    }) => {
+      return execute(() => apiClient.post("/subscriptions/create", subscriptionData));
+    },
+    [execute]
+  );
+
+  const cancelSubscription = useCallback(
+    (subscriptionId: string) => {
+      return execute(() =>
+        apiClient.put(`/subscriptions/${subscriptionId}/cancel`)
+      );
+    },
+    [execute]
+  );
+
+  const toggleAutoRenew = useCallback(
+    (subscriptionId: string, autoRenew: boolean) => {
+      return execute(() =>
+        apiClient.put(`/subscriptions/${subscriptionId}/auto-renew`, {
+          autoRenew,
+        })
+      );
+    },
+    [execute]
+  );
+
+  const checkAccess = useCallback(() => {
+    return execute(() => apiClient.post("/subscriptions/check-access"));
+  }, [execute]);
+
+  return {
+    subscription: data,
+    loading,
+    error,
+    fetchPlans,
+    fetchCurrent,
+    fetchMy,
+    createSubscription,
+    cancelSubscription,
+    toggleAutoRenew,
+    checkAccess,
+  };
+}
 
 // ====================== USERS HOOK (ADMIN) ======================
 export function useUsers() {

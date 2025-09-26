@@ -3,7 +3,8 @@
 // Refactorizado: tabs → grid cards, reutilización componentes
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, NavigateOptions } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import type { NavigateOptions } from "react-router-dom";
 import {
   Users,
   Building2,
