@@ -62,10 +62,10 @@ const Modal: React.FC<ModalProps> = ({
         onClick={closeOnOverlayClick ? onClose : undefined}
       />
       <div
-        className={`bg-[#1a1f37] p-6 rounded-lg w-full ${sizeClasses[size]} ${className} relative z-10 max-h-screen overflow-y-auto`}
+        className={`bg-white p-6 rounded-lg w-full ${sizeClasses[size]} ${className} relative z-10 max-h-screen overflow-y-auto`}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white font-bold text-lg">{title}</h3>
+          <h3 className="text-gray font-bold text-lg">{title}</h3>
           {showCloseButton && (
             <button
               onClick={onClose}

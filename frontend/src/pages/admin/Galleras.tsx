@@ -23,22 +23,14 @@ import CreateUserModal from "../../components/admin/CreateUserModal"; // Import 
 import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
 
 // APIs
-import { usersAPI, venuesAPI, gallerasAPI } from "../../services/api";
+import { gallerasAPI } from "../../services/api";
 
 // Tipos
-import type { User as UserType } from "../../types";
-
-interface VenueType {
-  id: string;
-  name: string;
-  location: string;
-  status: string;
-  owner_id: string;
-}
+import type { User as UserType, Gallera as GalleraType } from "../../types";
 
 interface CombinedGalleraData {
   user: UserType;
-  venue?: VenueType;
+  gallera?: GalleraType;
 }
 
 const AdminGallerasPage: React.FC = () => {
@@ -53,45 +45,27 @@ const AdminGallerasPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const usersRes = await usersAPI.getAll({ role: "gallera", limit: 1000 });
-    const venuesRes = await venuesAPI.getAll({ limit: 1000 });
-    const gallerasRes = await gallerasAPI.getAll({ limit: 1000 });
+    try {
+      // 1. Fetch all galleras and include their owner data
+      const gallerasRes = await gallerasAPI.getAll({ limit: 1000, includeOwner: true });
+      if (!gallerasRes.success) {
+        throw new Error(gallerasRes.error || "Failed to load galleras");
+      }
+      const allGalleras = (gallerasRes.data as any)?.galleras || [];
+      
+      // 2. Combine the data
+      const combined = allGalleras.map(gallera => ({
+        user: gallera.owner,
+        gallera: gallera,
+      })).filter(item => item.user);
 
-    if (usersRes.success && venuesRes.success && gallerasRes.success) {
-      const galleraUsers = usersRes.data?.users || [];
-      const allVenues = venuesRes.data?.venues || [];
-      const allGalleras = gallerasRes.data?.galleras || [];
+      setCombinedData(combined as CombinedGalleraData[]);
 
-      const venuesByOwner = new Map<string, VenueType>();
-      allVenues.forEach((venue) => {
-        if (venue.owner_id) {
-          venuesByOwner.set(venue.owner_id, venue);
-        }
-      });
-
-      const gallerasByOwner = new Map<string, GalleraType>();
-      allGalleras.forEach((gallera) => {
-        if (gallera.owner_id) {
-          gallerasByOwner.set(gallera.owner_id, gallera);
-        }
-      });
-
-      const combined = galleraUsers.map((user) => ({
-        user,
-        venue: venuesByOwner.get(user.id),
-        gallera: gallerasByOwner.get(user.id),
-      }));
-
-      setCombinedData(combined);
-    } else {
-      setError(
-        usersRes.error ||
-          venuesRes.error ||
-          gallerasRes.error ||
-          "Error loading gallera data",
-      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -102,22 +76,19 @@ const AdminGallerasPage: React.FC = () => {
   const filteredData = useMemo(
     () =>
       combinedData.filter(
-        ({ user, venue }) =>
+        ({ user, gallera }) =>
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (venue &&
-            venue.name.toLowerCase().includes(searchTerm.toLowerCase())),
+          (gallera &&
+            gallera.name.toLowerCase().includes(searchTerm.toLowerCase())),
       ),
     [combinedData, searchTerm],
   );
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<{
-    user: UserType;
-    venue?: VenueType;
-  } | null>(null);
+  const [editingData, setEditingData] = useState<CombinedGalleraData | null>(null);
 
   // Estado para modal de creación
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -126,13 +97,13 @@ const AdminGallerasPage: React.FC = () => {
   const handleEdit = (userId: string) => {
     const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
-      setEditingData({ user: userData.user, venue: userData.venue });
+      setEditingData(userData);
       setIsEditModalOpen(true);
     }
   };
 
   // Handler para eliminación
-  const handleDelete = async (userId: string, galleraId?: string) => {
+  const handleDelete = async (galleraId?: string) => {
     if (
       !window.confirm(
         "¿Estás seguro de que quieres eliminar esta gallera? Esta acción no se puede deshacer.",
@@ -143,20 +114,15 @@ const AdminGallerasPage: React.FC = () => {
 
     setError(null);
 
-    // Si hay gallera asociada, eliminarla primero
     if (galleraId) {
       const galleraRes = await gallerasAPI.delete(galleraId);
       if (!galleraRes.success) {
         setError(galleraRes.error || "Error eliminando gallera");
         return;
       }
-    }
-
-    // Eliminar el usuario
-    const userRes = await usersAPI.delete(userId);
-    if (!userRes.success) {
-      setError(userRes.error || "Error eliminando usuario");
-      return;
+    } else {
+        setError("No hay gallera asociada para eliminar.");
+        return;
     }
 
     // Actualizar la lista
@@ -204,7 +170,7 @@ const AdminGallerasPage: React.FC = () => {
         </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Crear Gallera
@@ -232,7 +198,7 @@ const AdminGallerasPage: React.FC = () => {
 
         {/* Grid de Galleras */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(({ user, venue }) => (
+          {filteredData.map(({ user, gallera }) => (
             <div
               key={user.id}
               className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
@@ -240,15 +206,15 @@ const AdminGallerasPage: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {venue ? venue.name : "Gallera no asignada"}
+                    {gallera ? gallera.name : "Gallera no asignada"}
                   </h3>
-                  {venue && <StatusChip status={venue.status} size="sm" />}
+                  {gallera && <StatusChip status={gallera.status} size="sm" />}
                 </div>
 
-                {venue && (
+                {gallera && (
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{venue.location}</span>
+                    <span>{gallera.location}</span>
                   </div>
                 )}
 
@@ -283,14 +249,14 @@ const AdminGallerasPage: React.FC = () => {
 
               <div className="mt-4 flex justify-end gap-3">
                 <button
-                  onClick={() => handleEdit(user.id, venue?.id)}
+                  onClick={() => handleEdit(user.id)}
                   className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                 >
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(user.id, venue?.id)}
+                  onClick={() => handleDelete(gallera?.id)}
                   className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -318,7 +284,7 @@ const AdminGallerasPage: React.FC = () => {
       {isEditModalOpen && editingData && (
         <EditVenueGalleraModal
           user={editingData.user}
-          venue={editingData.venue}
+          venue={editingData.gallera}
           role="gallera"
           onClose={handleCloseModal}
           onSaved={handleSave}

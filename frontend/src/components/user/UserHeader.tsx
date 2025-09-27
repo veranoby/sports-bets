@@ -177,7 +177,12 @@ const UserHeader = memo(() => {
           <span className="text-md">
             Hola,{" "}
             <span className="font-medium text-theme-text-primary">
-              {user.username}
+              {user.role === "venue"
+                ? user.profileInfo?.venueName || user.profileInfo?.businessName || user.username
+                : user.role === "gallera"
+                ? user.profileInfo?.galleraName || user.profileInfo?.businessName || user.username
+                : user.username
+              }
             </span>
           </span>
           <span

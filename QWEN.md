@@ -296,18 +296,11 @@ FALLBACK COMMANDS (if MCPs timeout):
 SAFETY RULES:
 🚫 Do NOT change any logic
 🚫 Do NOT remove any code
-🚫 Do NOT use placeholder comments
+🚫 Do NOT use placeholder comments like {/* */}
 🚫 ONLY add type definitions
 🚫 Focus on single warning type
 ✅ Types must match actual usage
 ✅ Complete category before moving to next"
-
-# Example QWEN CLI workflow:
-# 1. search_file_content ': any' to locate
-# 2. read_file to understand context
-# 3. edit ': any' → ': ApiResponse'
-# 4. Continue until all explicit-any warnings fixed
-# 5. run_shell_command "npm run lint" (end validation)
 ```
 
 ### **Task 2: New Test File Creation**
@@ -680,6 +673,70 @@ claude "Update brain/multi_ai_coordination_strategy.json with QWEN incident: [de
 3. **LIMIT SCOPE** - 30 min, 30 lines max
 4. **ABORT ON ERROR** - Never let QWEN "fix"
 5. **CLAUDE VALIDATES** - Always have Claude check
+
+---
+
+## **LESSONS LEARNED FROM COMPONENT ANALYSIS MISTAKES**
+
+### **Analysis Failure Root Causes**
+1. **Incomplete Import Tracing**: Only analyzed direct page imports, missing layout components and nested dependencies
+2. **Assumption-Based Analysis**: Made assumptions about component usage based on names rather than verification
+3. **Manual Tracing Limitations**: Relied on manual dependency tracing instead of systematic tooling
+4. **Shallow Dependency Analysis**: Failed to trace beyond first-level imports
+
+### **Improved Strategies for Component Analysis**
+
+#### **1. Automated Component Dependency Analysis**
+- Use `search_file_content` to systematically search for import statements for each component
+- Create automated scripts that scan the entire codebase for component usage
+- Generate comprehensive reports with verified data rather than assumptions
+
+#### **2. Systematic Verification Process**
+- For each component, perform a project-wide search for import statements
+- Check for both direct and dynamic imports
+- Verify usage across all directories (`pages`, `layouts`, `components`, `hooks`, `contexts`, etc.)
+- Document findings with evidence (import statements found)
+
+#### **3. Cross-Reference Validation**
+- Validate findings through multiple verification methods
+- Cross-reference component usage with actual application functionality
+- Test application behavior after component removal (in development environment)
+- Verify component imports in both development and production builds
+
+#### **4. Incremental Analysis Approach**
+- Break down large analysis tasks into smaller, manageable chunks
+- Analyze components in batches by directory or type
+- Create intermediate reports for each batch
+- Validate findings progressively rather than all at once
+
+#### **5. Tool Optimization**
+- Leverage available tools more effectively
+- Use `glob` to generate complete component lists
+- Use `search_file_content` for systematic import verification
+- Use `read_file` and `read_many_files` strategically for detailed analysis
+- Combine tools for maximum efficiency
+
+#### **6. Documentation and Reporting Standards**
+- Create standardized documentation for analysis results
+- Use clear, consistent formatting for reports
+- Include methodology and verification evidence
+- Separate verified findings from assumptions
+- Maintain version control for analysis reports
+
+#### **7. Risk Mitigation**
+- Implement safeguards to prevent incorrect conclusions
+- Always verify before making definitive claims
+- Include disclaimers about analysis limitations
+- Recommend verification before taking action
+- Create backup plans for incorrect analysis
+
+### **Key Takeaways**
+1. **Never assume component usage**: Always verify through systematic search
+2. **Check all import paths**: Include layouts, shared components, and App.tsx
+3. **Use automated tools**: Manual tracing is error-prone and incomplete
+4. **Validate findings**: Cross-reference with actual application behavior
+5. **Document methodology**: Create reproducible analysis processes
+6. **Avoid false positives**: Components flagged as unused may be critical
 
 ---
 

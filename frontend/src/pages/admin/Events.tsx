@@ -25,6 +25,7 @@ import {
   User,
   Building2,
   Video,
+  Trash2,
 } from "lucide-react";
 
 // Components
@@ -269,6 +270,27 @@ const AdminEventsPage: React.FC = () => {
     setIsEditEventModalOpen(false);
   };
 
+  const handleDeleteEvent = async (eventId: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este evento? Esta acción es irreversible.")) {
+      try {
+        setOperationInProgress(`${eventId}-delete`);
+        await eventsAPI.delete(eventId);
+
+        // Refresh list
+        await fetchEvents();
+
+        // If the deleted event was selected, close the modal
+        if (selectedEventId === eventId) {
+          closeEventDetail();
+        }
+      } catch (err) {
+        setError(`Error al eliminar: ${err instanceof Error ? err.message : "Error desconocido"}`);
+      } finally {
+        setOperationInProgress(null);
+      }
+    }
+  };
+
   const openEventDetail = (eventId: string) => {
     setSelectedEventId(eventId);
     fetchEventDetail(eventId);
@@ -327,7 +349,7 @@ const AdminEventsPage: React.FC = () => {
 
               <button
                 onClick={() => navigate("/admin/events/create")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Crear Evento
@@ -342,7 +364,7 @@ const AdminEventsPage: React.FC = () => {
                 onClick={() => setDateFilter("today")}
                 className={`px-3 py-1 rounded text-sm ${
                   dateFilter === "today"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-400 text-white"
                     : "bg-gray-200 text-gray-700"
                 }`}
               >
@@ -352,7 +374,7 @@ const AdminEventsPage: React.FC = () => {
                 onClick={() => setDateFilter("week")}
                 className={`px-3 py-1 rounded text-sm ${
                   dateFilter === "week"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-400 text-white"
                     : "bg-gray-200 text-gray-700"
                 }`}
               >
@@ -362,7 +384,7 @@ const AdminEventsPage: React.FC = () => {
                 onClick={() => setDateFilter("")}
                 className={`px-3 py-1 rounded text-sm ${
                   !dateFilter
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-400 text-white"
                     : "bg-gray-200 text-gray-700"
                 }`}
               >
@@ -463,7 +485,7 @@ const AdminEventsPage: React.FC = () => {
                         </button>
                       )}
 
-                      {event.status === "active" && (
+                      {event.status === "scheduled" && (
                         <>
                           {event.streamStatus !== "connected" ? (
                             <button
@@ -497,7 +519,7 @@ const AdminEventsPage: React.FC = () => {
                         </>
                       )}
 
-                      {(event.status === "active" ||
+                      {(event.status === "scheduled" ||
                         event.status === "live") && (
                         <button
                           onClick={() =>
@@ -506,21 +528,27 @@ const AdminEventsPage: React.FC = () => {
                           disabled={
                             operationInProgress === `${event.id}-complete`
                           }
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                          className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
                         >
                           <CheckCircle className="w-4 h-4" />
                           Finalizar
                         </button>
                       )}
 
-                      <button
-                        onClick={() => openEventDetail(event.id)}
-                        className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Gestionar
-                      </button>
-                    </div>
+                                              <button
+                                                onClick={() => openEventDetail(event.id)}
+                                                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
+                                              >
+                                                <Settings className="w-4 h-4" />
+                                                Gestionar
+                                              </button>
+                                              <button
+                                                onClick={() => handleDeleteEvent(event.id)}
+                                                className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                                                title="Eliminar Evento"
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </button>                    </div>
                   </div>
                 </div>
               ))}
@@ -578,6 +606,13 @@ const AdminEventsPage: React.FC = () => {
                     >
                       Ver detalle
                     </button>
+                    <button
+                      onClick={() => handleDeleteEvent(event.id)}
+                      className="p-1 text-red-500 hover:text-red-700"
+                      title="Eliminar Evento"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))
@@ -605,7 +640,7 @@ const AdminEventsPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsEditEventModalOpen(true)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                    className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
                   >
                     <Edit className="w-4 h-4" />
                     Editar
@@ -614,10 +649,17 @@ const AdminEventsPage: React.FC = () => {
                     onClick={() =>
                       handleEventAction(selectedEventId!, "cancel")
                     }
-                    className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                    className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center gap-1"
                   >
                     <XCircle className="w-4 h-4" />
                     Cancelar Evento
+                  </button>
+                   <button
+                    onClick={() => handleDeleteEvent(selectedEventId!)}
+                    className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
                   </button>
                   <button
                     onClick={closeEventDetail}
@@ -677,7 +719,6 @@ const AdminEventsPage: React.FC = () => {
                               ),
                             );
                           }}
-                          disabled={operationInProgress !== null}
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -789,8 +830,7 @@ const AdminEventsPage: React.FC = () => {
                                       eventDetailData.event.streamStatus ===
                                       "connected"
                                         ? "bg-red-500 animate-pulse"
-                                        : eventDetailData.event.streamStatus ===
-                                            "error"
+                                        : eventDetailData.event.streamStatus === "disconnected"
                                           ? "bg-red-500"
                                           : "bg-gray-400"
                                     }`}
@@ -933,6 +973,7 @@ const AdminEventsPage: React.FC = () => {
                               <FightStatusManager
                                 key={fight.id}
                                 fight={fight}
+                                eventId={eventDetailData.event.id}
                                 onFightUpdate={(updatedFight) => {
                                   setEventDetailData({
                                     ...eventDetailData,
@@ -943,8 +984,6 @@ const AdminEventsPage: React.FC = () => {
                                     ),
                                   });
                                 }}
-                                disabled={operationInProgress !== null}
-                                className="mb-4"
                               />
                             ))
                           )}

@@ -88,7 +88,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
 
         {/* Indicador de estado activo para bottom navigation */}
         {variant === "bottom" && isActive && (
-          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
+          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-400 rounded-full" />
         )}
       </div>
 
@@ -100,7 +100,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
 
       {/* Indicador lateral para sidebar */}
       {variant === "sidebar" && isActive && (
-        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full" />
+        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-400 rounded-r-full" />
       )}
     </Link>
   );

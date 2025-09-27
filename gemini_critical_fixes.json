@@ -1,0 +1,129 @@
+{
+  "ai_coordination_config": {
+    "target_ai": "gemini",
+    "session_type": "critical_admin_fixes",
+    "max_duration_hours": 12,
+    "priority": "high",
+    "coordination_mode": "parallel_with_claude_qwen"
+  },
+
+  "objective": {
+    "title": "Critical Admin Environment Fixes - 48H Sprint",
+    "description": "Fix gaps críticos del admin environment que impiden operaciones normales",
+    "success_criteria": [
+      "Events have functional delete buttons",
+      "All admin pages use correct dedicated API endpoints",
+      "No route order conflicts in backend",
+      "Frontend compiles without errors"
+    ]
+  },
+
+  "task_assignments": {
+    "priority_1_events_delete": {
+      "description": "Add delete functionality to Events admin page",
+      "file_target": "/frontend/src/pages/admin/Events.tsx",
+      "requirements": [
+        "Add delete button with confirmation dialog",
+        "Use existing eventsAPI.delete(eventId) - API already exists",
+        "Copy pattern from Articles.tsx delete logic (lines 180-220)",
+        "Include proper error handling and success notifications",
+        "Refresh events list after successful deletion"
+      ],
+      "estimated_hours": 4,
+      "validation": "Delete button appears and works correctly"
+    },
+
+    "priority_2_api_standardization": {
+      "description": "Replace ALL incorrect endpoint usage with dedicated APIs",
+      "scope": "Frontend pages using wrong user filtering instead of dedicated endpoints",
+      "critical_changes": {
+        "wrong_pattern": "usersAPI.getAll({ role: 'venue' }) || usersAPI.getAll({ role: 'gallera' })",
+        "correct_pattern": "venuesAPI.getAll() || gallerasAPI.getAll()",
+        "reason": "Dedicated endpoints exist with proper data structure per brain/api_endpoints_reference.json"
+      },
+      "files_to_fix": [
+        "/frontend/src/pages/admin/Venues.tsx",
+        "/frontend/src/pages/admin/Galleras.tsx",
+        "/frontend/src/components/admin/VenueApprovalPanel.tsx"
+      ],
+      "api_reference": "/brain/api_endpoints_reference.json lines 74-115",
+      "estimated_hours": 6,
+      "validation": "All admin pages load data from correct dedicated endpoints"
+    },
+
+    "priority_3_route_validation": {
+      "description": "Ensure route order prevents conflicts",
+      "file_target": "/backend/src/routes/articles.ts",
+      "requirement": "Verify /articles/featured comes BEFORE /articles/:id",
+      "reference_pattern": "Check users.ts lines 11-15 for correct order example",
+      "estimated_hours": 2,
+      "validation": "No route parsing conflicts, /featured works correctly"
+    }
+  },
+
+  "resources_available": {
+    "api_reference": "/brain/api_endpoints_reference.json",
+    "crud_analysis": "Previous agent analysis with complete CRUD matrix",
+    "sse_documentation": "/backend/src/documentation/",
+    "pattern_examples": "Articles.tsx and users.ts for implementation patterns"
+  },
+
+  "coordination_with_other_ais": {
+    "claude_responsibilities": [
+      "Backend route order fixes and SSE implementation",
+      "Database performance optimization",
+      "Integration testing and validation"
+    ],
+    "qwen_responsibilities": [
+      "Component cleanup and unused code removal",
+      "Import statement cleanup",
+      "Bundle size optimization"
+    ],
+    "handoff_points": [
+      "After Gemini completes frontend fixes → Claude validates backend integration",
+      "After all fixes → QWEN cleans up unused components",
+      "Final step → Claude runs integration tests"
+    ]
+  },
+
+  "safety_constraints": {
+    "never_modify": [
+      "Authentication system files",
+      "User permissions or role logic",
+      "Database schema or migrations",
+      "Core business logic functions"
+    ],
+    "always_validate": [
+      "Frontend compilation after changes",
+      "API endpoint responses match expected format",
+      "No breaking changes to existing functionality"
+    ],
+    "testing_requirements": [
+      "Run 'npm run build' after all changes",
+      "Verify all admin pages load without errors",
+      "Test delete functionality with actual data"
+    ]
+  },
+
+  "success_metrics": {
+    "technical_requirements": [
+      "Frontend builds successfully without warnings",
+      "All admin CRUD operations functional",
+      "Correct API endpoints used throughout",
+      "No route conflicts or 404 errors"
+    ],
+    "completion_indicators": [
+      "Events delete button works and refreshes list",
+      "Venues/Galleras pages load from dedicated endpoints",
+      "All admin pages compile and render correctly",
+      "Backend routes respond correctly to all endpoints"
+    ]
+  },
+
+  "time_constraints": {
+    "max_session_duration": "12 hours",
+    "checkpoint_intervals": "Every 2 hours",
+    "final_deadline": "48 hours from start",
+    "priority_order": "Delete functionality → API standardization → Route validation"
+  }
+}

@@ -183,7 +183,7 @@ const Settings: React.FC = () => {
         return (
           <input
             type="number"
-            value={currentValue || 0}
+            value={String(currentValue || 0)}
             onChange={(e) =>
               handleSettingChange(key, parseFloat(e.target.value) || 0)
             }
@@ -195,7 +195,7 @@ const Settings: React.FC = () => {
         return (
           <input
             type="text"
-            value={currentValue || ""}
+            value={String(currentValue || "")}
             onChange={(e) => handleSettingChange(key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -207,7 +207,7 @@ const Settings: React.FC = () => {
             value={
               typeof currentValue === "object"
                 ? JSON.stringify(currentValue, null, 2)
-                : currentValue || "{}"
+                : String(currentValue || "{}")
             }
             onChange={(e) => {
               try {
@@ -356,7 +356,7 @@ const Settings: React.FC = () => {
           <button
             onClick={saveSettings}
             disabled={!hasChanges || saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {saving ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />

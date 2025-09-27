@@ -19,6 +19,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -109,11 +110,11 @@ const AdminArticlesPage: React.FC = () => {
     });
 
     if (articlesRes.success && venuesRes.success) {
-      setArticles(articlesRes.data?.articles || []);
-      setVenues(venuesRes.data?.venues || []);
+      setArticles((articlesRes.data as any)?.articles || []);
+      setVenues((venuesRes.data as any)?.venues || []);
       // Actualizar pendientes
       setPendingArticles(
-        articlesRes.data?.articles?.filter(
+        ((articlesRes.data as any)?.articles || []).filter(
           (a: Article) => a.status === "pending",
         ) || [],
       );
@@ -160,8 +161,8 @@ const AdminArticlesPage: React.FC = () => {
       });
 
       if (articlesRes.success && venuesRes.success) {
-        setArticles(articlesRes.data?.articles || []);
-        setVenues(venuesRes.data?.venues || []);
+        setArticles((articlesRes.data as any)?.articles || []);
+        setVenues((venuesRes.data as any)?.venues || []);
       } else {
         setError(
           articlesRes.error || venuesRes.error || "Error loading articles",
@@ -201,6 +202,21 @@ const AdminArticlesPage: React.FC = () => {
     const result = await articlesAPI.update(articleId, { status: "archived" });
     if (result.success) {
       fetchData(); // Refrescar lista
+    }
+  };
+
+  const handleDeleteArticle = async (articleId: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.")) {
+      try {
+        const result = await articlesAPI.delete(articleId);
+        if (result.success) {
+          fetchData(); // Refrescar lista
+        } else {
+          setError(result.error || "Error al eliminar artículo");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      }
     }
   };
 
@@ -387,6 +403,13 @@ const AdminArticlesPage: React.FC = () => {
                   >
                     <XCircle className="w-4 h-4" />
                     Rechazar
+                  </button>
+                  <button
+                    onClick={() => handleDeleteArticle(article.id)}
+                    className="px-3 py-1 bg-red-800 text-white rounded text-sm hover:bg-red-900 flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
                   </button>
                 </div>
               </div>
@@ -631,6 +654,13 @@ const AdminArticlesPage: React.FC = () => {
                             <CheckCircle className="w-4 h-4" />
                           </button>
                         ) : null}
+                        <button
+                          onClick={() => handleDeleteArticle(article.id)}
+                          className="p-1 text-red-400 hover:text-red-600"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>

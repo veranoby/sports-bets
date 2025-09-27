@@ -1226,7 +1226,7 @@ return (
         <div className="mt-6">
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm"
+            className="w-full bg-blue-400 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm"
             disabled={loading}
           >
             {loading ? (

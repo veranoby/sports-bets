@@ -272,7 +272,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <>

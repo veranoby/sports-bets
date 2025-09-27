@@ -111,7 +111,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         icon: <Zap className="w-6 h-6" />,
         confirmText: "Actualizar",
         iconColor: "text-blue-500",
-        buttonColor: "bg-blue-600 hover:bg-blue-700",
+        buttonColor: "bg-blue-400 hover:bg-blue-700",
       },
       custom: {
         variant: variant,
@@ -164,7 +164,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       case "success":
         return "bg-green-600 hover:bg-green-700";
       case "info":
-        return "bg-blue-600 hover:bg-blue-700";
+        return "bg-blue-400 hover:bg-blue-700";
       default:
         return "bg-[#596c95] hover:bg-[#4a5b80]";
     }

@@ -119,7 +119,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         </p>
         <button
           onClick={fetchPlans}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Retry
@@ -261,7 +261,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       ? "bg-green-100 text-green-700 cursor-not-allowed"
                       : plan.popular
                         ? "bg-yellow-400 hover:bg-yellow-500 text-yellow-900 transform hover:scale-105"
-                        : "bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105"
+                        : "bg-blue-400 hover:bg-blue-700 text-white transform hover:scale-105"
                   } disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isSelecting ? (

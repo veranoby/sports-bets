@@ -1,19 +1,17 @@
-// frontend/src/pages/admin/Requests.tsx
-// 💸 GESTIÓN SOLICITUDES RETIRO - Layout 3 secciones
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  DollarSign,
+  AlertCircle,
   Clock,
   CheckCircle,
   XCircle,
-  Download,
   Search,
+  Filter,
   Eye,
-  X,
-  RefreshCw,
+  Download,
+  Upload,
   Banknote,
+  RefreshCw,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -61,49 +59,38 @@ const AdminRequestsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filtros
+  // Estados para filtros
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || "",
   );
   const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("status") || searchParams.get("filter") || "",
+    searchParams.get("status") || "all",
   );
-  const [dateFrom, setDateFrom] = useState(searchParams.get("dateFrom") || "");
-  const [dateTo, setDateTo] = useState(searchParams.get("dateTo") || "");
-  const [amountMin, setAmountMin] = useState(
-    searchParams.get("amountMin") || "",
-  );
-  const [amountMax, setAmountMax] = useState(
-    searchParams.get("amountMax") || "",
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "new",
   );
 
-  // Modal detalle
-  const [selectedRequest, setSelectedRequest] =
-    useState<WithdrawalRequest | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-
-  // Modal procesamiento
-  const [showProcessModal, setShowProcessModal] = useState(false);
-  const [processAction, setProcessAction] = useState<
-    "approve" | "reject" | "complete" | null
-  >(null);
-  const [processNotes, setProcessNotes] = useState("");
-  const [transferProof, setTransferProof] = useState("");
-
-  // Estados operativos
+  // Estados para procesamiento
   const [processing, setProcessing] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState<string | null>(null);
+  const [transferProof, setTransferProof] = useState("");
+  const [processNotes, setProcessNotes] = useState("");
 
-  // Fetch requests
+  // Success/error para UX
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Cargar solicitudes de retiro
   const fetchRequests = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     const response = await walletAPI.getWithdrawalRequests({
       includeUser: true,
       limit: 1000,
     });
 
     if (response.success) {
-      setRequests(response.data?.requests || []);
+      setRequests((response.data as any)?.requests || []);
     } else {
       setError(response.error || "Error loading requests");
     }
@@ -112,71 +99,60 @@ const AdminRequestsPage: React.FC = () => {
 
   // Filtrado por categorías
   const { newRequests, inProcessRequests, filteredRequests } = useMemo(() => {
-    let filtered = [...requests];
-
-    // Categorizar por estado
-    const newReqs = requests.filter((r) => r.status === "pending");
-    const processReqs = requests.filter((r) => r.status === "in_process");
-
-    // Aplicar filtros
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (r) =>
-          r.user.username.toLowerCase().includes(term) ||
-          r.user.email.toLowerCase().includes(term) ||
-          r.accountNumber.includes(term) ||
-          r.user.profileInfo?.fullName?.toLowerCase().includes(term),
+    const byTerm = requests.filter((request) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        request.user.username.toLowerCase().includes(searchLower) ||
+        request.user.email.toLowerCase().includes(searchLower) ||
+        request.accountNumber.includes(searchLower) ||
+        request.id.toLowerCase().includes(searchLower)
       );
-    }
+    });
 
-    if (statusFilter) {
-      filtered = filtered.filter((r) => r.status === statusFilter);
-    }
+    const byStatus = byTerm.filter((request) => {
+      if (statusFilter === "all") return true;
+      return request.status === statusFilter;
+    });
 
-    if (dateFrom) {
-      filtered = filtered.filter(
-        (r) => new Date(r.requestedAt) >= new Date(dateFrom),
-      );
-    }
-
-    if (dateTo) {
-      filtered = filtered.filter(
-        (r) => new Date(r.requestedAt) <= new Date(dateTo),
-      );
-    }
-
-    if (amountMin) {
-      filtered = filtered.filter((r) => r.amount >= parseFloat(amountMin));
-    }
-
-    if (amountMax) {
-      filtered = filtered.filter((r) => r.amount <= parseFloat(amountMax));
-    }
+    const byCategory = byStatus.filter((request) => {
+      switch (selectedCategory) {
+        case "new":
+          return request.status === "pending";
+        case "in_process":
+          return request.status === "in_process";
+        case "completed":
+          return ["completed", "rejected", "failed"].includes(request.status);
+        default:
+          return true;
+      }
+    });
 
     return {
-      newRequests: newReqs,
-      inProcessRequests: processReqs,
-      filteredRequests: filtered.sort(
-        (a, b) =>
-          new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime(),
-      ),
+      newRequests: requests.filter((r) => r.status === "pending"),
+      inProcessRequests: requests.filter((r) => r.status === "in_process"),
+      filteredRequests: byCategory,
     };
-  }, [
-    requests,
-    searchTerm,
-    statusFilter,
-    dateFrom,
-    dateTo,
-    amountMin,
-    amountMax,
-  ]);
+  }, [requests, searchTerm, statusFilter, selectedCategory]);
 
-  // Acciones
-  const handleProcessRequest = async (
+  // Estadísticas
+  const totalAmount = filteredRequests.reduce(
+    (sum, req) => sum + req.amount,
+    0,
+  );
+  const completedAmount = filteredRequests
+    .filter((r) => r.status === "completed")
+    .reduce((sum, req) => sum + req.amount, 0);
+
+  // Procesar solicitud
+  const processRequest = async (
     requestId: string,
     action: "approve" | "reject" | "complete",
   ) => {
+    if (action === "reject" && !processNotes.trim()) {
+      setError("Se requiere una razón para el rechazo");
+      return;
+    }
+
     if (action === "complete" && !transferProof.trim()) {
       setError("Se requiere comprobante de transferencia");
       return;
@@ -201,7 +177,10 @@ const AdminRequestsPage: React.FC = () => {
         payload.processNotes = processNotes;
       }
 
-      await walletAPI.processWithdrawalRequest(requestId, payload);
+      await walletAPI.processWithdrawalRequest(requestId, {
+        action: action === "approve" ? "approve" : "reject",
+        reason: action === "reject" ? processNotes : undefined,
+      });
 
       // Actualizar request local
       setRequests(
@@ -212,75 +191,68 @@ const AdminRequestsPage: React.FC = () => {
                 status: payload.status,
                 processedAt: new Date().toISOString(),
                 rejectionReason: payload.rejectionReason,
-                transferProof: payload.transferProof,
               }
             : r,
         ),
       );
 
-      setShowProcessModal(false);
-      setProcessNotes("");
+      setSuccessMessage(
+        `Solicitud ${action === "approve" ? "aprobada" : action === "reject" ? "rechazada" : "completada"} exitosamente`,
+      );
+      setShowDetailsModal(null);
       setTransferProof("");
+      setProcessNotes("");
     } catch (err) {
       setError(
-        `Error procesando solicitud: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`,
+        err instanceof Error
+          ? err.message
+          : `Error al ${action === "approve" ? "aprobar" : action === "reject" ? "rechazar" : "completar"} solicitud`,
       );
     } finally {
       setProcessing(null);
     }
   };
 
-  const openProcessModal = (
-    request: WithdrawalRequest,
-    action: "approve" | "reject" | "complete",
-  ) => {
-    setSelectedRequest(request);
-    setProcessAction(action);
-    setProcessNotes("");
-    setTransferProof("");
-    setShowProcessModal(true);
-  };
-
-  const exportRequests = () => {
-    const csvData = filteredRequests.map((r) => ({
-      ID: r.id,
-      Usuario: r.user.username,
-      Email: r.user.email,
-      Monto: r.amount,
-      Estado: r.status,
-      Cuenta: `****${r.accountNumber.slice(-4)}`,
-      Banco: r.bankName || "",
-      Solicitado: new Date(r.requestedAt).toLocaleDateString(),
-      Procesado: r.processedAt
-        ? new Date(r.processedAt).toLocaleDateString()
-        : "",
-    }));
-
-    const csv = [
-      Object.keys(csvData[0]).join(","),
-      ...csvData.map((row) => Object.values(row).join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `withdrawal_requests_${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
-    a.click();
-  };
-
-  // Fetch inicial
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-  // Componentes auxiliares
-  const StatusBadge = ({ status }: { status: string }) => {
-    const colors = {
+  // Limpiar mensajes de éxito/error
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  if (loading) return <LoadingSpinner />;
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      case "in_process":
+        return <RefreshCw className="w-4 h-4 text-blue-500" />;
+      case "completed":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "rejected":
+      case "failed":
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const baseClasses = "inline-flex px-2 py-1 text-xs font-medium rounded-full";
+    const statusClasses = {
       pending: "bg-yellow-100 text-yellow-800",
       in_process: "bg-blue-100 text-blue-800",
       completed: "bg-green-100 text-green-800",
@@ -289,313 +261,175 @@ const AdminRequestsPage: React.FC = () => {
     };
 
     return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          colors[status as keyof typeof colors] || colors.pending
-        }`}
-      >
-        {status === "in_process" ? "En proceso" : status}
+      <span className={`${baseClasses} ${statusClasses[status as keyof typeof statusClasses] || "bg-gray-100 text-gray-800"}`}>
+        {status}
       </span>
     );
   };
 
-  const formatAmount = (amount: number) => `$${amount.toLocaleString()}`;
-  const formatAccount = (account: string) => `****${account.slice(-4)}`;
-
-  if (loading) {
-    return <LoadingSpinner text="Cargando solicitudes..." />;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Solicitudes de Retiro
-            </h1>
-            <p className="text-gray-600">
-              {newRequests.length} nuevas • {inProcessRequests.length} en
-              proceso • $
-              {requests.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}{" "}
-              total
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={exportRequests}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Exportar CSV
-            </button>
-            <button
-              onClick={fetchRequests}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Actualizar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {error && (
-        <ErrorMessage error={error} onRetry={fetchRequests} className="mb-6" />
-      )}
-
-      {/* Sección Superior: Nuevas + En Proceso */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Nuevas Solicitudes */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              🆕 Nuevas Solicitudes ({newRequests.length})
-            </h2>
-            <div className="text-sm text-gray-600">
-              Total:{" "}
-              {formatAmount(newRequests.reduce((sum, r) => sum + r.amount, 0))}
-            </div>
-          </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {newRequests.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <DollarSign className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p>No hay solicitudes nuevas</p>
-              </div>
-            ) : (
-              newRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {request.user.username}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {request.user.email}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(request.requestedAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg text-gray-900">
-                        {formatAmount(request.amount)}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {formatAccount(request.accountNumber)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openProcessModal(request, "approve")}
-                      disabled={processing === request.id}
-                      className="flex-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center justify-center gap-1"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Aprobar
-                    </button>
-                    <button
-                      onClick={() => openProcessModal(request, "reject")}
-                      disabled={processing === request.id}
-                      className="flex-1 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center justify-center gap-1"
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Rechazar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        setShowDetailModal(true);
-                      }}
-                      className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-
-        {/* En Proceso */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              ⏳ En Proceso ({inProcessRequests.length})
-            </h2>
-            <div className="text-sm text-gray-600">
-              Total:{" "}
-              {formatAmount(
-                inProcessRequests.reduce((sum, r) => sum + r.amount, 0),
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {inProcessRequests.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Clock className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p>No hay solicitudes en proceso</p>
-              </div>
-            ) : (
-              inProcessRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="p-4 bg-blue-50 border border-blue-200 rounded-lg"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {request.user.username}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {request.bankName || "Banco no especificado"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Aprobado:{" "}
-                        {request.processedAt
-                          ? new Date(request.processedAt).toLocaleString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg text-gray-900">
-                        {formatAmount(request.amount)}
-                      </p>
-                      <StatusBadge status={request.status} />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openProcessModal(request, "complete")}
-                      disabled={processing === request.id}
-                      className="flex-1 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center justify-center gap-1"
-                    >
-                      <Banknote className="w-4 h-4" />
-                      Marcar Completada
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        setShowDetailModal(true);
-                      }}
-                      className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      </div>
-
-      {/* Sección Inferior: Filtros + Historial */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Historial Completo
-          </h2>
-          <p className="text-sm text-gray-600">
-            {filteredRequests.length} solicitudes
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Solicitudes de Retiro
+          </h1>
+          <p className="text-gray-600">
+            Gestiona las solicitudes de retiro de los usuarios
           </p>
         </div>
+        <button
+          onClick={fetchRequests}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          disabled={loading}
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Actualizar
+        </button>
+      </div>
 
-        {/* Filtros avanzados */}
-        <div className="mb-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Buscar usuario..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      {/* Mensajes de estado */}
+      {error && <ErrorMessage message={error} />}
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Estadísticas rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-yellow-100 mr-4">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Nuevas</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {newRequests.length}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100 mr-4">
+              <RefreshCw className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">En Proceso</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {inProcessRequests.length}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100 mr-4">
+              <Banknote className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total ($)</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${totalAmount.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 mr-4">
+              <CheckCircle className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Completado ($)</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${completedAmount.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filtros y búsqueda */}
+      <Card>
+        <div className="space-y-4">
+          {/* Categorías */}
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+            {[
+              { key: "new", label: "Nuevas", count: newRequests.length },
+              {
+                key: "in_process",
+                label: "En Proceso",
+                count: inProcessRequests.length,
+              },
+              {
+                key: "completed",
+                label: "Completadas",
+                count: requests.filter((r) =>
+                  ["completed", "rejected", "failed"].includes(r.status),
+                ).length,
+              },
+            ].map((category) => (
+              <button
+                key={category.key}
+                onClick={() => setSelectedCategory(category.key)}
+                className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  selectedCategory === category.key
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {category.label}
+                <span className="ml-2 bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                  {category.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Filtros de búsqueda */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por usuario, email, cuenta..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             <select
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos los estados</option>
-              <option value="pending">Pendientes</option>
-              <option value="in_process">En proceso</option>
-              <option value="completed">Completadas</option>
-              <option value="rejected">Rechazadas</option>
+              <option value="all">Todos los estados</option>
+              <option value="pending">Pendiente</option>
+              <option value="in_process">En Proceso</option>
+              <option value="completed">Completada</option>
+              <option value="rejected">Rechazada</option>
+              <option value="failed">Fallida</option>
             </select>
-
-            <input
-              type="date"
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              placeholder="Desde"
-            />
-
-            <input
-              type="date"
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              placeholder="Hasta"
-            />
-
-            <input
-              type="number"
-              placeholder="Monto min"
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              value={amountMin}
-              onChange={(e) => setAmountMin(e.target.value)}
-            />
-
-            <input
-              type="number"
-              placeholder="Monto max"
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              value={amountMax}
-              onChange={(e) => setAmountMax(e.target.value)}
-            />
           </div>
 
-          {(searchTerm ||
-            statusFilter ||
-            dateFrom ||
-            dateTo ||
-            amountMin ||
-            amountMax) && (
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("");
-                setDateFrom("");
-                setDateTo("");
-                setAmountMin("");
-                setAmountMax("");
-              }}
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-            >
-              <X className="w-4 h-4" />
-              Limpiar filtros
-            </button>
-          )}
+          <div className="text-sm text-gray-600">
+            Mostrando {filteredRequests.length} de {requests.length} solicitudes
+          </div>
         </div>
+      </Card>
 
-        {/* Tabla historial */}
+      {/* Lista de solicitudes */}
+      <Card>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -615,285 +449,329 @@ const AdminRequestsPage: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Fecha
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRequests.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    No se encontraron solicitudes con los filtros aplicados
+              {filteredRequests.map((request) => (
+                <tr key={request.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {request.user.profileInfo?.fullName ||
+                          request.user.username}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {request.user.email}
+                      </div>
+                    </div>
                   </td>
-                </tr>
-              ) : (
-                filteredRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {request.user.username}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {request.user.email}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatAmount(request.amount)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <p className="text-sm text-gray-900">
-                          {formatAccount(request.accountNumber)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {request.bankName || "N/A"}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={request.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div>
-                        <p>
-                          {new Date(request.requestedAt).toLocaleDateString()}
-                        </p>
-                        {request.processedAt && (
-                          <p className="text-xs">
-                            {new Date(request.processedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      ${request.amount.toLocaleString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {request.bankName || "N/A"}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {request.accountNumber}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {getStatusIcon(request.status)}
+                      <span className="ml-2">
+                        {getStatusBadge(request.status)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(request.requestedAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setShowDetailModal(true);
-                        }}
+                        onClick={() => setShowDetailsModal(request.id)}
                         className="text-blue-600 hover:text-blue-900"
                       >
-                        Ver detalle
+                        <Eye className="w-4 h-4" />
                       </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      {request.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => processRequest(request.id, "approve")}
+                            disabled={processing === request.id}
+                            className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => processRequest(request.id, "reject")}
+                            disabled={processing === request.id}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                      {request.status === "in_process" && (
+                        <button
+                          onClick={() => processRequest(request.id, "complete")}
+                          disabled={processing === request.id}
+                          className="text-purple-600 hover:text-purple-900 disabled:opacity-50"
+                        >
+                          <Banknote className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
+
+          {filteredRequests.length === 0 && (
+            <div className="text-center py-12">
+              <Banknote className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No hay solicitudes
+              </h3>
+              <p className="text-gray-500">
+                No se encontraron solicitudes que coincidan con los filtros
+                aplicados.
+              </p>
+            </div>
+          )}
         </div>
       </Card>
 
-      {/* Modal Detalle */}
-      {showDetailModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Detalle de Solicitud
-              </h2>
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
+      {/* Modal de detalles */}
+      {showDetailsModal && (
+        <RequestDetailsModal
+          request={
+            requests.find((r) => r.id === showDetailsModal) ||
+            ({} as WithdrawalRequest)
+          }
+          onClose={() => setShowDetailsModal(null)}
+          onProcess={processRequest}
+          processing={processing}
+          transferProof={transferProof}
+          setTransferProof={setTransferProof}
+          processNotes={processNotes}
+          setProcessNotes={setProcessNotes}
+        />
+      )}
+    </div>
+  );
+};
+
+// Modal component
+const RequestDetailsModal: React.FC<{
+  request: WithdrawalRequest;
+  onClose: () => void;
+  onProcess: (id: string, action: "approve" | "reject" | "complete") => void;
+  processing: string | null;
+  transferProof: string;
+  setTransferProof: (value: string) => void;
+  processNotes: string;
+  setProcessNotes: (value: string) => void;
+}> = ({
+  request,
+  onClose,
+  onProcess,
+  processing,
+  transferProof,
+  setTransferProof,
+  processNotes,
+  setProcessNotes,
+}) => {
+  if (!request.id) return null;
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              Detalles de Solicitud
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* Información del usuario */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Información del Usuario
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Nombre:</span>
+                  <p className="font-medium">
+                    {request.user.profileInfo?.fullName ||
+                      request.user.username}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Email:</span>
+                  <p className="font-medium">{request.user.email}</p>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Información de la solicitud */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Detalles de Retiro
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Usuario
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {selectedRequest.user.username}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {selectedRequest.user.email}
+                  <span className="text-gray-500">Monto:</span>
+                  <p className="font-medium text-lg">
+                    ${request.amount.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Monto
-                  </label>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatAmount(selectedRequest.amount)}
-                  </p>
+                  <span className="text-gray-500">Estado:</span>
+                  <p className="font-medium">{request.status}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Cuenta
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {selectedRequest.accountNumber}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {selectedRequest.accountType} • {selectedRequest.bankName}
-                  </p>
+                  <span className="text-gray-500">Banco:</span>
+                  <p className="font-medium">{request.bankName || "N/A"}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Estado
-                  </label>
-                  <StatusBadge status={selectedRequest.status} />
+                  <span className="text-gray-500">Cuenta:</span>
+                  <p className="font-medium">{request.accountNumber}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Solicitado
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {new Date(selectedRequest.requestedAt).toLocaleString()}
+                  <span className="text-gray-500">Fecha de solicitud:</span>
+                  <p className="font-medium">
+                    {new Date(request.requestedAt).toLocaleString()}
                   </p>
                 </div>
-                {selectedRequest.processedAt && (
+                {request.processedAt && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">
-                      Procesado
-                    </label>
-                    <p className="text-sm text-gray-900">
-                      {new Date(selectedRequest.processedAt).toLocaleString()}
+                    <span className="text-gray-500">Fecha de procesamiento:</span>
+                    <p className="font-medium">
+                      {new Date(request.processedAt).toLocaleString()}
                     </p>
                   </div>
                 )}
               </div>
-
-              {selectedRequest.rejectionReason && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Motivo de Rechazo
-                  </label>
-                  <p className="text-sm text-gray-900 bg-red-50 p-3 rounded-lg">
-                    {selectedRequest.rejectionReason}
-                  </p>
-                </div>
-              )}
-
-              {selectedRequest.transferProof && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">
-                    Comprobante de Transferencia
-                  </label>
-                  <p className="text-sm text-gray-900 bg-green-50 p-3 rounded-lg">
-                    {selectedRequest.transferProof}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Procesamiento */}
-      {showProcessModal && selectedRequest && processAction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {processAction === "approve"
-                  ? "Aprobar Solicitud"
-                  : processAction === "reject"
-                    ? "Rechazar Solicitud"
-                    : "Marcar Completada"}
-              </h2>
-              <button
-                onClick={() => setShowProcessModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-medium">{selectedRequest.user.username}</p>
-                <p className="text-lg font-bold text-green-600">
-                  {formatAmount(selectedRequest.amount)}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {formatAccount(selectedRequest.accountNumber)} •{" "}
-                  {selectedRequest.bankName}
-                </p>
+            {/* Razón de rechazo */}
+            {request.rejectionReason && (
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h4 className="font-medium text-red-900 mb-2">
+                  Razón de Rechazo
+                </h4>
+                <p className="text-red-800">{request.rejectionReason}</p>
               </div>
+            )}
 
-              {processAction === "complete" && (
+            {/* Comprobante de transferencia */}
+            {request.transferProof && (
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">
+                  Comprobante de Transferencia
+                </h4>
+                <a
+                  href={request.transferProof}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-800 flex items-center"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Ver comprobante
+                </a>
+              </div>
+            )}
+
+            {/* Acciones según estado */}
+            {request.status === "pending" && (
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Comprobante de Transferencia *
+                    Notas de procesamiento
                   </label>
-                  <input
-                    type="text"
-                    value={transferProof}
-                    onChange={(e) => setTransferProof(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Ej: Transfer. #123456789 - Banco Nacional"
+                  <textarea
+                    value={processNotes}
+                    onChange={(e) => setProcessNotes(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Agregar notas..."
                   />
                 </div>
-              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {processAction === "reject"
-                    ? "Motivo del rechazo"
-                    : "Notas (opcional)"}
-                </label>
-                <textarea
-                  value={processNotes}
-                  onChange={(e) => setProcessNotes(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                  placeholder={
-                    processAction === "reject"
-                      ? "Describe el motivo..."
-                      : "Notas adicionales..."
-                  }
-                />
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => onProcess(request.id, "approve")}
+                    disabled={processing === request.id}
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    Aprobar
+                  </button>
+                  <button
+                    onClick={() => onProcess(request.id, "reject")}
+                    disabled={processing === request.id}
+                    className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  >
+                    Rechazar
+                  </button>
+                </div>
               </div>
+            )}
 
-              <div className="flex gap-3">
+            {request.status === "in_process" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comprobante de transferencia *
+                  </label>
+                  <input
+                    type="url"
+                    value={transferProof}
+                    onChange={(e) => setTransferProof(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="URL del comprobante..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notas adicionales
+                  </label>
+                  <textarea
+                    value={processNotes}
+                    onChange={(e) => setProcessNotes(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Notas adicionales..."
+                  />
+                </div>
+
                 <button
-                  onClick={() => setShowProcessModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  onClick={() => onProcess(request.id, "complete")}
+                  disabled={processing === request.id || !transferProof.trim()}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() =>
-                    handleProcessRequest(selectedRequest.id, processAction)
-                  }
-                  disabled={
-                    processing === selectedRequest.id ||
-                    (processAction === "complete" && !transferProof.trim())
-                  }
-                  className={`flex-1 px-4 py-2 rounded-lg text-white font-medium ${
-                    processAction === "approve"
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : processAction === "reject"
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-green-600 hover:bg-green-700"
-                  } disabled:opacity-50`}
-                >
-                  {processing === selectedRequest.id
-                    ? "Procesando..."
-                    : processAction === "approve"
-                      ? "Aprobar"
-                      : processAction === "reject"
-                        ? "Rechazar"
-                        : "Completar"}
+                  Marcar como Completada
                 </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

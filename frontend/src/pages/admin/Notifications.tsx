@@ -1,77 +1,63 @@
-// frontend/src/pages/admin/Notifications.tsx
-// 📢 NOTIFICATIONS ADMIN - Gestión de notificaciones del sistema
-// Interfaz para enviar notificaciones del sistema, ver logs y programar anuncios
-
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Bell,
   Send,
-  Calendar,
   Clock,
-  User,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Edit,
+  Eye,
   Trash2,
-  Plus,
   Search,
+  Filter,
+  UserCheck,
+  AlertCircle,
+  Plus,
 } from "lucide-react";
-
-// Componentes reutilizados
-import Card from "../../components/shared/Card";
+import { notificationsAPI } from "../../services/api";
+import { Notification } from "../../types";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
+import Modal from "../../components/shared/Modal";
+import Card from "../../components/shared/Card";
 
-// APIs
-import { notificationsAPI } from "../../services/api";
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "info" | "warning" | "error" | "success" | "announcement";
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "draft" | "scheduled" | "sent" | "failed";
-  targetUsers?: string[]; // IDs de usuarios específicos
-  targetRoles?: string[]; // Roles específicos
-  scheduledAt?: string; // Para notificaciones programadas
-  sentAt?: string; // Fecha de envío
-  createdAt: string;
-  updatedAt: string;
-  createdBy: {
-    id: string;
-    username: string;
-  };
-}
-
-const NotificationsAdminPage: React.FC = () => {
-  // Estados principales
+const Notifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Estados para creación/edición
+  // States para modales
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentNotification, setCurrentNotification] = useState<
     Partial<Notification>
   >({});
 
-  // Estados para filtrado
+  // Estados para filtros
   const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
-  // Estados operativos
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(
-    null,
-  );
+  // Estado para operaciones en progreso
+  const [operationInProgress, setOperationInProgress] = useState<
+    string | null
+  >(null);
 
-  // Fetch notifications
+  // Filtrar notificaciones
+  const filteredNotifications = notifications.filter((notification) => {
+    const matchesSearch =
+      notification.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      notification.message?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || notification.status === statusFilter;
+
+    const matchesType =
+      typeFilter === "all" || notification.type === typeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  // Obtener notificaciones
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
@@ -82,7 +68,7 @@ const NotificationsAdminPage: React.FC = () => {
         includeCreatedBy: true,
       });
 
-      setNotifications(response.data?.notifications || []);
+      setNotifications((response.data as any)?.notifications || []);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error loading notifications",
@@ -97,7 +83,12 @@ const NotificationsAdminPage: React.FC = () => {
     try {
       setOperationInProgress("sending");
 
-      await notificationsAPI.create(notificationData);
+      await notificationsAPI.create({
+        title: notificationData.title || "",
+        message: notificationData.message || "",
+        type: notificationData.type || "",
+        userId: notificationData.userId,
+      });
 
       setSuccessMsg("Notificación enviada exitosamente");
       setIsCreateModalOpen(false);
@@ -107,9 +98,7 @@ const NotificationsAdminPage: React.FC = () => {
       fetchNotifications();
     } catch (err) {
       setError(
-        `Error al enviar notificación: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`,
+        err instanceof Error ? err.message : "Error sending notification",
       );
     } finally {
       setOperationInProgress(null);
@@ -124,8 +113,10 @@ const NotificationsAdminPage: React.FC = () => {
       setOperationInProgress("scheduling");
 
       await notificationsAPI.create({
-        ...notificationData,
-        status: "scheduled",
+        title: notificationData.title || "",
+        message: notificationData.message || "",
+        type: notificationData.type || "",
+        userId: notificationData.userId,
       });
 
       setSuccessMsg("Notificación programada exitosamente");
@@ -136,9 +127,7 @@ const NotificationsAdminPage: React.FC = () => {
       fetchNotifications();
     } catch (err) {
       setError(
-        `Error al programar notificación: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`,
+        err instanceof Error ? err.message : "Error scheduling notification",
       );
     } finally {
       setOperationInProgress(null);
@@ -146,652 +135,585 @@ const NotificationsAdminPage: React.FC = () => {
   };
 
   // Eliminar notificación
-  const deleteNotification = async (notificationId: string) => {
+  const deleteNotification = async (id: string) => {
+    if (!confirm("¿Está seguro de eliminar esta notificación?")) return;
+
     try {
-      setOperationInProgress(`delete-${notificationId}`);
+      setOperationInProgress("deleting");
+      await notificationsAPI.delete(id);
 
-      await notificationsAPI.delete(notificationId);
-
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
       setSuccessMsg("Notificación eliminada exitosamente");
-
-      // Recargar lista
-      fetchNotifications();
     } catch (err) {
       setError(
-        `Error al eliminar notificación: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`,
+        err instanceof Error ? err.message : "Error deleting notification",
       );
     } finally {
       setOperationInProgress(null);
     }
   };
 
-  // Filtrar notificaciones
-  const filteredNotifications = notifications.filter((notification) => {
-    // Filtrar por término de búsqueda
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      if (
-        !notification.title.toLowerCase().includes(term) &&
-        !notification.message.toLowerCase().includes(term)
-      ) {
-        return false;
-      }
-    }
+  // Marcar como leída
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationsAPI.markAsRead(id);
 
-    // Filtrar por tipo
-    if (typeFilter && notification.type !== typeFilter) {
-      return false;
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, readAt: new Date() } : n)),
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error marking as read",
+      );
     }
+  };
 
-    // Filtrar por estado
-    if (statusFilter && notification.status !== statusFilter) {
-      return false;
-    }
+  // Obtener estadísticas
+  const getStats = () => {
+    const total = notifications.length;
+    const unread = notifications.filter((n) => !n.readAt).length;
+    const sent = notifications.filter((n) => n.status === "sent").length;
+    const scheduled = notifications.filter((n) => n.status === "scheduled")
+      .length;
 
-    // Filtrar por prioridad
-    if (priorityFilter && notification.priority !== priorityFilter) {
-      return false;
-    }
+    return { total, unread, sent, scheduled };
+  };
 
-    return true;
-  });
+  const stats = getStats();
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Limpiar mensaje de éxito después de 3 segundos
+  // Limpiar mensajes de éxito después de 3 segundos
   useEffect(() => {
     if (successMsg) {
-      const timer = setTimeout(() => {
-        setSuccessMsg(null);
-      }, 3000);
+      const timer = setTimeout(() => setSuccessMsg(""), 3000);
       return () => clearTimeout(timer);
     }
   }, [successMsg]);
 
-  // Renderizar ícono según tipo
-  const renderTypeIcon = (type: string) => {
-    switch (type) {
-      case "info":
-        return <Bell className="h-4 w-4 text-blue-500" />;
-      case "warning":
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case "error":
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case "success":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "announcement":
-        return <Bell className="h-4 w-4 text-purple-500" />;
-      default:
-        return <Bell className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  // Renderizar etiqueta de estado
-  const renderStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { text: "Borrador", color: "bg-gray-100 text-gray-800" },
-      scheduled: { text: "Programada", color: "bg-blue-100 text-blue-800" },
-      sent: { text: "Enviada", color: "bg-green-100 text-green-800" },
-      failed: { text: "Fallida", color: "bg-red-100 text-red-800" },
-    };
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
-      >
-        {config.text}
-      </span>
-    );
-  };
-
-  // Renderizar etiqueta de prioridad
-  const renderPriorityBadge = (priority: string) => {
-    const priorityConfig = {
-      low: { text: "Baja", color: "bg-gray-100 text-gray-800" },
-      medium: { text: "Media", color: "bg-blue-100 text-blue-800" },
-      high: { text: "Alta", color: "bg-orange-100 text-orange-800" },
-      urgent: { text: "Urgente", color: "bg-red-100 text-red-800" },
-    };
-
-    const config =
-      priorityConfig[priority as keyof typeof priorityConfig] ||
-      priorityConfig.low;
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
-      >
-        {config.text}
-      </span>
-    );
-  };
-
-  // Formatear fechas
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <ErrorMessage message={error} onRetry={fetchNotifications} />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Gestión de Notificaciones
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Envía notificaciones del sistema, programa anuncios y monitorea el
-            historial
+          <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
+          <p className="text-gray-600">
+            Gestiona las notificaciones del sistema
           </p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="w-4 h-4 mr-2" />
           Nueva Notificación
         </button>
       </div>
 
-      {/* Mensaje de éxito */}
+      {/* Messages */}
+      {error && <ErrorMessage message={error} />}
       {successMsg && (
-        <div className="rounded-md bg-green-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <CheckCircle className="h-5 w-5 text-green-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">{successMsg}</p>
-            </div>
-          </div>
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          {successMsg}
         </div>
       )}
 
-      {/* Estadísticas Rápidas */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Bell className="h-6 w-6 text-gray-400" />
+            <div className="p-3 rounded-full bg-blue-100 mr-4">
+              <Bell className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Total Notificaciones
-                </dt>
-                <dd className="flex items-baseline">
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.length}
-                  </div>
-                </dd>
-              </dl>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
         </Card>
 
         <Card>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Send className="h-6 w-6 text-blue-400" />
+            <div className="p-3 rounded-full bg-yellow-100 mr-4">
+              <AlertCircle className="w-6 h-6 text-yellow-600" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Enviadas
-                </dt>
-                <dd className="flex items-baseline">
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.filter((n) => n.status === "sent").length}
-                  </div>
-                </dd>
-              </dl>
+            <div>
+              <p className="text-sm font-medium text-gray-600">No Leídas</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.unread}</p>
             </div>
           </div>
         </Card>
 
         <Card>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Calendar className="h-6 w-6 text-orange-400" />
+            <div className="p-3 rounded-full bg-green-100 mr-4">
+              <Send className="w-6 h-6 text-green-600" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Programadas
-                </dt>
-                <dd className="flex items-baseline">
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {
-                      notifications.filter((n) => n.status === "scheduled")
-                        .length
-                    }
-                  </div>
-                </dd>
-              </dl>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Enviadas</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.sent}</p>
             </div>
           </div>
         </Card>
 
         <Card>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-6 w-6 text-red-400" />
+            <div className="p-3 rounded-full bg-purple-100 mr-4">
+              <Clock className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Fallidas
-                </dt>
-                <dd className="flex items-baseline">
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {notifications.filter((n) => n.status === "failed").length}
-                  </div>
-                </dd>
-              </dl>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Programadas</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.scheduled}
+              </p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Filtros */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
+      {/* Filters */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por título o mensaje"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Buscar notificaciones..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
-            <div className="flex flex-wrap gap-2">
-              <select
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                <option value="">Todos los tipos</option>
-                <option value="info">Info</option>
-                <option value="warning">Advertencia</option>
-                <option value="error">Error</option>
-                <option value="success">Éxito</option>
-                <option value="announcement">Anuncio</option>
-              </select>
-
-              <select
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">Todos los estados</option>
-                <option value="draft">Borrador</option>
-                <option value="scheduled">Programada</option>
-                <option value="sent">Enviada</option>
-                <option value="failed">Fallida</option>
-              </select>
-
-              <select
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-              >
-                <option value="">Todas las prioridades</option>
-                <option value="low">Baja</option>
-                <option value="medium">Media</option>
-                <option value="high">Alta</option>
-                <option value="urgent">Urgente</option>
-              </select>
-            </div>
           </div>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="sent">Enviadas</option>
+            <option value="scheduled">Programadas</option>
+            <option value="failed">Fallidas</option>
+          </select>
+
+          {/* Type Filter */}
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Todos los tipos</option>
+            <option value="general">General</option>
+            <option value="event">Evento</option>
+            <option value="bet">Apuesta</option>
+            <option value="system">Sistema</option>
+          </select>
         </div>
 
-        {/* Lista de Notificaciones */}
+        <div className="mt-4 text-sm text-gray-600">
+          Mostrando {filteredNotifications.length} de {notifications.length}{" "}
+          notificaciones
+        </div>
+      </Card>
+
+      {/* Notifications List */}
+      <Card>
         <div className="overflow-hidden">
           {filteredNotifications.length === 0 ? (
             <EmptyState
-              icon={Bell}
+              icon={() => <Bell className="w-12 h-12 text-gray-400" />}
               title="No hay notificaciones"
               description="No se encontraron notificaciones que coincidan con los filtros."
             />
           ) : (
-            <ul className="divide-y divide-gray-200">
-              {filteredNotifications.map((notification) => (
-                <li
-                  key={notification.id}
-                  className="px-6 py-4 hover:bg-gray-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center min-w-0">
-                      <div className="flex-shrink-0">
-                        {renderTypeIcon(notification.type)}
-                      </div>
-                      <div className="min-w-0 ml-4">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Notificación
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredNotifications.map((notification) => (
+                    <tr
+                      key={notification.id}
+                      className={`hover:bg-gray-50 ${
+                        !notification.readAt ? "bg-blue-50" : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            {notification.type === "event" && (
+                              <Bell className="w-5 h-5 text-blue-500 mt-1" />
+                            )}
+                            {notification.type === "general" && (
+                              <AlertCircle className="w-5 h-5 text-green-500 mt-1" />
+                            )}
+                            {notification.type === "bet" && (
+                              <UserCheck className="w-5 h-5 text-purple-500 mt-1" />
+                            )}
+                            {notification.type === "system" && (
+                              <AlertCircle className="w-5 h-5 text-red-500 mt-1" />
+                            )}
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-900">
+                              {notification.title}
+                            </p>
+                            <p className="text-sm text-gray-500 line-clamp-2">
+                              {notification.message}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            notification.type === "event"
+                              ? "bg-blue-100 text-blue-800"
+                              : notification.type === "general"
+                                ? "bg-green-100 text-green-800"
+                                : notification.type === "bet"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {notification.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            notification.status === "sent"
+                              ? "bg-green-100 text-green-800"
+                              : notification.status === "scheduled"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {notification.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(notification.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          <h3 className="text-sm font-medium text-gray-900 truncate">
-                            {notification.title}
-                          </h3>
-                          {renderStatusBadge(notification.status)}
-                          {renderPriorityBadge(notification.priority)}
-                        </div>
-                        <p className="text-sm text-gray-500 truncate mt-1">
-                          {notification.message}
-                        </p>
-                        <div className="flex items-center text-xs text-gray-400 mt-1 space-x-2">
-                          <span className="flex items-center">
-                            <User className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                            {notification.createdBy?.username || "Sistema"}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                            {formatDate(notification.createdAt)}
-                          </span>
-                          {notification.scheduledAt && (
-                            <span className="flex items-center">
-                              <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                              Programada: {formatDate(notification.scheduledAt)}
-                            </span>
+                          <button
+                            onClick={() => {
+                              setCurrentNotification(notification);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {!notification.readAt && (
+                            <button
+                              onClick={() => markAsRead(notification.id)}
+                              className="text-green-600 hover:text-green-900"
+                            >
+                              <UserCheck className="w-4 h-4" />
+                            </button>
                           )}
+                          <button
+                            onClick={() => deleteNotification(notification.id)}
+                            className="text-red-600 hover:text-red-900"
+                            disabled={operationInProgress === "deleting"}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setCurrentNotification(notification);
-                          setIsEditing(true);
-                          setIsCreateModalOpen(true);
-                        }}
-                        className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteNotification(notification.id)}
-                        disabled={!!operationInProgress}
-                        className="inline-flex items-center p-2 border border-transparent rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
+        </div>
+      </Card>
+
+      {/* Create Notification Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Nueva Notificación"
+      >
+        <CreateNotificationForm
+          onSend={sendNotification}
+          onSchedule={scheduleNotification}
+          onCancel={() => setIsCreateModalOpen(false)}
+          loading={operationInProgress !== null}
+        />
+      </Modal>
+
+      {/* Notification Detail Modal */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        title="Detalle de Notificación"
+      >
+        <NotificationDetail notification={currentNotification} />
+      </Modal>
+    </div>
+  );
+};
+
+// Componente para crear notificación
+const CreateNotificationForm: React.FC<{
+  onSend: (data: Partial<Notification>) => void;
+  onSchedule: (data: Partial<Notification>) => void;
+  onCancel: () => void;
+  loading: boolean;
+}> = ({ onSend, onSchedule, onCancel, loading }) => {
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    type: "general",
+    userId: "",
+    scheduledFor: "",
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = "El título es requerido";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "El mensaje es requerido";
+    }
+
+    if (!formData.type) {
+      newErrors.type = "El tipo es requerido";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent, action: "send" | "schedule") => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const notificationData = {
+      title: formData.title,
+      message: formData.message,
+      type: formData.type,
+      userId: formData.userId || undefined,
+      scheduledFor: formData.scheduledFor || undefined,
+    };
+
+    if (action === "send") {
+      onSend(notificationData);
+    } else {
+      onSchedule(notificationData);
+    }
+  };
+
+  return (
+    <form className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Título *
+        </label>
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.title ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.title && (
+          <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Mensaje *
+        </label>
+        <textarea
+          value={formData.message}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
+          rows={4}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.message ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.message && (
+          <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Tipo *
+        </label>
+        <select
+          value={formData.type}
+          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="general">General</option>
+          <option value="event">Evento</option>
+          <option value="bet">Apuesta</option>
+          <option value="system">Sistema</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Usuario Específico (opcional)
+        </label>
+        <input
+          type="text"
+          value={formData.userId}
+          onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+          placeholder="ID del usuario"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Programar para (opcional)
+        </label>
+        <input
+          type="datetime-local"
+          value={formData.scheduledFor}
+          onChange={(e) =>
+            setFormData({ ...formData, scheduledFor: e.target.value })
+          }
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={(e) => handleSubmit(e, "schedule")}
+          disabled={loading}
+          className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
+        >
+          {loading ? "Programando..." : "Programar"}
+        </button>
+        <button
+          onClick={(e) => handleSubmit(e, "send")}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Enviando..." : "Enviar Ahora"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Componente para mostrar detalle de notificación
+const NotificationDetail: React.FC<{
+  notification: Partial<Notification>;
+}> = ({ notification }) => {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900">
+          {notification.title}
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          {notification.createdAt &&
+            new Date(notification.createdAt).toLocaleString()}
+        </p>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Mensaje</h4>
+        <p className="text-gray-900">{notification.message}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-1">Tipo</h4>
+          <span
+            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+              notification.type === "event"
+                ? "bg-blue-100 text-blue-800"
+                : notification.type === "general"
+                  ? "bg-green-100 text-green-800"
+                  : notification.type === "bet"
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-red-100 text-red-800"
+            }`}
+          >
+            {notification.type}
+          </span>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-1">Estado</h4>
+          <span
+            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+              notification.status === "sent"
+                ? "bg-green-100 text-green-800"
+                : notification.status === "scheduled"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+            }`}
+          >
+            {notification.status}
+          </span>
         </div>
       </div>
 
-      {/* Modal para crear/editar notificación */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div
-              className="fixed inset-0 transition-opacity"
-              aria-hidden="true"
-            >
-              <div
-                className="absolute inset-0 bg-gray-500 opacity-75"
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  setIsEditing(false);
-                  setCurrentNotification({});
-                }}
-              ></div>
-            </div>
-
-            <span
-              className="hidden sm:inline-block sm:align-middle sm:h-screen"
-              aria-hidden="true"
-            >
-              &#8203;
-            </span>
-
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-              <div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    {isEditing ? "Editar Notificación" : "Nueva Notificación"}
-                  </h3>
-                  <div className="mt-4">
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(
-                          e.target as HTMLFormElement,
-                        );
-                        const notificationData = {
-                          title: formData.get("title") as string,
-                          message: formData.get("message") as string,
-                          type: formData.get("type") as Notification["type"],
-                          priority: formData.get(
-                            "priority",
-                          ) as Notification["priority"],
-                          targetRoles: formData.getAll(
-                            "targetRoles",
-                          ) as string[],
-                          scheduledAt: formData.get("scheduledAt") as string,
-                        };
-
-                        if (isEditing) {
-                          // Actualizar notificación existente
-                          sendNotification({
-                            ...currentNotification,
-                            ...notificationData,
-                          });
-                        } else {
-                          // Crear nueva notificación
-                          if (notificationData.scheduledAt) {
-                            scheduleNotification(notificationData);
-                          } else {
-                            sendNotification(notificationData);
-                          }
-                        }
-                      }}
-                      className="space-y-4"
-                    >
-                      <div>
-                        <label
-                          htmlFor="title"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Título
-                        </label>
-                        <input
-                          type="text"
-                          name="title"
-                          id="title"
-                          required
-                          defaultValue={currentNotification.title || ""}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="message"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Mensaje
-                        </label>
-                        <textarea
-                          name="message"
-                          id="message"
-                          rows={3}
-                          required
-                          defaultValue={currentNotification.message || ""}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label
-                            htmlFor="type"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Tipo
-                          </label>
-                          <select
-                            name="type"
-                            id="type"
-                            defaultValue={currentNotification.type || "info"}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="info">Info</option>
-                            <option value="warning">Advertencia</option>
-                            <option value="error">Error</option>
-                            <option value="success">Éxito</option>
-                            <option value="announcement">Anuncio</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="priority"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Prioridad
-                          </label>
-                          <select
-                            name="priority"
-                            id="priority"
-                            defaultValue={
-                              currentNotification.priority || "medium"
-                            }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="low">Baja</option>
-                            <option value="medium">Media</option>
-                            <option value="high">Alta</option>
-                            <option value="urgent">Urgente</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Roles Destino
-                        </label>
-                        <div className="mt-2 space-y-2">
-                          {[
-                            "admin",
-                            "operator",
-                            "venue",
-                            "user",
-                            "gallera",
-                          ].map((role) => (
-                            <div key={role} className="flex items-center">
-                              <input
-                                id={`targetRoles-${role}`}
-                                name="targetRoles"
-                                type="checkbox"
-                                value={role}
-                                defaultChecked={currentNotification.targetRoles?.includes(
-                                  role,
-                                )}
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                              />
-                              <label
-                                htmlFor={`targetRoles-${role}`}
-                                className="ml-3 block text-sm text-gray-700 capitalize"
-                              >
-                                {role}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="scheduledAt"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Programar para (opcional)
-                        </label>
-                        <input
-                          type="datetime-local"
-                          name="scheduledAt"
-                          id="scheduledAt"
-                          defaultValue={
-                            currentNotification.scheduledAt
-                              ? new Date(currentNotification.scheduledAt)
-                                  .toISOString()
-                                  .slice(0, 16)
-                              : ""
-                          }
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                        <button
-                          type="submit"
-                          disabled={!!operationInProgress}
-                          className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
-                        >
-                          {operationInProgress ? (
-                            <span className="flex items-center">
-                              <LoadingSpinner className="h-4 w-4 mr-2" />
-                              {isEditing ? "Actualizando..." : "Enviando..."}
-                            </span>
-                          ) : isEditing ? (
-                            "Actualizar"
-                          ) : (
-                            "Enviar"
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsCreateModalOpen(false);
-                            setIsEditing(false);
-                            setCurrentNotification({});
-                          }}
-                          className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {notification.readAt && (
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-1">
+            Leída el
+          </h4>
+          <p className="text-gray-900">
+            {new Date(notification.readAt).toLocaleString()}
+          </p>
         </div>
       )}
     </div>
   );
 };
 
-export default NotificationsAdminPage;
+export default Notifications;

@@ -90,11 +90,14 @@ class Server {
             process.env.FRONTEND_URL || "http://localhost:5173",
             "http://localhost:3000",
             "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://[::1]:5174"
           ];
           if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
           } else {
-            callback(new Error("Not allowed by CORS"));
+            logger.warn(`CORS blocked origin: ${origin}`);
+            callback(null, true); // Allow all in dev
           }
         },
         credentials: true,

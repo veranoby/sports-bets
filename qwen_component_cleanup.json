@@ -1,0 +1,162 @@
+{
+  "ai_coordination_config": {
+    "target_ai": "qwen",
+    "session_type": "component_cleanup_sprint",
+    "max_duration_hours": 7,
+    "priority": "medium",
+    "coordination_mode": "sequential_after_gemini",
+    "safety_mode": "high_restrictions"
+  },
+
+  "objective": {
+    "title": "Component Cleanup Sprint - Bundle Optimization",
+    "description": "Systematic removal of unused components and imports to reduce bundle size",
+    "context": "First batch already successfully removed without compilation errors",
+    "success_criteria": [
+      "8 verified unused components removed",
+      "No remaining import references to deleted components",
+      "Frontend builds without errors",
+      "Dev server starts successfully"
+    ]
+  },
+
+  "task_assignments": {
+    "priority_1_component_removal": {
+      "description": "Remove second batch of VERIFIED unused components",
+      "estimated_hours": 4,
+      "safety_level": "high",
+      "components_to_remove": [
+        "src/components/shared/FightStatusIndicator.tsx",
+        "src/components/shared/PageContainer.tsx",
+        "src/components/shared/PageHeader.tsx",
+        "src/components/shared/StatsGrid.tsx",
+        "src/components/shared/StatusFilterDropdown.tsx",
+        "src/components/shared/UserEntityCard.tsx",
+        "src/components/user/BetHistoryTable.tsx",
+        "src/components/user/DetailModalConfigs.tsx"
+      ],
+      "removal_commands": [
+        "rm -f src/components/shared/FightStatusIndicator.tsx",
+        "rm -f src/components/shared/PageContainer.tsx",
+        "rm -f src/components/shared/PageHeader.tsx",
+        "rm -f src/components/shared/StatsGrid.tsx",
+        "rm -f src/components/shared/StatusFilterDropdown.tsx",
+        "rm -f src/components/shared/UserEntityCard.tsx",
+        "rm -f src/components/user/BetHistoryTable.tsx",
+        "rm -f src/components/user/DetailModalConfigs.tsx"
+      ],
+      "validation": "All 8 files successfully deleted, no filesystem errors"
+    },
+
+    "priority_2_import_cleanup": {
+      "description": "Search and remove any remaining imports of deleted components",
+      "estimated_hours": 2,
+      "safety_level": "high",
+      "search_patterns": [
+        "FightStatusIndicator",
+        "PageContainer",
+        "PageHeader",
+        "StatsGrid",
+        "StatusFilterDropdown",
+        "UserEntityCard",
+        "BetHistoryTable",
+        "DetailModalConfigs"
+      ],
+      "search_commands": [
+        "grep -r \"FightStatusIndicator\\|PageContainer\\|PageHeader\" src/",
+        "grep -r \"StatsGrid\\|StatusFilterDropdown\\|UserEntityCard\" src/",
+        "grep -r \"BetHistoryTable\\|DetailModalConfigs\" src/"
+      ],
+      "cleanup_action": "Remove any import statements found referring to deleted components",
+      "validation": "No import references remain to any deleted components"
+    },
+
+    "priority_3_build_verification": {
+      "description": "Verify frontend builds successfully after cleanup",
+      "estimated_hours": 1,
+      "commands": [
+        "npm run build",
+        "npm run dev"
+      ],
+      "validation": [
+        "Build completes without errors",
+        "Dev server starts without import errors",
+        "No missing module errors in console"
+      ]
+    }
+  },
+
+  "safety_constraints": {
+    "critical_restrictions": [
+      "NEVER touch authentication files",
+      "NEVER debug complex logic",
+      "NEVER modify user flows",
+      "NEVER remove components that have any imports found"
+    ],
+    "allowed_operations": [
+      "ONLY remove specified files",
+      "ONLY clean specified imports",
+      "ONLY verify builds",
+      "ONLY run specified grep commands"
+    ],
+    "validation_gates": [
+      "Always run grep search before removing imports",
+      "Always run build after file removals",
+      "Stop immediately if any errors occur"
+    ]
+  },
+
+  "coordination_dependencies": {
+    "wait_for_gemini": "Do not start until Gemini completes admin fixes",
+    "handoff_to_claude": "After completion, Claude validates integration",
+    "session_timing": "Maximum 30-minute sessions to prevent issues",
+    "error_escalation": "Any compilation errors → immediately stop and report to Claude"
+  },
+
+  "reference_resources": {
+    "unused_components_report": "/UNUSED_COMPONENTS_REPORT.md",
+    "previous_success": "First batch (DatePicker, NotificationBadge, Tooltip, Tabs, AnalyticsDashboard) removed successfully",
+    "verification_pattern": "Same process as first batch - file removal → import cleanup → build verification"
+  },
+
+  "success_metrics": {
+    "completion_indicators": [
+      "8 component files no longer exist in filesystem",
+      "Grep searches return no results for component names",
+      "'npm run build' completes with exit code 0",
+      "'npm run dev' starts without module errors"
+    ],
+    "bundle_optimization": [
+      "Reduced bundle size (measured after build)",
+      "Faster compilation times",
+      "Cleaner dependency tree"
+    ]
+  },
+
+  "time_constraints": {
+    "max_total_duration": "7 hours",
+    "max_session_duration": "30 minutes",
+    "checkpoint_frequency": "After each priority task",
+    "escalation_triggers": [
+      "Any compilation error",
+      "Missing import errors",
+      "Session exceeds 30 minutes",
+      "Unable to complete file removal"
+    ]
+  },
+
+  "rollback_plan": {
+    "if_errors_occur": [
+      "Stop all operations immediately",
+      "Report exact error to Claude for debugging",
+      "Do not attempt to fix errors - only report",
+      "Preserve any partial state for Claude investigation"
+    ],
+    "never_attempt": [
+      "Debugging compilation errors",
+      "Fixing import issues",
+      "Modifying code to resolve errors",
+      "Making any changes beyond specified scope"
+    ]
+  }
+}

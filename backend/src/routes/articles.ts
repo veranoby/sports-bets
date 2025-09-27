@@ -178,6 +178,63 @@ router.get(
   })
 );
 
+// ⚡ CRITICAL FIX: Featured articles endpoint MUST come before /:id route
+router.get(
+  "/featured",
+  optionalAuth,
+  [
+    query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
+    query("type").optional().isIn(["banner", "highlight", "trending"]),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest("Invalid parameters");
+    }
+
+    const { limit = 5, type = "banner" } = req.query as any;
+    const attributes = getArticleAttributes(req.user?.role, "list");
+
+    // ⚡ OPTIMIZATION: Cache featured articles
+    const cacheKey = `articles_featured_${type}_${limit}_${req.user?.role || 'public'}`;
+
+    const featuredArticles = await retryOperation(async () => {
+      return await cache.getOrSet(cacheKey, async () => {
+        return await Article.findAll({
+          where: {
+            status: "published",
+            featured_image: { [Op.ne]: null }, // Only articles with images for banners
+          },
+          attributes,
+          include: [
+            {
+              model: User,
+              as: "author",
+              attributes: ["id", "username"],
+            },
+            {
+              model: Venue,
+              as: "venue",
+              attributes: ["id", "name"],
+            },
+          ],
+          order: [["published_at", "DESC"]],
+          limit: parseInt(limit),
+        });
+      }, 180); // ⚡ 3 minute cache for featured articles
+    });
+
+    res.json({
+      success: true,
+      data: {
+        articles: featuredArticles.map((article) => article.toJSON({ attributes })),
+        type,
+        total: featuredArticles.length,
+      },
+    });
+  })
+);
+
 // ⚡ PERFORMANCE OPTIMIZED: Single article with caching
 router.get(
   "/:id",
@@ -319,62 +376,6 @@ router.put(
   })
 );
 
-// ⚡ CRITICAL FIX: Featured articles endpoint for banner carousel
-router.get(
-  "/featured",
-  optionalAuth,
-  [
-    query("limit").optional().isInt({ min: 1, max: 50 }).toInt(),
-    query("type").optional().isIn(["banner", "highlight", "trending"]),
-  ],
-  asyncHandler(async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      throw errors.badRequest("Invalid parameters");
-    }
-
-    const { limit = 5, type = "banner" } = req.query as any;
-    const attributes = getArticleAttributes(req.user?.role, "list");
-
-    // ⚡ OPTIMIZATION: Cache featured articles
-    const cacheKey = `articles_featured_${type}_${limit}_${req.user?.role || 'public'}`;
-
-    const featuredArticles = await retryOperation(async () => {
-      return await cache.getOrSet(cacheKey, async () => {
-        return await Article.findAll({
-          where: {
-            status: "published",
-            featured_image: { [Op.ne]: null }, // Only articles with images for banners
-          },
-          attributes,
-          include: [
-            {
-              model: User,
-              as: "author",
-              attributes: ["id", "username"],
-            },
-            {
-              model: Venue,
-              as: "venue",
-              attributes: ["id", "name"],
-            },
-          ],
-          order: [["published_at", "DESC"]],
-          limit: parseInt(limit),
-        });
-      }, 180); // ⚡ 3 minute cache for featured articles
-    });
-
-    res.json({
-      success: true,
-      data: {
-        articles: featuredArticles.map((article) => article.toJSON({ attributes })),
-        type,
-        total: featuredArticles.length,
-      },
-    });
-  })
-);
 
 // ⚡ OPTIMIZATION: Publish with cache invalidation
 router.put(

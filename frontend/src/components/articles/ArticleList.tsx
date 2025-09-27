@@ -108,7 +108,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
           </p>
           <button
             onClick={onOpenCreateModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
+            className="bg-blue-400 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Crear Primer Artículo

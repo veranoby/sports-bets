@@ -1,7 +1,7 @@
 // frontend/src/pages/user/Bets.tsx - VERSIÓN CORREGIDA
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Navigate } from "react-router-dom"; // Added Navigate import
 import { Activity, TrendingUp, DollarSign, Award, Plus } from "lucide-react";
 
@@ -25,6 +25,14 @@ interface Bet {
   status: string;
   result?: "win" | "loss";
   potentialWin?: number;
+  userId?: string;
+  updatedAt?: string;
+  fightId: string;
+  side: "red" | "blue";
+  createdAt: string;
+  odds?: number;
+  createdBy?: string;
+  choice?: string;
 }
 
 interface ProposalReceivedData {
@@ -59,6 +67,10 @@ const UserBets: React.FC = () => {
   // API Hooks
   const { bets, loading, fetchMyBets, cancelBet, acceptBet } = useBets();
 
+  // Use ref for bets to handle WebSocket updates
+  const betsRef = useRef<Bet[]>([]);
+  const setBetsRef = useRef<React.Dispatch<React.SetStateAction<Bet[]>>>(() => {});
+
   useWallet();
 
   // Estados para estadísticas calculadas localmente
@@ -72,6 +84,18 @@ const UserBets: React.FC = () => {
     winRate: 0,
     netProfit: 0,
   });
+
+  // Update betsRef when bets change - properly cast BetData to Bet
+  useEffect(() => {
+    betsRef.current = bets.map(bet => ({
+      ...bet,
+      potentialWin: (bet as any).potentialWin || 0,
+      userId: (bet as any).userId || '',
+      updatedAt: (bet as any).updatedAt || new Date().toISOString(),
+      result: (bet.result as "win" | "loss") || undefined,
+      status: bet.status as any // Allow flexible status
+    }));
+  }, [bets]);
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
   const handleProposalReceived = useCallback((data: ProposalReceivedData) => {
@@ -125,7 +149,7 @@ const UserBets: React.FC = () => {
           if (bet.status === "active") acc.activeBets++;
           if (bet.result === "win") {
             acc.wonBets++;
-            acc.totalWon += bet.potentialWin || 0;
+            acc.totalWon += (bet as any).potentialWin || 0;
           }
           if (bet.result === "loss") {
             acc.lostBets++;
@@ -308,7 +332,14 @@ const UserBets: React.FC = () => {
               filteredBets.map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={bet}
+                  bet={{
+                    ...bet,
+                    potentialWin: (bet as any).potentialWin || 0,
+                    userId: (bet as any).userId || '',
+                    updatedAt: (bet as any).updatedAt || new Date().toISOString(),
+                    status: bet.status as any,
+                    result: bet.result as any
+                  } as any}
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                 />
@@ -344,7 +375,14 @@ const UserBets: React.FC = () => {
               .map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={bet}
+                  bet={{
+                    ...bet,
+                    potentialWin: (bet as any).potentialWin || 0,
+                    userId: (bet as any).userId || '',
+                    updatedAt: (bet as any).updatedAt || new Date().toISOString(),
+                    status: bet.status as any,
+                    result: bet.result as any
+                  } as any}
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                   mode="history"

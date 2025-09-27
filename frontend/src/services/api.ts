@@ -181,6 +181,9 @@ export const authAPI = {
   checkMembershipStatus: async () => {
     return apiCall("post", "/auth/check-membership-status");
   },
+  register: async (userData: { username: string; email: string; password: string; }) => {
+    return apiCall("post", "/auth/register", userData);
+  },
 };
 
 export const eventsAPI = {
@@ -195,6 +198,9 @@ export const eventsAPI = {
   },
   update: async (id: string, data: Partial<Event>) => {
     return apiCall("put", `/events/${id}`, data);
+  },
+  delete: async (id: string) => {
+    return apiCall("delete", `/events/${id}`);
   },
   // Admin component methods
   updateEventStatus: async (eventId: string, status: string) => {
@@ -221,14 +227,33 @@ export const venuesAPI = {
   getAll: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/venues", params);
   },
+  delete: async (id: string) => {
+    return apiCall("delete", `/venues/${id}`);
+  },
 };
 
 export const gallerasAPI = {
+  getAll: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/galleras", params);
+  },
   update: async (id: string, data: Partial<Gallera>) => {
     return apiCall("put", `/galleras/${id}`, data);
   },
   create: async (data: Partial<Gallera>) => {
     return apiCall("post", "/galleras", data);
+  },
+  delete: async (id: string) => {
+    return apiCall("delete", `/galleras/${id}`);
+  },
+};
+
+// Add systemAPI for monitoring
+export const systemAPI = {
+  getAlerts: async () => {
+    return apiCall("get", "/system/alerts");
+  },
+  getLiveStats: async () => {
+    return apiCall("get", "/system/stats");
   },
 };
 
@@ -331,6 +356,43 @@ export const walletAPI = {
   },
   getStats: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/wallet/stats", params);
+  },
+  // Add missing withdrawal request methods
+  getWithdrawalRequests: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/withdrawal-requests", params);
+  },
+  processWithdrawalRequest: async (requestId: string, data: {
+    action: "approve" | "reject";
+    reason?: string;
+  }) => {
+    return apiCall("post", `/wallet/withdrawal-requests/${requestId}/process`, data);
+  },
+};
+
+// Add notifications API
+export const notificationsAPI = {
+  getAll: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/notifications", params);
+  },
+  create: async (data: {
+    title: string;
+    message: string;
+    type: string;
+    userId?: string;
+  }) => {
+    return apiCall("post", "/notifications", data);
+  },
+  markAsRead: async (notificationId: string) => {
+    return apiCall("put", `/notifications/${notificationId}/read`);
+  },
+  markAllAsRead: async () => {
+    return apiCall("put", "/notifications/mark-all-read");
+  },
+  delete: async (notificationId: string) => {
+    return apiCall("delete", `/notifications/${notificationId}`);
+  },
+  getUnreadCount: async () => {
+    return apiCall("get", "/notifications/unread-count");
   },
 };
 

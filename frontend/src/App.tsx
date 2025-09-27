@@ -303,7 +303,7 @@ const AppContent: React.FC = () => {
       {canInstall && (
         <button
           onClick={install}
-          className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors z-50"
+          className="fixed bottom-4 right-4 bg-blue-400 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors z-50"
           aria-label="Install App"
         >
           Instalar App
@@ -330,7 +330,7 @@ function App() {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-400"
             >
               Recargar página
             </button>

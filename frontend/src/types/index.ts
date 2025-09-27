@@ -2,6 +2,8 @@ import React from "react";
 
 // Tipos centralizados para evitar importaciones circulares
 
+import type { Article } from "./article";
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data: T;
@@ -16,6 +18,8 @@ export interface ApiResponse<T = unknown> {
   articles?: T;
   parsed?: unknown;
 }
+
+export type { Article };
 
 export interface ApiError extends Error {
   status?: number;
@@ -42,340 +46,483 @@ export interface User {
     businessPhone?: string;
     taxId?: string;
     licenseNumber?: string;
+    venueName?: string;
+    venueLocation?: string;
+    venueDescription?: string;
+    venueEmail?: string;
+    venueWebsite?: string;
     // Gallera fields
     registrationDetails?: string;
+    galleraName?: string;
+    galleraLocation?: string;
+    galleraDescription?: string;
+    galleraEmail?: string;
+    galleraWebsite?: string;
+    galleraSpecialties?: string;
+    galleraActiveRoosters?: number;
+    // Additional properties for GalleraDetailPage
+    location?: string;
+    description?: string;
+    establishedDate?: string;
+    certified?: boolean;
+    rating?: number;
+    premiumLevel?: string;
+    specialties?: string;
+    imageUrl?: string;
   };
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  created_at?: string; // For API compatibility
   // Suscripción normalizada proveniente de /api/users/profile
   subscription?: UserSubscription;
-}
-
-export interface Event {
-  id: string;
-  name: string;
-  venueId: string;
-  scheduledDate: string;
-  endDate?: string;
-  status: "scheduled" | "in-progress" | "completed" | "cancelled";
-  operatorId?: string;
-  streamKey?: string;
-  streamUrl?: string;
-  createdBy: string;
-  totalFights: number;
-  completedFights: number;
-  totalBets: number;
-  totalPrizePool: number;
-  createdAt: string;
-  updatedAt: string;
-  venue?: Venue;
-  operator?: User;
-  creator?: User;
-  fights?: Fight[];
-  startTime: string;
-  // Additional properties for UI
-  streamStatus?: StreamStatus;
-  currentViewers?: number;
-  activeBets?: number;
-  description?: string;
-}
-
-export interface Fight {
-  id: string;
-  eventId: string;
-  redFighter: string;
-  blueFighter: string;
-  status: FightStatus;
-  result?: FightResult;
-  startTime?: Date;
-  endTime?: Date;
-  createdAt: string;
-  updatedAt: string;
-  event?: Event;
-  // Additional properties for admin components
-  number?: number;
-  rooster_1?: string;
-  rooster_2?: string;
-  bets?: Bet[];
-}
-
-// 1. TIPOS BASE PARA APUESTAS (agregar si faltan)
-export type BetSide = "red" | "blue";
-export type BetStatus = "pending" | "active" | "settled" | "cancelled";
-export type BetResult = "win" | "loss" | "draw" | "void";
-export type BetType = "flat" | "doy" | "pago";
-export type ProposalStatus = "none" | "pending" | "accepted" | "rejected";
-
-// 2. INTERFACE BET COMPLETA (reemplazar la existente)
-export interface Bet {
-  id: string;
-  userId: string;
-  fightId: string;
-  amount: number;
-  side: BetSide;
-  status: BetStatus;
-  result?: BetResult;
-  odds: number;
-  payout?: number;
-  potentialWin: number;
-  createdAt: Date;
-  updatedAt: Date;
-
-  // Campos para sistema PAGO/DOY
-  betType?: BetType;
-  proposalStatus?: ProposalStatus;
-  parentBetId?: string;
-
-  // Relaciones y datos adicionales
-  matchedWith?: string;
-  terms?: {
-    ratio: number;
-    isOffer: boolean;
-    pagoAmount?: number;
-    doyAmount?: number;
-    proposedBy?: string;
+  // Adding wallet info for unified user profile
+  wallet?: {
+    balance: number;
+    pendingBalance?: number;
+    lastTransaction?: {
+      id: string;
+      type: "deposit" | "withdrawal" | "bet" | "win";
+      amount: number;
+      date: string;
+    };
   };
-
-  // Datos poblados
-  fight?: Fight;
-  user?: User;
-  matchedBet?: Bet;
-  eventName?: string;
-  fighterNames?: {
-    red: string;
-    blue: string;
+  // API response data
+  events?: EventData[];
+  user?: {
+    profileInfo?: {
+      fullName?: string;
+    };
   };
-  isLive?: boolean;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "general" | "event" | "bet" | "system";
+  status: "sent" | "scheduled" | "failed";
+  userId?: string;
+  readAt?: Date | string;
+  createdAt: string;
+  updatedAt?: string;
+  scheduledFor?: string;
+}
+
+export interface UserSubscription {
+  id: string;
+  plan: "free" | "basic" | "premium";
+  status: "active" | "cancelled" | "expired";
+  expiresAt?: string;
+  features: string[];
 }
 
 export interface Venue {
   id: string;
   name: string;
-  location: string;
+  address?: string;
+  location?: string;
   description?: string;
+  isActive: boolean;
+  imageUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  capacity?: number;
+  features?: string[];
   contactInfo?: {
-    email?: string;
     phone?: string;
+    email?: string;
     website?: string;
-    address?: string;
   };
-  ownerId: string;
-  status: "pending" | "active" | "suspended" | "rejected";
-  isVerified: boolean;
-  images?: string[];
   createdAt: string;
   updatedAt: string;
-  owner?: User;
 }
 
-export interface Gallera {
+export interface Gallera extends User {
+  // Gallera inherits from User but with specific role
+  role: "gallera";
+  galleraSpecificField?: string;
+}
+
+// EventData with proper typing from API responses
+export interface EventData {
   id: string;
   name: string;
-  location: string;
   description?: string;
-  ownerId: string;
-  owner_id?: string;
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-    website?: string;
-    address?: string;
+  scheduledDate: string;
+  startTime?: string;
+  status: "upcoming" | "live" | "completed" | "cancelled" | "betting";
+  venue: {
+    id: string;
+    name: string;
+    location?: string;
   };
-  specialties?: {
-    breeds?: string[];
-    trainingMethods?: string[];
-    experience?: string;
+  liveStream?: {
+    url?: string;
+    isActive: boolean;
+    viewers?: number;
   };
-  activeRoosters?: number;
-  active_roosters?: number;
-  fightRecord?: {
-    wins: number;
-    losses: number;
-    draws: number;
+  betting?: {
+    isEnabled: boolean;
+    minBet?: number;
+    maxBet?: number;
+    odds?: Record<string, number>;
   };
-  fight_record?: {
-    wins: number;
-    losses: number;
-    draws: number;
+  participants?: {
+    gallero1?: string;
+    gallero2?: string;
+    rooster1?: string;
+    rooster2?: string;
   };
-  status: "pending" | "active" | "suspended" | "rejected";
-  isVerified: boolean;
-  is_verified?: boolean;
-  images?: string[];
   createdAt: string;
   updatedAt: string;
-  created_at?: string;
-  updated_at?: string;
-  owner?: User;
+  imageUrl?: string;
+  categoryId?: string;
+  venueId: string;
+  operatorId?: string;
+}
+
+// For compatibility with some components using Event name
+export interface Event extends EventData {}
+
+export interface Bet {
+  id: string;
+  eventId: string;
+  userId: string;
+  amount: number;
+  odds: number; // Made required
+  prediction: string;
+  status: "pending" | "won" | "lost" | "cancelled";
+  payout?: number;
+  placedAt: string;
+  settledAt?: string;
+}
+
+export interface BetData extends Omit<Bet, 'odds'> {
+  odds?: number; // Optional in BetData
+  event?: EventData;
+  user?: User;
 }
 
 export interface Wallet {
+  id: string;
+  userId: string;
   balance: number;
-  frozenAmount: number;
-  availableBalance: number;
+  pendingBalance: number;
+  currency: string;
+  isActive: boolean;
+  createdAt: string;
   updatedAt: string;
 }
 
 export interface Transaction {
   id: string;
   walletId: string;
-  type: "deposit" | "withdrawal" | "bet-win" | "bet-loss" | "bet-refund";
+  type: "deposit" | "withdrawal" | "bet" | "win" | "refund";
   amount: number;
   status: "pending" | "completed" | "failed" | "cancelled";
-  reference?: string;
-  description: string;
-  metadata?: unknown;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Subscription {
-  id: string;
-  plan: "daily" | "monthly";
-  startDate: string;
-  endDate: string;
-  status: "active" | "expired" | "cancelled";
-  autoRenew: boolean;
-  amount?: number;
-  daysRemaining: number;
-  isActive: boolean;
-}
-
-// Nueva representación normalizada utilizada por backend /users/profile
-export interface UserSubscription {
-  type: "free" | "daily" | "monthly";
-  status: "active" | "cancelled" | "expired" | "pending";
-  expiresAt: string | null;
-  features: string[];
-  remainingDays: number;
-  manual_expires_at?: string;
-  [key: string]: unknown; // Allow additional properties for compatibility
-}
-
-export interface Proposal {
-  id: string;
-  proposer: User; // Could be a string ID, but using full User object based on context
-  originalAmount: number;
-  pagoAmount: number;
-  createdAt: string; // ISO date string format
-}
-
-export interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  features: string[];
-}
-
-// 3. NAVIGATION PAGE TYPE (agregar si falta)
-export type NavigationPage = "home" | "events" | "bets" | "wallet" | "profile";
-
-// 4. FIGHT TYPES (verificar que existan)
-export type FightStatus =
-  | "upcoming"
-  | "betting"
-  | "live"
-  | "completed"
-  | "cancelled";
-export type FightResult = "red" | "blue" | "draw" | "no_contest";
-
-// 5. STREAMING TYPES (agregar si faltan)
-export type StreamQuality = "720p" | "480p" | "360p";
-export type StreamStatus =
-  | "connected"
-  | "disconnected"
-  | "retrying"
-  | "connecting";
-
-// Tipos para StatsGrid
-export interface StatCard {
-  id: string;
-  title: string;
-  value: string | number;
-  change?: {
-    value: number;
-    direction: "up" | "down" | "neutral";
-    period: string;
-  };
-  icon?: React.ReactNode;
-  color?: "blue" | "green" | "red" | "yellow" | "purple";
-  format?: "currency" | "percentage" | "number";
   description?: string;
+  reference?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 
-export interface ChartDataset {
+export interface PaymentMethod {
   id: string;
-  labels: string[];
-  dataset: {
-    label: string;
-    data: number[];
-    backgroundColor?: string | string[];
-    borderColor?: string;
-  };
+  userId: string;
+  type: "bank_transfer" | "mobile_money" | "card";
+  provider: string;
+  accountInfo: Record<string, unknown>;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
 }
 
-// Betting Notifications Types
-export interface BettingNotificationData {
-  type: string;
-  amount: number;
-  fighter: string;
+// Props interfaces for components
+export interface TabsProps {
+  defaultValue?: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
-export interface BettingNotificationsResponse {
-  type: string;
-  amount?: number;
-  fighter?: string;
-  data?: {
-    amount: number;
-    fighter: string;
-  };
+export interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
 }
 
-// BetData interface for form data before being converted to Bet
-export interface BetData {
-  id: string;
-  userId?: string;
-  fightId: string;
-  amount: number;
-  side: BetSide;
-  status: BetStatus;
-  result?: BetResult;
-  odds?: number;
-  payout?: number;
-  potentialWin?: number;
-  createdAt: Date | string;
-  updatedAt?: Date | string;
-  betType?: BetType;
-  proposalStatus?: ProposalStatus;
-  parentBetId?: string;
-  matchedWith?: string;
-  terms?: {
-    ratio: number;
-    isOffer: boolean;
-    pagoAmount?: number;
-    doyAmount?: number;
-    proposedBy?: string;
-  };
-  fight?: Fight;
-  user?: User;
-  matchedBet?: Bet;
-  eventName?: string;
-  fighterNames?: {
-    red: string;
-    blue: string;
-  };
-  isLive?: boolean;
+export interface TabsTriggerProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
-// EventData interface for API responses that may differ from Event
-export interface EventData extends Event {
-  currentViewers?: number;
-  activeBets?: number;
-  totalViewers?: number;
+export interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
-export interface EventDetailData {
-  event: Event;
-  fights: Fight[];
+// Component interfaces
+export interface ToggleProps {
+  pressed: boolean;
+  onPressedChange: (pressed: boolean) => void;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}
+
+export interface DialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
+export interface DialogContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface DialogHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface DialogTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface AlertDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
+export interface AlertDialogContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface AlertDialogHeaderProps {
+  children: React.ReactNode;
+}
+
+export interface AlertDialogTitleProps {
+  children: React.ReactNode;
+}
+
+export interface AlertDialogDescriptionProps {
+  children: React.ReactNode;
+}
+
+export interface AlertDialogFooterProps {
+  children: React.ReactNode;
+}
+
+export interface AlertDialogActionProps {
+  onClick?: () => void;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface AlertDialogCancelProps {
+  onClick?: () => void;
+  children: React.ReactNode;
+}
+
+// Form interfaces
+export interface FormFieldProps {
+  name: string;
+  children: React.ReactNode;
+}
+
+export interface FormItemProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface FormLabelProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface FormControlProps {
+  children: React.ReactNode;
+}
+
+export interface FormDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface FormMessageProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+// Button interfaces
+export interface ButtonProps {
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  asChild?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+}
+
+// Additional UI component interfaces
+export interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface CardHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface CardContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  className?: string;
+}
+
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  className?: string;
+}
+
+export interface SelectProps {
+  children: React.ReactNode;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+}
+
+export interface SelectContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface SelectItemProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface SelectTriggerProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface SelectValueProps {
+  placeholder?: string;
+  className?: string;
+}
+
+export interface AvatarProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface AvatarImageProps {
+  src?: string;
+  alt?: string;
+  className?: string;
+}
+
+export interface AvatarFallbackProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface BadgeProps {
+  variant?: "default" | "secondary" | "destructive" | "outline";
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface DropdownMenuProps {
+  children: React.ReactNode;
+}
+
+export interface DropdownMenuTriggerProps {
+  asChild?: boolean;
+  children: React.ReactNode;
+}
+
+export interface DropdownMenuContentProps {
+  children: React.ReactNode;
+  className?: string;
+  align?: "start" | "center" | "end";
+}
+
+export interface DropdownMenuItemProps {
+  children: React.ReactNode;
+  className?: string;
+  onSelect?: () => void;
+}
+
+export interface DropdownMenuSeparatorProps {
+  className?: string;
+}
+
+export interface TooltipProps {
+  children: React.ReactNode;
+}
+
+export interface TooltipTriggerProps {
+  asChild?: boolean;
+  children: React.ReactNode;
+}
+
+export interface TooltipContentProps {
+  children: React.ReactNode;
+  className?: string;
+  side?: "top" | "right" | "bottom" | "left";
+}
+
+export interface SheetProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
+export interface SheetTriggerProps {
+  asChild?: boolean;
+  children: React.ReactNode;
+}
+
+export interface SheetContentProps {
+  children: React.ReactNode;
+  className?: string;
+  side?: "top" | "right" | "bottom" | "left";
+}
+
+export interface SheetHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface SheetTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface SheetDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
 }

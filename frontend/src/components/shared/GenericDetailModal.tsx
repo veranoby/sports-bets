@@ -113,7 +113,7 @@ const GenericDetailModal = <
 
     const baseClasses = "px-4 py-2 rounded font-medium transition-colors";
     const variantClasses = {
-      primary: "bg-blue-600 text-white hover:bg-blue-700",
+      primary: "bg-blue-400 text-white hover:bg-blue-700",
       danger: "bg-red-600 text-white hover:bg-red-700",
       success: "bg-green-600 text-white hover:bg-green-700",
     };
@@ -147,7 +147,7 @@ const GenericDetailModal = <
       <div className="flex justify-end mt-6">
         <button
           onClick={onClose}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Cerrar
         </button>

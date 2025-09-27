@@ -17,6 +17,7 @@ const CreateEvent: React.FC = () => {
   const [name, setName] = useState("");
   const [venueId, setVenueId] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
+  const [operatorId] = useState<string | null>(null); // Add operatorId state
 
   const [venues, setVenues] = useState<Venue[]>([]);
 
@@ -32,29 +33,39 @@ const CreateEvent: React.FC = () => {
           status: "active",
           limit: 1000,
         });
-        setVenues(venuesRes.data?.venues || []);
-      } catch {
-        setError("Failed to load necessary data. Please try again.");
+        setVenues(Array.isArray(venuesRes.data) ? venuesRes.data : venuesRes.data.venues || []);
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+        setError("Failed to load data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
-  const validateForm = () => {
-    const errors: Record<string, string> = {}; // More specific type than 'any'
-    if (!name || name.length < 3 || name.length > 255) {
-      errors.name = "Name must be between 3 and 255 characters.";
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!name.trim()) {
+      errors.name = "Event name is required";
     }
+
     if (!venueId) {
-      errors.venueId = "Please select a venue.";
+      errors.venueId = "Please select a venue";
     }
+
     if (!scheduledDate) {
-      errors.scheduledDate = "Please select a date.";
-    } else if (new Date(scheduledDate) < new Date()) {
-      errors.scheduledDate = "Scheduled date must be in the future.";
+      errors.scheduledDate = "Scheduled date is required";
+    } else {
+      const selectedDate = new Date(scheduledDate);
+      const now = new Date();
+      if (selectedDate <= now) {
+        errors.scheduledDate = "Scheduled date must be in the future";
+      }
     }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -82,106 +93,108 @@ const CreateEvent: React.FC = () => {
     }
   };
 
-  if (loading && venues.length === 0) {
-    return <LoadingSpinner text="Loading creation form..." />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="p-6">
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-200"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900 ml-2">
-          Create New Event
-        </h1>
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate("/admin/events")}
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Events
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
+        </div>
+
+        {error && <ErrorMessage message={error} className="mb-6" />}
+
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Event Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Event Name *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  formErrors.name ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Enter event name"
+              />
+              {formErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
+              )}
+            </div>
+
+            {/* Venue Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Venue *
+              </label>
+              <select
+                value={venueId}
+                onChange={(e) => setVenueId(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  formErrors.venueId ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="">Select a venue</option>
+                {venues.map((venue) => (
+                  <option key={venue.id} value={venue.id}>
+                    {venue.name}
+                  </option>
+                ))}
+              </select>
+              {formErrors.venueId && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.venueId}</p>
+              )}
+            </div>
+
+            {/* Scheduled Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Scheduled Date & Time *
+              </label>
+              <input
+                type="datetime-local"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  formErrors.scheduledDate ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {formErrors.scheduledDate && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.scheduledDate}</p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => navigate("/admin/events")}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? "Creating..." : "Create Event"}
+              </button>
+            </div>
+          </form>
+        </Card>
       </div>
-
-      <Card className="p-6 max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Event Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${formErrors.name ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            />
-            {formErrors.name && (
-              <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="venueId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Venue
-            </label>
-            <select
-              id="venueId"
-              value={venueId}
-              onChange={(e) => setVenueId(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${formErrors.venueId ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            >
-              <option value="">Select a Venue</option>
-              {venues.map((venue) => (
-                <option key={venue.id} value={venue.id}>
-                  {venue.name}
-                </option>
-              ))}
-            </select>
-            {formErrors.venueId && (
-              <p className="text-xs text-red-500 mt-1">{formErrors.venueId}</p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="scheduledDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Scheduled Date
-            </label>
-            <input
-              type="datetime-local"
-              id="scheduledDate"
-              value={scheduledDate}
-              onChange={(e) => setScheduledDate(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${formErrors.scheduledDate ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            />
-            {formErrors.scheduledDate && (
-              <p className="text-xs text-red-500 mt-1">
-                {formErrors.scheduledDate}
-              </p>
-            )}
-          </div>
-
-          {/* Operator selection removed */}
-
-          {error && <ErrorMessage error={error} />}
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? <LoadingSpinner text="Creating..." /> : "Create Event"}
-            </button>
-          </div>
-        </form>
-      </Card>
     </div>
   );
 };

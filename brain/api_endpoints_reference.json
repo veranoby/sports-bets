@@ -1,0 +1,275 @@
+{
+  "metadata": {
+    "purpose": "Comprehensive API endpoint reference for GalloBets platform",
+    "created": "2025-09-27",
+    "version": "1.0",
+    "critical_note": "NEVER change these endpoints without updating this documentation",
+    "validation_command": "npm run test:api-endpoints"
+  },
+
+  "base_configuration": {
+    "backend_url": "http://localhost:3001",
+    "api_prefix": "/api",
+    "authentication": "Bearer token in Authorization header",
+    "content_type": "application/json"
+  },
+
+  "authentication_endpoints": {
+    "login": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": {"login": "string", "password": "string"},
+      "response": {"success": true, "data": {"token": "jwt", "user": "object"}},
+      "auth_required": false
+    },
+    "check_membership": {
+      "method": "POST",
+      "path": "/auth/check-membership-status",
+      "auth_required": true
+    }
+  },
+
+  "user_endpoints": {
+    "get_profile": {
+      "method": "GET",
+      "path": "/users/profile",
+      "response": {"success": true, "data": {"user": "object"}},
+      "auth_required": true,
+      "note": "CRITICAL: Route MUST be before /:id to avoid UUID parsing"
+    },
+    "update_profile": {
+      "method": "PUT",
+      "path": "/users/profile",
+      "body": {"profileInfo": "object"},
+      "auth_required": true,
+      "special_features": {
+        "data_synchronization": "Automatically syncs venue/gallera profile data to dedicated tables",
+        "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
+        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
+        "display_logic": "venue/gallera names replace username in headers and profile display"
+      }
+    },
+    "list_users": {
+      "method": "GET",
+      "path": "/users",
+      "query_params": ["limit", "offset", "role", "isActive", "search"],
+      "auth_required": true,
+      "roles": ["admin", "operator"]
+    },
+    "get_user_by_id": {
+      "method": "GET",
+      "path": "/users/:id",
+      "auth_required": true
+    },
+    "create_user": {
+      "method": "POST",
+      "path": "/users",
+      "body": {"username": "string", "email": "string", "password": "string", "role": "string"},
+      "auth_required": true,
+      "roles": ["admin", "operator"]
+    }
+  },
+
+  "venue_endpoints": {
+    "CRITICAL_NOTE": "Frontend MUST use /venues NOT /users?role=venue",
+    "list_venues": {
+      "method": "GET",
+      "path": "/venues",
+      "query_params": ["limit", "offset", "search"],
+      "response": {"success": true, "data": {"venues": "array", "total": "number"}},
+      "auth_required": false,
+      "middleware": "optionalAuth"
+    },
+    "create_venue": {
+      "method": "POST",
+      "path": "/venues",
+      "auth_required": true
+    },
+    "update_venue": {
+      "method": "PUT",
+      "path": "/venues/:id",
+      "auth_required": true
+    }
+  },
+
+  "gallera_endpoints": {
+    "CRITICAL_NOTE": "Frontend MUST use /galleras NOT /users?role=gallera",
+    "list_galleras": {
+      "method": "GET",
+      "path": "/galleras",
+      "query_params": ["limit", "offset", "search"],
+      "response": {"success": true, "data": {"galleras": "array", "total": "number"}},
+      "auth_required": false,
+      "middleware": "optionalAuth"
+    },
+    "create_gallera": {
+      "method": "POST",
+      "path": "/galleras",
+      "auth_required": true
+    },
+    "update_gallera": {
+      "method": "PUT",
+      "path": "/galleras/:id",
+      "auth_required": true
+    }
+  },
+
+  "article_endpoints": {
+    "CRITICAL_NOTE": "Route order matters: /featured MUST come before /:id",
+    "list_articles": {
+      "method": "GET",
+      "path": "/articles",
+      "query_params": ["search", "venueId", "status", "limit", "offset"],
+      "auth_required": false,
+      "middleware": "optionalAuth"
+    },
+    "featured_articles": {
+      "method": "GET",
+      "path": "/articles/featured",
+      "query_params": ["limit", "type"],
+      "response": {"success": true, "data": {"articles": "array", "type": "string", "total": "number"}},
+      "auth_required": false,
+      "route_order": "MUST be before /:id route"
+    },
+    "get_article": {
+      "method": "GET",
+      "path": "/articles/:id",
+      "auth_required": false,
+      "middleware": "optionalAuth"
+    },
+    "create_article": {
+      "method": "POST",
+      "path": "/articles",
+      "body": {"title": "string", "content": "string", "excerpt": "string"},
+      "auth_required": true,
+      "roles": ["admin", "gallera", "user"]
+    }
+  },
+
+  "event_endpoints": {
+    "list_events": {
+      "method": "GET",
+      "path": "/events",
+      "auth_required": false,
+      "middleware": "optionalAuth"
+    },
+    "get_event": {
+      "method": "GET",
+      "path": "/events/:id",
+      "auth_required": false
+    },
+    "create_event": {
+      "method": "POST",
+      "path": "/events",
+      "auth_required": true
+    }
+  },
+
+  "bet_endpoints": {
+    "my_bets": {
+      "method": "GET",
+      "path": "/bets/my-bets",
+      "auth_required": true
+    },
+    "create_bet": {
+      "method": "POST",
+      "path": "/bets",
+      "auth_required": true
+    },
+    "compatible_bets": {
+      "method": "GET",
+      "path": "/bets/compatible",
+      "query_params": ["fightId", "side", "minAmount", "maxAmount"],
+      "auth_required": true
+    }
+  },
+
+  "wallet_endpoints": {
+    "get_balance": {
+      "method": "GET",
+      "path": "/wallet/balance",
+      "auth_required": true
+    },
+    "add_funds": {
+      "method": "POST",
+      "path": "/wallet/add-funds",
+      "body": {"amount": "number"},
+      "auth_required": true
+    },
+    "get_transactions": {
+      "method": "GET",
+      "path": "/wallet/transactions",
+      "auth_required": true
+    }
+  },
+
+  "system_endpoints": {
+    "health_check": {
+      "method": "GET",
+      "path": "/health",
+      "auth_required": false
+    },
+    "get_alerts": {
+      "method": "GET",
+      "path": "/system/alerts",
+      "auth_required": true
+    },
+    "get_live_stats": {
+      "method": "GET",
+      "path": "/system/stats",
+      "auth_required": true
+    }
+  },
+
+  "common_mistakes_to_avoid": {
+    "wrong_venue_endpoint": {
+      "NEVER_USE": "/users?role=venue",
+      "ALWAYS_USE": "/venues",
+      "reason": "Dedicated endpoints exist with proper data structure"
+    },
+    "wrong_gallera_endpoint": {
+      "NEVER_USE": "/users?role=gallera",
+      "ALWAYS_USE": "/galleras",
+      "reason": "Dedicated endpoints exist with proper data structure"
+    },
+    "route_ordering": {
+      "CRITICAL": "Specific routes (/featured) MUST come before parameterized routes (/:id)",
+      "example": "articles/featured before articles/:id"
+    },
+    "profile_route": {
+      "CRITICAL": "/users/profile MUST come before /users/:id",
+      "reason": "Prevents 'profile' being parsed as UUID"
+    }
+  },
+
+  "frontend_api_client_patterns": {
+    "import_pattern": "import { venuesAPI, gallerasAPI, userAPI } from '../../services/api'",
+    "correct_usage": {
+      "venues": "const response = await venuesAPI.getAll();",
+      "galleras": "const response = await gallerasAPI.getAll();",
+      "users": "const response = await userAPI.getAll({ role: 'admin' });"
+    },
+    "data_access_patterns": {
+      "venues": "response.data.venues",
+      "galleras": "response.data.galleras",
+      "users": "response.data.users"
+    }
+  },
+
+  "testing_endpoints": {
+    "quick_validation": {
+      "venues": "curl -X GET http://localhost:3001/api/venues",
+      "galleras": "curl -X GET http://localhost:3001/api/galleras",
+      "articles_featured": "curl -X GET 'http://localhost:3001/api/articles/featured?limit=5&type=banner'",
+      "profile": "curl -X GET http://localhost:3001/api/users/profile -H 'Authorization: Bearer TOKEN'"
+    }
+  },
+
+  "prevention_checklist": [
+    "✅ Check this documentation before changing any API calls",
+    "✅ Test endpoints with curl before committing",
+    "✅ Run npm run build && npm start to verify compiled changes",
+    "✅ Verify frontend can load data from correct endpoints",
+    "✅ Never change API calls during ESLint/TypeScript optimizations"
+  ]
+}

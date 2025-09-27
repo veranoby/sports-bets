@@ -309,7 +309,7 @@ const LocalStreamPlayer: React.FC<LocalStreamPlayerProps> = ({
               <div className="text-sm mb-4">{error}</div>
               <button 
                 onClick={refreshStream}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 Retry Connection
               </button>
@@ -446,7 +446,7 @@ const StreamingTest: React.FC = () => {
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-r hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 bg-blue-400 text-white rounded-r hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       Use
                     </button>

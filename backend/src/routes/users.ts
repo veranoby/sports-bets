@@ -7,6 +7,30 @@ import { Op } from "sequelize";
 
 const router = Router();
 
+// GET /api/users/profile - Obtener perfil propio (DEBE ir ANTES de rutas con parámetros)
+router.get(
+  "/profile",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+
+    const user = await User.findByPk(userId, {
+      attributes: {
+        exclude: ["passwordHash", "verificationToken"],
+      },
+    });
+
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    res.json({
+      success: true,
+      data: { user: user.toPublicJSON() },
+    });
+  })
+);
+
 // GET /api/users - Listar usuarios (admin/operator)
 router.get(
   "/",
@@ -128,16 +152,14 @@ router.put(
     body("profileInfo.phoneNumber")
       .optional()
       .matches(/^\+?[\d\s\-\(\)]+$/)
-      .withMessage("Invalid phone number format")
-      .isLength({ min: 10, max: 20 })
-      .withMessage("Phone number must be between 10 and 20 characters"),
+      .withMessage("Invalid phone number format"),
     body("profileInfo.address")
       .optional()
       .isLength({ max: 500 })
       .withMessage("Address must be less than 500 characters")
       .trim(),
     body("profileInfo.businessName")
-      .optional()
+      .optional({ nullable: true, checkFalsy: true })
       .isLength({ min: 2, max: 100 })
       .withMessage("Business name must be between 2 and 100 characters")
       .trim()
@@ -193,6 +215,87 @@ router.put(
     try {
       await user.save();
       console.log('User saved successfully');
+
+      // Synchronize with venue/gallera tables if role matches
+      if (profileInfo && user.role === 'venue' && profileInfo.venueName) {
+        try {
+          const { Venue } = require('../models');
+          let venue = await Venue.findOne({ where: { ownerId: user.id } });
+
+          if (venue) {
+            // Update existing venue
+            await venue.update({
+              name: profileInfo.venueName,
+              location: profileInfo.venueLocation || venue.location,
+              description: profileInfo.venueDescription || venue.description,
+              contactInfo: {
+                ...venue.contactInfo,
+                email: profileInfo.venueEmail || venue.contactInfo?.email,
+                website: profileInfo.venueWebsite || venue.contactInfo?.website,
+              }
+            });
+            console.log('Venue data synchronized with user profile');
+          } else if (profileInfo.venueName && profileInfo.venueLocation) {
+            // Create new venue record
+            await Venue.create({
+              name: profileInfo.venueName,
+              location: profileInfo.venueLocation,
+              description: profileInfo.venueDescription || '',
+              ownerId: user.id,
+              contactInfo: {
+                email: profileInfo.venueEmail,
+                website: profileInfo.venueWebsite,
+              }
+            });
+            console.log('New venue record created from user profile');
+          }
+        } catch (venueError) {
+          console.error('Error synchronizing venue data:', venueError);
+          // Don't fail the whole request if venue sync fails
+        }
+      }
+
+      if (profileInfo && user.role === 'gallera' && profileInfo.galleraName) {
+        try {
+          const { Gallera } = require('../models');
+          let gallera = await Gallera.findOne({ where: { ownerId: user.id } });
+
+          if (gallera) {
+            // Update existing gallera
+            await gallera.update({
+              name: profileInfo.galleraName,
+              location: profileInfo.galleraLocation || gallera.location,
+              description: profileInfo.galleraDescription || gallera.description,
+              specialties: profileInfo.galleraSpecialties ? { specialties: profileInfo.galleraSpecialties } : gallera.specialties,
+              activeRoosters: profileInfo.galleraActiveRoosters || gallera.activeRoosters,
+              contactInfo: {
+                ...gallera.contactInfo,
+                email: profileInfo.galleraEmail || gallera.contactInfo?.email,
+                website: profileInfo.galleraWebsite || gallera.contactInfo?.website,
+              }
+            });
+            console.log('Gallera data synchronized with user profile');
+          } else if (profileInfo.galleraName && profileInfo.galleraLocation) {
+            // Create new gallera record
+            await Gallera.create({
+              name: profileInfo.galleraName,
+              location: profileInfo.galleraLocation,
+              description: profileInfo.galleraDescription || '',
+              ownerId: user.id,
+              specialties: profileInfo.galleraSpecialties ? { specialties: profileInfo.galleraSpecialties } : null,
+              activeRoosters: profileInfo.galleraActiveRoosters || 0,
+              contactInfo: {
+                email: profileInfo.galleraEmail,
+                website: profileInfo.galleraWebsite,
+              }
+            });
+            console.log('New gallera record created from user profile');
+          }
+        } catch (galleraError) {
+          console.error('Error synchronizing gallera data:', galleraError);
+          // Don't fail the whole request if gallera sync fails
+        }
+      }
 
       res.json({
         success: true,

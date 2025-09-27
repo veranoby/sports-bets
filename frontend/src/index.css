@@ -9,8 +9,8 @@
 /* ✅ CSS VARIABLES GLOBALES - GALLEROS.NET LIGHT THEME */
 :root {
   /* Primary Colors */
-  --color-primary: #6b9bd1;
-  --color-primary-dark: #5a89bf;
+  --color-primary: #8ba3bc7e;
+  --color-primary-dark: #496280;
   --color-primary-light: #8fb4dd;
   --color-secondary: #7fc29b;
   --color-secondary-dark: #6daf87;
@@ -21,10 +21,10 @@
   --color-bg-main: #ffffff;
   --color-bg-card: #f8fafc;
   --color-bg-header: #ffffff;
-  --color-bg-hover: #f1f5f9;
+  --color-bg-hover: #b3b3b3;
 
   /* Borders */
-  --color-border-primary: #e5e7eb;
+  --color-border-primary: #bdd5ef75;
   --color-border-secondary: #d1d5db;
 
   /* Text Colors */

@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const baseClasses = "px-4 py-2 rounded font-medium transition-colors";
   const variantClasses = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300",
+    primary: "bg-blue-400 text-white hover:bg-blue-700 disabled:bg-blue-300",
     secondary: "bg-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-300",
     danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300",
   };
@@ -80,7 +80,7 @@ describe("Button Component", () => {
 
   it("applies correct variant classes", () => {
     const { rerender } = render(<Button variant="primary">Primary</Button>);
-    expect(screen.getByTestId("button")).toHaveClass("bg-blue-600");
+    expect(screen.getByTestId("button")).toHaveClass("bg-blue-400");
 
     rerender(<Button variant="danger">Danger</Button>);
     expect(screen.getByTestId("button")).toHaveClass("bg-red-600");

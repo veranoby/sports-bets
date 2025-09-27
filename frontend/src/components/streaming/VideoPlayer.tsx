@@ -99,7 +99,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = (props) => {
             </p>
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Mejorar Plan
             </button>

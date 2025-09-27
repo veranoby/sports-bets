@@ -75,20 +75,20 @@ const AdminMonitoringPage: React.FC = () => {
 
       setAlerts(
         alertsRes.success
-          ? alertsRes.data?.filter(
+          ? (alertsRes.data as AlertItem[] || []).filter(
               (alert: AlertItem) =>
                 alert.service.toLowerCase().includes("stream") ||
                 alert.service.toLowerCase().includes("rtmp"),
-            ) || []
+            )
           : [],
       );
       setLiveStats({
-        ...(statsRes.success ? statsRes.data : {}),
-        activeUsers: statsRes.success ? statsRes.data?.activeUsers || 0 : 0,
-        liveEvents: statsRes.success ? statsRes.data?.liveEvents || 0 : 0,
+        ...(statsRes.success ? (statsRes.data as any) : {}),
+        activeUsers: statsRes.success ? (statsRes.data as any)?.activeUsers || 0 : 0,
+        liveEvents: statsRes.success ? (statsRes.data as any)?.liveEvents || 0 : 0,
         activeBets: 0,
         connectionCount: statsRes.success
-          ? statsRes.data?.connectionCount || 0
+          ? (statsRes.data as any)?.connectionCount || 0
           : 0,
         requestsPerMinute: 0,
         errorRate: 0,
@@ -99,8 +99,8 @@ const AdminMonitoringPage: React.FC = () => {
       const statsRes = await systemAPI.getLiveStats();
 
       if (alertsRes.success && statsRes.success) {
-        setAlerts(alertsRes.data);
-        setLiveStats(statsRes.data);
+        setAlerts(alertsRes.data as AlertItem[]);
+        setLiveStats(statsRes.data as LiveStats);
       } else {
         setError("Error al cargar datos iniciales de monitoreo");
         setAlerts([]);
@@ -112,264 +112,347 @@ const AdminMonitoringPage: React.FC = () => {
     setLoading(false);
   }, [isOperator]);
 
-  // Fetch inicial
+  // Polling cada 5 segundos para datos en tiempo real
   useEffect(() => {
     fetchInitialData();
+    const interval = setInterval(fetchInitialData, 5000);
+    return () => clearInterval(interval);
   }, [fetchInitialData]);
 
-  // Export report
-  const exportSystemReport = () => {
-    const report = {
-      timestamp: new Date().toISOString(),
-      alerts: alerts.filter((a) => !a.resolved),
-      liveStats,
+  // Resolver alerta individual
+  const resolveAlert = useCallback(async (alertId: string) => {
+    setAlerts((prev) =>
+      prev.map((alert) =>
+        alert.id === alertId ? { ...alert, resolved: true } : alert,
+      ),
+    );
+  }, []);
+
+  // Obtener color según nivel de alerta
+  const getAlertColor = (level: string) => {
+    switch (level) {
+      case "critical":
+        return "text-red-500 bg-red-50 border-red-200";
+      case "warning":
+        return "text-yellow-500 bg-yellow-50 border-yellow-200";
+      case "info":
+        return "text-blue-500 bg-blue-50 border-blue-200";
+      default:
+        return "text-gray-500 bg-gray-50 border-gray-200";
+    }
+  };
+
+  // Exportar datos de monitoreo (solo admin)
+  const exportMonitoringData = useCallback(() => {
+    const data = {
+      alerts: alerts.filter((alert) => !alert.resolved),
+      stats: liveStats,
+      exportedAt: new Date().toISOString(),
     };
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `system_report_${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `monitoring-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
-  };
+    URL.revokeObjectURL(url);
+  }, [alerts, liveStats]);
 
-  const getAlertColor = (level: string) => {
-    switch (level) {
-      case "critical":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "warning":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "info":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  if (loading) {
-    return <LoadingSpinner text="Cargando monitoreo del sistema..." />;
-  }
+  if (loading) return <LoadingSpinner text="Cargando monitoreo..." />;
+  if (error) return <ErrorMessage error={error} onRetry={fetchInitialData} />;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header con título y controles */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Activity className="w-6 h-6 text-blue-600" />
               Monitoreo del Sistema
             </h1>
-            <p className="text-gray-600">
-              Estado general • Datos actualizados en tiempo real
+            <p className="text-sm text-gray-600 mt-1">
+              Última actualización:{" "}
+              {lastUpdate.toLocaleTimeString("es-ES", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={exportSystemReport}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Exportar
-            </button>
+            {!isOperator && (
+              <button
+                onClick={exportMonitoringData}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                <Download className="w-4 h-4" />
+                Exportar Datos
+              </button>
+            )}
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-lg text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-green-700 font-medium">En Vivo</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {error && (
-        <ErrorMessage
-          error={error}
-          onRetry={fetchInitialData}
-          className="mb-6"
-        />
-      )}
-
-      {/* Estadísticas en vivo */}
-      {liveStats && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <Card
-            variant="stat"
-            title="Usuarios Activos"
-            value={liveStats.activeUsers.toLocaleString()}
-            color="blue"
-            icon={<Users className="w-5 h-5" />}
-          />
-          <Card
-            variant="stat"
-            title="Eventos Live"
-            value={liveStats.liveEvents}
-            color="red"
-            icon={<Activity className="w-5 h-5" />}
-          />
-          <Card
-            variant="stat"
-            title="Apuestas Activas"
-            value={liveStats.activeBets.toLocaleString()}
-            color="yellow"
-            icon={<Zap className="w-5 h-5" />}
-          />
-          <Card
-            variant="stat"
-            title="Conexiones SSE"
-            value={liveStats.connectionCount}
-            color="green"
-            icon={<Wifi className="w-5 h-5" />}
-          />
-          <Card
-            variant="stat"
-            title="Req/min"
-            value={liveStats.requestsPerMinute.toLocaleString()}
-            color="purple"
-            icon={<Zap className="w-5 h-5" />}
-          />
-          <Card
-            variant="stat"
-            title="Error Rate"
-            value={`${liveStats.errorRate}%`}
-            color={liveStats.errorRate > 1 ? "red" : "green"}
-            icon={<AlertTriangle className="w-5 h-5" />}
-          />
-        </div>
-      )}
-
-      <SSEErrorBoundary>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {!isOperator && <LiveSystemStatus />}
-          <LiveEventMonitor />
-        </div>
-      </SSEErrorBoundary>
-
-      {/* Alertas y logs */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Alertas del Sistema
-          </h3>
-          <span className="text-sm text-gray-600">
-            {alerts.filter((a) => !a.resolved).length} activas
-          </span>
-        </div>
-
-        <div className="space-y-3">
-          {alerts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <p>No hay alertas activas</p>
-            </div>
-          ) : (
-            alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`p-4 rounded-lg border ${getAlertColor(
-                  alert.level,
-                )} ${alert.resolved ? "opacity-60" : ""}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">
-                        {alert.service}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded-full ${
-                          alert.level === "critical"
-                            ? "bg-red-600 text-white"
-                            : alert.level === "warning"
-                              ? "bg-yellow-600 text-white"
-                              : "bg-blue-600 text-white"
-                        }`}
-                      >
-                        {alert.level}
-                      </span>
-                      {alert.resolved && (
-                        <span className="px-2 py-0.5 text-xs bg-green-600 text-white rounded-full">
-                          Resuelto
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm mb-1">{alert.message}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(alert.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedAlert(alert)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
+        {/* Métricas principales */}
+        {liveStats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Usuarios Activos</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {liveStats.activeUsers}
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <Users className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </Card>
+            </Card>
 
-      {/* Modal detalle alerta */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Eventos en Vivo</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {liveStats.liveEvents}
+                  </p>
+                </div>
+                <div className="p-3 bg-red-50 rounded-lg">
+                  <Zap className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+            </Card>
+
+            {!isOperator && (
+              <>
+                <Card className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Apuestas Activas</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {liveStats.activeBets}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <Activity className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Conexiones</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {liveStats.connectionCount}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <Wifi className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Req/min</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {liveStats.requestsPerMinute}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-yellow-50 rounded-lg">
+                      <Clock className="w-6 h-6 text-yellow-600" />
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Tasa Error</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {(liveStats.errorRate * 100).toFixed(2)}%
+                      </p>
+                    </div>
+                    <div className="p-3 bg-red-50 rounded-lg">
+                      <AlertTriangle className="w-6 h-6 text-red-600" />
+                    </div>
+                  </div>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Grid principal con SSE Boundary */}
+        <SSEErrorBoundary>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Estado de Servicios */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  Estado de Servicios
+                </h2>
+              </div>
+              <LiveSystemStatus {...({ restricted: isOperator } as any)} />
+            </Card>
+
+            {/* Monitor de Eventos en Vivo */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-purple-600" />
+                  Eventos en Vivo
+                </h2>
+              </div>
+              <LiveEventMonitor {...({ restricted: isOperator } as any)} />
+            </Card>
+          </div>
+        </SSEErrorBoundary>
+
+        {/* Alertas Recientes */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              Alertas Recientes
+              {alerts.filter((alert) => !alert.resolved).length > 0 && (
+                <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                  {alerts.filter((alert) => !alert.resolved).length} activas
+                </span>
+              )}
+            </h2>
+          </div>
+
+          {alerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
+              <p>No hay alertas activas</p>
+              <p className="text-sm mt-1">Todos los servicios funcionan correctamente</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {alerts
+                .filter((alert) => !alert.resolved)
+                .slice(0, 10)
+                .map((alert) => (
+                  <div
+                    key={alert.id}
+                    className={`p-4 border rounded-lg ${getAlertColor(alert.level)}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          {alert.level === "critical" && (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                          {alert.level === "warning" && (
+                            <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                          )}
+                          {alert.level === "info" && (
+                            <CheckCircle className="w-4 h-4 text-blue-500" />
+                          )}
+                          <span className="font-medium capitalize">
+                            {alert.level}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            • {alert.service}
+                          </span>
+                        </div>
+                        <p className="text-sm mb-2">{alert.message}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(alert.timestamp).toLocaleString("es-ES")}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => resolveAlert(alert.id)}
+                        className="ml-4 p-1 hover:bg-white/50 rounded transition-colors"
+                        title="Marcar como resuelto"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Modal de detalle de alerta */}
       {selectedAlert && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Detalle de Alerta
-              </h2>
+              </h3>
               <button
                 onClick={() => setSelectedAlert(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Servicio
-                </label>
-                <p className="text-sm text-gray-900">{selectedAlert.service}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Nivel
-                </label>
+                <span className="text-sm font-medium text-gray-600">Nivel:</span>
                 <span
-                  className={`inline-block px-2 py-1 text-xs rounded-full ${
-                    selectedAlert.level === "critical"
-                      ? "bg-red-600 text-white"
-                      : selectedAlert.level === "warning"
-                        ? "bg-yellow-600 text-white"
-                        : "bg-blue-600 text-white"
-                  }`}
+                  className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getAlertColor(selectedAlert.level)}`}
                 >
                   {selectedAlert.level}
                 </span>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Mensaje
-                </label>
-                <p className="text-sm text-gray-900">{selectedAlert.message}</p>
+                <span className="text-sm font-medium text-gray-600">Servicio:</span>
+                <span className="ml-2 text-sm text-gray-900">
+                  {selectedAlert.service}
+                </span>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Timestamp
-                </label>
-                <p className="text-sm text-gray-900">
-                  {new Date(selectedAlert.timestamp).toLocaleString()}
+                <span className="text-sm font-medium text-gray-600">Mensaje:</span>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedAlert.message}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Estado
-                </label>
-                <p className="text-sm text-gray-900">
-                  {selectedAlert.resolved ? "Resuelto" : "Activo"}
-                </p>
+                <span className="text-sm font-medium text-gray-600">Timestamp:</span>
+                <span className="ml-2 text-sm text-gray-900">
+                  {new Date(selectedAlert.timestamp).toLocaleString("es-ES")}
+                </span>
               </div>
             </div>
-          </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setSelectedAlert(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => {
+                  resolveAlert(selectedAlert.id);
+                  setSelectedAlert(null);
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Resolver
+              </button>
+            </div>
+          </Card>
         </div>
       )}
     </div>

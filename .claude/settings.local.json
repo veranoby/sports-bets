@@ -79,7 +79,9 @@
       "Bash(NODE_ENV=development timeout 10s npm run start:dev)",
       "Bash(npx vite:*)",
       "Bash(npx:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(jq:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

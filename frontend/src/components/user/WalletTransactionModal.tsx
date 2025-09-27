@@ -283,7 +283,7 @@ const WalletTransactionModal: React.FC<WalletTransactionModalProps> = ({
         <button
           type="submit"
           disabled={loading || !amount}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-blue-400 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {config.submitText}

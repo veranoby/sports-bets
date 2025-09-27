@@ -267,7 +267,7 @@ const AdminFinancePage: React.FC = () => {
                 onClick={() => setTimePeriod(period.id)}
                 className={`px-3 py-1 rounded text-sm ${
                   timePeriod === period.id
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-400 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >

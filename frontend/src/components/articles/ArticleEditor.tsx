@@ -52,7 +52,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
       <form onSubmit={onSubmit} className="space-y-6">
         {/* Header Image Upload */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">
+          <label className="block text-sm font-medium text-gray-500">
             Imagen Destacada
           </label>
           <div className="flex items-start gap-6">
@@ -65,7 +65,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                   className="w-32 h-32 object-cover rounded-lg border border-gray-600"
                 />
               ) : (
-                <div className="w-32 h-32 bg-gray-700 rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center">
+                <div className="w-32 h-32 bg-gray-200 rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center">
                   <span className="text-gray-400 text-sm">Sin imagen</span>
                 </div>
               )}
@@ -81,7 +81,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-lg file:border-0
                   file:text-sm file:font-semibold
-                  file:bg-blue-600 file:text-white
+                  file:bg-blue-400 file:text-white
                   hover:file:bg-blue-700
                   file:cursor-pointer"
               />
@@ -177,7 +177,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex-1 px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {submitting
               ? isEditing

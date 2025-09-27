@@ -1,10 +1,11 @@
 import React from "react";
-import { AlertCircle, RefreshCw, Settings, Lock } from "lucide-react";
+import { AlertCircle, RefreshCw, Settings, Lock, X } from "lucide-react";
 
 interface ErrorMessageProps {
   error?: string;
   message?: string; // Alternative prop name used in Notifications.tsx
   onRetry?: () => void;
+  onClose?: () => void;
   className?: string;
 }
 
@@ -12,6 +13,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
   message,
   onRetry,
+  onClose,
   className = "",
 }) => {
   // Use either error or message prop
@@ -68,6 +70,11 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </button>
           )}
         </div>
+        {onClose && (
+          <button onClick={onClose} className="ml-4">
+            <X className="w-5 h-5 text-red-600" />
+          </button>
+        )}
       </div>
     </div>
   );

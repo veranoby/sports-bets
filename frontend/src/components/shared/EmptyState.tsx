@@ -33,7 +33,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       return (
         <Link
           to={buttonLink}
-          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          className="inline-block bg-blue-400 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
         >
           {buttonText}
         </Link>

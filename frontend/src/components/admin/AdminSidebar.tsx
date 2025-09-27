@@ -115,7 +115,7 @@ const AdminSidebar: React.FC = () => {
                   to={item.path}
                   className={`flex items-center p-2 rounded-lg ${
                     isActive
-                      ? "bg-blue-600 text-white"
+                      ? "bg-blue-400 text-white"
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   }`}
                 >

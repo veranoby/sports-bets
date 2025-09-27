@@ -418,7 +418,7 @@ const SubscriptionManager: React.FC = () => {
                           }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                             subscription.autoRenew
-                              ? "bg-blue-600"
+                              ? "bg-blue-400"
                               : "bg-gray-200"
                           } ${togglingRenew ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
@@ -468,7 +468,7 @@ const SubscriptionManager: React.FC = () => {
                   <div className="mt-6 pt-6 border-t border-gray-200 flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={() => setActiveTab("plans")}
-                      className="flex items-center justify-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex items-center justify-center px-6 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       Upgrade Plan
@@ -497,7 +497,7 @@ const SubscriptionManager: React.FC = () => {
               </p>
               <button
                 onClick={() => setActiveTab("plans")}
-                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Crown className="w-5 h-5 mr-2" />
                 View Plans

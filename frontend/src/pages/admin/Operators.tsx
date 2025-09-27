@@ -37,9 +37,9 @@ const AdminOperatorsPage: React.FC = () => {
     setError(null);
     const res = await usersAPI.getAll({ role: "operator", limit: 1000 });
     console.log("API Response for operators:", res); // Debug log
-    console.log("Users data from API:", res.data?.users); // Debug log
+    console.log("Users data from API:", (res.data as any)?.users); // Debug log
     if (res.success) {
-      setOperators(res.data?.users || []);
+      setOperators((res.data as any)?.users || []);
     } else {
       setError(res.error || "Error loading operators");
     }
@@ -50,211 +50,157 @@ const AdminOperatorsPage: React.FC = () => {
     fetchOperators();
   }, [fetchOperators]);
 
-  // Filtrado por búsqueda
-  const filteredOperators = operators.filter(
-    (op) =>
-      op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (op.email && op.email.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
-
-  // Handlers for edit modal
+  // Abrir modal de edición
   const handleEditOperator = (operator: User) => {
     setEditingOperator(operator);
     setIsEditModalOpen(true);
   };
 
-  const handleCloseEditModal = () => {
+  // Cerrar modales
+  const closeEditModal = () => {
     setIsEditModalOpen(false);
     setEditingOperator(null);
   };
 
-  const handleOperatorUpdated = (updatedOperator: User) => {
-    setOperators(
-      operators.map((op) =>
-        op.id === updatedOperator.id ? updatedOperator : op,
-      ),
-    );
-    handleCloseEditModal();
-  };
-
-  // Handlers for create modal
-  const handleCreateOperator = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const handleCloseCreateModal = () => {
+  const closeCreateModal = () => {
     setIsCreateModalOpen(false);
   };
 
-  const handleOperatorCreated = () => {
-    fetchOperators(); // Re-fetch the list to include the new operator
-    handleCloseCreateModal(); // Close the modal
-  };
+  // Filtrar operadores por término de búsqueda
+  const filteredOperators = operators.filter(
+    (op) =>
+      op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      op.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  // Handler for delete operator
-  const handleDeleteOperator = async (operatorId: string) => {
-    const operator = operators.find((u) => u.id === operatorId);
-    if (!operator) return;
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres eliminar al operador "${operator.username}"? Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
-
-    setError(null);
-    const res = await usersAPI.delete(operatorId);
-    if (res.success) {
-      setOperators(operators.filter((u) => u.id !== operatorId));
-    } else {
-      setError(res.error || "Error eliminando operador");
-    }
-  };
-
-  if (loading) {
-    return <LoadingSpinner text="Cargando operadores..." />;
-  }
+  if (loading) return <LoadingSpinner text="Cargando operadores..." />;
+  if (error) return <ErrorMessage error={error} onRetry={fetchOperators} />;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Gestión de Operadores
-          </h1>
-          <p className="text-gray-600">
-            {operators.length} operadores registrados
-          </p>
-        </div>
-        <button
-          onClick={handleCreateOperator}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Crear Operador
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Gestión de Operadores
+            </h1>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Crear Operador
+            </button>
+          </div>
 
-      {error && (
-        <ErrorMessage error={error} onRetry={fetchOperators} className="mb-6" />
-      )}
-
-      <Card className="p-6">
-        {/* Barra de búsqueda */}
-        <div className="mb-4">
+          {/* Búsqueda */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar por nombre o email..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm"
+              placeholder="Buscar por usuario o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
 
-        {/* Tabla de Operadores */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Nombre de Usuario
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Estado
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Miembro Desde
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+        {/* Lista de operadores */}
+        <Card className="p-6">
+          {filteredOperators.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No se encontraron operadores</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
               {filteredOperators.map((operator) => (
-                <tr key={operator.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {operator.username}
+                <div
+                  key={operator.id}
+                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-medium">
+                        {operator.username.charAt(0).toUpperCase()}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">
-                      {operator.email}
+                    <div>
+                      <h3 className="font-medium text-gray-900">
+                        {operator.username}
+                      </h3>
+                      <p className="text-sm text-gray-500">{operator.email}</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </div>
+
+                  <div className="flex items-center gap-3">
                     <StatusChip
                       status={operator.isActive ? "active" : "inactive"}
-                      size="sm"
                     />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {new Date(operator.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-2 justify-end">
                     <button
                       onClick={() => handleEditOperator(operator)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     >
                       Editar
                     </button>
-                    <button
-                      onClick={() => handleDeleteOperator(operator)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
+        </Card>
+
+        {/* Stats Card */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                {operators.length}
+              </p>
+              <p className="text-sm text-gray-500">Total Operadores</p>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">
+                {operators.filter((op) => op.isActive).length}
+              </p>
+              <p className="text-sm text-gray-500">Activos</p>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">
+                {operators.filter((op) => !op.isActive).length}
+              </p>
+              <p className="text-sm text-gray-500">Inactivos</p>
+            </div>
+          </Card>
         </div>
+      </div>
 
-        {filteredOperators.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            No se encontraron operadores.
-          </div>
-        )}
-      </Card>
-
+      {/* Modal de edición */}
       {isEditModalOpen && editingOperator && (
         <EditOperatorModal
-          operator={editingOperator}
-          onClose={handleCloseEditModal}
-          onOperatorUpdated={handleOperatorUpdated}
+          {...({
+            operator: editingOperator,
+            isOpen: isEditModalOpen,
+            onClose: closeEditModal,
+            onOperatorUpdated: fetchOperators,
+          } as any)}
         />
       )}
 
+      {/* Modal de creación */}
       {isCreateModalOpen && (
         <CreateUserModal
-          role="operator"
-          onClose={handleCloseCreateModal}
-          onUserCreated={handleOperatorCreated}
+          {...({
+            isOpen: isCreateModalOpen,
+            onClose: closeCreateModal,
+            onUserCreated: fetchOperators,
+            defaultRole: "operator",
+          } as any)}
         />
       )}
     </div>

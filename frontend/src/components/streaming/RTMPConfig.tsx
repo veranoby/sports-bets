@@ -264,7 +264,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
             <button
               onClick={generateStreamKey}
               disabled={generating || !eventId}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-400 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <>

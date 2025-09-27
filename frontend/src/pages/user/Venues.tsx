@@ -18,7 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../services/api";
+import { usersAPI, articlesAPI, venuesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
@@ -182,28 +182,26 @@ const VenuesPage: React.FC = () => {
     const fetchVenues = async () => {
       try {
         setLoading(true);
-        const response = await usersAPI.getAll({ role: "venue" });
+        const response = await venuesAPI.getAll();
         if (response.success) {
           const venueProfiles = await Promise.all(
-            ((response.data as { users: VenueUser[] })?.users || []).map(
-              async (user: VenueUser) => {
+            ((response.data as { venues: any[] })?.venues || []).map(
+              async (venue: any) => {
                 const articles = await articlesAPI.getAll({
-                  author_id: user.id,
+                  author_id: venue.owner?.id,
                 });
                 return {
-                  id: user.id,
-                  name: user.profileInfo?.businessName || user.username,
-                  description: "Local para eventos de gallos",
-                  location:
-                    user.profileInfo?.businessAddress ||
-                    "Ubicación no especificada",
+                  id: venue.id,
+                  name: venue.name,
+                  description: venue.description || "Local para eventos de gallos",
+                  location: venue.location || "Ubicación no especificada",
                   imageUrl: undefined,
                   articlesCount: articles.success
                     ? (articles.data as { total: number })?.total || 0
                     : 0,
-                  establishedDate: user.createdAt,
+                  establishedDate: venue.createdAt,
                   isVerified:
-                    user.profileInfo?.verificationLevel === "full" || false,
+                    venue.owner?.profileInfo?.verificationLevel === "full" || false,
                   rating: 0,
                   activeEvents: 0,
                 };

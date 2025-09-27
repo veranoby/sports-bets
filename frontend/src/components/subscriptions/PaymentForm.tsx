@@ -283,7 +283,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                   data-testid={`card-type-${cardType}`}
                   className={`w-8 h-5 rounded ${
                     cardType === "visa"
-                      ? "bg-blue-600"
+                      ? "bg-blue-400"
                       : cardType === "mastercard"
                         ? "bg-red-600"
                         : cardType === "amex"
@@ -398,7 +398,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           type="submit"
           data-testid="submit-payment"
           disabled={!isFormValid() || processing}
-          className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+          className="w-full flex items-center justify-center py-3 px-4 bg-blue-400 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
         >
           {processing ? (
             <>

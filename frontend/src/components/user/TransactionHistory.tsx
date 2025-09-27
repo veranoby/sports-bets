@@ -138,7 +138,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="ml-2 p-2 bg-blue-600 text-white rounded">
+        <button className="ml-2 p-2 bg-blue-400 text-white rounded">
           <Search size={20} />
         </button>
       </div>
@@ -254,7 +254,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
           onClick={() =>
             handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
           }
-          className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
+          className="bg-blue-400 text-white py-2 px-4 rounded disabled:opacity-50"
           disabled={currentPage === 1}
         >
           Anterior
@@ -268,7 +268,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
               currentPage < totalPages ? currentPage + 1 : totalPages,
             )
           }
-          className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
+          className="bg-blue-400 text-white py-2 px-4 rounded disabled:opacity-50"
           disabled={currentPage === totalPages}
         >
           Siguiente

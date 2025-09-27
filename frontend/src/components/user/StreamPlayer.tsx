@@ -126,7 +126,7 @@ const StreamPlayer = () => {
               onClick={() => setQuality(q)}
               className={`block w-full text-left px-3 py-2 text-sm ${
                 quality === q
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-400 text-white"
                   : "text-gray-200 hover:bg-gray-700"
               }`}
             >

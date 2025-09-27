@@ -23,7 +23,7 @@ import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
-import { usersAPI, venuesAPI } from "../../services/api";
+import { venuesAPI } from "../../services/api";
 
 // Tipos
 import type { User as UserType, Venue as VenueType } from "../../types";
@@ -48,30 +48,27 @@ const AdminVenuesPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const usersRes = await usersAPI.getAll({ role: "venue", limit: 1000 });
-    const venuesRes = await venuesAPI.getAll({ limit: 1000 });
+    try {
+      // 1. Fetch all venues and include their owner data
+      const venuesRes = await venuesAPI.getAll({ limit: 1000, includeOwner: true });
+      if (!venuesRes.success) {
+        throw new Error(venuesRes.error || "Failed to load venues");
+      }
+      const allVenues = (venuesRes.data as any)?.venues || [];
 
-    if (usersRes.success && venuesRes.success) {
-      const venueUsers = usersRes.data?.users || [];
-      const allVenues = venuesRes.data?.venues || [];
+      // 2. Combine the data
+      const combined = allVenues.map(venue => ({
+        user: venue.owner,
+        venue: venue,
+      })).filter(item => item.user);
 
-      const venuesByOwner = new Map<string, VenueType>();
-      allVenues.forEach((venue) => {
-        if (venue.owner_id) {
-          venuesByOwner.set(venue.owner_id, venue);
-        }
-      });
+      setCombinedData(combined as CombinedVenueData[]);
 
-      const combined = venueUsers.map((user) => ({
-        user,
-        venue: venuesByOwner.get(user.id),
-      }));
-
-      setCombinedData(combined);
-    } else {
-      setError(usersRes.error || venuesRes.error || "Error loading venue data");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -94,22 +91,19 @@ const AdminVenuesPage: React.FC = () => {
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<{
-    user: UserType;
-    venue?: VenueType;
-  } | null>(null);
+  const [editingData, setEditingData] = useState<CombinedVenueData | null>(null);
 
   // Handlers para edición dual
   const handleEdit = (userId: string) => {
     const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
-      setEditingData({ user: userData.user, venue: userData.venue });
+      setEditingData(userData);
       setIsEditModalOpen(true);
     }
   };
 
   // Handler para eliminación
-  const handleDelete = async (userId: string, venueId?: string) => {
+  const handleDelete = async (venueId?: string) => {
     if (
       !window.confirm(
         "¿Estás seguro de que quieres eliminar este venue? Esta acción no se puede deshacer.",
@@ -120,20 +114,15 @@ const AdminVenuesPage: React.FC = () => {
 
     setError(null);
 
-    // Si hay venue asociado, eliminarlo primero
     if (venueId) {
       const venueRes = await venuesAPI.delete(venueId);
       if (!venueRes.success) {
         setError(venueRes.error || "Error eliminando venue");
         return;
       }
-    }
-
-    // Eliminar el usuario
-    const userRes = await usersAPI.delete(userId);
-    if (!userRes.success) {
-      setError(userRes.error || "Error eliminando usuario");
-      return;
+    } else {
+        setError("No hay venue asociado para eliminar.");
+        return;
     }
 
     // Actualizar la lista
@@ -181,7 +170,7 @@ const AdminVenuesPage: React.FC = () => {
         </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Crear Venue
@@ -259,7 +248,7 @@ const AdminVenuesPage: React.FC = () => {
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(user.id, venue?.id)}
+                  onClick={() => handleDelete(venue?.id)}
                   className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
                 >
                   <Trash2 className="w-4 h-4" />

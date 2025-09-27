@@ -357,7 +357,7 @@ const PAGODOYModal: React.FC<PAGODOYModalProps> = ({
         <div className="flex gap-2">
           <button
             onClick={sendProposal}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg"
+            className="flex-1 bg-blue-400 text-white py-2 rounded-lg"
           >
             Enviar Propuesta
           </button>
@@ -476,7 +476,7 @@ const FightControl: React.FC<{ event: Event }> = ({ event }) => {
 ### **Consistent Design System**
 ```css
 /* Button Styles */
-.btn-primary { @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors; }
+.btn-primary { @apply bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors; }
 .btn-success { @apply bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors; }
 .btn-danger { @apply bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors; }
 .btn-secondary { @apply bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors; }

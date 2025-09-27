@@ -33,7 +33,7 @@ import StatusChip from "../../components/shared/StatusChip";
 import SearchInput from "../../components/shared/SearchInput";
 
 // Tipos
-import type { Event } from "../../types";
+import type { EventData } from "../../types";
 
 // Memoizar EventCard para evitar re-renders innecesarios
 const EventCard = React.memo(
@@ -41,9 +41,10 @@ const EventCard = React.memo(
     event,
     variant = "upcoming",
   }: {
-    event: Event;
+    event: EventData;
     variant?: "upcoming" | "archived";
   }) => {
+    const navigate = useNavigate(); // Add navigate hook here
     const isLive = event.status === "in-progress";
     const { isBettingEnabled } = useFeatureFlags();
 
@@ -100,7 +101,7 @@ const EventCard = React.memo(
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
           <div className="flex items-center gap-2">
-            {isBettingEnabled && event.activeBets > 0 && (
+            {isBettingEnabled && event.activeBets && event.activeBets > 0 && (
               <span className="text-xs text-green-400">
                 {event.activeBets} apuestas activas
               </span>
@@ -148,7 +149,7 @@ const EventsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "live" | "upcoming">(
     "all",
   );
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
   // ✅ Referencia estable para fetchEvents
   const fetchEventsRef = useRef(fetchEvents);
@@ -182,7 +183,7 @@ const EventsPage: React.FC = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesStatus =
-        statusFilter === "all" || statusFilter === "archived";
+        statusFilter === "all";
       const isCompleted = event.status === "completed";
       return matchesSearch && matchesStatus && isCompleted;
     }) || [];
@@ -236,7 +237,7 @@ const EventsPage: React.FC = () => {
                     En Vivo
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events.filter((e) => e.status === "in-progress").length}
+                    {events?.filter((e) => e.status === "in-progress").length || 0}
                   </span>{" "}
                 </div>
               </div>
@@ -247,7 +248,7 @@ const EventsPage: React.FC = () => {
                     Próximos
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events.filter((e) => e.status === "scheduled").length}
+                    {events?.filter((e) => e.status === "scheduled").length || 0}
                   </span>{" "}
                 </div>
               </div>
@@ -258,7 +259,7 @@ const EventsPage: React.FC = () => {
                     Apuestas
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
+                    {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) || 0}
                   </span>{" "}
                 </div>
               </div>

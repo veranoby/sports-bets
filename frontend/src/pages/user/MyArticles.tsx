@@ -54,7 +54,7 @@ const MyArticlesPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Mis Artículos</h1>
         <Link
           to="/user/articles/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Crear Artículo
         </Link>
