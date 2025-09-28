@@ -193,7 +193,8 @@ const VenuesPage: React.FC = () => {
                 return {
                   id: venue.id,
                   name: venue.name,
-                  description: venue.description || "Local para eventos de gallos",
+                  description:
+                    venue.description || "Local para eventos de gallos",
                   location: venue.location || "Ubicación no especificada",
                   imageUrl: undefined,
                   articlesCount: articles.success
@@ -201,7 +202,8 @@ const VenuesPage: React.FC = () => {
                     : 0,
                   establishedDate: venue.createdAt,
                   isVerified:
-                    venue.owner?.profileInfo?.verificationLevel === "full" || false,
+                    venue.owner?.profileInfo?.verificationLevel === "full" ||
+                    false,
                   rating: 0,
                   activeEvents: 0,
                 };

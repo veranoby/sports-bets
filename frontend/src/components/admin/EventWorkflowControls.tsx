@@ -337,7 +337,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
           <Space>
             {event.operator ? (
               <Tag icon={<UserOutlined />} color="blue">
-                {event.operator.username}
+                {typeof event.operator === 'string' ? event.operator : event.operator?.username}
               </Tag>
             ) : (
               <Tag icon={<ExclamationCircleOutlined />} color="warning">

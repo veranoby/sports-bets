@@ -78,7 +78,10 @@ const AdminUsersPage: React.FC = () => {
 
     setError(null);
     // Since delete method doesn't exist in the API, use type assertion
-    const res = await (usersAPI as any).delete?.(userId) || { success: false, error: "Delete method not implemented" };
+    const res = (await (usersAPI as any).delete?.(userId)) || {
+      success: false,
+      error: "Delete method not implemented",
+    };
     if (res.success) {
       setUsers(users.filter((u) => u.id !== userId));
     } else {

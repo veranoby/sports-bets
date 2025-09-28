@@ -80,10 +80,20 @@ const AdminDashboard: React.FC = () => {
   const fetchFeatures = async () => {
     try {
       // Usar el endpoint público de features sin autenticación
-      const response = await apiClient.get<{ betting_enabled: boolean; wallets_enabled: boolean; streaming_enabled: boolean; maintenance_mode: boolean; }>("/settings/features/public");
+      const response = await apiClient.get<{
+        betting_enabled: boolean;
+        wallets_enabled: boolean;
+        streaming_enabled: boolean;
+        maintenance_mode: boolean;
+      }>("/settings/features/public");
       console.log("🔍 Features API response:", response);
 
-      const featuresData = response.data || { betting_enabled: false, wallets_enabled: false, streaming_enabled: false, maintenance_mode: false };
+      const featuresData = response.data || {
+        betting_enabled: false,
+        wallets_enabled: false,
+        streaming_enabled: false,
+        maintenance_mode: false,
+      };
       console.log("🔍 Features data received:", featuresData);
 
       // Mapear la respuesta del backend a nuestros nombres de UI
@@ -153,8 +163,12 @@ const AdminDashboard: React.FC = () => {
       financeData.success
     ) {
       const liveEvents =
-        (eventsData.data as { events: Event[] }).events?.filter((e) => e.status === "live") || [];
-      const withdrawals = (withdrawalsData.data as { transactions: Transaction[] }).transactions || [];
+        (eventsData.data as { events: Event[] }).events?.filter(
+          (e) => e.status === "live",
+        ) || [];
+      const withdrawals =
+        (withdrawalsData.data as { transactions: Transaction[] })
+          .transactions || [];
       const totalWithdrawalAmount = withdrawals.reduce(
         (sum, w) => sum + w.amount,
         0,
@@ -165,10 +179,12 @@ const AdminDashboard: React.FC = () => {
         liveEventsNow: liveEvents.length,
         pendingUsers: (pendingUsersData.data as { total: number }).total || 0,
         pendingVenues: (pendingVenuesData.data as { total: number }).total || 0,
-        pendingArticles: (pendingArticlesData.data as { total: number }).total || 0,
+        pendingArticles:
+          (pendingArticlesData.data as { total: number }).total || 0,
         withdrawalRequests: withdrawals.length,
         withdrawalAmount: totalWithdrawalAmount,
-        todayRevenue: (financeData.data as { todayRevenue: number }).todayRevenue || 0,
+        todayRevenue:
+          (financeData.data as { todayRevenue: number }).todayRevenue || 0,
       });
 
       setLastRefresh(new Date());

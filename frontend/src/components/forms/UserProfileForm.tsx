@@ -31,8 +31,8 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
   const [formData, setFormData] = useState<FormData>({
     email: user.email || "",
     profileInfo: {
-      firstName: user.profileInfo?.fullName?.split(' ')[0] || "",
-      lastName: user.profileInfo?.fullName?.split(' ').slice(1).join(' ') || "",
+      firstName: user.profileInfo?.fullName?.split(" ")[0] || "",
+      lastName: user.profileInfo?.fullName?.split(" ").slice(1).join(" ") || "",
       phone: user.profileInfo?.phoneNumber || "",
       address: user.profileInfo?.address || "",
       emergencyContact: "",
@@ -63,7 +63,10 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
       newErrors.lastName = "Last name is required";
     }
 
-    if (formData.profileInfo.phone && !/^\+?[\d\s-()]+$/.test(formData.profileInfo.phone)) {
+    if (
+      formData.profileInfo.phone &&
+      !/^\+?[\d\s-()]+$/.test(formData.profileInfo.phone)
+    ) {
       newErrors.phone = "Please enter a valid phone number";
     }
 
@@ -111,10 +114,10 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     const { name, value, type, checked } = e.target;
 
     if (name === "email") {
-      setFormData(prev => ({ ...prev, email: value }));
+      setFormData((prev) => ({ ...prev, email: value }));
     } else if (name.startsWith("profileInfo.")) {
       const fieldName = name.replace("profileInfo.", "");
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         profileInfo: {
           ...prev.profileInfo,
@@ -126,7 +129,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     // Clear error when user starts typing
     if (errors[name] || errors[name.replace("profileInfo.", "")]) {
       const fieldName = name.replace("profileInfo.", "");
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[fieldName];
         delete newErrors[name];
@@ -183,7 +186,9 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Settings</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        Profile Settings
+      </h2>
 
       {success && (
         <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
@@ -200,7 +205,9 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Account Information */}
         <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Account Information</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Account Information
+          </h3>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -223,20 +230,22 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
 
         {/* Personal Information */}
         <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Personal Information
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {InputField("firstName", "First Name", "text", true)}
             {InputField("lastName", "Last Name", "text", true)}
             {InputField("phone", "Phone Number", "tel")}
           </div>
-          <div className="mt-4">
-            {InputField("address", "Address", "text")}
-          </div>
+          <div className="mt-4">{InputField("address", "Address", "text")}</div>
         </div>
 
         {/* Emergency Contact */}
         <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Emergency Contact
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {InputField("emergencyContact", "Emergency Contact Name")}
             {InputField("emergencyPhone", "Emergency Contact Phone", "tel")}
@@ -245,7 +254,9 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
 
         {/* Notification Preferences */}
         <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Notification Preferences
+          </h3>
           <div className="space-y-3">
             {CheckboxField("emailAlerts", "Receive email notifications")}
             {CheckboxField("smsAlerts", "Receive SMS notifications")}

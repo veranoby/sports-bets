@@ -50,22 +50,28 @@ const AdminVenuesPage: React.FC = () => {
 
     try {
       // 1. Fetch all venues and include their owner data
-      const venuesRes = await venuesAPI.getAll({ limit: 1000, includeOwner: true });
+      const venuesRes = await venuesAPI.getAll({
+        limit: 1000,
+        includeOwner: true,
+      });
       if (!venuesRes.success) {
         throw new Error(venuesRes.error || "Failed to load venues");
       }
       const allVenues = (venuesRes.data as any)?.venues || [];
 
       // 2. Combine the data
-      const combined = allVenues.map(venue => ({
-        user: venue.owner,
-        venue: venue,
-      })).filter(item => item.user);
+      const combined = allVenues
+        .map((venue) => ({
+          user: venue.owner,
+          venue: venue,
+        }))
+        .filter((item) => item.user);
 
       setCombinedData(combined as CombinedVenueData[]);
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred",
+      );
     } finally {
       setLoading(false);
     }
@@ -91,7 +97,9 @@ const AdminVenuesPage: React.FC = () => {
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<CombinedVenueData | null>(null);
+  const [editingData, setEditingData] = useState<CombinedVenueData | null>(
+    null,
+  );
 
   // Handlers para edición dual
   const handleEdit = (userId: string) => {
@@ -121,8 +129,8 @@ const AdminVenuesPage: React.FC = () => {
         return;
       }
     } else {
-        setError("No hay venue asociado para eliminar.");
-        return;
+      setError("No hay venue asociado para eliminar.");
+      return;
     }
 
     // Actualizar la lista

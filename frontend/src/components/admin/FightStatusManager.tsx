@@ -141,14 +141,14 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Space>
-            <Text strong>Rooster 1:</Text>
-            <Text>{fight.rooster_1}</Text>
+            <Text strong>Red Corner:</Text>
+            <Text>{fight.redCorner}</Text>
           </Space>
         </Col>
         <Col span={24}>
           <Space>
-            <Text strong>Rooster 2:</Text>
-            <Text>{fight.rooster_2}</Text>
+            <Text strong>Blue Corner:</Text>
+            <Text>{fight.blueCorner}</Text>
           </Space>
         </Col>
         <Col span={24}>

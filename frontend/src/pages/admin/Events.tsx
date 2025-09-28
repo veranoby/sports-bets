@@ -271,7 +271,11 @@ const AdminEventsPage: React.FC = () => {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este evento? Esta acción es irreversible.")) {
+    if (
+      window.confirm(
+        "¿Estás seguro de que quieres eliminar este evento? Esta acción es irreversible.",
+      )
+    ) {
       try {
         setOperationInProgress(`${eventId}-delete`);
         await eventsAPI.delete(eventId);
@@ -284,7 +288,9 @@ const AdminEventsPage: React.FC = () => {
           closeEventDetail();
         }
       } catch (err) {
-        setError(`Error al eliminar: ${err instanceof Error ? err.message : "Error desconocido"}`);
+        setError(
+          `Error al eliminar: ${err instanceof Error ? err.message : "Error desconocido"}`,
+        );
       } finally {
         setOperationInProgress(null);
       }
@@ -484,7 +490,6 @@ const AdminEventsPage: React.FC = () => {
                           Activar
                         </button>
                       )}
-
                       {event.status === "scheduled" && (
                         <>
                           {event.streamStatus !== "connected" ? (
@@ -518,7 +523,6 @@ const AdminEventsPage: React.FC = () => {
                           )}
                         </>
                       )}
-
                       {(event.status === "scheduled" ||
                         event.status === "live") && (
                         <button
@@ -534,21 +538,21 @@ const AdminEventsPage: React.FC = () => {
                           Finalizar
                         </button>
                       )}
-
-                                              <button
-                                                onClick={() => openEventDetail(event.id)}
-                                                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                                              >
-                                                <Settings className="w-4 h-4" />
-                                                Gestionar
-                                              </button>
-                                              <button
-                                                onClick={() => handleDeleteEvent(event.id)}
-                                                className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                                                title="Eliminar Evento"
-                                              >
-                                                <Trash2 className="w-4 h-4" />
-                                              </button>                    </div>
+                      <button
+                        onClick={() => openEventDetail(event.id)}
+                        className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Gestionar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                        title="Eliminar Evento"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>{" "}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -654,7 +658,7 @@ const AdminEventsPage: React.FC = () => {
                     <XCircle className="w-4 h-4" />
                     Cancelar Evento
                   </button>
-                   <button
+                  <button
                     onClick={() => handleDeleteEvent(selectedEventId!)}
                     className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
                   >
@@ -830,7 +834,8 @@ const AdminEventsPage: React.FC = () => {
                                       eventDetailData.event.streamStatus ===
                                       "connected"
                                         ? "bg-red-500 animate-pulse"
-                                        : eventDetailData.event.streamStatus === "disconnected"
+                                        : eventDetailData.event.streamStatus ===
+                                            "disconnected"
                                           ? "bg-red-500"
                                           : "bg-gray-400"
                                     }`}

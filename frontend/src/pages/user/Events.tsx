@@ -182,8 +182,7 @@ const EventsPage: React.FC = () => {
       const matchesSearch = event.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all";
+      const matchesStatus = statusFilter === "all";
       const isCompleted = event.status === "completed";
       return matchesSearch && matchesStatus && isCompleted;
     }) || [];
@@ -237,7 +236,8 @@ const EventsPage: React.FC = () => {
                     En Vivo
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events?.filter((e) => e.status === "in-progress").length || 0}
+                    {events?.filter((e) => e.status === "in-progress").length ||
+                      0}
                   </span>{" "}
                 </div>
               </div>
@@ -248,7 +248,8 @@ const EventsPage: React.FC = () => {
                     Próximos
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events?.filter((e) => e.status === "scheduled").length || 0}
+                    {events?.filter((e) => e.status === "scheduled").length ||
+                      0}
                   </span>{" "}
                 </div>
               </div>
@@ -259,7 +260,8 @@ const EventsPage: React.FC = () => {
                     Apuestas
                   </span>
                   <span className="text-xl font-bold text-theme-primary">
-                    {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) || 0}
+                    {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) ||
+                      0}
                   </span>{" "}
                 </div>
               </div>

@@ -363,13 +363,13 @@ const ArticleManagement: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
               📰 Mis Artículos
-            
-            <p className="text-sm text-theme-light">
-              Gestiona y crea contenido de calidad
-            </p></h1>
+              <p className="text-sm text-theme-light">
+                Gestiona y crea contenido de calidad
+              </p>
+            </h1>
           </div>
-          </div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Article Statistics */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">

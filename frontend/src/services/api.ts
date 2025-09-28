@@ -181,7 +181,11 @@ export const authAPI = {
   checkMembershipStatus: async () => {
     return apiCall("post", "/auth/check-membership-status");
   },
-  register: async (userData: { username: string; email: string; password: string; }) => {
+  register: async (userData: {
+    username: string;
+    email: string;
+    password: string;
+  }) => {
     return apiCall("post", "/auth/register", userData);
   },
 };
@@ -361,11 +365,18 @@ export const walletAPI = {
   getWithdrawalRequests: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/wallet/withdrawal-requests", params);
   },
-  processWithdrawalRequest: async (requestId: string, data: {
-    action: "approve" | "reject";
-    reason?: string;
-  }) => {
-    return apiCall("post", `/wallet/withdrawal-requests/${requestId}/process`, data);
+  processWithdrawalRequest: async (
+    requestId: string,
+    data: {
+      action: "approve" | "reject";
+      reason?: string;
+    },
+  ) => {
+    return apiCall(
+      "post",
+      `/wallet/withdrawal-requests/${requestId}/process`,
+      data,
+    );
   },
 };
 

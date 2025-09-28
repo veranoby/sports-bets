@@ -38,9 +38,9 @@ const Notifications: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState("all");
 
   // Estado para operaciones en progreso
-  const [operationInProgress, setOperationInProgress] = useState<
-    string | null
-  >(null);
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  );
 
   // Filtrar notificaciones
   const filteredNotifications = notifications.filter((notification) => {
@@ -162,9 +162,7 @@ const Notifications: React.FC = () => {
         prev.map((n) => (n.id === id ? { ...n, readAt: new Date() } : n)),
       );
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error marking as read",
-      );
+      setError(err instanceof Error ? err.message : "Error marking as read");
     }
   };
 
@@ -173,8 +171,9 @@ const Notifications: React.FC = () => {
     const total = notifications.length;
     const unread = notifications.filter((n) => !n.readAt).length;
     const sent = notifications.filter((n) => n.status === "sent").length;
-    const scheduled = notifications.filter((n) => n.status === "scheduled")
-      .length;
+    const scheduled = notifications.filter(
+      (n) => n.status === "scheduled",
+    ).length;
 
     return { total, unread, sent, scheduled };
   };
@@ -704,9 +703,7 @@ const NotificationDetail: React.FC<{
 
       {notification.readAt && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-1">
-            Leída el
-          </h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-1">Leída el</h4>
           <p className="text-gray-900">
             {new Date(notification.readAt).toLocaleString()}
           </p>

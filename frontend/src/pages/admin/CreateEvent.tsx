@@ -33,7 +33,11 @@ const CreateEvent: React.FC = () => {
           status: "active",
           limit: 1000,
         });
-        setVenues(Array.isArray(venuesRes.data) ? venuesRes.data : venuesRes.data.venues || []);
+        setVenues(
+          Array.isArray(venuesRes.data)
+            ? venuesRes.data
+            : venuesRes.data.venues || [],
+        );
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError("Failed to load data. Please try again.");
@@ -153,7 +157,9 @@ const CreateEvent: React.FC = () => {
                 ))}
               </select>
               {formErrors.venueId && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.venueId}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.venueId}
+                </p>
               )}
             </div>
 
@@ -167,11 +173,15 @@ const CreateEvent: React.FC = () => {
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  formErrors.scheduledDate ? "border-red-500" : "border-gray-300"
+                  formErrors.scheduledDate
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               />
               {formErrors.scheduledDate && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.scheduledDate}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.scheduledDate}
+                </p>
               )}
             </div>
 

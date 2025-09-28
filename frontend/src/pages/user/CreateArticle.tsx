@@ -63,31 +63,39 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
     }
   };
 
-  const handleChange = useCallback((
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  }, [errors]);
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    },
+    [errors],
+  );
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Here you would typically upload to a cloud storage service
-      // For now, we'll just create a local URL
-      const imageUrl = URL.createObjectURL(file);
-      setFormData(prev => ({ ...prev, featured_image: imageUrl }));
-    }
-  }, []);
+  const handleImageUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Here you would typically upload to a cloud storage service
+        // For now, we'll just create a local URL
+        const imageUrl = URL.createObjectURL(file);
+        setFormData((prev) => ({ ...prev, featured_image: imageUrl }));
+      }
+    },
+    [],
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -100,7 +108,9 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver a mis artículos
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Crear Nuevo Artículo</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Crear Nuevo Artículo
+        </h1>
         <p className="text-gray-600">
           Comparte tus experiencias y conocimientos sobre gallos de pelea
         </p>
@@ -148,7 +158,9 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
                     placeholder="Escribe un resumen corto que capture la atención..."
                   />
                   {errors.excerpt && (
-                    <p className="text-red-500 text-sm mt-1">{errors.excerpt}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.excerpt}
+                    </p>
                   )}
                 </div>
 
@@ -168,7 +180,9 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
                     placeholder="Escribe el contenido completo de tu artículo aquí..."
                   />
                   {errors.content && (
-                    <p className="text-red-500 text-sm mt-1">{errors.content}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.content}
+                    </p>
                   )}
                 </div>
               </div>
@@ -192,7 +206,9 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
                     />
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, featured_image: "" }))}
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, featured_image: "" }))
+                      }
                       className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                     >
                       ×
@@ -213,7 +229,9 @@ const CreateArticle: React.FC<CreateArticleProps> = ({ user }) => {
                   >
                     <Upload className="w-5 h-5 text-gray-400 mr-2" />
                     <span className="text-gray-600">
-                      {formData.featured_image ? "Cambiar imagen" : "Subir imagen"}
+                      {formData.featured_image
+                        ? "Cambiar imagen"
+                        : "Subir imagen"}
                     </span>
                   </label>
                 </div>

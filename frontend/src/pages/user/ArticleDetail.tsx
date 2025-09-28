@@ -20,7 +20,11 @@ const ArticleDetail: React.FC = () => {
         setArticle(response.data.data);
       } catch (err: unknown) {
         // Changed from 'any' to 'unknown' for better type safety
-        setError((err as any)?.response?.data?.message || (err as Error)?.message || "Error al cargar el artículo");
+        setError(
+          (err as any)?.response?.data?.message ||
+            (err as Error)?.message ||
+            "Error al cargar el artículo",
+        );
       } finally {
         setLoading(false);
       }
@@ -136,7 +140,9 @@ const ArticleDetail: React.FC = () => {
                 Gallera Asociada
               </h3>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900">{article.venue.name}</h4>
+                <h4 className="font-medium text-blue-900">
+                  {article.venue.name}
+                </h4>
                 {article.venue.location && (
                   <p className="text-blue-700 text-sm mt-1">
                     {article.venue.location}
@@ -156,9 +162,7 @@ const ArticleDetail: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Placeholder for related articles */}
           <div className="bg-gray-100 rounded-lg p-6 text-center">
-            <p className="text-gray-600">
-              Artículos relacionados próximamente
-            </p>
+            <p className="text-gray-600">Artículos relacionados próximamente</p>
           </div>
         </div>
       </div>

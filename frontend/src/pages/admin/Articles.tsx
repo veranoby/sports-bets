@@ -206,7 +206,11 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const handleDeleteArticle = async (articleId: string) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.")) {
+    if (
+      window.confirm(
+        "¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.",
+      )
+    ) {
       try {
         const result = await articlesAPI.delete(articleId);
         if (result.success) {

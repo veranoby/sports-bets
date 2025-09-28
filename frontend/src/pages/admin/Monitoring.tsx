@@ -75,7 +75,7 @@ const AdminMonitoringPage: React.FC = () => {
 
       setAlerts(
         alertsRes.success
-          ? (alertsRes.data as AlertItem[] || []).filter(
+          ? ((alertsRes.data as AlertItem[]) || []).filter(
               (alert: AlertItem) =>
                 alert.service.toLowerCase().includes("stream") ||
                 alert.service.toLowerCase().includes("rtmp"),
@@ -84,8 +84,12 @@ const AdminMonitoringPage: React.FC = () => {
       );
       setLiveStats({
         ...(statsRes.success ? (statsRes.data as any) : {}),
-        activeUsers: statsRes.success ? (statsRes.data as any)?.activeUsers || 0 : 0,
-        liveEvents: statsRes.success ? (statsRes.data as any)?.liveEvents || 0 : 0,
+        activeUsers: statsRes.success
+          ? (statsRes.data as any)?.activeUsers || 0
+          : 0,
+        liveEvents: statsRes.success
+          ? (statsRes.data as any)?.liveEvents || 0
+          : 0,
         activeBets: 0,
         connectionCount: statsRes.success
           ? (statsRes.data as any)?.connectionCount || 0
@@ -339,7 +343,9 @@ const AdminMonitoringPage: React.FC = () => {
             <div className="text-center py-8 text-gray-500">
               <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
               <p>No hay alertas activas</p>
-              <p className="text-sm mt-1">Todos los servicios funcionan correctamente</p>
+              <p className="text-sm mt-1">
+                Todos los servicios funcionan correctamente
+              </p>
             </div>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -408,7 +414,9 @@ const AdminMonitoringPage: React.FC = () => {
 
             <div className="space-y-3">
               <div>
-                <span className="text-sm font-medium text-gray-600">Nivel:</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Nivel:
+                </span>
                 <span
                   className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getAlertColor(selectedAlert.level)}`}
                 >
@@ -416,19 +424,25 @@ const AdminMonitoringPage: React.FC = () => {
                 </span>
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-600">Servicio:</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Servicio:
+                </span>
                 <span className="ml-2 text-sm text-gray-900">
                   {selectedAlert.service}
                 </span>
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-600">Mensaje:</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Mensaje:
+                </span>
                 <p className="mt-1 text-sm text-gray-900">
                   {selectedAlert.message}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-600">Timestamp:</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Timestamp:
+                </span>
                 <span className="ml-2 text-sm text-gray-900">
                   {new Date(selectedAlert.timestamp).toLocaleString("es-ES")}
                 </span>

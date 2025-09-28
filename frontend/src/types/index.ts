@@ -112,10 +112,15 @@ export interface Notification {
 export interface UserSubscription {
   id: string;
   plan: "free" | "basic" | "premium";
-  status: "active" | "cancelled" | "expired";
+  status: "active" | "cancelled" | "expired" | "pending";
   expiresAt?: string;
+  manual_expires_at?: string;
   features: string[];
+  [key: string]: unknown; // Index signature for compatibility
 }
+
+// Type alias for form data compatibility
+export type SubscriptionData = UserSubscription;
 
 export interface Venue {
   id: string;
@@ -123,8 +128,11 @@ export interface Venue {
   address?: string;
   location?: string;
   description?: string;
+  status?: "active" | "cancelled" | "expired" | "pending";
   isActive: boolean;
   imageUrl?: string;
+  images?: string[];
+  ownerId?: string;
   latitude?: number;
   longitude?: number;
   capacity?: number;
@@ -133,15 +141,37 @@ export interface Venue {
     phone?: string;
     email?: string;
     website?: string;
+    address?: string;
   };
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Gallera extends User {
-  // Gallera inherits from User but with specific role
-  role: "gallera";
-  galleraSpecificField?: string;
+export interface Gallera {
+  id: string;
+  name: string;
+  location?: string;
+  description?: string;
+  status?: "active" | "cancelled" | "expired" | "pending";
+  isActive?: boolean;
+  imageUrl?: string;
+  specialties?: string | { breeds: unknown[]; trainingMethods: unknown[]; experience: string };
+  activeRoosters?: number;
+  establishedDate?: string;
+  certified?: boolean;
+  rating?: number;
+  fightRecord?: string;
+  images?: string[];
+  ownerId?: string;
+  articles?: unknown[];
+  contactInfo?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+    address?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 // EventData with proper typing from API responses
@@ -151,7 +181,7 @@ export interface EventData {
   description?: string;
   scheduledDate: string;
   startTime?: string;
-  status: "upcoming" | "live" | "completed" | "cancelled" | "betting";
+  status: "upcoming" | "live" | "completed" | "cancelled" | "betting" | "in-progress" | "scheduled";
   venue: {
     id: string;
     name: string;
@@ -180,10 +210,19 @@ export interface EventData {
   categoryId?: string;
   venueId: string;
   operatorId?: string;
+  operator?: string | { username: string };
+  streamKey?: string;
+  currentViewers?: number;
+  activeBets?: number;
+  completedFights?: number;
+  totalFights?: number;
+  totalPrizePool?: number;
+  streamStatus?: string;
+  fights?: Fight[];
 }
 
 // For compatibility with some components using Event name
-export interface Event extends EventData {}
+export type Event = EventData;
 
 export interface Bet {
   id: string;
@@ -198,7 +237,7 @@ export interface Bet {
   settledAt?: string;
 }
 
-export interface BetData extends Omit<Bet, 'odds'> {
+export interface BetData extends Omit<Bet, "odds"> {
   odds?: number; // Optional in BetData
   event?: EventData;
   user?: User;
@@ -214,6 +253,35 @@ export interface Wallet {
   createdAt: string;
   updatedAt: string;
 }
+
+// Fight interface for cockfighting events (VERIFIED against backend/src/models/Fight.ts)
+export interface Fight {
+  id: string;
+  eventId: string;
+  number: number; // Required in database
+  redCorner: string; // Required in database
+  blueCorner: string; // Required in database
+  weight: number; // Required in database
+  notes?: string;
+  status: "upcoming" | "betting" | "live" | "completed" | "cancelled";
+  initialOdds?: {
+    red: number;
+    blue: number;
+  };
+  bettingStartTime?: string;
+  bettingEndTime?: string;
+  totalBets?: number;
+  totalAmount?: number;
+  result?: "red" | "blue" | "draw" | "cancelled";
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Bet side and status enums
+export type BetSide = "rooster1" | "rooster2" | "draw";
+export type BetStatus = "pending" | "won" | "lost" | "cancelled" | "refunded";
 
 export interface Transaction {
   id: string;
@@ -362,7 +430,13 @@ export interface FormMessageProps {
 
 // Button interfaces
 export interface ButtonProps {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
   children: React.ReactNode;
@@ -393,15 +467,18 @@ export interface CardContentProps {
   className?: string;
 }
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
 }
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   className?: string;
 }
 
-export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+export interface LabelProps
+  extends React.LabelHTMLAttributes<HTMLLabelElement> {
   className?: string;
 }
 
@@ -525,4 +602,21 @@ export interface SheetTitleProps {
 export interface SheetDescriptionProps {
   children: React.ReactNode;
   className?: string;
+}
+
+// Additional missing interfaces
+export interface BettingNotificationsResponse {
+  notifications: Notification[];
+  total: number;
+  type?: string;
+  data?: unknown;
+  amount?: number;
+  fighter?: string;
+}
+
+export interface UserProfileFormProps {
+  user: User;
+  onSave?: () => Promise<void>;
+  onCancel?: () => void;
+  fullNameLabel?: string;
 }

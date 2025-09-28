@@ -1,5 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { User as UserIcon, Edit3, Shield, Calendar, Camera } from "lucide-react";
+import {
+  User as UserIcon,
+  Edit3,
+  Shield,
+  Calendar,
+  Camera,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserProfileForm from "../../components/forms/UserProfileForm";
@@ -22,16 +28,16 @@ const Profile: React.FC = () => {
       if (!user) return;
 
       try {
-        if (user.role === 'venue') {
+        if (user.role === "venue") {
           const response = await venuesAPI.getAll(); // As per brain docs
           const userVenue = (response.data as any)?.venues?.find(
-            (v: any) => v.owner?.id === user.id
+            (v: any) => v.owner?.id === user.id,
           );
           setVenueData(userVenue || null);
-        } else if (user.role === 'gallera') {
+        } else if (user.role === "gallera") {
           const response = await gallerasAPI.getAll(); // As per brain docs
           const userGallera = (response.data as any)?.galleras?.find(
-            (g: any) => g.owner?.id === user.id
+            (g: any) => g.owner?.id === user.id,
           );
           setGalleraData(userGallera || null);
         }
@@ -53,11 +59,11 @@ const Profile: React.FC = () => {
   }, []);
 
   const getProfileFieldLabel = (field: string): string => {
-    if (field === 'fullName') {
-      if (user?.role === 'venue' || user?.role === 'gallera') {
-        return 'Nombre del representante';
+    if (field === "fullName") {
+      if (user?.role === "venue" || user?.role === "gallera") {
+        return "Nombre del representante";
       }
-      return 'Nombre completo';
+      return "Nombre completo";
     }
     return field;
   };
@@ -77,7 +83,7 @@ const Profile: React.FC = () => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          {getProfileFieldLabel('fullName')}
+          {getProfileFieldLabel("fullName")}
         </label>
         <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
           {user.profileInfo?.fullName || user.username || "No especificado"}
@@ -107,47 +113,58 @@ const Profile: React.FC = () => {
       <div className="max-w-2xl mx-auto px-4">
         {/* Header Section */}
         <div className="bg-indigo-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-            <div className="flex flex-col items-center text-center">
-                <div className="relative group mb-6">
-                    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                        {(user.role === "venue"
-                          ? user.profileInfo?.venueName || user.profileInfo?.businessName || user.username
-                          : user.role === "gallera"
-                          ? user.profileInfo?.galleraName || user.profileInfo?.businessName || user.username
-                          : user.username
-                        )?.charAt(0).toUpperCase()}
-                    </div>
-                    <button
-                        onClick={() => {}}
-                        className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-all duration-200 hover:scale-110 border border-gray-200"
-                        title="Cambiar avatar"
-                    >
-                        <Camera className="w-4 h-4 text-gray-600" />
-                    </button>
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {user.role === "venue"
-                      ? user.profileInfo?.venueName || user.profileInfo?.businessName || user.profileInfo?.fullName || user.username
-                      : user.role === "gallera"
-                      ? user.profileInfo?.galleraName || user.profileInfo?.businessName || user.profileInfo?.fullName || user.username
-                      : user.profileInfo?.fullName || user.username
-                    }
-                </h1>
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                    <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                        <UserIcon className="w-3 h-3" />
-                        {user.username}
-                    </div>
-                    <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        {user.role}
-                    </div>
-                </div>
-                <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {memberSince}
-                </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="relative group mb-6">
+              <div className="w-28 h-28 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                {(user.role === "venue"
+                  ? user.profileInfo?.venueName ||
+                    user.profileInfo?.businessName ||
+                    user.username
+                  : user.role === "gallera"
+                    ? user.profileInfo?.galleraName ||
+                      user.profileInfo?.businessName ||
+                      user.username
+                    : user.username
+                )
+                  ?.charAt(0)
+                  .toUpperCase()}
+              </div>
+              <button
+                onClick={() => {}}
+                className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-all duration-200 hover:scale-110 border border-gray-200"
+                title="Cambiar avatar"
+              >
+                <Camera className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {user.role === "venue"
+                ? user.profileInfo?.venueName ||
+                  user.profileInfo?.businessName ||
+                  user.profileInfo?.fullName ||
+                  user.username
+                : user.role === "gallera"
+                  ? user.profileInfo?.galleraName ||
+                    user.profileInfo?.businessName ||
+                    user.profileInfo?.fullName ||
+                    user.username
+                  : user.profileInfo?.fullName || user.username}
+            </h1>
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <UserIcon className="w-3 h-3" />
+                {user.username}
+              </div>
+              <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                {user.role}
+              </div>
+            </div>
+            <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {memberSince}
+            </div>
+          </div>
         </div>
 
         {/* Personal Info Section */}
@@ -172,7 +189,7 @@ const Profile: React.FC = () => {
               user={user}
               onSave={handleSaveSuccess}
               onCancel={handleCancel}
-              fullNameLabel={getProfileFieldLabel('fullName')}
+              fullNameLabel={getProfileFieldLabel("fullName")}
             />
           ) : (
             renderProfileInfo()
@@ -180,21 +197,30 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Business Info Section (Conditional) */}
-        {!isEditing && (user.role === 'venue' || user.role === 'gallera') && (
-            <BusinessInfoSection
-                type={user.role}
-                data={user.role === 'venue' ? venueData : galleraData}
-            />
+        {!isEditing && (user.role === "venue" || user.role === "gallera") && (
+          <BusinessInfoSection
+            type={user.role}
+            data={user.role === "venue" ? venueData : galleraData}
+          />
         )}
 
         {/* Membership Section */}
         {!isEditing && (
-            <div className="mt-6">
-                <MembershipSection subscription={user.subscription ? {
-                  ...user.subscription,
-                  status: user.subscription.status as "pending" | "active" | "expired" // Cast to expected type
-                } as any : null} />
-            </div>
+          <div className="mt-6">
+            <MembershipSection
+              subscription={
+                user.subscription
+                  ? ({
+                      ...user.subscription,
+                      status: user.subscription.status as
+                        | "pending"
+                        | "active"
+                        | "expired", // Cast to expected type
+                    } as any)
+                  : null
+              }
+            />
+          </div>
         )}
       </div>
     </div>

@@ -259,41 +259,56 @@ const GallerasPage: React.FC = () => {
       if (gallerasData.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
-          ((gallerasData.data as { galleras: any[] })?.galleras || []).map(async (gallera: any) => {
-            const articles = await articlesAPI.getAll({ author_id: gallera.ownerId });
-            const articleCount = articles.success
-              ? articles.data.total || 0
-              : 0;
+          ((gallerasData.data as { galleras: any[] })?.galleras || []).map(
+            async (gallera: any) => {
+              const articles = await articlesAPI.getAll({
+                author_id: gallera.ownerId,
+              });
+              const articleCount = articles.success
+                ? articles.data.total || 0
+                : 0;
 
-            // Use gallera table data first, then fallback to user profileInfo
-            const galleraName = gallera.name || gallera.owner?.profileInfo?.galleraName || "Gallera";
-            const description = gallera.description || gallera.owner?.profileInfo?.galleraDescription || "Institución criadora profesional";
-            const location = gallera.location || gallera.owner?.profileInfo?.galleraLocation || "Ecuador";
+              // Use gallera table data first, then fallback to user profileInfo
+              const galleraName =
+                gallera.name ||
+                gallera.owner?.profileInfo?.galleraName ||
+                "Gallera";
+              const description =
+                gallera.description ||
+                gallera.owner?.profileInfo?.galleraDescription ||
+                "Institución criadora profesional";
+              const location =
+                gallera.location ||
+                gallera.owner?.profileInfo?.galleraLocation ||
+                "Ecuador";
 
-            // Extract specialties from gallera.specialties or user profile
-            let specialties: string[] = [];
-            if (gallera.specialties?.specialties) {
-              specialties = Array.isArray(gallera.specialties.specialties)
-                ? gallera.specialties.specialties
-                : [gallera.specialties.specialties];
-            } else if (gallera.owner?.profileInfo?.galleraSpecialties) {
-              specialties = [gallera.owner.profileInfo.galleraSpecialties];
-            }
+              // Extract specialties from gallera.specialties or user profile
+              let specialties: string[] = [];
+              if (gallera.specialties?.specialties) {
+                specialties = Array.isArray(gallera.specialties.specialties)
+                  ? gallera.specialties.specialties
+                  : [gallera.specialties.specialties];
+              } else if (gallera.owner?.profileInfo?.galleraSpecialties) {
+                specialties = [gallera.owner.profileInfo.galleraSpecialties];
+              }
 
-            return {
-              id: gallera.id,
-              name: galleraName,
-              description: description,
-              location: location,
-              imageUrl: gallera.owner?.profileInfo?.imageUrl,
-              articlesCount: articleCount,
-              establishedDate: gallera.createdAt,
-              isCertified: gallera.owner?.profileInfo?.verificationLevel === "full" || false,
-              rating: gallera.owner?.profileInfo?.rating || 0,
-              specialties: specialties,
-              premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
-            };
-          }),
+              return {
+                id: gallera.id,
+                name: galleraName,
+                description: description,
+                location: location,
+                imageUrl: gallera.owner?.profileInfo?.imageUrl,
+                articlesCount: articleCount,
+                establishedDate: gallera.createdAt,
+                isCertified:
+                  gallera.owner?.profileInfo?.verificationLevel === "full" ||
+                  false,
+                rating: gallera.owner?.profileInfo?.rating || 0,
+                specialties: specialties,
+                premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
+              };
+            },
+          ),
         );
         setGalleras(galleraProfiles);
       } else {

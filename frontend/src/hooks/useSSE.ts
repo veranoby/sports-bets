@@ -1,68 +1,68 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 
 // Enhanced SSE Event Types matching backend service
 export enum SSEEventType {
   // System Events
-  SYSTEM_STATUS = 'SYSTEM_STATUS',
-  SYSTEM_MAINTENANCE = 'SYSTEM_MAINTENANCE',
-  DATABASE_PERFORMANCE = 'DATABASE_PERFORMANCE',
-  STREAM_STATUS_UPDATE = 'STREAM_STATUS_UPDATE',
-  NOTIFICATION = 'NOTIFICATION',
-  USER_NOTIFICATION = 'USER_NOTIFICATION',
+  SYSTEM_STATUS = "SYSTEM_STATUS",
+  SYSTEM_MAINTENANCE = "SYSTEM_MAINTENANCE",
+  DATABASE_PERFORMANCE = "DATABASE_PERFORMANCE",
+  STREAM_STATUS_UPDATE = "STREAM_STATUS_UPDATE",
+  NOTIFICATION = "NOTIFICATION",
+  USER_NOTIFICATION = "USER_NOTIFICATION",
 
   // Fight Management Events
-  FIGHT_STATUS_UPDATE = 'FIGHT_STATUS_UPDATE',
-  FIGHT_CREATED = 'FIGHT_CREATED',
-  FIGHT_UPDATED = 'FIGHT_UPDATED',
-  FIGHT_DELETED = 'FIGHT_DELETED',
-  BETTING_WINDOW_OPENED = 'BETTING_WINDOW_OPENED',
-  BETTING_WINDOW_CLOSED = 'BETTING_WINDOW_CLOSED',
+  FIGHT_STATUS_UPDATE = "FIGHT_STATUS_UPDATE",
+  FIGHT_CREATED = "FIGHT_CREATED",
+  FIGHT_UPDATED = "FIGHT_UPDATED",
+  FIGHT_DELETED = "FIGHT_DELETED",
+  BETTING_WINDOW_OPENED = "BETTING_WINDOW_OPENED",
+  BETTING_WINDOW_CLOSED = "BETTING_WINDOW_CLOSED",
 
   // Betting Events
-  NEW_BET = 'NEW_BET',
-  BET_MATCHED = 'BET_MATCHED',
-  BET_CANCELLED = 'BET_CANCELLED',
-  PAGO_PROPOSAL = 'PAGO_PROPOSAL',
-  DOY_PROPOSAL = 'DOY_PROPOSAL',
-  PROPOSAL_ACCEPTED = 'PROPOSAL_ACCEPTED',
-  PROPOSAL_REJECTED = 'PROPOSAL_REJECTED',
-  PROPOSAL_TIMEOUT = 'PROPOSAL_TIMEOUT',
+  NEW_BET = "NEW_BET",
+  BET_MATCHED = "BET_MATCHED",
+  BET_CANCELLED = "BET_CANCELLED",
+  PAGO_PROPOSAL = "PAGO_PROPOSAL",
+  DOY_PROPOSAL = "DOY_PROPOSAL",
+  PROPOSAL_ACCEPTED = "PROPOSAL_ACCEPTED",
+  PROPOSAL_REJECTED = "PROPOSAL_REJECTED",
+  PROPOSAL_TIMEOUT = "PROPOSAL_TIMEOUT",
 
   // Financial Events
-  WALLET_TRANSACTION = 'WALLET_TRANSACTION',
-  PAYMENT_PROCESSED = 'PAYMENT_PROCESSED',
-  PAYOUT_PROCESSED = 'PAYOUT_PROCESSED',
-  SUBSCRIPTION_UPDATED = 'SUBSCRIPTION_UPDATED',
+  WALLET_TRANSACTION = "WALLET_TRANSACTION",
+  PAYMENT_PROCESSED = "PAYMENT_PROCESSED",
+  PAYOUT_PROCESSED = "PAYOUT_PROCESSED",
+  SUBSCRIPTION_UPDATED = "SUBSCRIPTION_UPDATED",
 
   // User Activity Events
-  USER_REGISTERED = 'USER_REGISTERED',
-  USER_VERIFIED = 'USER_VERIFIED',
-  USER_BANNED = 'USER_BANNED',
-  ADMIN_ACTION = 'ADMIN_ACTION',
+  USER_REGISTERED = "USER_REGISTERED",
+  USER_VERIFIED = "USER_VERIFIED",
+  USER_BANNED = "USER_BANNED",
+  ADMIN_ACTION = "ADMIN_ACTION",
 
   // Streaming Events
-  STREAM_STARTED = 'STREAM_STARTED',
-  STREAM_ENDED = 'STREAM_ENDED',
-  STREAM_ERROR = 'STREAM_ERROR',
-  VIEWER_COUNT_UPDATE = 'VIEWER_COUNT_UPDATE',
+  STREAM_STARTED = "STREAM_STARTED",
+  STREAM_ENDED = "STREAM_ENDED",
+  STREAM_ERROR = "STREAM_ERROR",
+  VIEWER_COUNT_UPDATE = "VIEWER_COUNT_UPDATE",
 
   // Connection Events
-  CONNECTION_ESTABLISHED = 'CONNECTION_ESTABLISHED',
-  HEARTBEAT = 'HEARTBEAT',
-  ERROR = 'ERROR'
+  CONNECTION_ESTABLISHED = "CONNECTION_ESTABLISHED",
+  HEARTBEAT = "HEARTBEAT",
+  ERROR = "ERROR",
 }
 
 // Admin Channels matching backend
 export enum AdminChannel {
-  SYSTEM_MONITORING = 'admin-system',
-  FIGHT_MANAGEMENT = 'admin-fights',
-  BET_MONITORING = 'admin-bets',
-  USER_MANAGEMENT = 'admin-users',
-  FINANCIAL_MONITORING = 'admin-finance',
-  STREAMING_MONITORING = 'admin-streaming',
-  NOTIFICATIONS = 'admin-notifications',
-  GLOBAL = 'admin-global'
+  SYSTEM_MONITORING = "admin-system",
+  FIGHT_MANAGEMENT = "admin-fights",
+  BET_MONITORING = "admin-bets",
+  USER_MANAGEMENT = "admin-users",
+  FINANCIAL_MONITORING = "admin-finance",
+  STREAMING_MONITORING = "admin-streaming",
+  NOTIFICATIONS = "admin-notifications",
+  GLOBAL = "admin-global",
 }
 
 // As per technical_requirements.event_format
@@ -96,8 +96,13 @@ interface UseSSEReturn<T> {
   eventSourceInstance: EventSource | null;
   data: T | null;
   // Enhanced methods
-  subscribe: (eventType: SSEEventType, handler: (event: SSEEvent<T>) => void) => () => void;
-  subscribeToEvents: (eventHandlers: Partial<Record<SSEEventType, (event: SSEEvent<T>) => void>>) => () => void;
+  subscribe: (
+    eventType: SSEEventType,
+    handler: (event: SSEEvent<T>) => void,
+  ) => () => void;
+  subscribeToEvents: (
+    eventHandlers: Partial<Record<SSEEventType, (event: SSEEvent<T>) => void>>,
+  ) => () => void;
   reconnect: () => void;
 }
 
@@ -116,7 +121,9 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
-  const eventHandlersRef = useRef<Map<SSEEventType, Set<SSEEventHandler<T>>>>(new Map());
+  const eventHandlersRef = useRef<Map<SSEEventType, Set<SSEEventHandler<T>>>>(
+    new Map(),
+  );
   const mountedRef = useRef(true);
 
   const connect = useCallback(() => {
@@ -161,20 +168,31 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
           setData(parsedData.data);
 
           // Call registered event handlers
-          const handlers = eventHandlersRef.current.get(parsedData.type as SSEEventType);
+          const handlers = eventHandlersRef.current.get(
+            parsedData.type as SSEEventType,
+          );
           if (handlers) {
-            handlers.forEach(handler => {
+            handlers.forEach((handler) => {
               try {
                 handler(parsedData);
               } catch (error) {
-                console.error(`❌ SSE: Error in event handler for ${parsedData.type}:`, error);
+                console.error(
+                  `❌ SSE: Error in event handler for ${parsedData.type}:`,
+                  error,
+                );
               }
             });
           }
 
           // Log high priority events
-          if (parsedData.priority === 'high' || parsedData.priority === 'critical') {
-            console.log(`🔔 SSE: ${parsedData.priority.toUpperCase()} event received:`, parsedData.type);
+          if (
+            parsedData.priority === "high" ||
+            parsedData.priority === "critical"
+          ) {
+            console.log(
+              `🔔 SSE: ${parsedData.priority.toUpperCase()} event received:`,
+              parsedData.type,
+            );
           }
         } catch (e) {
           console.error("❌ SSE: Failed to parse event data:", event.data);
@@ -182,15 +200,15 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
       };
 
       // Handle specific event types
-      Object.values(SSEEventType).forEach(eventType => {
+      Object.values(SSEEventType).forEach((eventType) => {
         es.addEventListener(eventType, (event: any) => {
           if (!mountedRef.current) return;
 
           try {
             const parsedData: SSEEvent<T> = {
               ...JSON.parse(event.data),
-              id: event.lastEventId || 'unknown',
-              type: eventType
+              id: event.lastEventId || "unknown",
+              type: eventType,
             };
 
             setLastEvent(parsedData);
@@ -198,14 +216,16 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
 
             // Call registered handlers
             const handlers = eventHandlersRef.current.get(eventType);
-            handlers?.forEach(handler => {
+            handlers?.forEach((handler) => {
               try {
                 handler(parsedData);
               } catch (error) {
-                console.error(`❌ SSE: Error in event handler for ${eventType}:`, error);
+                console.error(
+                  `❌ SSE: Error in event handler for ${eventType}:`,
+                  error,
+                );
               }
             });
-
           } catch (error) {
             console.error(`❌ SSE: Error parsing ${eventType} event:`, error);
           }
@@ -215,7 +235,9 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
       es.onerror = () => {
         if (!mountedRef.current) return;
 
-        console.warn(`⚠️ SSE: Connection error for ${url}. Attempting to reconnect.`);
+        console.warn(
+          `⚠️ SSE: Connection error for ${url}. Attempting to reconnect.`,
+        );
         es.close();
         setStatus("error");
 
@@ -226,7 +248,9 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
         );
         retryCountRef.current++;
 
-        console.log(`🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`);
+        console.log(
+          `🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`,
+        );
         reconnectTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {
             connect();
@@ -258,39 +282,47 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
   }, [connect, url]);
 
   // Subscribe to specific event types
-  const subscribe = useCallback((eventType: SSEEventType, handler: SSEEventHandler<T>) => {
-    if (!eventHandlersRef.current.has(eventType)) {
-      eventHandlersRef.current.set(eventType, new Set());
-    }
-
-    eventHandlersRef.current.get(eventType)!.add(handler);
-
-    // Return unsubscribe function
-    return () => {
-      const handlers = eventHandlersRef.current.get(eventType);
-      if (handlers) {
-        handlers.delete(handler);
-        if (handlers.size === 0) {
-          eventHandlersRef.current.delete(eventType);
-        }
+  const subscribe = useCallback(
+    (eventType: SSEEventType, handler: SSEEventHandler<T>) => {
+      if (!eventHandlersRef.current.has(eventType)) {
+        eventHandlersRef.current.set(eventType, new Set());
       }
-    };
-  }, []);
+
+      eventHandlersRef.current.get(eventType)!.add(handler);
+
+      // Return unsubscribe function
+      return () => {
+        const handlers = eventHandlersRef.current.get(eventType);
+        if (handlers) {
+          handlers.delete(handler);
+          if (handlers.size === 0) {
+            eventHandlersRef.current.delete(eventType);
+          }
+        }
+      };
+    },
+    [],
+  );
 
   // Subscribe to multiple event types at once
-  const subscribeToEvents = useCallback((eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>) => {
-    const unsubscribeFunctions = Object.entries(eventHandlers).map(([eventType, handler]) => {
-      if (handler) {
-        return subscribe(eventType as SSEEventType, handler);
-      }
-      return () => {};
-    });
+  const subscribeToEvents = useCallback(
+    (eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>) => {
+      const unsubscribeFunctions = Object.entries(eventHandlers).map(
+        ([eventType, handler]) => {
+          if (handler) {
+            return subscribe(eventType as SSEEventType, handler);
+          }
+          return () => {};
+        },
+      );
 
-    // Return function to unsubscribe from all
-    return () => {
-      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
-    };
-  }, [subscribe]);
+      // Return function to unsubscribe from all
+      return () => {
+        unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
+      };
+    },
+    [subscribe],
+  );
 
   useEffect(() => {
     if (user && token) {
@@ -328,7 +360,7 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
  */
 export function useAdminSSE<T = any>(
   specificChannel?: AdminChannel,
-  eventFilters?: SSEEventType[]
+  eventFilters?: SSEEventType[],
 ) {
   const { user } = useAuth();
 
@@ -336,34 +368,38 @@ export function useAdminSSE<T = any>(
   const defaultChannel = specificChannel || AdminChannel.GLOBAL;
 
   // Only connect if user is admin or operator
-  const shouldConnect = user && ['admin', 'operator'].includes(user.role);
+  const shouldConnect = user && ["admin", "operator"].includes(user.role);
 
   // Build URL for admin SSE endpoint
   const url = shouldConnect
-    ? `${process.env.NODE_ENV === 'production' ? 'https://your-production-domain.com' : 'http://localhost:3001'}/api/sse/${defaultChannel}`
+    ? `${process.env.NODE_ENV === "production" ? "https://your-production-domain.com" : "http://localhost:3001"}/api/sse/${defaultChannel}`
     : null;
 
   const sse = useSSE<T>(url);
 
   // Filter events if specified
-  const filteredEventHandlers = useCallback((eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>) => {
-    if (!eventFilters) return eventHandlers;
+  const filteredEventHandlers = useCallback(
+    (eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>) => {
+      if (!eventFilters) return eventHandlers;
 
-    const filtered: Partial<Record<SSEEventType, SSEEventHandler<T>>> = {};
-    eventFilters.forEach(eventType => {
-      if (eventHandlers[eventType]) {
-        filtered[eventType] = eventHandlers[eventType];
-      }
-    });
-    return filtered;
-  }, [eventFilters]);
+      const filtered: Partial<Record<SSEEventType, SSEEventHandler<T>>> = {};
+      eventFilters.forEach((eventType) => {
+        if (eventHandlers[eventType]) {
+          filtered[eventType] = eventHandlers[eventType];
+        }
+      });
+      return filtered;
+    },
+    [eventFilters],
+  );
 
   return {
     ...sse,
-    subscribeToEvents: (eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>) =>
-      sse.subscribeToEvents(filteredEventHandlers(eventHandlers)),
+    subscribeToEvents: (
+      eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>,
+    ) => sse.subscribeToEvents(filteredEventHandlers(eventHandlers)),
     isAdminConnection: shouldConnect,
-    channel: defaultChannel
+    channel: defaultChannel,
   };
 }
 
@@ -378,7 +414,7 @@ export function useFightSSE(fightId?: string) {
     SSEEventType.BETTING_WINDOW_CLOSED,
     SSEEventType.NEW_BET,
     SSEEventType.PAGO_PROPOSAL,
-    SSEEventType.DOY_PROPOSAL
+    SSEEventType.DOY_PROPOSAL,
   ]);
 
   const [fightData, setFightData] = useState<any>(null);
@@ -386,13 +422,13 @@ export function useFightSSE(fightId?: string) {
   const [proposals, setProposals] = useState<any[]>([]);
 
   useEffect(() => {
-    if (sse.status !== 'connected') return;
+    if (sse.status !== "connected") return;
 
     const unsubscribers = [
       sse.subscribe(SSEEventType.FIGHT_STATUS_UPDATE, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
           setFightData(event.data);
-          setBettingWindow(event.data.status === 'betting');
+          setBettingWindow(event.data.status === "betting");
         }
       }),
 
@@ -410,19 +446,19 @@ export function useFightSSE(fightId?: string) {
 
       sse.subscribe(SSEEventType.PAGO_PROPOSAL, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
-          setProposals(prev => [...prev, { ...event.data, type: 'PAGO' }]);
+          setProposals((prev) => [...prev, { ...event.data, type: "PAGO" }]);
         }
       }),
 
       sse.subscribe(SSEEventType.DOY_PROPOSAL, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
-          setProposals(prev => [...prev, { ...event.data, type: 'DOY' }]);
+          setProposals((prev) => [...prev, { ...event.data, type: "DOY" }]);
         }
-      })
+      }),
     ];
 
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe());
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [sse.status, sse.subscribe, fightId]);
 
@@ -431,7 +467,7 @@ export function useFightSSE(fightId?: string) {
     fightData,
     bettingWindow,
     proposals,
-    clearProposals: () => setProposals([])
+    clearProposals: () => setProposals([]),
   };
 }
 

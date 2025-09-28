@@ -24,6 +24,8 @@ export interface Article {
   excerpt?: string;
   summary?: string;
   status: string;
+  category?: string;
+  tags?: string[] | string;
   featured_image?: string;
   featured_image_url?: string;
   published_at?: string;

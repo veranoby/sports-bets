@@ -251,7 +251,8 @@ const AdminRequestsPage: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "inline-flex px-2 py-1 text-xs font-medium rounded-full";
+    const baseClasses =
+      "inline-flex px-2 py-1 text-xs font-medium rounded-full";
     const statusClasses = {
       pending: "bg-yellow-100 text-yellow-800",
       in_process: "bg-blue-100 text-blue-800",
@@ -261,7 +262,9 @@ const AdminRequestsPage: React.FC = () => {
     };
 
     return (
-      <span className={`${baseClasses} ${statusClasses[status as keyof typeof statusClasses] || "bg-gray-100 text-gray-800"}`}>
+      <span
+        className={`${baseClasses} ${statusClasses[status as keyof typeof statusClasses] || "bg-gray-100 text-gray-800"}`}
+      >
         {status}
       </span>
     );
@@ -347,7 +350,9 @@ const AdminRequestsPage: React.FC = () => {
               <CheckCircle className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Completado ($)</p>
+              <p className="text-sm font-medium text-gray-600">
+                Completado ($)
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 ${completedAmount.toLocaleString()}
               </p>
@@ -503,7 +508,9 @@ const AdminRequestsPage: React.FC = () => {
                       {request.status === "pending" && (
                         <>
                           <button
-                            onClick={() => processRequest(request.id, "approve")}
+                            onClick={() =>
+                              processRequest(request.id, "approve")
+                            }
                             disabled={processing === request.id}
                             className="text-green-600 hover:text-green-900 disabled:opacity-50"
                           >
@@ -660,7 +667,9 @@ const RequestDetailsModal: React.FC<{
                 </div>
                 {request.processedAt && (
                   <div>
-                    <span className="text-gray-500">Fecha de procesamiento:</span>
+                    <span className="text-gray-500">
+                      Fecha de procesamiento:
+                    </span>
                     <p className="font-medium">
                       {new Date(request.processedAt).toLocaleString()}
                     </p>

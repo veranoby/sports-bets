@@ -23,7 +23,7 @@ const BetCard: React.FC<BetCardProps> = ({
   onCancel,
   onAccept,
   mode,
-  className
+  className,
 }) => {
   // Configuración de colores según el estado y resultado
 

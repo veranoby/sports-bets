@@ -47,22 +47,28 @@ const AdminGallerasPage: React.FC = () => {
 
     try {
       // 1. Fetch all galleras and include their owner data
-      const gallerasRes = await gallerasAPI.getAll({ limit: 1000, includeOwner: true });
+      const gallerasRes = await gallerasAPI.getAll({
+        limit: 1000,
+        includeOwner: true,
+      });
       if (!gallerasRes.success) {
         throw new Error(gallerasRes.error || "Failed to load galleras");
       }
       const allGalleras = (gallerasRes.data as any)?.galleras || [];
-      
+
       // 2. Combine the data
-      const combined = allGalleras.map(gallera => ({
-        user: gallera.owner,
-        gallera: gallera,
-      })).filter(item => item.user);
+      const combined = allGalleras
+        .map((gallera) => ({
+          user: gallera.owner,
+          gallera: gallera,
+        }))
+        .filter((item) => item.user);
 
       setCombinedData(combined as CombinedGalleraData[]);
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred",
+      );
     } finally {
       setLoading(false);
     }
@@ -88,7 +94,9 @@ const AdminGallerasPage: React.FC = () => {
 
   // Estado para modal de edición dual
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<CombinedGalleraData | null>(null);
+  const [editingData, setEditingData] = useState<CombinedGalleraData | null>(
+    null,
+  );
 
   // Estado para modal de creación
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -121,8 +129,8 @@ const AdminGallerasPage: React.FC = () => {
         return;
       }
     } else {
-        setError("No hay gallera asociada para eliminar.");
-        return;
+      setError("No hay gallera asociada para eliminar.");
+      return;
     }
 
     // Actualizar la lista

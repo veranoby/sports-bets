@@ -69,7 +69,9 @@ const UserBets: React.FC = () => {
 
   // Use ref for bets to handle WebSocket updates
   const betsRef = useRef<Bet[]>([]);
-  const setBetsRef = useRef<React.Dispatch<React.SetStateAction<Bet[]>>>(() => {});
+  const setBetsRef = useRef<React.Dispatch<React.SetStateAction<Bet[]>>>(
+    () => {},
+  );
 
   useWallet();
 
@@ -87,13 +89,13 @@ const UserBets: React.FC = () => {
 
   // Update betsRef when bets change - properly cast BetData to Bet
   useEffect(() => {
-    betsRef.current = bets.map(bet => ({
+    betsRef.current = bets.map((bet) => ({
       ...bet,
       potentialWin: (bet as any).potentialWin || 0,
-      userId: (bet as any).userId || '',
+      userId: (bet as any).userId || "",
       updatedAt: (bet as any).updatedAt || new Date().toISOString(),
       result: (bet.result as "win" | "loss") || undefined,
-      status: bet.status as any // Allow flexible status
+      status: bet.status as any, // Allow flexible status
     }));
   }, [bets]);
 
@@ -332,14 +334,17 @@ const UserBets: React.FC = () => {
               filteredBets.map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={{
-                    ...bet,
-                    potentialWin: (bet as any).potentialWin || 0,
-                    userId: (bet as any).userId || '',
-                    updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-                    status: bet.status as any,
-                    result: bet.result as any
-                  } as any}
+                  bet={
+                    {
+                      ...bet,
+                      potentialWin: (bet as any).potentialWin || 0,
+                      userId: (bet as any).userId || "",
+                      updatedAt:
+                        (bet as any).updatedAt || new Date().toISOString(),
+                      status: bet.status as any,
+                      result: bet.result as any,
+                    } as any
+                  }
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                 />
@@ -375,14 +380,17 @@ const UserBets: React.FC = () => {
               .map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={{
-                    ...bet,
-                    potentialWin: (bet as any).potentialWin || 0,
-                    userId: (bet as any).userId || '',
-                    updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-                    status: bet.status as any,
-                    result: bet.result as any
-                  } as any}
+                  bet={
+                    {
+                      ...bet,
+                      potentialWin: (bet as any).potentialWin || 0,
+                      userId: (bet as any).userId || "",
+                      updatedAt:
+                        (bet as any).updatedAt || new Date().toISOString(),
+                      status: bet.status as any,
+                      result: bet.result as any,
+                    } as any
+                  }
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                   mode="history"
