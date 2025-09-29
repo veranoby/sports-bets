@@ -115,7 +115,7 @@ export const fightsAPI = {
     return apiCall("post", `/fights/${fightId}/result`, result);
   },
   delete: async (id: string) => {
-    return apiCall('delete', `/fights/${id}`);
+    return apiCall("delete", `/fights/${id}`);
   },
 };
 
@@ -152,10 +152,19 @@ export const userAPI = {
     return apiCall("get", `/users/${id}`);
   },
   delete: async (id: string) => {
-    return apiCall('delete', `/users/${id}`);
+    return apiCall("delete", `/users/${id}`);
   },
   update: async (id: string, data: Partial<User>) => {
-    return apiCall<User>('put', `/users/${id}`, data);
+    return apiCall<User>("put", `/users/${id}`, data);
+  },
+  updatePassword: async (id: string, newPassword: string) => {
+    return apiCall("put", `/users/${id}/password`, { password: newPassword });
+  },
+  updateRole: async (id: string, role: User['role']) => {
+    return apiCall<User>("put", `/users/${id}/role`, { role });
+  },
+  updateStatus: async (id: string, isActive: boolean) => {
+    return apiCall<User>("put", `/users/${id}/status`, { isActive });
   },
 };
 
@@ -232,6 +241,9 @@ export const eventsAPI = {
 };
 
 export const venuesAPI = {
+  getById: async (id: string) => {
+    return apiCall("get", `/venues/${id}`);
+  },
   update: async (id: string, data: Partial<Venue>) => {
     return apiCall("put", `/venues/${id}`, data);
   },
@@ -247,6 +259,9 @@ export const venuesAPI = {
 };
 
 export const gallerasAPI = {
+  getById: async (id: string) => {
+    return apiCall("get", `/galleras/${id}`);
+  },
   getAll: async (params?: Record<string, unknown>) => {
     return apiCall("get", "/galleras", params);
   },
@@ -344,13 +359,23 @@ export const articlesAPI = {
   create: async (data: {
     title: string;
     content: string;
-    summary: string;
+    excerpt: string;
+    featured_image?: string;
     venue_id?: string;
-    featured_image_url?: string;
+    status?: "draft" | "pending" | "published";
   }) => {
     return apiCall("post", "/articles", data);
   },
-  update: async (id: string, data: Partial<Article>) => {
+  update: async (
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      excerpt?: string;
+      featured_image?: string;
+      status?: "draft" | "pending" | "published" | "archived";
+    },
+  ) => {
     return apiCall("put", `/articles/${id}`, data);
   },
   delete: async (id: string) => {
@@ -414,6 +439,26 @@ export const notificationsAPI = {
   },
   getUnreadCount: async () => {
     return apiCall("get", "/notifications/unread-count");
+  },
+};
+
+// Upload API for image handling
+export const uploadsAPI = {
+  uploadImage: async (file: File): Promise<ApiResponse<{
+    filename: string;
+    originalName: string;
+    url: string;
+    size: number;
+    mimetype: string;
+  }>> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiCall("post", "/uploads/image", formData, {
+      "Content-Type": "multipart/form-data",
+    });
+  },
+  deleteImage: async (filename: string) => {
+    return apiCall("delete", `/uploads/image/${filename}`);
   },
 };
 

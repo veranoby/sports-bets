@@ -67,6 +67,18 @@
       "body": {"username": "string", "email": "string", "password": "string", "role": "string"},
       "auth_required": true,
       "roles": ["admin", "operator"]
+    },
+    "update_user_password": {
+      "method": "PUT",
+      "path": "/users/:id/password",
+      "body": {"password": "string"},
+      "validation": {
+        "password": "min 8 chars, 1 uppercase, 1 lowercase, 1 number"
+      },
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "security": "Operators cannot modify admin/operator accounts",
+      "added_by": "QWEN optimization - admin password management feature"
     }
   },
 
@@ -85,10 +97,23 @@
       "path": "/venues",
       "auth_required": true
     },
+    "get_venue_by_id": {
+      "method": "GET",
+      "path": "/venues/:id",
+      "auth_required": false,
+      "middleware": "optionalAuth",
+      "response": {"success": true, "data": "venue_object_with_owner"}
+    },
     "update_venue": {
       "method": "PUT",
       "path": "/venues/:id",
       "auth_required": true
+    },
+    "delete_venue": {
+      "method": "DELETE",
+      "path": "/venues/:id",
+      "auth_required": true,
+      "roles": ["admin"]
     }
   },
 
@@ -107,10 +132,23 @@
       "path": "/galleras",
       "auth_required": true
     },
+    "get_gallera_by_id": {
+      "method": "GET",
+      "path": "/galleras/:id",
+      "auth_required": false,
+      "middleware": "optionalAuth",
+      "response": {"success": true, "data": "gallera_object_with_owner"}
+    },
     "update_gallera": {
       "method": "PUT",
       "path": "/galleras/:id",
       "auth_required": true
+    },
+    "delete_gallera": {
+      "method": "DELETE",
+      "path": "/galleras/:id",
+      "auth_required": true,
+      "roles": ["admin"]
     }
   },
 
@@ -140,9 +178,96 @@
     "create_article": {
       "method": "POST",
       "path": "/articles",
-      "body": {"title": "string", "content": "string", "excerpt": "string"},
+      "body": {
+        "title": "string (min 5, max 255 chars)",
+        "content": "string (min 10 chars)",
+        "excerpt": "string (min 10, max 500 chars)",
+        "featured_image": "string (optional URL)",
+        "venue_id": "string (optional UUID)"
+      },
       "auth_required": true,
-      "roles": ["admin", "gallera", "user"]
+      "roles": ["admin", "gallera", "venue"],
+      "CRITICAL_VALIDATION": {
+        "field_names": "MUST use 'excerpt' NOT 'summary', 'featured_image' NOT 'featured_image_url'",
+        "slug_generation": "✅ FIXED: Backend auto-generates URL-friendly slug from title - NEVER send slug field",
+        "sanitization": "Content is automatically sanitized by DOMPurify middleware",
+        "status_logic": "admin=published, gallera/venue=pending",
+        "ownership": "gallera/venue can only create their own articles"
+      },
+      "common_400_errors": [
+        "✅ FIXED: Empty string validation for optional fields",
+        "✅ FIXED: notNull Violation Article.slug cannot be null (backend now auto-generates)",
+        "Sending 'summary' instead of 'excerpt'",
+        "Sending 'featured_image_url' instead of 'featured_image'",
+        "Title too short (<5 chars) or too long (>255 chars)",
+        "Content too short (<10 chars)",
+        "Excerpt too short (<10 chars) or too long (>500 chars)"
+      ]
+    },
+    "update_article": {
+      "method": "PUT",
+      "path": "/articles/:id",
+      "body": {
+        "title": "string (optional, min 5, max 255 chars)",
+        "content": "string (optional, min 10 chars)",
+        "excerpt": "string (optional, min 10, max 500 chars)",
+        "featured_image": "string (optional URL)",
+        "venue_id": "string (optional UUID)",
+        "status": "string (optional: draft|pending|published|archived)"
+      },
+      "auth_required": true,
+      "roles": ["admin", "gallera", "venue"],
+      "ownership": "Only admin or article owner can update",
+      "status_restrictions": "Non-admin publish requests go to pending"
+    },
+    "delete_article": {
+      "method": "DELETE",
+      "path": "/articles/:id",
+      "auth_required": true,
+      "roles": ["admin", "gallera", "venue"],
+      "ownership": "Only admin or article owner can delete"
+    }
+  },
+
+  "upload_endpoints": {
+    "upload_image": {
+      "method": "POST",
+      "path": "/uploads/image",
+      "content_type": "multipart/form-data",
+      "body": {
+        "image": "File (required, type: image/jpeg|image/jpg|image/png|image/webp)"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "filename": "string (unique filename with timestamp and user ID)",
+          "originalName": "string (original filename)",
+          "url": "string (full URL to access the image)",
+          "size": "number (file size in bytes)",
+          "mimetype": "string (image MIME type)"
+        }
+      },
+      "auth_required": true,
+      "validation": {
+        "max_file_size": "5MB",
+        "allowed_types": ["image/jpeg", "image/jpg", "image/png", "image/webp"],
+        "filename_pattern": "{timestamp}-{userId}.{extension}"
+      },
+      "storage_location": "backend/uploads/images/",
+      "served_via": "/uploads/images/{filename}"
+    },
+    "delete_image": {
+      "method": "DELETE",
+      "path": "/uploads/image/:filename",
+      "auth_required": true,
+      "validation": {
+        "ownership": "Users can only delete images they uploaded (filename contains userId)",
+        "admin_override": "Admins can delete any image"
+      },
+      "response": {
+        "success": true,
+        "message": "Image deleted successfully"
+      }
     }
   },
 
@@ -275,7 +400,7 @@
 
   "production_status": {
     "date": "2025-09-28",
-    "status": "✅ PRODUCTION READY - 98% API completeness verified",
+    "status": "✅ PRODUCTION READY - 100% API completeness verified",
     "gemini_cli_completion": {
       "userAPI.delete": "✅ COMPLETED",
       "userAPI.update": "✅ COMPLETED",

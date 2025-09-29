@@ -3,6 +3,7 @@ import Modal from "../shared/Modal";
 import { FormField } from "../shared/FormField";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { uploadsAPI } from "../../services/api";
 import type { ArticleFormData, ArticleFormErrors } from "../../types/article";
 
 interface ArticleEditorProps {
@@ -11,7 +12,7 @@ interface ArticleEditorProps {
   title: string;
   formData: ArticleFormData;
   formErrors: ArticleFormErrors;
-  onChange: (field: keyof ArticleFormData, value: string) => void;
+  onChange: (field: keyof ArticleFormData, value: string | boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   isEditing: boolean;
@@ -31,19 +32,29 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(
     formData.featured_image || null,
   );
+  const [uploading, setUploading] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real application, you would upload the file to a server here
-      // For now, we'll just create a preview
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setImagePreview(result);
-        onChange("featured_image", result);
-      };
-      reader.readAsDataURL(file);
+      setUploading(true);
+      try {
+        // Upload the file to the server
+        const response = await uploadsAPI.uploadImage(file);
+        if (response.success && response.data) {
+          const imageUrl = response.data.url;
+          setImagePreview(imageUrl);
+          onChange("featured_image", imageUrl);
+        } else {
+          console.error("Upload failed:", response.message);
+          alert("Error uploading image. Please try again.");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        alert("Error uploading image. Please try again.");
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
@@ -75,19 +86,25 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             <div className="flex-1">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={handleImageChange}
+                disabled={uploading}
                 className="block w-full text-sm text-gray-400
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-lg file:border-0
                   file:text-sm file:font-semibold
                   file:bg-blue-400 file:text-white
                   hover:file:bg-blue-700
-                  file:cursor-pointer"
+                  file:cursor-pointer
+                  disabled:opacity-50 disabled:cursor-not-allowed"
               />
+              {uploading && (
+                <p className="mt-2 text-xs text-blue-500">
+                  Subiendo imagen...
+                </p>
+              )}
               <p className="mt-2 text-xs text-gray-500">
-                Selecciona una imagen para el artículo. Formatos recomendados:
-                JPG, PNG, WEBP.
+                Formatos: JPG, PNG, WEBP. Máximo 5MB.
               </p>
               {(formData.featured_image || imagePreview) && (
                 <button
@@ -166,27 +183,46 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
           )}
         </div>
 
-        <div className="flex gap-3 pt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="flex-1 px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {submitting
-              ? isEditing
-                ? "Actualizando..."
-                : "Creando..."
-              : isEditing
-                ? "Actualizar Artículo"
-                : "Crear Artículo"}
-          </button>
+        <div className="mt-6 flex justify-between items-center">
+          {/* Draft Checkbox */}
+          <div className="flex items-center">
+            <input
+              id="isDraft"
+              name="isDraft"
+              type="checkbox"
+              checked={formData.status === "draft"}
+              onChange={(e) =>
+                onChange("status", e.target.checked ? "draft" : "pending")
+              }
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="isDraft" className="ml-2 block text-sm text-gray-400">
+              Guardar como Borrador
+            </label>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary"
+              disabled={submitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={submitting}
+            >
+              {submitting
+                ? "Guardando..."
+                : formData.status === "draft"
+                  ? "Guardar Borrador"
+                  : "Enviar para Revisión"}
+            </button>
+          </div>
         </div>
       </form>
       <style>{`

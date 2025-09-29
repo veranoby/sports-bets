@@ -21,6 +21,23 @@
       },
       "critical_note": "VERIFIED against backend/src/models/Fight.ts - properties match database schema"
     },
+    "User": {
+      "file": "/frontend/src/types/index.ts",
+      "required_properties": ["id", "username", "email", "role", "isActive", "createdAt", "updatedAt"],
+      "optional_properties": ["profileInfo", "lastLogin", "subscription", "wallet", "events"],
+      "role_enum": ["admin", "operator", "venue", "user", "gallera"],
+      "profileInfo_structure": {
+        "basic_fields": ["fullName", "phoneNumber", "address", "identificationNumber", "verificationLevel"],
+        "venue_fields": ["businessName", "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
+        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
+        "extended_fields": ["location", "description", "establishedDate", "certified", "rating", "premiumLevel", "specialties", "imageUrl"]
+      },
+      "backend_sync": {
+        "automatic_sync": "User.profileInfo changes sync to Venue/Gallera dedicated tables",
+        "trigger_fields": ["venueName → venues.name", "galleraName → galleras.name"],
+        "endpoint": "/users/profile (PUT) - triggers sync in backend/src/routes/users.ts:220-290"
+      }
+    },
     "UserSubscription": {
       "file": "/frontend/src/types/index.ts",
       "required_properties": ["id", "plan", "status", "features"],
@@ -52,6 +69,31 @@
         "address": "string?"
       }
     },
+    "Article": {
+      "file": "/frontend/src/types/article.ts",
+      "required_properties": ["id", "title", "slug", "content", "status", "created_at"],
+      "optional_properties": ["excerpt", "featured_image", "published_at", "author", "venue", "venue_id"],
+      "backend_auto_generated": ["slug"],
+      "slug_generation": {
+        "source": "Generated from title field",
+        "format": "URL-friendly (lowercase, hyphens, no special chars)",
+        "uniqueness": "Enforced by backend with automatic numbering (e.g., title-1, title-2)",
+        "frontend_note": "NEVER send slug in POST/PUT requests - backend auto-generates"
+      },
+      "deprecated_fields": ["summary", "featured_image_url"],
+      "api_mapping": {
+        "POST /articles": {
+          "required": ["title", "content", "excerpt"],
+          "optional": ["featured_image", "venue_id"],
+          "CRITICAL_WARNING": "Frontend MUST send 'excerpt' NOT 'summary', and 'featured_image' NOT 'featured_image_url'"
+        }
+      },
+      "common_errors": [
+        "Using 'summary' instead of 'excerpt' field in API calls",
+        "Using 'featured_image_url' instead of 'featured_image' in API calls",
+        "Missing required fields: title (min 5 chars), content (min 10 chars), excerpt (min 10, max 500 chars)"
+      ]
+    },
     "Gallera": {
       "file": "/frontend/src/types/index.ts",
       "required_properties": ["id", "name", "createdAt", "updatedAt"],
@@ -62,6 +104,43 @@
         "Missing fightRecord property access",
         "Forgetting articles array for gallera detail pages"
       ]
+    }
+  },
+
+  "upload_interfaces": {
+    "upload_response": {
+      "file": "/frontend/src/services/api.ts",
+      "interface": "ApiResponse<UploadData>",
+      "properties": {
+        "success": "boolean",
+        "data": {
+          "filename": "string",
+          "originalName": "string",
+          "url": "string",
+          "size": "number",
+          "mimetype": "string"
+        }
+      },
+      "usage_example": "const response = await uploadsAPI.uploadImage(file); const imageUrl = response.data.url;",
+      "implementation_notes": [
+        "File upload uses FormData with multer backend",
+        "Authentication required via Bearer token",
+        "Images stored in backend/uploads/images/ directory",
+        "Served via /uploads/images/{filename} static route"
+      ]
+    },
+    "frontend_upload_integration": {
+      "component": "ArticleEditor.tsx",
+      "handler": "handleImageChange",
+      "workflow": [
+        "User selects file via input[type=file]",
+        "handleImageChange calls uploadsAPI.uploadImage(file)",
+        "Response provides URL for immediate preview",
+        "URL stored in form data as featured_image field",
+        "Article save includes image URL in database"
+      ],
+      "error_handling": "Try-catch with user-friendly alerts",
+      "loading_state": "uploading boolean with disabled input"
     }
   },
 
@@ -125,6 +204,22 @@
     ]
   },
 
+  "claude_backend_fixes_report": {
+    "date": "2025-09-29",
+    "status": "✅ BACKEND USER INTERFACE OPTIMIZATION COMPLETE",
+    "fixes_applied": [
+      "User.ts: Added venue/gallera-specific profileInfo fields",
+      "UserProfile interface: Extended with businessName, venueName, galleraName etc.",
+      "TypeScript compilation: Fixed property access errors in venues.ts & galleras.ts",
+      "Data synchronization: Verified User.profileInfo ↔ Venue/Gallera table sync"
+    ],
+    "impact_verification": {
+      "profile_editing": "✅ /users/profile endpoint handles all venue/gallera fields",
+      "admin_management": "✅ Admin can edit venue/gallera users with extended profileInfo",
+      "data_consistency": "✅ Changes auto-sync to dedicated Venue/Gallera tables"
+    },
+    "typescript_status": "✅ Zero compilation errors (npx tsc --noEmit)"
+  },
   "gemini_cli_success_report": {
     "date": "2025-09-28",
     "status": "✅ TYPESCRIPT COMPILATION SUCCESS",

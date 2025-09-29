@@ -31,6 +31,7 @@ import sseRoutes from "./routes/sse";
 import pushRoutes from "./routes/push";
 import settingsRoutes from "./routes/settings";
 import monitoringRoutes from "./routes/monitoring";
+import uploadsRoutes from "./routes/uploads";
 
 // Cargar variables de entorno
 config();
@@ -147,6 +148,7 @@ class Server {
     this.app.use("/api/settings", settingsRoutes);
     this.app.use("/api/galleras", gallerasRoutes);
     this.app.use("/api/monitoring", monitoringRoutes);
+    this.app.use("/api/uploads", uploadsRoutes);
 
     // Ruta para servir archivos estáticos si es necesario
     this.app.use("/uploads", express.static("uploads"));
