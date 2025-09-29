@@ -564,5 +564,5 @@ export type {
   Venue,
   Wallet,
   Transaction,
-  Subscription,
+  UserSubscription as Subscription,
 } from "../types";

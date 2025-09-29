@@ -12,6 +12,7 @@ import type {
   Venue,
   Gallera,
   Bet,
+  User,
 } from "../types/index";
 
 const api = axios.create({
@@ -113,6 +114,9 @@ export const fightsAPI = {
   ) => {
     return apiCall("post", `/fights/${fightId}/result`, result);
   },
+  delete: async (id: string) => {
+    return apiCall('delete', `/fights/${id}`);
+  },
 };
 
 export const adminAPI = {
@@ -146,6 +150,12 @@ export const userAPI = {
   },
   getById: async (id: string) => {
     return apiCall("get", `/users/${id}`);
+  },
+  delete: async (id: string) => {
+    return apiCall('delete', `/users/${id}`);
+  },
+  update: async (id: string, data: Partial<User>) => {
+    return apiCall<User>('put', `/users/${id}`, data);
   },
 };
 

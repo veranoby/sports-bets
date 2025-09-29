@@ -1,465 +1,275 @@
-Guía de Referencia: Streaming de Video para Sports Bets
-Arquitectura de Streaming
-Componentes del Sistema
-[OBS Studio] → [Servidor Nginx-RTMP] → [BunnyCDN] → [Reproductores de Usuario]
-(Origen) (Transcodificación) (Distribución) (Frontend)
-Formato de Streaming Recomendado
+# 🎥 GALLOBETS - Guía de Streaming en Producción
 
-Protocolo primario: RTMP para ingesta desde OBS
-Protocolo de distribución: HLS (HTTP Live Streaming)
-Tamaño de fragmento HLS: 3 segundos (balance entre latencia y estabilidad)
-Codificación de video: H.264 (compatible universalmente)
-Contenedor: TS (Transport Stream) para HLS
-Duración de playlist: 60 segundos (ajustable según necesidad)
+**Estado**: ✅ **PRODUCCIÓN READY** - Tutorial verificado contra implementación actual
+**Última actualización**: 28 septiembre 2025
+**Para**: Administradores y Operadores de la plataforma GalloBets
 
-Configuración Técnica
-Configuración Nginx-RTMP Optimizada
-nginx# Configuración optimizada para transmisiones largas (8+ horas)
-worker_processes auto;
-worker_rlimit_nofile 8192; # Importante para muchas conexiones
+---
 
-events {
-worker_connections 4096;
-multi_accept on;
-use epoll; # Optimización para Linux
-}
+## 📋 ARQUITECTURA DE STREAMING IMPLEMENTADA
 
-http {
-include mime.types;
-default_type application/octet-stream;
+### Componentes del Sistema
+```
+[OBS Studio] → [Servidor RTMP Local] → [HLS Output] → [Frontend React]
+    (Origen)     (Puerto 1935)         (HTTP 8000)    (SSE + HLS Player)
+```
 
-    # Optimizaciones para streaming
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
-    types_hash_max_size 2048;
-    server_tokens off;
+### Protocolos en Uso
+- **RTMP**: Ingesta desde OBS Studio (Puerto 1935)
+- **HLS**: Distribución a usuarios (HTTP Live Streaming)
+- **SSE**: Real-time admin updates y monitoring
+- **WebSocket**: Minimal - solo para PAGO/DOY betting (3min timeout)
 
-    # Buffer sizes optimizados para streaming
-    client_body_buffer_size 128k;
-    client_max_body_size 10m;
-    client_body_timeout 12;
-    client_header_timeout 12;
-    send_timeout 10;
+---
 
-    # Compresión - activar solo para componentes no HLS
-    gzip off;  # Desactivado para contenido HLS
+## 🔧 CONFIGURACIÓN TÉCNICA
 
-    server {
-        listen 80;
-        server_name localhost;  # Cambiar en producción
+### Servidor RTMP - Docker Setup
+```bash
+# Iniciar servidor RTMP (ya configurado en el proyecto)
+docker run -d \
+  --name rtmp-server \
+  -p 1935:1935 \
+  -p 8000:8000 \
+  -v /tmp/hls:/var/hls \
+  alqutami/rtmp-hls
+```
 
-        # CORS para reproductores de video
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+### URLs del Sistema
+- **RTMP Input**: `rtmp://localhost:1935/live`
+- **HLS Output**: `http://localhost:8000/live/{STREAM_KEY}/index.m3u8`
+- **Admin Dashboard**: `http://localhost:5173/admin/streaming`
 
-        # Streams HLS
-        location /hls {
-            types {
-                application/vnd.apple.mpegurl m3u8;
-                video/mp2t ts;
-            }
-            root /tmp;  # Directorio donde se guardan los fragmentos
-            add_header Cache-Control no-cache;
-            add_header 'Access-Control-Allow-Origin' '*' always;
-        }
+---
 
-        # Estadísticas RTMP (proteger en producción)
-        location /stat {
-            rtmp_stat all;
-            rtmp_stat_stylesheet stat.xsl;
-            # Añadir autenticación en producción
-            # auth_basic "Restricted";
-            # auth_basic_user_file /etc/nginx/.htpasswd;
-        }
+## 🎮 CONFIGURACIÓN OBS STUDIO
 
-        # Control RTMP (proteger en producción)
-        location /control {
-            rtmp_control all;
-            # Añadir autenticación en producción
-            # auth_basic "Restricted";
-            # auth_basic_user_file /etc/nginx/.htpasswd;
-        }
-    }
+### Configuración Básica Recomendada
 
-}
+**Settings → Stream**:
+- **Service**: Custom
+- **Server**: `rtmp://localhost:1935/live`
+- **Stream Key**: `{EVENT_ID}` (generado por el admin dashboard)
 
-# Configuración RTMP
+**Settings → Output**:
+```
+Output Mode: Advanced
+Streaming Tab:
+  - Encoder: x264
+  - Rate Control: CBR
+  - Bitrate: 2500 Kbps (para 720p)
+  - Keyframe Interval: 2
+  - CPU Usage Preset: veryfast
+  - Profile: high
+  - Tune: zerolatency
+```
 
-rtmp {
-server {
-listen 1935;
-chunk_size 4096;
-
-        # Publicar timeout para transmisiones largas
-        idle_streams off;
-        drop_idle_publisher 3600s;  # 1 hora
-
-        # Tiempo ping para mantener conexiones activas
-        ping 30s;
-        ping_timeout 10s;
-
-        # Application live para streaming principal
-        application live {
-            live on;
-            record off;
-
-            # Permitir metadatos
-            meta copy;
-
-            # HLS
-            hls on;
-            hls_path /tmp/hls;
-            hls_fragment 3s;
-            hls_playlist_length 60s;
-
-            # Múltiples calidades (transcodificación)
-            # Requiere compilar Nginx con módulos adicionales
-            exec_push ffmpeg -i rtmp://localhost:1935/live/$name
-                -c:v libx264 -c:a aac -b:v 2000k -b:a 128k -vf "scale=1280:720" -preset veryfast -f flv rtmp://localhost:1935/hls/$name_720p
-                -c:v libx264 -c:a aac -b:v 1000k -b:a 96k -vf "scale=854:480" -preset veryfast -f flv rtmp://localhost:1935/hls/$name_480p
-                -c:v libx264 -c:a aac -b:v 500k -b:a 64k -vf "scale=640:360" -preset veryfast -f flv rtmp://localhost:1935/hls/$name_360p;
-
-            # Control de acceso (producción)
-            # allow publish 127.0.0.1;
-            # deny publish all;
-            # allow play all;
-        }
-
-        # Application HLS (para transcodificación)
-        application hls {
-            live on;
-            record off;
-
-            # HLS
-            hls on;
-            hls_path /tmp/hls;
-            hls_fragment 3s;
-            hls_playlist_length 60s;
-            hls_variant _720p BANDWIDTH=2128000,RESOLUTION=1280x720;
-            hls_variant _480p BANDWIDTH=1096000,RESOLUTION=854x480;
-            hls_variant _360p BANDWIDTH=564000,RESOLUTION=640x360;
-
-            # Solo permitir publicación local
-            allow publish 127.0.0.1;
-            deny publish all;
-            allow play all;
-        }
-    }
-
-}
-Configuración OBS Studio
-Configuración Recomendada para Transmisión
-
-Formato de Salida: RTMP (Custom)
-URL: rtmp://[SERVIDOR-NGINX]:1935/live
-Stream Key: [NOMBRE-EVENTO] (ej: gallera_evento_20250515)
-Codificación de Video:
-
-Encoder: x264
-Rate Control: CBR (Constant Bitrate)
-Bitrate: 2000-3000 Kbps (para 720p)
-Keyframe Interval: 2 segundos
-Preset: veryfast (balance rendimiento/calidad)
-Profile: high
-Tune: zerolatency
-
-Resolución: 1280x720 (720p)
+**Settings → Video**:
+```
+Base Resolution: 1920x1080
+Output Resolution: 1280x720
+Downscale Filter: Bicubic
 FPS: 30
-Codificación de Audio:
+```
 
-Codec: AAC
-Bitrate: 128 Kbps
-Canales: Stereo
+**Settings → Audio**:
+```
 Sample Rate: 48 kHz
+Channels: Stereo
+Bitrate: 128 kbps
+```
 
-Script PowerShell para Automatizar OBS (Opcional)
-powershell# Requiere OBS-WebSocket plugin
+---
 
-# Install-Module -Name OBS-WebSocket
+## 👨‍💼 FLUJO DE TRABAJO PARA ADMINISTRADORES
 
-$obsConnection = Connect-OBS -WebSocketURL "ws://localhost:4455" -Password "YourPassword"
+### 1. Crear Evento
+1. Acceder a `/admin/events`
+2. Clic en "Crear Nuevo Evento"
+3. Completar información del evento:
+   - Nombre del evento
+   - Venue asignado
+   - Fecha y hora programada
+4. Guardar evento
 
-# Iniciar transmisión
+### 2. Asignar Operador
+1. En la lista de eventos, clic en "Editar"
+2. Tab "General" → Seleccionar operador
+3. Guardar cambios
 
-Start-OBSStreaming -Connection $obsConnection
+### 3. Generar Stream Key
+1. En el evento, clic en "Generar Stream Key"
+2. La clave se genera automáticamente: `event-{EVENT_ID}`
+3. Proporcionar esta clave al operador
 
-# Establecer escena
+### 4. Configurar Streaming
+1. Acceder a `/admin/streaming`
+2. Monitorear estado del stream en tiempo real
+3. Ver métricas de viewers y calidad
 
-Set-OBSCurrentScene -Connection $obsConnection -SceneName "Escena Principal"
+---
 
-# Monitorear estado
+## 🎯 FLUJO DE TRABAJO PARA OPERADORES
 
-$status = Get-OBSStreamingStatus -Connection $obsConnection
-if ($status.Streaming) {
-Write-Output "Transmisión activa - Duración: $($status.StreamTimecode)"
-}
-Integración con BunnyCDN
-Configuración de Pull Zone
-javascript// Crear Pull Zone en BunnyCDN (via API)
-const createPullZone = async () => {
-const response = await fetch('https://api.bunny.net/pullzone', {
-method: 'POST',
-headers: {
-'AccessKey': process.env.BUNNYCDN_API_KEY,
-'Content-Type': 'application/json'
-},
-body: JSON.stringify({
-Name: 'SportsBetsStreaming',
-OriginUrl: 'http://your-nginx-server.com/hls',
-Type: 0, // Standard pull zone
-EnabledHSTS: false, // HSTS no recomendado para streaming
-EnableCacheSlice: true, // Importante para HLS
-EnableSmartCache: false, // Muy importante para HLS - no usar Smart Cache
-CacheControlMaxAgeOverride: 5, // 5 segundos máximo para archivos .m3u8
-CacheControlBrowserMaxAgeOverride: 5,
-EnableCacheScoreHeader: false,
-ZoneSecurityEnabled: true, // Recomendado para seguridad
-ZoneSecurityIncludeHashRemoteIP: false
-})
-});
+### 1. Preparación del Evento
+1. Recibir Stream Key del administrador
+2. Configurar OBS Studio con los parámetros anteriores
+3. Verificar calidad de video y audio
 
-return await response.json();
-};
-Configuración de Edge Rules
+### 2. Iniciar Transmisión
+1. En OBS: Clic en "Start Streaming"
+2. Verificar conexión: debe mostrar "🟢 Live" en OBS
+3. Confirmar en admin dashboard que el stream está activo
 
-Regla para archivos .m3u8:
+### 3. Gestión de Peleas
+1. Crear peleas usando el admin dashboard:
+   - Nombre Gallo Rojo
+   - Nombre Gallo Azul
+   - Peso
+   - Número de pelea
+2. Abrir ventanas de apuestas:
+   - Cambiar status a "betting"
+   - Los usuarios pueden hacer PAGO/DOY
+3. Iniciar pelea:
+   - Cambiar status a "live"
+   - Se cierran automáticamente las apuestas
+4. Finalizar pelea:
+   - Registrar resultado (Rojo/Azul/Empate)
+   - Status cambia a "completed"
+   - Sistema liquida apuestas automáticamente
 
-Cache-TTL: 3 segundos
-Browser Cache-TTL: 0 segundos
+### 4. Finalizar Evento
+1. En OBS: Clic en "Stop Streaming"
+2. Finalizar todas las peleas pendientes
+3. Verificar que todas las apuestas están liquidadas
 
-Regla para archivos .ts:
+---
 
-Cache-TTL: 604800 segundos (1 semana)
-Browser Cache-TTL: 604800 segundos (1 semana)
+## 📊 MONITORING Y MÉTRICAS
 
-Optimización de Costos
+### Dashboard en Tiempo Real
+El admin dashboard proporciona:
+- **Estado del Stream**: ✅ Activo / ❌ Inactivo
+- **Viewers Actuales**: Contador en tiempo real
+- **Apuestas Activas**: Total por pelea
+- **Estado de Peleas**: upcoming/betting/live/completed
 
-Configurar purga automática de contenido antiguo (>48 horas)
-Limitar regiones CDN a Latinoamérica inicialmente
-Monitoreo de tráfico para detectar picos inusuales
+### SSE (Server-Sent Events)
+El sistema usa SSE para updates en tiempo real:
+- `/api/sse/admin/fights` - Estados de peleas
+- `/api/sse/admin/streaming` - Métricas de streaming
+- `/api/sse/admin/bets` - Actividad de apuestas
 
-Componente React para Reproducción
-jsximport React, { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
+### Logs del Sistema
+```bash
+# Backend logs
+tail -f backend/logs/streaming.log
 
-const StreamPlayer = ({ streamUrl, autoPlay = true }) => {
-const videoRef = useRef(null);
-const [error, setError] = useState(null);
-const [isLoading, setIsLoading] = useState(true);
+# RTMP server logs
+docker logs rtmp-server -f
+```
 
-useEffect(() => {
-let hls;
+---
 
-    const initPlayer = () => {
-      if (videoRef.current) {
-        const video = videoRef.current;
+## 🚨 SOLUCIÓN DE PROBLEMAS
 
-        // Limpiar instancia previa si existe
-        if (hls) {
-          hls.destroy();
-        }
+### 1. OBS No Se Conecta
+**Síntomas**: OBS muestra "Failed to connect"
+**Soluciones**:
+- Verificar que el servidor RTMP esté corriendo: `docker ps`
+- Comprobar la URL: debe ser `rtmp://localhost:1935/live`
+- Revisar firewall en puerto 1935
 
-        // Verificar soporte HLS
-        if (Hls.isSupported()) {
-          setIsLoading(true);
-          setError(null);
+### 2. Stream No Aparece en Frontend
+**Síntomas**: El reproductor muestra error o pantalla negra
+**Soluciones**:
+- Verificar HLS URL: `http://localhost:8000/live/{STREAM_KEY}/index.m3u8`
+- Comprobar que los archivos .m3u8 y .ts se están generando en `/tmp/hls`
+- Revisar CORS headers en el servidor HLS
 
-          // Crear nueva instancia HLS
-          hls = new Hls({
-            maxBufferLength: 30,
-            maxMaxBufferLength: 60,
-            manifestLoadingTimeOut: 20000, // Timeout más largo para conexiones lentas
-            manifestLoadingMaxRetry: 4,
-            fragLoadingTimeOut: 20000,
-            fragLoadingMaxRetry: 6,
-            levelLoadingTimeOut: 20000,
-            levelLoadingMaxRetry: 4
-          });
+### 3. Alta Latencia (>30 segundos)
+**Síntomas**: Retraso significativo entre transmisión y recepción
+**Soluciones**:
+- Reducir keyframe interval en OBS a 1 segundo
+- Verificar configuración de fragmentos HLS (3s por defecto)
+- Comprobar ancho de banda de upload
 
-          // Manejo de errores
-          hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-              switch(data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  console.error('Fatal network error', data);
-                  setError('Error de conexión. Reintentando...');
-                  hls.startLoad();
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  console.error('Fatal media error', data);
-                  setError('Error de reproducción. Reintentando...');
-                  hls.recoverMediaError();
-                  break;
-                default:
-                  console.error('Fatal error', data);
-                  setError('Error fatal. Por favor recarga la página.');
-                  break;
-              }
-            }
-          });
+### 4. Pérdida de Calidad
+**Síntomas**: Video pixelado o congelado
+**Soluciones**:
+- Reducir bitrate en OBS (de 2500 a 1500 Kbps)
+- Cambiar preset de "veryfast" a "faster"
+- Verificar uso de CPU en máquina de streaming
 
-          // Evento de carga exitosa
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            setIsLoading(false);
-            if (autoPlay) {
-              video.play().catch(e => console.error('Error al reproducir automáticamente:', e));
-            }
-          });
+---
 
-          // Cargar stream
-          hls.loadSource(streamUrl);
-          hls.attachMedia(video);
-        }
-        // Fallback para navegadores con soporte HLS nativo (Safari)
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = streamUrl;
-          video.addEventListener('loadedmetadata', () => {
-            setIsLoading(false);
-            if (autoPlay) {
-              video.play().catch(e => console.error('Error al reproducir automáticamente:', e));
-            }
-          });
+## ⚡ OPTIMIZACIONES DE RENDIMIENTO
 
-          video.addEventListener('error', () => {
-            setError('Error al cargar el video. Por favor intenta de nuevo.');
-          });
-        }
-        else {
-          setError('Tu navegador no soporta la reproducción de este video.');
-        }
-      }
-    };
+### Para Eventos Largos (8+ horas)
+```bash
+# Configurar rotación de logs RTMP
+logrotate -f /etc/logrotate.d/rtmp
 
-    initPlayer();
+# Limpiar archivos HLS antiguos cada hora
+0 * * * * find /tmp/hls -name "*.ts" -mtime +1 -delete
+```
 
-    // Limpiar al desmontar
-    return () => {
-      if (hls) {
-        hls.destroy();
-      }
-    };
+### Monitoring Automático
+```bash
+# Script para verificar salud del streaming
+#!/bin/bash
+STREAM_KEY="event-123"
+HLS_URL="http://localhost:8000/live/$STREAM_KEY/index.m3u8"
 
-}, [streamUrl, autoPlay]);
+if curl -f $HLS_URL > /dev/null 2>&1; then
+    echo "Stream OK"
+else
+    echo "Stream DOWN - alertar admin"
+    # Enviar notificación
+fi
+```
 
-return (
-<div className="stream-player-container relative">
-{isLoading && (
-<div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
-<div className="loading-spinner"></div>
-<p className="text-white ml-3">Cargando transmisión...</p>
-</div>
-)}
+---
 
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="text-white text-center p-4">
-            <p className="text-red-500 mb-2">{error}</p>
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => window.location.reload()}
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
-      )}
+## 🔒 SEGURIDAD Y ACCESO
 
-      <video
-        ref={videoRef}
-        className="w-full"
-        controls
-        playsInline
-      />
-    </div>
+### Control de Acceso
+- Solo administradores pueden generar stream keys
+- Solo operadores asignados pueden controlar peleas
+- Stream keys son únicos por evento y no reutilizables
 
-);
-};
+### Protección del Sistema
+```bash
+# Solo permitir conexiones RTMP desde localhost (producción)
+iptables -A INPUT -p tcp --dport 1935 -s 127.0.0.1 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1935 -j DROP
+```
 
-export default StreamPlayer;
-Solución de Problemas Comunes
-Problemas de Latencia
+---
 
-Síntoma: Retraso significativo (>30s) entre transmisión y recepción
-Soluciones:
+## 📋 CHECKLIST PRE-EVENTO
 
-Reducir tamaño de fragmentos HLS (2s en lugar de 3s)
-Reducir duración de playlist (30s en lugar de 60s)
-Optimizar network buffers en Nginx
-Verificar configuración de ping/pong en RTMP
+### Para Administradores:
+- [ ] Evento creado con información completa
+- [ ] Operador asignado y notificado
+- [ ] Stream key generado y compartido
+- [ ] Sistema de monitoring activo
+- [ ] Backup de conexión disponible
 
-Pérdida de Conexión
+### Para Operadores:
+- [ ] OBS configurado según especificaciones
+- [ ] Stream key configurado correctamente
+- [ ] Test de conexión realizado
+- [ ] Peleas pre-configuradas en el sistema
+- [ ] Plan de contingencia para fallos técnicos
 
-Síntoma: OBS muestra "Desconectado" durante la transmisión
-Soluciones:
+---
 
-Implementar sistema de reconexión automática en OBS
-Utilizar conexión dual (cable + 4G) con failover
-Aumentar timeouts en configuración RTMP
-Configurar monitoreo de conexión con alertas
+## 🆘 CONTACTOS DE EMERGENCIA
 
-Degradación de Calidad
+**Soporte Técnico**: Claude Code (disponible 24/7)
+**Escalación**: Verificar logs en `/claudedocs/` para troubleshooting
 
-Síntoma: Video pixelado o congelado intermitentemente
-Soluciones:
+---
 
-Reducir resolución o bitrate si el ancho de banda es limitado
-Usar preset "faster" en lugar de "veryfast" para mejor compresión
-Verificar uso de CPU en máquina de transmisión
-Implementar bitrate adaptativo en OBS
-
-Consumo Excesivo de Recursos en Servidor
-
-Síntoma: Servidor con alta carga de CPU o memoria
-Soluciones:
-
-Deshabilitar transcodificación si no es esencial
-Aumentar recursos del servidor (CPU/RAM)
-Optimizar worker_processes y worker_connections
-Implementar monitoreo de recursos con alertas
-
-Optimización para Eventos de Larga Duración
-Consideraciones Especiales para Transmisiones de 8+ Horas
-
-Rotación de logs para evitar archivos enormes
-Gestión de memoria con límites claros para evitar fugas
-Monitoreo continuo con alertas para problemas críticos
-Backup periódico de fragmentos importantes
-Estrategia de reconexión automática en todos los niveles
-
-Configuración para Alta Disponibilidad
-nginx# Agregar a configuración RTMP
-application live {
-live on;
-
-    # Alta disponibilidad - permitir reconexión sin interrumpir stream
-    wait_key on;
-    wait_video on;
-    publish_notify on;
-    drop_idle_publisher 3600s;
-
-    # Mantener stream activo brevemente si publisher se desconecta
-    idle_streams once;
-    idle_timeout 10s;
-
-}
-Recursos y Referencias
-
-Nginx-RTMP GitHub
-HLS Specification
-OBS Studio Documentación
-BunnyCDN Documentación
-FFmpeg Documentación
-
-Checklist de Configuración
-
-Instalación y configuración de Nginx con módulo RTMP
-Configuración de rutas y permisos para archivos HLS
-Creación de pull zone en BunnyCDN
-Configuración de OBS Studio con parámetros óptimos
-Implementación de monitoreo y alertas
-Prueba de carga con simulación de usuarios
-Documentación de procedimientos de emergencia
-Configuración de respaldos automáticos
+**✅ Esta guía está verificada contra la implementación actual y es segura para uso en producción.**

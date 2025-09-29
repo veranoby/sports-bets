@@ -87,7 +87,7 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
         <DetailItem
           icon={<ShieldCheck />}
           label="Verificado"
-          value={data.isVerified ? "Sí" : "No"}
+          value={data.certified ? "Sí" : "No"}
         />
 
         {isGallera(data) && (
@@ -105,7 +105,7 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
             <DetailItem
               icon={<Info />}
               label="Récord de Peleas"
-              value={formatFightRecord(data.fightRecord || data.fight_record)}
+              value={formatFightRecord(data.fightRecord)}
             />
           </>
         )}

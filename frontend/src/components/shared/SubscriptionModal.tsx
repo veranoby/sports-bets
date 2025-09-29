@@ -8,7 +8,7 @@ import Modal from "./Modal";
 import Card from "./Card";
 import StatusChip from "./StatusChip";
 import LoadingSpinner from "./LoadingSpinner";
-import type { Subscription } from "../../types";
+import type { UserSubscription } from "../../types";
 
 interface Plan {
   id: string;
@@ -75,10 +75,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   // ... (rest of the file)
 
   const handleCancelSubscription = async () => {
-    if (!(subscription as Subscription)?.id) return;
+    if (!(subscription as UserSubscription)?.id) return;
 
     try {
-      await cancelSubscription((subscription as Subscription).id);
+      await cancelSubscription((subscription as UserSubscription).id);
       onClose();
     } catch (err) {
       console.error("Error canceling subscription:", err);

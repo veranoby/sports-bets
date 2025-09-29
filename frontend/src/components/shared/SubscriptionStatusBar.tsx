@@ -6,7 +6,7 @@
 import React from "react";
 import { Crown, AlertTriangle } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
-import type { Subscription } from "../../types";
+import type { UserSubscription as Subscription } from "../../types";
 
 const SubscriptionStatusBar: React.FC = () => {
   const { subscription, loading } = useSubscriptions();
@@ -20,7 +20,9 @@ const SubscriptionStatusBar: React.FC = () => {
 
   const typedSubscription = subscription as Subscription;
 
-  const endDate = new Date(typedSubscription.endDate);
+  if (!typedSubscription.expiresAt) return null;
+
+  const endDate = new Date(typedSubscription.expiresAt);
   const now = new Date();
   const timeLeft = endDate.getTime() - now.getTime();
   const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));

@@ -54,7 +54,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         specialties: {
-          ...prev.specialties,
+          ...(typeof prev.specialties === 'object' ? prev.specialties : {}),
           [field]: value,
         },
       }));
@@ -63,7 +63,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         fightRecord: {
-          ...prev.fightRecord,
+          ...(typeof prev.fightRecord === 'object' ? prev.fightRecord : {}),
           [field]: parseInt(value) || 0,
         },
       }));

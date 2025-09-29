@@ -9,14 +9,14 @@ import { apiClient, betsAPI } from "../services/api";
 import type {
   ApiResponse,
   Bet,
+  BetData,
   Event,
   Fight,
   User,
   Venue,
   Wallet,
   Transaction,
-  Subscription,
-  BetType,
+  UserSubscription as Subscription,
 } from "../types";
 
 // ====================== TYPES ======================
@@ -35,18 +35,7 @@ interface TransactionData {
   createdAt: string;
 }
 
-interface BetData {
-  id: string;
-  fightId: string;
-  side: "red" | "blue";
-  amount: number;
-  status: string;
-  createdAt: string;
-  result?: string;
-  choice?: string;
-  odds?: number;
-  createdBy?: string;
-}
+
 
 interface EventData {
   id: string;

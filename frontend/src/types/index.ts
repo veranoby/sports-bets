@@ -137,6 +137,7 @@ export interface Venue {
   longitude?: number;
   capacity?: number;
   features?: string[];
+  certified?: boolean;
   contactInfo?: {
     phone?: string;
     email?: string;
@@ -155,12 +156,20 @@ export interface Gallera {
   status?: "active" | "cancelled" | "expired" | "pending";
   isActive?: boolean;
   imageUrl?: string;
-  specialties?: string | { breeds: unknown[]; trainingMethods: unknown[]; experience: string };
+  specialties?: {
+    breeds?: unknown[];
+    trainingMethods?: unknown[];
+    experience?: string;
+  };
   activeRoosters?: number;
   establishedDate?: string;
   certified?: boolean;
   rating?: number;
-  fightRecord?: string;
+  fightRecord?: {
+    wins?: number;
+    losses?: number;
+    draws?: number;
+  };
   images?: string[];
   ownerId?: string;
   articles?: unknown[];
@@ -181,7 +190,14 @@ export interface EventData {
   description?: string;
   scheduledDate: string;
   startTime?: string;
-  status: "upcoming" | "live" | "completed" | "cancelled" | "betting" | "in-progress" | "scheduled";
+  status:
+    | "upcoming"
+    | "live"
+    | "completed"
+    | "cancelled"
+    | "betting"
+    | "in-progress"
+    | "scheduled";
   venue: {
     id: string;
     name: string;
@@ -230,11 +246,20 @@ export interface Bet {
   userId: string;
   amount: number;
   odds: number; // Made required
-  prediction: string;
-  status: "pending" | "won" | "lost" | "cancelled";
+  side: "red" | "blue";
+  status: "pending" | "won" | "lost" | "cancelled" | "active";
   payout?: number;
   placedAt: string;
   settledAt?: string;
+  fighterNames?: {
+    red: string;
+    blue: string;
+  };
+  result?: string;
+  fightId: string;
+  createdAt?: string;
+  createdBy?: string;
+  choice?: string;
 }
 
 export interface BetData extends Omit<Bet, "odds"> {

@@ -83,12 +83,13 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     setErrors({});
 
     try {
-      const response = await userAPI.update({
+      const response = await userAPI.update(user.id, {
         email: formData.email,
         profileInfo: {
           fullName: `${formData.profileInfo.firstName} ${formData.profileInfo.lastName}`,
           phoneNumber: formData.profileInfo.phone,
           address: formData.profileInfo.address,
+          verificationLevel: user.profileInfo?.verificationLevel || "none",
         },
       });
 

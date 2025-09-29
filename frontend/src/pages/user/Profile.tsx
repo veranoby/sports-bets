@@ -187,9 +187,7 @@ const Profile: React.FC = () => {
           {isEditing ? (
             <UserProfileForm
               user={user}
-              onSave={handleSaveSuccess}
-              onCancel={handleCancel}
-              fullNameLabel={getProfileFieldLabel("fullName")}
+              onUpdate={handleSaveSuccess}
             />
           ) : (
             renderProfileInfo()

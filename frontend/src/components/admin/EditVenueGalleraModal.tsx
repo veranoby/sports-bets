@@ -216,15 +216,20 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     assigned_username?: string;
   }) => {
     // Convert SubscriptionTabs data to UserSubscription format
+    const planMapping = {
+      "free": "free",
+      "24h": "basic",
+      "monthly": "premium",
+    };
     const userSubscription: UserSubscription = {
-      type: subscriptionData.type || "free",
+      id: user.subscription?.id || '',
+      plan: (planMapping[subscriptionData.membership_type as keyof typeof planMapping] || "free") as UserSubscription['plan'],
       status: subscriptionData.status || "active",
       expiresAt:
         subscriptionData.expiresAt ||
         subscriptionData.manual_expires_at ||
-        null,
+        undefined,
       features: subscriptionData.features || [],
-      remainingDays: subscriptionData.remainingDays || 0,
     };
 
     onSaved({
