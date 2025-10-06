@@ -1,12 +1,12 @@
 // frontend/src/components/admin/SubscriptionTabs.tsx
 // Componente para gestionar suscripciones con radio buttons
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { adminAPI } from "../../config/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
-import { notification } from "antd";
 import { CreditCard, Crown, User, Clock } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface SubscriptionData {
   id?: string;
@@ -35,38 +35,47 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
   onSave,
   onCancel,
 }) => {
+  const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<string>("free");
   const [assignedUsername, setAssignedUsername] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-fill assigned username with current admin user
+  useEffect(() => {
+    if (user?.username) {
+      setAssignedUsername(user.username);
+    }
+  }, [user]);
 
   // Opciones de membresía freemium
   const membershipOptions = [
     {
       value: "free",
       label: "Gratuita",
+      price: "$0",
       icon: <User className="w-4 h-4" />,
-      description: "Acceso básico limitado",
+      description: "Acceso básico limitado - Sin eventos en vivo ni apuestas",
     },
     {
-      value: "24h",
-      label: "24 Horas Premium",
+      value: "24-hour",
+      label: "24 Horas",
+      price: "$5",
       icon: <Clock className="w-4 h-4" />,
-      description: "Acceso completo por 24 horas",
+      description: "Acceso completo por 24 horas - Eventos en vivo + apuestas P2P",
     },
     {
       value: "monthly",
-      label: "1 Mes Premium",
+      label: "Mensual",
+      price: "$10",
       icon: <Crown className="w-4 h-4" />,
-      description: "Acceso completo por 30 días",
+      description: "Acceso ilimitado por 30 días - Todos los beneficios premium",
     },
   ];
 
   const handleMembershipUpdate = async () => {
     if (selectedType !== "free" && !assignedUsername.trim()) {
-      notification.error({
-        message: "Se requiere asignar un nombre de usuario responsable",
-      });
+      setError("Se requiere asignar un nombre de usuario responsable");
       return;
     }
 
@@ -74,30 +83,27 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
     setError(null);
 
     try {
-      await adminAPI.updateUserMembership(userId, {
+      const response = await adminAPI.updateUserMembership(userId, {
         membership_type: selectedType,
         assigned_username: assignedUsername.trim(),
       });
 
-      notification.success({
-        message: `Membresía actualizada a ${membershipOptions.find((o) => o.value === selectedType)?.label}`,
-        description:
-          selectedType !== "free"
-            ? `Asignada por: ${assignedUsername}`
-            : "Revocada a gratuita",
-      });
-
-      if (onSave)
-        onSave({
-          membership_type: selectedType,
-          assigned_username: assignedUsername.trim(),
-        });
-      onCancel();
+      if (response.success) {
+        // Success - pass data to parent
+        if (onSave) {
+          onSave({
+            membership_type: selectedType,
+            assigned_username: assignedUsername.trim(),
+          });
+        }
+        onCancel();
+      } else {
+        throw new Error(response.error || "Error al actualizar membresía");
+      }
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Error al actualizar membresía";
       setError(errorMsg);
-      notification.error({ message: errorMsg });
     } finally {
       setIsSaving(false);
     }
@@ -154,23 +160,36 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
             {membershipOptions.map((option) => (
               <label
                 key={option.value}
-                className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+                className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  selectedType === option.value
+                    ? "border-blue-600 bg-blue-50"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                <input
-                  type="radio"
-                  name="membershipType"
-                  value={option.value}
-                  checked={selectedType === option.value}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="ml-3 flex items-center gap-2">
-                  {option.icon}
-                  <div>
-                    <div className="font-medium">{option.label}</div>
-                    <p className="text-sm text-gray-600">
-                      {option.description}
-                    </p>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    name="membershipType"
+                    value={option.value}
+                    checked={selectedType === option.value}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="ml-3 flex items-center gap-2">
+                    {option.icon}
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {option.label}
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {option.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-blue-600">
+                    {option.price}
                   </div>
                 </div>
               </label>

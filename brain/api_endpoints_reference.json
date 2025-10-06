@@ -328,6 +328,96 @@
     }
   },
 
+  "membership_request_endpoints": {
+    "CRITICAL_NOTE": "Membership requests for users to request plan changes (free → 24-hour @ $5 or monthly @ $10)",
+    "create_request": {
+      "method": "POST",
+      "path": "/membership-requests",
+      "body": {
+        "requestedMembershipType": "string (required: 24-hour|monthly)",
+        "requestNotes": "string (optional, max 1000 chars)",
+        "paymentProofUrl": "string (optional URL, max 500 chars)"
+      },
+      "auth_required": true,
+      "validation": {
+        "phone_required": "User must have registered phone number",
+        "no_duplicate_pending": "Cannot create request if user has pending request",
+        "membership_types": ["24-hour ($5)", "monthly ($10)"]
+      },
+      "response": {
+        "success": true,
+        "data": "MembershipChangeRequest object"
+      }
+    },
+    "my_requests": {
+      "method": "GET",
+      "path": "/membership-requests/my-requests",
+      "query_params": ["status", "limit", "offset"],
+      "auth_required": true,
+      "response": {
+        "success": true,
+        "data": {
+          "requests": "array",
+          "total": "number",
+          "limit": "number",
+          "offset": "number"
+        }
+      }
+    },
+    "get_pending": {
+      "method": "GET",
+      "path": "/membership-requests/pending",
+      "query_params": ["search", "limit"],
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": {
+          "requests": "array (with user info)",
+          "total": "number"
+        }
+      }
+    },
+    "complete_request": {
+      "method": "PATCH",
+      "path": "/membership-requests/:id/complete",
+      "body": {
+        "adminNotes": "string (optional, max 500 chars)"
+      },
+      "auth_required": true,
+      "roles": ["admin"],
+      "validation": {
+        "status_check": "Request must be pending",
+        "processor_recorded": "processedBy userId automatically set"
+      }
+    },
+    "reject_request": {
+      "method": "PATCH",
+      "path": "/membership-requests/:id/reject",
+      "body": {
+        "rejectionReason": "string (required, min 10, max 1000 chars)",
+        "adminNotes": "string (optional, max 500 chars)"
+      },
+      "auth_required": true,
+      "roles": ["admin"],
+      "validation": {
+        "status_check": "Request must be pending",
+        "reason_required": "Must provide rejection reason"
+      }
+    },
+    "delete_request": {
+      "method": "DELETE",
+      "path": "/membership-requests/:id",
+      "auth_required": true,
+      "roles": ["admin"],
+      "validation": {
+        "status_check": "Request must NOT be pending (only completed/rejected can be deleted)",
+        "safety_reason": "Prevents accidental deletion of pending requests"
+      },
+      "note": "Use for cleanup of processed requests only"
+    }
+  },
+
   "system_endpoints": {
     "health_check": {
       "method": "GET",

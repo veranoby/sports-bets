@@ -14,6 +14,7 @@ import {
   LogOut,
   Shield,
   Monitor,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -45,6 +46,12 @@ const AdminSidebar: React.FC = () => {
     {
       path: "/admin/venues",
       icon: Building2,
+      label: "Venues",
+      roles: ["admin"],
+    },
+    {
+      path: "/admin/galleras",
+      icon: Building2,
       label: "Galleras",
       roles: ["admin"],
     },
@@ -71,6 +78,18 @@ const AdminSidebar: React.FC = () => {
       icon: Radio,
       label: "Streaming",
       roles: ["admin", "operator"],
+    },
+    {
+      path: "/admin/requests",
+      icon: DollarSign,
+      label: "Retiros",
+      roles: ["admin"],
+    },
+    {
+      path: "/admin/membership-requests",
+      icon: CreditCard,
+      label: "Membresías",
+      roles: ["admin"],
     },
     {
       path: "/admin/support",

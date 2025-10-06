@@ -15,6 +15,7 @@ import { Article } from "./Article";
 import { SystemSetting } from './SystemSetting';
 import { Gallera } from "./Gallera";
 import { EventConnection } from "./EventConnection";
+import { MembershipChangeRequest } from "./MembershipChangeRequest";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -170,6 +171,14 @@ Article.belongsTo(Venue, { foreignKey: "venue_id", as: "venue" });
 User.hasMany(SystemSetting, { foreignKey: "updated_by", as: "updatedSettings" });
 SystemSetting.belongsTo(User, { foreignKey: "updated_by", as: "updatedByUser" });
 
+// User -> MembershipChangeRequest (One-to-Many)
+User.hasMany(MembershipChangeRequest, { foreignKey: "userId", as: "membershipRequests" });
+MembershipChangeRequest.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+// User -> MembershipChangeRequest processor (One-to-Many)
+User.hasMany(MembershipChangeRequest, { foreignKey: "processedBy", as: "processedMembershipRequests" });
+MembershipChangeRequest.belongsTo(User, { foreignKey: "processedBy", as: "processor" });
+
 console.log("✅ Asociaciones configuradas correctamente");
 
 // ========================================
@@ -190,6 +199,7 @@ export {
   SystemSetting,
   Gallera,
   EventConnection,
+  MembershipChangeRequest,
   connectDatabase,
 };
 
@@ -257,6 +267,7 @@ export default {
   SystemSetting,
   Gallera,
   EventConnection,
+  MembershipChangeRequest,
   syncModels,
   checkAssociations,
   ModelUtils,

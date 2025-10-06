@@ -53,6 +53,7 @@ const AdminArticles = lazy(() => import("./pages/admin/Articles"));
 const AdminVenues = lazy(() => import("./pages/admin/Venues"));
 const AdminGalleras = lazy(() => import("./pages/admin/Galleras"));
 const AdminRequests = lazy(() => import("./pages/admin/Requests"));
+const AdminMembershipRequests = lazy(() => import("./pages/admin/MembershipRequests"));
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
@@ -242,12 +243,22 @@ const AppContent: React.FC = () => {
             }
           />
 
-          {/* Solicitudes */}
+          {/* Solicitudes de Retiro */}
           <Route
             path="/admin/requests"
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminRequests />
+              </Suspense>
+            }
+          />
+
+          {/* Solicitudes de Membresía */}
+          <Route
+            path="/admin/membership-requests"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminMembershipRequests />
               </Suspense>
             }
           />

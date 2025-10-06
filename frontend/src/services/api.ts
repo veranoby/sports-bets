@@ -160,7 +160,7 @@ export const userAPI = {
   updatePassword: async (id: string, newPassword: string) => {
     return apiCall("put", `/users/${id}/password`, { password: newPassword });
   },
-  updateRole: async (id: string, role: User['role']) => {
+  updateRole: async (id: string, role: User["role"]) => {
     return apiCall<User>("put", `/users/${id}/role`, { role });
   },
   updateStatus: async (id: string, isActive: boolean) => {
@@ -444,21 +444,65 @@ export const notificationsAPI = {
 
 // Upload API for image handling
 export const uploadsAPI = {
-  uploadImage: async (file: File): Promise<ApiResponse<{
-    filename: string;
-    originalName: string;
-    url: string;
-    size: number;
-    mimetype: string;
-  }>> => {
+  uploadImage: async (
+    file: File,
+  ): Promise<
+    ApiResponse<{
+      filename: string;
+      originalName: string;
+      url: string;
+      size: number;
+      mimetype: string;
+    }>
+  > => {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
     return apiCall("post", "/uploads/image", formData, {
       "Content-Type": "multipart/form-data",
     });
   },
   deleteImage: async (filename: string) => {
     return apiCall("delete", `/uploads/image/${filename}`);
+  },
+};
+
+// Membership Requests API
+export const membershipRequestsAPI = {
+  createRequest: async (data: {
+    requestedMembershipType: string;
+    requestNotes?: string;
+    paymentProofUrl?: string;
+  }) => {
+    return apiCall("post", "/membership-requests", data);
+  },
+
+  getMyRequests: async (params?: {
+    status?: "pending" | "completed" | "rejected";
+    limit?: number;
+    offset?: number;
+  }) => {
+    return apiCall("get", "/membership-requests/my-requests", params);
+  },
+
+  getPendingRequests: async (params?: { search?: string; limit?: number }) => {
+    return apiCall("get", "/membership-requests/pending", params);
+  },
+
+  completeRequest: async (requestId: string, adminNotes?: string) => {
+    return apiCall("patch", `/membership-requests/${requestId}/complete`, {
+      adminNotes,
+    });
+  },
+
+  rejectRequest: async (requestId: string, rejectionReason: string, adminNotes?: string) => {
+    return apiCall("patch", `/membership-requests/${requestId}/reject`, {
+      rejectionReason,
+      adminNotes,
+    });
+  },
+
+  deleteRequest: async (requestId: string) => {
+    return apiCall("delete", `/membership-requests/${requestId}`);
   },
 };
 

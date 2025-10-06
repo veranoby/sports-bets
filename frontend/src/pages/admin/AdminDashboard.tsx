@@ -16,6 +16,7 @@ import {
   Shield,
   Wallet,
   Settings,
+  CreditCard,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -30,6 +31,7 @@ import {
   articlesAPI,
   walletAPI,
   apiClient,
+  membershipRequestsAPI,
 } from "../../services/api";
 import type { Event, User, Article, Transaction } from "../../types";
 
@@ -42,6 +44,7 @@ interface DashboardMetrics {
   withdrawalRequests: number;
   withdrawalAmount: number;
   todayRevenue: number;
+  pendingMembershipRequests: number;
 }
 
 interface SystemFeatures {
@@ -63,6 +66,7 @@ const AdminDashboard: React.FC = () => {
     withdrawalRequests: 0,
     withdrawalAmount: 0,
     todayRevenue: 0,
+    pendingMembershipRequests: 0,
   });
 
   const [features, setFeatures] = useState<SystemFeatures>({
@@ -152,6 +156,8 @@ const AdminDashboard: React.FC = () => {
       limit: 1000, // Para obtener todas las solicitudes pendientes
     });
     const financeData = await walletAPI.getStats({ period: "today" });
+    const membershipRequestsData =
+      await membershipRequestsAPI.getPendingRequests();
 
     if (
       eventsData.success &&
@@ -160,7 +166,8 @@ const AdminDashboard: React.FC = () => {
       pendingGallerasData.success &&
       pendingArticlesData.success &&
       withdrawalsData.success &&
-      financeData.success
+      financeData.success &&
+      membershipRequestsData.success
     ) {
       const liveEvents =
         (eventsData.data as { events: Event[] }).events?.filter(
@@ -172,6 +179,11 @@ const AdminDashboard: React.FC = () => {
       const totalWithdrawalAmount = withdrawals.reduce(
         (sum, w) => sum + w.amount,
         0,
+      );
+      const membershipRequests =
+        (membershipRequestsData.data as { requests: any[] }).requests || [];
+      const pendingMemberships = membershipRequests.filter(
+        (r) => r.status === "pending",
       );
 
       setMetrics({
@@ -185,6 +197,7 @@ const AdminDashboard: React.FC = () => {
         withdrawalAmount: totalWithdrawalAmount,
         todayRevenue:
           (financeData.data as { todayRevenue: number }).todayRevenue || 0,
+        pendingMembershipRequests: pendingMemberships.length,
       });
 
       setLastRefresh(new Date());
@@ -402,6 +415,19 @@ const AdminDashboard: React.FC = () => {
           description={`$${metrics.withdrawalAmount.toLocaleString()}`}
           highlighted={metrics.withdrawalRequests > 0}
           onClick={() => navigateToSection("/admin/requests?filter=new")}
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+        />
+
+        {/* Solicitudes de Membresía */}
+        <Card
+          variant="stat"
+          title="Cambios de Membresía"
+          value={metrics.pendingMembershipRequests}
+          icon={<CreditCard className="w-6 h-6" />}
+          color={metrics.pendingMembershipRequests > 0 ? "yellow" : "gray"}
+          description="Solicitudes pendientes"
+          highlighted={metrics.pendingMembershipRequests > 0}
+          onClick={() => navigateToSection("/admin/membership-requests")}
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
