@@ -4,11 +4,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../services/api";
+import { gallerasAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
-import type { User } from "../../types";
 import {
   MapPin,
   ChevronLeft,
@@ -35,7 +34,7 @@ interface ArticleLite {
 const GalleraDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [gallera, setGallera] = useState<User | null>(null);
+  const [gallera, setGallera] = useState<any | null>(null);
   const [articles, setArticles] = useState<ArticleLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,15 +49,23 @@ const GalleraDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userResponse = await usersAPI.getById(id);
-        if (!userResponse.success) {
-          throw new Error(userResponse.error || "Error al cargar institución");
+        const galleraResponse = await gallerasAPI.getById(id);
+        if (!galleraResponse.success) {
+          throw new Error(
+            galleraResponse.error || "Error al cargar institución",
+          );
         }
-        setGallera(userResponse.data);
+        setGallera(galleraResponse.data);
 
-        const articlesResponse = await articlesAPI.getAll({ author_id: id });
-        if (articlesResponse.success) {
-          setArticles(articlesResponse.data.articles || []);
+        const ownerId =
+          galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
+        if (ownerId) {
+          const articlesResponse = await articlesAPI.getAll({
+            author_id: ownerId,
+          });
+          if (articlesResponse.success) {
+            setArticles(articlesResponse.data.articles || []);
+          }
         }
       } catch (err) {
         console.error("Error fetching gallera data:", err);
@@ -142,15 +149,19 @@ const GalleraDetailPage: React.FC = () => {
       </div>
     );
 
-  const galleraName = gallera.profileInfo?.galleraName || gallera.username;
-  const location = gallera.profileInfo?.location || "Ubicación no especificada";
-  const description =
-    gallera.profileInfo?.description || "Institución criadora profesional";
-  const establishedDate = gallera.profileInfo?.establishedDate;
-  const isCertified = gallera.profileInfo?.certified || false;
-  const rating = gallera.profileInfo?.rating || 0;
-  const premiumLevel = gallera.profileInfo?.premiumLevel;
-  const specialties = gallera.profileInfo?.specialties || [];
+  const galleraName =
+    gallera.name ||
+    gallera.owner?.profileInfo?.galleraName ||
+    gallera.owner?.username ||
+    "Gallera";
+  const location = gallera.location || "Ubicación no especificada";
+  const description = gallera.description || "Institución criadora profesional";
+  const establishedDate = gallera.createdAt;
+  const isCertified =
+    gallera.owner?.profileInfo?.verificationLevel === "full" || false;
+  const rating = gallera.owner?.profileInfo?.rating || 0;
+  const premiumLevel = gallera.owner?.profileInfo?.premiumLevel;
+  const specialties = gallera.specialties?.specialties || [];
 
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");
@@ -170,9 +181,9 @@ const GalleraDetailPage: React.FC = () => {
         {/* Gallera Header */}
         <div className="card-background p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {gallera.profileInfo?.imageUrl ? (
+            {gallera.images?.[0] ? (
               <img
-                src={gallera.profileInfo.imageUrl}
+                src={gallera.images[0]}
                 alt={galleraName}
                 className={`w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 ${
                   premiumLevel
@@ -373,7 +384,9 @@ const GalleraDetailPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Miembro desde:</span>
               <span className="font-medium text-theme-primary">
-                {new Date(gallera.created_at).toLocaleDateString("es-ES")}
+                {gallera.createdAt
+                  ? new Date(gallera.createdAt).toLocaleDateString("es-ES")
+                  : "No especificado"}
               </span>
             </div>
           </div>

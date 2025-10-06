@@ -1,0 +1,225 @@
+{
+  "table_name": "membership_change_requests",
+  "description": "Stores membership change requests from users (venue, gallera, operator) with admin approval workflow",
+  "created_by_migration": "20251005000000-create-membership-change-requests.js",
+  "created_date": "2025-10-05",
+  "columns": [
+    {
+      "name": "id",
+      "type": "uuid",
+      "nullable": false,
+      "default": "uuid_generate_v4()",
+      "description": "Primary key, unique identifier for each request"
+    },
+    {
+      "name": "user_id",
+      "type": "uuid",
+      "nullable": false,
+      "foreign_key": {
+        "references_table": "users",
+        "references_column": "id",
+        "on_update": "CASCADE",
+        "on_delete": "CASCADE"
+      },
+      "description": "User requesting the membership change"
+    },
+    {
+      "name": "current_membership_type",
+      "type": "varchar(50)",
+      "nullable": true,
+      "description": "Current membership type before the change (null for new users)"
+    },
+    {
+      "name": "requested_membership_type",
+      "type": "varchar(50)",
+      "nullable": false,
+      "description": "Requested new membership type (e.g., 'premium', 'basic', 'vip')"
+    },
+    {
+      "name": "status",
+      "type": "enum('pending', 'approved', 'rejected')",
+      "nullable": false,
+      "default": "'pending'",
+      "description": "Current status of the request"
+    },
+    {
+      "name": "request_notes",
+      "type": "text",
+      "nullable": true,
+      "description": "Optional notes from user explaining the request reason"
+    },
+    {
+      "name": "requested_at",
+      "type": "timestamp with time zone",
+      "nullable": false,
+      "default": "CURRENT_TIMESTAMP",
+      "description": "When the request was created"
+    },
+    {
+      "name": "processed_at",
+      "type": "timestamp with time zone",
+      "nullable": true,
+      "description": "When the request was approved/rejected (null if still pending)"
+    },
+    {
+      "name": "processed_by",
+      "type": "uuid",
+      "nullable": true,
+      "foreign_key": {
+        "references_table": "users",
+        "references_column": "id",
+        "on_update": "CASCADE",
+        "on_delete": "SET NULL"
+      },
+      "description": "Admin user who processed the request (null if still pending)"
+    },
+    {
+      "name": "rejection_reason",
+      "type": "text",
+      "nullable": true,
+      "description": "Reason for rejection if status is 'rejected'"
+    },
+    {
+      "name": "admin_notes",
+      "type": "text",
+      "nullable": true,
+      "description": "Internal notes from admin for reference"
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": false,
+      "default": "CURRENT_TIMESTAMP",
+      "description": "Record creation timestamp"
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": false,
+      "default": "CURRENT_TIMESTAMP",
+      "description": "Record last update timestamp"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "membership_change_requests_pkey",
+      "type": "btree",
+      "columns": ["id"],
+      "unique": true,
+      "description": "Primary key index"
+    },
+    {
+      "name": "idx_membership_requests_user_status",
+      "type": "btree",
+      "columns": ["user_id", "status"],
+      "unique": false,
+      "description": "Composite index for user request history filtered by status"
+    },
+    {
+      "name": "idx_membership_requests_pending",
+      "type": "btree",
+      "columns": ["status", "requested_at"],
+      "unique": false,
+      "partial_where": "status = 'pending'",
+      "description": "Partial index for pending requests ordered by request date (admin dashboard)"
+    },
+    {
+      "name": "idx_membership_requests_processor",
+      "type": "btree",
+      "columns": ["processed_by"],
+      "unique": false,
+      "description": "Index for admin activity tracking"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "constraint_name": "membership_change_requests_user_id_fkey",
+      "column": "user_id",
+      "references": {
+        "table": "users",
+        "column": "id"
+      },
+      "on_update": "CASCADE",
+      "on_delete": "CASCADE",
+      "description": "Requester user reference - cascade delete if user is deleted"
+    },
+    {
+      "constraint_name": "membership_change_requests_processed_by_fkey",
+      "column": "processed_by",
+      "references": {
+        "table": "users",
+        "column": "id"
+      },
+      "on_update": "CASCADE",
+      "on_delete": "SET NULL",
+      "description": "Admin processor reference - set to null if admin is deleted"
+    }
+  ],
+  "enum_types": [
+    {
+      "name": "enum_membership_change_requests_status",
+      "values": ["pending", "approved", "rejected"],
+      "description": "Status workflow for membership change requests"
+    }
+  ],
+  "business_logic": {
+    "workflow": [
+      "1. User clicks 'Solicitar Cambio de Membresía' button",
+      "2. User fills form with requested_membership_type and optional request_notes",
+      "3. Request created with status='pending', requested_at=NOW()",
+      "4. Admin views pending requests in /admin/requests (membership tab)",
+      "5. Admin approves/rejects with optional admin_notes/rejection_reason",
+      "6. On approval: user.subscription updated, status='approved', processed_at=NOW()",
+      "7. On rejection: status='rejected', processed_at=NOW(), rejection_reason saved"
+    ],
+    "isolation_from_wallet_requests": {
+      "note": "This table is completely separate from withdrawal_requests table",
+      "wallet_table": "withdrawal_requests",
+      "membership_table": "membership_change_requests",
+      "admin_page": "/admin/requests will have tabs for both types"
+    },
+    "membership_types": {
+      "note": "Membership types should match users.subscription.type values",
+      "common_types": ["basic", "premium", "vip", "trial"]
+    }
+  },
+  "usage_patterns": {
+    "common_queries": [
+      {
+        "description": "Get all pending requests for admin dashboard",
+        "sql": "SELECT * FROM membership_change_requests WHERE status = 'pending' ORDER BY requested_at ASC",
+        "uses_index": "idx_membership_requests_pending"
+      },
+      {
+        "description": "Get user's request history",
+        "sql": "SELECT * FROM membership_change_requests WHERE user_id = $1 ORDER BY requested_at DESC",
+        "uses_index": "idx_membership_requests_user_status"
+      },
+      {
+        "description": "Get requests processed by specific admin",
+        "sql": "SELECT * FROM membership_change_requests WHERE processed_by = $1 AND status != 'pending'",
+        "uses_index": "idx_membership_requests_processor"
+      }
+    ]
+  },
+  "integration_notes": {
+    "backend_model": "Create MembershipChangeRequest model in /backend/src/models/",
+    "backend_routes": "Add routes in /backend/src/routes/membership-requests.ts",
+    "frontend_component": "Add form in MembershipSection.tsx",
+    "admin_interface": "Extend /admin/requests page with membership tab",
+    "api_endpoints": [
+      "POST /api/membership-requests - Create new request",
+      "GET /api/membership-requests/my-requests - Get user's requests",
+      "GET /api/membership-requests/pending - Admin: Get pending requests",
+      "PATCH /api/membership-requests/:id/approve - Admin: Approve request",
+      "PATCH /api/membership-requests/:id/reject - Admin: Reject request"
+    ]
+  },
+  "migration_status": {
+    "executed_on": "2025-10-05",
+    "database": "Neon PostgreSQL",
+    "migration_file": "20251005000000-create-membership-change-requests.js",
+    "rollback_available": true,
+    "notes": "Migration includes automatic index creation for optimal query performance"
+  }
+}

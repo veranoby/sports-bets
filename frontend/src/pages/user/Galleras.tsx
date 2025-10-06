@@ -135,8 +135,18 @@ const GalleraCard = React.memo(
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              {hasHighArticleCount && (
+              {/* Owner Profile Image - Top Left */}
+              {gallera.ownerImage && (
                 <div className="absolute top-2 left-2">
+                  <img
+                    src={gallera.ownerImage}
+                    alt="Owner"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white/80 shadow-lg"
+                  />
+                </div>
+              )}
+              {hasHighArticleCount && (
+                <div className="absolute bottom-2 left-2">
                   <span className="bg-blue-500/90 text-white text-xs px-2 py-1 rounded-full font-medium">
                     Experto
                   </span>
@@ -299,8 +309,10 @@ const GallerasPage: React.FC = () => {
                 name: galleraName,
                 description: description,
                 location: location,
-                imageUrl: gallera.images?.[0] || gallera.owner?.profileInfo?.imageUrl,
-                ownerImage: gallera.owner?.profileInfo?.imageUrl,
+                imageUrl:
+                  gallera.images?.[0] ||
+                  gallera.owner?.profileInfo?.profileImage,
+                ownerImage: gallera.owner?.profileInfo?.profileImage,
                 galleryImages: gallera.images || [],
                 articlesCount: articleCount,
                 establishedDate: gallera.createdAt,
@@ -389,7 +401,7 @@ const GallerasPage: React.FC = () => {
                     <img
                       src={gallera.imageUrl}
                       alt={gallera.name}
-                      className="w-28 h-28 rounded-lg object-cover border-2 border-green-500/50 shadow-lg"
+                      className="w-28 h-28 rounded-lg object-cover border-2 border-green-500/50 shadow-lg flex-shrink-0"
                     />
                   ) : (
                     <div className="w-28 h-28 rounded-lg bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
@@ -397,14 +409,19 @@ const GallerasPage: React.FC = () => {
                     </div>
                   )}
                   <div className="flex-1">
-                    {/* Titulo, Chips de Stats y Owner Image */}
-                    <div className="flex justify-between items-start">
-                      <h1 className="text-3xl font-bold text-theme-primary mb-2">
+                    {/* Titulo y Owner Image */}
+                    <div className="flex items-start gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-theme-primary flex-1">
                         {gallera.name}
                       </h1>
-                      {/* Owner Image */}
+                      {/* Owner Profile Image */}
                       {gallera.ownerImage && (
-                        <img src={gallera.ownerImage} alt="Owner" className="w-10 h-10 rounded-full object-cover border-2 border-gray-600" />
+                        <img
+                          src={gallera.ownerImage}
+                          alt="Dueño"
+                          className="w-12 h-12 rounded-full object-cover border-2 border-green-500/50 shadow-md flex-shrink-0"
+                          title="Imagen del propietario"
+                        />
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-theme-light mb-4">
@@ -413,24 +430,37 @@ const GallerasPage: React.FC = () => {
                     </div>
                     {/* Stat Chips */}
                     <div className="flex flex-wrap items-center gap-2 mb-4">
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Star className="w-3 h-3 text-yellow-400" />
-                            <span className="text-gray-300">{gallera.rating?.toFixed(1) || "N/A"} Rating</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Calendar className="w-3 h-3 text-gray-400" />
-                            <span className="text-gray-300">Desde {gallera.establishedDate ? new Date(gallera.establishedDate).getFullYear() : "N/A"}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Sparkles className="w-3 h-3 text-green-400" />
-                            <span className={`font-medium ${gallera.isCertified ? "text-green-400" : "text-amber-400"}`}>
-                                {gallera.isCertified ? "Certificada" : "En Certificación"}
-                            </span>
-                        </div>
-                         <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Award className="w-3 h-3 text-blue-400" />
-                            <span className="text-gray-300 capitalize">{gallera.premiumLevel || "Estándar"}</span>
-                        </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Star className="w-3 h-3 text-yellow-400" />
+                        <span className="text-gray-300">
+                          {gallera.rating?.toFixed(1) || "N/A"} Rating
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Calendar className="w-3 h-3 text-gray-400" />
+                        <span className="text-gray-300">
+                          Desde{" "}
+                          {gallera.establishedDate
+                            ? new Date(gallera.establishedDate).getFullYear()
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Sparkles className="w-3 h-3 text-green-400" />
+                        <span
+                          className={`font-medium ${gallera.isCertified ? "text-green-400" : "text-amber-400"}`}
+                        >
+                          {gallera.isCertified
+                            ? "Certificada"
+                            : "En Certificación"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Award className="w-3 h-3 text-blue-400" />
+                        <span className="text-gray-300 capitalize">
+                          {gallera.premiumLevel || "Estándar"}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-theme-light leading-relaxed">
                       {gallera.description}
@@ -441,17 +471,30 @@ const GallerasPage: React.FC = () => {
 
               {/* Nueva Card de Galería */}
               <div className="card-background p-6">
-                <h2 className="text-xl font-semibold text-theme-primary mb-4">Galería</h2>
+                <h2 className="text-xl font-semibold text-theme-primary mb-4">
+                  Galería
+                </h2>
                 {gallera.galleryImages && gallera.galleryImages.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {gallera.galleryImages.map((img, index) => (
-                      <div key={index} className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden">
-                        <img src={img} alt={`Galería ${index + 1}`} className="w-full h-full object-cover" />
+                      <div
+                        key={index}
+                        className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden"
+                      >
+                        <img
+                          src={img}
+                          alt={`Galería ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <EmptyState title="Sin Imágenes" description="El dueño de la gallera aún no ha subido imágenes a la galería." icon={<Shield className="w-10 h-10" />} />
+                  <EmptyState
+                    title="Sin Imágenes"
+                    description="El dueño de la gallera aún no ha subido imágenes a la galería."
+                    icon={<Shield className="w-10 h-10" />}
+                  />
                 )}
               </div>
             </div>
@@ -472,7 +515,6 @@ const GallerasPage: React.FC = () => {
             </div>
           </div>
           {/* === UNIFIED DETAIL VIEW END === */}
-
         </div>
       </div>
     );
@@ -497,7 +539,9 @@ const GallerasPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
                 <span className="text-gray-400">Certificadas:</span>
-                <span className="font-bold text-white">{galleras.filter((g) => g.isCertified).length}</span>
+                <span className="font-bold text-white">
+                  {galleras.filter((g) => g.isCertified).length}
+                </span>
               </div>
             </div>
           </div>
@@ -546,9 +590,22 @@ const GallerasPage: React.FC = () => {
         ) : !filteredGalleras.length ? (
           <EmptyState
             title="No se encontraron instituciones"
-            description={searchTerm ? "No hay instituciones que coincidan con tu búsqueda" : "No hay instituciones criadoras registradas en este momento"}
+            description={
+              searchTerm
+                ? "No hay instituciones que coincidan con tu búsqueda"
+                : "No hay instituciones criadoras registradas en este momento"
+            }
             icon={<Shield className="w-12 h-12" />}
-            action={searchTerm ? <button onClick={() => setSearchTerm("")} className="btn-ghost text-sm">Limpiar búsqueda</button> : undefined}
+            action={
+              searchTerm ? (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="btn-ghost text-sm"
+                >
+                  Limpiar búsqueda
+                </button>
+              ) : undefined
+            }
           />
         ) : (
           /* Enhanced Galleras Grid */

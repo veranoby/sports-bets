@@ -311,7 +311,9 @@ const ArticleManagement: React.FC = () => {
 
   // Handle delete
   const handleDelete = async (articleId: string) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este artículo?")) {
+    if (
+      window.confirm("¿Estás seguro de que quieres eliminar este artículo?")
+    ) {
       try {
         await articlesAPI.delete(articleId);
         setArticles((prev) =>
@@ -338,9 +340,7 @@ const ArticleManagement: React.FC = () => {
         });
         setArticles((prev) =>
           prev.map((a) =>
-            a.id === article.id
-              ? { ...a, ...(response.data as Article) }
-              : a,
+            a.id === article.id ? { ...a, ...(response.data as Article) } : a,
           ),
         );
       } catch (err) {
@@ -532,7 +532,7 @@ const ArticleManagement: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           {/* Archived Articles */}
           {articlesByStatus.archived.length > 0 && (
             <div>
@@ -609,13 +609,17 @@ const ArticleManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>
-                    Creado: {new Date(previewArticle.created_at).toLocaleDateString()}
+                    Creado:{" "}
+                    {new Date(previewArticle.created_at).toLocaleDateString()}
                   </span>
                   {previewArticle.published_at && (
                     <>
                       <span>•</span>
                       <span>
-                        Publicado: {new Date(previewArticle.published_at).toLocaleDateString()}
+                        Publicado:{" "}
+                        {new Date(
+                          previewArticle.published_at,
+                        ).toLocaleDateString()}
                       </span>
                     </>
                   )}
@@ -650,13 +654,17 @@ const ArticleManagement: React.FC = () => {
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                           {previewArticle.author_name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium">{previewArticle.author_name}</span>
+                        <span className="font-medium">
+                          {previewArticle.author_name}
+                        </span>
                       </div>
                     )}
                     {previewArticle.venue_name && (
                       <>
                         <span>•</span>
-                        <span className="text-blue-600 font-medium">{previewArticle.venue_name}</span>
+                        <span className="text-blue-600 font-medium">
+                          {previewArticle.venue_name}
+                        </span>
                       </>
                     )}
                   </div>
@@ -687,24 +695,32 @@ const ArticleManagement: React.FC = () => {
                     <div className="text-sm text-gray-500">
                       <p>
                         Artículo creado el{" "}
-                        {new Date(previewArticle.created_at).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {new Date(previewArticle.created_at).toLocaleDateString(
+                          "es-ES",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )}
                       </p>
-                      {previewArticle.updated_at && previewArticle.updated_at !== previewArticle.created_at && (
-                        <p className="mt-1">
-                          Última actualización:{" "}
-                          {new Date(previewArticle.updated_at).toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      )}
+                      {previewArticle.updated_at &&
+                        previewArticle.updated_at !==
+                          previewArticle.created_at && (
+                          <p className="mt-1">
+                            Última actualización:{" "}
+                            {new Date(
+                              previewArticle.updated_at,
+                            ).toLocaleDateString("es-ES", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                        )}
                     </div>
-                    {(previewArticle.status === "draft" || previewArticle.status === "pending") && (
+                    {(previewArticle.status === "draft" ||
+                      previewArticle.status === "pending") && (
                       <button
                         onClick={() => {
                           closeAllModals();
@@ -712,8 +728,18 @@ const ArticleManagement: React.FC = () => {
                         }}
                         className="btn-primary flex items-center gap-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                         Editar Artículo
                       </button>

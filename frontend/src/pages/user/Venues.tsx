@@ -93,6 +93,16 @@ const VenueCard = React.memo(
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              {/* Owner Profile Image - Top Left */}
+              {venue.ownerImage && (
+                <div className="absolute top-2 left-2">
+                  <img
+                    src={venue.ownerImage}
+                    alt="Owner"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white/80 shadow-lg"
+                  />
+                </div>
+              )}
               {hasActiveContent && (
                 <div className="absolute top-2 right-2">
                   <span className="bg-green-500/90 text-white text-xs px-2 py-1 rounded-full font-medium">
@@ -198,7 +208,8 @@ const VenuesPage: React.FC = () => {
                   description:
                     venue.description || "Local para eventos de gallos",
                   location: venue.location || "Ubicación no especificada",
-                  imageUrl: venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
+                  imageUrl:
+                    venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
                   ownerImage: venue.owner?.profileInfo?.profileImage,
                   galleryImages: venue.images || [],
                   articlesCount: articles.success
@@ -296,14 +307,19 @@ const VenuesPage: React.FC = () => {
                     </div>
                   )}
                   <div className="flex-1">
-                    {/* Titulo, Chips de Stats y Owner Image */}
-                    <div className="flex justify-between items-start">
-                      <h1 className="text-3xl font-bold text-theme-primary mb-2">
+                    {/* Titulo y Owner Image */}
+                    <div className="flex items-start gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-theme-primary flex-1">
                         {venue.name}
                       </h1>
-                      {/* Owner Image */}
+                      {/* Owner Profile Image */}
                       {venue.ownerImage && (
-                        <img src={venue.ownerImage} alt="Owner" className="w-10 h-10 rounded-full object-cover border-2 border-gray-600" />
+                        <img
+                          src={venue.ownerImage}
+                          alt="Dueño"
+                          className="w-12 h-12 rounded-full object-cover border-2 border-blue-500/50 shadow-md flex-shrink-0"
+                          title="Imagen del propietario"
+                        />
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-theme-light mb-4">
@@ -312,20 +328,29 @@ const VenuesPage: React.FC = () => {
                     </div>
                     {/* Stat Chips */}
                     <div className="flex flex-wrap items-center gap-2 mb-4">
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Star className="w-3 h-3 text-yellow-400" />
-                            <span className="text-gray-300">{venue.rating?.toFixed(1) || "N/A"} Rating</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Calendar className="w-3 h-3 text-gray-400" />
-                            <span className="text-gray-300">Desde {venue.establishedDate ? new Date(venue.establishedDate).getFullYear() : "N/A"}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                            <Sparkles className="w-3 h-3 text-blue-400" />
-                            <span className={`font-medium ${venue.isVerified ? "text-green-400" : "text-amber-400"}`}>
-                                {venue.isVerified ? "Verificado" : "En Verificación"}
-                            </span>
-                        </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Star className="w-3 h-3 text-yellow-400" />
+                        <span className="text-gray-300">
+                          {venue.rating?.toFixed(1) || "N/A"} Rating
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Calendar className="w-3 h-3 text-gray-400" />
+                        <span className="text-gray-300">
+                          Desde{" "}
+                          {venue.establishedDate
+                            ? new Date(venue.establishedDate).getFullYear()
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                        <Sparkles className="w-3 h-3 text-blue-400" />
+                        <span
+                          className={`font-medium ${venue.isVerified ? "text-green-400" : "text-amber-400"}`}
+                        >
+                          {venue.isVerified ? "Verificado" : "En Verificación"}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-theme-light leading-relaxed">
                       {venue.description}
@@ -336,17 +361,30 @@ const VenuesPage: React.FC = () => {
 
               {/* Nueva Card de Galería */}
               <div className="card-background p-6">
-                <h2 className="text-xl font-semibold text-theme-primary mb-4">Galería</h2>
+                <h2 className="text-xl font-semibold text-theme-primary mb-4">
+                  Galería
+                </h2>
                 {venue.galleryImages && venue.galleryImages.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {venue.galleryImages.map((img, index) => (
-                      <div key={index} className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden">
-                        <img src={img} alt={`Galería ${index + 1}`} className="w-full h-full object-cover" />
+                      <div
+                        key={index}
+                        className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden"
+                      >
+                        <img
+                          src={img}
+                          alt={`Galería ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <EmptyState title="Sin Imágenes" description="El dueño del local aún no ha subido imágenes a la galería." icon={<Building className="w-10 h-10" />} />
+                  <EmptyState
+                    title="Sin Imágenes"
+                    description="El dueño del local aún no ha subido imágenes a la galería."
+                    icon={<Building className="w-10 h-10" />}
+                  />
                 )}
               </div>
             </div>
@@ -367,7 +405,6 @@ const VenuesPage: React.FC = () => {
             </div>
           </div>
           {/* === UNIFIED DETAIL VIEW END === */}
-
         </div>
       </div>
     );
@@ -392,7 +429,9 @@ const VenuesPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
                 <span className="text-gray-400">Verificados:</span>
-                <span className="font-bold text-white">{venues.filter((v) => v.isVerified).length}</span>
+                <span className="font-bold text-white">
+                  {venues.filter((v) => v.isVerified).length}
+                </span>
               </div>
             </div>
           </div>
@@ -412,7 +451,13 @@ const VenuesPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-theme-light" />
               <select
-                value={filterActive === null ? "all" : filterActive ? "active" : "inactive"}
+                value={
+                  filterActive === null
+                    ? "all"
+                    : filterActive
+                      ? "active"
+                      : "inactive"
+                }
                 onChange={(e) => {
                   const value = e.target.value;
                   setFilterActive(value === "all" ? null : value === "active");
@@ -443,9 +488,22 @@ const VenuesPage: React.FC = () => {
         ) : !filteredVenues.length ? (
           <EmptyState
             title="No se encontraron locales"
-            description={search ? "No hay locales que coincidan con tu búsqueda" : "No hay locales registrados en este momento"}
+            description={
+              search
+                ? "No hay locales que coincidan con tu búsqueda"
+                : "No hay locales registrados en este momento"
+            }
             icon={<Building className="w-12 h-12" />}
-            action={search ? <button onClick={() => setSearch("")} className="btn-ghost text-sm">Limpiar búsqueda</button> : undefined}
+            action={
+              search ? (
+                <button
+                  onClick={() => setSearch("")}
+                  className="btn-ghost text-sm"
+                >
+                  Limpiar búsqueda
+                </button>
+              ) : undefined
+            }
           />
         ) : (
           /* Enhanced Venues Grid */

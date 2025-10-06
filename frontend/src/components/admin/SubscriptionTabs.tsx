@@ -62,14 +62,16 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
       label: "24 Horas",
       price: "$5",
       icon: <Clock className="w-4 h-4" />,
-      description: "Acceso completo por 24 horas - Eventos en vivo + apuestas P2P",
+      description:
+        "Acceso completo por 24 horas - Eventos en vivo + apuestas P2P",
     },
     {
       value: "monthly",
       label: "Mensual",
       price: "$10",
       icon: <Crown className="w-4 h-4" />,
-      description: "Acceso ilimitado por 30 días - Todos los beneficios premium",
+      description:
+        "Acceso ilimitado por 30 días - Todos los beneficios premium",
     },
   ];
 

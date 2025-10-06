@@ -35,8 +35,6 @@ interface TransactionData {
   createdAt: string;
 }
 
-
-
 interface EventData {
   id: string;
   name: string;

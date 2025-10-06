@@ -9,10 +9,12 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserProfileForm from "../../components/forms/UserProfileForm";
+import VenueEntityForm from "../../components/forms/VenueEntityForm";
+import GalleraEntityForm from "../../components/forms/GalleraEntityForm";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
 import MembershipSection from "../../components/user/MembershipSection";
 import BusinessInfoSection from "../../components/user/BusinessInfoSection";
-import { venuesAPI, gallerasAPI } from "../../services/api"; // Assuming these exist based on brain docs
+import { venuesAPI, gallerasAPI } from "../../services/api";
 import type { Venue, Gallera } from "../../types";
 
 const Profile: React.FC = () => {
@@ -20,6 +22,7 @@ const Profile: React.FC = () => {
   useMembershipCheck();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingBusiness, setIsEditingBusiness] = useState(false);
   const [venueData, setVenueData] = useState<Venue | null>(null);
   const [galleraData, setGalleraData] = useState<Gallera | null>(null);
 
@@ -56,6 +59,23 @@ const Profile: React.FC = () => {
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
+  }, []);
+
+  const handleBusinessSave = useCallback(
+    async (savedData: Venue | Gallera) => {
+      // Update local state with saved business data
+      if (user?.role === "venue") {
+        setVenueData(savedData as Venue);
+      } else if (user?.role === "gallera") {
+        setGalleraData(savedData as Gallera);
+      }
+      setIsEditingBusiness(false);
+    },
+    [user?.role],
+  );
+
+  const handleBusinessCancel = useCallback(() => {
+    setIsEditingBusiness(false);
   }, []);
 
   const getProfileFieldLabel = (field: string): string => {
@@ -97,14 +117,6 @@ const Profile: React.FC = () => {
           {user.profileInfo?.phoneNumber || "No especificado"}
         </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Dirección
-        </label>
-        <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900 min-h-[76px]">
-          {user.profileInfo?.address || "No especificado"}
-        </div>
-      </div>
     </div>
   );
 
@@ -115,24 +127,32 @@ const Profile: React.FC = () => {
         <div className="bg-indigo-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex flex-col items-center text-center">
             <div className="relative group mb-6">
-              <div className="w-28 h-28 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                {(user.role === "venue"
-                  ? user.profileInfo?.venueName ||
-                    user.profileInfo?.businessName ||
-                    user.username
-                  : user.role === "gallera"
-                    ? user.profileInfo?.galleraName ||
+              {user.profileInfo?.profileImage ? (
+                <img
+                  src={user.profileInfo.profileImage}
+                  alt={user.username}
+                  className="w-28 h-28 rounded-full object-cover shadow-lg border-4 border-white"
+                />
+              ) : (
+                <div className="w-28 h-28 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                  {(user.role === "venue"
+                    ? user.profileInfo?.venueName ||
                       user.profileInfo?.businessName ||
                       user.username
-                    : user.username
-                )
-                  ?.charAt(0)
-                  .toUpperCase()}
-              </div>
+                    : user.role === "gallera"
+                      ? user.profileInfo?.galleraName ||
+                        user.profileInfo?.businessName ||
+                        user.username
+                      : user.username
+                  )
+                    ?.charAt(0)
+                    .toUpperCase()}
+                </div>
+              )}
               <button
-                onClick={() => {}}
-                className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-all duration-200 hover:scale-110 border border-gray-200"
-                title="Cambiar avatar"
+                onClick={() => setIsEditing(true)}
+                className="absolute bottom-0 right-0 bg-blue-50 rounded-full p-2 shadow-lg hover:bg-gray-50 transition-all duration-200 hover:scale-110 border border-gray-200"
+                title="Editar perfil para cambiar imagen"
               >
                 <Camera className="w-4 h-4 text-gray-600" />
               </button>
@@ -168,7 +188,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Personal Info Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+        <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Información Personal
@@ -188,6 +208,7 @@ const Profile: React.FC = () => {
             <UserProfileForm
               user={user}
               onUpdate={handleSaveSuccess}
+              onCancel={handleCancel}
             />
           ) : (
             renderProfileInfo()
@@ -196,16 +217,41 @@ const Profile: React.FC = () => {
 
         {/* Business Info Section (Conditional) */}
         {!isEditing && (user.role === "venue" || user.role === "gallera") && (
-          <BusinessInfoSection
-            type={user.role}
-            data={user.role === "venue" ? venueData : galleraData}
-          />
+          <>
+            {!isEditingBusiness ? (
+              <BusinessInfoSection
+                type={user.role}
+                data={user.role === "venue" ? venueData : galleraData}
+                onEdit={() => setIsEditingBusiness(true)}
+              />
+            ) : (
+              <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+                {user.role === "venue" && venueData && (
+                  <VenueEntityForm
+                    venue={venueData}
+                    userId={user.id}
+                    onSave={handleBusinessSave}
+                    onCancel={handleBusinessCancel}
+                  />
+                )}
+                {user.role === "gallera" && galleraData && (
+                  <GalleraEntityForm
+                    gallera={galleraData}
+                    userId={user.id}
+                    onSave={handleBusinessSave}
+                    onCancel={handleBusinessCancel}
+                  />
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {/* Membership Section */}
         {!isEditing && (
           <div className="mt-6">
             <MembershipSection
+              user={user}
               subscription={
                 user.subscription
                   ? ({

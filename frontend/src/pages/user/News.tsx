@@ -101,7 +101,7 @@ const NewsPage: React.FC = () => {
               {articles.map((article) => (
                 <div
                   key={article.id}
-                  onClick={() => navigate(`/news/${article.id}`)}
+                  onClick={() => navigate(`/article/${article.id}`)}
                   className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02] flex flex-col justify-between h-80"
                 >
                   {/* Article Image */}

@@ -1,5 +1,13 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { ShieldCheck, XCircle, Clock, Upload, Info, FileText, CheckCircle } from "lucide-react";
+import {
+  ShieldCheck,
+  XCircle,
+  Clock,
+  Upload,
+  Info,
+  FileText,
+  CheckCircle,
+} from "lucide-react";
 import { membershipRequestsAPI, uploadsAPI } from "../../services/api";
 import type { User } from "../../types";
 
@@ -424,7 +432,9 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}
+      >
         {badge.icon}
         {badge.label}
       </span>
@@ -518,7 +528,9 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
                 {requests.map((request: any) => (
                   <tr key={request.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {new Date(request.requestedAt).toLocaleDateString("es-ES")}
+                      {new Date(request.requestedAt).toLocaleDateString(
+                        "es-ES",
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                       {request.requestedMembershipType === "24-hour"
@@ -529,14 +541,18 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
                       {getStatusBadge(request.status)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {request.status === "rejected" && request.rejectionReason ? (
+                      {request.status === "rejected" &&
+                      request.rejectionReason ? (
                         <div className="text-red-600">
-                          <strong>Motivo de rechazo:</strong> {request.rejectionReason}
+                          <strong>Motivo de rechazo:</strong>{" "}
+                          {request.rejectionReason}
                         </div>
                       ) : request.status === "completed" ? (
                         <span className="text-green-600">
                           Procesada el{" "}
-                          {new Date(request.processedAt).toLocaleDateString("es-ES")}
+                          {new Date(request.processedAt).toLocaleDateString(
+                            "es-ES",
+                          )}
                         </span>
                       ) : (
                         <span className="text-yellow-600">En revisión</span>

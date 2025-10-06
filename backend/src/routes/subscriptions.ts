@@ -613,4 +613,124 @@ router.put(
   })
 );
 
+/**
+ * PUT /api/subscriptions/admin/:userId/membership
+ * Admin: Update user membership manually
+ */
+router.put(
+  '/admin/:userId/membership',
+  authenticate,
+  [
+    param('userId').isUUID().withMessage('Invalid user ID'),
+    body('membership_type')
+      .isIn(['free', '24-hour', 'monthly'])
+      .withMessage('Invalid membership type'),
+    body('assigned_username')
+      .isString()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Assigned username is required')
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors.array()
+      });
+    }
+
+    // Check admin permission
+    if (req.user!.role !== 'admin') {
+      throw errors.forbidden('Only admins can update user memberships');
+    }
+
+    const { userId } = req.params;
+    const { membership_type, assigned_username } = req.body;
+
+    try {
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw errors.notFound('User not found');
+      }
+
+      // Calculate expiry date based on membership type
+      const now = new Date();
+      let expiresAt: Date | null = null;
+
+      if (membership_type === '24-hour') {
+        expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      } else if (membership_type === 'monthly') {
+        expiresAt = new Date(now);
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      }
+
+      // If free, cancel any active subscriptions
+      if (membership_type === 'free') {
+        await Subscription.update(
+          { status: 'cancelled', cancelledAt: new Date(), cancelReason: `Admin cancelled - ${assigned_username}` },
+          { where: { userId, status: 'active' } }
+        );
+
+        return res.json({
+          success: true,
+          message: 'Membership updated to free',
+          data: { membership_type: 'free', status: 'active' }
+        });
+      }
+
+      // Create or update subscription
+      const [subscription, created] = await Subscription.findOrCreate({
+        where: { userId, status: 'active' },
+        defaults: {
+          userId,
+          type: membership_type === '24-hour' ? 'daily' : 'monthly',
+          status: 'active',
+          manual_expires_at: expiresAt,
+          expiresAt: expiresAt!,
+          paymentMethod: 'manual',
+          autoRenew: false,
+          amount: 0,
+          currency: 'USD',
+          metadata: {
+            assignedBy: assigned_username,
+            assignedAt: new Date().toISOString(),
+            manualAssignment: true
+          }
+        }
+      });
+
+      if (!created) {
+        await subscription.update({
+          type: membership_type === '24-hour' ? 'daily' : 'monthly',
+          status: 'active',
+          manual_expires_at: expiresAt,
+          expiresAt: expiresAt!,
+          metadata: {
+            ...subscription.metadata,
+            lastAssignedBy: assigned_username,
+            lastAssignedAt: new Date().toISOString()
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Membership updated successfully',
+        data: {
+          id: subscription.id,
+          type: subscription.type,
+          status: subscription.status,
+          expiresAt: subscription.expiresAt,
+          manual_expires_at: subscription.manual_expires_at
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Admin membership update failed:', error);
+      throw errors.internal(`Failed to update membership: ${error.message}`);
+    }
+  })
+);
+
 export default router;

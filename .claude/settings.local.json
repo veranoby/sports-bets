@@ -81,7 +81,11 @@
       "Bash(npx:*)",
       "Bash(kill:*)",
       "Bash(jq:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git stash show:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

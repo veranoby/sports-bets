@@ -133,7 +133,7 @@ router.get(
 
 /**
  * @route   GET /api/membership-requests/pending
- * @desc    Admin: Get all pending membership requests
+ * @desc    Admin: Get all membership requests (supports status filter)
  * @access  Private (admin, operator)
  */
 router.get(
@@ -143,6 +143,7 @@ router.get(
   [
     query('search').optional().isString(),
     query('limit').optional().isInt({ min: 1, max: 200 }).toInt(),
+    query('status').optional().isIn(['pending', 'completed', 'rejected', 'all']),
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
@@ -150,8 +151,13 @@ router.get(
       throw errors.badRequest('Error de validación');
     }
 
-    const { search, limit = 100 } = req.query;
-    const where: any = { status: 'pending' };
+    const { search, limit = 100, status = 'pending' } = req.query;
+    const where: any = {};
+
+    // Apply status filter
+    if (status && status !== 'all') {
+      where.status = status;
+    }
 
     let userWhere: any = {};
     if (search) {

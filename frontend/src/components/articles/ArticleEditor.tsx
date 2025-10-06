@@ -99,9 +99,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                   disabled:opacity-50 disabled:cursor-not-allowed"
               />
               {uploading && (
-                <p className="mt-2 text-xs text-blue-500">
-                  Subiendo imagen...
-                </p>
+                <p className="mt-2 text-xs text-blue-500">Subiendo imagen...</p>
               )}
               <p className="mt-2 text-xs text-gray-500">
                 Formatos: JPG, PNG, WEBP. Máximo 5MB.
@@ -196,7 +194,10 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               }
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <label htmlFor="isDraft" className="ml-2 block text-sm text-gray-400">
+            <label
+              htmlFor="isDraft"
+              className="ml-2 block text-sm text-gray-400"
+            >
               Guardar como Borrador
             </label>
           </div>
@@ -211,11 +212,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={submitting}
-            >
+            <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting
                 ? "Guardando..."
                 : formData.status === "draft"

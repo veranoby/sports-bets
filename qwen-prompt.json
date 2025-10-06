@@ -1,0 +1,193 @@
+{
+  "metadata": {
+    "created_by": "Claude",
+    "date": "2025-09-29",
+    "task_type": "Admin Panel Component Integration & Modal Reuse",
+    "priority": "HIGH - Admin functionality broken, users waiting",
+    "estimated_duration": "30 minutes MAX - strict time limit",
+    "safety_level": "MAXIMUM - QWEN destructive tendency mitigation"
+  },
+
+  "QWEN_CRITICAL_CONSTRAINTS": {
+    "ABSOLUTE_RULES": {
+      "NO_ASSUMPTIONS": "NEVER assume component structure - READ files first",
+      "NO_DESTRUCTIVE_EDITS": "NEVER delete existing code to fix problems",
+      "NO_INFINITE_LOOPS": "MAX 3 edits per component - then STOP",
+      "NO_NEW_COMPONENTS": "REUSE existing components ONLY",
+      "BRAIN_MANDATORY": "MUST read @brain files BEFORE any edit, cite line numbers"
+    },
+    "TIME_LIMIT": "30 minutes MAX session - after that STOP regardless of completion",
+    "EDIT_PATTERN": "READ → ANALYZE → ONE SMALL CHANGE → TEST → NEXT"
+  },
+
+  "task_overview": {
+    "summary": "Fix 3 specific admin panel issues by reusing existing complete modals",
+    "complexity": "Medium - Component integration and navigation fixes",
+    "FILES_TO_MODIFY": [
+      "AdminSidebar.tsx - add venues option",
+      "Admin venue/gallera creation components - extend existing edit modals",
+      "Admin user creation - extend existing edit modal"
+    ],
+    "FILES_NOT_TO_TOUCH": [
+      "ArticleManagement.tsx - Gemini is working on this",
+      "Any api.ts files - backend integration complete",
+      "Database models - already complete"
+    ]
+  },
+
+  "MANDATORY_BRAIN_READING": {
+    "STOP_EVERYTHING_READ_THESE_FIRST": [
+      "@brain/api_endpoints_reference.json - Lines 73-141 for venues/galleras endpoints",
+      "@brain/typescript_interfaces_reference.json - Lines 24-100 for User/Venue/Gallera interfaces",
+      "@brain/sdd_system.json - Lines 354-380 for User profile sync system"
+    ],
+    "COMPLIANCE_PROOF": "QWEN MUST cite specific brain file line numbers in EVERY response",
+    "VERIFICATION_RULE": "Before ANY edit, quote exact brain file content to prove you read it"
+  },
+
+  "specific_issues": {
+    "issue_1_sidebar_venues_missing": {
+      "problem": "Admin sidebar shows 'Usuarios' and 'Galleras' but missing 'Venues'",
+      "current_bug": "Clicking 'Galleras' shows title 'Gestión de Venues' and 'Crear Venue' button",
+      "root_cause": "Routes/navigation mixed up between venues and galleras",
+      "SAFE_FIX_APPROACH": {
+        "step_1": "READ AdminSidebar.tsx completely - identify navigation structure",
+        "step_2": "ADD venues navigation option (do not delete galleras)",
+        "step_3": "VERIFY routes point to correct components",
+        "CONSTRAINT": "PRESERVE all existing navigation - only ADD venues option"
+      },
+      "brain_reference": "Check @brain/api_endpoints_reference.json lines 73-106 for venue endpoints"
+    },
+
+    "issue_2_venue_gallera_modals": {
+      "problem": "Creation modals for venues/galleras are too simple",
+      "solution_exists": "Edit modals for venues/galleras are complete and functional",
+      "SAFE_APPROACH": {
+        "constraint": "DO NOT modify existing edit modals - they work perfectly",
+        "method": "EXTEND edit modal component to handle both create and edit modes",
+        "implementation": "Add 'mode' prop to existing modal - if mode='create' show different title/behavior"
+      },
+      "brain_reference": "Check @brain/typescript_interfaces_reference.json lines 61-100 for Venue/Gallera interfaces",
+      "CRITICAL_PRESERVATION": "Edit modals handle profileInfo sync to dedicated tables - DO NOT BREAK THIS"
+    },
+
+    "issue_3_user_creation": {
+      "problem": "admin/users creation is basic (not modal, very elemental)",
+      "solution_exists": "Edit user modal is complete and handles all role types",
+      "SAFE_APPROACH": {
+        "constraint": "DO NOT modify existing edit user modal - it works perfectly",
+        "method": "CREATE route to open edit modal in 'create' mode",
+        "implementation": "Add 'mode' prop to existing EditUserModal - handle creation vs editing"
+      },
+      "brain_reference": "Check @brain/typescript_interfaces_reference.json lines 24-40 for User interface + profileInfo structure"
+    }
+  },
+
+  "COMPONENT_REUSE_STRATEGY": {
+    "DO_THIS_PATTERN": {
+      "existing_component": "EditVenueModal (working perfectly)",
+      "extension_method": "Add mode prop: <EditVenueModal mode='create' | 'edit' />",
+      "title_handling": "mode === 'create' ? 'Crear Venue' : 'Editar Venue'",
+      "data_handling": "mode === 'create' ? {} : existingVenueData"
+    },
+    "NEVER_DO_THIS": {
+      "create_new_modal": "❌ DO NOT create CreateVenueModal.tsx",
+      "duplicate_code": "❌ DO NOT copy-paste modal code",
+      "break_edit_modal": "❌ DO NOT modify working edit modal logic"
+    }
+  },
+
+  "brain_system_integration": {
+    "venues_galleras_sync": {
+      "CRITICAL_CONTEXT": "@brain/sdd_system.json lines 354-380 documents automatic sync",
+      "sync_mechanism": "User.profileInfo changes → automatic sync to Venue/Gallera tables",
+      "fields_mapping": {
+        "venue_fields": "venueName, venueLocation, venueDescription, venueEmail, venueWebsite",
+        "gallera_fields": "galleraName, galleraLocation, galleraDescription, galleraEmail, galleraWebsite, galleraSpecialties"
+      },
+      "PRESERVATION_RULE": "DO NOT modify this sync system - it works perfectly"
+    },
+    "api_endpoints_verified": {
+      "venues": "@brain/api_endpoints_reference.json lines 73-106 - endpoints working",
+      "galleras": "@brain/api_endpoints_reference.json lines 108-141 - endpoints working",
+      "users": "@brain/api_endpoints_reference.json lines 32-71 - endpoints working",
+      "CONSTRAINT": "DO NOT modify API calls - backend is complete and tested"
+    }
+  },
+
+  "QWEN_SAFETY_PROTOCOL": {
+    "BEFORE_ANY_WORK": [
+      "1. READ all 3 brain files COMPLETELY - cite specific line numbers",
+      "2. IDENTIFY existing components to extend - NO new components",
+      "3. VERIFY current navigation structure in AdminSidebar.tsx",
+      "4. CONFIRM edit modals are working - DO NOT BREAK THEM"
+    ],
+    "DURING_WORK": [
+      "1. ONE component at a time - complete before moving to next",
+      "2. PRESERVE all existing functionality - only ADD new capabilities",
+      "3. TEST each change immediately",
+      "4. STOP after 3 edits per component - no infinite loops"
+    ],
+    "ANTI_DESTRUCTIVE_PATTERNS": [
+      "❌ NEVER delete working code to fix problems",
+      "❌ NEVER assume component structure without reading",
+      "❌ NEVER create new components when existing ones can be extended",
+      "❌ NEVER modify API integration - backend is complete",
+      "❌ NEVER break User.profileInfo sync system - it's critical"
+    ]
+  },
+
+  "implementation_steps": {
+    "step_1_sidebar_fix": {
+      "file": "AdminSidebar.tsx",
+      "action": "ADD venues navigation option",
+      "method": "Extend existing navigation array - DO NOT modify galleras option",
+      "verification": "Both 'Venues' and 'Galleras' appear separately in sidebar"
+    },
+    "step_2_modal_extension": {
+      "files": ["EditVenueModal.tsx", "EditGalleraModal.tsx", "EditUserModal.tsx"],
+      "action": "Add mode prop to handle create/edit",
+      "method": "Extend existing component with conditional logic",
+      "verification": "Modals work for both creation and editing"
+    },
+    "step_3_navigation_cleanup": {
+      "action": "Fix route titles and button labels",
+      "method": "Ensure venues routes show 'Venues' and galleras routes show 'Galleras'",
+      "verification": "No more mixed titles/buttons"
+    }
+  },
+
+  "testing_verification": {
+    "admin_sidebar": [
+      "1. Login as admin",
+      "2. Verify 'Usuarios', 'Venues', 'Galleras' all appear in sidebar",
+      "3. Click each option - verify correct page loads with correct title"
+    ],
+    "modal_functionality": [
+      "4. Test create venue button → opens modal in create mode",
+      "5. Test edit venue button → opens same modal in edit mode",
+      "6. Verify all venue/gallera/user fields appear correctly",
+      "7. Test save functionality for both create and edit modes"
+    ]
+  },
+
+  "success_criteria": {
+    "navigation_fixed": "Admin sidebar has separate Usuarios/Venues/Galleras options",
+    "titles_correct": "Each section shows correct title (no more 'Venues' in Galleras section)",
+    "modals_complete": "All creation modals as complete as edit modals",
+    "no_functionality_lost": "All existing edit functionality preserved and working"
+  },
+
+  "QWEN_SESSION_LIMITS": {
+    "TIME_LIMIT": "30 minutes MAX - STOP regardless of completion status",
+    "EDIT_LIMIT": "MAX 3 edits per component - then move to next or stop",
+    "SCOPE_LIMIT": "ONLY the 3 specific issues listed - no additional 'improvements'",
+    "BRAIN_COMPLIANCE": "MUST cite brain file line numbers in every response"
+  },
+
+  "handoff_completion": {
+    "success_message": "Admin panel navigation fixed, all modals complete, no functionality lost",
+    "failure_protocol": "If blocked, document exact issue and hand back to Claude",
+    "testing_required": "Must test all 3 fixed areas before marking complete"
+  }
+}

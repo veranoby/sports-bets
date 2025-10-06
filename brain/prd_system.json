@@ -106,13 +106,15 @@
       "status": "Implemented",
       "payment_provider": "Kushki",
       "tiers": {
-        "daily": "$2.99",
-        "weekly": "$9.99",
-        "monthly": "$29.99"
+        "24-hour": "$5",
+        "monthly": "$10",
+        "free": "$0 (default when expired/cancelled)"
       },
       "features": [
-        "Automatic renewal",
-        "Multiple payment methods",
+        "24-hour pass for daily access",
+        "Monthly subscription with optional auto-renewal",
+        "Free tier reverts automatically on expiration",
+        "Multiple payment methods via Kushki",
         "Access validation for streams"
       ]
     },

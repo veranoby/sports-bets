@@ -2,10 +2,11 @@
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform - PRODUCTION READY",
     "created": "2025-09-28",
-    "updated": "2025-09-28",
-    "version": "2.0",
+    "updated": "2025-10-06",
+    "version": "2.1",
     "status": "✅ PRODUCTION VERIFIED - 0 TypeScript errors",
-    "critical_note": "VERIFIED against backend database models and production deployment"
+    "critical_note": "VERIFIED against backend database models and production deployment",
+    "recent_additions": "MembershipChangeRequest interface, UserSubscription pricing details"
   },
 
   "core_interfaces": {
@@ -43,10 +44,54 @@
       "required_properties": ["id", "plan", "status", "features"],
       "optional_properties": ["expiresAt", "manual_expires_at"],
       "status_enum": ["active", "cancelled", "expired", "pending"],
+      "plan_types": ["free", "24-hour", "monthly"],
+      "pricing": {
+        "free": "$0 (default on expiration/cancellation)",
+        "24-hour": "$5 (1 day access)",
+        "monthly": "$10 (30 days access)"
+      },
       "common_errors": [
         "Using 'type' instead of 'plan' property",
         "Missing 'id' property in form data",
         "Forgetting index signature for form compatibility"
+      ]
+    },
+    "MembershipChangeRequest": {
+      "file": "/backend/src/models/MembershipChangeRequest.ts",
+      "required_properties": ["id", "userId", "requestedMembershipType", "status", "createdAt"],
+      "optional_properties": ["requestNotes", "paymentProofUrl", "completedAt", "completedBy", "rejectionReason"],
+      "status_enum": ["pending", "completed", "rejected"],
+      "membership_type_enum": ["24-hour", "monthly"],
+      "business_rules": [
+        "User must have registered phone number to create request",
+        "Only one pending request allowed per user at a time",
+        "Cannot request 'free' tier (automatically assigned on expiration)",
+        "Admin/operator can complete or reject requests",
+        "Payment proof URL is optional but recommended"
+      ],
+      "frontend_integration": {
+        "user_component": "/frontend/src/components/user/MembershipSection.tsx",
+        "admin_component": "/frontend/src/components/admin/SubscriptionTabs.tsx",
+        "api_service": "/frontend/src/services/api.ts (membershipRequestsAPI)"
+      },
+      "api_endpoints": {
+        "create": "POST /api/membership-requests",
+        "my_requests": "GET /api/membership-requests/my-requests",
+        "pending": "GET /api/membership-requests/pending (admin/operator only)",
+        "complete": "PATCH /api/membership-requests/:id/complete (admin/operator only)",
+        "reject": "PATCH /api/membership-requests/:id/reject (admin/operator only)"
+      },
+      "validation_rules": {
+        "requestedMembershipType": "Required, must be '24-hour' or 'monthly'",
+        "requestNotes": "Optional, max 1000 characters",
+        "paymentProofUrl": "Optional, max 500 characters, must be valid URL format",
+        "rejectionReason": "Required when rejecting, max 500 characters"
+      },
+      "common_errors": [
+        "Using 'type' instead of 'requestedMembershipType' field",
+        "Attempting to request 'free' tier (not allowed)",
+        "Creating duplicate pending request (one per user limit)",
+        "Missing phone number in user profile"
       ]
     },
     "EventData": {

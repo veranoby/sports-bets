@@ -358,16 +358,16 @@ const LoginPage: React.FC = () => {
                     Credenciales de prueba:
                   </p>
                   <p>
-                    <strong>Admin:</strong> admin_test / Test123456
+                    <strong>Admin:</strong> admin_test / Admin123456
                   </p>
                   <p>
-                    <strong>Usuario:</strong> user_test / Test123456
+                    <strong>Usuario:</strong> user_test / User123456
                   </p>
                   <p>
-                    <strong>Operador:</strong> operator_test / Test123456
+                    <strong>Operador:</strong> operator_test / Operator123456
                   </p>
                   <p>
-                    <strong>Gallera:</strong> gallera_test / Test123456
+                    <strong>Gallera:</strong> gallera_test / Gallera123456
                   </p>
                   <p>
                     <strong>Venue:</strong> venue_test / Test123456

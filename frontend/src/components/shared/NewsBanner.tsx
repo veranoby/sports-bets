@@ -79,13 +79,12 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
             title: article.title,
             content: article.summary || article.excerpt || article.content,
             published_at: article.published_at || article.created_at,
-            featured_image: article.featured_image_url || article.featured_image,
+            featured_image:
+              article.featured_image_url || article.featured_image,
           }));
-          console.log(`Loaded ${articles.length} published articles for banner`);
           setNews(articles);
         } else {
           // No published articles, use fallback
-          console.log("No published articles found, using fallback");
           setNews(fallbackNews);
         }
       } catch (err: unknown) {
@@ -126,14 +125,6 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
   const goNext = () => handleTransition("next");
 
   const currentNews = news[current];
-
-  // Debug: Log to console
-  console.log("=== NewsBanner Debug ===");
-  console.log("Total news items:", news.length);
-  console.log("Current index:", current);
-  console.log("All news:", news);
-  console.log("Current news:", currentNews);
-  console.log("Should show controls?", news.length > 1);
 
   // Get random gradient for current article (deterministic based on article id)
   const getGradientForArticle = (articleId: string) => {

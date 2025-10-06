@@ -4,11 +4,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../services/api";
+import { venuesAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
-import type { User } from "../../types";
 import {
   MapPin,
   ChevronLeft,
@@ -34,7 +33,7 @@ interface ArticleLite {
 const VenueDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [venue, setVenue] = useState<User | null>(null);
+  const [venue, setVenue] = useState<any | null>(null);
   const [articles, setArticles] = useState<ArticleLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,18 +48,24 @@ const VenueDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userResponse = await usersAPI.getById(id);
-        if (!userResponse.success) {
-          throw new Error(userResponse.error || "Error al cargar venue");
+        const venueResponse = await venuesAPI.getById(id);
+        if (!venueResponse.success) {
+          throw new Error(venueResponse.error || "Error al cargar venue");
         }
-        setVenue(userResponse.data as User);
+        setVenue(venueResponse.data);
 
-        const articlesResponse = await articlesAPI.getAll({ author_id: id });
-        if (articlesResponse.success) {
-          setArticles(
-            (articlesResponse.data as { articles: ArticleLite[] })?.articles ||
-              [],
-          );
+        const ownerId =
+          venueResponse.data.ownerId || venueResponse.data.owner?.id;
+        if (ownerId) {
+          const articlesResponse = await articlesAPI.getAll({
+            author_id: ownerId,
+          });
+          if (articlesResponse.success) {
+            setArticles(
+              (articlesResponse.data as { articles: ArticleLite[] })
+                ?.articles || [],
+            );
+          }
         }
       } catch (err) {
         console.error("Error fetching venue data:", err);
@@ -110,12 +115,16 @@ const VenueDetailPage: React.FC = () => {
       </div>
     );
 
-  const venueName = venue.profileInfo?.businessName || venue.username;
-  const location =
-    venue.profileInfo?.businessAddress || "Ubicación no especificada";
-  const description = "Local para eventos de gallos";
+  const venueName =
+    venue.name ||
+    venue.owner?.profileInfo?.businessName ||
+    venue.owner?.username ||
+    "Venue";
+  const location = venue.location || "Ubicación no especificada";
+  const description = venue.description || "Local para eventos de gallos";
   const establishedDate = venue.createdAt;
-  const isVerified = venue.profileInfo?.verificationLevel === "full" || false;
+  const isVerified =
+    venue.owner?.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
   const rating = 0; // This would need to come from ratings API
 
@@ -137,9 +146,17 @@ const VenueDetailPage: React.FC = () => {
         {/* Venue Header */}
         <div className="card-background p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-              <Building className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
-            </div>
+            {venue.images?.[0] ? (
+              <img
+                src={venue.images[0]}
+                alt={venueName}
+                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 border-blue-500"
+              />
+            ) : (
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                <Building className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
+              </div>
+            )}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">

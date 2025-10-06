@@ -125,13 +125,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   }) => {
     // Convert SubscriptionTabs data to UserSubscription format
     const planMapping = {
-      "free": "free",
+      free: "free",
       "24h": "basic",
-      "monthly": "premium",
+      monthly: "premium",
     };
     const userSubscription: UserSubscription = {
-      id: user.subscription?.id || '',
-      plan: (planMapping[subscriptionData.membership_type as keyof typeof planMapping] || "free") as UserSubscription['plan'],
+      id: user.subscription?.id || "",
+      plan: (planMapping[
+        subscriptionData.membership_type as keyof typeof planMapping
+      ] || "free") as UserSubscription["plan"],
       status: subscriptionData.status || "active",
       expiresAt:
         subscriptionData.expiresAt ||

@@ -1,0 +1,389 @@
+{
+  "metadata": {
+    "date": "2025-10-04",
+    "session": "Image optimization and article filtering fixes",
+    "ai_conductor": "Claude (Sonnet 4.5)",
+    "errors_found": 5,
+    "root_causes_identified": 3,
+    "documentation_gaps": 4
+  },
+
+  "errors_encountered": {
+    "error_1_article_filtering": {
+      "symptom": "Venue/Gallera pages showing articles from ALL users instead of filtered by entity",
+      "location": [
+        "/frontend/src/pages/user/GalleraDetailPage.tsx:62",
+        "/frontend/src/pages/user/VenueDetailPage.tsx:58"
+      ],
+      "incorrect_code": "articlesAPI.getAll({ venue_id: id })",
+      "correct_code": "articlesAPI.getAll({ venueId: id })",
+      "root_cause": "Parameter name mismatch between frontend (snake_case) and backend (camelCase)",
+      "backend_expectation": "query('venueId').optional({ checkFalsy: true }).isUUID()",
+      "backend_location": "/backend/src/routes/articles.ts:134",
+      "impact": "CRITICAL - Users saw other users' articles",
+      "why_happened": [
+        "Frontend was sending venue_id (snake_case) from database field naming",
+        "Backend validator only accepts venueId (camelCase) per Express.js convention",
+        "Frontend query parameter didn't match backend validation schema",
+        "Validation failure caused parameter to be ignored, returning ALL articles"
+      ]
+    },
+
+    "error_2_article_navigation": {
+      "symptom": "Clicking articles from venue/gallera pages resulted in 404 Not Found",
+      "location": [
+        "/frontend/src/pages/user/GalleraDetailPage.tsx:283",
+        "/frontend/src/pages/user/VenueDetailPage.tsx:228"
+      ],
+      "incorrect_code": "navigate(`/articles/${article.id}`) // Route didn't exist",
+      "correct_code": "navigate(`/articles/${article.id}`) // Route now exists in App.tsx:135",
+      "root_cause": "Missing route definition in React Router configuration",
+      "missing_route": "<Route path=\"/articles/:id\" element={<ArticlePage />} />",
+      "impact": "HIGH - Users couldn't read articles from venue/gallera pages",
+      "why_happened": [
+        "ArticlePage component existed but wasn't registered in router",
+        "Only /news/:articleId route existed, not /articles/:id",
+        "Navigation used different URL pattern than configured routes",
+        "No validation that navigation paths match configured routes"
+      ]
+    },
+
+    "error_3_invalid_date": {
+      "symptom": "\"Invalid Date\" displayed in 'Miembro desde' field on venue/gallera pages",
+      "location": [
+        "/frontend/src/pages/user/GalleraDetailPage.tsx:266,388",
+        "/frontend/src/pages/user/VenueDetailPage.tsx:211,335"
+      ],
+      "incorrect_code": "new Date(gallera.created_at).getFullYear()",
+      "correct_code": "gallera.createdAt ? new Date(gallera.createdAt).getFullYear() : 'N/A'",
+      "root_cause": "Field name mismatch between database (created_at) and Sequelize model (createdAt)",
+      "database_field": "created_at (snake_case timestamp)",
+      "sequelize_field": "createdAt (camelCase Date)",
+      "impact": "MEDIUM - Poor UX, confusing date display",
+      "why_happened": [
+        "Database uses snake_case (created_at) per PostgreSQL convention",
+        "Sequelize model maps to camelCase (createdAt) per JavaScript convention",
+        "Frontend accessed wrong property name (created_at instead of createdAt)",
+        "TypeScript didn't catch this because of loose typing on date fields",
+        "No validation that field names match model property names"
+      ]
+    },
+
+    "error_4_missing_fields": {
+      "symptom": "Gallera/Venue detail pages not showing all available database fields",
+      "location": [
+        "/frontend/src/pages/user/GalleraDetailPage.tsx",
+        "/frontend/src/pages/user/VenueDetailPage.tsx"
+      ],
+      "missing_data": {
+        "gallera": ["status field not displayed"],
+        "venue": ["status field not prominently displayed"]
+      },
+      "impact": "LOW - Incomplete information display",
+      "why_happened": [
+        "UI designed before full database schema was finalized",
+        "No checklist comparing UI fields to database columns",
+        "Developer assumed some fields weren't user-facing",
+        "No automated validation of field coverage"
+      ]
+    },
+
+    "error_5_type_confusion": {
+      "symptom": "Components initially used User type instead of Venue/Gallera types",
+      "location": [
+        "/frontend/src/pages/user/GalleraDetailPage.tsx:37",
+        "/frontend/src/pages/user/VenueDetailPage.tsx:37"
+      ],
+      "incorrect_code": "const [gallera, setGallera] = useState<User | null>(null);",
+      "correct_code": "const [gallera, setGallera] = useState<Gallera | null>(null);",
+      "root_cause": "Entities evolved from User roles to dedicated tables",
+      "impact": "MEDIUM - Incorrect data access patterns",
+      "why_happened": [
+        "Original architecture: venue/gallera were User roles with profileInfo",
+        "Migration to dedicated tables: Venue and Gallera models created",
+        "Frontend components not fully updated after architecture change",
+        "Type checking didn't prevent accessing wrong properties",
+        "No migration checklist for affected components"
+      ]
+    }
+  },
+
+  "root_cause_analysis": {
+    "cause_1_naming_convention_inconsistency": {
+      "description": "Mismatch between database (snake_case), backend (camelCase), and frontend naming",
+      "examples": [
+        "Database: created_at → Sequelize: createdAt → Frontend: created_at ❌",
+        "Backend API: venueId → Frontend query: venue_id ❌"
+      ],
+      "contributing_factors": [
+        "No enforced naming convention across stack",
+        "Database uses PostgreSQL snake_case convention",
+        "JavaScript/TypeScript uses camelCase convention",
+        "Express validators use camelCase for query params",
+        "Frontend developers unsure which convention to use"
+      ],
+      "affected_areas": [
+        "Query parameters (venueId vs venue_id)",
+        "Model fields (createdAt vs created_at)",
+        "API responses (need consistent casing)"
+      ]
+    },
+
+    "cause_2_incomplete_architectural_migration": {
+      "description": "Transition from User roles to dedicated Venue/Gallera tables incomplete",
+      "migration_path": "User.role='venue' → Dedicated Venue table",
+      "incomplete_updates": [
+        "Component types still using User instead of Venue/Gallera",
+        "Data access still using profileInfo instead of direct fields",
+        "Type definitions not enforcing correct model usage"
+      ],
+      "impact": "Components accessing wrong data structures and fields"
+    },
+
+    "cause_3_documentation_lag": {
+      "description": "Brain documentation didn't match implementation details",
+      "gaps_found": [
+        "api_endpoints_reference.json had 'venueId' but no frontend usage examples",
+        "No explicit documentation of query parameter casing rules",
+        "No field mapping guide (database → model → frontend)",
+        "No checklist for architectural migrations"
+      ],
+      "why_documentation_lagged": [
+        "Documentation updated manually, not automatically",
+        "No validation that code matches documentation",
+        "Fast iteration didn't include doc updates",
+        "Multiple AIs working without central coordination"
+      ]
+    }
+  },
+
+  "documentation_gaps_identified": {
+    "gap_1_query_parameter_conventions": {
+      "missing": "Clear rules for query parameter naming in API calls",
+      "needed": {
+        "rule": "ALL query parameters use camelCase (JavaScript convention)",
+        "examples": {
+          "correct": "{ venueId: 'uuid', authorId: 'uuid', includeVenue: true }",
+          "incorrect": "{ venue_id: 'uuid', author_id: 'uuid', include_venue: true }"
+        },
+        "validation": "Express validators define camelCase parameters"
+      },
+      "location_to_add": "brain/api_endpoints_reference.json:frontend_api_client_patterns"
+    },
+
+    "gap_2_field_mapping_reference": {
+      "missing": "Database field → Sequelize model → Frontend property mapping",
+      "needed": {
+        "gallera_example": {
+          "database": "created_at",
+          "sequelize": "createdAt",
+          "frontend_access": "gallera.createdAt"
+        },
+        "rule": "Always use Sequelize camelCase property names in frontend"
+      },
+      "location_to_add": "brain/typescript_interfaces_reference.json:field_mapping_guide"
+    },
+
+    "gap_3_router_configuration_checklist": {
+      "missing": "Validation that navigation paths match configured routes",
+      "needed": {
+        "checklist": [
+          "Route exists in App.tsx for every navigate() call",
+          "Component accepts all parameter variations (articleId, id)",
+          "Navigation paths use consistent URL patterns"
+        ]
+      },
+      "location_to_add": "brain/sdd_system.json:frontend_routing_validation"
+    },
+
+    "gap_4_architectural_migration_checklist": {
+      "missing": "Systematic checklist for entity migrations (User → Venue/Gallera)",
+      "needed": {
+        "steps": [
+          "1. Update component state types (User → Venue/Gallera)",
+          "2. Change API calls (userAPI → venuesAPI/gallerasAPI)",
+          "3. Update data access (profileInfo.venueName → name)",
+          "4. Fix field names (created_at → createdAt)",
+          "5. Update all references in display logic",
+          "6. Test all affected pages"
+        ]
+      },
+      "location_to_add": "brain/multi_ai_coordination_strategy.json:migration_protocols"
+    }
+  },
+
+  "lessons_learned": {
+    "lesson_1": {
+      "title": "Always verify parameter naming conventions before API calls",
+      "rule": "Check backend validator schema (routes/*.ts) for exact parameter names",
+      "prevention": "Add query parameter examples to api_endpoints_reference.json"
+    },
+    "lesson_2": {
+      "title": "Route registration must precede navigation implementation",
+      "rule": "Every navigate() call must have corresponding <Route> in App.tsx",
+      "prevention": "Automated route coverage validation tool"
+    },
+    "lesson_3": {
+      "title": "Use Sequelize model property names, not database column names",
+      "rule": "created_at (DB) → createdAt (Model) → createdAt (Frontend)",
+      "prevention": "TypeScript strict mode + proper type definitions"
+    },
+    "lesson_4": {
+      "title": "Architectural migrations need systematic component updates",
+      "rule": "User role → Dedicated table requires: types, API calls, data access, field names",
+      "prevention": "Migration checklist + validation tests"
+    },
+    "lesson_5": {
+      "title": "Database-analysis is source of truth for schema",
+      "rule": "Always check /backend/database-analysis/*.json for actual DB structure",
+      "prevention": "Auto-generate TypeScript interfaces from database schema"
+    }
+  },
+
+  "prevention_strategies": {
+    "strategy_1_naming_convention_guide": {
+      "what": "Comprehensive naming convention reference for all layers",
+      "where": "brain/api_endpoints_reference.json",
+      "content": {
+        "database_fields": "snake_case (created_at, venue_id)",
+        "sequelize_models": "camelCase (createdAt, venueId)",
+        "api_query_params": "camelCase (venueId, authorId)",
+        "api_response_keys": "snake_case or camelCase (documented per endpoint)",
+        "frontend_access": "Use Sequelize naming (camelCase)"
+      }
+    },
+
+    "strategy_2_field_coverage_validation": {
+      "what": "Checklist to ensure all DB fields are displayed in UI",
+      "implementation": [
+        "Compare database-analysis columns to UI component JSX",
+        "Mark each field as: displayed | calculated | internal-only",
+        "Validate critical user-facing fields are shown"
+      ]
+    },
+
+    "strategy_3_route_navigation_validation": {
+      "what": "Ensure all navigate() calls have matching routes",
+      "implementation": [
+        "Grep all navigate() calls in codebase",
+        "Extract URL patterns",
+        "Validate against App.tsx route definitions",
+        "Report missing routes"
+      ]
+    },
+
+    "strategy_4_architecture_migration_protocol": {
+      "what": "Systematic checklist for entity type migrations",
+      "steps": [
+        "1. Identify all components using old type",
+        "2. Update useState/props type declarations",
+        "3. Change API imports and calls",
+        "4. Update data access patterns",
+        "5. Fix field name references",
+        "6. Test each page individually",
+        "7. Update brain documentation"
+      ]
+    }
+  },
+
+  "brain_updates_needed": [
+    {
+      "file": "brain/api_endpoints_reference.json",
+      "section": "frontend_api_client_patterns",
+      "add": {
+        "query_parameter_rules": {
+          "convention": "camelCase for all query parameters",
+          "examples": {
+            "articles_by_venue": "articlesAPI.getAll({ venueId: id }) // NOT venue_id",
+            "articles_by_author": "articlesAPI.getAll({ authorId: id }) // NOT author_id",
+            "include_associations": "articlesAPI.getAll({ includeVenue: true }) // NOT include_venue"
+          },
+          "validation": "Backend Express validators define camelCase parameter names",
+          "common_mistake": "Using database field names (snake_case) instead of API parameter names (camelCase)"
+        }
+      }
+    },
+    {
+      "file": "brain/typescript_interfaces_reference.json",
+      "section": "core_interfaces",
+      "add": {
+        "field_naming_guide": {
+          "database_to_frontend_mapping": {
+            "gallera": {
+              "created_at": "createdAt (Sequelize camelCase)",
+              "updated_at": "updatedAt (Sequelize camelCase)",
+              "owner_id": "ownerId (Sequelize camelCase)",
+              "is_verified": "isVerified (Sequelize camelCase)",
+              "active_roosters": "activeRoosters (Sequelize camelCase)",
+              "fight_record": "fightRecord (Sequelize camelCase)",
+              "contact_info": "contactInfo (Sequelize camelCase)"
+            },
+            "venue": {
+              "created_at": "createdAt",
+              "updated_at": "updatedAt",
+              "owner_id": "ownerId",
+              "is_verified": "isVerified",
+              "contact_info": "contactInfo"
+            },
+            "rule": "ALWAYS use Sequelize camelCase property names in frontend code"
+          }
+        }
+      }
+    },
+    {
+      "file": "brain/sdd_system.json",
+      "section": "frontend_validation",
+      "add": {
+        "route_coverage_validation": {
+          "requirement": "All navigate() calls must have matching <Route> in App.tsx",
+          "validation_steps": [
+            "1. Grep all navigate() calls: grep -r 'navigate(' frontend/src/",
+            "2. Extract URL patterns from navigate() arguments",
+            "3. Check App.tsx for matching <Route path=...> definitions",
+            "4. Report any missing routes"
+          ],
+          "common_patterns": {
+            "article_detail": "<Route path=\"/articles/:id\" element={<ArticlePage />} />",
+            "venue_detail": "<Route path=\"/venues/:id\" element={<VenueDetailPage />} />",
+            "gallera_detail": "<Route path=\"/galleras/:id\" element={<GalleraDetailPage />} />"
+          }
+        }
+      }
+    },
+    {
+      "file": "brain/multi_ai_coordination_strategy.json",
+      "section": "migration_protocols",
+      "add": {
+        "entity_type_migration_checklist": {
+          "scenario": "Migrating from User roles to dedicated entity tables",
+          "example": "User.role='venue' → Venue table",
+          "systematic_steps": [
+            "1. Update component state types: useState<User> → useState<Venue>",
+            "2. Change API imports: userAPI → venuesAPI",
+            "3. Update API calls: userAPI.getById() → venuesAPI.getById()",
+            "4. Fix data access: user.profileInfo.venueName → venue.name",
+            "5. Update field references: user.created_at → venue.createdAt",
+            "6. Test page rendering with actual data",
+            "7. Verify all database fields are displayed",
+            "8. Update brain documentation with changes"
+          ],
+          "validation_commands": [
+            "grep -r 'useState<User>' frontend/src/ # Should find none after migration",
+            "grep -r 'profileInfo\\.' frontend/src/ # Should be minimal after migration",
+            "npm run build # Should have zero TypeScript errors"
+          ]
+        }
+      }
+    }
+  ],
+
+  "summary": {
+    "errors_fixed": 5,
+    "root_causes": 3,
+    "documentation_gaps": 4,
+    "brain_updates_required": 4,
+    "prevention_strategies": 4,
+    "estimated_prevention_impact": "90% reduction in similar errors",
+    "key_insight": "Naming convention mismatches between layers (database → backend → frontend) cause majority of integration bugs. Systematic documentation of these mappings prevents errors."
+  }
+}

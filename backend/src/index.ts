@@ -32,6 +32,7 @@ import pushRoutes from "./routes/push";
 import settingsRoutes from "./routes/settings";
 import monitoringRoutes from "./routes/monitoring";
 import uploadsRoutes from "./routes/uploads";
+import membershipRequestsRoutes from "./routes/membership-requests";
 
 // Cargar variables de entorno
 config();
@@ -71,12 +72,14 @@ class Server {
     this.app.use(
       helmet({
         crossOriginEmbedderPolicy: false, // Para permitir streaming
+        crossOriginOpenerPolicy: false, // Permitir cross-origin para imágenes
+        crossOriginResourcePolicy: { policy: "cross-origin" }, // Permitir recursos cross-origin
         contentSecurityPolicy: {
           directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", "data:", "https:", "http:", "http://localhost:3001"],
             mediaSrc: ["'self'", "https:"],
           },
         },
@@ -149,9 +152,14 @@ class Server {
     this.app.use("/api/galleras", gallerasRoutes);
     this.app.use("/api/monitoring", monitoringRoutes);
     this.app.use("/api/uploads", uploadsRoutes);
+    this.app.use("/api/membership-requests", membershipRequestsRoutes);
 
-    // Ruta para servir archivos estáticos si es necesario
-    this.app.use("/uploads", express.static("uploads"));
+    // Ruta para servir archivos estáticos con CORS headers
+    this.app.use("/uploads", (req, res, next) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      next();
+    }, express.static("uploads"));
 
     // Ruta 404
     this.app.use((req, res) => {

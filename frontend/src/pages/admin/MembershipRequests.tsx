@@ -71,7 +71,9 @@ const MembershipRequestsPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await membershipRequestsAPI.getPendingRequests();
+      const response = await membershipRequestsAPI.getPendingRequests({
+        status: "all", // Fetch all requests, then filter in frontend
+      });
       if (response.success && response.data) {
         setRequests(response.data.requests || []);
       } else {
@@ -156,7 +158,11 @@ const MembershipRequestsPage: React.FC = () => {
   };
 
   const handleDelete = async (requestId: string) => {
-    if (!confirm("¿Estás seguro de eliminar esta solicitud? Esta acción no se puede deshacer.")) {
+    if (
+      !confirm(
+        "¿Estás seguro de eliminar esta solicitud? Esta acción no se puede deshacer.",
+      )
+    ) {
       return;
     }
 
@@ -427,7 +433,8 @@ const MembershipRequestsPage: React.FC = () => {
                             </button>
                           </>
                         )}
-                        {(request.status === "completed" || request.status === "rejected") && (
+                        {(request.status === "completed" ||
+                          request.status === "rejected") && (
                           <button
                             onClick={() => handleDelete(request.id)}
                             disabled={processing === request.id}

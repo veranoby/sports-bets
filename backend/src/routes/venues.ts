@@ -48,7 +48,7 @@ router.get(
         {
           model: User,
           as: "owner",
-          attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
+          attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -81,7 +81,7 @@ router.get(
         {
           model: User,
           as: "owner",
-          attributes: ["id", "username", "email"], // Always include these for owner, filtering will happen in Venue.toJSON
+          attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
         },
       ],
     });

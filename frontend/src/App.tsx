@@ -53,8 +53,11 @@ const AdminArticles = lazy(() => import("./pages/admin/Articles"));
 const AdminVenues = lazy(() => import("./pages/admin/Venues"));
 const AdminGalleras = lazy(() => import("./pages/admin/Galleras"));
 const AdminRequests = lazy(() => import("./pages/admin/Requests"));
-const AdminMembershipRequests = lazy(() => import("./pages/admin/MembershipRequests"));
+const AdminMembershipRequests = lazy(
+  () => import("./pages/admin/MembershipRequests"),
+);
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
+const AdminStreaming = lazy(() => import("./pages/admin/Streaming"));
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
 // Operators use admin environment with role-based restrictions
@@ -279,6 +282,16 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminSettings />
+              </Suspense>
+            }
+          />
+
+          {/* Streaming */}
+          <Route
+            path="/admin/streaming"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminStreaming />
               </Suspense>
             }
           />

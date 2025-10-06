@@ -124,7 +124,7 @@ export const adminAPI = {
     userId: string,
     data: { membership_type: string; assigned_username: string },
   ) => {
-    return apiCall("put", `/admin/users/${userId}/membership`, data);
+    return apiCall("put", `/subscriptions/admin/${userId}/membership`, data);
   },
 };
 
@@ -484,7 +484,11 @@ export const membershipRequestsAPI = {
     return apiCall("get", "/membership-requests/my-requests", params);
   },
 
-  getPendingRequests: async (params?: { search?: string; limit?: number }) => {
+  getPendingRequests: async (params?: {
+    search?: string;
+    limit?: number;
+    status?: "pending" | "completed" | "rejected" | "all";
+  }) => {
     return apiCall("get", "/membership-requests/pending", params);
   },
 
@@ -494,7 +498,11 @@ export const membershipRequestsAPI = {
     });
   },
 
-  rejectRequest: async (requestId: string, rejectionReason: string, adminNotes?: string) => {
+  rejectRequest: async (
+    requestId: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ) => {
     return apiCall("patch", `/membership-requests/${requestId}/reject`, {
       rejectionReason,
       adminNotes,

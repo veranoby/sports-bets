@@ -1,77 +1,83 @@
-import React, { useState, useEffect } from "react";
-import { userAPI } from "../../services/api";
+import React, { useState, useRef } from "react";
+import { userAPI, uploadsAPI } from "../../services/api";
+import { Camera, X } from "lucide-react";
+import LoadingSpinner from "../shared/LoadingSpinner";
 import type { User } from "../../types";
-
-interface ProfileInfo {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  address?: string;
-  emergencyContact?: string;
-  emergencyPhone?: string;
-  emailAlerts?: boolean;
-  smsAlerts?: boolean;
-  [key: string]: string | boolean | undefined;
-}
-
-interface FormData {
-  email: string;
-  profileInfo: ProfileInfo;
-}
 
 interface UserProfileFormProps {
   user: User;
   onUpdate: (updatedUser: User) => void;
+  onCancel: () => void;
 }
 
-export const UserProfileForm: React.FC<UserProfileFormProps> = ({
+const UserProfileForm: React.FC<UserProfileFormProps> = ({
   user,
   onUpdate,
+  onCancel,
 }) => {
-  const [formData, setFormData] = useState<FormData>({
-    email: user.email || "",
-    profileInfo: {
-      firstName: user.profileInfo?.fullName?.split(" ")[0] || "",
-      lastName: user.profileInfo?.fullName?.split(" ").slice(1).join(" ") || "",
-      phone: user.profileInfo?.phoneNumber || "",
-      address: user.profileInfo?.address || "",
-      emergencyContact: "",
-      emergencyPhone: "",
-      emailAlerts: true,
-      smsAlerts: false,
-    },
+  const [formData, setFormData] = useState({
+    fullName: user.profileInfo?.fullName || "",
+    phoneNumber: user.profileInfo?.phoneNumber || "",
+    address: user.profileInfo?.address || "",
+    identificationNumber: user.profileInfo?.identificationNumber || "",
+    profileImage: user.profileInfo?.profileImage || "",
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!formData.fullName?.trim()) {
+      newErrors.fullName = "El nombre completo es requerido";
     }
 
-    if (!formData.profileInfo.firstName) {
-      newErrors.firstName = "First name is required";
-    }
-
-    if (!formData.profileInfo.lastName) {
-      newErrors.lastName = "Last name is required";
-    }
-
-    if (
-      formData.profileInfo.phone &&
-      !/^\+?[\d\s-()]+$/.test(formData.profileInfo.phone)
-    ) {
-      newErrors.phone = "Please enter a valid phone number";
+    if (!formData.phoneNumber?.trim()) {
+      newErrors.phoneNumber = "El número de teléfono es requerido";
+    } else if (!/^[+]?[\d\s-()]+$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Ingrese un número de teléfono válido";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (!file.type.startsWith("image/")) {
+      setErrors({ ...errors, image: "Solo se permiten archivos de imagen" });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors({ ...errors, image: "La imagen no puede superar los 5MB" });
+      return;
+    }
+
+    setImageFile(file);
+    setErrors({ ...errors, image: "" });
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,199 +85,248 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     if (!validateForm()) return;
 
     setLoading(true);
-    setSuccess(false);
     setErrors({});
 
     try {
+      let profileImageUrl = formData.profileImage;
+
+      // Upload new image if selected
+      if (imageFile) {
+        const uploadResponse = await uploadsAPI.uploadImage(imageFile);
+        if (uploadResponse.success && uploadResponse.data?.url) {
+          profileImageUrl = uploadResponse.data.url;
+        } else {
+          throw new Error(
+            uploadResponse.error || "Error al subir la imagen de perfil",
+          );
+        }
+      }
+
+      // Update user profile
       const response = await userAPI.update(user.id, {
-        email: formData.email,
         profileInfo: {
-          fullName: `${formData.profileInfo.firstName} ${formData.profileInfo.lastName}`,
-          phoneNumber: formData.profileInfo.phone,
-          address: formData.profileInfo.address,
+          fullName: formData.fullName.trim(),
+          phoneNumber: formData.phoneNumber.trim(),
+          address: formData.address?.trim() || "",
+          identificationNumber: formData.identificationNumber?.trim() || "",
+          profileImage: profileImageUrl,
           verificationLevel: user.profileInfo?.verificationLevel || "none",
         },
       });
 
-      onUpdate(response.data);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      if (response.success && response.data) {
+        onUpdate(response.data);
+      } else {
+        throw new Error(response.error || "Error al actualizar el perfil");
+      }
     } catch (error: any) {
       console.error("Profile update failed:", error);
-
-      if (error.response?.data?.message) {
-        setErrors({ general: error.response.data.message });
-      } else if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        setErrors({ general: "Failed to update profile. Please try again." });
-      }
+      setErrors({
+        general:
+          error.message || "Error al actualizar el perfil. Intenta de nuevo.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-
-    if (name === "email") {
-      setFormData((prev) => ({ ...prev, email: value }));
-    } else if (name.startsWith("profileInfo.")) {
-      const fieldName = name.replace("profileInfo.", "");
-      setFormData((prev) => ({
-        ...prev,
-        profileInfo: {
-          ...prev.profileInfo,
-          [fieldName]: type === "checkbox" ? checked : value,
-        },
-      }));
-    }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear error when user starts typing
-    if (errors[name] || errors[name.replace("profileInfo.", "")]) {
-      const fieldName = name.replace("profileInfo.", "");
+    if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors[fieldName];
         delete newErrors[name];
         return newErrors;
       });
     }
   };
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(false), 3000);
-      return () => clearTimeout(timer);
+  const getFieldLabel = (field: string): string => {
+    if (field === "fullName") {
+      if (user.role === "venue" || user.role === "gallera") {
+        return "Nombre del representante";
+      }
+      return "Nombre completo";
     }
-  }, [success]);
-
-  // Helper component for input fields
-  const InputField = (
-    name: string,
-    label: string,
-    type: string = "text",
-    required: boolean = false,
-  ) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      <input
-        type={type}
-        name={`profileInfo.${name}`}
-        value={String(formData.profileInfo[name] || "")}
-        onChange={handleChange}
-        className={`w-full px-3 py-2 border rounded-lg ${errors[name] ? "border-red-500" : "border-gray-300"}`}
-        required={required}
-      />
-      {errors[name] && (
-        <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
-      )}
-    </div>
-  );
-
-  // Helper component for checkbox fields
-  const CheckboxField = (name: string, label: string) => (
-    <div className="flex items-center">
-      <input
-        type="checkbox"
-        name={`profileInfo.${name}`}
-        checked={Boolean(formData.profileInfo[name])}
-        onChange={handleChange}
-        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-      />
-      <label className="ml-2 text-sm text-gray-700">{label}</label>
-    </div>
-  );
+    return field;
+  };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Profile Settings
-      </h2>
-
-      {success && (
-        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-          Profile updated successfully!
-        </div>
-      )}
-
+    <div className="space-y-6">
       {errors.general && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {errors.general}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Account Information */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Account Information
-          </h3>
-          <div className="grid grid-cols-1 gap-4">
+        {/* Profile Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Imagen de Perfil
+          </label>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              {imagePreview || formData.profileImage ? (
+                <img
+                  src={imagePreview || formData.profileImage}
+                  alt="Profile preview"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {user.username?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {(imagePreview || imageFile) && (
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.email ? "border-red-500" : "border-gray-300"}`}
-                required
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+                id="profile-image-input"
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Camera className="w-4 h-4" />
+                Cambiar imagen
+              </button>
+              <p className="text-xs text-gray-500 mt-1">
+                JPG, PNG o WebP. Máximo 5MB.
+              </p>
+              {errors.image && (
+                <p className="text-red-500 text-xs mt-1">{errors.image}</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Personal Information */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Personal Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {InputField("firstName", "First Name", "text", true)}
-            {InputField("lastName", "Last Name", "text", true)}
-            {InputField("phone", "Phone Number", "tel")}
-          </div>
-          <div className="mt-4">{InputField("address", "Address", "text")}</div>
+        {/* Email (Read-only) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email (no editable)
+          </label>
+          <input
+            type="email"
+            value={user.email}
+            disabled
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            El email no puede ser modificado
+          </p>
         </div>
 
-        {/* Emergency Contact */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Emergency Contact
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {InputField("emergencyContact", "Emergency Contact Name")}
-            {InputField("emergencyPhone", "Emergency Contact Phone", "tel")}
-          </div>
+        {/* Full Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {getFieldLabel("fullName")} <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.fullName ? "border-red-500" : "border-gray-300"
+            }`}
+            required
+          />
+          {errors.fullName && (
+            <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+          )}
         </div>
 
-        {/* Notification Preferences */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Notification Preferences
-          </h3>
-          <div className="space-y-3">
-            {CheckboxField("emailAlerts", "Receive email notifications")}
-            {CheckboxField("smsAlerts", "Receive SMS notifications")}
-          </div>
+        {/* Phone Number */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Número de Teléfono <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="tel"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.phoneNumber ? "border-red-500" : "border-gray-300"
+            }`}
+            required
+          />
+          {errors.phoneNumber && (
+            <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
+          )}
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end">
+        {/* Identification Number */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Número de Identificación (Cédula/Pasaporte)
+          </label>
+          <input
+            type="text"
+            name="identificationNumber"
+            value={formData.identificationNumber}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* Address */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Dirección
+          </label>
+          <textarea
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            disabled={loading}
+          >
+            Cancelar
+          </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {loading ? "Updating..." : "Update Profile"}
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Guardando...
+              </>
+            ) : (
+              "Guardar Cambios"
+            )}
           </button>
         </div>
       </form>
