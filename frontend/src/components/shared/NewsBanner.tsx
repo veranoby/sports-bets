@@ -19,6 +19,18 @@ interface BannerArticle {
   featured_image_url?: string;
 }
 
+// Pastel gradient combinations (blue left + random pastel right)
+const pastelGradients = [
+  "linear-gradient(135deg, #596c95 0%, #ffd1dc 100%)", // pink
+  "linear-gradient(135deg, #596c95 0%, #b4e7ce 100%)", // mint green
+  "linear-gradient(135deg, #596c95 0%, #e8c5e5 100%)", // lavender
+  "linear-gradient(135deg, #596c95 0%, #ffeaa7 100%)", // soft yellow
+  "linear-gradient(135deg, #596c95 0%, #dfe6e9 100%)", // soft gray
+  "linear-gradient(135deg, #596c95 0%, #fab1a0 100%)", // peach
+  "linear-gradient(135deg, #596c95 0%, #a29bfe 100%)", // periwinkle
+  "linear-gradient(135deg, #596c95 0%, #fd79a8 100%)", // soft coral
+];
+
 // Fallback news for when API is not available or no featured articles exist
 const fallbackNews: BannerArticle[] = [
   {
@@ -40,19 +52,21 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Fetch featured articles/news
+  // Fetch latest published articles
   useEffect(() => {
-    const fetchFeaturedNews = async () => {
+    const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await articlesAPI.getFeatured({
+        // Fetch latest 5 published articles
+        const response = await articlesAPI.getAll({
+          status: "published",
           limit: 5,
-          type: "banner",
         });
 
         const responseData = response.data as {
-          articles: (Article & BannerArticle)[];
+          articles: any[];
         };
 
         if (
@@ -60,19 +74,18 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           Array.isArray(responseData.articles) &&
           responseData.articles.length > 0
         ) {
-          const articles = responseData.articles.map(
-            (article: Article & BannerArticle) => ({
-              id: article.id,
-              title: article.title,
-              content: article.excerpt || article.content,
-              published_at: article.published_at || article.created_at,
-              featured_image:
-                article.featured_image_url || article.featured_image,
-            }),
-          );
+          const articles = responseData.articles.map((article: any) => ({
+            id: article.id,
+            title: article.title,
+            content: article.summary || article.excerpt || article.content,
+            published_at: article.published_at || article.created_at,
+            featured_image: article.featured_image_url || article.featured_image,
+          }));
+          console.log(`Loaded ${articles.length} published articles for banner`);
           setNews(articles);
         } else {
-          // No featured articles found, use fallback
+          // No published articles, use fallback
+          console.log("No published articles found, using fallback");
           setNews(fallbackNews);
         }
       } catch (err: unknown) {
@@ -86,22 +99,50 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
       }
     };
 
-    fetchFeaturedNews();
+    fetchNews();
   }, []);
 
-  // Auto-advance carousel
+  // Auto-advance carousel with transition
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % news.length);
+      handleTransition("next");
     }, 5000);
     return () => clearInterval(timer);
-  }, [news.length]);
+  }, [news.length, current]);
 
-  const goPrev = () =>
-    setCurrent((prev) => (prev - 1 + news.length) % news.length);
-  const goNext = () => setCurrent((prev) => (prev + 1) % news.length);
+  const handleTransition = (direction: "prev" | "next") => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      if (direction === "next") {
+        setCurrent((prev) => (prev + 1) % news.length);
+      } else {
+        setCurrent((prev) => (prev - 1 + news.length) % news.length);
+      }
+      setIsTransitioning(false);
+    }, 300);
+  };
+
+  const goPrev = () => handleTransition("prev");
+  const goNext = () => handleTransition("next");
 
   const currentNews = news[current];
+
+  // Debug: Log to console
+  console.log("=== NewsBanner Debug ===");
+  console.log("Total news items:", news.length);
+  console.log("Current index:", current);
+  console.log("All news:", news);
+  console.log("Current news:", currentNews);
+  console.log("Should show controls?", news.length > 1);
+
+  // Get random gradient for current article (deterministic based on article id)
+  const getGradientForArticle = (articleId: string) => {
+    const hash = articleId
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return pastelGradients[hash % pastelGradients.length];
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return new Date().toLocaleDateString();
     return new Date(dateString).toLocaleDateString("es-ES");
@@ -114,8 +155,8 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
       >
         <Megaphone className="w-8 h-8 text-white flex-shrink-0 animate-pulse" />
         <div className="flex-1">
-          <div className="bg-white/20 h-5 rounded mb-2 animate-pulse"></div>
-          <div className="bg-white/15 h-4 rounded animate-pulse"></div>
+          <div className="bg-blue-50/20 h-5 rounded mb-2 animate-pulse"></div>
+          <div className="bg-blue-50/15 h-4 rounded animate-pulse"></div>
         </div>
       </div>
     );
@@ -123,21 +164,36 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
 
   return (
     <div
-      className={`relative rounded-xl shadow-lg overflow-hidden ${className}`}
+      className={`relative rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${className}`}
       style={{
         height: "200px",
-        backgroundImage: currentNews.featured_image
-          ? `url(${currentNews.featured_image})`
-          : "linear-gradient(to right, #596c95, #cd6263)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
       }}
     >
+      {/* Background Layer - with fade transition */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${
+          isTransitioning ? "opacity-0" : "opacity-100"
+        }`}
+        style={{
+          backgroundImage: currentNews.featured_image
+            ? `url(${currentNews.featured_image})`
+            : getGradientForArticle(currentNews.id),
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-black/40"></div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-center p-6">
+      {/* Content - with slide and fade transition */}
+      <div
+        className={`relative z-10 h-full flex flex-col justify-center p-6 transition-all duration-500 transform ${
+          isTransitioning
+            ? "opacity-0 translate-x-4"
+            : "opacity-100 translate-x-0"
+        }`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <Megaphone className="w-5 h-5 text-white flex-shrink-0" />
           <span className="text-white/90 text-sm font-medium">
@@ -164,21 +220,45 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Enhanced Navigation Arrows */}
       {news.length > 1 && (
         <>
           <button
             onClick={goPrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-white/70 hover:text-white hover:bg-black/20 rounded-full transition-all"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-50 p-3 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            aria-label="Artículo anterior"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={goNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white/70 hover:text-white hover:bg-black/20 rounded-full transition-all"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-50 p-3 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            aria-label="Siguiente artículo"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-6 h-6" />
           </button>
+
+          {/* Dots Indicator - Bottom Progress Bar */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 flex gap-2">
+            {news.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setIsTransitioning(true);
+                  setTimeout(() => {
+                    setCurrent(index);
+                    setIsTransitioning(false);
+                  }, 300);
+                }}
+                className={`transition-all duration-300 rounded-full ${
+                  index === current
+                    ? "w-8 h-2 bg-white"
+                    : "w-2 h-2 bg-white/50 hover:bg-white/70"
+                }`}
+                aria-label={`Ir al artículo ${index + 1}`}
+              />
+            ))}
+          </div>
         </>
       )}
     </div>
