@@ -25,7 +25,9 @@ interface GalleraProfile {
   name: string;
   description: string;
   location: string;
-  imageUrl?: string;
+  imageUrl?: string; // Main image for the card
+  ownerImage?: string; // Owner's specific profile image
+  galleryImages?: string[]; // Gallery images for the gallera itself
   articlesCount: number;
   establishedDate?: string;
   isCertified?: boolean;
@@ -204,7 +206,7 @@ const GalleraCard = React.memo(
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c9536]/20">
           <div className="flex items-center gap-3">
             <span className="text-xs text-green-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
@@ -297,7 +299,9 @@ const GallerasPage: React.FC = () => {
                 name: galleraName,
                 description: description,
                 location: location,
-                imageUrl: gallera.owner?.profileInfo?.imageUrl,
+                imageUrl: gallera.images?.[0] || gallera.owner?.profileInfo?.imageUrl,
+                ownerImage: gallera.owner?.profileInfo?.imageUrl,
+                galleryImages: gallera.images || [],
                 articlesCount: articleCount,
                 establishedDate: gallera.createdAt,
                 isCertified:
@@ -373,107 +377,88 @@ const GallerasPage: React.FC = () => {
             Volver a Instituciones
           </button>
 
+          {/* === UNIFIED DETAIL VIEW START === */}
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Columna Izquierda */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Card Principal de Información */}
+              {/* Card Principal Unificada (Info + Descripción) */}
               <div className="card-background p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+                  {/* Imagen de la Gallera */}
                   {gallera.imageUrl ? (
                     <img
                       src={gallera.imageUrl}
                       alt={gallera.name}
-                      className="w-24 h-24 rounded-lg object-cover border-2 border-green-500"
+                      className="w-28 h-28 rounded-lg object-cover border-2 border-green-500/50 shadow-lg"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center">
-                      <Shield className="w-10 h-10 text-theme-light/50" />
+                    <div className="w-28 h-28 rounded-lg bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-12 h-12 text-theme-light/50" />
                     </div>
                   )}
                   <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-theme-primary mb-2">
-                      {gallera.name}
-                    </h1>
-                    <div className="flex items-center gap-2 text-theme-light">
+                    {/* Titulo, Chips de Stats y Owner Image */}
+                    <div className="flex justify-between items-start">
+                      <h1 className="text-3xl font-bold text-theme-primary mb-2">
+                        {gallera.name}
+                      </h1>
+                      {/* Owner Image */}
+                      {gallera.ownerImage && (
+                        <img src={gallera.ownerImage} alt="Owner" className="w-10 h-10 rounded-full object-cover border-2 border-gray-600" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-theme-light mb-4">
                       <MapPin className="w-5 h-5" />
                       <span className="text-lg">{gallera.location}</span>
                     </div>
+                    {/* Stat Chips */}
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                            <Star className="w-3 h-3 text-yellow-400" />
+                            <span className="text-gray-300">{gallera.rating?.toFixed(1) || "N/A"} Rating</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                            <Calendar className="w-3 h-3 text-gray-400" />
+                            <span className="text-gray-300">Desde {gallera.establishedDate ? new Date(gallera.establishedDate).getFullYear() : "N/A"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                            <Sparkles className="w-3 h-3 text-green-400" />
+                            <span className={`font-medium ${gallera.isCertified ? "text-green-400" : "text-amber-400"}`}>
+                                {gallera.isCertified ? "Certificada" : "En Certificación"}
+                            </span>
+                        </div>
+                         <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                            <Award className="w-3 h-3 text-blue-400" />
+                            <span className="text-gray-300 capitalize">{gallera.premiumLevel || "Estándar"}</span>
+                        </div>
+                    </div>
+                    <p className="text-theme-light leading-relaxed">
+                      {gallera.description}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Card de Descripción */}
+              {/* Nueva Card de Galería */}
               <div className="card-background p-6">
-                <h2 className="text-xl font-semibold text-theme-primary mb-3">
-                  Sobre la Institución
-                </h2>
-                <p className="text-theme-light leading-relaxed">
-                  {gallera.description}
-                </p>
+                <h2 className="text-xl font-semibold text-theme-primary mb-4">Galería</h2>
+                {gallera.galleryImages && gallera.galleryImages.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {gallera.galleryImages.map((img, index) => (
+                      <div key={index} className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden">
+                        <img src={img} alt={`Galería ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState title="Sin Imágenes" description="El dueño de la gallera aún no ha subido imágenes a la galería." icon={<Shield className="w-10 h-10" />} />
+                )}
               </div>
             </div>
 
             {/* Columna Derecha */}
             <div className="space-y-6">
-              {/* Card de Estadísticas */}
-              <div className="card-background p-6">
-                <h2 className="text-xl font-semibold text-theme-primary mb-4">
-                  Estadísticas
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-theme-light">
-                    <span className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      Rating
-                    </span>
-                    <span className="font-medium text-theme-primary">
-                      {gallera.rating?.toFixed(1) || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-theme-light">
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Fundada en
-                    </span>
-                    <span className="font-medium text-theme-primary">
-                      {gallera.establishedDate
-                        ? new Date(gallera.establishedDate).getFullYear()
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-theme-light">
-                    <span className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Artículos
-                    </span>
-                    <span className="font-medium text-theme-primary">
-                      {gallera.articlesCount || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-theme-light">
-                    <span className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-blue-400" />
-                      Nivel Premium
-                    </span>
-                    <span className="font-medium text-theme-primary capitalize">
-                      {gallera.premiumLevel || "Estándar"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-theme-light">
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-green-400" />
-                      Estado
-                    </span>
-                    <span
-                      className={`font-medium ${gallera.isCertified ? "text-green-400" : "text-amber-400"}`}
-                    >
-                      {gallera.isCertified ? "Certificada" : "En Certificación"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card de Artículos */}
+              {/* Card de Artículos (se mantiene) */}
               <div className="card-background p-6">
                 <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
                   <span className="text-2xl">📰</span> Artículos
@@ -486,6 +471,8 @@ const GallerasPage: React.FC = () => {
               </div>
             </div>
           </div>
+          {/* === UNIFIED DETAIL VIEW END === */}
+
         </div>
       </div>
     );
@@ -495,127 +482,50 @@ const GallerasPage: React.FC = () => {
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
-        {/* Enhanced Header with sophisticated styling and premium tiers */}
-        <div className="card-background p-6">
-          <div className="flex flex-col gap-6">
-            {/* Title and View Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-green-400" />
-                  Instituciones Criadoras
-                </h1>
-                <p className="text-theme-light">
-                  Conecta con criadores profesionales y expertos galísticos
-                </p>
+        {/* Refactored Header */}
+        <div className="space-y-4">
+          {/* Title and Stat Chips */}
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
+              <Shield className="w-6 h-6 text-green-400" />
+              Instituciones Criadoras
+            </h1>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="text-gray-400">Total:</span>
+                <span className="font-bold text-white">{galleras.length}</span>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    setViewMode(viewMode === "grid" ? "list" : "grid")
-                  }
-                  className="p-2 rounded-lg hover:bg-[#2a325c]/50 transition-colors"
-                  title={`Cambiar a vista ${viewMode === "grid" ? "lista" : "cuadrícula"}`}
-                >
-                  {viewMode === "grid" ? (
-                    <List className="w-4 h-4 text-theme-light" />
-                  ) : (
-                    <Grid className="w-4 h-4 text-theme-light" />
-                  )}
-                </button>
+              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="text-gray-400">Certificadas:</span>
+                <span className="font-bold text-white">{galleras.filter((g) => g.isCertified).length}</span>
               </div>
             </div>
+          </div>
 
-            {/* Enhanced Statistics with Premium Tiers */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 p-3 rounded-lg border border-green-500/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Shield className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-green-400 font-medium">
-                    Total
-                  </span>
-                </div>
-                <span className="text-lg font-bold text-theme-primary">
-                  {galleras.length}
-                </span>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-3 rounded-lg border border-purple-500/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Crown className="w-4 h-4 text-purple-400" />
-                  <span className="text-xs text-purple-400 font-medium">
-                    Platinum
-                  </span>
-                </div>
-                <span className="text-lg font-bold text-theme-primary">
-                  {galleras.filter((g) => g.premiumLevel === "platinum").length}
-                </span>
-              </div>
-
-              <div className="bg-gradient-to-r from-yellow-500/20 to-amber-500/20 p-3 rounded-lg border border-yellow-500/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Crown className="w-4 h-4 text-yellow-400" />
-                  <span className="text-xs text-yellow-400 font-medium">
-                    Gold
-                  </span>
-                </div>
-                <span className="text-lg font-bold text-theme-primary">
-                  {galleras.filter((g) => g.premiumLevel === "gold").length}
-                </span>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-3 rounded-lg border border-blue-500/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs text-blue-400 font-medium">
-                    Artículos
-                  </span>
-                </div>
-                <span className="text-lg font-bold text-theme-primary">
-                  {galleras.reduce((sum, g) => sum + g.articlesCount, 0)}
-                </span>
-              </div>
-
-              <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-3 rounded-lg border border-amber-500/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Award className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs text-amber-400 font-medium">
-                    Certificadas
-                  </span>
-                </div>
-                <span className="text-lg font-bold text-theme-primary">
-                  {galleras.filter((g) => g.isCertified).length}
-                </span>
-              </div>
+          {/* Search and Filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <SearchInput
+                placeholder="Buscar instituciones criadoras..."
+                onSearch={(value) => setSearchTerm(value)}
+                value={searchTerm}
+                showClearButton
+                debounceMs={300}
+                className="w-full"
+              />
             </div>
-
-            {/* Enhanced Search and Premium Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <SearchInput
-                  placeholder="Buscar instituciones criadoras..."
-                  onSearch={(value) => setSearchTerm(value)}
-                  value={searchTerm}
-                  showClearButton
-                  debounceMs={300}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-theme-light" />
-                <select
-                  value={premiumFilter}
-                  onChange={(e) => setPremiumFilter(e.target.value)}
-                  className="border border-[#596c95]/30 rounded-lg px-3 py-2 text-sm text-theme-primary focus:outline-none focus:border-blue-400  transition-colors"
-                >
-                  <option value="all">Todas las instituciones</option>
-                  <option value="premium">Nivel Premium</option>
-                  <option value="certified">Certificadas</option>
-                  <option value="standard">Estándar</option>
-                </select>
-              </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-theme-light" />
+              <select
+                value={premiumFilter}
+                onChange={(e) => setPremiumFilter(e.target.value)}
+                className="border border-[#596c9536]/30 rounded-lg px-3 py-2 text-sm text-theme-primary focus:outline-none focus:border-blue-400 transition-colors"
+              >
+                <option value="all">Todas las instituciones</option>
+                <option value="premium">Nivel Premium</option>
+                <option value="certified">Certificadas</option>
+                <option value="standard">Estándar</option>
+              </select>
             </div>
           </div>
         </div>
@@ -636,31 +546,13 @@ const GallerasPage: React.FC = () => {
         ) : !filteredGalleras.length ? (
           <EmptyState
             title="No se encontraron instituciones"
-            description={
-              searchTerm
-                ? "No hay instituciones que coincidan con tu búsqueda"
-                : "No hay instituciones criadoras registradas en este momento"
-            }
+            description={searchTerm ? "No hay instituciones que coincidan con tu búsqueda" : "No hay instituciones criadoras registradas en este momento"}
             icon={<Shield className="w-12 h-12" />}
-            action={
-              searchTerm ? (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="btn-ghost text-sm"
-                >
-                  Limpiar búsqueda
-                </button>
-              ) : undefined
-            }
+            action={searchTerm ? <button onClick={() => setSearchTerm("")} className="btn-ghost text-sm">Limpiar búsqueda</button> : undefined}
           />
         ) : (
           /* Enhanced Galleras Grid */
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
-              <Shield className="w-5 h-5 text-green-400" />
-              Instituciones Criadoras ({filteredGalleras.length})
-            </h2>
-
             <div
               className={`grid gap-6 ${
                 viewMode === "grid"
