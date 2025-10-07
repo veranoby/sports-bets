@@ -26,6 +26,7 @@ import {
   Building2,
   Video,
   Trash2,
+  HelpCircle,
 } from "lucide-react";
 
 // Components
@@ -309,19 +310,95 @@ const AdminEventsPage: React.FC = () => {
   };
 
   const StatusBadge = ({ status }: { status: string }) => {
-    const colors = {
-      scheduled: "bg-gray-100 text-gray-800",
-      active: "bg-blue-100 text-blue-800",
-      live: "bg-red-100 text-red-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
+    const statusConfig = {
+      scheduled: {
+        text: "Programado",
+        color: "bg-gray-100 text-gray-800",
+        icon: <Calendar className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      active: {
+        text: "Activo",
+        color: "bg-blue-100 text-blue-800",
+        icon: <Play className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      live: {
+        text: "En Vivo",
+        color: "bg-red-100 text-red-800",
+        icon: <Radio className="w-3 h-3 mr-1" />,
+        pulse: true
+      },
+      completed: {
+        text: "Completado",
+        color: "bg-green-100 text-green-800",
+        icon: <CheckCircle className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      cancelled: {
+        text: "Cancelado",
+        color: "bg-red-100 text-red-800",
+        icon: <XCircle className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      "in-progress": {
+        text: "En Progreso",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <Activity className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      betting: {
+        text: "Apuestas Abiertas",
+        color: "bg-purple-100 text-purple-800",
+        icon: <DollarSign className="w-3 h-3 mr-1" />,
+        pulse: true
+      }
     };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.scheduled;
+    
     return (
       <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status as keyof typeof colors] || colors.scheduled}`}
+        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
+        title={`Estado del evento: ${config.text}`}
       >
-        {status === "live" && <span className="animate-pulse mr-1">🔴</span>}
-        {status}
+        {config.icon}
+        {config.text}
+      </span>
+    );
+  };
+
+  const StreamStatusBadge = ({ status }: { status: string }) => {
+    const statusConfig = {
+      connected: {
+        text: "Conectado",
+        color: "bg-red-100 text-red-800",
+        icon: <Video className="w-3 h-3 mr-1" />,
+        pulse: true
+      },
+      disconnected: {
+        text: "Desconectado",
+        color: "bg-gray-100 text-gray-800",
+        icon: <Square className="w-3 h-3 mr-1" />,
+        pulse: false
+      },
+      offline: {
+        text: "Offline",
+        color: "bg-gray-200 text-gray-700",
+        icon: <XCircle className="w-3 h-3 mr-1" />,
+        pulse: false
+      }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
+    
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
+        title={`Estado del streaming: ${config.text}`}
+      >
+        {config.icon}
+        {config.text}
       </span>
     );
   };
@@ -436,12 +513,7 @@ const AdminEventsPage: React.FC = () => {
                           {event.name}
                         </h3>
                         <StatusBadge status={event.status} />
-                        {event.streamStatus === "connected" && (
-                          <div className="flex items-center gap-1 text-red-600 text-sm">
-                            <Radio className="w-4 h-4" />
-                            <span>TRANSMITIENDO</span>
-                          </div>
-                        )}
+                        <StreamStatusBadge status={event.streamStatus || "offline"} />
                       </div>
 
                       <div className="flex items-center gap-6 text-sm text-gray-600">
@@ -477,81 +549,111 @@ const AdminEventsPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       {/* Controles rápidos según estado */}
                       {event.status === "scheduled" && (
-                        <button
-                          onClick={() =>
-                            handleEventAction(event.id, "activate")
-                          }
-                          disabled={
-                            operationInProgress === `${event.id}-activate`
-                          }
-                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
-                        >
-                          <Play className="w-4 h-4" />
-                          Activar
-                        </button>
+                        <div className="relative group inline-block">
+                          <button
+                            onClick={() =>
+                              handleEventAction(event.id, "activate")
+                            }
+                            disabled={
+                              operationInProgress === `${event.id}-activate`
+                            }
+                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                          >
+                            <Play className="w-4 h-4" />
+                            Activar
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                            Activar el evento para comenzar la programación
+                          </div>
+                        </div>
                       )}
                       {event.status === "scheduled" && (
                         <>
                           {event.streamStatus !== "connected" ? (
-                            <button
-                              onClick={() =>
-                                handleEventAction(event.id, "start-stream")
-                              }
-                              disabled={
-                                operationInProgress ===
-                                `${event.id}-start-stream`
-                              }
-                              className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                            >
-                              <Video className="w-4 h-4" />
-                              Iniciar Stream
-                            </button>
+                            <div className="relative group inline-block">
+                              <button
+                                onClick={() =>
+                                  handleEventAction(event.id, "start-stream")
+                                }
+                                disabled={
+                                  operationInProgress ===
+                                  `${event.id}-start-stream`
+                                }
+                                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                              >
+                                <Video className="w-4 h-4" />
+                                Iniciar Stream
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                                Iniciar la transmisión del evento en vivo
+                              </div>
+                            </div>
                           ) : (
-                            <button
-                              onClick={() =>
-                                handleEventAction(event.id, "stop-stream")
-                              }
-                              disabled={
-                                operationInProgress ===
-                                `${event.id}-stop-stream`
-                              }
-                              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                            >
-                              <Square className="w-4 h-4" />
-                              Detener Stream
-                            </button>
+                            <div className="relative group inline-block">
+                              <button
+                                onClick={() =>
+                                  handleEventAction(event.id, "stop-stream")
+                                }
+                                disabled={
+                                  operationInProgress ===
+                                  `${event.id}-stop-stream`
+                                }
+                                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
+                              >
+                                <Square className="w-4 h-4" />
+                                Detener Stream
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                                Detener la transmisión del evento en vivo
+                              </div>
+                            </div>
                           )}
                         </>
                       )}
                       {(event.status === "scheduled" ||
                         event.status === "live") && (
-                        <button
-                          onClick={() =>
-                            handleEventAction(event.id, "complete")
-                          }
-                          disabled={
-                            operationInProgress === `${event.id}-complete`
-                          }
-                          className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Finalizar
-                        </button>
+                        <div className="relative group inline-block">
+                          <button
+                            onClick={() =>
+                              handleEventAction(event.id, "complete")
+                            }
+                            disabled={
+                              operationInProgress === `${event.id}-complete`
+                            }
+                            className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Finalizar
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                            Marcar el evento como completado
+                          </div>
+                        </div>
                       )}
-                      <button
-                        onClick={() => openEventDetail(event.id)}
-                        className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Gestionar
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEvent(event.id)}
-                        className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                        title="Eliminar Evento"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>{" "}
+                      <div className="relative group inline-block">
+                        <button
+                          onClick={() => openEventDetail(event.id)}
+                          className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Gestionar
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                          Abrir panel de gestión detallada del evento
+                        </div>
+                      </div>
+                      <div className="relative group inline-block">
+                        <button
+                          onClick={() => handleDeleteEvent(event.id)}
+                          className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                          title="Eliminar Evento"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                          Eliminar este evento permanentemente
+                        </div>
+                      </div>{" "}
                     </div>
                   </div>
                 </div>
@@ -604,19 +706,29 @@ const AdminEventsPage: React.FC = () => {
                       {event.totalPrizePool.toLocaleString()}
                     </div>
                     <StatusBadge status={event.status} />
-                    <button
-                      onClick={() => openEventDetail(event.id)}
-                      className="text-blue-600 hover:text-blue-800 text-sm"
-                    >
-                      Ver detalle
-                    </button>
-                    <button
-                      onClick={() => handleDeleteEvent(event.id)}
-                      className="p-1 text-red-500 hover:text-red-700"
-                      title="Eliminar Evento"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={() => openEventDetail(event.id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Ver detalle
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                        Ver detalles completos del evento
+                      </div>
+                    </div>
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="p-1 text-red-500 hover:text-red-700"
+                        title="Eliminar Evento"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                        Eliminar este evento permanentemente
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -626,7 +738,7 @@ const AdminEventsPage: React.FC = () => {
 
         {/* Modal Gestión Evento - EL CORAZÓN DEL SISTEMA */}
         {selectedEventId && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
               {/* Header Modal */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -681,7 +793,6 @@ const AdminEventsPage: React.FC = () => {
                     { id: "general", label: "Info General", icon: Calendar },
                     { id: "fights", label: "Peleas ⭐", icon: Target },
                     { id: "bets", label: "Apuestas Vivo", icon: DollarSign },
-                    { id: "stream", label: "Streaming", icon: Video },
                     { id: "problems", label: "Problemas", icon: AlertTriangle },
                   ].map((tab) => (
                     <button
@@ -829,21 +940,7 @@ const AdminEventsPage: React.FC = () => {
                                   Estado del Stream
                                 </label>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <div
-                                    className={`w-3 h-3 rounded-full ${
-                                      eventDetailData.event.streamStatus ===
-                                      "connected"
-                                        ? "bg-red-500 animate-pulse"
-                                        : eventDetailData.event.streamStatus ===
-                                            "disconnected"
-                                          ? "bg-red-500"
-                                          : "bg-gray-400"
-                                    }`}
-                                  ></div>
-                                  <span className="text-sm capitalize">
-                                    {eventDetailData.event.streamStatus ||
-                                      "offline"}
-                                  </span>
+                                  <StreamStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
                                 </div>
                               </div>
 
@@ -1033,16 +1130,7 @@ const AdminEventsPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Tab Streaming */}
-                    {activeTab === "stream" && (
-                      <div className="space-y-6">
-                        <EmptyState
-                          title="Controles de streaming movidos"
-                          description="Los controles de streaming ahora se encuentran en la pestaña de Peleas para un manejo más integrado."
-                          icon={<Video className="w-12 h-12" />}
-                        />
-                      </div>
-                    )}
+
 
                     {/* Tab Problemas */}
                     {activeTab === "problems" && (
@@ -1083,6 +1171,15 @@ const AdminEventsPage: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Modal de Edición de Evento */}
+        {isEditEventModalOpen && eventDetailData && (
+          <EditEventModal
+            event={eventDetailData.event}
+            onClose={() => setIsEditEventModalOpen(false)}
+            onEventUpdated={handleEventUpdated}
+          />
         )}
       </div>
     </SSEErrorBoundary>

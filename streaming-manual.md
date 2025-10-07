@@ -1,13 +1,83 @@
-# Manual de Streaming para Operadores - GalloBets
+# Manual de Streaming para Operadores - GALEROS.NET
 
 ## Introducción
 
 Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de streaming de peleas de gallos desde el principio hasta el final. Sigue estas instrucciones detalladamente para asegurar que el evento se realice sin problemas.
 
+## Descripción de Páginas y Funcionalidades
+
+### Página Principal de Eventos: `/admin/events`
+
+Esta es la página principal para gestionar todos tus eventos. Aquí puedes ver, crear y gestionar eventos de forma rápida o detallada.
+
+**Elementos de la página principal:**
+- **Cabecera**: Botón para crear nuevos eventos y estado del sistema
+- **Filtros**: Seleccionar eventos de hoy, esta semana o todos; filtrar por estado
+- **Eventos de Hoy**: Lista de eventos del día con controles rápidos
+- **Controles Rápidos**: Activar, iniciar/detener stream, finalizar evento, gestionar, eliminar
+- **Historial de Eventos**: Lista completa de eventos pasados
+
+**Botones y su función:**
+- **Crear Evento** (botón verde): Lleva a la página de creación de eventos
+- **Activar** (botón verde): Cambia estado a "en progreso"
+- **Iniciar/Detener Stream** (botones rojos): Controlan la transmisión
+- **Finalizar** (botón azul): Completa el evento
+- **Gestionar** (botón gris): Abre modal con controles detallados
+- **Eliminar** (icono de basura): Elimina el evento
+
+### Modal de Gestión de Eventos
+
+Se abre al hacer clic en "Gestionar" en cualquier evento. Tiene 5 pestañas con diferentes funcionalidades:
+
+**Pestaña "Info General":**
+- Muestra información básica del evento
+- Permite actualizar la información del evento
+- Muestra estadísticas básicas
+- **Botón "Editar"**: Abre modal para editar nombre, fecha y operador del evento. 
+  *Nota: Este botón anteriormente no funcionaba, pero ahora está completamente operativo y permite editar todos los detalles del evento.*
+
+**Pestaña "Peleas":**
+- **Controles de Streaming**: Iniciar y detener transmisión
+- **Estado del Stream**: Indicador visual del estado actual
+- **Botones de Control**: Iniciar/Detener stream con indicadores visuales
+- **Gestión de Peleas**: Crear, editar y administrar peleas del evento
+- **Botón "Nueva Pelea"**: Abre modal para crear peleas
+
+**Pestaña "Apuestas Vivo":**
+- Muestra métricas de apuestas en tiempo real
+- Monitorea participación de usuarios
+
+**Pestaña "Streaming":**
+- Contiene mensaje de redirección a la pestaña de Peleas
+
+**Pestaña "Problemas":**
+- Herramientas para reportar y gestionar incidencias técnicas
+
+### Página de Creación de Eventos: `/admin/events/create`
+
+Formulario para crear nuevos eventos.
+
+**Elementos del formulario:**
+- **Nombre del Evento**: Campo de texto para el título del evento
+- **Venue**: Selector para elegir el lugar donde se realizará el evento
+- **Fecha y Hora Programada**: Selector para programar el evento
+- **Operador**: Selector para asignar operador (predeterminado al usuario actual)
+- **Botones**: Guardar evento o cancelar
+
+### Página de Streaming: `/admin/streaming`
+
+Panel de control general para streams (usado principalmente por administradores).
+
+**Elementos:**
+- **Controles de Evento**: Selección de evento y detalles del stream
+- **Indicadores de Estado**: Visualización del estado SSE y conexión
+- **Reproductor HLS**: Vista previa del stream
+- **Métricas de Usuarios**: Contador de viewers en tiempo real
+
 ## Requisitos Previos
 
 - Computadora con acceso a internet
-- Cuenta de operador activa en GalloBets
+- Cuenta de operador activa en GALEROS.NET
 - OBS Studio instalado (puedes descargarlo desde https://obsproject.com/)
 - Sistema de captura de video de buena calidad
 - Conexión a internet estable con al menos 5 Mbps de subida
@@ -15,9 +85,9 @@ Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de stream
 
 ## Parte 1: Preparación del Evento (Día anterior o el mismo día)
 
-### Paso 1: Iniciar sesión en GalloBets
+### Paso 1: Iniciar sesión en GALEROS.NET
 1. Abre tu navegador web favorito
-2. Ve a la página de GalloBets
+2. Ve a la página de GALEROS.NET
 3. Ingresa tus credenciales de operador
 4. Asegúrate de que estás en el panel de operador
 
@@ -66,7 +136,7 @@ Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de stream
 ## Parte 3: Durante el Evento
 
 ### Paso 7: Activar el evento
-1. En el panel de GalloBets, ve a la lista de eventos
+1. En el panel de GALEROS.NET, ve a la lista de eventos
 2. Encuentra tu evento y haz clic en "Editar"
 3. Cambia el estado de "scheduled" a "in-progress" (en progreso)
 4. Haz clic en "Guardar"
@@ -74,7 +144,7 @@ Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de stream
 ### Paso 8: Iniciar la transmisión
 1. En OBS Studio, haz clic en "Start Streaming" (Iniciar transmisión)
 2. Espera a que aparezca el mensaje "✅ Live" en la parte inferior
-3. Verifica en el panel de GalloBets que el streaming esté activo
+3. Verifica en el panel de GALEROS.NET que el streaming esté activo
 
 ### Paso 9: Crear las peleas
 1. Ve a la sección de "Peleas" dentro del evento
@@ -122,7 +192,7 @@ Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de stream
 1. En OBS Studio:
    - Haz clic en "Stop Streaming" (Detener transmisión)
    - Espera a que se cierre correctamente
-2. Verifica en el panel de GalloBets que la transmisión haya terminado
+2. Verifica en el panel de GALEROS.NET que la transmisión haya terminado
 
 ### Paso 15: Revisar el evento
 1. Revisa la lista de peleas para asegurarte que todas estén marcadas como "completed"
@@ -149,6 +219,9 @@ Este manual te guiará paso a paso sobre cómo llevar a cabo un evento de stream
 - Asegúrate de que la pelea esté en estado "upcoming" (próxima)
 - Verifica que el evento esté activo
 
+### Problema: El botón "Editar" no funciona
+- *Nota: Este problema ha sido resuelto en la última actualización. El botón "Editar" en el modal de gestión de eventos ahora funciona correctamente y permite editar el nombre, fecha y operador del evento.*
+
 ## Iniciar el Servidor de Streaming (Para administradores)
 
 Antes de comenzar cualquier evento de streaming, el servidor RTMP debe estar corriendo. Esta tarea normalmente la realiza el administrador del sistema.
@@ -156,13 +229,13 @@ Antes de comenzar cualquier evento de streaming, el servidor RTMP debe estar cor
 ### Para administradores:
 
 1. Abre una terminal en el servidor
-2. Navega al directorio raíz del proyecto GalloBets
+2. Navega al directorio raíz del proyecto GALEROS.NET
 3. Ejecuta el siguiente comando:
    ```
    node rtmp-server.js
    ```
 4. Verifica que veas mensajes como:
-   - "🚀 Starting GalloBets RTMP Server..."
+   - "🚀 Starting GALEROS.NET RTMP Server..."
    - "📡 RTMP: rtmp://localhost:1935/live"
    - "🌐 HTTP: http://localhost:8000"
 5. El servidor debe mantenerse corriendo durante todo el evento
@@ -193,10 +266,10 @@ La mayoría de las operaciones de streaming se realizan directamente desde la p�
 
 Si tienes problemas que no puedes resolver con este manual, puedes contactar al soporte técnico:
 
-- En el panel de GalloBets, haz clic en "Soporte"
+- En el panel de GALEROS.NET, haz clic en "Soporte"
 - Describe tu problema detalladamente
 - Adjunta capturas de pantalla si es posible
 
 ---
 
-**¡Gracias por usar GalloBets! Tu trabajo como operador es fundamental para el éxito de nuestros eventos.**
+**¡Gracias por usar GALEROS.NET! Tu trabajo como operador es fundamental para el éxito de nuestros eventos.**
