@@ -315,48 +315,50 @@ const AdminEventsPage: React.FC = () => {
         text: "Programado",
         color: "bg-gray-100 text-gray-800",
         icon: <Calendar className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       active: {
         text: "Activo",
         color: "bg-blue-100 text-blue-800",
         icon: <Play className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       live: {
         text: "En Vivo",
         color: "bg-red-100 text-red-800",
         icon: <Radio className="w-3 h-3 mr-1" />,
-        pulse: true
+        pulse: true,
       },
       completed: {
         text: "Completado",
         color: "bg-green-100 text-green-800",
         icon: <CheckCircle className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       cancelled: {
         text: "Cancelado",
         color: "bg-red-100 text-red-800",
         icon: <XCircle className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       "in-progress": {
         text: "En Progreso",
         color: "bg-yellow-100 text-yellow-800",
         icon: <Activity className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       betting: {
         text: "Apuestas Abiertas",
         color: "bg-purple-100 text-purple-800",
         icon: <DollarSign className="w-3 h-3 mr-1" />,
-        pulse: true
-      }
+        pulse: true,
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.scheduled;
-    
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] ||
+      statusConfig.scheduled;
+
     return (
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
@@ -374,24 +376,25 @@ const AdminEventsPage: React.FC = () => {
         text: "Conectado",
         color: "bg-red-100 text-red-800",
         icon: <Video className="w-3 h-3 mr-1" />,
-        pulse: true
+        pulse: true,
       },
       disconnected: {
         text: "Desconectado",
         color: "bg-gray-100 text-gray-800",
         icon: <Square className="w-3 h-3 mr-1" />,
-        pulse: false
+        pulse: false,
       },
       offline: {
         text: "Offline",
         color: "bg-gray-200 text-gray-700",
         icon: <XCircle className="w-3 h-3 mr-1" />,
-        pulse: false
-      }
+        pulse: false,
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
-    
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
+
     return (
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
@@ -513,7 +516,9 @@ const AdminEventsPage: React.FC = () => {
                           {event.name}
                         </h3>
                         <StatusBadge status={event.status} />
-                        <StreamStatusBadge status={event.streamStatus || "offline"} />
+                        <StreamStatusBadge
+                          status={event.streamStatus || "offline"}
+                        />
                       </div>
 
                       <div className="flex items-center gap-6 text-sm text-gray-600">
@@ -940,7 +945,12 @@ const AdminEventsPage: React.FC = () => {
                                   Estado del Stream
                                 </label>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <StreamStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                                  <StreamStatusBadge
+                                    status={
+                                      eventDetailData.event.streamStatus ||
+                                      "offline"
+                                    }
+                                  />
                                 </div>
                               </div>
 
@@ -1129,8 +1139,6 @@ const AdminEventsPage: React.FC = () => {
                         </div>
                       </div>
                     )}
-
-
 
                     {/* Tab Problemas */}
                     {activeTab === "problems" && (

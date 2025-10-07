@@ -123,12 +123,20 @@ const AdminOperatorsPage: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {operator.username.charAt(0).toUpperCase()}
+                        {typeof operator.username === 'string' 
+                          ? operator.username.charAt(0).toUpperCase() 
+                          : typeof operator === 'object' && operator.username 
+                            ? operator.username.charAt(0).toUpperCase() 
+                            : 'U'}
                       </span>
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        {operator.username}
+                        {typeof operator.username === 'string' 
+                          ? operator.username 
+                          : typeof operator === 'object' && operator.username 
+                            ? operator.username 
+                            : 'Unknown Operator'}
                       </h3>
                       <p className="text-sm text-gray-500">{operator.email}</p>
                     </div>
