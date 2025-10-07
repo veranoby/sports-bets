@@ -6,7 +6,7 @@ interface HLSPlayerProps {
   controls?: boolean;
   autoplay?: boolean;
   muted?: boolean;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
 }
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({

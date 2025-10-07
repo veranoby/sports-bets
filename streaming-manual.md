@@ -1,4 +1,4 @@
-# Manual de Streaming para Operadores - GALEROS.NET
+# Manual de Streaming para Operadores - GALLEROS.NET
 
 ## Introducción
 

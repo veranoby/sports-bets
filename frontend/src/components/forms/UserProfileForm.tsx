@@ -119,11 +119,11 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
       } else {
         throw new Error(response.error || "Error al actualizar el perfil");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Profile update failed:", error);
       setErrors({
         general:
-          error.message || "Error al actualizar el perfil. Intenta de nuevo.",
+          (error as Error).message || "Error al actualizar el perfil. Intenta de nuevo.",
       });
     } finally {
       setLoading(false);

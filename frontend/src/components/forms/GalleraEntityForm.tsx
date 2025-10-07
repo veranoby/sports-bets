@@ -109,7 +109,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         contactInfo: {
-          ...(prev.contactInfo as any),
+          ...(prev.contactInfo as Partial<Gallera['contactInfo']>),
           [field]: value,
         },
       }));
@@ -118,7 +118,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         specialties: {
-          ...(prev.specialties as any),
+          ...(prev.specialties as Partial<Gallera['specialties']>),
           [field]: value,
         },
       }));
@@ -127,7 +127,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         fightRecord: {
-          ...(prev.fightRecord as any),
+          ...(prev.fightRecord as Partial<Gallera['fightRecord']>),
           [field]: parseInt(value) || 0,
         },
       }));

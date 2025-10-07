@@ -66,7 +66,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         });
 
         const responseData = response.data as {
-          articles: any[];
+          articles: Array<{id: string; title: string; summary?: string; excerpt?: string; content: string; published_at?: string; created_at?: string; featured_image_url?: string; featured_image?: string}>;
         };
 
         if (
@@ -74,7 +74,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           Array.isArray(responseData.articles) &&
           responseData.articles.length > 0
         ) {
-          const articles = responseData.articles.map((article: any) => ({
+          const articles = responseData.articles.map((article: {id: string; title: string; summary?: string; excerpt?: string; content: string; published_at?: string; created_at?: string; featured_image_url?: string; featured_image?: string}) => ({
             id: article.id,
             title: article.title,
             content: article.summary || article.excerpt || article.content,

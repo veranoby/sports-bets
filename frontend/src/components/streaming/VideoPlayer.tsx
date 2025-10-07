@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import videojs from "video.js";
-const videojsAny: any = videojs;
+const videojsAny: typeof videojs = videojs;
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 import { Crown } from "lucide-react";

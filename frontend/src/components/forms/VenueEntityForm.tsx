@@ -92,7 +92,7 @@ const VenueEntityForm: React.FC<VenueEntityFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         contactInfo: {
-          ...(prev.contactInfo as any),
+          ...(prev.contactInfo as Partial<Venue['contactInfo']>),
           [field]: value,
         },
       }));
