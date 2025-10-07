@@ -102,7 +102,7 @@
       },
       "guide_for_using_the_system.json": {
         "purpose": "Operational procedures",
-        "status": "Updated with new coordination patterns"
+        "status": "Updated with new coordination patterns and JSON work templates"
       },
       "UI_UX.json": {
         "purpose": "Design decisions",
@@ -146,6 +146,27 @@
         "AI_UNIVERSAL_INSTRUCTIONS.json"
       ],
       "rule": "CLAUDE ONLY for debugging - QWEN destroys code"
+    },
+    
+    "creating_good_json_work_plans": {
+      "required_files": [
+        "guide_for_using_the_system.json",
+        "sdd_system.json",
+        "prd_system.json"
+      ],
+      "process": "Review project knowledge → Identify dependencies → Create structured JSON with mandatory elements",
+      "mandatory_elements": [
+        "knowledge_verification",
+        "task_decomposition", 
+        "purpose_and_requirements",
+        "inputs_and_outputs",
+        "constraints_and_restrictions",
+        "apis_and_integrations",
+        "test_driven_development",
+        "development_phases",
+        "coding_conventions",
+        "context_injection"
+      ]
     }
   },
   

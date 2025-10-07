@@ -38,6 +38,19 @@
         "risk_level": "Critical",
         "validation_required": "Full regression testing suite",
         "time_estimate": "Variable with extensive validation"
+      },
+      "structured_documentation": {
+        "definition": "Tasks requiring well-structured JSON work plans with comprehensive project knowledge",
+        "examples": ["Feature implementation plans", "System architecture documentation", "AI tool coordination templates"],
+        "risk_level": "Low-Medium",
+        "validation_required": "Knowledge verification + Dependency mapping + Structured output validation",
+        "time_estimate": "30-90 minutes",
+        "quality_criteria": [
+          "Project knowledge thoroughly consulted and documented",
+          "Dependencies clearly identified and mapped",
+          "Structured JSON follows mandatory template elements",
+          "Concrete examples and implementation details included"
+        ]
       }
     },
 
@@ -59,6 +72,12 @@
         "minimal": "Component implementation only",
         "moderate": "Component interface or props changes",
         "high": "Component hierarchy or relationship changes"
+      },
+      "documentation_structured_impact": {
+        "none": "No documentation or JSON structure changes",
+        "minimal": "Simple documentation updates or JSON additions",
+        "moderate": "Structured JSON work plans with project knowledge integration",
+        "high": "Complex documentation restructuring or multi-file JSON coordination"
       }
     }
   },
@@ -541,6 +560,131 @@
         "analysis": "Claude system-wide impact assessment",
         "resolution": "Complete integration testing and fixes",
         "continuation": "Human consultation if needed"
+      }
+    }
+  },
+
+  "structured_documentation_patterns": {
+    "knowledge_verification": {
+      "purpose": "Ensure comprehensive project knowledge consultation before generating work plans",
+      "required_elements": [
+        "Document QUÉ knowledge was consulted from the project",
+        "List implemented components/phases that affect this task",
+        "Identify knowledge gaps that could cause errors"
+      ],
+      "examples": {
+        "good": "Consulted @brain/api_endpoints_reference.json, @brain/typescript_interfaces_reference.json, and existing Events.tsx component to understand current implementation",
+        "better": "Reviewed PRD/SDD documents, checked existing codebase for similar patterns, identified dependencies with streaming service and SSE hooks"
+      }
+    },
+    "task_decomposition": {
+      "purpose": "Break down complex tasks into atomic, manageable subtasks",
+      "required_elements": [
+        "Decompose into atomic tasks (maximum 2-4 hours each)",
+        "Each subtask must have measurable success criteria",
+        "Order by technical dependencies"
+      ],
+      "examples": {
+        "poor": "Implement streaming controls",
+        "good": "1. Add streaming status indicator to event details, 2. Create start/stop stream buttons with proper validation, 3. Implement SSE connection for real-time updates, 4. Add user feedback for streaming actions"
+      }
+    },
+    "purpose_and_requirements": {
+      "purpose": "Clearly define what problem solves and what solution should do",
+      "required_elements": [
+        "Specific purpose (what exact problem it solves)",
+        "Functional requirements (what it must do)",
+        "Non-functional requirements (performance, security, etc.)"
+      ],
+      "examples": {
+        "vague": "Improve event management",
+        "clear": "Purpose: Enable operators to assign themselves to events they manage. Functional: Show operator assignment in event list, allow self-assignment. Non-functional: <200ms response time, role-based access control"
+      }
+    },
+    "inputs_and_outputs": {
+      "purpose": "Specify exactly what data goes in and comes out",
+      "required_elements": [
+        "Input parameters with types, validations, and examples",
+        "Expected output format with complete structure",
+        "Edge cases that must be handled"
+      ],
+      "examples": {
+        "incomplete": "Takes event data, returns updated event",
+        "complete": "Input: {eventId: string (UUID), operatorId: string|null (UUID)}. Output: {success: boolean, data: Event, error?: string}. Edge cases: Invalid UUID, unauthorized access, event not found"
+      }
+    },
+    "constraints_and_restrictions": {
+      "purpose": "Identify technical and business limitations that affect implementation",
+      "required_elements": [
+        "Current stack/architecture technical limitations",
+        "Domain-specific business restrictions",
+        "Compatibility with existing systems"
+      ],
+      "examples": {
+        "missing": "Just implement the feature",
+        "complete": "Technical: Must use existing SSE architecture, cannot modify backend endpoints. Business: Operators can only assign themselves, not others. Compatibility: Must work with current event status workflow"
+      }
+    },
+    "apis_and_integrations": {
+      "purpose": "Specify exactly which APIs and services will be used",
+      "required_elements": [
+        "Internal APIs to use (with specific endpoints)",
+        "External APIs required (with auth and rate limits)",
+        "Affected database schema"
+      ],
+      "examples": {
+        "generic": "Use events API",
+        "specific": "Internal: PATCH /api/events/:id with {operatorId: string}. External: None. Database: events.operator_id field (UUID, nullable, foreign key to users.id)"
+      }
+    },
+    "test_driven_development": {
+      "purpose": "Define tests that must pass before and after implementation",
+      "required_elements": [
+        "Unit tests that must pass BEFORE implementing",
+        "Integration tests with existing systems",
+        "Specific mock data from the domain",
+        "Coverage requirements (minimum 80%)"
+      ],
+      "examples": {
+        "insufficient": "Test that it works",
+        "complete": "Unit: eventsAPI.update with operatorId=null|valid UUID. Integration: Event updates correctly in DB, SSE broadcasts update. Mock data: Event with ID 'event-123', User with ID 'user-456'. Coverage: 80%+ lines in eventsAPI.update function"
+      }
+    },
+    "development_phases": {
+      "purpose": "Structure implementation in verifiable phases",
+      "required_elements": [
+        "Phase 1: Setup and tests (failing tests written)",
+        "Phase 2: Minimal implementation (tests passing)",
+        "Phase 3: Refinement and integration",
+        "Validation checkpoints in each phase"
+      ],
+      "examples": {
+        "linear": "Code it, test it, done",
+        "structured": "Phase 1: Write failing tests for operator assignment. Phase 2: Implement minimal functionality (tests pass). Phase 3: Add UI elements and integrate with SSE. Checkpoints: Tests pass after each phase"
+      }
+    },
+    "coding_conventions": {
+      "purpose": "Ensure consistency with project style and patterns",
+      "required_elements": [
+        "Project-specific style guidelines",
+        "Architectural patterns to follow",
+        "File naming and structure conventions"
+      ],
+      "examples": {
+        "generic": "Follow good practices",
+        "specific": "Style: Use PascalCase for components, camelCase for variables. Patterns: Use React.FC<Props>, useEffect for side effects. Structure: Component files in src/components/, API services in src/services/"
+      }
+    },
+    "context_injection": {
+      "purpose": "Provide references to existing code and architecture",
+      "required_elements": [
+        "References to existing code that should serve as pattern",
+        "Architecture/schemas that must be respected",
+        "Previous technical decisions that impact implementation"
+      ],
+      "examples": {
+        "missing": "Figure it out yourself",
+        "complete": "Pattern: Follow Events.tsx component structure. Architecture: Use existing SSE hooks (useSSE). Previous decisions: operatorId stored in events table, managed via PATCH /api/events/:id"
       }
     }
   }

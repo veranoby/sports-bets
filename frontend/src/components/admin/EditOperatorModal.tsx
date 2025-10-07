@@ -110,11 +110,12 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-4">
-          Edit Operator: {typeof operator.username === 'string' 
-            ? operator.username 
-            : typeof operator === 'object' && operator.username 
-              ? operator.username 
-              : 'Unknown Operator'}
+          Edit Operator:{" "}
+          {typeof operator.username === "string"
+            ? operator.username
+            : typeof operator === "object" && operator.username
+              ? operator.username
+              : "Unknown Operator"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -128,11 +129,13 @@ const EditOperatorModal: React.FC<EditOperatorModalProps> = ({
               type="text"
               id="username"
               name="username"
-              value={typeof operator.username === 'string' 
-                ? operator.username 
-                : typeof operator === 'object' && operator.username 
-                  ? operator.username 
-                  : ''}
+              value={
+                typeof operator.username === "string"
+                  ? operator.username
+                  : typeof operator === "object" && operator.username
+                    ? operator.username
+                    : ""
+              }
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
               disabled

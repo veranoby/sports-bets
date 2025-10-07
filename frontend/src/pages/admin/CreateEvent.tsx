@@ -263,11 +263,11 @@ const CreateEvent: React.FC = () => {
                 <option value="">Select an operator (optional)</option>
                 {operators.map((operator) => (
                   <option key={operator.id} value={operator.id}>
-                    {typeof operator.username === 'string' 
-                      ? operator.username 
-                      : typeof operator === 'object' && operator.username 
-                        ? operator.username 
-                        : 'Unknown Operator'}
+                    {typeof operator.username === "string"
+                      ? operator.username
+                      : typeof operator === "object" && operator.username
+                        ? operator.username
+                        : "Unknown Operator"}
                   </option>
                 ))}
               </select>

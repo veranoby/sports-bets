@@ -242,6 +242,116 @@
       "Are success criteria measurable and immediate?"
     ]
   },
+  "good_json_workflow_template": {
+    "purpose": "Standard template for creating high-quality JSON work plans that AI tools can execute successfully",
+    "pre_json_generation_checklist": {
+      "project_knowledge_review": {
+        "description": "Consulta tu conocimiento del proyecto antes de generar el JSON",
+        "steps": [
+          "Revisa documentos PRD/SDD, brainstormings, arquitectura, código existente, y decisiones previas",
+          "Identifica dependencias: Qué fases/componentes ya están implementados y cuáles son prerequisitos",
+          "Documenta QUÉ conocimiento del proyecto consultaste",
+          "Lista componentes/fases ya implementados que afectan esta tarea",
+          "Identifica gaps de conocimiento que podrían causar errores"
+        ]
+      }
+    },
+    "mandatory_json_structure": {
+      "knowledge_verification": {
+        "purpose": "Documentar el conocimiento del proyecto consultado y dependencias identificadas",
+        "required_elements": [
+          "Documenta QUÉ conocimiento del proyecto consultaste",
+          "Lista componentes/fases ya implementados que afectan esta tarea",
+          "Identifica gaps de conocimiento que podrían causar errores"
+        ]
+      },
+      "task_decomposition": {
+        "purpose": "Descomponer la tarea en subtareas atómicas manejables",
+        "required_elements": [
+          "Descompón en subtareas atómicas (máximo 2-4 horas cada una)",
+          "Cada subtarea debe tener criterio de éxito medible",
+          "Ordena por dependencias técnicas"
+        ]
+      },
+      "purpose_and_requirements": {
+        "purpose": "Definir claramente qué problema resuelve y qué debe hacer la solución",
+        "required_elements": [
+          "Propósito específico (qué problema resuelve exactamente)",
+          "Requisitos funcionales (qué debe hacer)",
+          "Requisitos no-funcionales (performance, seguridad, etc.)"
+        ]
+      },
+      "inputs_and_outputs": {
+        "purpose": "Especificar claramente los datos de entrada y salida esperados",
+        "required_elements": [
+          "Parámetros de entrada con tipos, validaciones y ejemplos",
+          "Formato de salida esperado con estructura completa",
+          "Casos edge que debe manejar"
+        ]
+      },
+      "constraints_and_restrictions": {
+        "purpose": "Identificar limitaciones técnicas y de negocio que afectan la implementación",
+        "required_elements": [
+          "Limitaciones técnicas de la stack/arquitectura actual",
+          "Restricciones de negocio específicas del dominio",
+          "Compatibilidad con sistemas existentes"
+        ]
+      },
+      "apis_and_integrations": {
+        "purpose": "Especificar las APIs y servicios externos que se utilizarán",
+        "required_elements": [
+          "APIs internas que debe usar (con endpoints específicos)",
+          "APIs externas requeridas (con auth y rate limits)",
+          "Esquema de base de datos afectado"
+        ]
+      },
+      "test_driven_development": {
+        "purpose": "Definir pruebas que deben pasar antes y después de la implementación",
+        "required_elements": [
+          "Tests unitarios que debe superar ANTES de implementar",
+          "Tests de integración con sistemas existentes",
+          "Datos mock específicos del dominio",
+          "Criterios de cobertura (mínimo 80%)"
+        ]
+      },
+      "development_phases": {
+        "purpose": "Estructurar la implementación en fases verificables",
+        "required_elements": [
+          "Fase 1: Setup y tests (failing tests escritos)",
+          "Fase 2: Implementación mínima (tests passing)",
+          "Fase 3: Refinamiento e integración",
+          "Checkpoints de validación en cada fase"
+        ]
+      },
+      "coding_conventions": {
+        "purpose": "Asegurar consistencia con el estilo y patrones del proyecto",
+        "required_elements": [
+          "Guías de estilo específicas del proyecto",
+          "Patrones arquitectónicos a seguir",
+          "Nomenclatura y estructura de archivos"
+        ]
+      },
+      "context_injection": {
+        "purpose": "Proporcionar referencias al código y arquitectura existente",
+        "required_elements": [
+          "Referencias a código existente que debe seguir como patrón",
+          "Arquitectura/esquemas que debe respetar",
+          "Decisiones técnicas previas que impactan la implementación"
+        ]
+      }
+    },
+    "quality_assurance": {
+      "validation_checklist": [
+        "¿El JSON especifica exactamente qué archivos y líneas deben modificarse?",
+        "¿Incluye ejemplos concretos de código antes y después?",
+        "¿Documenta claramente el estado actual roto?",
+        "¿Especifica endpoints de API, esquemas y dependencias?",
+        "¿Puede la herramienta AI ejecutar la tarea sin conocimiento externo?",
+        "¿Los criterios de éxito son medibles e inmediatos?",
+        "¿Se han consultado y documentado las dependencias del proyecto?"
+      ]
+    }
+  },
   "success_metrics": {
     "system_effectiveness": [
       "AI decisions reference specific project context (not generic advice)",
