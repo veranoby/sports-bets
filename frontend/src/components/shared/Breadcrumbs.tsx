@@ -126,22 +126,28 @@ const Breadcrumbs: React.FC = () => {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-500 px-4 py-2 bg-gray-50 border-b border-gray-200">
+    <nav className="flex items-center space-x-1 text-sm text-gray-500 px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-16 z-30">
       {breadcrumbs.map((item, index) => (
         <React.Fragment key={`${item.label}-${index}`}>
-          {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+          {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400 mx-1" />}
 
           {item.href ? (
             <Link
               to={item.href}
-              className="flex items-center gap-1.5 hover:text-gray-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[#596c95]/10 transition-all duration-200 group"
             >
-              {item.icon}
-              <span>{item.label}</span>
+              {item.icon && (
+                <span className="text-[#596c95] group-hover:text-[#cd6263] transition-colors">
+                  {item.icon}
+                </span>
+              )}
+              <span className="text-[#596c95] font-medium group-hover:text-[#cd6263] transition-colors">
+                {item.label}
+              </span>
             </Link>
           ) : (
-            <div className="flex items-center gap-1.5 text-gray-900 font-medium">
-              {item.icon}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#cd6263]/10 text-[#cd6263] font-medium">
+              {item.icon && <span>{item.icon}</span>}
               <span>{item.label}</span>
             </div>
           )}
