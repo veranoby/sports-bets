@@ -37,6 +37,9 @@ interface CardProps {
   loading?: boolean;
   disabled?: boolean;
   highlighted?: boolean;
+  
+  // Chip variant
+  chipVariant?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -55,6 +58,7 @@ const Card: React.FC<CardProps> = ({
   loading = false,
   disabled = false,
   highlighted = false,
+  chipVariant = false,
 }) => {
   // Determinar si es una DataCard o Card normal
   const isDataCard = value !== undefined || icon !== undefined;
@@ -79,6 +83,26 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
+  // Clases base para chips usando Tailwind
+  const getChipBaseClasses = () => {
+    const baseClasses = "inline-flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200";
+    
+    switch (variant) {
+      case "stat":
+        return `${baseClasses} bg-[#f8fafc] border border-[#bdd5ef75]`; // bg-theme-card border-[#596c95]
+      case "info":
+        return `${baseClasses} bg-blue-100 border border-blue-200 text-blue-800`;
+      case "success":
+        return `${baseClasses} bg-green-100 border border-green-200 text-green-800`;
+      case "warning":
+        return `${baseClasses} bg-yellow-100 border border-yellow-200 text-yellow-800`;
+      case "error":
+        return `${baseClasses} bg-red-100 border border-red-200 text-red-800`;
+      default:
+        return `${baseClasses} border border-[#bdd5ef75]`; // border-[#596c95]
+    }
+  };
+
   // Clases de tamaño usando Tailwind
   const getSizeClasses = () => {
     switch (size) {
@@ -90,44 +114,56 @@ const Card: React.FC<CardProps> = ({
         return "p-6";
     }
   };
+  
+  // Clases de tamaño para chips usando Tailwind
+  const getChipSizeClasses = () => {
+    switch (size) {
+      case "sm":
+        return "px-2 py-1 text-xs";
+      case "lg":
+        return "px-4 py-3 text-base";
+      default:
+        return "px-3 py-2 text-sm";
+    }
+  };
 
   // Clases de color para DataCard usando Tailwind
   const getColorClasses = () => {
     const colorMap = {
       blue: {
         icon: "text-[#596c95]", // color-primary
-        bg: "bg-[#596c95]/10",   // color-primary con opacidad
+        bg: "bg-[#596c95]/10", // color-primary con opacidad
         accent: "text-[#596c95]", // color-primary
       },
       red: {
         icon: "text-[#cd6263]", // color-secondary
-        bg: "bg-[#cd6263]/10",   // color-secondary con opacidad
+        bg: "bg-[#cd6263]/10", // color-secondary con opacidad
         accent: "text-[#cd6263]", // color-secondary
       },
       green: {
-        icon: "text-green-400", // color-success
-        bg: "bg-green-400/10",   // color-success con opacidad
-        accent: "text-green-400", // color-success
+        icon: "text-green-500", // color-success
+        bg: "bg-green-500/10", // color-success con opacidad
+        accent: "text-green-500", // color-success
       },
       yellow: {
-        icon: "text-yellow-400", // color-warning
-        bg: "bg-yellow-400/10",   // color-warning con opacidad
-        accent: "text-yellow-400", // color-warning
+        icon: "text-yellow-500", // color-warning
+        bg: "bg-yellow-500/10", // color-warning con opacidad
+        accent: "text-yellow-500", // color-warning
       },
       gray: {
-        icon: "text-gray-400",
-        bg: "bg-gray-400/10",
-        accent: "text-gray-400",
+        icon: "text-gray-500",
+        bg: "bg-gray-500/10",
+        accent: "text-gray-500",
       },
       purple: {
-        icon: "text-purple-400",
-        bg: "bg-purple-400/10",
-        accent: "text-purple-400",
+        icon: "text-purple-500",
+        bg: "bg-purple-500/10",
+        accent: "text-purple-500",
       },
       white: {
-        icon: "text-gray-800",
+        icon: "text-gray-900",
         bg: "bg-white",
-        accent: "text-gray-800",
+        accent: "text-gray-900",
       },
     };
 
@@ -138,7 +174,15 @@ const Card: React.FC<CardProps> = ({
   const getInteractionClasses = () => {
     if (disabled) return "opacity-50 cursor-not-allowed";
     if (onClick || href)
-      return "cursor-pointer hover:bg-opacity-20 hover:shadow-lg hover:scale-101";
+      return "cursor-pointer hover:bg-opacity-20 hover:shadow-lg hover:scale-105";
+    return "";
+  };
+
+  // Clases de interacción para chips usando Tailwind
+  const getChipInteractionClasses = () => {
+    if (disabled) return "opacity-50 cursor-not-allowed";
+    if (onClick || href)
+      return "cursor-pointer hover:bg-opacity-30 hover:shadow-md";
     return "";
   };
 
@@ -153,7 +197,7 @@ const Card: React.FC<CardProps> = ({
 
     const colors = getColorClasses();
     const iconSize =
-      size === "sm" ? "w-5 h-5" : size === "lg" ? "w-8 h-8" : "w-6 h-6";
+      size === "sm" ? "w-4 h-4" : size === "lg" ? "w-6 h-6" : "w-5 h-5";
 
     if (React.isValidElement(icon)) {
       return React.cloneElement(
@@ -202,16 +246,16 @@ const Card: React.FC<CardProps> = ({
 
     const trendColor =
       trendDirection === "up"
-        ? "text-green-400"
+        ? "text-green-500"
         : trendDirection === "down"
-          ? "text-red-400"
-          : "text-gray-400";
+          ? "text-red-500"
+          : "text-gray-500";
 
     return (
-      <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
-        <TrendIcon className="w-4 h-4" />
+      <div className={`flex items-center gap-1 text-xs ${trendColor}`}>
+        <TrendIcon className="w-3 h-3" />
         {trendValue !== undefined && <span>{Math.abs(trendValue)}%</span>}
-        {trendPeriod && <span className="text-gray-400">{trendPeriod}</span>}
+        {trendPeriod && <span className="text-gray-500">{trendPeriod}</span>}
       </div>
     );
   };
@@ -239,6 +283,43 @@ const Card: React.FC<CardProps> = ({
     );
   }
 
+  // Si es chip variant, renderizar como chip
+  if (chipVariant && isDataCard) {
+    const cardClasses = `
+      ${getChipBaseClasses()}
+      ${getChipSizeClasses()}
+      ${getChipInteractionClasses()}
+      ${getHighlightClasses()}
+      ${className}
+    `.trim();
+
+    const colors = getColorClasses();
+
+    return (
+      <div className={cardClasses} onClick={handleClick}>
+        {icon && (
+          <div className={`${colors.icon}`}>
+            {renderIcon()}
+          </div>
+        )}
+        <div className="flex flex-col">
+          {title && <span className="font-medium">{title}</span>}
+          <div className="flex items-center gap-2">
+            {value && (
+              <span className={`font-bold ${colors.accent}`}>
+                {value}
+              </span>
+            )}
+            {renderTrend()}
+          </div>
+          {description && (
+            <span className="text-xs opacity-75">{description}</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const cardClasses = `
     ${getBaseClasses()}
     ${getSizeClasses()}
@@ -255,7 +336,7 @@ const Card: React.FC<CardProps> = ({
       <div className={cardClasses} onClick={handleClick}>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            {title && <p className="text-gray-400 text-sm mb-1">{title}</p>}
+            {title && <p className="text-gray-500 text-sm mb-1">{title}</p>}
 
             <div className="flex items-center gap-3">
               {value && (
@@ -266,7 +347,7 @@ const Card: React.FC<CardProps> = ({
                       : size === "lg"
                         ? "text-3xl"
                         : "text-2xl"
-                  } text-white`}
+                  } text-gray-900`}
                 >
                   {value}
                 </p>
@@ -276,7 +357,7 @@ const Card: React.FC<CardProps> = ({
             </div>
 
             {description && (
-              <p className="text-gray-400 text-xs mt-1">{description}</p>
+              <p className="text-gray-500 text-xs mt-1">{description}</p>
             )}
           </div>
 
@@ -305,7 +386,7 @@ const Card: React.FC<CardProps> = ({
           <h3
             className={`font-semibold ${
               size === "sm" ? "text-lg" : size === "lg" ? "text-2xl" : "text-xl"
-            } text-white`}
+            } text-gray-900`}
           >
             {title}
           </h3>
