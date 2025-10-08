@@ -5,9 +5,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Check, Crown, Clock, CreditCard } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
 import Modal from "./Modal";
-import Card from "./Card";
-import StatusChip from "./StatusChip";
-import LoadingSpinner from "./LoadingSpinner";
 import type { UserSubscription } from "../../types";
 
 interface Plan {
@@ -72,8 +69,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     }
   };
 
-  // ... (rest of the file)
-
   const handleCancelSubscription = async () => {
     if (!(subscription as UserSubscription)?.id) return;
 
@@ -85,6 +80,22 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     }
   };
 
+  // Función para obtener clases de color según el estado
+  const getStatusColorClasses = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-500/20 text-green-500 border-green-500/30";
+      case "cancelled":
+        return "bg-red-500/20 text-red-500 border-red-500/30";
+      case "expired":
+        return "bg-gray-500/20 text-gray-500 border-gray-500/30";
+      case "pending":
+        return "bg-yellow-500/20 text-yellow-500 border-yellow-500/30";
+      default:
+        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -93,65 +104,72 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       size="lg"
     >
       {subscription && (
-        <Card variant="success" className="mb-6">
+        <div className={`mb-6 p-4 rounded-lg border ${getStatusColorClasses(subscription.status || "active")}`}>
           <div className="flex items-center">
-            <Crown className="w-5 h-5 text-green-600 mr-2" />
+            <Crown className="w-5 h-5 mr-2" />
             <div>
-              <p className="font-medium text-green-800">Suscripción Activa</p>
-              <p className="text-sm text-green-600">
+              <p className="font-medium">Suscripción Activa</p>
+              <p className="text-sm">
                 Plan {subscription.plan} - Renovación:{" "}
                 {subscription.autoRenew ? "Automática" : "Manual"}
               </p>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {error && (
-        <Card variant="error" className="mb-6">
+        <div className="mb-6 p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-500">
           <p>{String(error)}</p>
-        </Card>
+        </div>
       )}
 
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         {plans.map((plan) => (
-          <Card
+          <div
             key={plan.id}
-            variant={selectedPlan === plan.id ? "stat" : "default"}
-            highlighted={plan.recommended}
             onClick={() => setSelectedPlan(plan.id)}
-            className="cursor-pointer relative"
+            className={`
+              p-6 rounded-lg border cursor-pointer transition-all duration-200
+              ${selectedPlan === plan.id 
+                ? "border-[#cd6263] bg-[#cd6263]/10" // color-secondary
+                : "border-gray-200 dark:border-gray-700 hover:border-[#596c95] hover:bg-[#596c95]/5" // color-primary
+              }
+              ${plan.recommended ? "ring-2 ring-[#596c95]/50 relative" : ""}
+            `}
           >
             {plan.recommended && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <StatusChip status="active" label="Recomendado" />
+                <span className="px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
+                  Recomendado
+                </span>
               </div>
             )}
 
             <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {plan.name}
               </h3>
               <div className="mt-2">
-                <span className="text-3xl font-bold text-gray-900">
+                <span className="text-3xl font-bold text-gray-900 dark:text-white">
                   ${plan.price}
                 </span>
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-gray-400">
                   /{plan.durationUnit === "hours" ? "24h" : "30d"}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">{plan.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{plan.description}</p>
             </div>
 
             <ul className="space-y-2">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-center text-sm">
                   <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span className="text-gray-700">{feature}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{feature}</span>
                 </li>
               ))}
             </ul>
-          </Card>
+          </div>
         ))}
       </div>
 
@@ -161,13 +179,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <button
               onClick={handleCancelSubscription}
               disabled={loading}
-              className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50"
+              className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
             >
               Cancelar Suscripción
             </button>
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700"
+              className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
             >
               Cerrar
             </button>
@@ -177,17 +195,17 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <button
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubscribe}
               disabled={loading || !selectedPlan}
-              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center justify-center"
+              className="flex-1 px-6 py-3 bg-[#cd6263] text-white rounded-lg font-medium hover:bg-[#b55456] disabled:opacity-50 transition-colors flex items-center justify-center" // color-secondary
             >
               {loading ? (
-                <LoadingSpinner size="sm" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <>
                   <CreditCard className="w-5 h-5 mr-2" />
@@ -199,7 +217,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         )}
       </div>
 
-      <div className="mt-4 text-center text-sm text-gray-500">
+      <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         <Clock className="w-4 h-4 inline mr-1" />
         Pago seguro con Kushki • Cancela en cualquier momento
       </div>
