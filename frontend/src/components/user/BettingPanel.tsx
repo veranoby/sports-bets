@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets } from "../../hooks/useApi";
 import { useWebSocketRoom } from "../../hooks/useWebSocket";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
-import { Plus, Zap } from "lucide-react";
+import { Plus, Zap, DollarSign, Users } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 
@@ -78,69 +78,91 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   if (!isBettingEnabled) return null;
 
   const renderQuickMode = () => (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <button
         onClick={() => setShowCreateModal(true)}
-        className="w-full bg-[#cd6263] text-white p-3 rounded-lg flex items-center justify-center gap-2"
+        className="w-full bg-[#cd6263] hover:bg-[#cd6263]/90 text-white p-3 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg"
       >
         <Plus size={20} />
-        Crear Apuesta
+        <span className="font-medium">Crear Apuesta</span>
       </button>
-      <button
-        onClick={() => setCurrentMode("advanced")}
-        className="text-[#596c95] text-sm w-full text-center"
-      >
-        Ver opciones avanzadas
-      </button>
+      
+      <div className="flex items-center justify-center">
+        <button
+          onClick={() => setCurrentMode("advanced")}
+          className="text-[#596c95] hover:text-[#cd6263] text-sm flex items-center gap-1 transition-colors"
+        >
+          <Zap size={16} />
+          Ver opciones avanzadas
+        </button>
+      </div>
     </div>
   );
 
   const renderAdvancedMode = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-white font-medium">Apuestas disponibles</h3>
+        <h3 className="text-white font-semibold flex items-center gap-2">
+          <Users className="w-5 h-5 text-blue-400" />
+          Apuestas disponibles
+        </h3>
         <button
           onClick={() => setCurrentMode("quick")}
-          className="text-[#596c95] text-sm flex items-center gap-1"
+          className="text-[#596c95] hover:text-[#cd6263] text-sm flex items-center gap-1 transition-colors"
         >
           <Zap size={16} />
           Modo rápido
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {bets.length > 0 ? (
           bets.map((bet) => (
-            <div key={bet.id} className="bg-[#596c95] p-3 rounded">
+            <div 
+              key={bet.id} 
+              className="bg-[#2a325c] border border-[#596c95] p-3 rounded-lg hover:bg-[#2a325c]/80 transition-colors"
+            >
               <div className="flex justify-between items-center">
-                <span className="text-white">
-                  ${bet.amount} - {bet.side === "red" ? "Rojo" : "Azul"}
-                </span>
-                <button className="bg-[#cd6263] text-white px-3 py-1 rounded text-sm">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-green-400" />
+                  <span className="text-white font-medium">
+                    ${bet.amount} - {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                  </span>
+                </div>
+                <button 
+                  className="bg-[#cd6263] hover:bg-[#cd6263]/90 text-white px-3 py-1 rounded text-sm transition-colors"
+                  onClick={() => {
+                    // Aquí iría la lógica para aceptar la apuesta
+                    console.log("Aceptar apuesta:", bet.id);
+                  }}
+                >
                   Aceptar
                 </button>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-gray-400 text-center">
-            No hay apuestas disponibles
-          </p>
+          <div className="text-center py-6">
+            <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+            <p className="text-gray-400">
+              No hay apuestas disponibles
+            </p>
+          </div>
         )}
       </div>
 
       <button
         onClick={() => setShowCreateModal(true)}
-        className="w-full bg-[#cd6263] text-white p-3 rounded-lg flex items-center justify-center gap-2"
+        className="w-full bg-[#cd6263] hover:bg-[#cd6263]/90 text-white p-3 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg"
       >
         <Plus size={20} />
-        Nueva Apuesta
+        <span className="font-medium">Nueva Apuesta</span>
       </button>
     </div>
   );
 
   return (
-    <div className="bg-[#2a325c] p-4 rounded-lg">
+    <div className="bg-[#1a1f37] border border-[#596c95] p-4 rounded-xl shadow-lg">
       {currentMode === "quick" ? renderQuickMode() : renderAdvancedMode()}
 
       {showCreateModal && (
