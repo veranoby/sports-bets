@@ -2,60 +2,104 @@
   "task_decomposition": [
     {
       "task_id": "ux-improvement-1",
-      "title": "Consolidar controles de streaming en modal de gestión de eventos",
-      "description": "Eliminar la pestaña redundante 'Streaming' y centralizar todos los controles en la pestaña de 'Peleas'",
-      "estimated_hours": 2,
+      "title": "Optimizar visualmente UserHeader con prioridad en Tailwind CSS",
+      "description": "Actualizar el UserHeader para usar utilidades de Tailwind como prioridad, manteniendo todas las funcionalidades existentes (notificaciones, wallet, logout, apuestas activas) pero con mejor diseño visual y uso de chips para información relevante",
+      "estimated_hours": 3,
       "success_criteria": [
-        "Toda la funcionalidad de streaming accesible desde la pestaña 'Peleas'",
-        "No hay duplicación de controles entre pestañas",
-        "UX es más intuitiva y directa"
+        "Todas las funcionalidades existentes completamente operativas",
+        "Uso prioritario de utilidades de Tailwind CSS",
+        "Mejor visualización de información con chips",
+        "Compatibilidad con roles user, venue, gallera",
+        "Preservación de lógica de notificaciones, wallet y logout"
       ]
     },
     {
       "task_id": "ux-improvement-2",
-      "title": "Agregar ayuda contextual a cada elemento del formulario de creación de eventos",
-      "description": "Implementar tooltips y mensajes de ayuda en la página de creación de eventos",
+      "title": "Transformar cards a chips en componentes estadísticos usando Tailwind",
+      "description": "Reemplazar componentes Card por chips/badges más compactos en componentes estadísticos como Dashboard y Bets, usando Tailwind como sistema principal de estilos",
       "estimated_hours": 2,
       "success_criteria": [
-        "Cada campo tiene un tooltip explicativo",
-        "Mensajes de validación claros en tiempo real",
-        "Experiencia de usuario mejorada"
+        "Estadísticas visibles y legibles con nuevo diseño en chips",
+        "Uso prioritario de utilidades de Tailwind CSS",
+        "Mantener funcionalidad completa de estadísticas",
+        "Diseño más compacto y visualmente atractivo"
       ]
     },
     {
       "task_id": "ux-improvement-3",
-      "title": "Agregar tooltips explicativos a controles de eventos principales",
-      "description": "Agregar ayuda contextual a botones y controles en la página principal de eventos",
-      "estimated_hours": 1,
+      "title": "Mejorar visualmente BettingPanel.tsx con Tailwind (sin alterar lógica DOY/PAGO)",
+      "description": "Actualizar el diseño de BettingPanel usando Tailwind como prioridad, sin modificar la lógica de apuestas DOY/PAGO",
+      "estimated_hours": 3,
       "success_criteria": [
-        "Cada botón tiene un tooltip que explica su función",
-        "Usuarios nuevos pueden entender la funcionalidad sin manual externo"
+        "Interfaz visualmente mejorada con Tailwind",
+        "Lógica de apuestas DOY/PAGO completamente preservada",
+        "Funcionalidad completa de creación y aceptación de apuestas",
+        "Compatibilidad con WebSocket para actualizaciones en tiempo real"
       ]
     },
     {
       "task_id": "ux-improvement-4",
-      "title": "Mejorar visualización de estado de eventos y streams",
-      "description": "Implementar colores más distintivos e iconos claros para diferentes estados",
-      "estimated_hours": 2,
+      "title": "Mejorar visualmente CreateBetModal.tsx con Tailwind (sin alterar lógica DOY/PAGO)",
+      "description": "Actualizar el modal de creación de apuestas usando Tailwind como prioridad, sin modificar la lógica de apuestas DOY/PAGO",
+      "estimated_hours": 3,
       "success_criteria": [
-        "Los estados son claramente distinguibles visualmente",
-        "Los usuarios pueden identificar rápidamente el estado de un evento"
+        "Interfaz visualmente mejorada con Tailwind",
+        "Lógica de apuestas DOY/PAGO completamente preservada",
+        "Proceso de PAGO funcionando correctamente",
+        "Formulario intuitivo y visualmente atractivo"
+      ]
+    },
+    {
+      "task_id": "ux-improvement-5",
+      "title": "Optimizar otros componentes de rol de usuario usando Tailwind",
+      "description": "Identificar y mejorar otros componentes específicos de roles user, venue y gallera para mejorar la cohesión visual",
+      "estimated_hours": 4,
+      "success_criteria": [
+        "Componentes identificados y mejorados visualmente",
+        "Uso consistente de Tailwind CSS en todos los componentes",
+        "Mantener todas las funcionalidades existentes",
+        "Mejora visual general de la plataforma"
+      ]
+    },
+    {
+      "task_id": "ux-improvement-6",
+      "title": "Optimizar componentes compartidos con prioridad en Tailwind CSS",
+      "description": "Actualizar componentes compartidos para usar Tailwind como sistema principal de estilos en lugar de variables CSS y clases personalizadas",
+      "estimated_hours": 5,
+      "success_criteria": [
+        "Componentes Badge, Card, StatusChip, ActionButton migrados a Tailwind",
+        "Uso consistente de utilidades de Tailwind en lugar de CSS personalizado",
+        "Mantenimiento de todas las funcionalidades existentes",
+        "Mejor consistencia visual en toda la plataforma"
+      ]
+    },
+    {
+      "task_id": "ux-improvement-7",
+      "title": "Actualizar componentes UI comunes con Tailwind CSS",
+      "description": "Modernizar componentes como Modal, LoadingSpinner, ErrorMessage, ConfirmDialog usando utilidades de Tailwind como prioridad",
+      "estimated_hours": 4,
+      "success_criteria": [
+        "Componentes actualizados con Tailwind como sistema principal de estilos",
+        "Mantenimiento de todas las funcionalidades y comportamientos existentes",
+        "Diseño más cohesivo y moderno",
+        "Mayor consistencia en el sistema de diseño"
       ]
     }
   ],
   "purpose_and_requirements": {
-    "purpose": "Mejorar la experiencia de usuario para operadores que gestionan eventos de streaming, reduciendo la curva de aprendizaje y facilitando la realización de tareas comunes",
+    "purpose": "Mejorar la experiencia de usuario para roles user, venue y gallera con prioridad en Tailwind CSS, manteniendo todas las funcionalidades existentes",
     "functional_requirements": [
-      "Proporcionar ayuda contextual directamente en la interfaz",
-      "Reducir la duplicidad de funcionalidad entre componentes",
-      "Mejorar la visibilidad del estado de los eventos y streams",
-      "Simplificar flujos de trabajo comunes"
+      "Preservar todas las funcionalidades existentes",
+      "Implementar mejoras visuales con prioridad en Tailwind CSS",
+      "Mantener la lógica de apuestas DOY/PAGO sin alteraciones",
+      "Garantizar compatibilidad con todos los roles de usuario"
     ],
     "non_functional_requirements": [
       "Mantener rendimiento actual de la aplicación",
       "No introducir nuevos errores de TypeScript",
       "Preservar funcionalidad existente",
-      "Mantener compatibilidad con todos los navegadores soportados"
+      "Mantener compatibilidad con todos los navegadores soportados",
+      "Uso prioritario de Tailwind CSS para estilos"
     ]
   },
   "inputs_and_outputs": {
@@ -65,36 +109,24 @@
           "name": "current_user",
           "type": "User",
           "description": "Usuario autenticado actualmente",
-          "validation": "No nulo, debe tener rol de admin u operador",
+          "validation": "No nulo, debe tener rol de user, venue o gallera",
           "example": {
             "id": "uuid",
-            "username": "operador1",
-            "role": "operator"
-          }
-        },
-        {
-          "name": "event_data",
-          "type": "EventData",
-          "description": "Datos del evento actualmente seleccionado",
-          "validation": "Requerido para mostrar controles de streaming",
-          "example": {
-            "id": "uuid",
-            "name": "Evento de prueba",
-            "status": "scheduled",
-            "streamStatus": "offline"
+            "username": "usuario1",
+            "role": "user"
           }
         }
       ],
       "edge_cases": [
-        "Usuario no tiene permisos para ciertos controles",
-        "Evento no encontrado o sin permisos de acceso",
-        "API de streaming no disponible temporalmente"
+        "Usuario sin permisos adecuados",
+        "Errores de carga de datos",
+        "Conexiones WebSocket fallidas temporalmente"
       ]
     },
     "outputs": {
       "structure": {
-        "ui_components": ["Tooltips", "Status badges", "Action buttons", "Modal dialogs"],
-        "response_format": "React components with proper TypeScript typing"
+        "ui_components": ["Tailwind utility classes", "Chips", "Status badges", "Improved layouts"],
+        "response_format": "React components with Tailwind-based styling and proper TypeScript typing"
       }
     }
   },
@@ -103,74 +135,71 @@
       "Nunca editar archivos backend",
       "Mantener compatibilidad con TypeScript strict mode",
       "No romper flujos de trabajo existentes",
-      "Seguir patrones de estilos existentes en la aplicación"
+      "Priorizar Tailwind CSS para estilos visuales",
+      "Usar CSS personalizado solo cuando sea estrictamente necesario"
     ],
     "business_constraints": [
-      "Operadores no pueden modificar usuarios admin/operadores",
-      "Eventos deben mantener integridad de apuestas y peleas",
-      "Sistema debe mantener rendimiento y estabilidad"
+      "Funcionalidades de apuestas DOY/PAGO deben mantenerse intactas",
+      "Usuarios deben poder realizar todas sus tareas habituales",
+      "No debe haber pérdida de funcionalidad para roles user/venue/gallera"
     ],
     "compatibility_requirements": [
       "Mantener compatibilidad con navegadores modernos",
-      "No romper funcionalidades de administrador o usuarios regulares"
+      "No romper funcionalidades para otros tipos de usuarios"
     ]
   },
   "apis_and_integrations": {
     "internal_apis": [
       {
-        "name": "eventsAPI",
-        "endpoints": [
-          "eventsAPI.getAll",
-          "eventsAPI.getById", 
-          "eventsAPI.create",
-          "eventsAPI.startStream",
-          "eventsAPI.stopStream",
-          "eventsAPI.activate",
-          "eventsAPI.complete"
-        ],
-        "documentation_reference": "/api/events endpoints in api_endpoints_reference"
-      },
-      {
         "name": "usersAPI",
         "endpoints": [
-          "usersAPI.getOperators",
-          "usersAPI.getProfile"
+          "usersAPI.getProfile",
+          "usersAPI.updateProfile"
         ],
         "documentation_reference": "/api/users endpoints in api_endpoints_reference"
       },
       {
-        "name": "fightsAPI",
+        "name": "betsAPI",
         "endpoints": [
-          "fightsAPI.getAll",
-          "fightsAPI.create",
-          "fightsAPI.update"
+          "betsAPI.myBets",
+          "betsAPI.createBet",
+          "betsAPI.cancelBet",
+          "betsAPI.acceptBet",
+          "betsAPI.getCompatibleBets"
         ],
-        "documentation_reference": "/api/fights endpoints in api_endpoints_reference"
+        "documentation_reference": "/api/bets endpoints in api_endpoints_reference"
+      },
+      {
+        "name": "walletAPI",
+        "endpoints": [
+          "walletAPI.getBalance",
+          "walletAPI.getTransactions"
+        ],
+        "documentation_reference": "/api/wallet endpoints in api_endpoints_reference"
       }
     ],
     "external_apis": [
       {
-        "name": "SSE connections",
+        "name": "WebSocket connections",
         "endpoints": [
-          "/api/sse/admin/fights",
-          "/api/sse/admin/streaming"
+          "ws://.../betting-updates",
+          "ws://.../pago-doy-updates"
         ],
         "authentication": "JWT token in connection",
-        "rate_limits": "Handled by backend SSE service"
+        "rate_limits": "Handled by backend WebSocket service"
       }
     ],
     "database_schema": [
       {
-        "table": "events",
+        "table": "users",
         "relevant_fields": [
           "id",
-          "name", 
-          "status",
-          "operatorId",
-          "streamKey",
-          "streamUrl"
+          "username", 
+          "role",
+          "profileInfo",
+          "subscription"
         ],
-        "documentation": "Verified in typescript_interfaces_reference.json EventData interface"
+        "documentation": "Verified in typescript_interfaces_reference.json User interface"
       }
     ]
   }
