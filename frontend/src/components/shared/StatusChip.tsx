@@ -58,11 +58,11 @@ const StatusChip: React.FC<StatusChipProps> = ({
         : "disconnected"
       : status;
 
-  // Common status configurations
+  // Common status configurations using Tailwind classes
   const statusConfig = {
     // Estados positivos
     active: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -70,7 +70,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     approved: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -78,7 +78,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     completed: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -86,7 +86,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     settled: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -94,7 +94,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     connected: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -102,7 +102,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     confirmed: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -110,7 +110,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     success: {
-      chip: "bg-theme-success/20 text-theme-success",
+      chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
         textColor: "text-green-400",
@@ -120,7 +120,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
 
     // Estados en progreso
     live: {
-      chip: "bg-theme-secondary/20 text-theme-secondary",
+      chip: "bg-[#cd6263]/20 text-[#cd6263]", // bg-theme-secondary/20 text-theme-secondary
       indicator: {
         color: "bg-blue-500",
         textColor: "text-blue-400",
@@ -162,7 +162,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     rejected: {
-      chip: "bg-theme-danger/20 text-theme-danger",
+      chip: "bg-red-500/20 text-red-500", // bg-theme-danger/20 text-theme-danger
       indicator: {
         color: "bg-red-500",
         textColor: "text-red-400",
@@ -170,7 +170,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     cancelled: {
-      chip: "bg-theme-danger/20 text-theme-danger",
+      chip: "bg-red-500/20 text-red-500", // bg-theme-danger/20 text-theme-danger
       indicator: {
         color: "bg-red-500",
         textColor: "text-red-400",
@@ -178,7 +178,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     disconnected: {
-      chip: "bg-theme-danger/20 text-theme-danger",
+      chip: "bg-red-500/20 text-red-500", // bg-theme-danger/20 text-theme-danger
       indicator: {
         color: "bg-red-500",
         textColor: "text-red-400",
@@ -186,7 +186,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       },
     },
     failed: {
-      chip: "bg-theme-danger/20 text-theme-danger",
+      chip: "bg-red-500/20 text-red-500", // bg-theme-danger/20 text-theme-danger
       indicator: {
         color: "bg-red-500",
         textColor: "text-red-400",
