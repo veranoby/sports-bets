@@ -21,12 +21,13 @@ const Badge: React.FC<BadgeProps> = ({
   icon,
   iconPosition = "left", // Default: icono a la izquierda
 }) => {
-  const variantColors = {
-    primary: "var(--color-primary)",
-    secondary: "var(--color-secondary)",
-    success: "var(--color-success)",
-    warning: "var(--color-warning)",
-    error: "var(--color-error)",
+  // Definir las clases de variantes usando Tailwind
+  const variantClasses = {
+    primary: "bg-[#8ba3bc7e] text-white",    // color-primary con transparencia
+    secondary: "bg-[#7fc29b] text-white",    // color-secondary
+    success: "bg-green-500 text-white",      // color-success
+    warning: "bg-yellow-500 text-white",     // color-warning
+    error: "bg-red-500 text-white",          // color-error
   };
 
   const sizeClasses = {
@@ -35,13 +36,23 @@ const Badge: React.FC<BadgeProps> = ({
     lg: "text-base px-4 py-2",
   };
 
+  // Si es un dot, aplicamos estilos especiales
+  const dotClasses = dot 
+    ? "w-2 h-2 rounded-full" 
+    : "inline-flex items-center justify-center rounded-lg";
+
+  const baseClasses = dot 
+    ? `${variantClasses[variant]} ${className}` 
+    : `${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded-lg ${sizeClasses[size]} ${className}`}
-      style={{ backgroundColor: dot ? "transparent" : variantColors[variant] }}
-    >
+    <span className={`${dotClasses} ${baseClasses}`}>
       {icon && iconPosition === "left" && <span className="mr-1">{icon}</span>}
-      <span className="text-white font-bold">{value}</span>
+      {!dot && (
+        <span className="text-white font-bold">
+          {value}
+        </span>
+      )}
       {children && (
         <span className="!font-bold text-xs [text-shadow:0_1px_2px_rgba(0,0,0,0.8)] uppercase">
           {typeof children === "string" ? children.toUpperCase() : children}
