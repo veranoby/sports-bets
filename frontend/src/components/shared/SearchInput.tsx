@@ -60,11 +60,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const getVariantClasses = () => {
     switch (variant) {
       case "filled":
-        return "border-0 bg-gray-100 dark:bg-gray-700";
+        return "border-0 bg-gray-100";
       case "bordered":
-        return "bg-transparent border-2 border-[#596c95]"; // color-primary
+        return "bg-white border-2 border-[#596c95]"; // color-primary
       default:
-        return "bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#596c95] focus:border-transparent";
+        return "bg-white border border-gray-300 focus:ring-2 focus:ring-[#596c95] focus:border-transparent";
     }
   };
 
@@ -186,7 +186,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
       <div className="relative">
         {/* Icono de búsqueda */}
         <Search
-          className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ${
+          className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 ${
             size === "sm" ? "w-4 h-4" : size === "lg" ? "w-6 h-6" : "w-5 h-5"
           }`}
         />
@@ -204,9 +204,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
           disabled={disabled}
           maxLength={maxLength}
           className={`
-            w-full pl-12 pr-12 rounded-lg
+            w-full pl-10 pr-12 rounded-lg
             focus:outline-none transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
+            text-gray-900 placeholder-gray-500
             ${getSizeClasses()}
             ${getVariantClasses()}
           `}
@@ -245,21 +246,21 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
       {/* Sugerencias */}
       {showSuggestions && filteredSuggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#2a325c] border border-[#596c95] rounded-lg shadow-lg">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
           {filteredSuggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               onClick={() => handleSuggestionClick(suggestion)}
               className={`
-                w-full text-left px-4 py-2 hover:bg-[#596c95] transition-colors
-                ${index === selectedSuggestion ? "bg-[#596c95]" : ""}
+                w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors
+                ${index === selectedSuggestion ? "bg-gray-100" : ""}
                 ${index === 0 ? "rounded-t-lg" : ""}
                 ${
                   index === filteredSuggestions.length - 1 ? "rounded-b-lg" : ""
                 }
               `}
             >
-              <span className="text-white">{suggestion}</span>
+              <span className="text-gray-900">{suggestion}</span>
             </button>
           ))}
         </div>
