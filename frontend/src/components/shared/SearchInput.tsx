@@ -44,7 +44,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const isControlled = controlledValue !== undefined;
   const searchValue = isControlled ? controlledValue : internalValue;
 
-  // Clases de tamaño
+  // Clases de tamaño usando Tailwind
   const getSizeClasses = () => {
     switch (size) {
       case "sm":
@@ -56,15 +56,15 @@ const SearchInput: React.FC<SearchInputProps> = ({
     }
   };
 
-  // Clases de variante
+  // Clases de variante usando Tailwind
   const getVariantClasses = () => {
     switch (variant) {
       case "filled":
-        return "border-0";
+        return "border-0 bg-gray-100 dark:bg-gray-700";
       case "bordered":
-        return "bg-transparent border-2 border-[#596c95]";
+        return "bg-transparent border-2 border-[#596c95]"; // color-primary
       default:
-        return "input-theme";
+        return "bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#596c95] focus:border-transparent";
     }
   };
 
@@ -204,9 +204,8 @@ const SearchInput: React.FC<SearchInputProps> = ({
           disabled={disabled}
           maxLength={maxLength}
           className={`
-            w-full pl-12 pr-12 rounded-lg  // Ajuste: pl-12 para más espacio
-            focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:border-transparent
-            transition-all duration-200
+            w-full pl-12 pr-12 rounded-lg
+            focus:outline-none transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
             ${getSizeClasses()}
             ${getVariantClasses()}
