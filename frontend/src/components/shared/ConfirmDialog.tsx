@@ -71,12 +71,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   autoClose = true,
   onBeforeConfirm,
 }) => {
-  const theme = {
-    input: "input-theme",
-    primaryButton: "btn-primary",
-    ghostButton: "btn-ghost",
-  };
-
   // Estados internos
   const [confirmInput, setConfirmInput] = useState("");
   const [timeLeft, setTimeLeft] = useState(countdown);
@@ -166,7 +160,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       case "info":
         return "bg-blue-400 hover:bg-blue-700";
       default:
-        return "bg-[#596c95] hover:bg-[#4a5b80]";
+        return "bg-[#596c95] hover:bg-[#4a5b80]"; // color-primary
     }
   }
 
@@ -317,11 +311,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               value={confirmInput}
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder={confirmationText}
-              className={`${theme.input} ${
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                 confirmInput && !isConfirmationValid
                   ? "border-red-500 focus:ring-red-500"
-                  : ""
-              }`}
+                  : "border-gray-300 focus:ring-[#596c95]"
+              } bg-white text-gray-900`}
               autoFocus
             />
             {confirmInput && !isConfirmationValid && (
