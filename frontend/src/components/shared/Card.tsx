@@ -59,13 +59,13 @@ const Card: React.FC<CardProps> = ({
   // Determinar si es una DataCard o Card normal
   const isDataCard = value !== undefined || icon !== undefined;
 
-  // Clases base según variante
+  // Clases base según variante usando Tailwind
   const getBaseClasses = () => {
     const baseClasses = "rounded-lg transition-all duration-200";
 
     switch (variant) {
       case "stat":
-        return `${baseClasses} bg-theme-card border border-[#596c95]`;
+        return `${baseClasses} bg-[#f8fafc] border border-[#bdd5ef75]`; // bg-theme-card border-[#596c95]
       case "info":
         return `${baseClasses} bg-blue-50 border border-blue-200 text-blue-900`;
       case "success":
@@ -75,11 +75,11 @@ const Card: React.FC<CardProps> = ({
       case "error":
         return `${baseClasses} bg-red-50 border border-red-200 text-red-900`;
       default:
-        return `${baseClasses}  border border-[#596c95]`;
+        return `${baseClasses} border border-[#bdd5ef75]`; // border-[#596c95]
     }
   };
 
-  // Clases de tamaño
+  // Clases de tamaño usando Tailwind
   const getSizeClasses = () => {
     switch (size) {
       case "sm":
@@ -91,28 +91,28 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
-  // Clases de color para DataCard
+  // Clases de color para DataCard usando Tailwind
   const getColorClasses = () => {
     const colorMap = {
       blue: {
-        icon: "text-[#596c95]",
-        bg: "bg-[#596c95]/10",
-        accent: "text-[#596c95]",
+        icon: "text-[#596c95]", // color-primary
+        bg: "bg-[#596c95]/10",   // color-primary con opacidad
+        accent: "text-[#596c95]", // color-primary
       },
       red: {
-        icon: "text-[#cd6263]",
-        bg: "bg-[#cd6263]/10",
-        accent: "text-[#cd6263]",
+        icon: "text-[#cd6263]", // color-secondary
+        bg: "bg-[#cd6263]/10",   // color-secondary con opacidad
+        accent: "text-[#cd6263]", // color-secondary
       },
       green: {
-        icon: "text-green-400",
-        bg: "bg-green-400/10",
-        accent: "text-green-400",
+        icon: "text-green-400", // color-success
+        bg: "bg-green-400/10",   // color-success con opacidad
+        accent: "text-green-400", // color-success
       },
       yellow: {
-        icon: "text-yellow-400",
-        bg: "bg-yellow-400/10",
-        accent: "text-yellow-400",
+        icon: "text-yellow-400", // color-warning
+        bg: "bg-yellow-400/10",   // color-warning con opacidad
+        accent: "text-yellow-400", // color-warning
       },
       gray: {
         icon: "text-gray-400",
@@ -134,7 +134,7 @@ const Card: React.FC<CardProps> = ({
     return colorMap[color] || colorMap.blue;
   };
 
-  // Clases de interacción
+  // Clases de interacción usando Tailwind
   const getInteractionClasses = () => {
     if (disabled) return "opacity-50 cursor-not-allowed";
     if (onClick || href)
@@ -142,9 +142,9 @@ const Card: React.FC<CardProps> = ({
     return "";
   };
 
-  // Clases de destacado
+  // Clases de destacado usando Tailwind
   const getHighlightClasses = () => {
-    return highlighted ? "ring-2 ring-[#cd6263] ring-opacity-50" : "";
+    return highlighted ? "ring-2 ring-[#cd6263] ring-opacity-50" : ""; // color-secondary
   };
 
   // Renderizar icono
@@ -177,7 +177,7 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
-  // Renderizar trend
+  // Renderizar trend usando Tailwind
   const renderTrend = () => {
     if (!trend) return null;
 
@@ -226,7 +226,7 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
-  // Loading state
+  // Loading state usando Tailwind
   if (loading) {
     return (
       <div className={`${getBaseClasses()} ${getSizeClasses()} ${className}`}>
