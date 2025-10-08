@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Megaphone,
   ChevronLeft,
@@ -6,7 +6,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { articlesAPI } from "../../services/api";
-import type { Article } from "../../types/article";
+// import type { Article } from "../../types/article"; // Not used in this component
 
 interface BannerArticle {
   id: string;
@@ -19,16 +19,16 @@ interface BannerArticle {
   featured_image_url?: string;
 }
 
-// Pastel gradient combinations (blue left + random pastel right)
-const pastelGradients = [
-  "linear-gradient(135deg, #596c95 0%, #ffd1dc 100%)", // pink
-  "linear-gradient(135deg, #596c95 0%, #b4e7ce 100%)", // mint green
-  "linear-gradient(135deg, #596c95 0%, #e8c5e5 100%)", // lavender
-  "linear-gradient(135deg, #596c95 0%, #ffeaa7 100%)", // soft yellow
-  "linear-gradient(135deg, #596c95 0%, #dfe6e9 100%)", // soft gray
-  "linear-gradient(135deg, #596c95 0%, #fab1a0 100%)", // peach
-  "linear-gradient(135deg, #596c95 0%, #a29bfe 100%)", // periwinkle
-  "linear-gradient(135deg, #596c95 0%, #fd79a8 100%)", // soft coral
+// Professional gradient combinations (blue primary + sophisticated tones)
+const professionalGradients = [
+  "linear-gradient(135deg, #596c95 0%, #4a5568 100%)", // blue to dark gray
+  "linear-gradient(135deg, #596c95 0%, #2d3748 100%)", // blue to charcoal
+  "linear-gradient(135deg, #596c95 0%, #1a202c 100%)", // blue to dark
+  "linear-gradient(135deg, #596c95 0%, #4c51bf 100%)", // blue to indigo
+  "linear-gradient(135deg, #596c95 0%, #553c9a 100%)", // blue to purple
+  "linear-gradient(135deg, #596c95 0%, #2b6cb0 100%)", // blue to light blue
+  "linear-gradient(135deg, #596c95 0%, #2c5282 100%)", // blue to teal
+  "linear-gradient(135deg, #596c95 0%, #2d5016 100%)", // blue to dark green
 ];
 
 // Fallback news for when API is not available or no featured articles exist
@@ -123,15 +123,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
     fetchNews();
   }, []);
 
-  // Auto-advance carousel with transition
-  useEffect(() => {
-    const timer = setInterval(() => {
-      handleTransition("next");
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [news.length, current]);
-
-  const handleTransition = (direction: "prev" | "next") => {
+  const handleTransition = useCallback((direction: "prev" | "next") => {
     setIsTransitioning(true);
     setTimeout(() => {
       if (direction === "next") {
@@ -141,7 +133,15 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
       }
       setIsTransitioning(false);
     }, 300);
-  };
+  }, [news.length]);
+
+  // Auto-advance carousel with transition
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleTransition("next");
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [handleTransition]);
 
   const goPrev = () => handleTransition("prev");
   const goNext = () => handleTransition("next");
@@ -153,33 +153,64 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
     const hash = articleId
       .split("")
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return pastelGradients[hash % pastelGradients.length];
+    return professionalGradients[hash % professionalGradients.length];
+  };
+
+  // Get category badge based on content
+  const getCategoryBadge = (title: string, content: string) => {
+    const text = (title + " " + content).toLowerCase();
+    if (text.includes("evento") || text.includes("pelea") || text.includes("gallera")) {
+      return { label: "Eventos", color: "bg-blue-500/20 text-blue-200 border-blue-500/30" };
+    }
+    if (text.includes("promo") || text.includes("descuento") || text.includes("oferta")) {
+      return { label: "Promociones", color: "bg-green-500/20 text-green-200 border-green-500/30" };
+    }
+    if (text.includes("noticia") || text.includes("actualización") || text.includes("información")) {
+      return { label: "Noticias", color: "bg-purple-500/20 text-purple-200 border-purple-500/30" };
+    }
+    return { label: "General", color: "bg-gray-500/20 text-gray-200 border-gray-500/30" };
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return new Date().toLocaleDateString();
-    return new Date(dateString).toLocaleDateString("es-ES");
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return "Hoy";
+    if (diffDays === 2) return "Ayer";
+    if (diffDays <= 7) return `Hace ${diffDays - 1} días`;
+    
+    return date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
   };
 
   if (loading) {
     return (
       <div
-        className={`bg-gradient-to-r from-[#596c95] to-[#cd6263] rounded-xl shadow-lg p-6 flex items-center gap-4 ${className}`}
+        className={`bg-gradient-to-r from-[#596c95] to-[#4a5568] rounded-xl shadow-lg p-6 flex items-center gap-4 h-[350px] ${className}`}
       >
         <Megaphone className="w-8 h-8 text-white flex-shrink-0 animate-pulse" />
         <div className="flex-1">
-          <div className="bg-blue-50/20 h-5 rounded mb-2 animate-pulse"></div>
-          <div className="bg-blue-50/15 h-4 rounded animate-pulse"></div>
+          <div className="bg-white/20 h-6 rounded mb-3 animate-pulse"></div>
+          <div className="bg-white/15 h-4 rounded mb-2 animate-pulse"></div>
+          <div className="bg-white/10 h-4 rounded w-3/4 animate-pulse"></div>
         </div>
       </div>
     );
   }
 
+  const categoryBadge = getCategoryBadge(currentNews.title, currentNews.content);
+
   return (
     <div
       className={`relative rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${className}`}
       style={{
-        height: "200px",
+        height: "350px",
       }}
     >
       {/* Background Layer - with fade transition */}
@@ -196,63 +227,75 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         }}
       />
 
-      {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      {/* Enhanced overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20"></div>
 
       {/* Content - with slide and fade transition */}
       <div
-        className={`relative z-10 h-full flex flex-col justify-center p-6 transition-all duration-500 transform ${
+        className={`relative z-10 h-full flex flex-col justify-center p-6 md:p-8 transition-all duration-500 transform ${
           isTransitioning
             ? "opacity-0 translate-x-4"
             : "opacity-100 translate-x-0"
         }`}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Megaphone className="w-5 h-5 text-white flex-shrink-0" />
-          <span className="text-white/90 text-sm font-medium">
-            Últimas Noticias
-          </span>
+        {/* Header with category badge */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Megaphone className="w-6 h-6 text-white flex-shrink-0" />
+            <span className="text-white/90 text-sm font-medium">
+              Últimas Noticias
+            </span>
+          </div>
+          <div className={`px-3 py-1 rounded-full text-xs font-medium border ${categoryBadge.color}`}>
+            {categoryBadge.label}
+          </div>
         </div>
 
-        <div className="text-white font-bold text-xl mb-2 line-clamp-2">
+        {/* Title */}
+        <div className="text-white font-bold text-2xl md:text-3xl mb-4 line-clamp-2 leading-tight">
           {currentNews.title}
         </div>
 
-        <div className="text-white/90 text-sm mb-3 line-clamp-2">
+        {/* Content */}
+        <div className="text-white/90 text-base md:text-lg mb-6 line-clamp-3 leading-relaxed">
           {currentNews.content}
         </div>
 
-        <div className="text-xs text-white/70 flex items-center justify-between">
-          <span>{formatDate(currentNews.published_at)}</span>
-          {error && (
-            <span className="flex items-center gap-1 text-yellow-200">
-              <AlertCircle className="w-3 h-3" />
-              API offline
+        {/* Footer with date and CTA */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-white/80 font-medium">
+              {formatDate(currentNews.published_at)}
             </span>
-          )}
+            {error && (
+              <span className="flex items-center gap-1 text-yellow-200 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                API offline
+              </span>
+            )}
+          </div>
+          
+          {/* Call to Action */}
+          <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105">
+            Leer más
+          </button>
         </div>
       </div>
 
-      {/* Enhanced Navigation Arrows */}
+      {/* Enhanced Navigation Controls - Bottom Row */}
       {news.length > 1 && (
-        <>
+        <div className="absolute bottom-4 left-0 right-0 z-50 flex items-center justify-between px-6">
+          {/* Left Arrow */}
           <button
             onClick={goPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-50 p-3 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
             aria-label="Artículo anterior"
           >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={goNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-50 p-3 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
-            aria-label="Siguiente artículo"
-          >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Dots Indicator - Bottom Progress Bar */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 flex gap-2">
+          {/* Dots Indicator - Center */}
+          <div className="flex gap-2">
             {news.map((_, index) => (
               <button
                 key={index}
@@ -265,14 +308,23 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
                 }}
                 className={`transition-all duration-300 rounded-full ${
                   index === current
-                    ? "w-8 h-2 bg-white"
-                    : "w-2 h-2 bg-white/50 hover:bg-white/70"
+                    ? "w-10 h-2 bg-white shadow-lg"
+                    : "w-2 h-2 bg-white/50 hover:bg-white/70 hover:scale-125"
                 }`}
                 aria-label={`Ir al artículo ${index + 1}`}
               />
             ))}
           </div>
-        </>
+
+          {/* Right Arrow */}
+          <button
+            onClick={goNext}
+            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            aria-label="Siguiente artículo"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       )}
     </div>
   );

@@ -89,7 +89,7 @@ const GalleraDetailPage: React.FC = () => {
       case "bronze":
         return "text-orange-400 bg-orange-500/20 border-orange-500/50";
       default:
-        return "text-green-400 bg-green-500/20 border-green-500/50";
+        return "text-green-600 bg-green-500/20 border-green-500/50";
     }
   };
 
@@ -172,7 +172,7 @@ const GalleraDetailPage: React.FC = () => {
         {/* Back Navigation */}
         <button
           onClick={() => navigate("/galleras")}
-          className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors"
+          className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors btn-primary !rounded-l-none btn-primary !rounded-l-none"
         >
           <ChevronLeft className="w-4 h-4" />
           Volver a Instituciones
@@ -233,7 +233,7 @@ const GalleraDetailPage: React.FC = () => {
                   {specialties.map((specialty, index) => (
                     <span
                       key={index}
-                      className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-xs font-medium"
+                      className="bg-blue-500/20 text-blue-600 px-2 py-1 rounded-full text-xs font-medium"
                     >
                       {specialty}
                     </span>
@@ -248,8 +248,8 @@ const GalleraDetailPage: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <BookOpen className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-blue-400 font-medium">
+              <BookOpen className="w-4 h-4 text-blue-600" />
+              <span className="text-xs text-blue-600 font-medium">
                 Artículos
               </span>
             </div>
@@ -282,8 +282,8 @@ const GalleraDetailPage: React.FC = () => {
 
           <Card className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-green-400 font-medium">
+              <Calendar className="w-4 h-4 text-green-600" />
+              <span className="text-xs text-green-600 font-medium">
                 Fundada
               </span>
             </div>
@@ -298,7 +298,7 @@ const GalleraDetailPage: React.FC = () => {
         {/* Articles Section */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-400" />
+            <BookOpen className="w-5 h-5 text-blue-600" />
             Artículos y Conocimientos
           </h2>
 
@@ -354,7 +354,7 @@ const GalleraDetailPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-theme-light">Estado de certificación:</span>
               <span
-                className={`font-medium ${isCertified ? "text-green-400" : "text-amber-400"}`}
+                className={`font-medium ${isCertified ? "text-green-600" : "text-amber-600"}`}
               >
                 {isCertified ? "Certificada" : "En certificación"}
               </span>

@@ -70,7 +70,7 @@ const ArticlePage: React.FC = () => {
       {/* Botón volver */}
       <button
         onClick={() => navigate("/news")}
-        className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors"
+        className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors btn-primary !rounded-l-none"
       >
         <ChevronLeft className="w-4 h-4" />
         Volver a Noticias

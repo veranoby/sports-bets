@@ -180,7 +180,7 @@ const SubscriptionsPage: React.FC = () => {
               disabled={loading}
             >
               {subscription.autoRenew ? (
-                <ToggleRight className="w-5 h-5 text-green-400" />
+                <ToggleRight className="w-5 h-5 text-green-600" />
               ) : (
                 <ToggleLeft className="w-5 h-5 text-gray-400" />
               )}
@@ -242,7 +242,7 @@ const SubscriptionsPage: React.FC = () => {
               <ul className="space-y-2 mb-6">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start text-sm">
-                    <Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
                     <span className="text-theme-light">{feature}</span>
                   </li>
                 ))}

@@ -172,7 +172,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
   const getHealthStatusColor = (status: string) => {
     switch (status) {
       case "healthy":
-        return "text-green-400 bg-green-500/10 border-green-500/20";
+        return "text-green-600 bg-green-500/10 border-green-500/20";
       case "degraded":
         return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
       case "error":
@@ -211,7 +211,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
               </div>
             </div>
 
-            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-blue-400">
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-blue-600">
               <div className="text-sm font-medium">Active Streams</div>
               <div className="text-lg font-semibold">
                 {systemHealth.activeStreams} /{" "}
@@ -302,7 +302,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     title="Copy stream key"
                   >
                     {copiedField === "streamKey" ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-green-600" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -329,7 +329,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     title="Copy RTMP URL"
                   >
                     {copiedField === "rtmpUrl" ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-green-600" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -375,7 +375,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
                     className="p-2 text-gray-400 hover:text-white transition-colors"
                   >
                     {copiedField === "server" ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-green-600" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -404,7 +404,7 @@ const RTMPConfig: React.FC<RTMPConfigProps> = ({
               <ol className="space-y-1 text-sm text-gray-400">
                 {obsConfig.instructions.map((instruction, index) => (
                   <li key={index} className="flex items-start">
-                    <span className="text-blue-400 mr-2">{index + 1}.</span>
+                    <span className="text-blue-600 mr-2">{index + 1}.</span>
                     <span>{instruction}</span>
                   </li>
                 ))}

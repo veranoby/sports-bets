@@ -73,8 +73,8 @@ const VenueCard = React.memo(
         <div className="flex items-center justify-between mb-3 relative z-10">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Building className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-medium text-blue-400">Local</span>
+              <Building className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-medium text-blue-600">Local</span>
               {venue.isVerified && (
                 <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
               )}
@@ -129,7 +129,7 @@ const VenueCard = React.memo(
                 {venue.activeEvents > 1 ? "Eventos" : "Evento"}
               </span>
             ) : isEstablished ? (
-              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full whitespace-nowrap">
+              <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-1 rounded-full whitespace-nowrap">
                 Tradicional
               </span>
             ) : null}
@@ -157,7 +157,7 @@ const VenueCard = React.memo(
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c9536]/20">
           <div className="flex items-center gap-3">
             {venue.articlesCount !== undefined && (
-              <span className="text-xs text-green-400 flex items-center gap-1">
+              <span className="text-xs text-green-600 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 {venue.articlesCount} artículos
               </span>
@@ -344,9 +344,9 @@ const VenuesPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                        <Sparkles className="w-3 h-3 text-blue-400" />
+                        <Sparkles className="w-3 h-3 text-blue-600" />
                         <span
-                          className={`font-medium ${venue.isVerified ? "text-green-400" : "text-amber-400"}`}
+                          className={`font-medium ${venue.isVerified ? "text-green-600" : "text-amber-600"}`}
                         >
                           {venue.isVerified ? "Verificado" : "En Verificación"}
                         </span>
@@ -419,25 +419,23 @@ const VenuesPage: React.FC = () => {
           {/* Title and Stat Chips */}
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-              <Building className="w-6 h-6 text-blue-400" />
+              <Building className="w-6 h-6 text-blue-600" />
               Locales de Eventos
-            </h1>
-            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="text-gray-400">Total:</span>
+                <span className="font-bold text-gray-100">Total:</span>
                 <span className="font-bold text-white">{venues.length}</span>
               </div>
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="text-gray-400">Verificados:</span>
+                <span className="font-bold text-gray-100">Verificados:</span>
                 <span className="font-bold text-white">
                   {venues.filter((v) => v.isVerified).length}
                 </span>
-              </div>
-            </div>
+            </div>            </h1>
+
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="card-background p-4 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <SearchInput
                 placeholder="Buscar locales por nombre o ubicación..."

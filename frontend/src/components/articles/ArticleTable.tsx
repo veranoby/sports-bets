@@ -19,9 +19,9 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
 }) => {
   const getStatusBadge = (status: string) => {
     const styles = {
-      published: "bg-green-500/20 text-green-400",
+      published: "bg-green-500/20 text-green-600",
       draft: "bg-yellow-500/20 text-yellow-400",
-      pending: "bg-blue-500/20 text-blue-400",
+      pending: "bg-blue-500/20 text-blue-600",
       archived: "bg-gray-500/20 text-gray-400",
     };
     const labels = {
@@ -86,7 +86,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onPreview(article)}
-                    className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded"
+                    className="p-1.5 text-blue-600 hover:bg-blue-500/20 rounded"
                     title="Vista previa"
                   >
                     <Eye className="w-4 h-4" />

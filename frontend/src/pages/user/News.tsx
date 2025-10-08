@@ -121,7 +121,7 @@ const NewsPage: React.FC = () => {
 
                   <div className="space-y-3 flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full font-medium">
                         Publicado
                       </span>
                       <span className="text-xs text-theme-light">

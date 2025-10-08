@@ -652,7 +652,7 @@ const AdminArticlesPage: React.FC = () => {
                             onClick={() =>
                               handleToggleStatus(article.id, article.status)
                             }
-                            className="p-1 text-green-400 hover:text-green-600"
+                            className="p-1 text-green-600 hover:text-green-600"
                             title="Publicar"
                           >
                             <CheckCircle className="w-4 h-4" />

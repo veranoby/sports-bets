@@ -191,18 +191,18 @@ const UserHeader = memo(() => {
               </span>
             </span>
           </div>
-          
+
           {/* Role badge */}
           <span
             onClick={() => navigate("/profile")}
             className="text-xs px-3 py-1.5 bg-[#f0f9ff] rounded-full text-[#2a325c] flex items-center gap-1.5 cursor-pointer hover:bg-[#8ba3bc7e]/30 transition-all duration-200 border border-[#bdd5ef75]"
           >
-            <span className="font-medium uppercase tracking-wide">{user.role}</span>
-            {isPremium && (
-              <Crown className="w-3.5 h-3.5 text-amber-500" />
-            )}
+            <span className="font-medium uppercase tracking-wide">
+              {user.role}
+            </span>
+            {isPremium && <Crown className="w-3.5 h-3.5 text-amber-500" />}
           </span>
-          
+
           {/* Role-specific info chips */}
           {user.role === "user" && isBettingEnabled && (
             <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ const UserHeader = memo(() => {
               </span>
             </div>
           )}
-          
+
           {user.role === "admin" && (
             <div className="flex items-center gap-2">
               <span className="text-xs px-3 py-1.5 bg-purple-100 text-purple-800 rounded-full flex items-center gap-1.5 font-medium">
@@ -298,9 +298,13 @@ const UserHeader = memo(() => {
                   <div className="max-h-80 overflow-y-auto">
                     {activeBets.length === 0 ? (
                       <div className="p-6 text-center text-gray-500">
-                        <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50 text-blue-400" />
-                        <p className="text-sm font-medium">No tienes apuestas activas</p>
-                        <p className="text-xs mt-1">Las apuestas aparecerán aquí cuando las crees</p>
+                        <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50 text-blue-600" />
+                        <p className="text-sm font-medium">
+                          No tienes apuestas activas
+                        </p>
+                        <p className="text-xs mt-1">
+                          Las apuestas aparecerán aquí cuando las crees
+                        </p>
                       </div>
                     ) : (
                       <div className="flex flex-col">
@@ -313,7 +317,9 @@ const UserHeader = memo(() => {
                               <div className="flex justify-between items-center">
                                 <div>
                                   <div className="font-medium text-gray-900 text-sm flex items-center gap-2">
-                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${bet.side === "red" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}`}>
+                                    <span
+                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${bet.side === "red" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}`}
+                                    >
                                       {bet.side === "red" ? "🔴" : "🔵"}
                                     </span>
                                     <span>${bet.amount}</span>
@@ -323,10 +329,13 @@ const UserHeader = memo(() => {
                                   </div>
                                 </div>
                                 <div className="text-xs text-gray-400">
-                                  {new Date(bet.createdAt).toLocaleDateString('es-ES', {
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
+                                  {new Date(bet.createdAt).toLocaleDateString(
+                                    "es-ES",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -358,7 +367,7 @@ const UserHeader = memo(() => {
               className="flex items-center justify-center p-2.5 h-10 bg-white border border-[#bdd5ef75] rounded-lg hover:bg-[#f0f9ff] transition-all duration-200 shadow-sm hover:shadow-md relative"
             >
               <Bell className="w-4 h-4 text-yellow-600" />
-              {notifications.some(n => n.status === "unread") && (
+              {notifications.some((n) => n.status === "unread") && (
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
@@ -388,8 +397,12 @@ const UserHeader = memo(() => {
                   {notifications.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">
                       <Bell className="w-12 h-12 mx-auto mb-3 opacity-50 text-yellow-400" />
-                      <p className="text-sm font-medium">No hay notificaciones</p>
-                      <p className="text-xs mt-1">Las notificaciones importantes aparecerán aquí</p>
+                      <p className="text-sm font-medium">
+                        No hay notificaciones
+                      </p>
+                      <p className="text-xs mt-1">
+                        Las notificaciones importantes aparecerán aquí
+                      </p>
                     </div>
                   ) : (
                     <div className="p-3 space-y-2">
@@ -416,11 +429,13 @@ const UserHeader = memo(() => {
                             )}
                           </div>
                           <div className="text-xs text-gray-400 mt-2">
-                            {new Date(notification.createdAt).toLocaleDateString('es-ES', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
+                            {new Date(
+                              notification.createdAt,
+                            ).toLocaleDateString("es-ES", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                             })}
                           </div>
                         </div>

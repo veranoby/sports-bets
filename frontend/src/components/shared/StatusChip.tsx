@@ -65,7 +65,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -73,7 +73,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -81,7 +81,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -89,7 +89,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -97,7 +97,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -105,7 +105,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -113,7 +113,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-green-500/20 text-green-500", // bg-theme-success/20 text-theme-success
       indicator: {
         color: "bg-green-500",
-        textColor: "text-green-400",
+        textColor: "text-green-600",
         pulse: false,
       },
     },
@@ -123,7 +123,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-[#cd6263]/20 text-[#cd6263]", // bg-theme-secondary/20 text-theme-secondary
       indicator: {
         color: "bg-blue-500",
-        textColor: "text-blue-400",
+        textColor: "text-blue-600",
         pulse: true,
       },
     },
@@ -139,7 +139,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
       chip: "bg-blue-100 text-blue-800",
       indicator: {
         color: "bg-blue-500",
-        textColor: "text-blue-400",
+        textColor: "text-blue-600",
         pulse: true,
       },
     },

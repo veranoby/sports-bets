@@ -92,11 +92,11 @@ const ChatComponent = memo(({ eventId }: { eventId?: string }) => (
     <h3 className="text-theme-primary font-semibold mb-3">Chat en Vivo</h3>
     <div className="space-y-2 max-h-40 overflow-y-auto">
       <div className="text-sm">
-        <span className="text-blue-400 font-medium">Usuario123:</span>
+        <span className="text-blue-600 font-medium">Usuario123:</span>
         <span className="text-theme-light ml-2">¡Vamos El Campeón!</span>
       </div>
       <div className="text-sm">
-        <span className="text-green-400 font-medium">Apostador456:</span>
+        <span className="text-green-600 font-medium">Apostador456:</span>
         <span className="text-theme-light ml-2">Gran pelea 🔥</span>
       </div>
     </div>
@@ -139,7 +139,7 @@ const BettingPanel = memo(
                   <p className="text-sm text-theme-light">Cuota: {bet.odds}x</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-400">${bet.amount}</p>
+                  <p className="font-bold text-green-600">${bet.amount}</p>
                   <p className="text-xs text-theme-light">{bet.createdBy}</p>
                 </div>
               </div>
@@ -418,7 +418,7 @@ const LiveEvent = () => {
               <h3 className="font-semibold text-theme-primary">Pelea Actual</h3>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm">En curso</span>
+                <span className="text-green-600 text-sm">En curso</span>
               </div>
             </div>
 
@@ -450,7 +450,7 @@ const LiveEvent = () => {
         {/* ✅ Stats rápidas */}
         <div className="mx-4 mb-4 grid grid-cols-3 gap-3">
           <div className="card-background p-3 rounded-lg text-center">
-            <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+            <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
             <p className="text-sm text-theme-light">Peleas</p>
             <p className="font-bold text-theme-primary">
               {currentEvent.completedFights}/{currentEvent.totalFights}
@@ -458,7 +458,7 @@ const LiveEvent = () => {
           </div>
 
           <div className="card-background p-3 rounded-lg text-center">
-            <Users className="w-5 h-5 text-green-400 mx-auto mb-1" />
+            <Users className="w-5 h-5 text-green-600 mx-auto mb-1" />
             <p className="text-sm text-theme-light">Espectadores</p>
             <p className="font-bold text-theme-primary">
               {currentEvent.currentViewers || 0}
@@ -542,9 +542,9 @@ const LiveEvent = () => {
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             bet.status === "active"
-                              ? "bg-blue-500/20 text-blue-400"
+                              ? "bg-blue-500/20 text-blue-600"
                               : bet.status === "won"
-                                ? "bg-green-500/20 text-green-400"
+                                ? "bg-green-500/20 text-green-600"
                                 : "bg-red-500/20 text-red-400"
                           }`}
                         >

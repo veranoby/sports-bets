@@ -37,7 +37,7 @@ interface CardProps {
   loading?: boolean;
   disabled?: boolean;
   highlighted?: boolean;
-  
+
   // Chip variant
   chipVariant?: boolean;
 }
@@ -85,8 +85,9 @@ const Card: React.FC<CardProps> = ({
 
   // Clases base para chips usando Tailwind
   const getChipBaseClasses = () => {
-    const baseClasses = "inline-flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200";
-    
+    const baseClasses =
+      "inline-flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200";
+
     switch (variant) {
       case "stat":
         return `${baseClasses} bg-[#f8fafc] border border-[#bdd5ef75]`; // bg-theme-card border-[#596c95]
@@ -114,7 +115,7 @@ const Card: React.FC<CardProps> = ({
         return "p-6";
     }
   };
-  
+
   // Clases de tamaño para chips usando Tailwind
   const getChipSizeClasses = () => {
     switch (size) {
@@ -297,18 +298,12 @@ const Card: React.FC<CardProps> = ({
 
     return (
       <div className={cardClasses} onClick={handleClick}>
-        {icon && (
-          <div className={`${colors.icon}`}>
-            {renderIcon()}
-          </div>
-        )}
+        {icon && <div className={`${colors.icon}`}>{renderIcon()}</div>}
         <div className="flex flex-col">
           {title && <span className="font-medium">{title}</span>}
           <div className="flex items-center gap-2">
             {value && (
-              <span className={`font-bold ${colors.accent}`}>
-                {value}
-              </span>
+              <span className={`font-bold ${colors.accent}`}>{value}</span>
             )}
             {renderTrend()}
           </div>

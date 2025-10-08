@@ -81,7 +81,7 @@ const GalleraCard = React.memo(
         case "bronze":
           return <Award className="w-3 h-3 text-orange-400" />;
         default:
-          return <Shield className="w-3 h-3 text-green-400" />;
+          return <Shield className="w-3 h-3 text-green-600" />;
       }
     };
 
@@ -108,7 +108,7 @@ const GalleraCard = React.memo(
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               {getPremiumIcon(gallera.premiumLevel)}
-              <span className="text-xs font-medium text-green-400">
+              <span className="text-xs font-medium text-green-600">
                 Institución
               </span>
               {gallera.isCertified && (
@@ -177,7 +177,7 @@ const GalleraCard = React.memo(
               {gallera.name}
             </h3>
             {isEstablished && (
-              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full whitespace-nowrap">
+              <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-1 rounded-full whitespace-nowrap">
                 Histórica
               </span>
             )}
@@ -198,7 +198,7 @@ const GalleraCard = React.memo(
               {gallera.specialties.slice(0, 3).map((specialty, index) => (
                 <span
                   key={index}
-                  className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full"
+                  className="text-xs bg-blue-500/20 text-blue-600 px-2 py-1 rounded-full"
                 >
                   {specialty}
                 </span>
@@ -218,7 +218,7 @@ const GalleraCard = React.memo(
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c9536]/20">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-green-400 flex items-center gap-1">
+            <span className="text-xs text-green-600 flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
               {gallera.articlesCount} artículos
             </span>
@@ -383,7 +383,7 @@ const GallerasPage: React.FC = () => {
         <div className="p-4">
           <button
             onClick={() => navigate("/galleras")}
-            className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary mb-4 transition-colors"
+            className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary mb-4 transition-colors btn-primary"
           >
             <ChevronRight className="w-4 h-4 rotate-180" />
             Volver a Instituciones
@@ -446,9 +446,9 @@ const GallerasPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                        <Sparkles className="w-3 h-3 text-green-400" />
+                        <Sparkles className="w-3 h-3 text-green-600" />
                         <span
-                          className={`font-medium ${gallera.isCertified ? "text-green-400" : "text-amber-400"}`}
+                          className={`font-medium ${gallera.isCertified ? "text-green-600" : "text-amber-600"}`}
                         >
                           {gallera.isCertified
                             ? "Certificada"
@@ -456,7 +456,7 @@ const GallerasPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                        <Award className="w-3 h-3 text-blue-400" />
+                        <Award className="w-3 h-3 text-blue-600" />
                         <span className="text-gray-300 capitalize">
                           {gallera.premiumLevel || "Estándar"}
                         </span>
@@ -529,25 +529,23 @@ const GallerasPage: React.FC = () => {
           {/* Title and Stat Chips */}
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-              <Shield className="w-6 h-6 text-green-400" />
+              <Shield className="w-6 h-6 text-green-600" />
               Instituciones Criadoras
-            </h1>
-            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="text-gray-400">Total:</span>
+                <span className="font-bold text-gray-100">Total:</span>
                 <span className="font-bold text-white">{galleras.length}</span>
               </div>
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="text-gray-400">Certificadas:</span>
+                <span className="font-bold text-gray-100">Certificadas:</span>
                 <span className="font-bold text-white">
                   {galleras.filter((g) => g.isCertified).length}
                 </span>
               </div>
-            </div>
-          </div>
+              </h1>
+             </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 card-background p-4">
             <div className="flex-1">
               <SearchInput
                 placeholder="Buscar instituciones criadoras..."

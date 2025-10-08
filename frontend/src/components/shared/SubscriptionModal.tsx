@@ -104,7 +104,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       size="lg"
     >
       {subscription && (
-        <div className={`mb-6 p-4 rounded-lg border ${getStatusColorClasses(subscription.status || "active")}`}>
+        <div
+          className={`mb-6 p-4 rounded-lg border ${getStatusColorClasses(subscription.status || "active")}`}
+        >
           <div className="flex items-center">
             <Crown className="w-5 h-5 mr-2" />
             <div>
@@ -131,9 +133,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             onClick={() => setSelectedPlan(plan.id)}
             className={`
               p-6 rounded-lg border cursor-pointer transition-all duration-200
-              ${selectedPlan === plan.id 
-                ? "border-[#cd6263] bg-[#cd6263]/10" // color-secondary
-                : "border-gray-200 dark:border-gray-700 hover:border-[#596c95] hover:bg-[#596c95]/5" // color-primary
+              ${
+                selectedPlan === plan.id
+                  ? "border-[#cd6263] bg-[#cd6263]/10" // color-secondary
+                  : "border-gray-200 dark:border-gray-700 hover:border-[#596c95] hover:bg-[#596c95]/5" // color-primary
               }
               ${plan.recommended ? "ring-2 ring-[#596c95]/50 relative" : ""}
             `}
@@ -158,14 +161,18 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   /{plan.durationUnit === "hours" ? "24h" : "30d"}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{plan.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {plan.description}
+              </p>
             </div>
 
             <ul className="space-y-2">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-center text-sm">
                   <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {feature}
+                  </span>
                 </li>
               ))}
             </ul>

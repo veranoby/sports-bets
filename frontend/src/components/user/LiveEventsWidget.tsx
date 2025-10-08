@@ -91,7 +91,7 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
             <div
               className={`flex items-center text-xs ${
                 event.stats.popularityTrend === "up"
-                  ? "text-green-400"
+                  ? "text-green-600"
                   : event.stats.popularityTrend === "down"
                     ? "text-red-400"
                     : "text-yellow-400"
@@ -122,7 +122,7 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
       <div className="grid grid-cols-2 gap-2 mb-3">
         {/* Espectadores con tendencia */}
         <div className="flex items-center gap-1">
-          <Users className="w-4 h-4 text-blue-400" />
+          <Users className="w-4 h-4 text-blue-600" />
           <span className="text-sm text-theme-light">
             {event.currentViewers || 0}
           </span>
@@ -130,7 +130,7 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
             <span
               className={`text-xs px-1 rounded ${
                 viewerTrend.trend === "high"
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-green-500/20 text-green-600"
                   : viewerTrend.trend === "medium"
                     ? "bg-yellow-500/20 text-yellow-400"
                     : "bg-red-500/20 text-red-400"
@@ -143,7 +143,7 @@ const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
 
         {/* Apuestas activas */}
         <div className="flex items-center gap-1">
-          <Activity className="w-4 h-4 text-green-400" />
+          <Activity className="w-4 h-4 text-green-600" />
           <span className="text-sm text-theme-light">
             {event.activeBets || 0} apuestas
           </span>
@@ -362,7 +362,7 @@ const LiveEventsWidget: React.FC = () => {
             <div className="text-xs text-theme-light">Eventos Activos</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400">
+            <div className="text-2xl font-bold text-blue-600">
               {sortedEvents.reduce(
                 (sum, e) => sum + (e.currentViewers || 0),
                 0,
@@ -371,7 +371,7 @@ const LiveEventsWidget: React.FC = () => {
             <div className="text-xs text-theme-light">Total Espectadores</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">
+            <div className="text-2xl font-bold text-green-600">
               {sortedEvents.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
             </div>
             <div className="text-xs text-theme-light">Apuestas Activas</div>

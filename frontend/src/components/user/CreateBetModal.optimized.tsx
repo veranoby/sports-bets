@@ -6,7 +6,15 @@
 import { useState, useEffect } from "react";
 import { useBets } from "../../hooks/useApi";
 import Modal from "../shared/Modal";
-import { ChevronDown, ChevronUp, DollarSign, Zap, Users, Trophy, Award } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  DollarSign,
+  Zap,
+  Users,
+  Trophy,
+  Award,
+} from "lucide-react";
 import type { Bet, BetData } from "../../types";
 
 const CreateBetModal = ({
@@ -119,7 +127,7 @@ const CreateBetModal = ({
                 onClick={() => setSide("blue")}
                 className={`flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-200 ${
                   side === "blue"
-                    ? "bg-blue-500/20 border-2 border-blue-500 text-blue-400 font-medium shadow-md"
+                    ? "bg-blue-500/20 border-2 border-blue-500 text-blue-600 font-medium shadow-md"
                     : "bg-[#2a325c] border border-[#596c95] text-gray-300 hover:bg-[#596c95]/20"
                 }`}
               >
@@ -228,16 +236,16 @@ const CreateBetModal = ({
             <div className="p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-xl border border-green-500/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-green-400" />
-                  <span className="text-green-400 font-medium">
+                  <Trophy className="w-5 h-5 text-green-600" />
+                  <span className="text-green-600 font-medium">
                     Ganancia Potencial
                   </span>
                 </div>
-                <span className="text-xl font-bold text-green-400">
+                <span className="text-xl font-bold text-green-600">
                   ${(Number(amount) + Number(doyAmount)).toFixed(2)}
                 </span>
               </div>
-              <p className="text-xs text-green-400 mt-1">
+              <p className="text-xs text-green-600 mt-1">
                 Incluye tu apuesta original + ganancia DOY
               </p>
             </div>
@@ -277,7 +285,8 @@ const CreateBetModal = ({
                 >
                   <div>
                     <div className="font-medium text-white">
-                      ${bet.amount} - {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                      ${bet.amount} -{" "}
+                      {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
                       ID: {bet.id.substring(0, 8)}...
@@ -302,8 +311,9 @@ const CreateBetModal = ({
             <div className="space-y-5">
               <div className="p-4 bg-[#2a325c] rounded-xl border border-[#596c95]">
                 <div className="font-medium text-white mb-2 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-blue-400" />
-                  Apuesta Original: ${amount} - {side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                  <Award className="w-5 h-5 text-blue-600" />
+                  Apuesta Original: ${amount} -{" "}
+                  {side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                 </div>
                 <div className="text-sm text-gray-400">
                   ID: {pagoProposal.bet.id.substring(0, 8)}...
@@ -320,7 +330,10 @@ const CreateBetModal = ({
                     type="number"
                     value={pagoProposal.amount}
                     onChange={(e) =>
-                      setPagoProposal({ ...pagoProposal, amount: e.target.value })
+                      setPagoProposal({
+                        ...pagoProposal,
+                        amount: e.target.value,
+                      })
                     }
                     className="w-full bg-[#2a325c] text-white p-3 pl-10 rounded-xl border border-[#596c95] focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:border-transparent transition-all duration-200"
                     required
@@ -329,7 +342,8 @@ const CreateBetModal = ({
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  El monto PAGO debe ser menor a tu apuesta principal (${amount})
+                  El monto PAGO debe ser menor a tu apuesta principal (${amount}
+                  )
                 </p>
               </div>
 
@@ -345,7 +359,10 @@ const CreateBetModal = ({
                   type="button"
                   onClick={handleSubmitPago}
                   className="flex-1 px-4 py-3 bg-[#cd6263] hover:bg-[#cd6263]/90 text-white rounded-xl transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-                  disabled={Number(pagoProposal.amount) >= Number(amount) || !pagoProposal.amount}
+                  disabled={
+                    Number(pagoProposal.amount) >= Number(amount) ||
+                    !pagoProposal.amount
+                  }
                 >
                   Enviar
                 </button>

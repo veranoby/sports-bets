@@ -179,7 +179,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
                       article.status === "pending") && (
                       <button
                         onClick={() => onOpenEditModal(article)}
-                        className="p-2 text-blue-400 hover:text-blue-600 transition-colors"
+                        className="p-2 text-blue-600 hover:text-blue-600 transition-colors"
                         title="Editar"
                       >
                         <Edit className="w-4 h-4" />

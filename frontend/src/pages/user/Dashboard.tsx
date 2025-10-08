@@ -282,7 +282,7 @@ const Dashboard: React.FC = () => {
           <div className="card-background p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-400" />
+                <Calendar className="w-5 h-5 text-blue-600" />
                 Próximos Eventos
               </h2>
               <button

@@ -39,11 +39,11 @@ const ArticleCard = React.memo(
     const getStatusColor = (status: string) => {
       switch (status) {
         case "published":
-          return "text-green-400";
+          return "text-green-600";
         case "draft":
           return "text-yellow-400";
         case "pending":
-          return "text-blue-400";
+          return "text-blue-600";
         case "archived":
           return "text-gray-400";
         default:
@@ -119,7 +119,7 @@ const ArticleCard = React.memo(
                 e.stopPropagation();
                 onPreview();
               }}
-              className="text-blue-400 hover:text-blue-300 p-1 rounded transition-colors"
+              className="text-blue-600 hover:text-blue-300 p-1 rounded transition-colors"
               title="Previsualizar"
             >
               <Eye className="w-4 h-4" />
@@ -157,7 +157,7 @@ const ArticleCard = React.memo(
           </div>
 
           {article.status === "published" && article.published_at && (
-            <span className="text-xs text-green-400">Publicado</span>
+            <span className="text-xs text-green-600">Publicado</span>
           )}
         </div>
       </div>
@@ -425,7 +425,7 @@ const ArticleManagement: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-theme-light">Publicados:</span>
-              <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-green-500/20 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
                 {articlesByStatus.published.length}
               </span>
             </div>
