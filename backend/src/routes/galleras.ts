@@ -75,6 +75,7 @@ router.get(
 router.post(
   "/",
   authenticate,
+  authorize("admin", "gallera"),
   [
     body("name")
       .isLength({ min: 3, max: 255 })
@@ -140,6 +141,7 @@ router.post(
 router.put(
   "/:id",
   authenticate,
+  authorize("admin", "gallera"),
   [
     body("name")
       .optional()

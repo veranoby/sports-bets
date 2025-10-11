@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate } from "../middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Bet, Fight, Event, User, Wallet, Transaction } from "../models";
 import { body, validationResult } from "express-validator";
@@ -600,6 +600,7 @@ router.post(
 router.put(
   "/:id/accept-proposal",
   authenticate,
+  authorize("user", "admin"),
   asyncHandler(async (req, res) => {
     await transaction(async (t) => {
       const originalBet = await Bet.findByPk(req.params.id, { transaction: t });

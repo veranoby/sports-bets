@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import { User, Wallet } from "../models";
 import { Subscription } from "../models/Subscription";
 import { errors, asyncHandler } from "../middleware/errorHandler";
@@ -12,6 +13,18 @@ import crypto from "crypto";
 import * as emailService from "../services/emailService";
 
 const router = Router();
+
+// Rate limiting for authentication endpoints (prevents brute-force attacks)
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per window
+  message: {
+    success: false,
+    message: 'Too many authentication attempts, please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Validaciones para registro
 const registerValidation = [
@@ -55,6 +68,7 @@ const generateToken = (userId: string): string => {
 // POST /api/auth/register - Registro de usuario
 router.post(
   "/register",
+  authRateLimit,
   registerValidation,
   asyncHandler(async (req, res) => {
     // Verificar errores de validación
@@ -130,6 +144,7 @@ router.post(
 // POST /api/auth/login - Login de usuario
 router.post(
   "/login",
+  authRateLimit,
   loginValidation,
   asyncHandler(async (req, res) => {
     // Verificar errores de validación
@@ -261,6 +276,7 @@ router.post(
 // POST /api/auth/change-password - Cambiar contraseña
 router.post(
   "/change-password",
+  authRateLimit,
   authenticate,
   [
     body("currentPassword")
