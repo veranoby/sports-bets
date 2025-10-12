@@ -43,12 +43,13 @@ router.get(
   asyncHandler(async (req, res) => {
     const fight = await Fight.findByPk(req.params.id, {
       include: [
-        { model: Event, as: "event" },
+        { model: Event, as: "event", separate: false },
         {
           model: Bet,
           as: "bets",
+          separate: false,
           include: [
-            { model: User, as: "user", attributes: ["id", "username"] },
+            { model: User, as: "user", attributes: ["id", "username"], separate: false },
           ],
         },
       ],

@@ -542,10 +542,10 @@ export const adminAPI = {
       membership_type: string;
       assigned_username: string;
     },
-  ) => apiClient.put(`/admin/users/${userId}/membership`, data),
+  ) => apiClient.put(`/subscriptions/admin/${userId}/membership`, data),
 
   getUserMembership: (userId: string) =>
-    apiClient.get(`/admin/users/${userId}/membership`),
+    apiClient.get(`/subscriptions/admin/${userId}/membership`),
 
   getMembershipStats: () => apiClient.get("/admin/membership/stats"),
 };

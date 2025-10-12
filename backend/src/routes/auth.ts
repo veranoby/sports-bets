@@ -226,6 +226,7 @@ router.get(
         {
           model: Wallet,
           as: "wallet",
+          separate: false,
         },
       ],
     });

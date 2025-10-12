@@ -83,6 +83,59 @@ Panel de control general para streams (usado principalmente por administradores)
 - Conexión a internet estable con al menos 5 Mbps de subida
 - Servidor de streaming RTMP corriendo (ver instrucciones adicionales más abajo)
 
+## Configuración de Red y Firewall
+
+### Puertos Requeridos
+| Puerto | Protocolo | Uso | Requerido Para |
+|--------|-----------|-----|----------------|
+| 1935 | TCP | RTMP | Streaming desde OBS |
+| 8000 | TCP | HTTP/HLS | Reproducción para usuarios |
+| 3001 | TCP | HTTP/API | Backend API |
+| 5432 | TCP | PostgreSQL | Database (interno) |
+
+### Configurar Firewall (Ubuntu/Debian)
+```bash
+# Habilitar firewall
+sudo ufw enable
+
+# Abrir puertos requeridos
+sudo ufw allow 1935/tcp  # RTMP
+sudo ufw allow 8000/tcp  # HLS
+sudo ufw allow 3001/tcp  # API
+sudo ufw allow 22/tcp    # SSH
+
+# Verificar reglas
+sudo ufw status
+```
+
+### Verificar Puertos Abiertos
+```bash
+# Test RTMP (desde otra máquina)
+telnet YOUR-SERVER-IP 1935
+
+# Test HLS
+curl http://YOUR-SERVER-IP:8000/stat
+
+# Test API
+curl http://YOUR-SERVER-IP:3001/api/health
+```
+
+### Requisitos de Ancho de Banda
+- **Mínimo**: 5 Mbps subida (720p @ 2500 kbps)
+- **Recomendado**: 10 Mbps subida (estabilidad)
+- **Test velocidad**: https://speedtest.net
+
+### Solución de Problemas de Red
+**Problema: OBS no conecta**
+1. Verificar firewall: `sudo ufw status`
+2. Test puerto: `telnet SERVER-IP 1935`
+3. Verificar rtmp-server corriendo: `ps aux | grep rtmp`
+
+**Problema: HLS no funciona**
+1. Test puerto 8000: `curl http://SERVER-IP:8000/stat`
+2. Verificar logs rtmp-server
+3. Confirmar ffmpeg instalado: `ffmpeg -version`
+
 ## Parte 1: Preparación del Evento (Día anterior o el mismo día)
 
 ### Paso 1: Iniciar sesión en GALEROS.NET
@@ -117,7 +170,52 @@ Panel de control general para streams (usado principalmente por administradores)
 2. Ve a "Configuración" (Settings)
 3. Ve a la pestaña "Stream" (Transmitir)
 4. En "Service", selecciona "Custom..."
-5. En "Server", escribe: `rtmp://localhost:1935/live`
+5. En "Server", escribe: `rtmp://YOUR-DOMAIN.com:1935/live`
+   - **Desarrollo (localhost)**: `rtmp://localhost:1935/live`
+   - **Producción**: `rtmp://gallobets.com:1935/live` (usar tu dominio real)
+
+### Diferencia entre Desarrollo y Producción
+
+**Entorno de Desarrollo (Localhost)**:
+- RTMP: `rtmp://localhost:1935/live`
+- HLS: `http://localhost:8000/live/STREAM-KEY.m3u8`
+- Solo funciona en la misma máquina
+
+**Entorno de Producción**:
+- RTMP: `rtmp://YOUR-DOMAIN.com:1935/live`
+- HLS: `http://YOUR-DOMAIN.com:8000/live/STREAM-KEY.m3u8`
+- Accesible desde cualquier ubicación
+- Requiere dominio o IP pública
+
+## Gestión de Stream Keys
+
+### ¿Dónde Encontrar tu Stream Key?
+
+1. Iniciar sesión como admin/operador
+2. Ir a /admin/events
+3. Click en 'Gestionar' en el evento
+4. Tab 'Info General'
+5. Sección 'Stream Key' (campo de texto)
+
+### Generar una Nueva Stream Key
+
+1. Si el campo 'Stream Key' está vacío: Click 'Generate Key'
+2. Key generada automáticamente (formato: random-hash)
+3. Click 'Copy' para copiar al portapapeles
+
+### Usar la Key en OBS Studio
+
+1. Abrir OBS Studio → Settings → Stream
+2. Pegar stream key en campo 'Stream Key'
+3. Ejemplo: `a7f3e9c2d1b4f8e6a9c3d7e1f2b5c8a4`
+
+### Seguridad de Stream Keys
+
+⚠️ **Importante:**
+- NO compartir stream key públicamente
+- Regenerar key si se compromete
+- Cada evento puede tener key diferente
+- Keys expiran 24h después del evento
 6. En "Stream Key", escribe la clave que obtuviste en el paso anterior
 7. Haz clic en "OK"
 
@@ -203,7 +301,9 @@ Panel de control general para streams (usado principalmente por administradores)
 
 ### Problema: OBS no se conecta al streaming
 - Verifica que el servidor RTMP esté activo
-- Asegúrate de que escribiste correctamente la URL: `rtmp://localhost:1935/live`
+- Asegúrate de que escribiste correctamente la URL del servidor:
+  - **Desarrollo**: `rtmp://localhost:1935/live`
+  - **Producción**: `rtmp://YOUR-DOMAIN.com:1935/live`
 - Verifica que la clave de streaming sea correcta
 
 ### Problema: No puedo crear peleas

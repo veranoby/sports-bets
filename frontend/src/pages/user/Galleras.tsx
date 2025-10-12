@@ -541,8 +541,8 @@ const GallerasPage: React.FC = () => {
                   {galleras.filter((g) => g.isCertified).length}
                 </span>
               </div>
-              </h1>
-             </div>
+            </h1>
+          </div>
 
           {/* Search and Filters */}
           <div className="flex flex-col md:flex-row gap-4 card-background p-4">

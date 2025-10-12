@@ -5,11 +5,11 @@ import { Sequelize } from "sequelize";
 import { logger } from "./logger";
 import Redis from "redis";
 
-// Configuration for database optimization as per task_3_database_optimization
-// Optimized settings for Neon.tech to reduce ETIMEDOUT errors
-const MAX_CONNECTIONS = 10; // Reduced from 15 to prevent connection overload on Neon.tech
-const CONNECTION_TIMEOUT_MS = 45000; // Increased to 45 seconds to handle network latency
-const IDLE_CONNECTION_CLEANUP_MS = 5000; // Reduced to 5 seconds for faster cleanup
+// Configuration for database optimization - PRODUCTION READY
+// Optimized settings for Neon.tech with proper connection pool sizing
+const MAX_CONNECTIONS = 15; // Increased for production load handling
+const CONNECTION_TIMEOUT_MS = 30000; // Reduced to 30 seconds for faster failure detection
+const IDLE_CONNECTION_CLEANUP_MS = 5000; // 5 seconds for faster cleanup
 const EVICT_INTERVAL_MS = 15000; // Run eviction every 15 seconds for better connection management
 
 // Configuración optimizada para Neon.tech con timeouts ajustados

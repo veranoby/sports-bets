@@ -430,8 +430,8 @@ const VenuesPage: React.FC = () => {
                 <span className="font-bold text-white">
                   {venues.filter((v) => v.isVerified).length}
                 </span>
-            </div>            </h1>
-
+              </div>{" "}
+            </h1>
           </div>
 
           {/* Search and Filters */}

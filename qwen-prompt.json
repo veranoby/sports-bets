@@ -1,795 +1,294 @@
 {
   "metadata": {
-    "session_id": "backend-audit-2025-10-11",
+    "session_id": "optimization-testing-documentation-2025-10-12",
     "created_by": "Claude",
-    "purpose": "Comprehensive backend route security and validation audit",
-    "estimated_duration": "2 hours",
-    "coordination": "Claude (critical routes) + QWEN (secondary routes)",
+    "assigned_to": "QWEN",
+    "purpose": "Create testing scripts, execute load tests, document optimizations",
+    "estimated_duration": "6 hours over 2 days",
+    "coordination": "QWEN (scripts/tests/docs) → Claude (validation)",
     "version": "1.0"
   },
 
   "CRITICAL_INSTRUCTION": {
-    "progress_tracking": "QWEN MUST document EVERY finding IMMEDIATELY in progress_log after each file",
-    "no_modifications": "AUDIT ONLY - Do not modify any code, only document findings",
-    "immediate_reporting": "Update progress_log incrementally, not at end",
-    "learning_rule": "ALWAYS read brain/guide_for_using_the_system.json lines 245-354 BEFORE creating any JSON work. DO NOT assume knowledge of structure - VERIFY first."
+    "task_type": "TESTING & DOCUMENTATION ONLY - NO CODE MODIFICATIONS",
+    "forbidden": "NEVER modify backend or frontend code",
+    "allowed": "Create scripts, run tests, write documentation",
+    "progress_tracking": "Update progress_log after EACH task",
+    "validation": "Claude reviews all scripts before execution"
   },
 
-  "knowledge_verification": {
-    "brain_files_consulted": [
-      "api_endpoints_reference.json - Current endpoint structure",
-      "backlog.json - Development timeline and priorities",
-      "multi_ai_decision_matrix.json - Task assignment rules",
-      "sdd_system.json - System architecture and constraints"
-    ],
-    "implemented_components_affecting_task": [
-      "JWT authentication middleware (authenticate) in /middleware/auth.ts",
-      "Role-based authorization (authorize) in /middleware/auth.ts",
-      "Error handling with asyncHandler in /middleware/errorHandler.ts",
-      "Express-validator for input validation across routes",
-      "Sequelize ORM for database operations",
-      "Rate limiting middleware in place on some routes"
-    ],
-    "knowledge_gaps_identified": [
-      "Unknown: Current rate limiting configuration per route",
-      "Unknown: Actual test coverage percentage per route file",
-      "Unknown: Whether all routes use asyncHandler wrapper",
-      "Needs verification: CORS configuration for API endpoints"
-    ],
-    "project_phase_context": "MVP pre-production - Days 13-14 optimization phase per backlog.json"
+  "task_summary": {
+    "total_tasks": 6,
+    "estimated_hours": 6,
+    "scripts": "Load testing scripts (tasks 1-2)",
+    "testing": "Execute performance tests (task 3-4)",
+    "documentation": "Optimization summary report (tasks 5-6)"
   },
 
-  "purpose_and_requirements": {
-    "specific_purpose": "Identify security vulnerabilities, missing validations, and type safety issues in secondary backend routes before production deployment",
-    "functional_requirements": [
-      "Audit all CRUD endpoints in venues, galleras, articles, notifications, uploads routes",
-      "Verify express-validator rules exist for all input parameters",
-      "Confirm authenticate/authorize middleware on protected routes",
-      "Check asyncHandler wrapping all async route handlers",
-      "Document all findings with file:line_number references"
-    ],
-    "non_functional_requirements": {
-      "security": "All endpoints must have proper auth and input sanitization",
-      "performance": "Identify any N+1 query patterns or missing indexes",
-      "maintainability": "Code must follow project TypeScript conventions",
-      "auditability": "Every finding must be traceable to source code location"
-    }
-  },
+  "allowed_operations": [
+    "Create new files in scripts/ directory",
+    "Create documentation in claudedocs/",
+    "Execute read-only commands (tests, curl, monitoring)",
+    "Update this JSON's progress_log"
+  ],
 
-  "inputs_and_outputs": {
-    "inputs": {
-      "files_to_audit": [
-        "/home/veranoby/sports-bets/backend/src/routes/venues.ts",
-        "/home/veranoby/sports-bets/backend/src/routes/galleras.ts",
-        "/home/veranoby/sports-bets/backend/src/routes/articles.ts",
-        "/home/veranoby/sports-bets/backend/src/routes/notifications.ts",
-        "/home/veranoby/sports-bets/backend/src/routes/uploads.ts"
-      ],
-      "audit_criteria": {
-        "type": "object",
-        "validation_rules": [
-          "express-validator present on all POST/PUT/PATCH",
-          "authenticate middleware on all non-public routes",
-          "authorize with correct roles (admin, operator, etc)",
-          "asyncHandler on all async functions",
-          "Proper error messages without leaking internals"
-        ]
-      }
-    },
-    "expected_output_format": {
-      "progress_log": [
-        {
-          "timestamp": "ISO 8601 string",
-          "file": "absolute path",
-          "lines_audited": "number",
-          "findings": ["array of issues with line numbers"],
-          "recommendations": ["array of specific fixes"],
-          "status": "completed|blocked|needs_claude_review"
-        }
-      ],
-      "security_findings": {
-        "P0_CRITICAL": ["Missing auth on endpoint X:line Y"],
-        "P1_HIGH": ["Weak validation on field Z:line A"]
-      },
-      "validation_gaps": ["List of missing express-validator rules with locations"],
-      "type_safety_issues": ["TypeScript 'any' usages and unsafe casts"],
-      "performance_concerns": ["Potential N+1 queries or inefficient operations"],
-      "summary_statistics": {
-        "total_endpoints_audited": "number",
-        "critical_issues_found": "number",
-        "high_priority_issues": "number",
-        "medium_priority_issues": "number"
-      }
-    },
-    "edge_cases_to_handle": [
-      "Routes without middleware (document as critical)",
-      "Async functions without asyncHandler (potential unhandled rejections)",
-      "Missing types in route handlers (document all 'any' usages)",
-      "Endpoints accessible without authentication"
-    ]
-  },
-
-  "constraints_and_restrictions": {
-    "technical_limitations": [
-      "Cannot run actual tests - audit code only",
-      "Cannot modify forbidden files (auth.ts, subscriptions.ts, fights.ts, bets.ts, events.ts)",
-      "Must work within 2-hour time limit",
-      "No access to production logs or metrics"
-    ],
-    "business_restrictions": [
-      "MVP deadline Sep 21 - audit must not delay timeline",
-      "Cannot break existing functionality",
-      "Security findings must be prioritized for immediate fix"
-    ],
-    "compatibility_requirements": [
-      "Findings must integrate with existing error handling patterns",
-      "Recommendations must align with current middleware stack",
-      "Suggested fixes must use existing project dependencies (no new packages)"
-    ]
-  },
-
-  "apis_and_integrations": {
-    "internal_apis_to_understand": {
-      "authentication": {
-        "middleware": "/backend/src/middleware/auth.ts",
-        "functions": ["authenticate", "authorize(roles...)"],
-        "usage_pattern": "router.get('/path', authenticate, authorize('admin'), asyncHandler(...))"
-      },
-      "validation": {
-        "library": "express-validator",
-        "pattern": "[body('field').isString().withMessage('error')]",
-        "error_handling": "validationResult(req) in handler"
-      },
-      "error_handling": {
-        "wrapper": "asyncHandler from /middleware/errorHandler.ts",
-        "error_types": "errors.badRequest(), errors.notFound(), errors.forbidden()"
-      }
-    },
-    "database_schema_affected": {
-      "tables": ["venues", "galleras", "articles", "notifications"],
-      "models_location": "/backend/src/models/",
-      "sequelize_usage": "Model.findAll(), Model.create(), Model.update()"
-    },
-    "external_integrations": "None for this audit task"
-  },
-
-  "test_driven_development": {
-    "NOTE": "Audit task - no implementation, but document testability issues",
-    "test_criteria_to_verify": [
-      "Can endpoint behavior be tested without side effects?",
-      "Are database operations isolated and mockable?",
-      "Do error responses follow consistent format?",
-      "Can validation rules be tested independently?"
-    ],
-    "testing_gaps_to_document": [
-      "Routes without clear success criteria",
-      "Endpoints with hard-to-mock dependencies",
-      "Missing error case coverage in code structure"
-    ],
-    "mock_data_patterns": "Document if routes require specific test data structures"
-  },
-
-  "development_phases": {
-    "phase_1_setup": {
-      "duration": "15 minutes",
-      "tasks": [
-        "Read all 5 route files completely",
-        "Understand middleware patterns used",
-        "Create audit checklist template"
-      ],
-      "checkpoint": "Confirm understanding of project patterns before auditing",
-      "validation": "Can explain auth flow and validation pattern"
-    },
-    "phase_2_systematic_audit": {
-      "duration": "60 minutes",
-      "tasks": [
-        "Audit venues.ts - document in progress_log immediately",
-        "Audit galleras.ts - document in progress_log immediately",
-        "Audit articles.ts - document in progress_log immediately",
-        "Audit notifications.ts - document in progress_log immediately",
-        "Audit uploads.ts - document in progress_log immediately"
-      ],
-      "checkpoint_per_file": "After each file, update progress_log with findings",
-      "validation": "Each file has entry in progress_log with findings count"
-    },
-    "phase_3_analysis_and_prioritization": {
-      "duration": "30 minutes",
-      "tasks": [
-        "Categorize findings by severity (P0/P1/P2/P3)",
-        "Group related issues across files",
-        "Write specific, actionable recommendations",
-        "Create summary statistics"
-      ],
-      "checkpoint": "All findings categorized and prioritized",
-      "validation": "Summary section complete with counts and priorities"
-    },
-    "phase_4_documentation_and_handoff": {
-      "duration": "15 minutes",
-      "tasks": [
-        "Review completeness of progress_log",
-        "Ensure all line numbers referenced",
-        "Write executive summary for Claude review",
-        "Flag critical issues requiring immediate attention"
-      ],
-      "checkpoint": "Document ready for Claude validation",
-      "validation": "Claude can understand and act on findings without clarification"
-    }
-  },
-
-  "coding_conventions": {
-    "typescript_standards": [
-      "No 'any' types - use specific types or generics",
-      "All function parameters typed",
-      "Response types match interface definitions",
-      "Use Sequelize model types, not raw SQL"
-    ],
-    "route_structure_pattern": [
-      "Import order: external libs → internal modules → models → middleware",
-      "Middleware chain: authenticate → authorize → validation → asyncHandler",
-      "Error handling: Use asyncHandler wrapper + errors utility",
-      "Response format: {success: boolean, data: any, error?: string}"
-    ],
-    "validation_pattern": [
-      "Use express-validator for all input validation",
-      "Validate before business logic",
-      "Return user-friendly error messages",
-      "Don't leak internal errors to client"
-    ],
-    "file_naming_and_structure": [
-      "Route files in /routes/ directory",
-      "One resource per file (venues.ts for /venues endpoints)",
-      "Export default router at end",
-      "Group related endpoints together"
-    ]
-  },
-
-  "context_injection": {
-    "reference_implementations": {
-      "good_auth_example": "/backend/src/routes/membership-requests.ts lines 16-36 (proper authenticate + authorize + validation)",
-      "good_validation_example": "/backend/src/routes/membership-requests.ts lines 19-35 (comprehensive body validation)",
-      "good_error_handling": "/backend/src/routes/membership-requests.ts lines 37-76 (asyncHandler + proper error messages)"
-    },
-    "architecture_to_respect": {
-      "middleware_stack": "Must follow authenticate → authorize → validate → handler pattern",
-      "error_response_format": "Must use errors.badRequest/notFound/forbidden from errorHandler.ts",
-      "database_patterns": "Must use Sequelize models, not raw queries"
-    },
-    "previous_technical_decisions": {
-      "no_raw_sql": "All database access via Sequelize ORM per sdd_system.json",
-      "jwt_auth_only": "No session-based auth, JWT tokens only",
-      "role_based_access": "Use authorize middleware with specific roles, not manual checks",
-      "freemium_model": "Membership types: free, 24-hour, monthly per prd_system.json"
-    }
-  },
+  "forbidden_operations": [
+    "Modify ANY backend code (.ts, .js files in backend/src/)",
+    "Modify ANY frontend code (files in frontend/src/)",
+    "Run database migrations",
+    "Modify configuration files",
+    "Execute destructive commands (rm, DROP, DELETE)"
+  ],
 
   "task_decomposition": [
     {
-      "task_id": "audit-1",
-      "title": "Audit venues.ts route file",
-      "description": "Complete security and validation audit of all venue endpoints",
-      "estimated_hours": 0.25,
+      "task_id": "qwen-1",
+      "title": "Create load testing script for optimized APIs",
+      "description": "Create autocannon-based load test script for performance validation",
+      "estimated_hours": 1.5,
+      "file_to_create": "scripts/load-test-optimized.sh",
       "dependencies": [],
-      "success_criteria_measurable": [
-        "All endpoints in venues.ts reviewed (exact count documented)",
-        "Every endpoint has auth status documented (yes/no/partial)",
-        "All input validations catalogued (present/missing/incomplete)",
-        "Minimum 5 specific findings or 'no issues found' statement",
-        "progress_log updated with venues.ts entry"
-      ],
-      "atomic_deliverables": [
-        "List of all endpoints with HTTP methods",
-        "Auth status per endpoint",
-        "Validation completeness per endpoint",
-        "Specific line numbers for issues",
-        "Priority classification for each finding"
-      ]
+      "script_requirements": {
+        "tool": "autocannon (npm install -g autocannon)",
+        "endpoints_to_test": [
+          "GET /api/events (50 concurrent users, 30 seconds)",
+          "GET /api/fights (50 concurrent users, 30 seconds)",
+          "GET /api/bets (25 concurrent users, 30 seconds)",
+          "GET /api/venues (25 concurrent users, 30 seconds)"
+        ],
+        "metrics_to_capture": [
+          "Requests per second (throughput)",
+          "Average response time",
+          "p95 response time",
+          "p99 response time",
+          "Error rate"
+        ],
+        "output_format": "Save results to claudedocs/load-test-results.json"
+      },
+      "script_template": "#!/bin/bash\n\necho 'Testing Events API...'\nautocannon -c 50 -d 30 -j http://localhost:3001/api/events > claudedocs/load-test-events.json\n\necho 'Testing Fights API...'\nautocannon -c 50 -d 30 -j http://localhost:3001/api/fights > claudedocs/load-test-fights.json\n\n# Add other endpoints...\n\necho 'Load tests complete. Results saved to claudedocs/'"
     },
+
     {
-      "task_id": "audit-2",
-      "title": "Audit galleras.ts route file",
-      "description": "Complete security and validation audit of all gallera endpoints",
-      "estimated_hours": 0.25,
-      "dependencies": ["audit-1"],
-      "success_criteria_measurable": [
-        "All endpoints in galleras.ts reviewed",
-        "Auth and validation status per endpoint",
-        "Comparison with venues.ts patterns (consistency check)",
-        "Minimum 5 specific findings or 'no issues found'",
-        "progress_log updated with galleras.ts entry"
-      ],
-      "atomic_deliverables": "Same as audit-1 for galleras"
+      "task_id": "qwen-2",
+      "title": "Create Redis monitoring script",
+      "description": "Create script to monitor Redis cache performance",
+      "estimated_hours": 1,
+      "file_to_create": "scripts/monitor-redis.sh",
+      "dependencies": [],
+      "script_requirements": {
+        "redis_commands": [
+          "INFO stats (get hit/miss rates)",
+          "INFO memory (get memory usage)",
+          "DBSIZE (get key count)",
+          "SLOWLOG GET 10 (get slow queries)"
+        ],
+        "output": "Save Redis stats to claudedocs/redis-stats.json every 10 seconds during testing",
+        "duration": "Run for 5 minutes during load tests"
+      },
+      "script_template": "#!/bin/bash\n\nfor i in {1..30}; do\n  redis-cli INFO stats | grep -E 'keyspace_hits|keyspace_misses'\n  redis-cli INFO memory | grep 'used_memory_human'\n  redis-cli DBSIZE\n  sleep 10\ndone"
     },
+
     {
-      "task_id": "audit-3",
-      "title": "Audit articles.ts route file",
-      "description": "Complete security and validation audit of all article endpoints",
-      "estimated_hours": 0.25,
-      "dependencies": ["audit-2"],
-      "success_criteria_measurable": [
-        "All endpoints in articles.ts reviewed",
-        "Auth and validation status per endpoint",
-        "Special focus on author permissions and content validation",
-        "Minimum 5 specific findings or 'no issues found'",
-        "progress_log updated with articles.ts entry"
-      ],
-      "atomic_deliverables": "Same as audit-1 for articles"
-    },
-    {
-      "task_id": "audit-4",
-      "title": "Audit notifications.ts and uploads.ts route files",
-      "description": "Complete security audit of notification and file upload endpoints",
+      "task_id": "qwen-3",
+      "title": "Execute baseline performance tests (BEFORE optimizations)",
+      "description": "Run load tests on current system to establish baseline",
       "estimated_hours": 0.5,
-      "dependencies": ["audit-3"],
-      "success_criteria_measurable": [
-        "All endpoints in both files reviewed",
-        "Special focus on file upload security (uploads.ts)",
-        "Notification authorization checks verified",
-        "Minimum 5 specific findings per file or 'no issues found'",
-        "progress_log updated with both entries"
+      "dependencies": ["qwen-1"],
+      "commands_to_run": [
+        "bash scripts/load-test-optimized.sh",
+        "Save results with prefix 'before-'"
       ],
-      "atomic_deliverables": "Audit reports for both files with special security focus"
+      "deliverable": {
+        "files": [
+          "claudedocs/before-load-test-events.json",
+          "claudedocs/before-load-test-fights.json",
+          "claudedocs/before-load-test-bets.json",
+          "claudedocs/before-load-test-venues.json"
+        ],
+        "summary": "Extract key metrics (p95 response time, throughput) into summary table"
+      },
+      "wait_for": "Claude to confirm baseline testing can begin"
     },
+
     {
-      "task_id": "analysis-1",
-      "title": "Cross-file analysis and prioritization",
-      "description": "Analyze all findings, identify patterns, prioritize by severity",
+      "task_id": "qwen-4",
+      "title": "Execute performance tests AFTER optimizations",
+      "description": "Run load tests after Claude completes optimizations",
       "estimated_hours": 0.5,
-      "dependencies": ["audit-4"],
-      "success_criteria_measurable": [
-        "All findings categorized by P0/P1/P2/P3",
-        "Common patterns identified across files (minimum 3)",
-        "Specific recommendations for each priority level",
-        "Summary statistics calculated (total issues by priority)",
-        "Executive summary written for Claude review"
+      "dependencies": ["qwen-3", "WAIT FOR CLAUDE to complete all optimizations"],
+      "commands_to_run": [
+        "bash scripts/load-test-optimized.sh",
+        "bash scripts/monitor-redis.sh (in parallel)",
+        "Save results with prefix 'after-'"
       ],
-      "atomic_deliverables": [
-        "Categorized findings list",
-        "Pattern analysis report",
-        "Prioritized recommendation list",
-        "Summary statistics object",
-        "Executive summary for Claude"
-      ]
+      "deliverable": {
+        "files": [
+          "claudedocs/after-load-test-events.json",
+          "claudedocs/after-load-test-fights.json",
+          "claudedocs/after-load-test-bets.json",
+          "claudedocs/after-load-test-venues.json",
+          "claudedocs/redis-stats.json"
+        ],
+        "comparison": "Create before/after comparison table"
+      }
+    },
+
+    {
+      "task_id": "qwen-5",
+      "title": "Analyze performance improvements",
+      "description": "Compare before/after results and calculate improvements",
+      "estimated_hours": 1,
+      "dependencies": ["qwen-3", "qwen-4"],
+      "file_to_create": "claudedocs/OPTIMIZATION_PERFORMANCE_ANALYSIS.md",
+      "analysis_requirements": {
+        "metrics_to_compare": [
+          "Response time (p95): before → after → % improvement",
+          "Throughput (req/s): before → after → % improvement",
+          "Database queries: before → after → % reduction",
+          "Cache hit rate: N/A → after → percentage",
+          "Redis memory usage: baseline → actual"
+        ],
+        "visualizations": "Create ASCII tables for comparisons",
+        "format": "Markdown with tables and clear conclusions"
+      },
+      "expected_improvements": {
+        "response_time": "60-80% faster",
+        "db_queries": "70-80% reduction",
+        "cache_hit_rate": ">75%"
+      }
+    },
+
+    {
+      "task_id": "qwen-6",
+      "title": "Create comprehensive optimization summary",
+      "description": "Compile all findings into executive summary",
+      "estimated_hours": 1.5,
+      "dependencies": ["qwen-5"],
+      "file_to_create": "claudedocs/OPTIMIZATION_EXECUTIVE_SUMMARY.md",
+      "required_sections": [
+        {
+          "section": "Executive Summary",
+          "content": "2-3 paragraph overview of optimizations and results"
+        },
+        {
+          "section": "Optimizations Implemented",
+          "content": "List all changes made by Claude (database, caching)"
+        },
+        {
+          "section": "Performance Improvements",
+          "content": "Before/after metrics table from qwen-5 analysis"
+        },
+        {
+          "section": "Cost Savings Validation",
+          "content": "Verify $16K-$17K monthly savings based on query reduction"
+        },
+        {
+          "section": "Redis Cache Analysis",
+          "content": "Hit rate, memory usage, effectiveness"
+        },
+        {
+          "section": "Recommendations",
+          "content": "Next optimization opportunities"
+        },
+        {
+          "section": "Production Readiness",
+          "content": "Checklist for deploying to production"
+        }
+      ],
+      "deliverable": "Final report for user review"
     }
   ],
 
-  "progress_log": {
-    "INSTRUCTION": "QWEN: Update this section IMMEDIATELY after completing each task",
-    "format_example": {
-      "timestamp": "2025-10-11T14:30:00Z",
-      "task_id": "audit-1",
-      "file": "/backend/src/routes/venues.ts",
-      "lines_audited": 250,
-      "endpoints_found": 8,
-      "findings": [
-        "Line 45: POST /venues missing rate limiting",
-        "Line 102: PUT /venues/:id weak validation on venueLocation",
-        "Line 180: DELETE /venues/:id allows operators to delete (should be admin-only)"
-      ],
-      "recommendations": [
-        "Add venueRateLimit middleware to POST /venues",
-        "Strengthen validation: body('venueLocation').isLength({min: 5, max: 200})",
-        "Change authorize('operator', 'admin') to authorize('admin') on line 180"
-      ],
-      "status": "completed",
-      "next_task": "audit-2"
-    },
-    "entries": [
-      {
-        "timestamp": "2025-10-11T15:00:00Z",
-        "task_id": "setup-1",
-        "file": "Phase 1 setup activities",
-        "lines_audited": 0,
-        "findings": [
-          "Completed reading all 5 route files: venues.ts, galleras.ts, articles.ts, notifications.ts, uploads.ts",
-          "Identified middleware patterns: authenticate, optionalAuth, authorize, asyncHandler, express-validator",
-          "Created audit checklist template based on good patterns from membership-requests.ts"
-        ],
-        "recommendations": [],
-        "status": "completed",
-        "next_task": "audit-1"
-      },
-      {
-        "timestamp": "2025-10-11T15:05:00Z",
-        "task_id": "audit-1",
-        "file": "/backend/src/routes/venues.ts",
-        "lines_audited": 398,
-        "endpoints_found": 7,
-        "findings": [
-          "Line 26: GET /api/venues uses optionalAuth (correct for public endpoint)",
-          "Line 45: GET /api/venues/:id uses optionalAuth (correct for public endpoint)",
-          "Line 64: POST /api/venues has express-validator rules and proper authentication (authenticate, authorize('admin', 'venue'))",
-          "Line 131: PUT /api/venues/:id has express-validator rules and proper authentication (authenticate, authorize('admin', 'venue'))",
-          "Line 195: PUT /api/venues/:id/status has express-validator rules and proper authentication (authenticate, authorize('admin'))",
-          "Line 241: DELETE /api/venues/:id has proper authentication (authenticate, authorize('admin')) but no express-validator rules (DELETE doesn't typically need validation)",
-          "Line 259: GET /api/venues/my/venues has proper authentication (authenticate, authorize('venue', 'admin'))",
-          "Line 64: POST /api/venues properly uses asyncHandler wrapper",
-          "Line 131: PUT /api/venues/:id properly uses asyncHandler wrapper",
-          "Line 195: PUT /api/venues/:id/status properly uses asyncHandler wrapper",
-          "Line 241: DELETE /api/venues/:id properly uses asyncHandler wrapper",
-          "Line 259: GET /api/venues/my/venues properly uses asyncHandler wrapper",
-          "Line 26: GET /api/venues properly uses asyncHandler wrapper",
-          "Line 45: GET /api/venues/:id properly uses asyncHandler wrapper",
-          "Line 29: Validation uses isLength() with appropriate min/max values for name (3-255)",
-          "Line 31: Validation uses isLength() with appropriate min/max values for location (5-500)",
-          "Line 33: Validation uses isLength() for description (max 2000)",
-          "Line 35: Validation uses isObject() for contactInfo",
-          "Line 37: Validation uses isUUID() for ownerId",
-          "Line 135-139: PUT endpoint has appropriate optional validations",
-          "Line 198-200: Status update validation uses isIn() with valid status values",
-          "Line 202-204: Reason validation uses isLength() with max 500 characters",
-          "Line 102: Proper use of validationResult() with error handling",
-          "Line 104: Uses errors.badRequest() with user-friendly message",
-          "Line 168: Proper use of validationResult() with error handling",
-          "Line 170: Uses errors.badRequest() with user-friendly message",
-          "Line 206: Proper use of validationResult() with error handling",
-          "Line 208: Uses errors.badRequest() with user-friendly message",
-          "Security: PUT /api/venues/:id restricts updates by owner for venue role (line 152-154)",
-          "Security: PUT /api/venues/:id/status restricts to admin only (line 196)",
-          "Security: DELETE /api/venues/:id restricts to admin only (line 242)",
-          "Security: GET /api/venues/my/venues properly restricts to venue/admin (line 260)",
-          "No use of 'any' type found in route handlers",
-          "Performance: Uses attributes list to limit returned fields based on role (line 9-33, getVenueAttributes function)"
-        ],
-        "recommendations": [
-          "All endpoints in venues.ts are properly secured and validated",
-          "No critical security issues found",
-          "All async functions are properly wrapped with asyncHandler",
-          "Validation follows project patterns as seen in membership-requests.ts",
-          "Error handling follows project patterns with proper error types"
-        ],
-        "status": "completed",
-        "next_task": "audit-2"
-      },
-      {
-        "timestamp": "2025-10-11T15:10:00Z",
-        "task_id": "audit-2",
-        "file": "/backend/src/routes/galleras.ts",
-        "lines_audited": 267,
-        "endpoints_found": 6,
-        "findings": [
-          "Line 16: GET /api/galleras uses optionalAuth (correct for public endpoint)",
-          "Line 37: GET /api/galleras/:id uses optionalAuth (correct for public endpoint)",
-          "Line 59: POST /api/galleras has express-validator rules but MISSING authorize middleware - only has authenticate",
-          "Line 108: PUT /api/galleras/:id has express-validator rules but MISSING authorize middleware - only has authenticate",
-          "Line 163: DELETE /api/galleras/:id has proper authentication (authenticate, authorize('admin'))",
-          "Line 186: PUT /api/galleras/:id/status has express-validator rules and proper authentication (authenticate, authorize('admin'))",
-          "Line 64: POST /api/galleras properly uses asyncHandler wrapper",
-          "Line 108: PUT /api/galleras/:id properly uses asyncHandler wrapper",
-          "Line 163: DELETE /api/galleras/:id properly uses asyncHandler wrapper",
-          "Line 186: PUT /api/galleras/:id/status properly uses asyncHandler wrapper",
-          "Line 16: GET /api/galleras properly uses asyncHandler wrapper",
-          "Line 37: GET /api/galleras/:id properly uses asyncHandler wrapper",
-          "Line 62-70: POST endpoint has appropriate validations for name, location, description, etc.",
-          "Line 111-119: PUT endpoint has appropriate optional validations",
-          "Line 189-191: Status update validation uses isIn() with valid status values",
-          "Line 192-194: Reason validation uses isLength() with max 500 characters",
-          "Line 74: Proper use of validationResult() with error handling",
-          "Line 76: Uses errors.badRequest() with user-friendly message",
-          "Line 123: Proper use of validationResult() with error handling",
-          "Line 125: Uses errors.badRequest() with user-friendly message",
-          "Line 196: Proper use of validationResult() with error handling",
-          "Line 198: Uses errors.badRequest() with user-friendly message",
-          "Security: CRITICAL ISSUE - POST /api/galleras allows any authenticated user to create galleras without role restriction (line 61)",
-          "Security: CRITICAL ISSUE - PUT /api/galleras/:id allows any authenticated user to update galleras without proper role restriction (line 109)",
-          "Security: Only admin can delete galleras (line 164)",
-          "Security: Only admin can update status (line 187)",
-          "PUT endpoint has owner/admin check (line 136-140) that restricts editing to owner or admin",
-          "No use of 'any' type found in route handlers"
-        ],
-        "recommendations": [
-          "CRITICAL: Add authorize('admin', 'gallera') middleware to POST /api/galleras endpoint to restrict who can create galleras",
-          "CRITICAL: Add authorize('admin', 'gallera') middleware to PUT /api/galleras/:id endpoint to restrict who can update galleras",
-          "The PUT endpoint does have proper permission checks in the handler (lines 136-140) which is good, but the route-level authorization should also be present for consistency",
-          "Validation rules are properly implemented following project patterns"
-        ],
-        "status": "completed",
-        "next_task": "audit-3"
-      },
-      {
-        "timestamp": "2025-10-11T15:15:00Z",
-        "task_id": "audit-3",
-        "file": "/backend/src/routes/articles.ts",
-        "lines_audited": 371,
-        "endpoints_found": 8,
-        "findings": [
-          "Line 45: GET /api/articles uses optionalAuth (correct for public endpoint with conditional status filtering)",
-          "Line 124: GET /api/articles/featured uses optionalAuth (correct for public endpoint)",
-          "Line 158: GET /api/articles/:id uses optionalAuth (correct for public endpoint with conditional access)",
-          "Line 209: POST /api/articles has express-validator rules and proper authentication (authenticate, authorize('admin', 'gallera', 'user'))",
-          "Line 252: PUT /api/articles/:id/status has express-validator rules and proper authentication (authenticate, authorize('admin', 'operator'))",
-          "Line 281: PUT /api/articles/:id/publish has proper authentication (authenticate, authorize('admin'))",
-          "Security: GET /api/articles enforces status restrictions for non-privileged users (line 85-86)",
-          "Security: GET /api/articles/:id restricts access to non-published articles for non-admin/author users (line 178-180)",
-          "Line 209: POST /api/articles properly uses asyncHandler wrapper",
-          "Line 252: PUT /api/articles/:id/status properly uses asyncHandler wrapper",
-          "Line 281: PUT /api/articles/:id/publish properly uses asyncHandler wrapper",
-          "Line 45: GET /api/articles properly uses asyncHandler wrapper",
-          "Line 124: GET /api/articles/featured properly uses asyncHandler wrapper",
-          "Line 158: GET /api/articles/:id properly uses asyncHandler wrapper",
-          "Line 47-64: GET /api/articles has appropriate query validations",
-          "Line 126-128: GET /api/articles/featured has appropriate query validations",
-          "Line 211-216: POST endpoint has appropriate body validations for required fields",
-          "Line 254: PUT /api/articles/:id/status has appropriate body validations for status field",
-          "Line 74: Proper use of validationResult() with error handling in GET /api/articles",
-          "Line 76: Uses errors.badRequest() with user-friendly message in GET /api/articles",
-          "Line 134: Proper use of validationResult() with error handling in GET /api/articles/featured",
-          "Line 136: Uses errors.badRequest() with user-friendly message in GET /api/articles/featured",
-          "Line 220: Proper use of validationResult() with error handling in POST /api/articles",
-          "Line 221: Has custom validation error handling",
-          "Line 256: Proper use of validationResult() with error handling in PUT /api/articles/:id/status",
-          "Line 258: Uses errors.badRequest() with user-friendly message in PUT /api/articles/:id/status",
-          "Performance: Has caching implemented (lines 108, 131, 152, 168)",
-          "Performance: Uses attribute limiting based on role (lines 12-35, getArticleAttributes function)",
-          "Security: Uses role-based attribute filtering to limit sensitive information exposure",
-          "Performance: Implements pagination with proper limits (lines 90-91)",
-          "Security: Only allows admin/operator to change status (PUT /api/articles/:id/status)",
-          "Security: Only allows admin to publish articles (PUT /api/articles/:id/publish)",
-          "Security: POST endpoint has different status logic based on user role (lines 240-243)",
-          "Error handling: Uses appropriate error types (notFound, forbidden) for various scenarios"
-        ],
-        "recommendations": [
-          "All endpoints in articles.ts are properly secured and validated",
-          "No critical security issues found",
-          "All async functions are properly wrapped with asyncHandler",
-          "Validation follows project patterns",
-          "Performance optimizations with caching are well implemented",
-          "Role-based access control is properly implemented",
-          "Article creation has appropriate validation and role-based status assignment"
-        ],
-        "status": "completed",
-        "next_task": "audit-4"
-      },
-      {
-        "timestamp": "2025-10-11T15:20:00Z",
-        "task_id": "audit-4",
-        "file": "/backend/src/routes/notifications.ts",
-        "lines_audited": 55,
-        "endpoints_found": 3,
-        "findings": [
-          "Line 11: GET /api/notifications requires authentication (authenticate middleware)",
-          "Line 27: PUT /api/notifications/read-all requires authentication (authenticate middleware)",
-          "Line 35: PUT /api/notifications/:id/read requires authentication (authenticate middleware)",
-          "All endpoints properly use asyncHandler wrapper",
-          "Security: GET /api/notifications filters notifications by userId (line 15) to prevent unauthorized access",
-          "Security: PUT /api/notifications/:id/read verifies notification belongs to user (line 38-40)",
-          "Security: PUT /api/notifications/read-all updates only notifications belonging to the user (line 31)",
-          "No express-validator needed as these endpoints don't take complex inputs",
-          "No validation issues found - endpoints use simple path parameters and minimal input",
-          "Proper error handling with asyncHandler",
-          "Uses appropriate Sequelize methods for data access and updates",
-          "No use of 'any' type found in route handlers",
-          "Simple, secure implementation with proper user isolation"
-        ],
-        "recommendations": [
-          "All endpoints in notifications.ts are properly secured",
-          "No critical security issues found",
-          "All async functions are properly wrapped with asyncHandler",
-          "Good implementation of user isolation for notifications",
-          "No validation issues - minimal input validation needed for these endpoints"
-        ],
-        "status": "completed",
-        "next_task": "analysis-1"
-      },
-      {
-        "timestamp": "2025-10-11T15:25:00Z",
-        "task_id": "audit-5",
-        "file": "/backend/src/routes/uploads.ts",
-        "lines_audited": 110,
-        "endpoints_found": 2,
-        "findings": [
-          "Line 46: POST /api/uploads/image requires authentication (authenticate middleware) and uses multer for file handling",
-          "Line 77: DELETE /api/uploads/image/:filename requires authentication (authenticate middleware)",
-          "Security: File filter restricts to image types only (jpeg, png, webp) - line 23-28",
-          "Security: File size limit set to 5MB - line 36",
-          "Security: Filename includes userId for ownership tracking - line 16",
-          "Security: DELETE endpoint checks filename contains userId for non-admin users - line 86-88",
-          "Security: Only admin can delete any image, users can only delete their own - line 87",
-          "Security: Multer storage configuration creates safe upload path - line 10-17",
-          "Performance: Multer limits file size appropriately",
-          "File validation: File filter properly validates mime types",
-          "Proper error handling with asyncHandler wrapper on all endpoints",
-          "File upload path is secure and properly validated",
-          "Configuration: Multer properly configured with storage, filters, and limits",
-          "Security: Uses path.join for secure file path construction",
-          "No express-validator needed for file upload endpoints as validation is handled by multer",
-          "No use of 'any' type found in route handlers",
-          "Good security implementation with file type restrictions and ownership validation"
-        ],
-        "recommendations": [
-          "All endpoints in uploads.ts are properly secured",
-          "No critical security issues found",
-          "Good file upload security with type restrictions and size limits",
-          "Proper ownership validation in delete endpoint",
-          "All async functions are properly wrapped with asyncHandler",
-          "File upload configuration follows security best practices"
-        ],
-        "status": "completed",
-        "next_task": "analysis-1"
-      },
-      {
-        "timestamp": "2025-10-11T15:30:00Z",
-        "task_id": "analysis-1",
-        "file": "Cross-file analysis and prioritization",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [
-          "P0_CRITICAL: galleras.ts POST /api/galleras endpoint missing authorize middleware - allows any authenticated user to create galleras (should be restricted to admin/gallera roles)",
-          "P0_CRITICAL: galleras.ts PUT /api/galleras/:id endpoint missing authorize middleware - allows any authenticated user to update galleras (should be restricted to admin/gallera roles)",
-          "P1_HIGH: No other high-priority security issues found in the audited files",
-          "P2_MEDIUM: All other endpoints properly secured with appropriate authentication/authorization",
-          "P3_LOW: All async functions properly wrapped with asyncHandler",
-          "P3_LOW: Validation patterns consistently applied across all files following project standards",
-          "P3_LOW: Error handling patterns consistently applied across all files"
-        ],
-        "recommendations": [
-          "P0_CRITICAL: Add authorize('admin', 'gallera') middleware to POST /api/galleras endpoint in galleras.ts",
-          "P0_CRITICAL: Add authorize('admin', 'gallera') middleware to PUT /api/galleras/:id endpoint in galleras.ts",
-          "All other endpoints are properly secured with appropriate middleware"
-        ],
-        "status": "completed",
-        "next_task": "analysis-2"
-      },
-      {
-        "timestamp": "2025-10-11T15:35:00Z",
-        "task_id": "analysis-2",
-        "file": "Group related issues across files",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [
-          "Authentication pattern consistency: Most files follow consistent authenticate/authorize patterns",
-          "Validation pattern consistency: All files use express-validator with validationResult checks",
-          "Error handling pattern consistency: All files use asyncHandler wrapper with appropriate error types",
-          "Inconsistency identified: galleras.ts missing authorize middleware on POST and PUT endpoints",
-          "Performance patterns: articles.ts has advanced caching implementation while others don't",
-          "Security patterns: All files implement proper user isolation where applicable",
-          "Common pattern: Response format follows {success: boolean, data: any, message?: string} structure",
-          "Common pattern: Use of role-based access control with isAdmin checks"
-        ],
-        "recommendations": [
-          "Apply consistent authorization middleware across all route files",
-          "Consider implementing caching patterns from articles.ts in other files where appropriate",
-          "Standardize response formats and error handling where minor inconsistencies exist"
-        ],
-        "status": "completed",
-        "next_task": "analysis-3"
-      },
-      {
-        "timestamp": "2025-10-11T15:40:00Z",
-        "task_id": "analysis-3",
-        "file": "Write specific, actionable recommendations",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [],
-        "recommendations": [
-          "CRITICAL FIX REQUIRED: In galleras.ts, add authorize middleware to POST /api/galleras endpoint on line 61:",
-          "  Change from: router.post(\"/\", authenticate, [...])",
-          "  Change to: router.post(\"/\", authenticate, authorize(\"admin\", \"gallera\"), [...])",
-          "CRITICAL FIX REQUIRED: In galleras.ts, add authorize middleware to PUT /api/galleras/:id endpoint on line 109:",
-          "  Change from: router.put(\"/:id\", authenticate, [...])",
-          "  Change to: router.put(\"/:id\", authenticate, authorize(\"admin\", \"gallera\"), [...])",
-          "ENHANCEMENT: Consider implementing caching patterns similar to articles.ts in other route files for better performance",
-          "ENHANCEMENT: The file upload security in uploads.ts is exemplary and follows best practices - consider documenting this as a pattern for other file upload implementations",
-          "VALIDATION: All validation patterns using express-validator are consistent with the project standards seen in membership-requests.ts",
-          "PERFORMANCE: The attribute filtering based on user role in articles.ts and venues.ts is a good practice for reducing data exposure"
-        ],
-        "status": "completed",
-        "next_task": "analysis-4"
-      },
-      {
-        "timestamp": "2025-10-11T15:45:00Z",
-        "task_id": "analysis-4",
-        "file": "Create summary statistics",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [],
-        "recommendations": [],
-        "status": "completed",
-        "next_task": "documentation-1"
-      },
-      {
-        "timestamp": "2025-10-11T15:50:00Z",
-        "task_id": "documentation-1",
-        "file": "Executive summary for Claude review",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [
-          "Comprehensive audit of 5 backend route files completed: venues.ts, galleras.ts, articles.ts, notifications.ts, uploads.ts",
-          "Total of 27 endpoints audited across all files",
-          "Overall compliance rate of 92.6% with security and validation standards",
-          "2 critical security issues identified requiring immediate attention",
-          "All other endpoints properly secured with authentication, authorization, and validation"
-        ],
-        "recommendations": [
-          "CRITICAL: Fix missing authorization middleware in galleras.ts on POST and PUT endpoints",
-          "Implementation of fixes should follow the same patterns used in other route files",
-          "All other endpoints follow proper security patterns and require no immediate changes"
-        ],
-        "status": "completed",
-        "next_task": "completed"
-      },
-      {
-        "timestamp": "2025-10-11T15:55:00Z",
-        "task_id": "documentation-2",
-        "file": "Flag critical issues requiring immediate attention",
-        "lines_audited": 0,
-        "endpoints_found": 0,
-        "findings": [
-          "CRITICAL SECURITY VULNERABILITY: galleras.ts allows any authenticated user to create and update galleras without proper role authorization",
-          "These endpoints could allow unauthorized users to create/modify gallera entities",
-          "Risk: Unauthorized resource creation and modification",
-          "Priority: Must be fixed before production deployment",
-          "All other endpoints are properly secured"
-        ],
-        "recommendations": [
-          "IMMEDIATE ACTION REQUIRED: Add authorize('admin', 'gallera') middleware to POST /api/galleras in galleras.ts",
-          "IMMEDIATE ACTION REQUIRED: Add authorize('admin', 'gallera') middleware to PUT /api/galleras/:id in galleras.ts",
-          "Review and test the fixes to ensure proper role-based access control",
-          "No other endpoints require immediate fixes - all others are properly secured"
-        ],
-        "status": "completed",
-        "next_task": "completed"
-      },
-      "summary_statistics": {
-        "total_endpoints_audited": 27,
-        "endpoints_by_file": {
-          "venues.ts": 7,
-          "galleras.ts": 6,
-          "articles.ts": 8,
-          "notifications.ts": 3,
-          "uploads.ts": 2
-        },
-        "critical_issues_found": 2,
-        "high_priority_issues": 0,
-        "medium_priority_issues": 0,
-        "low_priority_issues": 0,
-        "findings_by_severity": {
-          "P0_CRITICAL": 2,
-          "P1_HIGH": 0,
-          "P2_MEDIUM": 0,
-          "P3_LOW": 0
-        },
-        "security_findings": {
-          "P0_CRITICAL": [
-            "galleras.ts: POST /api/galleras missing authorize middleware (line 61)",
-            "galleras.ts: PUT /api/galleras/:id missing authorize middleware (line 109)"
-          ],
-          "P1_HIGH": []
-        },
-        "validation_gaps": [
-          "galleras.ts: Missing role-based authorization on POST endpoint",
-          "galleras.ts: Missing role-based authorization on PUT endpoint"
-        ],
-        "type_safety_issues": [],
-        "performance_concerns": [],
-        "files_with_issues": ["galleras.ts"],
-        "files_without_issues": ["venues.ts", "articles.ts", "notifications.ts", "uploads.ts"],
-        "compliance_rate": 92.6
-      }
+  "test_execution_guidelines": {
+    "before_running_tests": [
+      "Verify backend is running (curl http://localhost:3001/api/health)",
+      "Verify Redis is running (redis-cli PING)",
+      "Clear Redis cache (redis-cli FLUSHALL) for clean baseline",
+      "Wait for Claude approval to begin"
+    ],
+    "during_tests": [
+      "Monitor server logs for errors",
+      "Monitor system resources (CPU, memory)",
+      "Capture any error messages"
+    ],
+    "after_tests": [
+      "Save all results immediately",
+      "Calculate summary metrics",
+      "Update progress_log in this JSON"
     ]
   },
 
-  "forbidden_modifications": {
-    "DO_NOT_TOUCH": [
-      "/backend/src/routes/auth.ts - Critical authentication logic",
-      "/backend/src/routes/subscriptions.ts - Critical payment logic",
-      "/backend/src/routes/fights.ts - Core betting logic",
-      "/backend/src/routes/bets.ts - Core betting logic",
-      "/backend/src/routes/events.ts - Core event logic"
+  "safety_protocols": {
+    "read_only_commands": {
+      "allowed": [
+        "curl (GET requests only)",
+        "redis-cli INFO, DBSIZE, MONITOR",
+        "autocannon (load testing)",
+        "grep, cat, ls (file reading)",
+        "npm run test (execute tests)"
+      ],
+      "forbidden": [
+        "redis-cli FLUSHALL (unless explicitly instructed)",
+        "rm (file deletion)",
+        "Any database commands (psql, DROP, DELETE)",
+        "npm run migrate (database changes)",
+        "pm2 stop/restart (service management)"
+      ]
+    },
+    "file_creation_rules": {
+      "allowed_directories": [
+        "scripts/",
+        "claudedocs/"
+      ],
+      "forbidden_directories": [
+        "backend/src/",
+        "frontend/src/",
+        "backend/migrations/"
+      ],
+      "file_naming": "Use descriptive names with dates (e.g., load-test-2025-10-12.sh)"
+    }
+  },
+
+  "progress_log": {
+    "INSTRUCTION": "QWEN: Update IMMEDIATELY after each task",
+    "format": {
+      "timestamp": "2025-10-12T10:00:00Z",
+      "task_id": "qwen-1",
+      "file_created": "scripts/load-test-optimized.sh",
+      "status": "completed",
+      "next_task": "qwen-2",
+      "issues": "None"
+    },
+    "entries": []
+  },
+
+  "validation_criteria": {
+    "scripts_quality": [
+      "Scripts are executable (chmod +x)",
+      "Scripts have error handling",
+      "Scripts save results to correct location",
+      "No destructive commands"
     ],
-    "AUDIT_ONLY_NO_CHANGES": "Do not modify ANY code - only document findings in this JSON",
-    "NO_BUSINESS_LOGIC_CHANGES": "Do not suggest changes to business rules, only security/validation",
-    "NO_NEW_DEPENDENCIES": "Recommendations must use existing project libraries only"
+    "test_execution": [
+      "All tests completed without errors",
+      "Results saved in correct format",
+      "Metrics calculated correctly"
+    ],
+    "documentation_quality": [
+      "Clear, concise writing",
+      "Tables formatted correctly",
+      "Metrics accurately represent test results",
+      "Conclusions supported by data"
+    ]
   },
 
   "coordination_with_claude": {
-    "handoff_trigger": "QWEN completes all tasks and fills progress_log",
-    "claude_review_items": [
-      "Validate security findings accuracy",
-      "Prioritize fixes for critical issues",
-      "Decide which recommendations to implement",
-      "Review cross-file pattern analysis"
+    "handoff_points": [
+      "After qwen-2: Claude reviews scripts before execution",
+      "After qwen-3: Claude reviews baseline results",
+      "After qwen-5: Claude validates analysis accuracy",
+      "After qwen-6: Claude reviews final summary"
     ],
-    "final_authority": "Claude makes all final decisions on implementation",
-    "communication_protocol": "QWEN documents, Claude validates, Claude implements"
+    "communication": "Update progress_log → Claude reviews within 30 minutes"
   }
 }

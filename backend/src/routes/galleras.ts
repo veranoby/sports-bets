@@ -26,6 +26,7 @@ router.get(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email", "profileInfo"],
+          separate: false,
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -56,6 +57,7 @@ router.get(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email", "profileInfo"],
+          separate: false,
         },
       ],
     });

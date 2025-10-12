@@ -224,58 +224,44 @@ const EventsPage: React.FC = () => {
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
+        {/* Title and Stat Chips */}
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-blue-600" />
+            Listado de Eventos
+          </h1>
 
+          {/* Chips estadísticos compactos */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-full border border-green-500/30">
+              <Zap className="w-4 h-4 text-green-600" />
+              <span className="text-xs text-green-600 font-bold">En Vivo</span>
+              <span className="text-sm text-green-600 font-bold">
+                {events?.filter((e) => e.status === "in-progress").length || 0}
+              </span>
+            </div>
 
-           {/* Title and Stat Chips */}
-           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-               <Calendar className="w-6 h-6 text-blue-600" />
-               Listado de Eventos
-             </h1>
-             
-             {/* Chips estadísticos compactos */}
-             <div className="flex flex-wrap gap-3">
-               <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-full border border-green-500/30">
-                 <Zap className="w-4 h-4 text-green-600" />
-                 <span className="text-xs text-green-600 font-bold">
-                   En Vivo
-                 </span>
-                 <span className="text-sm text-green-600 font-bold">
-                   {events?.filter((e) => e.status === "in-progress").length ||
-                     0}
-                 </span>
-               </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 rounded-full border border-amber-500/30">
+              <Clock className="w-4 h-4 text-amber-600" />
+              <span className="text-xs text-amber-600 font-bold">Próximos</span>
+              <span className="text-sm font-bold text-amber-600">
+                {events?.filter((e) => e.status === "scheduled").length || 0}
+              </span>
+            </div>
 
-               <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 rounded-full border border-amber-500/30">
-                 <Clock className="w-4 h-4 text-amber-600" />
-                 <span className="text-xs text-amber-600 font-bold">
-                   Próximos
-                 </span>
-                 <span className="text-sm font-bold text-amber-600">
-                   {events?.filter((e) => e.status === "scheduled").length || 0}
-                 </span>
-               </div>
-
-               <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 rounded-full border border-blue-500/30">
-                 <Users className="w-4 h-4 text-blue-600" />
-                 <span className="text-xs text-blue-600 font-bold">
-                   Apuestas
-                 </span>
-                 <span className="text-sm font-bold text-blue-600">
-                   {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) ||
-                     0}
-                 </span>
-               </div>
-             </div>
-           </div>
-
-
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 rounded-full border border-blue-500/30">
+              <Users className="w-4 h-4 text-blue-600" />
+              <span className="text-xs text-blue-600 font-bold">Apuestas</span>
+              <span className="text-sm font-bold text-blue-600">
+                {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) || 0}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Header con búsqueda y filtros */}
         <div className="card-background p-4">
           <div className="flex flex-col md:flex-row gap-4">
-       
-
             {/* Barra de búsqueda - Reducido el ancho */}
             <div className="flex-1 relative w-full md:w-2/5">
               <SearchInput

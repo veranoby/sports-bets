@@ -123,17 +123,20 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
     fetchNews();
   }, []);
 
-  const handleTransition = useCallback((direction: "prev" | "next") => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      if (direction === "next") {
-        setCurrent((prev) => (prev + 1) % news.length);
-      } else {
-        setCurrent((prev) => (prev - 1 + news.length) % news.length);
-      }
-      setIsTransitioning(false);
-    }, 300);
-  }, [news.length]);
+  const handleTransition = useCallback(
+    (direction: "prev" | "next") => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        if (direction === "next") {
+          setCurrent((prev) => (prev + 1) % news.length);
+        } else {
+          setCurrent((prev) => (prev - 1 + news.length) % news.length);
+        }
+        setIsTransitioning(false);
+      }, 300);
+    },
+    [news.length],
+  );
 
   // Auto-advance carousel with transition
   useEffect(() => {
@@ -159,16 +162,40 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
   // Get category badge based on content
   const getCategoryBadge = (title: string, content: string) => {
     const text = (title + " " + content).toLowerCase();
-    if (text.includes("evento") || text.includes("pelea") || text.includes("gallera")) {
-      return { label: "Eventos", color: "bg-blue-500/20 text-blue-200 border-blue-500/30" };
+    if (
+      text.includes("evento") ||
+      text.includes("pelea") ||
+      text.includes("gallera")
+    ) {
+      return {
+        label: "Eventos",
+        color: "bg-blue-500/20 text-blue-200 border-blue-500/30",
+      };
     }
-    if (text.includes("promo") || text.includes("descuento") || text.includes("oferta")) {
-      return { label: "Promociones", color: "bg-green-500/20 text-green-200 border-green-500/30" };
+    if (
+      text.includes("promo") ||
+      text.includes("descuento") ||
+      text.includes("oferta")
+    ) {
+      return {
+        label: "Promociones",
+        color: "bg-green-500/20 text-green-200 border-green-500/30",
+      };
     }
-    if (text.includes("noticia") || text.includes("actualización") || text.includes("información")) {
-      return { label: "Noticias", color: "bg-purple-500/20 text-purple-200 border-purple-500/30" };
+    if (
+      text.includes("noticia") ||
+      text.includes("actualización") ||
+      text.includes("información")
+    ) {
+      return {
+        label: "Noticias",
+        color: "bg-purple-500/20 text-purple-200 border-purple-500/30",
+      };
     }
-    return { label: "General", color: "bg-gray-500/20 text-gray-200 border-gray-500/30" };
+    return {
+      label: "General",
+      color: "bg-gray-500/20 text-gray-200 border-gray-500/30",
+    };
   };
 
   const formatDate = (dateString?: string) => {
@@ -177,15 +204,15 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return "Hoy";
     if (diffDays === 2) return "Ayer";
     if (diffDays <= 7) return `Hace ${diffDays - 1} días`;
-    
+
     return date.toLocaleDateString("es-ES", {
       day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -204,7 +231,10 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
     );
   }
 
-  const categoryBadge = getCategoryBadge(currentNews.title, currentNews.content);
+  const categoryBadge = getCategoryBadge(
+    currentNews.title,
+    currentNews.content,
+  );
 
   return (
     <div
@@ -246,7 +276,9 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
               Últimas Noticias
             </span>
           </div>
-          <div className={`px-3 py-1 rounded-full text-xs font-medium border ${categoryBadge.color}`}>
+          <div
+            className={`px-3 py-1 rounded-full text-xs font-medium border ${categoryBadge.color}`}
+          >
             {categoryBadge.label}
           </div>
         </div>
@@ -274,7 +306,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
               </span>
             )}
           </div>
-          
+
           {/* Call to Action */}
           <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105">
             Leer más

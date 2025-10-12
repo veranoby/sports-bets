@@ -112,6 +112,7 @@ router.get(
           model: User,
           as: 'processor',
           attributes: ['id', 'username'],
+          separate: false,
         },
       ],
       order: [['requestedAt', 'DESC']],
@@ -180,6 +181,7 @@ router.get(
           as: 'user',
           attributes: ['id', 'username', 'email', 'profileInfo'],
           where: userWhere,
+          separate: false,
           include: [
             {
               model: Subscription,
@@ -187,6 +189,7 @@ router.get(
               attributes: ['id', 'status', 'type', 'manual_expires_at'],
               limit: 1,
               order: [['created_at', 'DESC']],
+              separate: false,
             },
           ],
         },

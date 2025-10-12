@@ -103,10 +103,10 @@ router.get(
       where,
       attributes,
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
-        { model: User, as: 'operator', attributes: ['id', 'username'] },
-        { model: User, as: 'creator', attributes: ['id', 'username'] },
-        { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
+        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'], separate: false },
+        { model: User, as: 'operator', attributes: ['id', 'username'], separate: false },
+        { model: User, as: 'creator', attributes: ['id', 'username'], separate: false },
+        { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'], separate: false }
       ],
       order: [["scheduledDate", "ASC"]],
       limit,

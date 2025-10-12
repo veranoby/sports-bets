@@ -85,7 +85,11 @@
       "Bash(git log:*)",
       "Bash(git show:*)",
       "Bash(git stash show:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(for file in auth.ts subscriptions.ts fights.ts bets.ts events.ts)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(LOG_LEVEL=info ts-node src/scripts/migrate.ts up)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

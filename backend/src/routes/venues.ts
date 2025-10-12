@@ -49,6 +49,7 @@ router.get(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
+          separate: false,
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -82,6 +83,7 @@ router.get(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
+          separate: false,
         },
       ],
     });
@@ -175,6 +177,7 @@ router.post(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email"],
+          separate: false,
         },
       ],
     });
@@ -261,6 +264,7 @@ router.put(
           model: User,
           as: "owner",
           attributes: ["id", "username", "email"],
+          separate: false,
         },
       ],
     });

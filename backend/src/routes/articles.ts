@@ -135,11 +135,13 @@ router.get(
               model: User,
               as: "author",
               attributes: ["id", "username"],
+              separate: false,
             },
             includeVenueBool && {
               model: Venue,
               as: "venue",
               attributes: ["id", "name"],
+              separate: false,
             },
           ].filter(Boolean),
           order: [
@@ -211,11 +213,13 @@ router.get(
               model: User,
               as: "author",
               attributes: ["id", "username"],
+              separate: false,
             },
             {
               model: Venue,
               as: "venue",
               attributes: ["id", "name"],
+              separate: false,
             },
           ],
           order: [["published_at", "DESC"]],
@@ -254,11 +258,13 @@ router.get(
               model: User,
               as: "author",
               attributes: ["id", "username"],
+              separate: false,
             },
             {
               model: Venue,
               as: "venue",
               attributes: ["id", "name"],
+              separate: false,
             },
           ],
         });

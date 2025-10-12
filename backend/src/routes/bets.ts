@@ -34,12 +34,14 @@ router.get(
             {
               model: Fight,
               as: "fight",
+              separate: false,
               include: [
                 {
                   model: Event,
                   as: "event",
                   where: eventId ? { id: eventId } : {},
-                  attributes: ['id', 'title', 'status', 'scheduledDate'] // Only select needed fields
+                  attributes: ['id', 'title', 'status', 'scheduledDate'], // Only select needed fields
+                  separate: false
                 },
               ],
               attributes: ['id', 'number', 'status', 'redCorner', 'blueCorner'] // Only select needed fields

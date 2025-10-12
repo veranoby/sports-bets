@@ -31,6 +31,7 @@ router.get(
               as: "transactions",
               limit: 10,
               order: [["createdAt", "DESC"]],
+              separate: false,
             },
           ],
         });
@@ -528,7 +529,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const transactions = await Transaction.findAll({
       where: { type: "withdrawal" },
-      include: [{ model: User, as: "user" }],
+      include: [{ model: User, as: "user", separate: false }],
       order: [["createdAt", "DESC"]],
     });
 
@@ -648,12 +649,14 @@ router.get(
         {
           model: User,
           as: "user",
+          separate: false,
         },
         {
           model: Transaction,
           as: "transactions",
           limit: 10,
           order: [["createdAt", "DESC"]],
+          separate: false,
         },
       ],
     });
