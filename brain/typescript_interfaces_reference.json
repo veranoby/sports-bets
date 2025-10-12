@@ -94,6 +94,49 @@
         "Missing phone number in user profile"
       ]
     },
+    "EventConnection": {
+      "file": "/backend/src/models/EventConnection.ts",
+      "purpose": "Track user connections to events for real-time viewer count and historical analytics",
+      "required_properties": ["id", "event_id", "user_id", "session_id", "connected_at"],
+      "optional_properties": ["disconnected_at", "duration_seconds", "ip_address", "user_agent"],
+      "database_table": "event_connections",
+      "indexes": [
+        "idx_event_connections_event_disconnected (event_id, disconnected_at) - For fast viewer queries"
+      ],
+      "field_descriptions": {
+        "id": "number - Primary key, auto-increment",
+        "event_id": "number - Foreign key to events table",
+        "user_id": "number - Foreign key to users table",
+        "session_id": "string - Unique session identifier",
+        "connected_at": "Date - Timestamp when user connected",
+        "disconnected_at": "Date | null - Timestamp when user disconnected (null if still connected)",
+        "duration_seconds": "number | null - Total connection duration in seconds",
+        "ip_address": "string | null - User IP address for security auditing",
+        "user_agent": "string | null - Browser/device information"
+      },
+      "usage_scenarios": [
+        "Real-time viewer count: Count where disconnected_at IS NULL",
+        "Historical analytics: Aggregate data with user joins",
+        "Security auditing: Track unusual connection patterns",
+        "Performance metrics: Average watch time per event"
+      ],
+      "api_endpoints": {
+        "get_viewers": "GET /api/events/:id/viewers - Real-time viewer count",
+        "get_analytics": "GET /api/events/:id/analytics - Historical connection data with user details"
+      },
+      "automatic_tracking": {
+        "connection": "Tracked via streamingSocket.trackConnection() in backend/src/sockets/streamingSocket.ts:8",
+        "disconnection": "Tracked via streamingSocket.trackDisconnection() in backend/src/sockets/streamingSocket.ts:22",
+        "duration_calculation": "Auto-calculated on disconnection: (disconnected_at - connected_at) / 1000"
+      },
+      "business_value": [
+        "Monitor event popularity in real-time",
+        "Identify most popular events/times",
+        "Detect account sharing (multiple concurrent connections)",
+        "Calculate average engagement per event",
+        "Security: Track suspicious connection patterns"
+      ]
+    },
     "EventData": {
       "file": "/frontend/src/types/index.ts",
       "union_types": {

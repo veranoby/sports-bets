@@ -287,6 +287,54 @@
       "method": "POST",
       "path": "/events",
       "auth_required": true
+    },
+    "get_event_stats": {
+      "method": "GET",
+      "path": "/events/:id/stats",
+      "auth_required": true,
+      "response": {
+        "success": true,
+        "data": {
+          "totalFights": "number",
+          "completedFights": "number",
+          "totalBets": "number",
+          "totalPrizePool": "number",
+          "progress": "number (percentage 0-100)"
+        }
+      },
+      "note": "Basic event statistics for admins/operators"
+    },
+    "get_current_viewers": {
+      "method": "GET",
+      "path": "/events/:id/viewers",
+      "auth_required": false,
+      "response": {
+        "success": true,
+        "data": {
+          "currentViewers": "number",
+          "eventId": "string"
+        }
+      },
+      "note": "Real-time count of connected users via EventConnection table",
+      "implementation": "backend/src/routes/events.ts:795"
+    },
+    "get_event_analytics": {
+      "method": "GET",
+      "path": "/events/:id/analytics",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": {
+          "totalConnections": "number",
+          "uniqueViewers": "number",
+          "averageDurationSeconds": "number",
+          "connections": "Array<{id, user_id, user: {id, username}, connected_at, disconnected_at, duration_seconds}>"
+        }
+      },
+      "note": "Historical analytics with detailed user connection data",
+      "use_case": "Admin dashboard to see who watched event and for how long",
+      "implementation": "backend/src/routes/events.ts:815"
     }
   },
 
@@ -367,16 +415,21 @@
     "get_pending": {
       "method": "GET",
       "path": "/membership-requests/pending",
-      "query_params": ["search", "limit"],
+      "query_params": {
+        "search": "string (optional)",
+        "limit": "number (optional, 1-200, default 100)",
+        "status": "string (optional: 'pending'|'completed'|'rejected'|'all', default 'pending')"
+      },
       "auth_required": true,
       "roles": ["admin", "operator"],
       "response": {
         "success": true,
         "data": {
-          "requests": "array (with user info)",
+          "requests": "array (with user info + subscription)",
           "total": "number"
         }
-      }
+      },
+      "note": "Updated 2025-10-11: Added status filter to support all request states"
     },
     "complete_request": {
       "method": "PATCH",
@@ -415,6 +468,40 @@
         "safety_reason": "Prevents accidental deletion of pending requests"
       },
       "note": "Use for cleanup of processed requests only"
+    }
+  },
+
+  "subscription_admin_endpoints": {
+    "CRITICAL_NOTE": "Admin manual membership management - Created 2025-10-11",
+    "admin_update_membership": {
+      "method": "PUT",
+      "path": "/subscriptions/admin/:userId/membership",
+      "body": {
+        "membership_type": "string (required: 'free'|'24-hour'|'monthly')",
+        "assigned_username": "string (required, 1-100 chars)"
+      },
+      "auth_required": true,
+      "roles": ["admin"],
+      "logic": {
+        "free": "Cancels active subscriptions",
+        "24-hour": "Creates subscription with 24h expiry",
+        "monthly": "Creates subscription with 30 day expiry"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "id": "uuid",
+          "type": "daily|monthly",
+          "status": "active",
+          "expiresAt": "ISO date",
+          "manual_expires_at": "ISO date"
+        }
+      },
+      "metadata_tracking": {
+        "assignedBy": "username who assigned",
+        "assignedAt": "ISO timestamp",
+        "manualAssignment": true
+      }
     }
   },
 
