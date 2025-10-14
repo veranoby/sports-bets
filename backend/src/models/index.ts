@@ -16,6 +16,7 @@ import { SystemSetting } from './SystemSetting';
 import { Gallera } from "./Gallera";
 import { EventConnection } from "./EventConnection";
 import { MembershipChangeRequest } from "./MembershipChangeRequest";
+import { ActiveSession } from "./ActiveSession";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -179,6 +180,10 @@ MembershipChangeRequest.belongsTo(User, { foreignKey: "userId", as: "user" });
 User.hasMany(MembershipChangeRequest, { foreignKey: "processedBy", as: "processedMembershipRequests" });
 MembershipChangeRequest.belongsTo(User, { foreignKey: "processedBy", as: "processor" });
 
+// User -> ActiveSession (One-to-Many) - Session tracking for concurrent login prevention
+User.hasMany(ActiveSession, { foreignKey: "userId", as: "activeSessions" });
+ActiveSession.belongsTo(User, { foreignKey: "userId", as: "user" });
+
 console.log("✅ Asociaciones configuradas correctamente");
 
 // ========================================
@@ -200,6 +205,7 @@ export {
   Gallera,
   EventConnection,
   MembershipChangeRequest,
+  ActiveSession,
   connectDatabase,
 };
 
@@ -268,6 +274,7 @@ export default {
   Gallera,
   EventConnection,
   MembershipChangeRequest,
+  ActiveSession,
   syncModels,
   checkAssociations,
   ModelUtils,

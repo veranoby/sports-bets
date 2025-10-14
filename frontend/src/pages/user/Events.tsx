@@ -1,7 +1,5 @@
-// frontend/src/pages/user/Events.tsx - MIGRADO V9
-// ===================================================
-// ELIMINADO: getUserThemeClasses() import y usage
-// APLICADO: Clases CSS estáticas directas
+// frontend/src/pages/user/Events.tsx - Updated with filters
+// =========================================================
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -21,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 // Hooks y contextos
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
-// ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
@@ -139,17 +136,28 @@ const EventCard = React.memo(
 
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
-  // ❌ ELIMINADO: const theme = getUserThemeClasses();
 
-  // API Hooks
+  // API Hooks - Updated to use new API parameters
   const { events, loading, error, fetchEvents } = useEvents();
 
   // Estados locales
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "live" | "upcoming">(
+  const [filter, setFilter] = useState<"all" | "upcoming" | "live" | "past">(
     "all",
   );
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+
+  // Fetch events based on filter
+  const {
+    data: filteredEventsData,
+    loading: filteredLoading,
+    error: filteredError,
+  } = useEvents({
+    category: filter !== "all" ? filter : undefined,
+    limit: 20,
+  });
+
+  const filteredEvents = filteredEventsData?.events || [];
 
   // ✅ Referencia estable para fetchEvents
   const fetchEventsRef = useRef(fetchEvents);
@@ -165,28 +173,6 @@ const EventsPage: React.FC = () => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Filtrar eventos
-  const upcomingEvents =
-    events?.filter((event) => {
-      const matchesSearch = event.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || statusFilter === "upcoming";
-      const isUpcoming = event.status === "scheduled";
-      return matchesSearch && matchesStatus && isUpcoming;
-    }) || [];
-
-  const archivedEvents =
-    events?.filter((event) => {
-      const matchesSearch = event.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all";
-      const isCompleted = event.status === "completed";
-      return matchesSearch && matchesStatus && isCompleted;
-    }) || [];
-
   // Handlers
   const handleSearchChange = (
     value: string | React.ChangeEvent<HTMLInputElement>,
@@ -199,24 +185,18 @@ const EventsPage: React.FC = () => {
     navigate(`/live-event/${eventId}`);
   };
 
-  // ✅ Detectar evento en vivo (agregar al inicio del componente)
-  const liveEvent = events?.find((e) => e.status === "in-progress");
+  // Filter events based on search term
+  const filteredAndSearchedEvents = filteredEvents.filter((event) =>
+    event.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  if (loading) {
+  // Loading state for filtered events
+  const isLoading = loading || filteredLoading;
+
+  if (isLoading) {
     return (
-      /* ✅ MIGRADO: theme.pageBackground → page-background */
       <div className="page-background">
         <LoadingSpinner text="Cargando eventos..." className="mt-20" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page-background">
-        <div className="p-4">
-          <ErrorMessage error={error} onRetry={fetchEvents} />
-        </div>
       </div>
     );
   }
@@ -228,7 +208,7 @@ const EventsPage: React.FC = () => {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
           <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
             <Calendar className="w-6 h-6 text-blue-600" />
-            Listado de Eventos
+            Todos los Eventos
           </h1>
 
           {/* Chips estadísticos compactos */}
@@ -245,7 +225,11 @@ const EventsPage: React.FC = () => {
               <Clock className="w-4 h-4 text-amber-600" />
               <span className="text-xs text-amber-600 font-bold">Próximos</span>
               <span className="text-sm font-bold text-amber-600">
-                {events?.filter((e) => e.status === "scheduled").length || 0}
+                {events?.filter(
+                  (e) =>
+                    e.status === "scheduled" &&
+                    new Date(e.scheduledDate) >= new Date(),
+                ).length || 0}
               </span>
             </div>
 
@@ -275,25 +259,29 @@ const EventsPage: React.FC = () => {
             </div>
 
             {/* Filtros de estado - Mejorados los estilos */}
-            <div className="flex gap-2 w-full md:w-1/5">
+            <div className="flex gap-2 w-full md:w-2/3 flex-wrap">
               {[
-                { key: "all", label: "Todos", icon: Calendar },
-                { key: "live", label: "En Vivo", icon: Zap },
-                { key: "upcoming", label: "Próximos", icon: Clock },
-              ].map(({ key, label, icon: Icon }) => (
+                { key: "all", label: "Todos" },
+                { key: "upcoming", label: "Próximos" },
+                { key: "live", label: "En Vivo" },
+                { key: "past", label: "Pasados" },
+              ].map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() =>
-                    setStatusFilter(key as "all" | "live" | "upcoming")
+                    setFilter(key as "all" | "upcoming" | "live" | "past")
                   }
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
-                    statusFilter === key
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    filter === key
                       ? "bg-gradient-to-r from-blue-300 to-blue-400 text-white shadow-md"
-                      : "text-theme-primary  border border-[#596c95]/50 shadow-sm"
+                      : "text-theme-primary border border-[#596c95]/50 shadow-sm"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{label}</span>
+                  {key === "live" && <Zap className="w-4 h-4" />}
+                  {key === "upcoming" && <Clock className="w-4 h-4" />}
+                  {key === "past" && <Star className="w-4 h-4" />}
+                  {key === "all" && <Calendar className="w-4 h-4" />}
+                  <span>{label}</span>
                 </button>
               ))}
             </div>
@@ -301,16 +289,14 @@ const EventsPage: React.FC = () => {
         </div>
 
         {/* Lista de eventos */}
-        {upcomingEvents.length === 0 && archivedEvents.length === 0 ? (
+        {filteredAndSearchedEvents.length === 0 ? (
           <EmptyState
             title="No hay eventos disponibles"
             description={
               searchTerm
                 ? "No se encontraron eventos que coincidan con tu búsqueda"
-                : statusFilter !== "all"
-                  ? `No hay eventos ${
-                      statusFilter === "live" ? "en vivo" : "próximos"
-                    } en este momento`
+                : filter !== "all"
+                  ? `No hay eventos ${filter === "live" ? "en vivo" : filter === "upcoming" ? "próximos" : "pasados"} en este momento`
                   : "No hay eventos programados actualmente"
             }
             icon={<Calendar className="w-12 h-12" />}
@@ -329,91 +315,81 @@ const EventsPage: React.FC = () => {
           <div className="space-y-4">
             {/* Eventos en vivo (prioridad) */}
             {/* Evento en vivo (agregar al inicio del componente) */}
-            {liveEvent && (
-              <div
-                onClick={() => navigate(`/live-event/${liveEvent.id}`)}
-                className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                      <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-red-300 flex items-center gap-2">
-                        <Zap className="w-5 h-5" />
-                        ¡Evento en Vivo Ahora!
-                      </h3>
-                      <p className="text-sm text-theme-light">
-                        {liveEvent.name}
-                      </p>
-                      <p className="text-xs text-theme-light">
-                        {liveEvent.venue?.name}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    {liveEvent.currentViewers && (
-                      <div className="flex items-center gap-1 text-green-600 text-sm mb-2">
-                        <Eye className="w-4 h-4" />
-                        <span>{liveEvent.currentViewers} viendo</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 text-red-300 font-medium">
-                      <Play className="w-5 h-5" />
-                      <span>Ver Evento</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Eventos próximos */}
-            {upcomingEvents.length > 0 && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {upcomingEvents
-                    .sort(
-                      (a, b) =>
-                        new Date(a.scheduledDate).getTime() -
-                        new Date(b.scheduledDate).getTime(),
+            {filter === "all" &&
+              events?.some((e) => e.status === "in-progress") && (
+                <div
+                  onClick={() =>
+                    navigate(
+                      `/live-event/${events.find((e) => e.status === "in-progress")?.id}`,
                     )
-                    .map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        variant="upcoming"
-                      />
-                    ))}
-                </div>
-              </div>
-            )}
+                  }
+                  className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                        <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                      </div>
 
-            {/* Eventos finalizados */}
-            {archivedEvents.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-theme-primary mb-3 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-400" />
-                  Eventos Pasados
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {archivedEvents
-                    .slice(0, 6) // Mostrar solo los últimos 6
-                    .map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        variant="archived"
-                      />
-                    ))}
+                      <div>
+                        <h3 className="font-bold text-red-300 flex items-center gap-2">
+                          <Zap className="w-5 h-5" />
+                          ¡Evento en Vivo Ahora!
+                        </h3>
+                        <p className="text-sm text-theme-light">
+                          {events.find((e) => e.status === "in-progress")?.name}
+                        </p>
+                        <p className="text-xs text-theme-light">
+                          {
+                            events.find((e) => e.status === "in-progress")
+                              ?.venue?.name
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      {events.find((e) => e.status === "in-progress")
+                        ?.currentViewers && (
+                        <div className="flex items-center gap-1 text-green-600 text-sm mb-2">
+                          <Eye className="w-4 h-4" />
+                          <span>
+                            {
+                              events.find((e) => e.status === "in-progress")
+                                ?.currentViewers
+                            }{" "}
+                            viendo
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 text-red-300 font-medium">
+                        <Play className="w-5 h-5" />
+                        <span>Ver Evento</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+            {/* Eventos filtrados */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAndSearchedEvents
+                .sort(
+                  (a, b) =>
+                    new Date(a.scheduledDate).getTime() -
+                    new Date(b.scheduledDate).getTime(),
+                )
+                .map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant={filter === "past" ? "archived" : "upcoming"}
+                  />
+                ))}
+            </div>
           </div>
         )}
 

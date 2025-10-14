@@ -8,7 +8,7 @@ import { User } from "../models/User";
 import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
 import { Op } from "sequelize";
-import { cache, retryOperation } from "../config/database"; // ⚡ OPTIMIZATION: Add caching
+import { getOrSet, invalidatePattern } from "../config/redis"; // ⚡ OPTIMIZATION: Redis caching
 
 import { UserRole } from "../../../shared/types";
 
@@ -125,34 +125,32 @@ router.get(
     const attributes = getArticleAttributes(req.user?.role, "list");
 
     // ⚡ MEGA OPTIMIZATION: Cache articles list for 2 minutes (frequently accessed)
-    const result = await retryOperation(async () => {
-      return await cache.getOrSet(cacheKey, async () => {
-        return await Article.findAndCountAll({
-          where: whereClause,
-          attributes,
-          include: [
-            includeAuthorBool && {
-              model: User,
-              as: "author",
-              attributes: ["id", "username"],
-              separate: false,
-            },
-            includeVenueBool && {
-              model: Venue,
-              as: "venue",
-              attributes: ["id", "name"],
-              separate: false,
-            },
-          ].filter(Boolean),
-          order: [
-            ["published_at", "DESC"],
-            ["created_at", "DESC"],
-          ],
-          limit,
-          offset,
-        });
-      }, 120); // ⚡ 2 minute cache for article lists (heavily accessed)
-    });
+    const result = await getOrSet(cacheKey, async () => {
+      return await Article.findAndCountAll({
+        where: whereClause,
+        attributes,
+        include: [
+          includeAuthorBool && {
+            model: User,
+            as: "author",
+            attributes: ["id", "username"],
+            separate: false,
+          },
+          includeVenueBool && {
+            model: Venue,
+            as: "venue",
+            attributes: ["id", "name"],
+            separate: false,
+          },
+        ].filter(Boolean),
+        order: [
+          ["published_at", "DESC"],
+          ["created_at", "DESC"],
+        ],
+        limit,
+        offset,
+      });
+    }, 120); // ⚡ 2 minute cache for article lists (heavily accessed)
 
     const { count, rows } = result;
 
@@ -200,33 +198,31 @@ router.get(
     // ⚡ OPTIMIZATION: Cache featured articles
     const cacheKey = `articles_featured_${type}_${limit}_${req.user?.role || 'public'}`;
 
-    const featuredArticles = await retryOperation(async () => {
-      return await cache.getOrSet(cacheKey, async () => {
-        return await Article.findAll({
-          where: {
-            status: "published",
-            featured_image: { [Op.ne]: null }, // Only articles with images for banners
+    const featuredArticles = await getOrSet(cacheKey, async () => {
+      return await Article.findAll({
+        where: {
+          status: "published",
+          featured_image: { [Op.ne]: null }, // Only articles with images for banners
+        },
+        attributes,
+        include: [
+          {
+            model: User,
+            as: "author",
+            attributes: ["id", "username"],
+            separate: false,
           },
-          attributes,
-          include: [
-            {
-              model: User,
-              as: "author",
-              attributes: ["id", "username"],
-              separate: false,
-            },
-            {
-              model: Venue,
-              as: "venue",
-              attributes: ["id", "name"],
-              separate: false,
-            },
-          ],
-          order: [["published_at", "DESC"]],
-          limit: parseInt(limit),
-        });
-      }, 180); // ⚡ 3 minute cache for featured articles
-    });
+          {
+            model: Venue,
+            as: "venue",
+            attributes: ["id", "name"],
+            separate: false,
+          },
+        ],
+        order: [["published_at", "DESC"]],
+        limit: parseInt(limit),
+      });
+    }, 180); // ⚡ 3 minute cache for featured articles
 
     res.json({
       success: true,
@@ -249,27 +245,25 @@ router.get(
     // ⚡ OPTIMIZATION: Cache individual articles for 5 minutes
     const cacheKey = `article_detail_${req.params.id}_${req.user?.role || 'public'}`;
 
-    const article = await retryOperation(async () => {
-      return await cache.getOrSet(cacheKey, async () => {
-        return await Article.findByPk(req.params.id, {
-          attributes,
-          include: [
-            {
-              model: User,
-              as: "author",
-              attributes: ["id", "username"],
-              separate: false,
-            },
-            {
-              model: Venue,
-              as: "venue",
-              attributes: ["id", "name"],
-              separate: false,
-            },
-          ],
-        });
-      }, 300); // ⚡ 5 minute cache for individual articles
-    });
+    const article = await getOrSet(cacheKey, async () => {
+      return await Article.findByPk(req.params.id, {
+        attributes,
+        include: [
+          {
+            model: User,
+            as: "author",
+            attributes: ["id", "username"],
+            separate: false,
+          },
+          {
+            model: Venue,
+            as: "venue",
+            attributes: ["id", "name"],
+            separate: false,
+          },
+        ],
+      });
+    }, 300); // ⚡ 5 minute cache for individual articles
 
     if (!article) {
       throw errors.notFound("Article not found");
@@ -336,8 +330,8 @@ router.post(
 
     // ⚡ OPTIMIZATION: Invalidate articles list and featured cache after creation
     await Promise.all([
-      cache.invalidatePattern('articles_list_*'),
-      cache.invalidatePattern('articles_featured_*')
+      invalidatePattern('articles_list_*'),
+      invalidatePattern('articles_featured_*')
     ]);
 
     res.status(201).json({
@@ -370,9 +364,9 @@ router.put(
 
     // ⚡ OPTIMIZATION: Invalidate all relevant caches
     await Promise.all([
-      cache.invalidatePattern('articles_list_*'),
-      cache.invalidatePattern('articles_featured_*'),
-      cache.invalidate(`article_detail_${req.params.id}_*`)
+      invalidatePattern('articles_list_*'),
+      invalidatePattern('articles_featured_*'),
+      invalidatePattern(`article_detail_${req.params.id}_*`)
     ]);
 
     res.json({
@@ -403,9 +397,9 @@ router.put(
 
     // ⚡ OPTIMIZATION: Invalidate caches after publishing
     await Promise.all([
-      cache.invalidatePattern('articles_list_*'),
-      cache.invalidatePattern('articles_featured_*'),
-      cache.invalidate(`article_detail_${req.params.id}_*`)
+      invalidatePattern('articles_list_*'),
+      invalidatePattern('articles_featured_*'),
+      invalidatePattern(`article_detail_${req.params.id}_*`)
     ]);
 
     res.json({

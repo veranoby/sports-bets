@@ -3,6 +3,7 @@ import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Venue, User } from "../models";
 import { body, validationResult } from "express-validator";
+import { getOrSet, invalidatePattern } from "../config/redis";
 
 import { UserRole } from "../../../shared/types";
 
@@ -35,37 +36,45 @@ router.get(
   optionalAuth,
   asyncHandler(async (req, res) => {
     const { status, limit = 20, offset = 0 } = req.query as any;
+    const userRole = req.user?.role || 'public';
 
-    const attributes = getVenueAttributes(req.user?.role);
+    // ⚡ Redis cache key
+    const cacheKey = `venues:list:${userRole}:${status || ''}:${limit}:${offset}`;
 
-    const where: any = {};
-    if (status) where.status = status;
+    const data = await getOrSet(cacheKey, async () => {
+      const attributes = getVenueAttributes(req.user?.role);
 
-    const { count, rows } = await Venue.findAndCountAll({
-      where,
-      attributes,
-      include: [
-        {
-          model: User,
-          as: "owner",
-          attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
-          separate: false,
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
-    });
+      const where: any = {};
+      if (status) where.status = status;
 
-    res.json({
-      success: true,
-      data: {
-        venues: rows.map((v) => v.toJSON({ attributes })),
-        total: count,
+      const { count, rows } = await Venue.findAndCountAll({
+        where,
+        attributes,
+        include: [
+          {
+            model: User,
+            as: "owner",
+            attributes: ["id", "username", "email", "profileInfo"],
+            separate: false,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
-      },
-    });
+      });
+
+      return {
+        success: true,
+        data: {
+          venues: rows.map((v) => v.toJSON({ attributes })),
+          total: count,
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        },
+      };
+    }, 300); // 5 min TTL (venues change rarely)
+
+    res.json(data);
   })
 );
 
@@ -74,28 +83,35 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const attributes = getVenueAttributes(req.user?.role);
+    const userRole = req.user?.role || 'public';
+    const cacheKey = `venue:${req.params.id}:${userRole}`;
 
-    const venue = await Venue.findByPk(req.params.id, {
-      attributes,
-      include: [
-        {
-          model: User,
-          as: "owner",
-          attributes: ["id", "username", "email", "profileInfo"], // Include profileInfo for owner image
-          separate: false,
-        },
-      ],
-    });
+    const data = await getOrSet(cacheKey, async () => {
+      const attributes = getVenueAttributes(req.user?.role);
 
-    if (!venue) {
-      throw errors.notFound("Venue not found");
-    }
+      const venue = await Venue.findByPk(req.params.id, {
+        attributes,
+        include: [
+          {
+            model: User,
+            as: "owner",
+            attributes: ["id", "username", "email", "profileInfo"],
+            separate: false,
+          },
+        ],
+      });
 
-    res.json({
-      success: true,
-      data: venue.toJSON({ attributes }),
-    });
+      if (!venue) {
+        throw errors.notFound("Venue not found");
+      }
+
+      return {
+        success: true,
+        data: venue.toJSON({ attributes }),
+      };
+    }, 300); // 5 min TTL
+
+    res.json(data);
   })
 );
 
@@ -181,6 +197,9 @@ router.post(
         },
       ],
     });
+
+    // ⚡ Invalidate cache
+    await invalidatePattern('venues:list:*');
 
     res.status(201).json({
       success: true,
@@ -269,6 +288,12 @@ router.put(
       ],
     });
 
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('venues:list:*'),
+      invalidatePattern(`venue:${req.params.id}:*`)
+    ]);
+
     res.json({
       success: true,
       message: "Información del local actualizada exitosamente",
@@ -319,6 +344,12 @@ router.put(
       `Venue ${venue.name} (${venue.id}) status changed from ${oldStatus} to ${status} by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
     );
 
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('venues:list:*'),
+      invalidatePattern(`venue:${req.params.id}:*`)
+    ]);
+
     res.json({
       success: true,
       message: `Venue status updated to ${status}`,
@@ -346,6 +377,12 @@ router.delete(
     require("../config/logger").logger.info(
       `Venue ${venue.name} (${venue.id}) suspended by admin ${req.user!.username}`
     );
+
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('venues:list:*'),
+      invalidatePattern(`venue:${req.params.id}:*`)
+    ]);
 
     res.json({
       success: true,

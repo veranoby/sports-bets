@@ -7,14 +7,6 @@
   "update_rule": "CASCADE",
   "delete_rule": "RESTRICT"
 }, {
-  "constraint_name": "articles_venue_id_fkey",
-  "table_name": "articles",
-  "column_name": "venue_id",
-  "foreign_table_name": "venues",
-  "foreign_column_name": "id",
-  "update_rule": "NO ACTION",
-  "delete_rule": "NO ACTION"
-}, {
   "constraint_name": "bets_fight_id_fkey",
   "table_name": "bets",
   "column_name": "fight_id",
@@ -85,6 +77,22 @@
   "foreign_table_name": "users",
   "foreign_column_name": "id",
   "update_rule": "NO ACTION",
+  "delete_rule": "CASCADE"
+}, {
+  "constraint_name": "membership_change_requests_processed_by_fkey",
+  "table_name": "membership_change_requests",
+  "column_name": "processed_by",
+  "foreign_table_name": "users",
+  "foreign_column_name": "id",
+  "update_rule": "CASCADE",
+  "delete_rule": "SET NULL"
+}, {
+  "constraint_name": "membership_change_requests_user_id_fkey",
+  "table_name": "membership_change_requests",
+  "column_name": "user_id",
+  "foreign_table_name": "users",
+  "foreign_column_name": "id",
+  "update_rule": "CASCADE",
   "delete_rule": "CASCADE"
 }, {
   "constraint_name": "notifications_user_id_fkey",

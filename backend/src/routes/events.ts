@@ -72,7 +72,7 @@ router.get(
   optionalAuth,
   filterByOperatorAssignment,
   asyncHandler(async (req, res) => {
-    const { venueId, status, upcoming } = req.query;
+    const { venueId, status, upcoming, dateRange, category } = req.query;
     const userRole = req.user?.role || 'public';
 
     // ⚡ SAFE PAGINATION: Enforce safe limits
@@ -80,7 +80,7 @@ router.get(
     const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
     // Create a unique cache key based on query params and user role
-    const cacheKey = `events:list:${userRole}:${venueId || ''}:${status || ''}:${upcoming || ''}:${limit}:${offset}`;
+    const cacheKey = `events:list:${userRole}:${venueId || ''}:${status || ''}:${upcoming || ''}:${dateRange || ''}:${category || ''}:${limit}:${offset}`;
 
     // Try to get data from cache
     const cachedData = await getCache(cacheKey);
@@ -91,11 +91,40 @@ router.get(
     const where: any = { ...req.queryFilter };
     if (venueId) where.venueId = venueId;
     if (status) where.status = status;
-    if (upcoming === "true") {
-      where.scheduledDate = {
-        [Op.gte]: new Date(),
-      };
+
+    // Enhanced date-based filtering for cost optimization
+    if (dateRange === "today") {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(todayStart);
+      todayEnd.setHours(23, 59, 59, 999);
+      where.scheduledDate = { [Op.between]: [todayStart, todayEnd] };
+    } else if (dateRange === "tomorrow") {
+      const tomorrowStart = new Date();
+      tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+      tomorrowStart.setHours(0, 0, 0, 0);
+      const tomorrowEnd = new Date(tomorrowStart);
+      tomorrowEnd.setHours(23, 59, 59, 999);
+      where.scheduledDate = { [Op.between]: [tomorrowStart, tomorrowEnd] };
+    } else if (dateRange === "this-week") {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      where.scheduledDate = { [Op.between]: [weekStart, weekEnd] };
+    } else if (upcoming === "true") {
+      where.scheduledDate = { [Op.gte]: new Date() };
       where.status = "scheduled";
+    } else if (category === "past") {
+      // Show ALL past events regardless of status (completed, cancelled, etc.)
+      where.scheduledDate = { [Op.lt]: new Date() };
+    } else if (category === "live") {
+      where.status = "in-progress";
+    } else if (category === "upcoming") {
+      // Show all future events
+      where.scheduledDate = { [Op.gte]: new Date() };
     }
     const attributes = getEventAttributes(req.user?.role, "list");
 

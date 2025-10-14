@@ -1,4 +1,16 @@
 [{
+  "constraint_name": "2200_950272_1_not_null",
+  "table_name": "SequelizeMeta",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "name IS NOT NULL"
+}, {
+  "constraint_name": "SequelizeMeta_pkey",
+  "table_name": "SequelizeMeta",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "name",
+  "check_clause": null
+}, {
   "constraint_name": "2200_819215_11_not_null",
   "table_name": "articles",
   "constraint_type": "CHECK",
@@ -331,6 +343,54 @@
 }, {
   "constraint_name": "galleras_pkey",
   "table_name": "galleras",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "2200_950295_12_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_13_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_1_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_2_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_4_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "requested_membership_type IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_5_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "2200_950295_7_not_null",
+  "table_name": "membership_change_requests",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "requested_at IS NOT NULL"
+}, {
+  "constraint_name": "membership_change_requests_pkey",
+  "table_name": "membership_change_requests",
   "constraint_type": "PRIMARY KEY",
   "column_names": "id",
   "check_clause": null

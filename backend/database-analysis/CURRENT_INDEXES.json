@@ -1,708 +1,1477 @@
 [{
   "schemaname": "public",
+  "tablename": "SequelizeMeta",
+  "indexname": "SequelizeMeta_pkey",
+  "indexdef": "CREATE UNIQUE INDEX \"SequelizeMeta_pkey\" ON public.\"SequelizeMeta\" USING btree (name)",
+  "is_unique": true,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
   "tablename": "articles",
   "indexname": "articles_pkey",
   "indexdef": "CREATE UNIQUE INDEX articles_pkey ON public.articles USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "articles_slug_key",
   "indexdef": "CREATE UNIQUE INDEX articles_slug_key ON public.articles USING btree (slug)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "articles_slug_unique",
   "indexdef": "CREATE UNIQUE INDEX articles_slug_unique ON public.articles USING btree (slug)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 5,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "idx_articles_author_id",
   "indexdef": "CREATE INDEX idx_articles_author_id ON public.articles USING btree (author_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 1,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_author_status_published",
+  "indexdef": "CREATE INDEX idx_articles_author_status_published ON public.articles USING btree (author_id, status, published_at) WHERE (status = ANY (ARRAY['published'::enum_articles_status, 'pending'::enum_articles_status]))",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "idx_articles_category_status",
   "indexdef": "CREATE INDEX idx_articles_category_status ON public.articles USING btree (category, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_featured",
+  "indexdef": "CREATE INDEX idx_articles_featured ON public.articles USING btree (status, featured_image, published_at) WHERE ((status = 'published'::enum_articles_status) AND (featured_image IS NOT NULL))",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "idx_articles_status_published",
   "indexdef": "CREATE INDEX idx_articles_status_published ON public.articles USING btree (status, published_at DESC) WHERE (status = 'published'::enum_articles_status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 785,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "articles",
   "indexname": "idx_articles_status_published_at",
   "indexdef": "CREATE INDEX idx_articles_status_published_at ON public.articles USING btree (status, published_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 2140,
+  "tuples_read": 304,
+  "tuples_fetched": 294
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_venue_id",
+  "indexdef": "CREATE INDEX idx_articles_venue_id ON public.articles USING btree (venue_id)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_venue_status_published",
+  "indexdef": "CREATE INDEX idx_articles_venue_status_published ON public.articles USING btree (venue_id, status, published_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_bet_type",
   "indexdef": "CREATE INDEX bets_bet_type ON public.bets USING btree (bet_type)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_created_at",
   "indexdef": "CREATE INDEX bets_created_at ON public.bets USING btree (created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_fight_id_status",
   "indexdef": "CREATE INDEX bets_fight_id_status ON public.bets USING btree (fight_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_fight_id_user_id",
   "indexdef": "CREATE UNIQUE INDEX bets_fight_id_user_id ON public.bets USING btree (fight_id, user_id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_matched_with",
   "indexdef": "CREATE INDEX bets_matched_with ON public.bets USING btree (matched_with)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_parent_bet_id",
   "indexdef": "CREATE INDEX bets_parent_bet_id ON public.bets USING btree (parent_bet_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_pkey",
   "indexdef": "CREATE UNIQUE INDEX bets_pkey ON public.bets USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_proposal_status",
   "indexdef": "CREATE INDEX bets_proposal_status ON public.bets USING btree (proposal_status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_status",
   "indexdef": "CREATE INDEX bets_status ON public.bets USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "idx_bets_fight_side",
   "indexdef": "CREATE INDEX idx_bets_fight_side ON public.bets USING btree (fight_id, side, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_fight_status_created_at",
+  "indexdef": "CREATE INDEX idx_bets_fight_status_created_at ON public.bets USING btree (fight_id, status, created_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_fight_status_pending",
+  "indexdef": "CREATE INDEX idx_bets_fight_status_pending ON public.bets USING btree (fight_id, status) WHERE (status = 'pending'::enum_bets_status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_parent_bet_proposal",
+  "indexdef": "CREATE INDEX idx_bets_parent_bet_proposal ON public.bets USING btree (parent_bet_id, proposal_status) WHERE (parent_bet_id IS NOT NULL)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_user_created_at",
+  "indexdef": "CREATE INDEX idx_bets_user_created_at ON public.bets USING btree (user_id, created_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
   "indexname": "idx_bets_user_status",
   "indexdef": "CREATE INDEX idx_bets_user_status ON public.bets USING btree (user_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
   "indexname": "event_connections_pkey",
   "indexdef": "CREATE UNIQUE INDEX event_connections_pkey ON public.event_connections USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
   "indexname": "idx_event_connections_connected_at",
   "indexdef": "CREATE INDEX idx_event_connections_connected_at ON public.event_connections USING btree (connected_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_event_disconnected",
+  "indexdef": "CREATE INDEX idx_event_connections_event_disconnected ON public.event_connections USING btree (event_id, disconnected_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
   "indexname": "idx_event_connections_event_id",
   "indexdef": "CREATE INDEX idx_event_connections_event_id ON public.event_connections USING btree (event_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
   "indexname": "idx_event_connections_user_id",
   "indexdef": "CREATE INDEX idx_event_connections_user_id ON public.event_connections USING btree (user_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_operator_id",
   "indexdef": "CREATE INDEX events_operator_id ON public.events USING btree (operator_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 13,
+  "tuples_read": 8,
+  "tuples_fetched": 8
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_pkey",
   "indexdef": "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 7,
+  "tuples_read": 7,
+  "tuples_fetched": 7
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_scheduled_date",
   "indexdef": "CREATE INDEX events_scheduled_date ON public.events USING btree (scheduled_date)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 187,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_status",
   "indexdef": "CREATE INDEX events_status ON public.events USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_stream_key",
   "indexdef": "CREATE UNIQUE INDEX events_stream_key ON public.events USING btree (stream_key)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_venue_id",
   "indexdef": "CREATE INDEX events_venue_id ON public.events USING btree (venue_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "events_venue_id_scheduled_date",
   "indexdef": "CREATE INDEX events_venue_id_scheduled_date ON public.events USING btree (venue_id, scheduled_date)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "idx_events_scheduled_date",
   "indexdef": "CREATE INDEX idx_events_scheduled_date ON public.events USING btree (scheduled_date)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "idx_events_status_date_optimized",
   "indexdef": "CREATE INDEX idx_events_status_date_optimized ON public.events USING btree (status, scheduled_date, venue_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_status_scheduled_date",
+  "indexdef": "CREATE INDEX idx_events_status_scheduled_date ON public.events USING btree (status, scheduled_date)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "events",
   "indexname": "idx_events_venue_status",
   "indexdef": "CREATE INDEX idx_events_venue_status ON public.events USING btree (venue_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 4,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "fights_event_id",
   "indexdef": "CREATE INDEX fights_event_id ON public.fights USING btree (event_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "fights_event_id_number",
   "indexdef": "CREATE UNIQUE INDEX fights_event_id_number ON public.fights USING btree (event_id, number)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 16,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "fights_event_id_status",
   "indexdef": "CREATE INDEX fights_event_id_status ON public.fights USING btree (event_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "fights_pkey",
   "indexdef": "CREATE UNIQUE INDEX fights_pkey ON public.fights USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "fights_status",
   "indexdef": "CREATE INDEX fights_status ON public.fights USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "idx_fights_event_betting",
+  "indexdef": "CREATE INDEX idx_fights_event_betting ON public.fights USING btree (event_id, status) WHERE (status = 'betting'::enum_fights_status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "fights",
   "indexname": "idx_fights_event_status",
   "indexdef": "CREATE INDEX idx_fights_event_status ON public.fights USING btree (event_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "idx_fights_event_status_number",
+  "indexdef": "CREATE INDEX idx_fights_event_status_number ON public.fights USING btree (event_id, status, number)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 8,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "galleras",
   "indexname": "galleras_pkey",
   "indexdef": "CREATE UNIQUE INDEX galleras_pkey ON public.galleras USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 726,
+  "tuples_read": 726,
+  "tuples_fetched": 726
 }, {
   "schemaname": "public",
   "tablename": "galleras",
   "indexname": "idx_galleras_owner_id",
   "indexdef": "CREATE INDEX idx_galleras_owner_id ON public.galleras USING btree (owner_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 7,
+  "tuples_read": 6,
+  "tuples_fetched": 5
 }, {
   "schemaname": "public",
   "tablename": "galleras",
   "indexname": "idx_galleras_status",
   "indexdef": "CREATE INDEX idx_galleras_status ON public.galleras USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_pending",
+  "indexdef": "CREATE INDEX idx_membership_requests_pending ON public.membership_change_requests USING btree (status, requested_at) WHERE (status = 'pending'::enum_membership_change_requests_status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 62,
+  "tuples_read": 53,
+  "tuples_fetched": 50
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_processor",
+  "indexdef": "CREATE INDEX idx_membership_requests_processor ON public.membership_change_requests USING btree (processed_by)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_user_status",
+  "indexdef": "CREATE INDEX idx_membership_requests_user_status ON public.membership_change_requests USING btree (user_id, status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 16,
+  "tuples_read": 14,
+  "tuples_fetched": 12
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "membership_change_requests_pkey",
+  "indexdef": "CREATE UNIQUE INDEX membership_change_requests_pkey ON public.membership_change_requests USING btree (id)",
+  "is_unique": true,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2
 }, {
   "schemaname": "public",
   "tablename": "notifications",
   "indexname": "idx_notifications_expires_at",
   "indexdef": "CREATE INDEX idx_notifications_expires_at ON public.notifications USING btree (expires_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "notifications",
   "indexname": "idx_notifications_type",
   "indexdef": "CREATE INDEX idx_notifications_type ON public.notifications USING btree (type)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "notifications",
   "indexname": "idx_notifications_user_id",
   "indexdef": "CREATE INDEX idx_notifications_user_id ON public.notifications USING btree (user_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "notifications",
   "indexname": "idx_notifications_user_read",
   "indexdef": "CREATE INDEX idx_notifications_user_read ON public.notifications USING btree (user_id, is_read, created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 296,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_user_unread",
+  "indexdef": "CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id, is_read, created_at) WHERE (is_read = false)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 90,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "notifications",
   "indexname": "notifications_pkey",
   "indexdef": "CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "idx_payment_transactions_created_at",
   "indexdef": "CREATE INDEX idx_payment_transactions_created_at ON public.payment_transactions USING btree (created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "idx_payment_transactions_status",
   "indexdef": "CREATE INDEX idx_payment_transactions_status ON public.payment_transactions USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "idx_payment_transactions_subscription_id",
   "indexdef": "CREATE INDEX idx_payment_transactions_subscription_id ON public.payment_transactions USING btree (subscription_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "idx_payment_transactions_type_status",
   "indexdef": "CREATE INDEX idx_payment_transactions_type_status ON public.payment_transactions USING btree (transaction_type, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "idx_payment_transactions_user_id",
   "indexdef": "CREATE INDEX idx_payment_transactions_user_id ON public.payment_transactions USING btree (user_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 1,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_user_status",
+  "indexdef": "CREATE INDEX idx_payment_transactions_user_status ON public.payment_transactions USING btree (user_id, status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "payment_transactions_idempotency_key_key",
   "indexdef": "CREATE UNIQUE INDEX payment_transactions_idempotency_key_key ON public.payment_transactions USING btree (idempotency_key)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "payment_transactions_idempotency_key_unique",
   "indexdef": "CREATE UNIQUE INDEX payment_transactions_idempotency_key_unique ON public.payment_transactions USING btree (idempotency_key) WHERE (idempotency_key IS NOT NULL)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "payment_transactions_kushki_transaction_id_key",
   "indexdef": "CREATE UNIQUE INDEX payment_transactions_kushki_transaction_id_key ON public.payment_transactions USING btree (kushki_transaction_id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "payment_transactions_kushki_transaction_id_unique",
   "indexdef": "CREATE UNIQUE INDEX payment_transactions_kushki_transaction_id_unique ON public.payment_transactions USING btree (kushki_transaction_id) WHERE (kushki_transaction_id IS NOT NULL)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
   "indexname": "payment_transactions_pkey",
   "indexdef": "CREATE UNIQUE INDEX payment_transactions_pkey ON public.payment_transactions USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "schema_migrations",
   "indexname": "schema_migrations_pkey",
   "indexdef": "CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (version)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 1,
+  "tuples_read": 1,
+  "tuples_fetched": 1
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_expires_at",
   "indexdef": "CREATE INDEX idx_subscriptions_expires_at ON public.subscriptions USING btree (expires_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_retry",
   "indexdef": "CREATE INDEX idx_subscriptions_retry ON public.subscriptions USING btree (retry_count, max_retries)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_status",
   "indexdef": "CREATE INDEX idx_subscriptions_status ON public.subscriptions USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_status_expires",
   "indexdef": "CREATE INDEX idx_subscriptions_status_expires ON public.subscriptions USING btree (status, expires_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 579,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_type",
   "indexdef": "CREATE INDEX idx_subscriptions_type ON public.subscriptions USING btree (type)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_active",
   "indexdef": "CREATE INDEX idx_subscriptions_user_active ON public.subscriptions USING btree (user_id, status, expires_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 751,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_id",
   "indexdef": "CREATE INDEX idx_subscriptions_user_id ON public.subscriptions USING btree (user_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "subscriptions_kushki_subscription_id_key",
   "indexdef": "CREATE UNIQUE INDEX subscriptions_kushki_subscription_id_key ON public.subscriptions USING btree (kushki_subscription_id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "subscriptions_pkey",
   "indexdef": "CREATE UNIQUE INDEX subscriptions_pkey ON public.subscriptions USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "indexname": "idx_system_settings_category",
   "indexdef": "CREATE INDEX idx_system_settings_category ON public.system_settings USING btree (category)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "indexname": "idx_system_settings_key",
   "indexdef": "CREATE INDEX idx_system_settings_key ON public.system_settings USING btree (key)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "indexname": "idx_system_settings_public",
   "indexdef": "CREATE INDEX idx_system_settings_public ON public.system_settings USING btree (is_public)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "indexname": "system_settings_key_key",
   "indexdef": "CREATE UNIQUE INDEX system_settings_key_key ON public.system_settings USING btree (key)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 775,
+  "tuples_read": 774,
+  "tuples_fetched": 774
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "indexname": "system_settings_pkey",
   "indexdef": "CREATE UNIQUE INDEX system_settings_pkey ON public.system_settings USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "idx_transactions_wallet_date",
   "indexdef": "CREATE INDEX idx_transactions_wallet_date ON public.transactions USING btree (wallet_id, created_at DESC)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_status_created_at",
+  "indexdef": "CREATE INDEX idx_transactions_wallet_status_created_at ON public.transactions USING btree (wallet_id, status, created_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "idx_transactions_wallet_type",
   "indexdef": "CREATE INDEX idx_transactions_wallet_type ON public.transactions USING btree (wallet_id, type, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_type_status",
+  "indexdef": "CREATE INDEX idx_transactions_wallet_type_status ON public.transactions USING btree (wallet_id, type, status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_created_at",
   "indexdef": "CREATE INDEX transactions_created_at ON public.transactions USING btree (created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_pkey",
   "indexdef": "CREATE UNIQUE INDEX transactions_pkey ON public.transactions USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_reference",
   "indexdef": "CREATE INDEX transactions_reference ON public.transactions USING btree (reference)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_status",
   "indexdef": "CREATE INDEX transactions_status ON public.transactions USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_type",
   "indexdef": "CREATE INDEX transactions_type ON public.transactions USING btree (type)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 10,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_wallet_id",
   "indexdef": "CREATE INDEX transactions_wallet_id ON public.transactions USING btree (wallet_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "transactions_wallet_id_created_at",
   "indexdef": "CREATE INDEX transactions_wallet_id_created_at ON public.transactions USING btree (wallet_id, created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 517,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_email_active",
   "indexdef": "CREATE INDEX idx_users_email_active ON public.users USING btree (email, is_active)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_email_login_optimized",
   "indexdef": "CREATE INDEX idx_users_email_login_optimized ON public.users USING btree (email, is_active, last_login)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_id_active",
   "indexdef": "CREATE INDEX idx_users_id_active ON public.users USING btree (id, is_active) WHERE (is_active = true)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_role_active",
   "indexdef": "CREATE INDEX idx_users_role_active ON public.users USING btree (role, is_active)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_active_last_login",
+  "indexdef": "CREATE INDEX idx_users_role_active_last_login ON public.users USING btree (role, is_active, last_login)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_role_active_optimized",
   "indexdef": "CREATE INDEX idx_users_role_active_optimized ON public.users USING btree (role, is_active, created_at)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "idx_users_verification_token",
   "indexdef": "CREATE INDEX idx_users_verification_token ON public.users USING btree (verification_token)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "users_email",
   "indexdef": "CREATE UNIQUE INDEX users_email ON public.users USING btree (email)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "users_is_active",
   "indexdef": "CREATE INDEX users_is_active ON public.users USING btree (is_active)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "users_pkey",
   "indexdef": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 5,
+  "tuples_read": 5,
+  "tuples_fetched": 5
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "users_role",
   "indexdef": "CREATE INDEX users_role ON public.users USING btree (role)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "users",
   "indexname": "users_username",
   "indexdef": "CREATE UNIQUE INDEX users_username ON public.users USING btree (username)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "idx_venues_owner_status",
   "indexdef": "CREATE INDEX idx_venues_owner_status ON public.venues USING btree (owner_id, status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 3,
+  "tuples_read": 1,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "venues_is_verified",
   "indexdef": "CREATE INDEX venues_is_verified ON public.venues USING btree (is_verified)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "venues_name",
   "indexdef": "CREATE INDEX venues_name ON public.venues USING btree (name)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "venues_owner_id",
   "indexdef": "CREATE INDEX venues_owner_id ON public.venues USING btree (owner_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "venues_pkey",
   "indexdef": "CREATE UNIQUE INDEX venues_pkey ON public.venues USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 1358,
+  "tuples_read": 70,
+  "tuples_fetched": 66
 }, {
   "schemaname": "public",
   "tablename": "venues",
   "indexname": "venues_status",
   "indexdef": "CREATE INDEX venues_status ON public.venues USING btree (status)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 147,
+  "tuples_read": 180,
+  "tuples_fetched": 170
 }, {
   "schemaname": "public",
   "tablename": "wallets",
   "indexname": "idx_wallets_user_id",
   "indexdef": "CREATE INDEX idx_wallets_user_id ON public.wallets USING btree (user_id)",
   "is_unique": false,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "wallets",
   "indexname": "wallets_pkey",
   "indexdef": "CREATE UNIQUE INDEX wallets_pkey ON public.wallets USING btree (id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "wallets",
   "indexname": "wallets_user_id",
   "indexdef": "CREATE UNIQUE INDEX wallets_user_id ON public.wallets USING btree (user_id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "wallets",
   "indexname": "wallets_user_id_unique",
   "indexdef": "CREATE UNIQUE INDEX wallets_user_id_unique ON public.wallets USING btree (user_id)",
   "is_unique": true,
-  "index_type": "btree"
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 5,
+  "tuples_read": 0,
+  "tuples_fetched": 0
 }]

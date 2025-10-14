@@ -6,6 +6,7 @@ import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Gallera, User } from "../models";
 import { body, validationResult } from "express-validator";
+import { getOrSet, invalidatePattern } from "../config/redis";
 
 const router = Router();
 
@@ -15,34 +16,42 @@ router.get(
   optionalAuth, // O `authenticate` si solo usuarios logueados pueden verlas
   asyncHandler(async (req, res) => {
     const { status, limit = 50, offset = 0 } = req.query as any;
+    const userRole = req.user?.role || 'public';
 
-    const where: any = {};
-    if (status) where.status = status;
+    // ⚡ Redis cache key
+    const cacheKey = `galleras:list:${userRole}:${status || ''}:${limit}:${offset}`;
 
-    const { count, rows } = await Gallera.findAndCountAll({
-      where,
-      include: [
-        {
-          model: User,
-          as: "owner",
-          attributes: ["id", "username", "email", "profileInfo"],
-          separate: false,
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
-    });
+    const data = await getOrSet(cacheKey, async () => {
+      const where: any = {};
+      if (status) where.status = status;
 
-    res.json({
-      success: true,
-      data: {
-        galleras: rows,
-        total: count,
+      const { count, rows } = await Gallera.findAndCountAll({
+        where,
+        include: [
+          {
+            model: User,
+            as: "owner",
+            attributes: ["id", "username", "email", "profileInfo"],
+            separate: false,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
-      },
-    });
+      });
+
+      return {
+        success: true,
+        data: {
+          galleras: rows,
+          total: count,
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        },
+      };
+    }, 300); // 5 min TTL (galleras change rarely)
+
+    res.json(data);
   })
 );
 
@@ -51,25 +60,32 @@ router.get(
   "/:id",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const gallera = await Gallera.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: "owner",
-          attributes: ["id", "username", "email", "profileInfo"],
-          separate: false,
-        },
-      ],
-    });
+    const userRole = req.user?.role || 'public';
+    const cacheKey = `gallera:${req.params.id}:${userRole}`;
 
-    if (!gallera) {
-      throw errors.notFound("Gallera not found");
-    }
+    const data = await getOrSet(cacheKey, async () => {
+      const gallera = await Gallera.findByPk(req.params.id, {
+        include: [
+          {
+            model: User,
+            as: "owner",
+            attributes: ["id", "username", "email", "profileInfo"],
+            separate: false,
+          },
+        ],
+      });
 
-    res.json({
-      success: true,
-      data: gallera,
-    });
+      if (!gallera) {
+        throw errors.notFound("Gallera not found");
+      }
+
+      return {
+        success: true,
+        data: gallera,
+      };
+    }, 300); // 5 min TTL
+
+    res.json(data);
   })
 );
 
@@ -130,6 +146,9 @@ router.post(
     });
 
     console.log('Gallera created successfully:', gallera.toJSON());
+
+    // ⚡ Invalidate cache
+    await invalidatePattern('galleras:list:*');
 
     res.status(201).json({
       success: true,
@@ -209,6 +228,12 @@ router.put(
     await gallera.save();
     console.log('Gallera saved successfully');
 
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('galleras:list:*'),
+      invalidatePattern(`gallera:${req.params.id}:*`)
+    ]);
+
     res.json({
       success: true,
       message: "Información de la gallera actualizada exitosamente",
@@ -230,6 +255,12 @@ router.delete(
     }
 
     await gallera.destroy();
+
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('galleras:list:*'),
+      invalidatePattern(`gallera:${req.params.id}:*`)
+    ]);
 
     res.json({
       success: true,
@@ -279,6 +310,12 @@ router.put(
     require("../config/logger").logger.info(
       `Gallera ${gallera.name} (${gallera.id}) status changed from ${oldStatus} to ${status} by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
     );
+
+    // ⚡ Invalidate cache
+    await Promise.all([
+      invalidatePattern('galleras:list:*'),
+      invalidatePattern(`gallera:${req.params.id}:*`)
+    ]);
 
     res.json({
       success: true,

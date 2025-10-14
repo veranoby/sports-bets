@@ -4,6 +4,7 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { User } from "../models";
 import { body, param, validationResult } from "express-validator";
 import { Op } from "sequelize";
+import { getOrSet, invalidatePattern } from "../config/redis";
 
 const router = Router();
 
@@ -14,20 +15,27 @@ router.get(
   asyncHandler(async (req, res) => {
     const userId = req.user!.id;
 
-    const user = await User.findByPk(userId, {
-      attributes: {
-        exclude: ["passwordHash", "verificationToken"],
-      },
-    });
+    // ⚡ Redis cache key
+    const cacheKey = `user:profile:${userId}`;
 
-    if (!user) {
-      throw errors.notFound("User not found");
-    }
+    const data = await getOrSet(cacheKey, async () => {
+      const user = await User.findByPk(userId, {
+        attributes: {
+          exclude: ["passwordHash", "verificationToken"],
+        },
+      });
 
-    res.json({
-      success: true,
-      data: { user: user.toPublicJSON() },
-    });
+      if (!user) {
+        throw errors.notFound("User not found");
+      }
+
+      return {
+        success: true,
+        data: { user: user.toPublicJSON() },
+      };
+    }, 300); // 5 min TTL (critical path - balance between freshness and performance)
+
+    res.json(data);
   })
 );
 
@@ -296,6 +304,9 @@ router.put(
           // Don't fail the whole request if gallera sync fails
         }
       }
+
+      // ⚡ Invalidate cache after successful update
+      await invalidatePattern(`user:profile:${req.user!.id}`);
 
       res.json({
         success: true,

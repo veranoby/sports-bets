@@ -2,78 +2,91 @@
   "schemaname": "public",
   "tablename": "users",
   "attname": "created_at",
-  "n_distinct": -0.6,
-  "most_common_vals": "{\"2025-08-23 00:58:31.733495+00\"}"
+  "n_distinct": -0.6363636,
+  "common_values_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
+  "correlation": 0.36363637
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email",
   "n_distinct": -1,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": 0.48181817
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email_verified",
   "n_distinct": 1,
-  "most_common_vals": "{f}"
+  "common_values_sample": "{f}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "id",
   "n_distinct": -1,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": -0.26363635
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "is_active",
   "n_distinct": 1,
-  "most_common_vals": "{t}"
+  "common_values_sample": "{t}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "last_login",
-  "n_distinct": -0.6,
-  "most_common_vals": null
+  "n_distinct": -0.5454545,
+  "common_values_sample": null,
+  "correlation": -0.4857143
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "password_hash",
   "n_distinct": -1,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": -0.3181818
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "profile_info",
-  "n_distinct": -0.6,
-  "most_common_vals": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}"
+  "n_distinct": -0.6363636,
+  "common_values_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
+  "correlation": -0.6181818
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "role",
-  "n_distinct": -0.5,
-  "most_common_vals": "{user,operator,venue}"
+  "n_distinct": -0.45454547,
+  "common_values_sample": "{user,venue,operator}",
+  "correlation": 0.28181818
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "updated_at",
   "n_distinct": -1,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": 0.06363636
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "username",
   "n_distinct": -1,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": 0.6181818
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "verification_expires",
   "n_distinct": 0,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "verification_token",
   "n_distinct": 0,
-  "most_common_vals": null
+  "common_values_sample": null,
+  "correlation": null
 }]

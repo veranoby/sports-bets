@@ -500,9 +500,10 @@ export function useEvents() {
     async (params?: {
       venueId?: string;
       status?: string;
-      upcoming?: boolean;
       limit?: number;
       offset?: number;
+      dateRange?: "today" | "tomorrow" | "this-week";
+      category?: "past" | "live" | "future" | "upcoming";
     }) => {
       return execute(() => apiClient.get("/events", { params }));
     },

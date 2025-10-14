@@ -5,6 +5,7 @@ import { Op } from 'sequelize';
 import { authenticate, authorize } from '../middleware/auth';
 import { asyncHandler, errors } from '../middleware/errorHandler';
 import { MembershipChangeRequest, User, Subscription } from '../models';
+import { getOrSet, invalidatePattern } from '../config/redis';
 
 const router = Router();
 
@@ -71,6 +72,9 @@ router.post(
       status: 'pending',
       requestedAt: new Date(),
     });
+
+    // ⚡ Invalidate admin dashboard cache
+    await invalidatePattern('membership:requests:admin:*');
 
     res.status(201).json({ success: true, data: newRequest.toPublicJSON() });
   })
@@ -153,71 +157,79 @@ router.get(
     }
 
     const { search, limit = 100, status = 'pending' } = req.query;
-    const where: any = {};
 
-    // Apply status filter
-    if (status && status !== 'all') {
-      where.status = status;
-    }
+    // ⚡ Redis cache key (admin dashboard - critical performance)
+    const cacheKey = `membership:requests:admin:${status}:${search || 'all'}:${limit}`;
 
-    let userWhere: any = {};
-    if (search) {
-        const searchTerm = `%${search}%`;
-        userWhere = {
-            [Op.or]: [
-                { username: { [Op.iLike]: searchTerm } },
-                { email: { [Op.iLike]: searchTerm } },
+    const data = await getOrSet(cacheKey, async () => {
+      const where: any = {};
+
+      // Apply status filter
+      if (status && status !== 'all') {
+        where.status = status;
+      }
+
+      let userWhere: any = {};
+      if (search) {
+          const searchTerm = `%${search}%`;
+          userWhere = {
+              [Op.or]: [
+                  { username: { [Op.iLike]: searchTerm } },
+                  { email: { [Op.iLike]: searchTerm } },
+              ],
+          };
+      }
+
+      const limitNum = parseInt(limit as string, 10) || 100;
+
+      const { rows, count } = await MembershipChangeRequest.findAndCountAll({
+        where,
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'email', 'profileInfo'],
+            where: userWhere,
+            separate: false,
+            include: [
+              {
+                model: Subscription,
+                as: 'subscriptions',
+                attributes: ['id', 'status', 'type', 'manual_expires_at'],
+                limit: 1,
+                order: [['created_at', 'DESC']],
+                separate: false,
+              },
             ],
-        };
-    }
+          },
+        ],
+        order: [['requestedAt', 'ASC']],
+        limit: limitNum,
+      });
 
-    const limitNum = parseInt(limit as string, 10) || 100;
-
-    const { rows, count } = await MembershipChangeRequest.findAndCountAll({
-      where,
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'username', 'email', 'profileInfo'],
-          where: userWhere,
-          separate: false,
-          include: [
-            {
-              model: Subscription,
-              as: 'subscriptions',
-              attributes: ['id', 'status', 'type', 'manual_expires_at'],
-              limit: 1,
-              order: [['created_at', 'DESC']],
-              separate: false,
-            },
-          ],
-        },
-      ],
-      order: [['requestedAt', 'ASC']],
-      limit: limitNum,
-    });
-
-    res.json({
-        success: true,
-        data: {
-            requests: rows.map((r: any) => ({
-              ...r.toPublicJSON(),
-              user: r.user ? {
-                id: r.user.id,
-                username: r.user.username,
-                email: r.user.email,
-                profileInfo: r.user.profileInfo,
-                subscription: r.user.subscriptions && r.user.subscriptions.length > 0 ? {
-                  status: r.user.subscriptions[0].status,
-                  type: r.user.subscriptions[0].type,
-                  manual_expires_at: r.user.subscriptions[0].manual_expires_at,
+      return {
+          success: true,
+          data: {
+              requests: rows.map((r: any) => ({
+                ...r.toPublicJSON(),
+                user: r.user ? {
+                  id: r.user.id,
+                  username: r.user.username,
+                  email: r.user.email,
+                  profileInfo: r.user.profileInfo,
+                  subscription: r.user.subscriptions && r.user.subscriptions.length > 0 ? {
+                    status: r.user.subscriptions[0].status,
+                    type: r.user.subscriptions[0].type,
+                    manual_expires_at: r.user.subscriptions[0].manual_expires_at,
+                  } : null,
                 } : null,
-              } : null,
-            })),
-            total: count
-        }
-     });
+              })),
+              total: count
+          }
+       };
+    }, 60); // 1 min TTL (admin dashboard needs fresh data, but not real-time)
+
+    res.json(data);
   })
 );
 
@@ -258,6 +270,9 @@ router.patch(
     }
 
     await request.save();
+
+    // ⚡ Invalidate admin dashboard cache
+    await invalidatePattern('membership:requests:admin:*');
 
     res.json({ success: true, data: request.toPublicJSON() });
   })
@@ -309,6 +324,9 @@ router.patch(
 
     await request.save();
 
+    // ⚡ Invalidate admin dashboard cache
+    await invalidatePattern('membership:requests:admin:*');
+
     res.json({ success: true, data: request.toPublicJSON() });
   })
 );
@@ -337,6 +355,9 @@ router.delete(
     }
 
     await request.destroy();
+
+    // ⚡ Invalidate admin dashboard cache
+    await invalidatePattern('membership:requests:admin:*');
 
     res.json({ success: true, message: 'Solicitud eliminada correctamente' });
   })

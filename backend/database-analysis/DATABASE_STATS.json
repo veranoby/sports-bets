@@ -2,104 +2,130 @@
   "schemaname": "public",
   "tablename": "users",
   "column_name": "created_at",
-  "n_distinct": -0.6,
-  "most_common_vals": "{\"2025-08-23 00:58:31.733495+00\"}",
-  "most_common_freqs": "{0.5}",
-  "correlation": 0.47878787
+  "n_distinct": -0.6363636,
+  "correlation": 0.36363637,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
+  "histogram_sample": "{\"2025-08-23 11:34:29.264+00\",\"2025-09-09 21:26:26.583+00\",\"2025-09-09 21:26:27.446+00\",\"2025-09-09 21:26:28.695+00\",\"2025-09-11 14:42:35.837+00\",\"2025-09-16 14:56:19.882767+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "email",
   "n_distinct": -1,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": 0.042424243
+  "correlation": 0.48181817,
+  "null_frac": 0,
+  "avg_width": 24,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{admin@sportsbets.com,gallera1@sportsbets.com,newuser123@test.com,operator1@sportsbets.com,operator@sportsbets.com,prueba2@gmail.com,test_1758034579826@example.com,testuser1@sportsbets.com,testuser@sportsbets.com,venueowner1@sportsbets.com,venueowner@sportsbets.com}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "email_verified",
   "n_distinct": 1,
-  "most_common_vals": "{f}",
-  "most_common_freqs": "{1}",
-  "correlation": 1
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 1,
+  "most_common_vals_sample": "{f}",
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "id",
   "n_distinct": -1,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": -0.38181818
+  "correlation": -0.26363635,
+  "null_frac": 0,
+  "avg_width": 16,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{1401acf5-20d6-414a-b3c1-e8963b9cb1a6,286306bd-ed08-4266-81c3-0244e45ee90c,35c57434-7ef7-4f1d-b36c-c1fbe5507dde,3eb640c4-793f-4133-85ff-ba3111b46f5d,7bd8041c-feeb-4b68-aa9d-f510d316a2ca,a5b4404d-e0d2-46bd-9d23-9981d7dceef8,a7ffac00-7458-4395-a104-84988e62eba9,b006b632-5dbc-49e6-9f29-f9f559218c09,cfb2c406-606e-4cf7-95d9-fa5835c38700,d447f8ed-1e4c-42de-b919-868d58fcbe08,df5cb035-683b-4a24-a9a6-edc86fc99dbd}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "is_active",
   "n_distinct": 1,
-  "most_common_vals": "{t}",
-  "most_common_freqs": "{1}",
-  "correlation": 1
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 1,
+  "most_common_vals_sample": "{t}",
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "last_login",
-  "n_distinct": -0.6,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": -0.14285715
+  "n_distinct": -0.5454545,
+  "correlation": -0.4857143,
+  "null_frac": 0.45454547,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-08-23 11:34:42.08+00\",\"2025-09-09 22:10:32.767+00\",\"2025-09-29 11:58:04.085+00\",\"2025-09-29 15:18:03.913+00\",\"2025-09-29 23:08:20.679+00\",\"2025-09-29 23:14:49.475+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "password_hash",
   "n_distinct": -1,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": -0.44242424
+  "correlation": -0.3181818,
+  "null_frac": 0,
+  "avg_width": 56,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{$2b$12$2v9Wd18El5gKpl2GVGLhLezV7eC2tATQ5D/rdZO1kCb.Ib5youUdu,$2b$12$6pyglv2GL.2b/.YddGFhRexuF3vtYCv.QKbMv.8ZWX0PjVT9uW1eq,$2b$12$BoB0VG4Qrd6sSHeRX4gaZOjdU1BYOZBEK9BYZx1s17v.fhrmYxIY2,$2b$12$WpHOSNtqcG/Q0KYnG2FOZOtbpgRpi4L5jnu0lPdyPnPnxt/EJKmW.,$2b$12$YeDlXLhkadBN2b1HpnTmMecdt80nmJno0bCT9pEYYFLCRWtwjxobq,$2b$12$jZ9cvi1Jde9KV9Emt1lhfOOH.cSRiM0Gr0ukpVaoOKQKoE1vFL1D.,$2b$12$ofTj5ljL/8bU3eguAc.hmOmr2ze8nH6VEEYdfHa9U4FCuvcm.3uZW,$2b$12$rbquUGJ.Dn3CAuyGyb6CMuwPQhhv7HiWucJo32QmiJzZRgJ72qvtm,$2b$12$s9Wgk5jFh36dN0rwWlZQ0.XH9/Os.Z2uxBsBOVjBdc3tU5U8U5xVC,$2b$12$ycaNoKYzylYquESX0TJB9.Gt8lkTl9NJn.yLBa58GJPumx9qfRxc6,testpass123}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "profile_info",
-  "n_distinct": -0.6,
-  "most_common_vals": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
-  "most_common_freqs": "{0.5}",
-  "correlation": 0.4181818
+  "n_distinct": -0.6363636,
+  "correlation": -0.6181818,
+  "null_frac": 0,
+  "avg_width": 113,
+  "most_common_vals_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
+  "histogram_sample": "{\"{\\\"fullName\\\": \\\"Test Operator\\\", \\\"verificationLevel\\\": \\\"full\\\"}\",\"{\\\"fullName\\\": \\\"Test User\\\", \\\"verificationLevel\\\": \\\"basic\\\"}\",\"{\\\"fullName\\\": \\\"Venue Owner\\\", \\\"verificationLevel\\\": \\\"full\\\"}\",\"{\\\"address\\\": \\\"\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"identificationNumber\\\": \\\"0909626202\\\"}\",\"{\\\"address\\\": \\\"123 Test Street\\\", \\\"fullName\\\": \\\"Test User Full Name\\\", \\\"phoneNumber\\\": \\\"123-456-7890\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"identificationNumber\\\": \\\"TEST123456\\\"}\",\"{\\\"taxId\\\": \\\"\\\", \\\"address\\\": \\\"Cdla Ceibos 906\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"Gallera Paparrillos\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"businessName\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"businessPhone\\\": \\\"\\\", \\\"licenseNumber\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"businessAddress\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"sabanilla\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": \\\"\\\", \\\"registrationDetails\\\": \\\"\\\", \\\"identificationNumber\\\": \\\"0909626202\\\", \\\"galleraActiveRoosters\\\": \\\"20\\\"}\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "role",
-  "n_distinct": -0.5,
-  "most_common_vals": "{user,operator,venue}",
-  "most_common_freqs": "{0.4,0.2,0.2}",
-  "correlation": -0.09090909
+  "n_distinct": -0.45454547,
+  "correlation": 0.28181818,
+  "null_frac": 0,
+  "avg_width": 4,
+  "most_common_vals_sample": "{user,venue,operator}",
+  "histogram_sample": "{admin,gallera}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "updated_at",
   "n_distinct": -1,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": 0.38181818
+  "correlation": 0.06363636,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-09-09 21:26:26.584+00\",\"2025-09-09 21:26:27.446+00\",\"2025-09-09 21:26:28.695+00\",\"2025-09-09 22:10:32.823335+00\",\"2025-09-11 14:42:35.837+00\",\"2025-09-16 13:56:29.675135+00\",\"2025-09-16 14:56:19.882767+00\",\"2025-09-29 11:58:05.485693+00\",\"2025-09-29 15:18:04.130178+00\",\"2025-09-29 23:08:20.958338+00\",\"2025-09-29 23:14:49.958809+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "username",
   "n_distinct": -1,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": 0.054545455
+  "correlation": 0.6181818,
+  "null_frac": 0,
+  "avg_width": 11,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{admin_test,gallera_test,newuser123,operator,operator_test,prueba1,testuser,testuser_1758034579826,user_test,venue_test,venueowner}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "verification_expires",
   "n_distinct": 0,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": null
+  "correlation": null,
+  "null_frac": 1,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "verification_token",
   "n_distinct": 0,
-  "most_common_vals": null,
-  "most_common_freqs": null,
-  "correlation": null
+  "correlation": null,
+  "null_frac": 1,
+  "avg_width": 0,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
 }]

@@ -1,0 +1,165 @@
+{
+  "metadata": {
+    "session_id": "phase-3-frontend-parallel-2025-10-12",
+    "created_by": "Claude",
+    "assigned_to": "Gemini",
+    "purpose": "Phase 3: Frontend event filtering (PARALLEL with Claude/QWEN - NO conflicts)",
+    "estimated_duration": "4-5 hours",
+    "phase": "3-redis-caching",
+    "version": "3.0-parallel-execution",
+    "parallel_work": "✅ SAFE: You touch ONLY frontend, Claude handles backend, QWEN handles testing"
+  },
+
+  "CRITICAL_INSTRUCTIONS": {
+    "task_type": "FRONTEND ONLY - ZERO BACKEND MODIFICATIONS",
+    "parallel_safety": "Complete isolation: frontend/ directory only",
+    "allowed_files": "frontend/src/**/*.{tsx,ts,css}",
+    "forbidden_files": "backend/**/* (Claude is working there)",
+    "validation": "npx tsc --noEmit after each task",
+    "coordination": "Report completion when done, no intermediate sync needed"
+  },
+
+  "MANDATORY_BRAIN_REFERENCES": {
+    "read_first": [
+      "brain/api_endpoints_reference.json → events_endpoints (NEW query params: dateRange, category)",
+      "brain/typescript_interfaces_reference.json → Event interface",
+      "brain/UI_UX.json → Design patterns"
+    ]
+  },
+
+  "NEW_BACKEND_API_FEATURES": {
+    "note": "Claude just added these to backend/src/routes/events.ts",
+    "new_query_params": {
+      "dateRange": "today | tomorrow | this-week",
+      "category": "past | live | future"
+    },
+    "examples": {
+      "today_events": "GET /api/events?dateRange=today",
+      "live_events": "GET /api/events?category=live",
+      "past_events": "GET /api/events?category=past"
+    },
+    "cache_behavior": "Backend caches each category separately for better performance"
+  },
+
+  "TASKS": [
+    {
+      "task_id": "G1",
+      "title": "Dashboard Date-Based Event Filtering",
+      "estimated_hours": 2,
+      "priority": "HIGH",
+
+      "objective": "Update Dashboard to use new backend date filtering (more efficient than frontend filtering)",
+
+      "files_to_modify": [
+        "frontend/src/pages/user/Dashboard.tsx",
+        "frontend/src/hooks/useEvents.ts (if exists, otherwise create)"
+      ],
+
+      "implementation_steps": [
+        "1. Update useEvents hook to support dateRange and category params",
+        "2. Modify Dashboard to request specific event categories from backend",
+        "3. Add UI tabs/sections for: Today | Live | Upcoming | Past",
+        "4. Remove any frontend date filtering logic (backend does this now)"
+      ],
+
+      "code_example": {
+        "useEvents_enhanced": "export function useEvents(params?: { dateRange?: 'today' | 'tomorrow' | 'this-week'; category?: 'past' | 'live' | 'future' }) {\n  return useQuery({\n    queryKey: ['events', params],\n    queryFn: () => apiClient.get('/events', { params }),\n    staleTime: 60000 // 1 min cache\n  });\n}",
+
+        "dashboard_usage": "// In Dashboard component\nconst { data: liveEvents } = useEvents({ category: 'live' });\nconst { data: todayEvents } = useEvents({ dateRange: 'today' });\nconst { data: pastEvents } = useEvents({ category: 'past' });\n\n// Display in separate sections\n<Tabs>\n  <Tab label=\"Live Now\" count={liveEvents?.length} />\n  <Tab label=\"Today\" count={todayEvents?.length} />\n  <Tab label=\"Past Events\" count={pastEvents?.length} />\n</Tabs>"
+      },
+
+      "validation_checklist": [
+        "✓ TypeScript compiles (npx tsc --noEmit)",
+        "✓ Dashboard shows correct events in each category",
+        "✓ No frontend date calculations (backend does it)",
+        "✓ Cache works (second load is instant)",
+        "✓ No console errors"
+      ],
+
+      "deliverable": "Dashboard with tabs showing Live/Today/Upcoming/Past events using backend filtering"
+    },
+
+    {
+      "task_id": "G2",
+      "title": "EventList Component Cache Optimization",
+      "estimated_hours": 2,
+      "priority": "MEDIUM",
+
+      "objective": "Optimize EventList to work with backend caching and show cache status",
+
+      "files_to_modify": [
+        "frontend/src/components/events/EventList.tsx",
+        "frontend/src/components/events/EventCard.tsx (optional styling)"
+      ],
+
+      "implementation_steps": [
+        "1. Add loading states that differentiate fresh vs cached data",
+        "2. Show subtle indicator when data is stale (refreshing in background)",
+        "3. Handle empty states for each category (no live events, no past events, etc.)",
+        "4. Ensure pagination works with cached data"
+      ],
+
+      "code_example": {
+        "cache_aware_component": "const { data, isLoading, isFetching, isStale } = useEvents({ category });\n\nreturn (\n  <div>\n    {isStale && <Badge>Refreshing...</Badge>}\n    {isLoading && <Skeleton />}\n    {data?.events.map(event => <EventCard key={event.id} event={event} />)}\n  </div>\n);"
+      },
+
+      "validation_checklist": [
+        "✓ Shows loading skeleton on first load",
+        "✓ Shows \"Refreshing...\" badge when background refetch",
+        "✓ Handles empty states gracefully",
+        "✓ Pagination doesn't break cache",
+        "✓ TypeScript compiles"
+      ],
+
+      "deliverable": "EventList component with cache-aware UI states"
+    },
+
+    {
+      "task_id": "G3",
+      "title": "Integration Testing & Validation",
+      "estimated_hours": 1,
+      "priority": "HIGH",
+
+      "objective": "Test that frontend works correctly with new backend filtering",
+
+      "manual_testing_checklist": [
+        "1. Dashboard loads without errors",
+        "2. Live events tab shows only in-progress events",
+        "3. Today tab shows only today's scheduled events",
+        "4. Past tab shows completed events",
+        "5. Clicking event navigates to detail page",
+        "6. Cache works (second page load is instant)",
+        "7. Background refresh happens after 60 seconds",
+        "8. No TypeScript errors",
+        "9. No console warnings",
+        "10. Mobile responsive (check at 375px width)"
+      ],
+
+      "report_format": {
+        "create_file": "claudedocs/GEMINI_PHASE3_REPORT.md",
+        "sections": [
+          "## Tasks Completed",
+          "## Files Modified",
+          "## Testing Results",
+          "## Issues Found (if any)",
+          "## Performance Notes"
+        ]
+      },
+
+      "deliverable": "Testing report confirming all features work correctly"
+    }
+  ],
+
+  "COORDINATION_CHECKPOINTS": {
+    "no_sync_needed": "Work independently, report when all 3 tasks complete",
+    "final_validation": "Claude will validate your work after you finish",
+    "parallel_safety": "Zero conflicts - you're in frontend/, Claude is in backend/"
+  },
+
+  "SUCCESS_CRITERIA": {
+    "functional": "Dashboard shows events categorized by date/status using backend filtering",
+    "performance": "Second page load is instant (cached)",
+    "code_quality": "TypeScript compiles, no warnings, follows existing patterns",
+    "testing": "All manual tests pass"
+  }
+}

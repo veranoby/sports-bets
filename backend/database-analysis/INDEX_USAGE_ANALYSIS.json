@@ -1,0 +1,1231 @@
+[{
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_status_published_at",
+  "times_used": 2140,
+  "tuples_read": 304,
+  "tuples_fetched": 294,
+  "index_size": "16 kB",
+  "usage_category": "HIGH_USAGE",
+  "fetch_efficiency_percentage": 96.71
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "venues_pkey",
+  "times_used": 1358,
+  "tuples_read": 70,
+  "tuples_fetched": 66,
+  "index_size": "16 kB",
+  "usage_category": "HIGH_USAGE",
+  "fetch_efficiency_percentage": 94.29
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_status_published",
+  "times_used": 785,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "system_settings_key_key",
+  "times_used": 775,
+  "tuples_read": 774,
+  "tuples_fetched": 774,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_user_active",
+  "times_used": 751,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "galleras_pkey",
+  "times_used": 726,
+  "tuples_read": 726,
+  "tuples_fetched": 726,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_status_expires",
+  "times_used": 579,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_wallet_id_created_at",
+  "times_used": 517,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_user_read",
+  "times_used": 296,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_scheduled_date",
+  "times_used": 187,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "venues_status",
+  "times_used": 147,
+  "tuples_read": 180,
+  "tuples_fetched": 170,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 94.44
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_user_unread",
+  "times_used": 90,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_pending",
+  "times_used": 62,
+  "tuples_read": 53,
+  "tuples_fetched": 50,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 94.34
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_user_status",
+  "times_used": 16,
+  "tuples_read": 14,
+  "tuples_fetched": 12,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 85.71
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "fights_event_id_number",
+  "times_used": 16,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_operator_id",
+  "times_used": 13,
+  "tuples_read": 8,
+  "tuples_fetched": 8,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_type",
+  "times_used": 10,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "idx_fights_event_status_number",
+  "times_used": 8,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "idx_galleras_owner_id",
+  "times_used": 7,
+  "tuples_read": 6,
+  "tuples_fetched": 5,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 83.33
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_pkey",
+  "times_used": 7,
+  "tuples_read": 7,
+  "tuples_fetched": 7,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "articles_slug_unique",
+  "times_used": 5,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_pkey",
+  "times_used": 5,
+  "tuples_read": 5,
+  "tuples_fetched": 5,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallets",
+  "indexname": "wallets_user_id_unique",
+  "times_used": 5,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_venue_status",
+  "times_used": 4,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_user_status",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_venue_id_scheduled_date",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "indexname": "idx_galleras_status",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "idx_venues_owner_status",
+  "times_used": 3,
+  "tuples_read": 1,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "articles_pkey",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_proposal_status",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "membership_change_requests_pkey",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "event_connections_pkey",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_status",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_user_id",
+  "times_used": 1,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "indexname": "schema_migrations_pkey",
+  "times_used": 1,
+  "tuples_read": 1,
+  "tuples_fetched": 1,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_author_id",
+  "times_used": 1,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "payment_transactions_idempotency_key_unique",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_venue_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "venues_owner_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "SequelizeMeta",
+  "indexname": "SequelizeMeta_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_user_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_fight_status_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_active_last_login",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_status_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_author_status_published",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_venue_status_published",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_featured",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_user_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "payment_transactions_kushki_transaction_id_unique",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_type_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "idx_fights_event_betting",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_processor",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_fight_status_pending",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_subscription_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_status_scheduled_date",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_type_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_parent_bet_proposal",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_event_disconnected",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_venue_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "fights_event_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_fight_id_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_matched_with",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_parent_bet_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallets",
+  "indexname": "wallets_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_wallet_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_username",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_email",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_role",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_is_active",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_email_active",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_active",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "venues_name",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_expires_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_type",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "venues",
+  "indexname": "venues_is_verified",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_scheduled_date",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "idx_notifications_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_category_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "payment_transactions_idempotency_key_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "events_stream_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "idx_fights_event_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "fights_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "fights_event_id_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "payment_transactions_kushki_transaction_id_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_bet_type",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "payment_transactions",
+  "indexname": "payment_transactions_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_fight_id_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "idx_bets_fight_side",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "subscriptions_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "indexname": "notifications_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "articles_slug_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_type",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_created_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallets",
+  "indexname": "idx_wallets_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_reference",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_type",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "subscriptions_kushki_subscription_id_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_expires_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_date",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_retry",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "system_settings_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_id_active",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "idx_system_settings_category",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "idx_system_settings_public",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "idx_system_settings_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "transactions_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "bets",
+  "indexname": "bets_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_verification_token",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallets",
+  "indexname": "wallets_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_event_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_user_id",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "indexname": "idx_event_connections_connected_at",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_active_optimized",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "events",
+  "indexname": "idx_events_status_date_optimized",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "indexname": "fights_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_email_login_optimized",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}]

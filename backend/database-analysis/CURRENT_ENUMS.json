@@ -32,6 +32,9 @@
   "enum_name": "enum_galleras_status",
   "enum_values": "{pending,active,inactive,rejected}"
 }, {
+  "enum_name": "enum_membership_change_requests_status",
+  "enum_values": "{pending,approved,rejected,completed}"
+}, {
   "enum_name": "enum_notifications_status",
   "enum_values": "{unread,read,archived}"
 }, {

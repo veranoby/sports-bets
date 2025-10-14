@@ -89,7 +89,20 @@
       "Bash(for file in auth.ts subscriptions.ts fights.ts bets.ts events.ts)",
       "Bash(do echo \"=== $file ===\")",
       "Bash(LOG_LEVEL=info ts-node src/scripts/migrate.ts up)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(LOG_LEVEL=info npm run migrate up)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)",
+      "Bash(systemctl status:*)",
+      "Bash(redis-server:*)",
+      "Bash(NODE_ENV=production npx sequelize-cli db:migrate)",
+      "Bash(LOG_LEVEL=info timeout 10s npm run migrate status)",
+      "Bash(nginx:*)",
+      "Bash(systemctl list-units:*)",
+      "Bash(pacman:*)",
+      "Bash(test:*)",
+      "Bash(LOG_LEVEL=debug ts-node:*)",
+      "Bash(LOG_LEVEL=debug npx ts-node:*)"
     ],
     "deny": [],
     "ask": []

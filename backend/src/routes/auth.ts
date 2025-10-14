@@ -11,6 +11,7 @@ import { transaction } from "../config/database";
 import { Op } from "sequelize";
 import crypto from "crypto";
 import * as emailService from "../services/emailService";
+import { SessionService } from "../services/sessionService";
 
 const router = Router();
 
@@ -199,6 +200,9 @@ router.post(
 
     // Generar token
     const token = generateToken(user.id);
+
+    // ⚡ SECURITY: Create session with concurrent login prevention
+    await SessionService.createSession(user.id, token, req);
 
     console.log('✅ Login successful for:', user.username, '(', user.email, ')');
     logger.info(`User logged in: ${user.username} (${user.email})`);
