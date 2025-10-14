@@ -41,13 +41,14 @@ function serializeArticle(article: any, attributes?: string[]) {
   if (article.venue && !result.venue_name) {
     result.venue_name = article.venue.name;
   }
+  // ⚡ KEEP BOTH: featured_image (for frontend) and featured_image_url (for consistency)
   if (result.featured_image && !result.featured_image_url) {
     result.featured_image_url = result.featured_image;
-    delete result.featured_image;
+    // DON'T delete featured_image - frontend needs it
   }
   if (result.excerpt !== undefined && result.summary === undefined) {
     result.summary = result.excerpt;
-    delete result.excerpt;
+    // DON'T delete excerpt - may be needed
   }
 
   return result;

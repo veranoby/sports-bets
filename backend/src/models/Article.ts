@@ -71,16 +71,16 @@ export class Article
       result.venue_name = this.venue.name; // Assuming name is always available
     }
 
-    // Handle featured_image_url if featured_image is present
+    // ⚡ KEEP BOTH: Add featured_image_url but keep featured_image (frontend uses it)
     if (result.featured_image) {
       result.featured_image_url = result.featured_image;
-      delete result.featured_image; // Remove original field if a new one is created
+      // DON'T delete featured_image - frontend components expect it
     }
 
-    // Rename excerpt to summary for consistency with frontend
+    // Add summary but keep excerpt (may be needed by frontend)
     if (result.excerpt !== undefined) {
       result.summary = result.excerpt;
-      delete result.excerpt;
+      // DON'T delete excerpt
     }
 
     return result;
