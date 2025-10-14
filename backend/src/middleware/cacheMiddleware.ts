@@ -108,12 +108,10 @@ export const invalidateCache = async (pattern: string) => {
   try {
     const redis = redisClient;
     if (!redis) return;
-    
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      await redis.del(keys);
-      logger.debug(`Invalidated ${keys.length} cache keys matching: ${pattern}`);
-    }
+
+    // Use the del method which handles pattern matching internally
+    await redis.del(pattern);
+    logger.debug(`Invalidated cache keys matching: ${pattern}`);
   } catch (error) {
     logger.error('Cache invalidation error:', error);
   }

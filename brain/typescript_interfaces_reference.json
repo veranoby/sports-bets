@@ -2,11 +2,11 @@
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform - PRODUCTION READY",
     "created": "2025-09-28",
-    "updated": "2025-10-06",
-    "version": "2.1",
+    "updated": "2025-10-14",
+    "version": "2.2",
     "status": "✅ PRODUCTION VERIFIED - 0 TypeScript errors",
     "critical_note": "VERIFIED against backend database models and production deployment",
-    "recent_additions": "MembershipChangeRequest interface, UserSubscription pricing details"
+    "recent_additions": "Express Request type extensions (sessionToken), ActiveSession model validation"
   },
 
   "core_interfaces": {
@@ -319,5 +319,165 @@
       "Component prop type alignment"
     ],
     "production_readiness": "✅ CONFIRMED - Zero compilation errors"
+  },
+  "backend_type_extensions": {
+    "express_request_extensions": {
+      "file": "/backend/src/types/express.d.ts",
+      "created": "2025-10-14",
+      "purpose": "Extend Express Request interface for session management",
+      "properties_added": {
+        "user": {
+          "type": "User (from models)",
+          "optional": true,
+          "added_by": "Authentication middleware",
+          "usage": "Access authenticated user in request handlers"
+        },
+        "sessionToken": {
+          "type": "string",
+          "optional": true,
+          "added_by": "enhancedAuthenticate middleware",
+          "usage": "JWT token for session invalidation on logout"
+        }
+      },
+      "implementation_pattern": {
+        "declaration": "declare global { namespace Express { interface Request { user?: User; sessionToken?: string; } } }",
+        "export": "export {}; // Required for module augmentation",
+        "usage_example": "req.user.id // Available after authentication"
+      },
+      "critical_notes": [
+        "MUST use 'declare global' for Express augmentation",
+        "MUST export {} for TypeScript module system",
+        "MUST import User type from models",
+        "Properties are optional (added by middleware)"
+      ],
+      "related_middleware": [
+        "/backend/src/middleware/enhancedAuth.ts - Sets req.user and req.sessionToken",
+        "/backend/src/middleware/auth.ts - Legacy auth (sets req.user only)"
+      ]
+    },
+    "redis_client_interface": {
+      "file": "/backend/src/config/redis.ts",
+      "class": "SafeRedisClient",
+      "created": "2025-10-14",
+      "purpose": "Type-safe Redis client wrapper with fallback cache",
+      "public_methods": {
+        "get": "async get(key: string): Promise<string | null>",
+        "set": "async set(key: string, value: string, ttl: number = 300): Promise<void>",
+        "setex": "async setex(key: string, ttl: number, value: string): Promise<void> // Legacy alias",
+        "del": "async del(pattern: string): Promise<void>",
+        "keys": "async keys(pattern: string): Promise<string[]>",
+        "isAvailable": "isAvailable(): boolean"
+      },
+      "helper_functions": {
+        "getCache": "async function getCache(key: string): Promise<string | null>",
+        "setCache": "async function setCache(key: string, value: string, ttl: number): Promise<void>",
+        "delCache": "async function delCache(pattern: string): Promise<void>",
+        "initRedis": "async function initRedis(): Promise<void>",
+        "checkRedisHealth": "async function checkRedisHealth(): Promise<HealthStatus>"
+      },
+      "ioredis_compatibility": {
+        "version": "5.x",
+        "deprecated_properties": [
+          "retryDelayOnFailover - Does not exist in ioredis v5"
+        ],
+        "correct_api_usage": [
+          "Use client.set(key, value, 'EX', ttl) instead of client.setex()",
+          "Use client.keys(pattern) for pattern matching",
+          "connectTimeout, maxRetriesPerRequest, enableOfflineQueue are valid"
+        ]
+      },
+      "critical_notes": [
+        "QWEN error: Used non-existent retryDelayOnFailover property",
+        "Always verify ioredis API compatibility",
+        "Provide both modern and legacy API compatibility",
+        "Export helper functions for backward compatibility"
+      ]
+    },
+    "active_session_model": {
+      "file": "/backend/src/models/ActiveSession.ts",
+      "created": "2025-10-14",
+      "purpose": "Session tracking model for concurrent login prevention",
+      "properties": {
+        "id": "string (UUID)",
+        "userId": "string (UUID, foreign key to users)",
+        "sessionToken": "string (JWT token, unique)",
+        "deviceFingerprint": "string (optional)",
+        "ipAddress": "INET (optional)",
+        "userAgent": "string (optional)",
+        "createdAt": "Date",
+        "lastActivity": "Date",
+        "expiresAt": "Date",
+        "isActive": "boolean"
+      },
+      "instance_methods": {
+        "isExpired": "(): boolean - Check if session expired",
+        "invalidate": "(): Promise<void> - Mark session inactive",
+        "updateActivity": "(): Promise<void> - Update lastActivity timestamp"
+      },
+      "sequelize_version": "v6",
+      "critical_notes": [
+        "QWEN error: Used .associate() method from Sequelize v5",
+        "Sequelize v6: Associations defined in models/index.ts, NOT in model files",
+        "DO NOT add static .associate() method to models",
+        "Use Model.init() with sequelize instance"
+      ],
+      "correct_association_pattern": {
+        "wrong": "ActiveSession.associate = (models) => { ... } // Sequelize v5 pattern",
+        "correct": "// In models/index.ts: ActiveSession.belongsTo(User, { foreignKey: 'userId' })"
+      }
+    }
+  },
+  "qwen_typescript_incident_2025_10_14": {
+    "status": "🚨 CRITICAL INCIDENT - Backend broken by QWEN",
+    "errors_introduced": 18,
+    "files_affected": [
+      "/backend/src/config/redis.ts",
+      "/backend/src/middleware/enhancedAuth.ts",
+      "/backend/src/middleware/cacheMiddleware.ts",
+      "/backend/src/models/ActiveSession.ts"
+    ],
+    "root_cause": "QWEN modified backend without dependency validation or TypeScript compilation",
+    "specific_errors": {
+      "missing_dependency": "ioredis package not installed",
+      "missing_types": "Request.sessionToken type extension not created",
+      "incorrect_api": "retryDelayOnFailover property does not exist in ioredis v5",
+      "missing_imports": "Op from sequelize not imported",
+      "missing_params": "NextFunction parameter missing in handlers",
+      "obsolete_patterns": "Sequelize v5 .associate() used instead of v6 pattern"
+    },
+    "resolution": {
+      "fixed_by": "Claude",
+      "time_to_fix": "45 minutes",
+      "actions_taken": [
+        "npm install ioredis @types/ioredis",
+        "Created /backend/src/types/express.d.ts for Request extensions",
+        "Fixed ioredis API calls (removed retryDelayOnFailover, used correct set() API)",
+        "Added Op import from sequelize",
+        "Added NextFunction to all handler signatures",
+        "Removed obsolete .associate() method from ActiveSession",
+        "Added backward-compatible helper functions to redis.ts"
+      ]
+    },
+    "prevention_rules": {
+      "mandatory_for_qwen": [
+        "npm install BEFORE using new libraries",
+        "npx tsc --noEmit AFTER all code changes",
+        "Create type definitions for all extensions",
+        "Verify API compatibility with installed package versions",
+        "Never modify auth/security files without Claude supervision"
+      ],
+      "validation_gates": [
+        "Dependency installation gate (if package.json changed)",
+        "TypeScript compilation gate (zero errors required)",
+        "Import/export dependency verification"
+      ]
+    },
+    "lessons_learned": [
+      "QWEN cannot be trusted with backend TypeScript modifications",
+      "All AI work must pass compilation validation before handoff",
+      "Type extensions require separate .d.ts files with proper module augmentation",
+      "Always verify package API compatibility (ioredis v4 vs v5)",
+      "Sequelize v5 vs v6 patterns are incompatible"
+    ]
   }
 }

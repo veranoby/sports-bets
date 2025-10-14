@@ -1,12 +1,12 @@
 {
   "metadata": {
     "purpose": "Comprehensive Multi-AI Coordination Strategy for GalloBets Platform",
-    "version": "2.1",
+    "version": "2.3",
     "created": "2025-09-21",
-    "updated": "2025-09-25",
-    "based_on": "ESLint success (98% reduction) + SSE architecture completion",
+    "updated": "2025-10-14",
+    "based_on": "QWEN TypeScript incident + Dependency validation gates",
     "project": "GalloBets - Professional Cockfighting Streaming Platform",
-    "optimization_focus": "Real-time systems, frontend integration, performance optimization"
+    "optimization_focus": "Performance optimization, Redis caching, security enhancements, mandatory validation gates"
   },
 
   "pipeline_lessons_learned": {
@@ -31,6 +31,18 @@
         "evidence": "50% token savings + 98% ESLint warning reduction achieved",
         "application": "Proven effective - continue specialization boundaries",
         "success_example": "ESLint cleanup: 370+ warnings → 7 warnings in coordinated pipeline"
+      },
+      "sandbox_pattern": {
+        "approach": "Create new sandbox files (*.enhanced.ts, *.cached.ts) instead of modifying critical backend",
+        "evidence": "QWEN Phase 3: Redis + Security features implemented without breaking production",
+        "benefits": [
+          "Zero risk to production code during development",
+          "Complete code review before integration",
+          "Easy rollback if issues found",
+          "Parallel development without conflicts"
+        ],
+        "workflow": "Gemini/QWEN create sandbox → Claude reviews → Claude integrates → Validate",
+        "application": "MANDATORY for backend modifications, RECOMMENDED for frontend features"
       }
     },
 
@@ -49,6 +61,21 @@
         "problem": "Import/export dependencies required manual Claude resolution",
         "root_cause": "AIs not aware of component interdependencies",
         "solution_required": "Dependency analysis and automated resolution patterns"
+      },
+      "qwen_dependency_installation_failures": {
+        "problem": "QWEN created Redis code without installing ioredis package",
+        "incident_date": "2025-10-14",
+        "root_cause": "QWEN modified backend files without dependency validation",
+        "errors_introduced": [
+          "Missing ioredis package installation",
+          "Missing Request type extensions (sessionToken)",
+          "Incorrect ioredis API usage (retryDelayOnFailover)",
+          "Missing NextFunction parameters in handlers",
+          "Obsolete Sequelize v5 patterns (.associate)",
+          "No TypeScript compilation validation"
+        ],
+        "solution_implemented": "Mandatory dependency + compilation gates for all QWEN work",
+        "prevention_rules": "QWEN NEVER allowed to modify auth/backend without Claude supervision"
       }
     }
   },
@@ -236,15 +263,158 @@
           "validation": "Deferred to session end to prevent MCP fatigue"
         }
       },
+      "critical_safety_restrictions": {
+        "rating": "2/5 - REQUIRES IMMEDIATE ENFORCEMENT",
+        "incident": "2025-10-14 - QWEN broke backend with missing dependencies",
+        "never_allow_qwen": [
+          "Authentication file modifications (auth.ts, enhancedAuth.ts)",
+          "Database model changes without Claude supervision",
+          "Backend dependency additions without npm install",
+          "TypeScript code without compilation validation",
+          "Redis/cache implementations",
+          "Security-related middleware changes"
+        ],
+        "always_require_qwen": [
+          "npm install BEFORE using new libraries",
+          "npx tsc --noEmit AFTER all code changes",
+          "Type definitions for all Request/Response extensions",
+          "Claude validation BEFORE any commit"
+        ],
+        "max_qwen_session_time": "30 minutes (strictly enforced)",
+        "qwen_validation_gate": "Claude must approve ALL QWEN backend work"
+      },
       "context_preservation": {
         "new_requirement": "Detailed session documentation for Gemini handoff",
         "handoff_data": [
           "Exact files modified and warning counts",
           "Patterns applied and avoided",
           "MCP timeout issues encountered",
-          "Remaining work categorized by complexity"
+          "Remaining work categorized by complexity",
+          "All dependencies installed (package.json changes)",
+          "TypeScript compilation status verified"
         ]
       }
+    }
+  },
+
+  "sandbox_development_protocol": {
+    "when_to_use_sandbox": {
+      "mandatory": [
+        "Backend authentication/authorization changes",
+        "Database schema modifications",
+        "Performance-critical endpoints",
+        "Security features implementation"
+      ],
+      "recommended": [
+        "New API endpoints with caching",
+        "Complex frontend features",
+        "Third-party integrations",
+        "Real-time features (SSE/WebSocket)"
+      ],
+      "not_required": [
+        "Simple bug fixes",
+        "UI styling changes",
+        "Documentation updates",
+        "Test additions"
+      ]
+    },
+    "sandbox_file_naming": {
+      "backend": {
+        "pattern": "[original-name].enhanced.ts or [original-name].cached.ts",
+        "examples": [
+          "auth.ts → enhancedAuth.ts (for security features)",
+          "events.ts → enhancedEvents.ts (for caching)",
+          "venues.ts → venuesCached.ts (for Redis integration)"
+        ]
+      },
+      "frontend": {
+        "pattern": "[feature].sandbox.tsx or [component].enhanced.tsx",
+        "examples": [
+          "Dashboard.tsx → DashboardEnhanced.tsx (for date filtering)",
+          "EventList.tsx → EventListCached.tsx (for cache integration)"
+        ]
+      }
+    },
+    "sandbox_workflow_phases": {
+      "phase_1_creation": {
+        "responsible": "Gemini or QWEN",
+        "tasks": [
+          "Create sandbox file with full implementation",
+          "Add comprehensive inline comments explaining changes",
+          "Include validation logic and error handling",
+          "Add test scenarios in comments"
+        ],
+        "deliverables": [
+          "Complete sandbox file ready for review",
+          "Inline documentation of design decisions",
+          "List of dependencies and imports",
+          "Integration points documented"
+        ]
+      },
+      "phase_2_review": {
+        "responsible": "Claude",
+        "tasks": [
+          "Code quality review (patterns, security, performance)",
+          "Verify no breaking changes to existing functionality",
+          "Check for proper error handling",
+          "Validate integration approach"
+        ],
+        "approval_criteria": [
+          "Code follows project patterns",
+          "No security vulnerabilities",
+          "Proper TypeScript types",
+          "Error handling complete"
+        ]
+      },
+      "phase_3_integration": {
+        "responsible": "Claude",
+        "tasks": [
+          "Merge sandbox code into production files",
+          "Update imports and exports",
+          "Run full validation suite",
+          "Create migration if needed"
+        ],
+        "validation_steps": [
+          "TypeScript compilation successful",
+          "All tests pass",
+          "No regression in existing functionality",
+          "Performance benchmarks met"
+        ]
+      },
+      "phase_4_validation": {
+        "responsible": "All (Gemini/QWEN/Claude)",
+        "tasks": [
+          "Gemini: Frontend integration testing",
+          "QWEN: Performance testing and metrics",
+          "Claude: End-to-end validation"
+        ],
+        "success_criteria": [
+          "Feature works as specified",
+          "Performance targets met",
+          "No errors in production mode",
+          "Documentation updated"
+        ]
+      }
+    },
+    "integration_guidelines": {
+      "before_integration": [
+        "Run full test suite on sandbox code",
+        "Verify no conflicts with existing code",
+        "Check database migrations if applicable",
+        "Review all import/export changes"
+      ],
+      "during_integration": [
+        "Use feature flags if available",
+        "Maintain backward compatibility",
+        "Update related documentation",
+        "Add integration tests"
+      ],
+      "after_integration": [
+        "Run full application test suite",
+        "Verify no regressions",
+        "Monitor performance metrics",
+        "Delete sandbox files after successful integration"
+      ]
     }
   },
 
@@ -282,6 +452,7 @@
           "Build stability maintenance"
         ],
         "mandatory_validation_gates": [
+          "npm install (if package.json changed)",
           "npx tsc --noEmit (zero errors required)",
           "npm run build (successful completion required)",
           "Import/export dependency verification",
@@ -315,6 +486,19 @@
   },
 
   "validation_gate_specifications": {
+    "dependency_installation_gate": {
+      "command": "git diff HEAD package.json | grep '+.*\"' && npm install || echo 'No dependency changes'",
+      "timeout": "180 seconds",
+      "success_criteria": "Dependencies installed if package.json changed",
+      "failure_handling": {
+        "immediate_action": "Stop AI session, install dependencies manually",
+        "analysis": "Verify all new dependencies are compatible",
+        "resolution": "npm install && verify compilation",
+        "prevention": "AI must install deps BEFORE modifying code using them"
+      },
+      "enforcement": "CRITICAL for QWEN - broke backend on 2025-10-14"
+    },
+
     "typescript_compilation_gate": {
       "command": "npx tsc --noEmit",
       "timeout": "120 seconds",
@@ -324,7 +508,8 @@
         "analysis": "Claude analyzes TypeScript errors",
         "resolution": "Fix or revert changes causing compilation errors",
         "prevention": "Update AI prompts to avoid error patterns"
-      }
+      },
+      "enforcement": "MANDATORY for all backend changes"
     },
 
     "build_validation_gate": {
