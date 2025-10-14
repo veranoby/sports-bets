@@ -7,6 +7,83 @@
   "column_default": null
 }, {
   "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": "gen_random_uuid()"
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "user_id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "session_token",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "ip_address",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "user_agent",
+  "data_type": "text",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "last_activity",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP"
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "expires_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "created_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP"
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "updated_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": "CURRENT_TIMESTAMP"
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "is_active",
+  "data_type": "boolean",
+  "is_nullable": "NO",
+  "column_default": "true"
+}, {
+  "table_schema": "public",
+  "table_name": "active_sessions",
+  "column_name": "device_fingerprint",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
   "table_name": "articles",
   "column_name": "id",
   "data_type": "uuid",

@@ -11,6 +11,48 @@
   "column_names": "name",
   "check_clause": null
 }, {
+  "constraint_name": "2200_991232_11_not_null",
+  "table_name": "active_sessions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "is_active IS NOT NULL"
+}, {
+  "constraint_name": "2200_991232_1_not_null",
+  "table_name": "active_sessions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_991232_2_not_null",
+  "table_name": "active_sessions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_991232_3_not_null",
+  "table_name": "active_sessions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "session_token IS NOT NULL"
+}, {
+  "constraint_name": "2200_991232_8_not_null",
+  "table_name": "active_sessions",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "expires_at IS NOT NULL"
+}, {
+  "constraint_name": "active_sessions_pkey",
+  "table_name": "active_sessions",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
+  "constraint_name": "active_sessions_session_token_key",
+  "table_name": "active_sessions",
+  "constraint_type": "UNIQUE",
+  "column_names": "session_token",
+  "check_clause": null
+}, {
   "constraint_name": "2200_819215_11_not_null",
   "table_name": "articles",
   "constraint_type": "CHECK",

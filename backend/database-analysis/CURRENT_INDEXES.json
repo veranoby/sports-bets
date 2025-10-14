@@ -12,6 +12,114 @@
   "tuples_fetched": 0
 }, {
   "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "active_sessions_pkey",
+  "indexdef": "CREATE UNIQUE INDEX active_sessions_pkey ON public.active_sessions USING btree (id)",
+  "is_unique": true,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 4,
+  "tuples_read": 7,
+  "tuples_fetched": 4
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "active_sessions_session_token_key",
+  "indexdef": "CREATE UNIQUE INDEX active_sessions_session_token_key ON public.active_sessions USING btree (session_token)",
+  "is_unique": true,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_device",
+  "indexdef": "CREATE INDEX idx_active_sessions_device ON public.active_sessions USING btree (device_fingerprint)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_expires",
+  "indexdef": "CREATE INDEX idx_active_sessions_expires ON public.active_sessions USING btree (expires_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_ip",
+  "indexdef": "CREATE INDEX idx_active_sessions_ip ON public.active_sessions USING btree (ip_address)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_last_activity",
+  "indexdef": "CREATE INDEX idx_active_sessions_last_activity ON public.active_sessions USING btree (last_activity)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_token",
+  "indexdef": "CREATE INDEX idx_active_sessions_token ON public.active_sessions USING btree (session_token)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 4,
+  "tuples_read": 7,
+  "tuples_fetched": 4
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_user_active",
+  "indexdef": "CREATE INDEX idx_active_sessions_user_active ON public.active_sessions USING btree (user_id, expires_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 3,
+  "tuples_read": 1,
+  "tuples_fetched": 1
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_user_id",
+  "indexdef": "CREATE INDEX idx_active_sessions_user_id ON public.active_sessions USING btree (user_id)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
   "tablename": "articles",
   "indexname": "articles_pkey",
   "indexdef": "CREATE UNIQUE INDEX articles_pkey ON public.articles USING btree (id)",
@@ -607,7 +715,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 8,
+  "times_used": 96,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -661,6 +769,18 @@
 }, {
   "schemaname": "public",
   "tablename": "membership_change_requests",
+  "indexname": "idx_membership_requests_pending_optimized",
+  "indexdef": "CREATE INDEX idx_membership_requests_pending_optimized ON public.membership_change_requests USING btree (status, requested_at DESC, user_id) WHERE (status = 'pending'::enum_membership_change_requests_status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
   "indexname": "idx_membership_requests_processor",
   "indexdef": "CREATE INDEX idx_membership_requests_processor ON public.membership_change_requests USING btree (processed_by)",
   "is_unique": false,
@@ -679,7 +799,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 16,
+  "times_used": 18,
   "tuples_read": 14,
   "tuples_fetched": 12
 }, {
@@ -751,7 +871,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 90,
+  "times_used": 98,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -979,7 +1099,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 751,
+  "times_used": 775,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -987,6 +1107,18 @@
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_id",
   "indexdef": "CREATE INDEX idx_subscriptions_user_id ON public.subscriptions USING btree (user_id)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_user_status",
+  "indexdef": "CREATE INDEX idx_subscriptions_user_status ON public.subscriptions USING btree (user_id, status)",
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
@@ -1411,9 +1543,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 1358,
-  "tuples_read": 70,
-  "tuples_fetched": 66
+  "times_used": 1458,
+  "tuples_read": 114,
+  "tuples_fetched": 110
 }, {
   "schemaname": "public",
   "tablename": "venues",

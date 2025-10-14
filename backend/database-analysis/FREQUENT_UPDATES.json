@@ -1,92 +1,145 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "attname": "created_at",
-  "n_distinct": -0.6363636,
-  "common_values_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
-  "correlation": 0.36363637
+  "total_size": "248 kB",
+  "table_size": "16 kB",
+  "indexes_size": "232 kB",
+  "index_to_table_ratio_percentage": 1450.00,
+  "total_bytes": 253952
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "email",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": 0.48181817
+  "tablename": "events",
+  "total_size": "192 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "184 kB",
+  "index_to_table_ratio_percentage": 2300.00,
+  "total_bytes": 196608
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "email_verified",
-  "n_distinct": 1,
-  "common_values_sample": "{f}",
-  "correlation": 1
+  "tablename": "articles",
+  "total_size": "192 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "184 kB",
+  "index_to_table_ratio_percentage": 2300.00,
+  "total_bytes": 196608
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "id",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": -0.26363635
+  "tablename": "active_sessions",
+  "total_size": "160 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "152 kB",
+  "index_to_table_ratio_percentage": 1900.00,
+  "total_bytes": 163840
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "is_active",
-  "n_distinct": 1,
-  "common_values_sample": "{t}",
-  "correlation": 1
+  "tablename": "bets",
+  "total_size": "128 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "128 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 131072
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "last_login",
-  "n_distinct": -0.5454545,
-  "common_values_sample": null,
-  "correlation": -0.4857143
+  "tablename": "venues",
+  "total_size": "112 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "104 kB",
+  "index_to_table_ratio_percentage": 1300.00,
+  "total_bytes": 114688
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "password_hash",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": -0.3181818
+  "tablename": "system_settings",
+  "total_size": "96 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "88 kB",
+  "index_to_table_ratio_percentage": 1100.00,
+  "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "profile_info",
-  "n_distinct": -0.6363636,
-  "common_values_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
-  "correlation": -0.6181818
+  "tablename": "transactions",
+  "total_size": "96 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "96 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "role",
-  "n_distinct": -0.45454547,
-  "common_values_sample": "{user,venue,operator}",
-  "correlation": 0.28181818
+  "tablename": "membership_change_requests",
+  "total_size": "96 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "88 kB",
+  "index_to_table_ratio_percentage": 1100.00,
+  "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "updated_at",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": 0.06363636
+  "tablename": "payment_transactions",
+  "total_size": "96 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "96 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "username",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": 0.6181818
+  "tablename": "subscriptions",
+  "total_size": "88 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "88 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 90112
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "verification_expires",
-  "n_distinct": 0,
-  "common_values_sample": null,
-  "correlation": null
+  "tablename": "fights",
+  "total_size": "72 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "72 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 73728
 }, {
   "schemaname": "public",
-  "tablename": "users",
-  "attname": "verification_token",
-  "n_distinct": 0,
-  "common_values_sample": null,
-  "correlation": null
+  "tablename": "wallets",
+  "total_size": "72 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "64 kB",
+  "index_to_table_ratio_percentage": 800.00,
+  "total_bytes": 73728
+}, {
+  "schemaname": "public",
+  "tablename": "galleras",
+  "total_size": "64 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "56 kB",
+  "index_to_table_ratio_percentage": 700.00,
+  "total_bytes": 65536
+}, {
+  "schemaname": "public",
+  "tablename": "notifications",
+  "total_size": "56 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "56 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 57344
+}, {
+  "schemaname": "public",
+  "tablename": "event_connections",
+  "total_size": "40 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "40 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 40960
+}, {
+  "schemaname": "public",
+  "tablename": "SequelizeMeta",
+  "total_size": "24 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "16 kB",
+  "index_to_table_ratio_percentage": 200.00,
+  "total_bytes": 24576
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "total_size": "24 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "16 kB",
+  "index_to_table_ratio_percentage": 200.00,
+  "total_bytes": 24576
 }]

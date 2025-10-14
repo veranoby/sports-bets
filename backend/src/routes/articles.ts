@@ -12,6 +12,47 @@ import { getOrSet, invalidatePattern } from "../config/redis"; // ⚡ OPTIMIZATI
 
 import { UserRole } from "../../../shared/types";
 
+// ⚡ HELPER: Serialize article (handles both Sequelize instances and plain objects from cache)
+function serializeArticle(article: any, attributes?: string[]) {
+  // If it's a Sequelize instance with toJSON method
+  if (typeof article.toJSON === 'function') {
+    return article.toJSON({ attributes });
+  }
+
+  // If it's a plain object from cache
+  const result: { [key: string]: any } = {};
+
+  if (attributes) {
+    // Filter by requested attributes
+    for (const attr of attributes) {
+      if (article[attr] !== undefined) {
+        result[attr] = article[attr];
+      }
+    }
+  } else {
+    // Return all attributes
+    Object.assign(result, article);
+  }
+
+  // Apply same transformations as Article.toJSON()
+  if (article.author && !result.author_name) {
+    result.author_name = article.author.username;
+  }
+  if (article.venue && !result.venue_name) {
+    result.venue_name = article.venue.name;
+  }
+  if (result.featured_image && !result.featured_image_url) {
+    result.featured_image_url = result.featured_image;
+    delete result.featured_image;
+  }
+  if (result.excerpt !== undefined && result.summary === undefined) {
+    result.summary = result.excerpt;
+    delete result.excerpt;
+  }
+
+  return result;
+}
+
 function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail") {
   const publicAttributes = [
     "id",
@@ -161,7 +202,7 @@ router.get(
     res.json({
       success: true,
       data: {
-        articles: rows.map((article) => article.toJSON({ attributes })),
+        articles: rows.map((article) => serializeArticle(article, attributes)),
         pagination: {
           limit,
           offset,
@@ -227,7 +268,7 @@ router.get(
     res.json({
       success: true,
       data: {
-        articles: featuredArticles.map((article) => article.toJSON({ attributes })),
+        articles: featuredArticles.map((article) => serializeArticle(article, attributes)),
         type,
         total: featuredArticles.length,
       },
@@ -279,7 +320,7 @@ router.get(
 
     res.json({
       success: true,
-      data: article.toJSON({ attributes }),
+      data: serializeArticle(article, attributes),
     });
   })
 );
@@ -336,7 +377,7 @@ router.post(
 
     res.status(201).json({
       success: true,
-      data: article.toJSON(),
+      data: serializeArticle(article),
     });
   })
 );
@@ -371,7 +412,7 @@ router.put(
 
     res.json({
       success: true,
-      data: article.toJSON(),
+      data: serializeArticle(article),
     });
   })
 );
@@ -404,7 +445,7 @@ router.put(
 
     res.json({
       success: true,
-      data: article.toJSON(),
+      data: serializeArticle(article),
     });
   })
 );
