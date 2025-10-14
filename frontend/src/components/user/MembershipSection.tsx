@@ -112,7 +112,8 @@ const RequestChangeModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   user: User;
-}> = ({ isOpen, onClose, user }) => {
+  onRequestCreated?: () => void;
+}> = ({ isOpen, onClose, user, onRequestCreated }) => {
   const [requestedMembershipType, setRequestedMembershipType] =
     useState("24-hour");
   const [requestNotes, setRequestNotes] = useState("");
@@ -179,6 +180,10 @@ const RequestChangeModal: React.FC<{
 
       if (response.success) {
         setSuccess("Solicitud de cambio de membresía enviada correctamente.");
+        // Refresh the requests list immediately
+        if (onRequestCreated) {
+          onRequestCreated();
+        }
         setTimeout(() => {
           onClose();
           setSuccess(null);
@@ -395,20 +400,21 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
     : "N/A";
 
   // Fetch user's request history
-  useEffect(() => {
-    const fetchRequests = async () => {
-      setLoadingRequests(true);
-      try {
-        const response = await membershipRequestsAPI.getMyRequests();
-        if (response.success && response.data) {
-          setRequests((response.data as any).requests || []);
-        }
-      } catch (err) {
-        console.error("Error fetching requests:", err);
-      } finally {
-        setLoadingRequests(false);
+  const fetchRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const response = await membershipRequestsAPI.getMyRequests();
+      if (response.success && response.data) {
+        setRequests((response.data as any).requests || []);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
     fetchRequests();
   }, []);
 
@@ -571,6 +577,7 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           user={user}
+          onRequestCreated={fetchRequests}
         />
       )}
     </Fragment>

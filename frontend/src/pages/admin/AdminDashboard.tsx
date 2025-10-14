@@ -226,8 +226,8 @@ const AdminDashboard: React.FC = () => {
         fetchDashboardMetrics();
         fetchFeatures();
       },
-      5 * 60 * 1000,
-    ); // 5min
+      2 * 60 * 1000, // Reduced from 5min to 2min for faster updates
+    ); // 2min
     return () => clearInterval(interval);
   }, [fetchDashboardMetrics]);
 
