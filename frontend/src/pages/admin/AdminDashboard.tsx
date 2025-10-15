@@ -157,46 +157,56 @@ const AdminDashboard: React.FC = () => {
     });
     const financeData = await walletAPI.getStats({ period: "today" });
     const membershipRequestsData =
-      await membershipRequestsAPI.getPendingRequests();
+      await membershipRequestsAPI.getPendingRequests({ status: "all" });
 
-    if (
-      eventsData.success &&
-      pendingUsersData.success &&
-      pendingVenuesData.success &&
-      pendingGallerasData.success &&
-      pendingArticlesData.success &&
-      withdrawalsData.success &&
-      financeData.success &&
-      membershipRequestsData.success
-    ) {
-      const liveEvents =
-        (eventsData.data as { events: Event[] }).events?.filter(
-          (e) => e.status === "live",
-        ) || [];
-      const withdrawals =
-        (withdrawalsData.data as { transactions: Transaction[] })
-          .transactions || [];
+    // Process metrics independently - don't fail entire dashboard if one API fails
+    if (eventsData.success || pendingUsersData.success || membershipRequestsData.success) {
+      // Events metrics
+      const liveEvents = eventsData.success
+        ? ((eventsData.data as { events: Event[] }).events?.filter(
+            (e) => e.status === "live",
+          ) || [])
+        : [];
+
+      // Withdrawal metrics
+      const withdrawals = withdrawalsData.success
+        ? ((withdrawalsData.data as { transactions: Transaction[] })
+            .transactions || [])
+        : [];
       const totalWithdrawalAmount = withdrawals.reduce(
         (sum, w) => sum + w.amount,
         0,
       );
-      const membershipRequests =
-        (membershipRequestsData.data as { requests: any[] }).requests || [];
-      const pendingMemberships = membershipRequests.filter(
-        (r) => r.status === "pending",
-      );
+
+      // Membership metrics - fetch all then filter locally
+      let pendingMemberships: any[] = [];
+      if (membershipRequestsData.success) {
+        const membershipRequests =
+          (membershipRequestsData.data as { requests: any[] }).requests || [];
+        pendingMemberships = membershipRequests.filter(
+          (r) => r.status === "pending",
+        );
+      }
 
       setMetrics({
-        eventsToday: (eventsData.data as { total: number }).total || 0,
+        eventsToday: eventsData.success
+          ? ((eventsData.data as { total: number }).total || 0)
+          : 0,
         liveEventsNow: liveEvents.length,
-        pendingUsers: (pendingUsersData.data as { total: number }).total || 0,
-        pendingVenues: (pendingVenuesData.data as { total: number }).total || 0,
-        pendingArticles:
-          (pendingArticlesData.data as { total: number }).total || 0,
+        pendingUsers: pendingUsersData.success
+          ? ((pendingUsersData.data as { total: number }).total || 0)
+          : 0,
+        pendingVenues: pendingVenuesData.success
+          ? ((pendingVenuesData.data as { total: number }).total || 0)
+          : 0,
+        pendingArticles: pendingArticlesData.success
+          ? ((pendingArticlesData.data as { total: number }).total || 0)
+          : 0,
         withdrawalRequests: withdrawals.length,
         withdrawalAmount: totalWithdrawalAmount,
-        todayRevenue:
-          (financeData.data as { todayRevenue: number }).todayRevenue || 0,
+        todayRevenue: financeData.success
+          ? ((financeData.data as { todayRevenue: number }).todayRevenue || 0)
+          : 0,
         pendingMembershipRequests: pendingMemberships.length,
       });
 
