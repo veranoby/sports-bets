@@ -262,6 +262,64 @@ router.patch(
       throw errors.conflict(`La solicitud ya ha sido procesada (estado: ${request.status})`);
     }
 
+    // Get the user who made the request
+    const user = await User.findByPk(request.userId);
+    if (!user) {
+      throw errors.notFound('Usuario no encontrado');
+    }
+
+    // Calculate expiry date based on requested membership type
+    const now = new Date();
+    let expiresAt: Date | null = null;
+
+    if (request.requestedMembershipType === '24-hour') {
+      expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    } else if (request.requestedMembershipType === 'monthly') {
+      expiresAt = new Date(now);
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+    } else {
+      // If requested type is not recognized, default to free
+      throw errors.badRequest('Tipo de membresía solicitado no válido');
+    }
+
+    // Create or update subscription based on the requested membership type
+    const [subscription, created] = await Subscription.findOrCreate({
+      where: { userId: user.id, status: 'active' },
+      defaults: {
+        userId: user.id,
+        type: request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly',
+        status: 'active',
+        manual_expires_at: expiresAt,
+        expiresAt: expiresAt!,
+        paymentMethod: 'cash', // Admin manual assignment
+        autoRenew: false,
+        amount: 0,
+        currency: 'USD',
+        metadata: {
+          assignedBy: req.user!.username,
+          assignedAt: new Date().toISOString(),
+          manualAssignment: true,
+          fromRequest: request.id
+        }
+      }
+    });
+
+    if (!created && subscription.status === 'active') {
+      // Update existing subscription if it's active
+      await subscription.update({
+        type: request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly',
+        manual_expires_at: expiresAt,
+        expiresAt: expiresAt!,
+        metadata: {
+          ...subscription.metadata,
+          lastAssignedBy: req.user!.username,
+          lastAssignedAt: new Date().toISOString(),
+          fromRequest: request.id
+        }
+      });
+    }
+
+    // Update the request status to completed
     request.status = 'completed';
     request.processedAt = new Date();
     request.processedBy = req.user!.id;
@@ -273,6 +331,8 @@ router.patch(
 
     // ⚡ Invalidate admin dashboard cache
     await invalidatePattern('membership:requests:admin:*');
+    // ⚡ Invalidate user profile cache to reflect new subscription
+    await invalidatePattern(`user:profile:${user.id}`);
 
     res.json({ success: true, data: request.toPublicJSON() });
   })
