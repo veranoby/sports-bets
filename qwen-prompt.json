@@ -1,0 +1,250 @@
+{
+  "metadata": {
+    "task_id": "VISUAL_FIX_MEMBERSHIP_UI_001",
+    "created": "2025-10-14",
+    "priority": "MEDIUM",
+    "estimated_time": "15 minutes",
+    "max_time": "30 minutes",
+    "ai_assigned": "QWEN",
+    "validated_by": "Claude",
+    "status": "READY_FOR_EXECUTION"
+  },
+
+  "CRITICAL_SAFETY_RULES": {
+    "ABSOLUTELY_FORBIDDEN_FILES": [
+      "frontend/src/contexts/AuthContext.tsx",
+      "backend/src/routes/auth.ts",
+      "frontend/src/services/api.ts",
+      "frontend/src/pages/user/Profile.tsx"
+    ],
+    "MAXIMUM_CHANGES": "2 files ONLY",
+    "MAXIMUM_LINES_CHANGED": "30 lines total",
+    "MAXIMUM_SESSION_TIME": "30 minutes",
+    "VALIDATION_REQUIRED": "YES - Claude must approve",
+    "NO_PLACEHOLDER_COMMENTS": "NEVER use {/* */} placeholders",
+    "NO_CODE_DELETION": "ONLY add lines, never delete existing code",
+    "GIT_BACKUP_REQUIRED": "YES - user will create before starting"
+  },
+
+  "TASK_DESCRIPTION": {
+    "summary": "Fix two simple UI state update issues in membership system",
+    "problems": [
+      {
+        "id": 1,
+        "location": "/profile page - MembershipSection component",
+        "issue": "When user submits membership request, modal closes but request history doesn't update until page refresh",
+        "root_cause": "After successful createRequest(), the component doesn't call fetchRequests() to update local state",
+        "impact": "User must manually refresh page to see their new request",
+        "severity": "LOW - Cosmetic UX issue"
+      },
+      {
+        "id": 2,
+        "location": "/admin dashboard - AdminDashboard component",
+        "issue": "New membership requests don't show in 'Cambios de Membresía' card until dashboard auto-refreshes (5 min) or manual refresh",
+        "root_cause": "Dashboard fetches data on mount and every 5 minutes, but doesn't have real-time updates",
+        "impact": "Admin doesn't see new requests immediately",
+        "severity": "LOW - Acceptable for now, can be enhanced later with SSE"
+      }
+    ],
+    "user_requirement": "Simple fixes without major complications"
+  },
+
+  "DETAILED_SOLUTION": {
+    "problem_1_fix": {
+      "file": "frontend/src/components/user/MembershipSection.tsx",
+      "current_code_location": "Lines 224-238: fetchRequests() function inside useEffect",
+      "problem_code_location": "Lines 178-185: handleSubmit success handler",
+      "what_to_change": [
+        "Move fetchRequests function OUT of useEffect to make it reusable",
+        "Add call to fetchRequests() AFTER successful request creation",
+        "This will update the local 'requests' state immediately after modal closes"
+      ],
+      "exact_changes": [
+        {
+          "step": 1,
+          "action": "Move fetchRequests function",
+          "from_line": 224,
+          "to_line": 238,
+          "new_location": "After line 213 (before useEffect)",
+          "code_to_add": "  // Fetch user's request history\n  const fetchRequests = async () => {\n    setLoadingRequests(true);\n    try {\n      const response = await membershipRequestsAPI.getMyRequests();\n      if (response.success && response.data) {\n        setRequests((response.data as any).requests || []);\n      }\n    } catch (err) {\n      console.error('Error fetching requests:', err);\n    } finally {\n      setLoadingRequests(false);\n    }\n  };"
+        },
+        {
+          "step": 2,
+          "action": "Update useEffect to call fetchRequests",
+          "at_line": 224,
+          "code_to_replace": "  useEffect(() => {\n    const fetchRequests = async () => {\n      setLoadingRequests(true);\n      try {\n        const response = await membershipRequestsAPI.getMyRequests();\n        if (response.success && response.data) {\n          setRequests((response.data as any).requests || []);\n        }\n      } catch (err) {\n        console.error('Error fetching requests:', err);\n      } finally {\n        setLoadingRequests(false);\n      }\n    };\n    fetchRequests();\n  }, []);",
+          "code_to_use": "  useEffect(() => {\n    fetchRequests();\n  }, []);"
+        },
+        {
+          "step": 3,
+          "action": "Pass fetchRequests to RequestChangeModal",
+          "at_line": 395,
+          "code_to_replace": "      {user && (\n        <RequestChangeModal\n          isOpen={isModalOpen}\n          onClose={() => setIsModalOpen(false)}\n          user={user}\n        />\n      )}",
+          "code_to_use": "      {user && (\n        <RequestChangeModal\n          isOpen={isModalOpen}\n          onClose={() => setIsModalOpen(false)}\n          user={user}\n          onRequestCreated={fetchRequests}\n        />\n      )}"
+        },
+        {
+          "step": 4,
+          "action": "Update RequestChangeModal interface",
+          "at_line": 111,
+          "code_to_replace": "const RequestChangeModal: React.FC<{\n  isOpen: boolean;\n  onClose: () => void;\n  user: User;\n}> = ({ isOpen, onClose, user }) => {",
+          "code_to_use": "const RequestChangeModal: React.FC<{\n  isOpen: boolean;\n  onClose: () => void;\n  user: User;\n  onRequestCreated?: () => void;\n}> = ({ isOpen, onClose, user, onRequestCreated }) => {"
+        },
+        {
+          "step": 5,
+          "action": "Call onRequestCreated after success",
+          "at_line": 180,
+          "code_to_replace": "      if (response.success) {\n        setSuccess('Solicitud de cambio de membresía enviada correctamente.');\n        setTimeout(() => {\n          onClose();\n          setSuccess(null);\n        }, 3000);\n      }",
+          "code_to_use": "      if (response.success) {\n        setSuccess('Solicitud de cambio de membresía enviada correctamente.');\n        // Refresh the requests list immediately\n        if (onRequestCreated) {\n          onRequestCreated();\n        }\n        setTimeout(() => {\n          onClose();\n          setSuccess(null);\n        }, 3000);\n      }"
+        }
+      ],
+      "safety_notes": [
+        "ONLY modifying MembershipSection.tsx",
+        "NO authentication changes",
+        "NO API changes",
+        "Simple state refresh logic",
+        "Total lines changed: ~20 lines"
+      ]
+    },
+
+    "problem_2_fix": {
+      "file": "frontend/src/pages/admin/AdminDashboard.tsx",
+      "why_not_fixing_now": "Dashboard already refreshes every 5 minutes (line 70-76). User said 'simple fix without complications'",
+      "recommended_approach": "NO CHANGES for now - current behavior is acceptable",
+      "future_enhancement": "Could add SSE for real-time updates, but that's complex and user wants simple fixes",
+      "alternative_simple_fix": "Reduce auto-refresh interval from 5 min to 1-2 min",
+      "exact_change_if_needed": {
+        "file": "frontend/src/pages/admin/AdminDashboard.tsx",
+        "at_line": 75,
+        "code_to_replace": "      5 * 60 * 1000,",
+        "code_to_use": "      2 * 60 * 1000, // Reduced from 5min to 2min for faster updates",
+        "impact": "Admin will see new requests within 2 minutes instead of 5"
+      },
+      "safety_notes": [
+        "MINIMAL change - just one number",
+        "NO authentication changes",
+        "NO complex logic",
+        "Total lines changed: 1 line"
+      ]
+    }
+  },
+
+  "FILES_TO_MODIFY": {
+    "count": 2,
+    "files": [
+      {
+        "path": "frontend/src/components/user/MembershipSection.tsx",
+        "changes": "Move fetchRequests function + add callback to modal",
+        "lines_changed": "~20 lines",
+        "risk": "LOW - Simple state management change"
+      },
+      {
+        "path": "frontend/src/pages/admin/AdminDashboard.tsx",
+        "changes": "Optional: Reduce auto-refresh interval from 5min to 2min",
+        "lines_changed": "1 line",
+        "risk": "MINIMAL - Just changing a number"
+      }
+    ]
+  },
+
+  "TESTING_CHECKLIST": {
+    "before_changes": [
+      " Verify current behavior: Modal closes, history doesn't update",
+      " Check AdminDashboard shows requests after 5 min",
+      " Create git backup"
+    ],
+    "after_changes": [
+      " Create membership request from /profile",
+      " Verify modal closes",
+      " Verify request appears in history IMMEDIATELY (no refresh needed)",
+      " Check AdminDashboard updates faster (if interval changed)",
+      " Verify no console errors",
+      " Verify existing requests still show correctly"
+    ],
+    "validation_commands": [
+      "npm run build - Must complete without errors",
+      "Check browser console - No errors",
+      "Test complete user flow"
+    ]
+  },
+
+  "STEP_BY_STEP_EXECUTION": {
+    "step_1": {
+      "action": "Read current MembershipSection.tsx",
+      "verify": "Understand current structure",
+      "time": "2 minutes"
+    },
+    "step_2": {
+      "action": "Move fetchRequests function outside useEffect",
+      "verify": "Function is now reusable",
+      "time": "3 minutes"
+    },
+    "step_3": {
+      "action": "Update useEffect to call the extracted function",
+      "verify": "Component still loads requests on mount",
+      "time": "2 minutes"
+    },
+    "step_4": {
+      "action": "Add onRequestCreated prop to RequestChangeModal interface",
+      "verify": "TypeScript compiles",
+      "time": "2 minutes"
+    },
+    "step_5": {
+      "action": "Pass fetchRequests as prop when rendering modal",
+      "verify": "No TypeScript errors",
+      "time": "2 minutes"
+    },
+    "step_6": {
+      "action": "Call onRequestCreated in success handler",
+      "verify": "Logic flows correctly",
+      "time": "2 minutes"
+    },
+    "step_7": {
+      "action": "OPTIONAL: Update AdminDashboard refresh interval",
+      "verify": "Only if user wants faster updates",
+      "time": "1 minute"
+    },
+    "step_8": {
+      "action": "Test complete flow",
+      "verify": "All checklist items pass",
+      "time": "5 minutes"
+    },
+    "total_time": "~19 minutes (well within 30min limit)"
+  },
+
+  "EXPECTED_RESULT": {
+    "user_experience_before": [
+      "User submits request ’ Modal closes ’ History empty ’ Must refresh page"
+    ],
+    "user_experience_after": [
+      "User submits request ’ Modal closes ’ History shows new request IMMEDIATELY"
+    ],
+    "admin_experience_before": [
+      "New request submitted ’ Admin sees it after 5 minutes or manual refresh"
+    ],
+    "admin_experience_after": [
+      "New request submitted ’ Admin sees it after 2 minutes (if interval changed)"
+    ]
+  },
+
+  "VALIDATION_BY_CLAUDE": {
+    "code_review_required": true,
+    "test_required": true,
+    "git_commit_message": "fix(frontend): Update membership request history immediately after creation\n\n- Move fetchRequests outside useEffect for reusability\n- Add onRequestCreated callback to RequestChangeModal\n- Call fetchRequests after successful request creation\n- Optional: Reduce admin dashboard refresh from 5min to 2min\n\nFixes #VISUAL_FIX_MEMBERSHIP_UI_001"
+  },
+
+  "CONTINGENCY_PLAN": {
+    "if_typescript_errors": "STOP immediately, do not proceed, call Claude",
+    "if_tests_fail": "STOP immediately, do not proceed, call Claude",
+    "if_behavior_broken": "STOP immediately, git reset --hard, call Claude",
+    "if_takes_too_long": "STOP at 25 minutes, report progress to Claude",
+    "emergency_rollback": "git reset --hard HEAD"
+  },
+
+  "FINAL_NOTES": {
+    "approach": "Simple state management fix, no complex logic",
+    "complexity": "LOW - Basic React state update pattern",
+    "risk": "MINIMAL - Only UI state, no backend changes",
+    "reversible": "100% - Easy to rollback if needed",
+    "user_satisfaction": "HIGH - Fixes annoying UX issue"
+  }
+}

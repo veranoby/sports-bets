@@ -5,6 +5,7 @@ import {
   ChevronRight,
   AlertCircle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { articlesAPI } from "../../services/api";
 // import type { Article } from "../../types/article"; // Not used in this component
 
@@ -308,9 +309,12 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           </div>
 
           {/* Call to Action */}
-          <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105">
+          <Link
+            to={`/article/${currentNews.id}`}
+            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105"
+          >
             Leer más
-          </button>
+          </Link>
         </div>
       </div>
 

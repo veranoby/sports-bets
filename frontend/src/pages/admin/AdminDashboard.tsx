@@ -160,18 +160,22 @@ const AdminDashboard: React.FC = () => {
       await membershipRequestsAPI.getPendingRequests({ status: "all" });
 
     // Process metrics independently - don't fail entire dashboard if one API fails
-    if (eventsData.success || pendingUsersData.success || membershipRequestsData.success) {
+    if (
+      eventsData.success ||
+      pendingUsersData.success ||
+      membershipRequestsData.success
+    ) {
       // Events metrics
       const liveEvents = eventsData.success
-        ? ((eventsData.data as { events: Event[] }).events?.filter(
+        ? (eventsData.data as { events: Event[] }).events?.filter(
             (e) => e.status === "live",
-          ) || [])
+          ) || []
         : [];
 
       // Withdrawal metrics
       const withdrawals = withdrawalsData.success
-        ? ((withdrawalsData.data as { transactions: Transaction[] })
-            .transactions || [])
+        ? (withdrawalsData.data as { transactions: Transaction[] })
+            .transactions || []
         : [];
       const totalWithdrawalAmount = withdrawals.reduce(
         (sum, w) => sum + w.amount,
@@ -190,22 +194,22 @@ const AdminDashboard: React.FC = () => {
 
       setMetrics({
         eventsToday: eventsData.success
-          ? ((eventsData.data as { total: number }).total || 0)
+          ? (eventsData.data as { total: number }).total || 0
           : 0,
         liveEventsNow: liveEvents.length,
         pendingUsers: pendingUsersData.success
-          ? ((pendingUsersData.data as { total: number }).total || 0)
+          ? (pendingUsersData.data as { total: number }).total || 0
           : 0,
         pendingVenues: pendingVenuesData.success
-          ? ((pendingVenuesData.data as { total: number }).total || 0)
+          ? (pendingVenuesData.data as { total: number }).total || 0
           : 0,
         pendingArticles: pendingArticlesData.success
-          ? ((pendingArticlesData.data as { total: number }).total || 0)
+          ? (pendingArticlesData.data as { total: number }).total || 0
           : 0,
         withdrawalRequests: withdrawals.length,
         withdrawalAmount: totalWithdrawalAmount,
         todayRevenue: financeData.success
-          ? ((financeData.data as { todayRevenue: number }).todayRevenue || 0)
+          ? (financeData.data as { todayRevenue: number }).todayRevenue || 0
           : 0,
         pendingMembershipRequests: pendingMemberships.length,
       });

@@ -126,7 +126,7 @@ const Breadcrumbs: React.FC = () => {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-500 px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-16 z-30">
+    <nav className="flex items-center space-x-1 text-sm text-gray-500 px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-1 z-20">
       {breadcrumbs.map((item, index) => (
         <React.Fragment key={`${item.label}-${index}`}>
           {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400 mx-1" />}
