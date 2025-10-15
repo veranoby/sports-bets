@@ -198,9 +198,6 @@ router.get(
                   status: 'active'
                 },
                 required: false,
-                limit: 1,
-                order: [['createdAt', 'DESC']],
-                separate: false,
               }
             ]
           },
@@ -332,9 +329,6 @@ router.get(
                   status: 'active'
                 },
                 required: false,
-                limit: 1,
-                order: [['createdAt', 'DESC']],
-                separate: false,
               }
             ]
           },
