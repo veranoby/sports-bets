@@ -9,9 +9,10 @@ import { useAuth } from "../../contexts/AuthContext";
 const FeaturedNavigation: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
-  
-  const isPremiumUser = user?.subscription?.status === "active" && 
-                       user.subscription.type !== "free";
+
+  const isPremiumUser =
+    user?.subscription?.status === "active" &&
+    user.subscription.type !== "free";
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -30,7 +31,7 @@ const FeaturedNavigation: React.FC = () => {
             <Star className="w-4 h-4" />
             Destacados
           </Link>
-          
+
           <Link
             to="/featured/premium"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${
@@ -43,7 +44,7 @@ const FeaturedNavigation: React.FC = () => {
             Premium
             <Zap className="w-3 h-3 text-yellow-500" />
           </Link>
-          
+
           <Link
             to="/featured/latest"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${
@@ -55,7 +56,7 @@ const FeaturedNavigation: React.FC = () => {
             <BookOpen className="w-4 h-4" />
             Más Recientes
           </Link>
-          
+
           {isPremiumUser && (
             <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black rounded-lg text-sm font-bold">
               <Crown className="w-4 h-4" />

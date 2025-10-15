@@ -51,6 +51,17 @@ function serializeArticle(article: any, attributes?: string[]) {
     // DON'T delete excerpt - may be needed
   }
 
+  // ✅ Add author subscription info for premium content detection
+  if (article.author && article.author.subscription) {
+    result.author_subscription = article.author.subscription;
+    // Determine if content is premium based on author's active subscription
+    result.is_premium_content = article.author.subscription.status === 'active' && 
+                                article.author.subscription.type !== 'free';
+  } else if (article.author && !result.author_subscription) {
+    // Default to free content if no subscription info
+    result.is_premium_content = false;
+  }
+
   return result;
 }
 
@@ -177,6 +188,21 @@ router.get(
             as: "author",
             attributes: ["id", "username"],
             separate: false,
+            // ✅ Include subscription info for premium content detection
+            include: [
+              {
+                model: require('../models/Subscription').Subscription,
+                as: "subscriptions",
+                attributes: ["id", "type", "status", "expiresAt"],
+                where: {
+                  status: 'active'
+                },
+                required: false,
+                limit: 1,
+                order: [['createdAt', 'DESC']],
+                separate: false,
+              }
+            ]
           },
           includeVenueBool && {
             model: Venue,
@@ -296,6 +322,21 @@ router.get(
             as: "author",
             attributes: ["id", "username"],
             separate: false,
+            // ✅ Include subscription info for premium content detection
+            include: [
+              {
+                model: require('../models/Subscription').Subscription,
+                as: "subscriptions",
+                attributes: ["id", "type", "status", "expiresAt"],
+                where: {
+                  status: 'active'
+                },
+                required: false,
+                limit: 1,
+                order: [['createdAt', 'DESC']],
+                separate: false,
+              }
+            ]
           },
           {
             model: Venue,

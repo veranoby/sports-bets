@@ -2,15 +2,15 @@
 // Página de artículos destacados con enfoque en contenido premium
 
 import React, { useState, useEffect, useCallback } from "react";
-import { 
-  Star, 
-  Crown, 
-  Calendar, 
-  Eye, 
-  User, 
+import {
+  Star,
+  Crown,
+  Calendar,
+  Eye,
+  User,
   Filter,
   ArrowUpDown,
-  Zap
+  Zap,
 } from "lucide-react";
 import { articlesAPI } from "../../services/api";
 import ArticleCard from "../../components/articles/ArticleCard";
@@ -24,43 +24,49 @@ const FeaturedArticles: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "popular" | "premium">("premium");
+  const [sortBy, setSortBy] = useState<"newest" | "popular" | "premium">(
+    "premium",
+  );
   const [filterBy, setFilterBy] = useState<"all" | "premium" | "free">("all");
 
-  const isPremiumUser = user?.subscription?.status === "active" && 
-                       user.subscription.type !== "free";
+  const isPremiumUser =
+    user?.subscription?.status === "active" &&
+    user.subscription.type !== "free";
 
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch featured articles with premium authors
       const response = await articlesAPI.getAll({
         status: "published",
         limit: 50,
         sortBy: sortBy === "popular" ? "views" : "created_at",
-        order: sortBy === "newest" ? "desc" : "asc"
+        order: sortBy === "newest" ? "desc" : "asc",
       });
 
       if (response.success) {
-        const allArticles = (response.data as { articles: Article[] }).articles || [];
-        
+        const allArticles =
+          (response.data as { articles: Article[] }).articles || [];
+
         // Filter articles based on premium/free criteria
         let filteredArticles = allArticles;
         if (filterBy === "premium") {
-          filteredArticles = allArticles.filter(article => 
-            article.author?.subscription?.status === "active" && 
-            article.author.subscription.type !== "free"
+          filteredArticles = allArticles.filter(
+            (article) =>
+              article.author?.subscription?.status === "active" &&
+              article.author.subscription.type !== "free",
           );
         } else if (filterBy === "free") {
-          filteredArticles = allArticles.filter(article => 
-            !article.author?.subscription || 
-            article.author.subscription.status !== "active" || 
-            article.author.subscription.type === "free"
+          filteredArticles = allArticles.filter(
+            (article) =>
+              !article.author?.subscription ||
+              article.author.subscription.status !== "active" ||
+              article.author.subscription.type === "free",
           );
         }
-        
+
         setArticles(filteredArticles);
       } else {
         throw new Error(response.error || "Error al cargar artículos");
@@ -77,16 +83,18 @@ const FeaturedArticles: React.FC = () => {
   }, [fetchArticles]);
 
   // Get premium articles for featured section
-  const premiumArticles = articles.filter(article => 
-    article.author?.subscription?.status === "active" && 
-    article.author.subscription.type !== "free"
+  const premiumArticles = articles.filter(
+    (article) =>
+      article.author?.subscription?.status === "active" &&
+      article.author.subscription.type !== "free",
   );
 
   // Get regular articles
-  const regularArticles = articles.filter(article => 
-    !article.author?.subscription || 
-    article.author.subscription.status !== "active" || 
-    article.author.subscription.type === "free"
+  const regularArticles = articles.filter(
+    (article) =>
+      !article.author?.subscription ||
+      article.author.subscription.status !== "active" ||
+      article.author.subscription.type === "free",
   );
 
   if (loading) {
@@ -124,7 +132,7 @@ const FeaturedArticles: React.FC = () => {
                 Descubre el mejor contenido de la comunidad gallera
               </p>
             </div>
-            
+
             {isPremiumUser && (
               <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-4 py-2 rounded-full text-sm font-bold">
                 <Crown className="w-4 h-4" />
@@ -210,10 +218,10 @@ const FeaturedArticles: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <ArrowUpDown className="w-6 h-6" />
-            {filterBy === "premium" 
-              ? "Todos los Artículos Premium" 
-              : filterBy === "free" 
-                ? "Artículos Gratuitos" 
+            {filterBy === "premium"
+              ? "Todos los Artículos Premium"
+              : filterBy === "free"
+                ? "Artículos Gratuitos"
                 : "Todos los Artículos"}
           </h2>
 
@@ -238,7 +246,7 @@ const FeaturedArticles: React.FC = () => {
                   key={article.id}
                   article={article}
                   isPremiumAuthor={
-                    article.author?.subscription?.status === "active" && 
+                    article.author?.subscription?.status === "active" &&
                     article.author.subscription.type !== "free"
                   }
                 />
@@ -255,11 +263,12 @@ const FeaturedArticles: React.FC = () => {
               ¡Únete a los Artículos Premium!
             </h3>
             <p className="text-black/80 mb-6 max-w-2xl mx-auto">
-              Miles de artículos exclusivos de nuestros miembros premium. 
-              Accede a contenido avanzado, tutoriales profesionales y análisis detallados.
+              Miles de artículos exclusivos de nuestros miembros premium. Accede
+              a contenido avanzado, tutoriales profesionales y análisis
+              detallados.
             </p>
             <button
-              onClick={() => window.location.href = "/profile"}
+              onClick={() => (window.location.href = "/profile")}
               className="bg-black text-yellow-400 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-900 transition-colors shadow-lg transform hover:scale-105"
             >
               <Crown className="w-5 h-5 inline mr-2" />

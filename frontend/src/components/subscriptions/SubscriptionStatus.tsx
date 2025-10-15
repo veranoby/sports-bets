@@ -35,8 +35,14 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   let description = "Sin acceso a contenido premium";
 
   if (isPremium) {
-    statusText = subscription.type === "daily" ? "24 HORAS" : subscription.type === "monthly" ? "MENSUAL" : "PREMIUM";
-    statusClass = "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold border-yellow-600";
+    statusText =
+      subscription.type === "daily"
+        ? "24 HORAS"
+        : subscription.type === "monthly"
+          ? "MENSUAL"
+          : "PREMIUM";
+    statusClass =
+      "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold border-yellow-600";
     icon = <Crown className="w-3.5 h-3.5 mr-2" />;
     description = "Acceso completo a contenido premium";
   } else if (isExpired) {
@@ -47,7 +53,9 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   } else if (subscription.status === "pending") {
     statusText = "PENDIENTE";
     statusClass = "bg-blue-100 text-blue-800 border-blue-200";
-    icon = <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>;
+    icon = (
+      <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+    );
     description = "Solicitud en proceso";
   } else if (subscription.status === "cancelled") {
     statusText = "CANCELADA";
@@ -72,9 +80,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
         {icon}
         {statusText}
       </span>
-      <span className="mt-1 text-xs text-gray-500">
-        {description}
-      </span>
+      <span className="mt-1 text-xs text-gray-500">{description}</span>
       {isPremium && subscription.expiresAt && (
         <span className="mt-1 text-xs flex items-center gap-1">
           <CheckCircle className="w-3 h-3 text-green-500" />
