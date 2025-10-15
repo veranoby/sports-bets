@@ -192,7 +192,7 @@ const UserHeader = memo(() => {
             </span>
           </div>
 
-          {/* Role badge */}
+          {/* Role badge with premium indicator */}
           <span
             onClick={() => navigate("/profile")}
             className="text-xs px-3 py-1.5 bg-[#f0f9ff] rounded-full text-[#2a325c] flex items-center gap-1.5 cursor-pointer hover:bg-[#8ba3bc7e]/30 transition-all duration-200 border border-[#bdd5ef75]"
@@ -200,7 +200,12 @@ const UserHeader = memo(() => {
             <span className="font-medium uppercase tracking-wide">
               {user.role}
             </span>
-            {isPremium && <Crown className="w-3.5 h-3.5 text-amber-500" />}
+            {isPremium && (
+              <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1">
+                <Crown className="w-3 h-3" />
+                {subscription?.type === 'daily' ? '24 HORAS' : subscription?.type === 'monthly' ? 'MENSUAL' : 'PREMIUM'}
+              </span>
+            )}
           </span>
 
           {/* Role-specific info chips */}

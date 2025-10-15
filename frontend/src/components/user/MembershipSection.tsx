@@ -395,13 +395,16 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
   const currentStatus = subscription?.status || "expired";
   const config = statusConfig[currentStatus];
 
-  const expirationDate = subscription?.expiresAt || subscription?.manual_expires_at
-    ? new Date(subscription.expiresAt || subscription.manual_expires_at!).toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "N/A";
+  const expirationDate =
+    subscription?.expiresAt || subscription?.manual_expires_at
+      ? new Date(
+          subscription.expiresAt || subscription.manual_expires_at!,
+        ).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "N/A";
 
   // Fetch user's request history
   const fetchRequests = async () => {
@@ -463,9 +466,13 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
               Plan Actual
             </label>
             <p className="text-lg font-semibold text-gray-800">
-              {subscription?.type === 'daily' ? '24 Horas' : 
-               subscription?.type === 'monthly' ? 'Mensual' : 
-               subscription?.plan || subscription?.membership_type || "Ninguno"}
+              {subscription?.type === "daily"
+                ? "24 Horas"
+                : subscription?.type === "monthly"
+                  ? "Mensual"
+                  : subscription?.plan ||
+                    subscription?.membership_type ||
+                    "Ninguno"}
             </p>
           </div>
           <div>
@@ -488,7 +495,11 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
             </p>
           </div>
         </div>
-        {(!subscription || subscription.status !== 'active' || (subscription.plan === 'free' && subscription.type !== 'daily' && subscription.type !== 'monthly')) && (
+        {(!subscription ||
+          subscription.status !== "active" ||
+          (subscription.plan === "free" &&
+            subscription.type !== "daily" &&
+            subscription.type !== "monthly")) && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -502,13 +513,18 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
             </p>
           </div>
         )}
-        {(subscription && subscription.status === 'active' && (subscription.type === 'daily' || subscription.type === 'monthly' || subscription.plan !== 'free')) && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
-              <span className="font-medium">✓ Membresía Activa</span> - Tu solicitud ha sido aprobada
+        {subscription &&
+          subscription.status === "active" &&
+          (subscription.type === "daily" ||
+            subscription.type === "monthly" ||
+            subscription.plan !== "free") && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+                <span className="font-medium">✓ Membresía Activa</span> - Tu
+                solicitud ha sido aprobada
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Historial de Solicitudes */}

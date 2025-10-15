@@ -1,4 +1,4 @@
-import type { User, Venue } from "./index";
+import type { User, Venue, UserSubscription } from "./index";
 
 export interface ArticleFormData {
   title: string;
@@ -36,4 +36,9 @@ export interface Article {
   venue?: Venue;
   venue_name?: string;
   venue_id?: string;
+  views?: number;
+  // Indicador de si el artículo fue creado por un usuario premium
+  is_premium_content?: boolean;
+  // Información de suscripción del autor al momento de publicación
+  author_subscription?: UserSubscription;
 }

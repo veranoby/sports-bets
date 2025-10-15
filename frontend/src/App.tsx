@@ -40,6 +40,7 @@ import GallerasPage from "./pages/user/Galleras";
 import VenueDetailPage from "./pages/user/VenueDetailPage";
 import GalleraDetailPage from "./pages/user/GalleraDetailPage";
 import ArticlePage from "./components/user/ArticlePage";
+import FeaturedArticles from "./pages/user/FeaturedArticles";
 
 // Lazy imports para rutas no críticas
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -140,6 +141,7 @@ const AppContent: React.FC = () => {
           <Route path="/galleras" element={<GallerasPage />} />
           <Route path="/galleras/:id" element={<GalleraDetailPage />} />
           <Route path="/article/:articleId" element={<ArticlePage />} />
+          <Route path="/featured/*" element={<FeaturedArticles />} />
         </Route>
 
         {/* 🔧 RUTAS DE ADMIN - Con lazy loading (incluye operadores con jerarquía) */}
