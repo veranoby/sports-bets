@@ -33,7 +33,7 @@
     "get_profile": {
       "method": "GET",
       "path": "/users/profile",
-      "response": {"success": true, "data": {"user": "object"}},
+      "response": {"success": true, "data": {"user": "object", "subscription": "UserSubscription object"}},
       "auth_required": true,
       "note": "CRITICAL: Route MUST be before /:id to avoid UUID parsing"
     },

@@ -256,6 +256,33 @@
         "backend/src/routes/events.ts:120-128 - Removed status requirement for past events",
         "frontend/src/pages/user/Events.tsx:222-230 - Added date validation to Próximos chip"
       ]
+    },
+    
+    "membership_display_inconsistency": {
+      "severity": "✅ RESOLVED",
+      "impact": "Membership section showing 'Ninguno' despite active subscription",
+      "owner": "QWEN + Claude validation",
+      "solution": "✅ COMPLETED 2025-10-14",
+      "status": "Fixed - Backend endpoint now includes subscription data in profile response",
+      "details": "Fixed inconsistency where header shows premium but membership section shows 'Ninguno'. Backend /users/profile endpoint updated to include current subscription data, and frontend components updated to properly display the information.",
+      "fixes_applied": [
+        "backend/src/routes/users.ts: GET /users/profile now includes current subscription",
+        "frontend/src/components/user/MembershipSection.tsx: Updated to handle subscription data properly"
+      ]
+    }
+  },
+  
+  "recent_achievements_2025_10_14": {
+    "membership_system_integration": {
+      "status": "✅ COMPLETED",
+      "description": "Integrated subscription data into user profile endpoint",
+      "implementation": [
+        "Updated /api/users/profile to include current subscription",
+        "Fixed UI display inconsistencies in membership section",
+        "Ensured admin-approved requests properly update user status",
+        "Fixed header display synchronization with actual membership status"
+      ],
+      "impact": "Users now see correct membership status immediately after admin approval"
     }
   },
 

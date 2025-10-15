@@ -29,9 +29,15 @@ router.get(
         throw errors.notFound("User not found");
       }
 
+      // Get the current subscription for this user
+      const currentSubscription = await user.getCurrentSubscription();
+
       return {
         success: true,
-        data: { user: user.toPublicJSON() },
+        data: { 
+          user: user.toPublicJSON(),
+          subscription: currentSubscription
+        },
       };
     }, 300); // 5 min TTL (critical path - balance between freshness and performance)
 
