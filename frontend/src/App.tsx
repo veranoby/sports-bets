@@ -89,6 +89,9 @@ const RoleBasedRedirect: React.FC = () => {
   return <Navigate to={roleRoutes[user.role] || "/dashboard"} replace />;
 };
 
+// Lazy imports para páginas de administradores y operadores
+const AdminAdministrators = lazy(() => import("./pages/admin/Administrators"));
+
 // 🏗️ COMPONENTE PRINCIPAL CON RUTAS OPTIMIZADAS
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
