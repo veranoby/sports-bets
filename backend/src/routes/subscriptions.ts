@@ -688,7 +688,7 @@ router.put(
           status: 'active',
           manual_expires_at: expiresAt,
           expiresAt: expiresAt!,
-          paymentMethod: 'manual',
+          paymentMethod: 'cash', // Admin manual assignment
           autoRenew: false,
           amount: 0,
           currency: 'USD',

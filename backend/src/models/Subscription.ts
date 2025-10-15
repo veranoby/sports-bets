@@ -8,7 +8,7 @@ export interface SubscriptionAttributes {
   type: 'daily' | 'monthly' | null;
   status: 'active' | 'cancelled' | 'expired' | 'pending' | 'free';
   kushkiSubscriptionId?: string;
-  paymentMethod: 'card' | 'cash' | 'transfer' | 'manual';
+  paymentMethod: 'card' | 'cash' | 'transfer';
   autoRenew: boolean;
   amount: number; // Amount in cents
   currency: string;
