@@ -56,13 +56,13 @@ const AdminGallerasPage: React.FC = () => {
       }
       const allGalleras = (gallerasRes.data as any)?.galleras || [];
 
-      // 2. Combine the data
+      // 2. Combine the data and filter out galleras owned by admins
       const combined = allGalleras
         .map((gallera) => ({
           user: gallera.owner,
           gallera: gallera,
         }))
-        .filter((item) => item.user);
+        .filter((item) => item.user && item.user.role !== "admin"); // Excluir galleras propiedad de admins
 
       setCombinedData(combined as CombinedGalleraData[]);
     } catch (err) {
@@ -111,15 +111,19 @@ const AdminGallerasPage: React.FC = () => {
   };
 
   // Handler para suspensión/activación
-  const handleToggleStatus = async (galleraId?: string, currentStatus?: string) => {
+  const handleToggleStatus = async (
+    galleraId?: string,
+    currentStatus?: string,
+  ) => {
     if (!galleraId) {
       setError("No hay gallera asociada para actualizar.");
       return;
     }
 
     const newStatus = currentStatus === "suspended" ? "active" : "suspended";
-    const actionMessage = currentStatus === "suspended" ? "reactivar" : "desactivar";
-    
+    const actionMessage =
+      currentStatus === "suspended" ? "reactivar" : "desactivar";
+
     if (
       !window.confirm(
         `¿Estás seguro de que quieres ${actionMessage} esta gallera?`,
@@ -137,7 +141,11 @@ const AdminGallerasPage: React.FC = () => {
         return;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Error al ${actionMessage} la gallera`);
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Error al ${actionMessage} la gallera`,
+      );
       return;
     }
 
@@ -270,7 +278,11 @@ const AdminGallerasPage: React.FC = () => {
                 {user.isActive ? (
                   <button
                     onClick={() => {
-                      if (window.confirm(`¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`)) {
+                      if (
+                        window.confirm(
+                          `¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`,
+                        )
+                      ) {
                         usersAPI.updateStatus(user.id, false);
                       }
                     }}
@@ -283,7 +295,11 @@ const AdminGallerasPage: React.FC = () => {
                   <>
                     <button
                       onClick={() => {
-                        if (window.confirm(`¿Estás seguro de que quieres activar al usuario "${user.username}"?`)) {
+                        if (
+                          window.confirm(
+                            `¿Estás seguro de que quieres activar al usuario "${user.username}"?`,
+                          )
+                        ) {
                           usersAPI.updateStatus(user.id, true);
                         }
                       }}
@@ -294,7 +310,11 @@ const AdminGallerasPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                        if (
+                          window.confirm(
+                            `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
+                          )
+                        ) {
                           userAPI.delete(user.id);
                         }
                       }}

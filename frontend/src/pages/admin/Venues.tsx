@@ -59,13 +59,13 @@ const AdminVenuesPage: React.FC = () => {
       }
       const allVenues = (venuesRes.data as any)?.venues || [];
 
-      // 2. Combine the data
+      // 2. Combine the data and filter out venues owned by admins
       const combined = allVenues
         .map((venue) => ({
           user: venue.owner,
           venue: venue,
         }))
-        .filter((item) => item.user);
+        .filter((item) => item.user && item.user.role !== "admin") // Excluir venues propiedad de admins
 
       setCombinedData(combined as CombinedVenueData[]);
     } catch (err) {
@@ -111,15 +111,19 @@ const AdminVenuesPage: React.FC = () => {
   };
 
   // Handler para suspensión/activación
-  const handleToggleStatus = async (venueId?: string, currentStatus?: string) => {
+  const handleToggleStatus = async (
+    venueId?: string,
+    currentStatus?: string,
+  ) => {
     if (!venueId) {
       setError("No hay venue asociado para actualizar.");
       return;
     }
 
     const newStatus = currentStatus === "suspended" ? "active" : "suspended";
-    const actionMessage = currentStatus === "suspended" ? "reactivar" : "desactivar";
-    
+    const actionMessage =
+      currentStatus === "suspended" ? "reactivar" : "desactivar";
+
     if (
       !window.confirm(
         `¿Estás seguro de que quieres ${actionMessage} este venue?`,
@@ -137,7 +141,11 @@ const AdminVenuesPage: React.FC = () => {
         return;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Error al ${actionMessage} el venue`);
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Error al ${actionMessage} el venue`,
+      );
       return;
     }
 
@@ -262,7 +270,11 @@ const AdminVenuesPage: React.FC = () => {
                 {user.isActive ? (
                   <button
                     onClick={() => {
-                      if (window.confirm(`¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`)) {
+                      if (
+                        window.confirm(
+                          `¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`,
+                        )
+                      ) {
                         usersAPI.updateStatus(user.id, false);
                       }
                     }}
@@ -275,7 +287,11 @@ const AdminVenuesPage: React.FC = () => {
                   <>
                     <button
                       onClick={() => {
-                        if (window.confirm(`¿Estás seguro de que quieres activar al usuario "${user.username}"?`)) {
+                        if (
+                          window.confirm(
+                            `¿Estás seguro de que quieres activar al usuario "${user.username}"?`,
+                          )
+                        ) {
                           usersAPI.updateStatus(user.id, true);
                         }
                       }}
@@ -286,7 +302,11 @@ const AdminVenuesPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                        if (
+                          window.confirm(
+                            `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
+                          )
+                        ) {
                           userAPI.delete(user.id);
                         }
                       }}
