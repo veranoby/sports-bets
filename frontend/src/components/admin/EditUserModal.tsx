@@ -85,7 +85,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
     try {
       // Update user profile
-      await usersAPI.updateProfile({
+      await usersAPI.update(user.id, {
         profileInfo: profileData.profileInfo,
       });
 
