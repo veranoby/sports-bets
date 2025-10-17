@@ -113,7 +113,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     }
   };
 
-  const handleSubscriptionUpdate = (subscriptionData: {
+  const handleSubscriptionUpdate = async (subscriptionData: {
     type?: "free" | "daily" | "monthly";
     status?: "active" | "cancelled" | "expired" | "pending";
     expiresAt?: string | null;
@@ -123,29 +123,63 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     membership_type?: string;
     assigned_username?: string;
   }) => {
-    // Convert SubscriptionTabs data to UserSubscription format
-    const planMapping = {
-      free: "free",
-      "24h": "basic",
-      monthly: "premium",
-    };
-    const userSubscription: UserSubscription = {
-      id: user.subscription?.id || "",
-      plan: (planMapping[
-        subscriptionData.membership_type as keyof typeof planMapping
-      ] || "free") as UserSubscription["plan"],
-      status: subscriptionData.status || "active",
-      expiresAt:
-        subscriptionData.expiresAt ||
-        subscriptionData.manual_expires_at ||
-        undefined,
-      features: subscriptionData.features || [],
-    };
+    setLoading(true);
+    setError(null);
 
-    onUserUpdated({
-      ...user,
-      subscription: userSubscription,
-    });
+    try {
+      // Convert SubscriptionTabs data to UserSubscription format
+      const planMapping = {
+        free: "free",
+        "24h": "basic",
+        monthly: "premium",
+      };
+
+      // Update user membership through admin API
+      const response = await adminAPI.updateUserMembership(user.id, {
+        membership_type: subscriptionData.membership_type || "free",
+        assigned_username: subscriptionData.assigned_username || "",
+      });
+
+      if (response.success) {
+        const userSubscription: UserSubscription = {
+          id: user.subscription?.id || "",
+          plan: (planMapping[
+            subscriptionData.membership_type as keyof typeof planMapping
+          ] || "free") as UserSubscription["plan"],
+          status: subscriptionData.status || "active",
+          expiresAt:
+            subscriptionData.expiresAt ||
+            subscriptionData.manual_expires_at ||
+            undefined,
+          features: subscriptionData.features || [],
+        };
+
+        onUserUpdated({
+          ...user,
+          subscription: userSubscription,
+        });
+
+        // Show success message
+        addToast({
+          type: "success",
+          title: "Membresía Actualizada",
+          message: "La membresía del usuario se ha actualizado correctamente",
+        });
+      } else {
+        throw new Error(response.error || "Error al actualizar membresía");
+      }
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Error al actualizar membresía";
+      setError(errorMsg);
+      addToast({
+        type: "error",
+        title: "Error al Actualizar",
+        message: errorMsg,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
