@@ -165,8 +165,15 @@ router.put(
       .escape(),
     body("profileInfo.phoneNumber")
       .optional({ checkFalsy: true })
-      .matches(/^\+?[\d\s\-\(\)]+$/)
-      .withMessage("Invalid phone number format"),
+      .custom((value) => {
+        // If value is empty/falsy, skip validation
+        if (!value) return true;
+        // If value exists, validate format
+        if (!/^\+?[\d\s\-\(\)]+$/.test(value)) {
+          throw new Error("Invalid phone number format");
+        }
+        return true;
+      }),
     body("profileInfo.address")
       .optional()
       .isLength({ max: 500 })
