@@ -4,6 +4,8 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { Venue, User } from "../models";
 import { body, validationResult } from "express-validator";
 import { getOrSet, invalidatePattern } from "../config/redis";
+import { Op } from "sequelize";
+import Sequelize from "sequelize";
 
 import { UserRole } from "../../../shared/types";
 
@@ -46,6 +48,11 @@ router.get(
 
       const where: any = {};
       if (status) where.status = status;
+      
+      // Exclude venues owned by admins
+      where.ownerId = {
+        [Op.notIn]: Sequelize.literal(`(SELECT id FROM users WHERE role = 'admin')`)
+      };
 
       const { count, rows } = await Venue.findAndCountAll({
         where,
