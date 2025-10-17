@@ -7,11 +7,15 @@ import {
   Plus,
   Search,
   Edit,
+import {
+  Search,
+  Edit,
   Trash2,
   Shield,
   User,
   Filter,
   Eye,
+  X,
 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -36,8 +40,11 @@ const AdminAdministratorsPage: React.FC = () => {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRoleSelectModalOpen, setIsRoleSelectModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"admin" | "operator">("admin");
+  const [selectedRole, setSelectedRole] = useState<"admin" | "operator">(
+    "admin",
+  );
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
@@ -207,16 +214,83 @@ const AdminAdministratorsPage: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => {
-              setSelectedRole("admin");
-              setIsCreateModalOpen(true);
+              setIsRoleSelectModalOpen(true);
             }}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Admin/Operator
           </button>
         </div>
       </div>
+      {/* Role Selection Dialog */}
+      {isRoleSelectModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6 border-b flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                Seleccionar Tipo de Usuario
+              </h2>
+              <button
+                onClick={() => setIsRoleSelectModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-6">
+                ¿Qué tipo de usuario desea crear?
+              </p>
+              <div className="flex flex-col gap-4">
+                <button
+                  onClick={() => {
+                    setSelectedRole("admin");
+                    setIsRoleSelectModalOpen(false);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <Shield className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-gray-900">Administrador</h3>
+                    <p className="text-sm text-gray-500">
+                      Acceso completo al sistema
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedRole("operator");
+                    setIsRoleSelectModalOpen(false);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-gray-900">Operador</h3>
+                    <p className="text-sm text-gray-500">
+                      Gestión limitada de eventos y usuarios
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setIsRoleSelectModalOpen(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <Card className="p-4">
