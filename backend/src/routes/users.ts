@@ -164,7 +164,7 @@ router.put(
       .trim()
       .escape(),
     body("profileInfo.phoneNumber")
-      .optional()
+      .optional({ checkFalsy: true })
       .matches(/^\+?[\d\s\-\(\)]+$/)
       .withMessage("Invalid phone number format"),
     body("profileInfo.address")
