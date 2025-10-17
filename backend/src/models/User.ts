@@ -67,9 +67,25 @@ export class User extends Model<
     return result;
   }
 
-  // Método para obtener datos públicos del usuario
-  toPublicJSON() {
-    const { passwordHash, ...publicData } = this.toJSON();
+  // Método para obtener datos públicos del usuario incluyendo suscripción
+  async toPublicJSON() {
+    const { passwordHash, verificationToken, ...publicData } = this.toJSON();
+    
+    // Include current subscription if available
+    try {
+      (publicData as any).subscription = await this.getCurrentSubscription();
+    } catch (err) {
+      console.warn('Failed to get current subscription for user:', this.id, err);
+      // Fallback to free subscription if error occurs
+      (publicData as any).subscription = {
+        type: 'free',
+        status: 'active',
+        expiresAt: null,
+        features: [],
+        remainingDays: 0,
+      };
+    }
+    
     return publicData;
   }
 
