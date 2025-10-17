@@ -142,11 +142,24 @@ const MembershipRequestsPage: React.FC = () => {
       );
 
       if (completeResponse.success) {
-        setSuccessMessage("Solicitud aprobada y membresía actualizada");
-        setShowUserModal(false);
-        setSelectedRequest(null);
-        fetchRequests();
-        setTimeout(() => setSuccessMessage(null), 3000);
+        // Update user membership
+        const membershipResponse = await adminAPI.updateUserMembership(
+          selectedRequest.userId,
+          {
+            membership_type: subscriptionData.membership_type,
+            assigned_username: subscriptionData.assigned_username,
+          },
+        );
+
+        if (membershipResponse.success) {
+          setSuccessMessage("Solicitud aprobada y membresía actualizada");
+          setShowUserModal(false);
+          setSelectedRequest(null);
+          fetchRequests();
+          setTimeout(() => setSuccessMessage(null), 3000);
+        } else {
+          setErrorMessage(membershipResponse.error || "Error al actualizar membresía");
+        }
       } else {
         setErrorMessage(completeResponse.error || "Error al aprobar solicitud");
       }
