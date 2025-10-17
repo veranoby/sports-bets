@@ -65,7 +65,7 @@ const AdminVenuesPage: React.FC = () => {
           user: venue.owner,
           venue: venue,
         }))
-        .filter((item) => item.user && item.user.role !== "admin") // Excluir venues propiedad de admins
+        .filter((item) => item.user && item.user.role !== "admin"); // Excluir venues propiedad de admins
 
       setCombinedData(combined as CombinedVenueData[]);
     } catch (err) {
@@ -289,10 +289,10 @@ const AdminVenuesPage: React.FC = () => {
                       onClick={() => {
                         if (
                           window.confirm(
-                            `¿Estás seguro de que quieres activar al usuario "${user.username}"?`,
+                            `¿Estás seguro de que quieres activar la venue "${user.username}"?`,
                           )
                         ) {
-                          usersAPI.updateStatus(user.id, true);
+                          venuesAPI.update(venue.id, { status: "active" });
                         }
                       }}
                       className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
