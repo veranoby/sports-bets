@@ -65,13 +65,16 @@ const AdminUsersPage: React.FC = () => {
     navigate("/admin/users/create");
   };
 
-  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+  const handleToggleUserStatus = async (
+    userId: string,
+    currentStatus: boolean,
+  ) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
-    
+
     const newStatus = !currentStatus;
     const actionMessage = currentStatus ? "desactivar" : "reactivar";
-    
+
     if (
       !window.confirm(
         `¿Estás seguro de que quieres ${actionMessage} al usuario "${user.username}"?`,
@@ -81,19 +84,25 @@ const AdminUsersPage: React.FC = () => {
     }
 
     setError(null);
-    
+
     try {
       const res = await usersAPI.updateStatus(userId, newStatus);
       if (res.success) {
         // Update the user's status in the local state
-        setUsers(users.map(u => 
-          u.id === userId ? { ...u, isActive: newStatus } : u
-        ));
+        setUsers(
+          users.map((u) =>
+            u.id === userId ? { ...u, isActive: newStatus } : u,
+          ),
+        );
       } else {
         setError(res.error || `Error al ${actionMessage} usuario`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Error al ${actionMessage} usuario`);
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Error al ${actionMessage} usuario`,
+      );
     }
   };
 
@@ -226,7 +235,9 @@ const AdminUsersPage: React.FC = () => {
                       </button>
                       {user.isActive ? (
                         <button
-                          onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                          onClick={() =>
+                            handleToggleUserStatus(user.id, user.isActive)
+                          }
                           className="text-red-600 hover:text-red-800 flex items-center gap-1"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -235,7 +246,9 @@ const AdminUsersPage: React.FC = () => {
                       ) : (
                         <>
                           <button
-                            onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                            onClick={() =>
+                              handleToggleUserStatus(user.id, user.isActive)
+                            }
                             className="text-green-600 hover:text-green-800 flex items-center gap-1"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -243,7 +256,11 @@ const AdminUsersPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
-                              if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                              if (
+                                window.confirm(
+                                  `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
+                                )
+                              ) {
                                 userAPI.delete(user.id);
                               }
                             }}
