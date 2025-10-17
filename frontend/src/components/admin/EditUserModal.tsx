@@ -84,8 +84,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     setError(null);
 
     try {
-      // Update user profile
-      await usersAPI.update(user.id, {
+      // Update user profile using the correct endpoint
+      await usersAPI.updateProfile({
         profileInfo: profileData.profileInfo,
       });
 
