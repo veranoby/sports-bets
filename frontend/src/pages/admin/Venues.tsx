@@ -267,15 +267,15 @@ const AdminVenuesPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                {user.isActive ? (
+                {venue && venue.status === "active" ? (
                   <button
                     onClick={() => {
                       if (
                         window.confirm(
-                          `¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`,
+                          `¿Estás seguro de que quieres desactivar la venue "${venue.name}"?`,
                         )
                       ) {
-                        usersAPI.updateStatus(user.id, false);
+                        venuesAPI.updateStatus(venue.id, "suspended");
                       }
                     }}
                     className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"

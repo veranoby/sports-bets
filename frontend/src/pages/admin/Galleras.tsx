@@ -275,15 +275,15 @@ const AdminGallerasPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                {user.isActive ? (
+                {gallera && gallera.status === "active" ? (
                   <button
                     onClick={() => {
                       if (
                         window.confirm(
-                          `¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`,
+                          `¿Estás seguro de que quieres desactivar la gallera "${gallera.name}"?`,
                         )
                       ) {
-                        usersAPI.updateStatus(user.id, false);
+                        gallerasAPI.updateStatus(gallera.id, "suspended");
                       }
                     }}
                     className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
