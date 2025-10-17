@@ -8,7 +8,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
-import { usersAPI } from "../../services/api";
+import { usersAPI, userAPI } from "../../services/api";
 import type { User } from "../../types";
 
 const AdminUsersPage: React.FC = () => {
@@ -65,27 +65,35 @@ const AdminUsersPage: React.FC = () => {
     navigate("/admin/users/create");
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
+    
+    const newStatus = !currentStatus;
+    const actionMessage = currentStatus ? "desactivar" : "reactivar";
+    
     if (
       !window.confirm(
-        `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
+        `¿Estás seguro de que quieres ${actionMessage} al usuario "${user.username}"?`,
       )
     ) {
       return;
     }
 
     setError(null);
-    // Since delete method doesn't exist in the API, use type assertion
-    const res = (await (usersAPI as any).delete?.(userId)) || {
-      success: false,
-      error: "Delete method not implemented",
-    };
-    if (res.success) {
-      setUsers(users.filter((u) => u.id !== userId));
-    } else {
-      setError(res.error || "Error eliminando usuario");
+    
+    try {
+      const res = await usersAPI.updateStatus(userId, newStatus);
+      if (res.success) {
+        // Update the user's status in the local state
+        setUsers(users.map(u => 
+          u.id === userId ? { ...u, isActive: newStatus } : u
+        ));
+      } else {
+        setError(res.error || `Error al ${actionMessage} usuario`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Error al ${actionMessage} usuario`);
     }
   };
 
@@ -188,10 +196,7 @@ const AdminUsersPage: React.FC = () => {
                     <div className="text-sm text-gray-600">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusChip
-                      status={user.isActive ? "active" : "inactive"}
-                      size="sm"
-                    />
+                    {user.isActive ? "Activo" : "Inactivo"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <SubscriptionBadge
@@ -219,13 +224,36 @@ const AdminUsersPage: React.FC = () => {
                         <Edit className="w-4 h-4" />
                         Editar
                       </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Eliminar
-                      </button>
+                      {user.isActive ? (
+                        <button
+                          onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                          className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Desactivar
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                            className="text-green-600 hover:text-green-800 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Activar
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                                userAPI.delete(user.id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Eliminar
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

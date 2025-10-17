@@ -23,7 +23,7 @@ import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
-import { venuesAPI } from "../../services/api";
+import { venuesAPI, usersAPI, userAPI } from "../../services/api";
 
 // Tipos
 import type { User as UserType, Venue as VenueType } from "../../types";
@@ -110,11 +110,19 @@ const AdminVenuesPage: React.FC = () => {
     }
   };
 
-  // Handler para eliminación
-  const handleDelete = async (venueId?: string) => {
+  // Handler para suspensión/activación
+  const handleToggleStatus = async (venueId?: string, currentStatus?: string) => {
+    if (!venueId) {
+      setError("No hay venue asociado para actualizar.");
+      return;
+    }
+
+    const newStatus = currentStatus === "suspended" ? "active" : "suspended";
+    const actionMessage = currentStatus === "suspended" ? "reactivar" : "desactivar";
+    
     if (
       !window.confirm(
-        "¿Estás seguro de que quieres eliminar este venue? Esta acción no se puede deshacer.",
+        `¿Estás seguro de que quieres ${actionMessage} este venue?`,
       )
     ) {
       return;
@@ -122,14 +130,14 @@ const AdminVenuesPage: React.FC = () => {
 
     setError(null);
 
-    if (venueId) {
-      const venueRes = await venuesAPI.delete(venueId);
+    try {
+      const venueRes = await venuesAPI.updateStatus(venueId, newStatus);
       if (!venueRes.success) {
-        setError(venueRes.error || "Error eliminando venue");
+        setError(venueRes.error || `Error al ${actionMessage} el venue`);
         return;
       }
-    } else {
-      setError("No hay venue asociado para eliminar.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Error al ${actionMessage} el venue`);
       return;
     }
 
@@ -235,10 +243,6 @@ const AdminVenuesPage: React.FC = () => {
                     <span className="text-sm font-medium text-gray-700">
                       {user.username}
                     </span>
-                    <StatusChip
-                      status={user.isActive ? "active" : "inactive"}
-                      size="sm"
-                    />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Mail className="w-4 h-4" />
@@ -255,13 +259,44 @@ const AdminVenuesPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                <button
-                  onClick={() => handleDelete(venue?.id)}
-                  className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Eliminar
-                </button>
+                {user.isActive ? (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`)) {
+                        usersAPI.updateStatus(user.id, false);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Desactivar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que quieres activar al usuario "${user.username}"?`)) {
+                          usersAPI.updateStatus(user.id, true);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Activar
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                          userAPI.delete(user.id);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

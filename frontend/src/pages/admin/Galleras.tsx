@@ -23,7 +23,7 @@ import CreateUserModal from "../../components/admin/CreateUserModal"; // Import 
 import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
 
 // APIs
-import { gallerasAPI } from "../../services/api";
+import { gallerasAPI, usersAPI, userAPI } from "../../services/api";
 
 // Tipos
 import type { User as UserType, Gallera as GalleraType } from "../../types";
@@ -110,11 +110,19 @@ const AdminGallerasPage: React.FC = () => {
     }
   };
 
-  // Handler para eliminación
-  const handleDelete = async (galleraId?: string) => {
+  // Handler para suspensión/activación
+  const handleToggleStatus = async (galleraId?: string, currentStatus?: string) => {
+    if (!galleraId) {
+      setError("No hay gallera asociada para actualizar.");
+      return;
+    }
+
+    const newStatus = currentStatus === "suspended" ? "active" : "suspended";
+    const actionMessage = currentStatus === "suspended" ? "reactivar" : "desactivar";
+    
     if (
       !window.confirm(
-        "¿Estás seguro de que quieres eliminar esta gallera? Esta acción no se puede deshacer.",
+        `¿Estás seguro de que quieres ${actionMessage} esta gallera?`,
       )
     ) {
       return;
@@ -122,14 +130,14 @@ const AdminGallerasPage: React.FC = () => {
 
     setError(null);
 
-    if (galleraId) {
-      const galleraRes = await gallerasAPI.delete(galleraId);
+    try {
+      const galleraRes = await gallerasAPI.updateStatus(galleraId, newStatus);
       if (!galleraRes.success) {
-        setError(galleraRes.error || "Error eliminando gallera");
+        setError(galleraRes.error || `Error al ${actionMessage} la gallera`);
         return;
       }
-    } else {
-      setError("No hay gallera asociada para eliminar.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Error al ${actionMessage} la gallera`);
       return;
     }
 
@@ -235,10 +243,6 @@ const AdminGallerasPage: React.FC = () => {
                     <span className="text-sm font-medium text-gray-700">
                       {user.username}
                     </span>
-                    <StatusChip
-                      status={user.isActive ? "active" : "inactive"}
-                      size="sm"
-                    />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                     <Mail className="w-4 h-4" />
@@ -263,13 +267,44 @@ const AdminGallerasPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                <button
-                  onClick={() => handleDelete(gallera?.id)}
-                  className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Eliminar
-                </button>
+                {user.isActive ? (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`¿Estás seguro de que quieres desactivar al usuario "${user.username}"?`)) {
+                        usersAPI.updateStatus(user.id, false);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Desactivar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que quieres activar al usuario "${user.username}"?`)) {
+                          usersAPI.updateStatus(user.id, true);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Activar
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+                          userAPI.delete(user.id);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

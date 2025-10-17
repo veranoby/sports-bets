@@ -3,38 +3,44 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Shield, 
-  User, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Shield,
+  User,
   Filter,
-  Eye
+  Eye,
 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
-import ConfirmModal from "../../components/shared/ConfirmModal";
-import { adminAPI, usersAPI } from "../../services/api";
-import type { User } from "../../types";
+import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
+import EditUserModal from "../../components/admin/EditUserModal";
+import CreateUserModal from "../../components/admin/CreateUserModal";
+import { usersAPI } from "../../services/api";
+import type { User as UserType } from "../../types";
 
 const AdminAdministratorsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [administrators, setAdministrators] = useState<User[]>([]);
-  const [operators, setOperators] = useState<User[]>([]);
+  const [administrators, setAdministrators] = useState<UserType[]>([]);
+  const [operators, setOperators] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "operator">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "operator">(
+    "all",
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"admin" | "operator">("admin");
+  const [editingUser, setEditingUser] = useState<UserType | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
   // Fetch current user to prevent self-editing
   useEffect(() => {
@@ -54,26 +60,26 @@ const AdminAdministratorsPage: React.FC = () => {
   const fetchAdministrators = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch admins
-      const adminResponse = await adminAPI.getAllUsers({ 
-        role: "admin", 
-        limit: 1000 
+      const adminResponse = await usersAPI.getAll({
+        role: "admin",
+        limit: 1000,
       });
-      
+
       // Fetch operators
-      const operatorResponse = await adminAPI.getAllUsers({ 
-        role: "operator", 
-        limit: 1000 
+      const operatorResponse = await usersAPI.getAll({
+        role: "operator",
+        limit: 1000,
       });
-      
+
       if (adminResponse.success) {
         setAdministrators((adminResponse.data as any)?.users || []);
       } else {
         throw new Error(adminResponse.error || "Error loading administrators");
       }
-      
+
       if (operatorResponse.success) {
         setOperators((operatorResponse.data as any)?.users || []);
       } else {
@@ -92,49 +98,52 @@ const AdminAdministratorsPage: React.FC = () => {
 
   // Combine and filter users
   const allUsers = [...administrators, ...operators];
-  const filteredUsers = allUsers.filter(user => {
+  const filteredUsers = allUsers.filter((user) => {
     // Apply search filter
-    const matchesSearch = 
+    const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.profileInfo?.fullName && 
-       user.profileInfo.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+      (user.email &&
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.profileInfo?.fullName &&
+        user.profileInfo.fullName
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
+
     // Apply role filter
-    const matchesRole = 
-      roleFilter === "all" || 
-      user.role === roleFilter;
-    
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
     return matchesSearch && matchesRole;
   });
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: UserType) => {
     // Prevent editing yourself
     if (currentUser && currentUser.id === user.id) {
-      alert("No puedes editarte a ti mismo. Usa el perfil para cambiar tu información.");
+      alert(
+        "No puedes editarte a ti mismo. Usa el perfil para cambiar tu información.",
+      );
       return;
     }
-    
+
     setEditingUser(user);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteUser = (user: User) => {
+  const handleDeleteUser = (user: UserType) => {
     // Prevent deleting yourself
     if (currentUser && currentUser.id === user.id) {
       alert("No puedes eliminarte a ti mismo.");
       return;
     }
-    
+
     setDeletingUser(user);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDeleteUser = async () => {
     if (!deletingUser) return;
-    
+
     try {
-      const response = await adminAPI.deleteUser(deletingUser.id);
+      const response = await usersAPI.delete(deletingUser.id);
       if (response.success) {
         // Refresh the list
         fetchAdministrators();
@@ -194,14 +203,19 @@ const AdminAdministratorsPage: React.FC = () => {
             Manage administrator and operator accounts
           </p>
         </div>
-        
-        <button
-          onClick={() => navigate("/admin/users/create?type=admin")}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Administrator
-        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => {
+              setSelectedRole("admin");
+              setIsCreateModalOpen(true);
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Admin/Operator
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -219,7 +233,7 @@ const AdminAdministratorsPage: React.FC = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex gap-2">
             <select
               value={roleFilter}
@@ -242,12 +256,16 @@ const AdminAdministratorsPage: React.FC = () => {
               <Shield className="w-6 h-6 text-red-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Administrators</p>
-              <p className="text-2xl font-bold text-gray-900">{administrators.length}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Administrators
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {administrators.length}
+              </p>
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -255,11 +273,13 @@ const AdminAdministratorsPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Operators</p>
-              <p className="text-2xl font-bold text-gray-900">{operators.length}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {operators.length}
+              </p>
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -267,7 +287,9 @@ const AdminAdministratorsPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{allUsers.length}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {allUsers.length}
+              </p>
             </div>
           </div>
         </Card>
@@ -302,7 +324,10 @@ const AdminAdministratorsPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No administrators or operators found
                   </td>
                 </tr>
@@ -335,16 +360,13 @@ const AdminAdministratorsPage: React.FC = () => {
                       {getRoleBadge(user.role)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusChip 
-                        status={user.isActive ? "active" : "inactive"} 
-                        label={user.isActive ? "Active" : "Inactive"} 
-                      />
+                      {user.isActive ? "Activo" : "Inactivo"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <SubscriptionBadge subscription={user.subscription} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastLogin 
+                      {user.lastLogin
                         ? new Date(user.lastLogin).toLocaleDateString()
                         : "Never"}
                     </td>
@@ -378,18 +400,31 @@ const AdminAdministratorsPage: React.FC = () => {
       {/* Edit Modal */}
       {isEditModalOpen && editingUser && (
         <EditUserModal
-          user={editingUser}
-          isOpen={isEditModalOpen}
+          user={editingUser as UserType}
           onClose={() => {
             setIsEditModalOpen(false);
             setEditingUser(null);
           }}
-          onSuccess={fetchAdministrators}
+          onUserUpdated={(updatedUser) => {
+            fetchAdministrators();
+          }}
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <CreateUserModal
+          role={selectedRole}
+          onClose={() => setIsCreateModalOpen(false)}
+          onUserCreated={() => {
+            setIsCreateModalOpen(false);
+            fetchAdministrators();
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
@@ -403,7 +438,8 @@ const AdminAdministratorsPage: React.FC = () => {
             : ""
         }
         confirmText="Delete"
-        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        variant="danger"
+        type="delete"
       />
     </div>
   );
