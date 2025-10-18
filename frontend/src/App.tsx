@@ -183,6 +183,16 @@ const AppContent: React.FC = () => {
             }
           />
 
+          {/* Administradores y Operadores */}
+          <Route
+            path="/admin/administrators"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminAdministrators />
+              </Suspense>
+            }
+          />
+
           {/* Operadores */}
           <Route
             path="/admin/operators"
