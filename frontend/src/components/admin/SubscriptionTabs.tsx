@@ -96,6 +96,10 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
           onSave({
             membership_type: selectedType,
             assigned_username: assignedUsername.trim(),
+            status: selectedType === "free" ? "active" : "pending",
+            expiresAt: selectedType === "free" ? null : undefined,
+            manual_expires_at: selectedType === "free" ? null : undefined,
+            features: selectedType === "free" ? [] : undefined,
           });
         }
         onCancel();
