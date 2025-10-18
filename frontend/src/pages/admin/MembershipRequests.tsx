@@ -158,7 +158,9 @@ const MembershipRequestsPage: React.FC = () => {
           fetchRequests();
           setTimeout(() => setSuccessMessage(null), 3000);
         } else {
-          setErrorMessage(membershipResponse.error || "Error al actualizar membresía");
+          setErrorMessage(
+            membershipResponse.error || "Error al actualizar membresía",
+          );
         }
       } else {
         setErrorMessage(completeResponse.error || "Error al aprobar solicitud");
