@@ -212,7 +212,7 @@ router.post(
       success: true,
       message: "Login successful",
       data: {
-        user: user.toPublicJSON(),
+        user: await user.toPublicJSON(),
         token,
       },
     });
