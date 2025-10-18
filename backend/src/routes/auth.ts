@@ -242,7 +242,7 @@ router.get(
     res.json({
       success: true,
       data: {
-        user: user.toPublicJSON(),
+        user: await user.toPublicJSON(),
         wallet: (user as any).wallet?.toPublicJSON(),
       },
     });

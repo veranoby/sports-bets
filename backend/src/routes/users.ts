@@ -35,7 +35,7 @@ router.get(
       return {
         success: true,
         data: { 
-          user: user.toPublicJSON(),
+          user: await user.toPublicJSON(),
           subscription: currentSubscription
         },
       };
@@ -324,7 +324,7 @@ router.put(
       res.json({
         success: true,
         message: "Profile updated successfully",
-        data: user.toPublicJSON(),
+        data: await user.toPublicJSON(),
       });
     } catch (error) {
       console.error('Error saving user:', error);
@@ -403,7 +403,7 @@ router.post(
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      data: user.toPublicJSON(),
+      data: await user.toPublicJSON(),
     });
   })
 );
@@ -501,7 +501,7 @@ router.delete(
     res.json({
       success: true,
       message: "User deactivated successfully",
-      data: user.toPublicJSON(),
+      data: await user.toPublicJSON(),
     });
   })
 );
