@@ -84,13 +84,15 @@
 
   "venue_endpoints": {
     "CRITICAL_NOTE": "Frontend MUST use /venues NOT /users?role=venue",
+    "implementation_note": "✅ CORRECTED 2025-10-18: Query fixed from Venue.findAndCountAll() to User.findAndCountAll(role='venue') → LEFT JOIN venues. Returns all venue users including those without venues records.",
     "list_venues": {
       "method": "GET",
       "path": "/venues",
       "query_params": ["limit", "offset", "search"],
       "response": {"success": true, "data": {"venues": "array", "total": "number"}},
       "auth_required": false,
-      "middleware": "optionalAuth"
+      "middleware": "optionalAuth",
+      "query_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (required:false)"
     },
     "create_venue": {
       "method": "POST",
@@ -119,13 +121,15 @@
 
   "gallera_endpoints": {
     "CRITICAL_NOTE": "Frontend MUST use /galleras NOT /users?role=gallera",
+    "implementation_note": "✅ CORRECTED 2025-10-18: Query fixed from Gallera.findAndCountAll() to User.findAndCountAll(role='gallera') → LEFT JOIN galleras. Returns all gallera users including those without galleras records.",
     "list_galleras": {
       "method": "GET",
       "path": "/galleras",
       "query_params": ["limit", "offset", "search"],
       "response": {"success": true, "data": {"galleras": "array", "total": "number"}},
       "auth_required": false,
-      "middleware": "optionalAuth"
+      "middleware": "optionalAuth",
+      "query_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (required:false)"
     },
     "create_gallera": {
       "method": "POST",

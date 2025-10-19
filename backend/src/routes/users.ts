@@ -82,7 +82,7 @@ router.get(
     res.json({
       success: true,
       data: {
-        users: users.rows.map((u) => u.toPublicJSON()),
+        users: await Promise.all(users.rows.map((u) => u.toPublicJSON())),
         pagination: {
           total: users.count,
           limit: parseInt(limit as string),
@@ -143,7 +143,7 @@ router.get(
 
     res.json({
       success: true,
-      data: targetUser.toPublicJSON(),
+      data: await targetUser.toPublicJSON(),
     });
   })
 );
@@ -460,7 +460,7 @@ router.put(
     res.json({
       success: true,
       message: "User updated successfully",
-      data: targetUser.toPublicJSON(),
+      data: await targetUser.toPublicJSON(),
     });
   })
 );

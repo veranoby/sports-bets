@@ -124,7 +124,24 @@
       "fights.status + fights.eventId",
       "bets.status + bets.fightId",
       "subscriptions.userId + subscriptions.status"
-    ]
+    ],
+
+    "query_patterns_corrected": {
+      "note": "✅ CORRECTED 2025-10-18: Fixed query inversion for role-based data fetching",
+      "venue_listing": {
+        "incorrect_pattern": "Venue.findAndCountAll() → LEFT JOIN users (venues table as primary source)",
+        "corrected_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (users table as source of truth)",
+        "file": "backend/src/routes/venues.ts:46-130",
+        "impact": "All venue users now visible including those without extended venues records"
+      },
+      "gallera_listing": {
+        "incorrect_pattern": "Gallera.findAndCountAll() → LEFT JOIN users (galleras table as primary source)",
+        "corrected_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (users table as source of truth)",
+        "file": "backend/src/routes/galleras.ts:24-107",
+        "impact": "All gallera users now visible including those without extended galleras records"
+      },
+      "design_principle": "Query from users table (source of truth for roles) → LEFT JOIN detail tables (extended info). Never invert."
+    }
   },
   
   "application_components": {

@@ -46,34 +46,83 @@ router.get(
     const data = await getOrSet(cacheKey, async () => {
       const attributes = getVenueAttributes(req.user?.role);
 
-      const where: any = {};
-      if (status) where.status = status;
-      
-      // Exclude venues owned by admins
-      where.ownerId = {
-        [Op.notIn]: Sequelize.literal(`(SELECT id FROM users WHERE role = 'admin')`)
+      // ✅ CORRECTED: Query from users table (source of truth) → LEFT JOIN venues
+      const userWhere: any = {
+        role: 'venue',
+        isActive: true
       };
 
-      const { count, rows } = await Venue.findAndCountAll({
-        where,
-        attributes,
+      const venueAttributes = [
+        "id",
+        "name",
+        "location",
+        "description",
+        "status",
+        "isVerified",
+        "images",
+        "createdAt",
+        "updatedAt",
+      ];
+
+      const { count, rows } = await User.findAndCountAll({
+        where: userWhere,
+        attributes: ["id", "username", "email", "profileInfo", "createdAt", "updatedAt"],
         include: [
           {
-            model: User,
-            as: "owner",
-            attributes: ["id", "username", "email", "profileInfo"],
-            separate: false,
+            model: Venue,
+            as: "venues",
+            attributes: venueAttributes,
+            required: false, // LEFT JOIN - keeps users without venues
+            separate: true, // Prevents LIMIT issues with associations
+            where: status ? { status } : {},
           },
         ],
         order: [["createdAt", "DESC"]],
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
+        subQuery: false,
+      });
+
+      // ✅ Transform response to match expected format
+      const transformedRows = rows.map((user: any) => {
+        // If user has venues, return first venue with user info
+        const venue = user.venues?.[0];
+        if (venue) {
+          return {
+            ...venue.toJSON(),
+            owner: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              profileInfo: user.profileInfo,
+            },
+          };
+        }
+        // If no venue record, create synthetic venue entry from user
+        const profile = user.profileInfo || {};
+        return {
+          id: user.id,
+          name: (profile as any).venueName || user.username,
+          location: (profile as any).venueLocation || '',
+          description: (profile as any).venueDescription || '',
+          status: 'pending',
+          isVerified: false,
+          images: (profile as any).venueImages || [],
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          owner: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            profileInfo: user.profileInfo,
+          },
+        };
       });
 
       return {
         success: true,
         data: {
-          venues: rows.map((v) => v.toJSON({ attributes })),
+          venues: transformedRows,
           total: count,
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),

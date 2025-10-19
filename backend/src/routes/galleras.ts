@@ -22,28 +22,83 @@ router.get(
     const cacheKey = `galleras:list:${userRole}:${status || ''}:${limit}:${offset}`;
 
     const data = await getOrSet(cacheKey, async () => {
-      const where: any = {};
-      if (status) where.status = status;
+      // ✅ CORRECTED: Query from users table (source of truth) → LEFT JOIN galleras
+      const userWhere: any = {
+        role: 'gallera',
+        isActive: true
+      };
 
-      const { count, rows } = await Gallera.findAndCountAll({
-        where,
+      const galleraAttributes = [
+        "id",
+        "name",
+        "location",
+        "description",
+        "status",
+        "isVerified",
+        "images",
+        "createdAt",
+        "updatedAt",
+      ];
+
+      const { count, rows } = await User.findAndCountAll({
+        where: userWhere,
+        attributes: ["id", "username", "email", "profileInfo", "createdAt", "updatedAt"],
         include: [
           {
-            model: User,
-            as: "owner",
-            attributes: ["id", "username", "email", "profileInfo"],
-            separate: false,
+            model: Gallera,
+            as: "galleras",
+            attributes: galleraAttributes,
+            required: false, // LEFT JOIN - keeps users without galleras
+            separate: true, // Prevents LIMIT issues with associations
+            where: status ? { status } : {},
           },
         ],
         order: [["createdAt", "DESC"]],
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
+        subQuery: false,
+      });
+
+      // ✅ Transform response to match expected format
+      const transformedRows = rows.map((user: any) => {
+        // If user has galleras, return first gallera with user info
+        const gallera = user.galleras?.[0];
+        if (gallera) {
+          return {
+            ...gallera.toJSON(),
+            owner: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              profileInfo: user.profileInfo,
+            },
+          };
+        }
+        // If no gallera record, create synthetic gallera entry from user
+        const profile = user.profileInfo || {};
+        return {
+          id: user.id,
+          name: (profile as any).galleraName || user.username,
+          location: (profile as any).galleraLocation || '',
+          description: (profile as any).galleraDescription || '',
+          status: 'pending',
+          isVerified: false,
+          images: (profile as any).galleraImages || [],
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          owner: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            profileInfo: user.profileInfo,
+          },
+        };
       });
 
       return {
         success: true,
         data: {
-          galleras: rows,
+          galleras: transformedRows,
           total: count,
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),
