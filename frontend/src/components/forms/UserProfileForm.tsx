@@ -20,7 +20,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
     phoneNumber: user.profileInfo?.phoneNumber || "",
     address: user.profileInfo?.address || "",
     identificationNumber: user.profileInfo?.identificationNumber || "",
-    profileImage: user.profileInfo?.profileImage || "",
+    profileImage: user.profileInfo?.imageUrl || "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -103,13 +103,13 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
       }
 
       // Update user profile
-      const response = await userAPI.update(user.id, {
+      const response = await userAPI.updateProfile({
         profileInfo: {
           fullName: formData.fullName.trim(),
           phoneNumber: formData.phoneNumber.trim(),
           address: formData.address?.trim() || "",
           identificationNumber: formData.identificationNumber?.trim() || "",
-          profileImage: profileImageUrl,
+          imageUrl: profileImageUrl,
           verificationLevel: user.profileInfo?.verificationLevel || "none",
         },
       });

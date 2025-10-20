@@ -166,6 +166,11 @@ export const userAPI = {
   updateStatus: async (id: string, isActive: boolean) => {
     return apiCall<User>("put", `/users/${id}/status`, { isActive });
   },
+  updateProfile: async (data: Partial<User>) => {
+    return apiCall<User>("put", "/users/profile", {
+      profileInfo: data.profileInfo
+    });
+  },
 };
 
 // Wrap the axios client to return ApiResponse format

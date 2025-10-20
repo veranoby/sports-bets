@@ -127,9 +127,9 @@ const Profile: React.FC = () => {
         <div className="bg-indigo-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex flex-col items-center text-center">
             <div className="relative group mb-6">
-              {user.profileInfo?.profileImage ? (
+              {user.profileInfo?.imageUrl ? (
                 <img
-                  src={user.profileInfo.profileImage}
+                  src={user.profileInfo.imageUrl}
                   alt={user.username}
                   className="w-28 h-28 rounded-full object-cover shadow-lg border-4 border-white"
                 />
