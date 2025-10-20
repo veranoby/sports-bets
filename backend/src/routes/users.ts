@@ -187,6 +187,11 @@ router.put(
       .escape(),
   ],
   asyncHandler(async (req, res) => {
+    // 🔒 PROTECTION: Prevent modifications to read-only fields
+    if (req.body.username !== undefined || req.body.email !== undefined) {
+      throw errors.badRequest("Fields 'username' and 'email' are read-only and cannot be modified");
+    }
+
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       throw errors.badRequest(
@@ -422,6 +427,17 @@ router.put(
     body("isActive").optional().isBoolean().withMessage("isActive must be boolean"),
   ],
   asyncHandler(async (req, res) => {
+    // 🔒 PROTECTION: Only allow role and isActive modifications via this endpoint
+    const allowedFields = ["role", "isActive"];
+    const invalidFields = Object.keys(req.body).filter(
+      (key) => !allowedFields.includes(key)
+    );
+    if (invalidFields.length > 0) {
+      throw errors.badRequest(
+        `Only 'role' and 'isActive' fields can be modified. Invalid fields: ${invalidFields.join(", ")}`
+      );
+    }
+
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       throw errors.badRequest(

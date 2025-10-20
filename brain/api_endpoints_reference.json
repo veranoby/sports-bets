@@ -42,11 +42,16 @@
       "path": "/users/profile",
       "body": {"profileInfo": "object"},
       "auth_required": true,
+      "roles": "ANY authenticated user (self-edit only)",
+      "read_only_fields": ["username", "email"],
+      "protection_note": "✅ ENFORCED 2025-10-19: Attempts to modify username/email are rejected with 400 error",
+      "frontend_method": "userAPI.updateProfile(data) in frontend/src/services/api.ts",
       "special_features": {
         "data_synchronization": "Automatically syncs venue/gallera profile data to dedicated tables",
         "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
         "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
-        "display_logic": "venue/gallera names replace username in headers and profile display"
+        "display_logic": "venue/gallera names replace username in headers and profile display",
+        "image_upload": "Supports profileImage field for avatar upload"
       }
     },
     "list_users": {
@@ -79,6 +84,20 @@
       "roles": ["admin", "operator"],
       "security": "Operators cannot modify admin/operator accounts",
       "added_by": "QWEN optimization - admin password management feature"
+    },
+    "update_user": {
+      "method": "PUT",
+      "path": "/users/:id",
+      "body": {"role": "string (optional)", "isActive": "boolean (optional)"},
+      "allowed_fields": ["role", "isActive"],
+      "read_only_fields": ["username", "email", "profileInfo"],
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "security": [
+        "Operators cannot modify admin/operator accounts",
+        "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
+        "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
+      ]
     }
   },
 
