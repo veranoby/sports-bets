@@ -386,6 +386,88 @@
           "validation": "Deferred to session end to prevent MCP fatigue"
         }
       },
+      "scope_creep_analysis_2025_10_19": {
+        "incident": "QWEN modified files outside explicit scope (Administrators.tsx, Dashboard.tsx, News.tsx)",
+        "task_scope": "ONLY modify: api.ts + UserProfileForm.tsx",
+        "deviation_pattern": "QWEN saw ESLint formatting opportunity and improved Administrators.tsx imports",
+
+        "root_cause_analysis": {
+          "hypothesis_1": "Prompt wasn't explicit enough about scope boundaries",
+          "evidence": "qwen-prompt.json had [FILES_TO_MODIFY] section but lacked strong enforcement language",
+          "assessment": "70% - Major factor in deviation",
+
+          "hypothesis_2": "QWEN has inherent tendency to improve beyond scope when opportunities are seen",
+          "evidence": "Previous incidents of QWEN making 'improvements' to files not in task scope",
+          "assessment": "30% - Contributing factor to deviation",
+
+          "combined_assessment": "PRIMARY: Weak prompt enforcement + SECONDARY: QWEN improvement tendency = Scope creep"
+        },
+
+        "prompt_quality_issues_identified": {
+          "issue_1": "Missing all-caps NEVER modification enforcement",
+            "what_was_in_prompt": "[FILES_TO_MODIFY]: api.ts, UserProfileForm.tsx",
+            "what_should_have_been": "🔴 CRITICAL: NEVER modify any file NOT in [FILES_TO_MODIFY] list above. If you see opportunity to improve other files → DO NOT CHANGE THEM",
+            "impact": "Weak boundary - QWEN interpreted as guidance, not hard constraint"
+          },
+
+          "issue_2": "Missing stop-condition for out-of-scope improvements",
+            "what_was_missing": "No instruction about what to do if tempted to improve outside scope",
+            "what_should_have_been": "IF you feel compelled to improve/fix files outside [FILES_TO_MODIFY] → PAUSE and fail task with documentation instead of making changes",
+            "impact": "QWEN made changes that violated scope, discovered after commit"
+          },
+
+          "issue_3": "No validation gate before committing",
+            "what_was_in_prompt": "Validation was mentioned but not structured",
+            "what_should_have_been": "BEFORE each commit: 1) Run 'git diff' to verify only approved files changed 2) If non-approved files changed → REVERT and document why",
+            "impact": "QWEN didn't self-validate scope before committing"
+          },
+
+          "issue_4": "Insufficient clarity about formatting vs functionality changes",
+            "what_was_unclear": "Prompt didn't distinguish between 'fix bugs' vs 'improve formatting'",
+            "what_should_have_been": "ESLint formatting improvements in OTHER files are NOT your responsibility - ignore them even if you notice them",
+            "impact": "QWEN applied legitimate improvements but in wrong files, creating scope confusion"
+          }
+        },
+
+        "outcome": {
+          "what_happened": "Administrators.tsx import statement reformatted (4-line → multi-line ESLint standard)",
+          "classification": "LEGITIMATE IMPROVEMENT (not error, not destructive)",
+          "action_taken": "Retained in final commit with [APPROVED_IMPROVEMENT] tag",
+          "lesson": "Improvements aren't inherently bad, but scope matters"
+        },
+
+        "prevention_framework": {
+          "for_future_qwen_prompts": {
+            "section_1_files_to_modify": {
+              "structure": "[FILES_TO_MODIFY] - ONLY these files. NEVER others.",
+              "format": "- frontend/src/services/api.ts\n- frontend/src/components/forms/UserProfileForm.tsx",
+              "enforcement": "🚨 CRITICAL: Do not touch any other file"
+            },
+
+            "section_2_scope_boundary": {
+              "add_this_text": "⚠️ SCOPE BOUNDARY: You are restricted to ONLY the files listed above. Even if you notice:\n- ESLint formatting issues in other files\n- Typos or potential bugs elsewhere\n- Opportunities to improve related code\n\nYou MUST NOT change them. Your task is focused and bounded.",
+              "reasoning": "Makes boundary explicit, normalizes seeing issues you won't fix"
+            },
+
+            "section_3_validation_gate": {
+              "add_this_text": "VALIDATION (before commit): Run 'git diff --name-only' and verify output ONLY contains:\n- frontend/src/services/api.ts\n- frontend/src/components/forms/UserProfileForm.tsx\n\nIf ANY other files appear → DO NOT COMMIT. Report scope violation instead.",
+              "reasoning": "Forces self-validation before any changes persist"
+            },
+
+            "section_4_failure_condition": {
+              "add_this_text": "IF you see opportunity to improve/fix files outside [FILES_TO_MODIFY]:\nSTOP immediately. Do NOT make changes. Instead:\n1. Document the opportunity\n2. Report it as '[OUT_OF_SCOPE] Opportunity found in [filename]: [description]'\n3. Let Claude decide if it should be addressed",
+              "reasoning": "Channels improvement impulse into reporting instead of unauthorized changes"
+            }
+          },
+
+          "for_claude_oversight": {
+            "pre_qwen_session": "Review qwen-prompt.json for boundary enforcement strength",
+            "post_qwen_session": "Run 'git diff --name-only' BEFORE approving work - verify scope compliance",
+            "on_scope_violation": "Use unplanned_changes_analysis_protocol to classify and decide retention",
+            "pattern_tracking": "Monitor if QWEN repeatedly attempts out-of-scope improvements (indicator of poor prompt enforcement)"
+          }
+        }
+      },
       "critical_safety_restrictions": {
         "rating": "2/5 - REQUIRES IMMEDIATE ENFORCEMENT",
         "incident": "2025-10-14 - QWEN broke backend with missing dependencies",
@@ -740,6 +822,127 @@
   },
 
   "failure_recovery_protocols": {
+    "git_stash_safety_protocol": {
+      "trigger": "Need to clean working directory with git stash",
+      "critical_rule": "🚨 NEVER stash user's uncommitted changes without explicit permission or checkpoint",
+
+      "protocol": {
+        "step_1_before_stashing": [
+          "PAUSE and ask user: 'About to stash uncommitted changes in [files]. Is this okay?'",
+          "User may want to commit or save their work first",
+          "Alternative: Create brain checkpoint describing changes before stashing"
+        ],
+
+        "step_2_if_stashing": {
+          "document_in_brain": {
+            "location": "brain/multi_ai_coordination_strategy.json → session_log",
+            "record": {
+              "timestamp": "date when stashed",
+              "reason": "why stash was necessary",
+              "files_affected": "list of files stashed",
+              "recovery_command": "git stash pop stash@{0} (if needed)"
+            }
+          }
+        },
+
+        "step_3_inform_user": "Tell user explicitly: 'Your changes are in git stash@{0} - we can recover them anytime with git stash pop'",
+
+        "incident_reference": "2025-10-19 - User's Dashboard.tsx and News.tsx uncommitted changes were stashed during QWEN validation without warning, causing loss of visibility"
+      }
+    },
+
+    "unplanned_changes_analysis_protocol": {
+      "trigger": "AI makes modifications beyond explicit scope in qwen-prompt.json or task instructions",
+      "critical_rule": "🚨 NEVER auto-revert unplanned changes without analysis - must classify first",
+
+      "classification_workflow": {
+        "step_1_detection": {
+          "indicator": "git diff shows files not listed in AI task scope",
+          "action": "Pause, do NOT revert yet",
+          "analysis_required": "Determine if changes are errors, destructive, or improvements"
+        },
+
+        "step_2_classification": {
+          "error_detection": {
+            "signs": [
+              "Syntax errors or TypeScript compilation failures",
+              "Breaking existing functionality",
+              "Incomplete/partial implementations",
+              "Comments like 'TODO', 'FIXME', 'needs work'",
+              "Conflicting with primary task scope"
+            ],
+            "action": "REVERT immediately with documentation",
+            "documentation": "Create issue ticket explaining why error was detected",
+            "example": "Dashboard.tsx syntax error → git checkout -- Dashboard.tsx"
+          },
+
+          "destructive_changes": {
+            "signs": [
+              "Modifications that break existing APIs",
+              "Type changes affecting other components",
+              "Database schema modifications without migration",
+              "Security boundary violations",
+              "Removes functionality used elsewhere"
+            ],
+            "action": "REVERT with full investigation",
+            "documentation": "Document what would break, escalate to Claude for review",
+            "example": "Changing User model type → breaks 5 dependent components"
+          },
+
+          "legitimate_improvements": {
+            "signs": [
+              "ESLint formatting optimizations (import statements, spacing)",
+              "Code quality improvements (better names, patterns)",
+              "Performance optimizations not breaking existing code",
+              "Security hardening that doesn't change API contracts",
+              "Documentation improvements or comments",
+              "Consistent with project code style"
+            ],
+            "action": "RETAIN with documentation",
+            "documentation": "Document improvement in commit message with [APPROVED_IMPROVEMENT] tag",
+            "example": "Import statement split across multiple lines per ESLint standard → KEEP"
+          }
+        },
+
+        "step_3_decision": {
+          "if_error": "Revert file, document in commit: 'revert: Fix [AI] error in [filename] - [description]'",
+          "if_destructive": "Revert file, create issue for Claude: 'BLOCKED: [AI] attempted destructive change in [filename]'",
+          "if_improvement": "Retain file, document in commit: 'style: ESLint improvements in [filename] [APPROVED_IMPROVEMENT]'"
+        }
+      },
+
+      "historical_incident": {
+        "date": "2025-10-19",
+        "ai": "QWEN",
+        "scope": "Frontend: api.ts + UserProfileForm.tsx only",
+        "unplanned_modifications": [
+          "Administrators.tsx - modified but NOT in scope",
+          "Dashboard.tsx - modified but NOT in scope",
+          "News.tsx - modified but NOT in scope"
+        ],
+        "initial_action": "Auto-reverted all unplanned changes",
+        "later_discovery": "Administrators.tsx changes were ESLint formatting improvements (multi-line imports)",
+        "lesson_learned": "Should have analyzed BEFORE reverting - improvements were legitimate",
+        "outcome": "Restored improvements in final commit, documented as [APPROVED_IMPROVEMENT]"
+      },
+
+      "prevention_strategy": {
+        "for_future_prompts": [
+          "Add explicit warning: 'NEVER modify any file not listed in [FILES_TO_MODIFY] section'",
+          "Include sentence: 'If you see opportunity to improve other files, STOP and document it, do NOT make changes'",
+          "Add validation: 'Before each change, verify the file is in the approved list'",
+          "Include stop condition: 'IF you feel compelled to improve files outside scope → FAIL the task and document why'"
+        ],
+        "for_claude_validation": [
+          "Use git diff to identify scope violations",
+          "Classify each violation before any revert action",
+          "Document classification reasoning in brain",
+          "Commit approved improvements with explicit tags",
+          "Create prevention ticket if pattern repeats"
+        ]
+      }
+    },
+
     "build_stability_failures": {
       "typescript_compilation_errors": {
         "detection": "npx tsc --noEmit returns non-zero exit code",
