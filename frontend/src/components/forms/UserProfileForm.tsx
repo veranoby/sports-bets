@@ -109,7 +109,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
           phoneNumber: formData.phoneNumber.trim(),
           address: formData.address?.trim() || "",
           identificationNumber: formData.identificationNumber?.trim() || "",
-          imageUrl: profileImageUrl,
+          profileImage: profileImageUrl,
           verificationLevel: user.profileInfo?.verificationLevel || "none",
         },
       });

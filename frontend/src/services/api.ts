@@ -168,7 +168,7 @@ export const userAPI = {
   },
   updateProfile: async (data: Partial<User>) => {
     return apiCall<User>("put", "/users/profile", {
-      profileInfo: data.profileInfo
+      profileInfo: data.profileInfo,
     });
   },
 };
