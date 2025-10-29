@@ -287,6 +287,10 @@ router.put(
       .optional()
       .isObject()
       .withMessage("Contact info must be an object"),
+    body("images")
+      .optional()
+      .isArray()
+      .withMessage("Images must be an array of URLs"),
     body("status")
       .optional()
       .isIn(["pending", "active", "suspended"])
@@ -317,7 +321,7 @@ router.put(
     console.log('Updating venue with data:', req.body);
 
     // Actualizar campos permitidos
-    const allowedFields = ["name", "location", "description", "contactInfo"];
+    const allowedFields = ["name", "location", "description", "contactInfo", "images"];
     if (req.user!.role === "admin") {
       allowedFields.push("status"); // Solo admin puede cambiar status
     }

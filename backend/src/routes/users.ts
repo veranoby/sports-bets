@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { User } from "../models";
+import { User, Venue, Gallera } from "../models";
 import { body, param, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis";
@@ -519,6 +519,72 @@ router.delete(
       message: "User deactivated successfully",
       data: await user.toPublicJSON(),
     });
+  })
+);
+
+// GET /api/users/:id/business-entity - Obtener entidad de negocio asociada (optimización)
+router.get(
+  "/:id/business-entity",
+  optionalAuth,
+  [
+    param("id").isUUID().withMessage("Valid user ID required"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const userId = req.params.id;
+
+    // ⚡ Redis cache key
+    const cacheKey = `user:business-entity:${userId}`;
+
+    const data = await getOrSet(cacheKey, async () => {
+      const user = await User.findByPk(userId);
+
+      if (!user) {
+        throw errors.notFound("User not found");
+      }
+
+      // Check if user is venue or gallera
+      if (user.role === "venue") {
+        const venue = await Venue.findOne({ where: { ownerId: userId } });
+        return {
+          success: true,
+          data: {
+            type: "venue",
+            entity: venue || null,
+          },
+        };
+      } else if (user.role === "gallera") {
+        const gallera = await Gallera.findOne({ where: { ownerId: userId } });
+        return {
+          success: true,
+          data: {
+            type: "gallera",
+            entity: gallera || null,
+          },
+        };
+      } else {
+        // User is not a business entity
+        return {
+          success: true,
+          data: {
+            type: null,
+            entity: null,
+          },
+        };
+      }
+    }, 300); // 5 min TTL
+
+    res.json(data);
   })
 );
 

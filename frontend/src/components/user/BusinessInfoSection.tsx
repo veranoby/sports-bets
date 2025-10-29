@@ -166,8 +166,7 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
       )}
 
       <p className="text-xs text-gray-500 mt-6 text-center">
-        La información de la entidad de negocio es de solo lectura. Para
-        realizar cambios, por favor contacte a un administrador.
+        Puedes editar la información de tu entidad de negocio usando el botón "Editar" arriba.
       </p>
     </div>
   );

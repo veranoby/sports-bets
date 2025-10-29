@@ -235,6 +235,10 @@ router.put(
       .optional()
       .isObject()
       .withMessage("Contact info must be an object"),
+    body("images")
+      .optional()
+      .isArray()
+      .withMessage("Images must be an array of URLs"),
     body("status")
       .optional()
       .isIn(["pending", "active", "suspended", "rejected"])

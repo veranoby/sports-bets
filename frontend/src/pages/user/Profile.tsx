@@ -14,7 +14,7 @@ import GalleraEntityForm from "../../components/forms/GalleraEntityForm";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
 import MembershipSection from "../../components/user/MembershipSection";
 import BusinessInfoSection from "../../components/user/BusinessInfoSection";
-import { venuesAPI, gallerasAPI } from "../../services/api";
+import { apiClient } from "../../services/api";
 import type { Venue, Gallera } from "../../types";
 
 const Profile: React.FC = () => {
@@ -31,18 +31,13 @@ const Profile: React.FC = () => {
       if (!user) return;
 
       try {
-        if (user.role === "venue") {
-          const response = await venuesAPI.getAll(); // As per brain docs
-          const userVenue = (response.data as any)?.venues?.find(
-            (v: any) => v.owner?.id === user.id,
-          );
-          setVenueData(userVenue || null);
-        } else if (user.role === "gallera") {
-          const response = await gallerasAPI.getAll(); // As per brain docs
-          const userGallera = (response.data as any)?.galleras?.find(
-            (g: any) => g.owner?.id === user.id,
-          );
-          setGalleraData(userGallera || null);
+        // ⚡ Optimized: Use dedicated endpoint instead of full list queries
+        const response = await apiClient.get(`/users/${user.id}/business-entity`);
+
+        if (response.data?.data?.type === "venue" && response.data?.data?.entity) {
+          setVenueData(response.data.data.entity);
+        } else if (response.data?.data?.type === "gallera" && response.data?.data?.entity) {
+          setGalleraData(response.data.data.entity);
         }
       } catch (error) {
         console.error("Error fetching business data:", error);

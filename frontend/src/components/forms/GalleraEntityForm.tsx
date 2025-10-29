@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
-import { gallerasAPI, uploadsAPI } from "../../services/api";
+import React, { useState } from "react";
+import { gallerasAPI } from "../../services/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
+import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 import {
   MapPin,
   Trophy,
@@ -9,8 +10,6 @@ import {
   Mail,
   Phone,
   Globe,
-  Camera,
-  X,
 } from "lucide-react";
 import type { Gallera } from "../../types";
 
@@ -53,49 +52,6 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setImageError(null);
-
-    // Validate file type and size
-    if (!file.type.startsWith("image/")) {
-      setImageError("Tipo de archivo no válido. Solo se permiten imágenes.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("La imagen es muy grande. Máximo 5MB.");
-      return;
-    }
-
-    setImageFile(file);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setFormData((prev) => ({
-      ...prev,
-      images: [],
-    }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -145,21 +101,7 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
     setError(null);
 
     try {
-      let finalImageUrls = formData.images || [];
-
-      // Upload new image if selected
-      if (imageFile) {
-        const uploadResponse = await uploadsAPI.uploadImage(imageFile);
-        if (uploadResponse.success && uploadResponse.data?.url) {
-          finalImageUrls = [uploadResponse.data.url]; // Replace with new image
-        } else {
-          throw new Error(
-            uploadResponse.error || "Error al subir la imagen de la gallera",
-          );
-        }
-      }
-
-      const finalFormData = { ...formData, images: finalImageUrls };
+      const finalFormData = { ...formData };
 
       let result: Gallera;
       if (gallera?.id) {
@@ -383,61 +325,16 @@ const GalleraEntityForm: React.FC<GalleraEntityFormProps> = ({
           </div>
         </div>
 
-        {/* Image Upload Section - Single Image */}
+        {/* Gallery Upload Section */}
         <div className="border-t pt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Imagen Principal de la Gallera
-          </label>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              {imagePreview || (formData.images && formData.images[0]) ? (
-                <img
-                  src={imagePreview || formData.images[0]}
-                  alt="Gallera preview"
-                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
-                />
-              ) : (
-                <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <Camera className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
-              {(imagePreview || imageFile) && (
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-                id="gallera-image-input"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-              >
-                <Camera className="w-4 h-4" />
-                {imagePreview || (formData.images && formData.images[0])
-                  ? "Cambiar imagen"
-                  : "Subir imagen"}
-              </button>
-              <p className="text-xs text-gray-500 mt-1">
-                JPG, PNG o WebP. Máximo 5MB.
-              </p>
-              {imageError && (
-                <p className="text-red-500 text-xs mt-1">{imageError}</p>
-              )}
-            </div>
-          </div>
+          <ImageGalleryUpload
+            images={formData.images || []}
+            onImagesChange={(images) =>
+              setFormData((prev) => ({ ...prev, images }))
+            }
+            maxImages={10}
+            label="Galería de Imágenes de la Gallera"
+          />
         </div>
 
         {error && <ErrorMessage error={error} />}
