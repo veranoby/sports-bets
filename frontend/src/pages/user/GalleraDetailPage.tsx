@@ -57,8 +57,14 @@ const GalleraDetailPage: React.FC = () => {
         }
         setGallera(galleraResponse.data);
 
-        const ownerId =
-          galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
+        // ⚡ Optimized: Try ownerId first, then fallback to owner data
+        let ownerId = galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
+
+        // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
+        if (!ownerId && galleraResponse.data.owner?.id) {
+          ownerId = galleraResponse.data.owner.id;
+        }
+
         if (ownerId) {
           const articlesResponse = await articlesAPI.getAll({
             author_id: ownerId,
@@ -161,7 +167,10 @@ const GalleraDetailPage: React.FC = () => {
     gallera.owner?.profileInfo?.verificationLevel === "full" || false;
   const rating = gallera.owner?.profileInfo?.rating || 0;
   const premiumLevel = gallera.owner?.profileInfo?.premiumLevel;
-  const specialties = gallera.specialties?.specialties || [];
+  // ⚡ Fixed: specialties puede ser string[] o {breeds, trainingMethods, experience}
+  const specialties = Array.isArray(gallera.specialties)
+    ? gallera.specialties
+    : gallera.specialties?.breeds || [];
 
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");

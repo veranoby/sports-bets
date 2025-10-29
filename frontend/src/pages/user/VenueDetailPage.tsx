@@ -54,8 +54,14 @@ const VenueDetailPage: React.FC = () => {
         }
         setVenue(venueResponse.data);
 
-        const ownerId =
-          venueResponse.data.ownerId || venueResponse.data.owner?.id;
+        // ⚡ Optimized: Try ownerId first, then fallback to owner data
+        let ownerId = venueResponse.data.ownerId || venueResponse.data.owner?.id;
+
+        // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
+        if (!ownerId && venueResponse.data.owner?.id) {
+          ownerId = venueResponse.data.owner.id;
+        }
+
         if (ownerId) {
           const articlesResponse = await articlesAPI.getAll({
             author_id: ownerId,
