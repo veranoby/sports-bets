@@ -253,17 +253,17 @@ const Profile: React.FC = () => {
               />
             ) : (
               <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-                {user.role === "venue" && venueData && (
+                {user.role === "venue" && (
                   <VenueEntityForm
-                    venue={venueData}
+                    venue={venueData || undefined}
                     userId={user.id}
                     onSave={handleBusinessSave}
                     onCancel={handleBusinessCancel}
                   />
                 )}
-                {user.role === "gallera" && galleraData && (
+                {user.role === "gallera" && (
                   <GalleraEntityForm
-                    gallera={galleraData}
+                    gallera={galleraData || undefined}
                     userId={user.id}
                     onSave={handleBusinessSave}
                     onCancel={handleBusinessCancel}
