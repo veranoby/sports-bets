@@ -226,6 +226,43 @@
     }
   },
 
+  "component_interfaces": {
+    "image_gallery_upload": {
+      "file": "/frontend/src/components/shared/ImageGalleryUpload.tsx",
+      "component_name": "ImageGalleryUpload",
+      "created": "2025-10-29",
+      "purpose": "Reusable multi-image upload component with gallery grid display",
+      "props": {
+        "images": "string[] (required) - Array of image URLs",
+        "onImagesChange": "(images: string[]) => void (required) - Callback when images array changes",
+        "maxImages": "number (optional, default: 10) - Maximum number of images allowed",
+        "label": "string (optional, default: 'Galería de Imágenes') - Component label"
+      },
+      "features": [
+        "Multiple image upload support",
+        "Grid display of uploaded images (2-4 columns responsive)",
+        "Individual image deletion with hover action",
+        "Loading state during upload",
+        "File type validation (image/* only)",
+        "File size validation (max 5MB per image)",
+        "Error handling per image with user feedback",
+        "Image counter showing used/max images"
+      ],
+      "usage_examples": [
+        "VenueEntityForm.tsx: Manages venue images gallery",
+        "GalleraEntityForm.tsx: Manages gallera images gallery",
+        "Supports ARRAY(string) database fields"
+      ],
+      "validation": {
+        "file_type": "file.type.startsWith('image/')",
+        "file_size": "max 5MB (5 * 1024 * 1024)",
+        "max_images": "Configurable, default 10"
+      },
+      "api_integration": "Uses uploadsAPI.uploadImage(file) for server upload",
+      "styling": "TailwindCSS with Lucide React icons (Camera, X, Loader)"
+    }
+  },
+
   "upload_interfaces": {
     "upload_response": {
       "file": "/frontend/src/services/api.ts",
@@ -457,6 +494,35 @@
         "correct": "// In models/index.ts: ActiveSession.belongsTo(User, { foreignKey: 'userId' })"
       }
     }
+  },
+  "claude_profile_optimization_2025_10_29": {
+    "status": "✅ COMPLETED - Profile system optimization and bug fixes",
+    "date": "2025-10-29",
+    "changes_made": [
+      "Fixed User.profileInfo display in Profile.tsx - expanded to show all fields (fullName, phoneNumber, address, identificationNumber, email)",
+      "Fixed imageUrl field mapping in UserProfileForm - was sending 'profileImage' instead of 'imageUrl'",
+      "Created reusable ImageGalleryUpload component for multi-image gallery management",
+      "Updated VenueEntityForm to use ImageGalleryUpload component",
+      "Updated GalleraEntityForm to use ImageGalleryUpload component",
+      "Added 'images' field support in backend PUT /api/venues/:id endpoint",
+      "Added 'images' field validation in backend PUT /api/galleras/:id endpoint",
+      "Improved GET /api/users/:id/business-entity endpoint with fallback search (ownerId -> galleraName/venueName)",
+      "Added 'Crear' button to BusinessInfoSection for users without business entities",
+      "Updated Business Info display to show all profile fields in read-only view"
+    ],
+    "files_affected": [
+      "frontend/src/pages/user/Profile.tsx",
+      "frontend/src/components/forms/UserProfileForm.tsx",
+      "frontend/src/components/forms/VenueEntityForm.tsx",
+      "frontend/src/components/forms/GalleraEntityForm.tsx",
+      "frontend/src/components/shared/ImageGalleryUpload.tsx (NEW)",
+      "frontend/src/components/user/BusinessInfoSection.tsx",
+      "backend/src/routes/users.ts",
+      "backend/src/routes/venues.ts",
+      "backend/src/routes/galleras.ts"
+    ],
+    "database_notes": "No schema changes. Uses existing ARRAY(string) field for images in venues/galleras tables",
+    "testing_verified": "Frontend tested with gallera_test user - image uploads working, profile fields displaying correctly"
   },
   "qwen_typescript_incident_2025_10_14": {
     "status": "🚨 CRITICAL INCIDENT - Backend broken by QWEN",

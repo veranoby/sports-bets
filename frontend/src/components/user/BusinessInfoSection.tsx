@@ -40,10 +40,21 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
 }) => {
   if (!data) {
     return (
-      <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-        <p className="text-gray-500">
-          No se encontró información de la entidad de negocio para este usuario.
-        </p>
+      <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-gray-500 text-center flex-1">
+            No se encontró información de la entidad de negocio para este usuario.
+          </p>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-200 text-blue-600 rounded-lg hover:bg-blue-300 transition-colors whitespace-nowrap"
+            >
+              <Edit3 className="w-4 h-4" />
+              Crear
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -166,7 +177,8 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
       )}
 
       <p className="text-xs text-gray-500 mt-6 text-center">
-        Puedes editar la información de tu entidad de negocio usando el botón "Editar" arriba.
+        Puedes editar la información de tu entidad de negocio usando el botón
+        "Editar" arriba.
       </p>
     </div>
   );

@@ -32,11 +32,19 @@ const Profile: React.FC = () => {
 
       try {
         // ⚡ Optimized: Use dedicated endpoint instead of full list queries
-        const response = await apiClient.get(`/users/${user.id}/business-entity`);
+        const response = await apiClient.get(
+          `/users/${user.id}/business-entity`,
+        );
 
-        if (response.data?.data?.type === "venue" && response.data?.data?.entity) {
+        if (
+          response.data?.data?.type === "venue" &&
+          response.data?.data?.entity
+        ) {
           setVenueData(response.data.data.entity);
-        } else if (response.data?.data?.type === "gallera" && response.data?.data?.entity) {
+        } else if (
+          response.data?.data?.type === "gallera" &&
+          response.data?.data?.entity
+        ) {
           setGalleraData(response.data.data.entity);
         }
       } catch (error) {
@@ -110,6 +118,30 @@ const Profile: React.FC = () => {
         </label>
         <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
           {user.profileInfo?.phoneNumber || "No especificado"}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Dirección
+        </label>
+        <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
+          {user.profileInfo?.address || "No especificado"}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Número de Identificación
+        </label>
+        <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
+          {user.profileInfo?.identificationNumber || "No especificado"}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Correo Electrónico
+        </label>
+        <div className="text-sm font-medium text-gray-700 px-3 py-2 bg-gray-50 rounded-lg text-gray-900">
+          {user.email || "No especificado"}
         </div>
       </div>
     </div>

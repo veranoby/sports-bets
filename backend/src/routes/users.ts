@@ -555,7 +555,16 @@ router.get(
 
       // Check if user is venue or gallera
       if (user.role === "venue") {
-        const venue = await Venue.findOne({ where: { ownerId: userId } });
+        // Try to find venue by ownerId first
+        let venue = await Venue.findOne({ where: { ownerId: userId } });
+
+        // If not found by ownerId, try to find by email or name from profileInfo
+        if (!venue && user.profileInfo?.venueName) {
+          venue = await Venue.findOne({
+            where: { name: user.profileInfo.venueName }
+          });
+        }
+
         return {
           success: true,
           data: {
@@ -564,7 +573,16 @@ router.get(
           },
         };
       } else if (user.role === "gallera") {
-        const gallera = await Gallera.findOne({ where: { ownerId: userId } });
+        // Try to find gallera by ownerId first
+        let gallera = await Gallera.findOne({ where: { ownerId: userId } });
+
+        // If not found by ownerId, try to find by name from profileInfo
+        if (!gallera && user.profileInfo?.galleraName) {
+          gallera = await Gallera.findOne({
+            where: { name: user.profileInfo.galleraName }
+          });
+        }
+
         return {
           success: true,
           data: {

@@ -66,6 +66,19 @@
       "path": "/users/:id",
       "auth_required": true
     },
+    "get_user_business_entity": {
+      "method": "GET",
+      "path": "/users/:id/business-entity",
+      "auth_required": false,
+      "middleware": "optionalAuth",
+      "response": {"success": true, "data": {"type": "venue|gallera|null", "entity": "Venue|Gallera object or null"}},
+      "purpose": "Optimized endpoint to fetch business entity (Venue/Gallera) associated with a user without downloading full lists",
+      "cache": "Redis 5 min TTL (300s)",
+      "search_strategy": "First tries ownerId match, then searches by name in profileInfo.venueName/galleraName for backward compatibility",
+      "note": "ADDED 2025-10-29: Replaces inefficient full list queries in Profile.tsx",
+      "implementation": "backend/src/routes/users.ts:525-607",
+      "frontend_usage": "frontend/src/pages/user/Profile.tsx:35-48 (useEffect hook)"
+    },
     "create_user": {
       "method": "POST",
       "path": "/users",
@@ -128,7 +141,16 @@
     "update_venue": {
       "method": "PUT",
       "path": "/venues/:id",
-      "auth_required": true
+      "auth_required": true,
+      "body": {"name": "string (optional)", "location": "string (optional)", "description": "string (optional)", "contactInfo": "object (optional)", "images": "string[] (optional) - Array of image URLs"},
+      "images_support": {
+        "field_name": "images",
+        "type": "Array<string>",
+        "validation": "Each URL must be valid",
+        "added_date": "2025-10-29",
+        "gallery_component": "ImageGalleryUpload (frontend/src/components/shared/ImageGalleryUpload.tsx)"
+      },
+      "note": "UPDATED 2025-10-29: Added 'images' field support for gallery management"
     },
     "delete_venue": {
       "method": "DELETE",
@@ -165,7 +187,16 @@
     "update_gallera": {
       "method": "PUT",
       "path": "/galleras/:id",
-      "auth_required": true
+      "auth_required": true,
+      "body": {"name": "string (optional)", "location": "string (optional)", "description": "string (optional)", "specialties": "object (optional)", "activeRoosters": "number (optional)", "fightRecord": "object (optional)", "contactInfo": "object (optional)", "images": "string[] (optional) - Array of image URLs"},
+      "images_support": {
+        "field_name": "images",
+        "type": "Array<string>",
+        "validation": "Must be array of image URLs",
+        "added_date": "2025-10-29",
+        "gallery_component": "ImageGalleryUpload (frontend/src/components/shared/ImageGalleryUpload.tsx)"
+      },
+      "note": "UPDATED 2025-10-29: Added 'images' field support for gallery management"
     },
     "delete_gallera": {
       "method": "DELETE",
