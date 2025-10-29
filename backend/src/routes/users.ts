@@ -559,9 +559,9 @@ router.get(
         let venue = await Venue.findOne({ where: { ownerId: userId } });
 
         // If not found by ownerId, try to find by email or name from profileInfo
-        if (!venue && user.profileInfo?.venueName) {
+        if (!venue && (user.profileInfo as any)?.venueName) {
           venue = await Venue.findOne({
-            where: { name: user.profileInfo.venueName }
+            where: { name: (user.profileInfo as any).venueName }
           });
         }
 
@@ -577,9 +577,9 @@ router.get(
         let gallera = await Gallera.findOne({ where: { ownerId: userId } });
 
         // If not found by ownerId, try to find by name from profileInfo
-        if (!gallera && user.profileInfo?.galleraName) {
+        if (!gallera && (user.profileInfo as any)?.galleraName) {
           gallera = await Gallera.findOne({
-            where: { name: user.profileInfo.galleraName }
+            where: { name: (user.profileInfo as any).galleraName }
           });
         }
 
