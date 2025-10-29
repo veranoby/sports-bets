@@ -2,7 +2,7 @@ import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import { User, Wallet } from "../models";
+import { User, Wallet, Venue, Gallera } from "../models";
 import { Subscription } from "../models/Subscription";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
@@ -47,7 +47,7 @@ const registerValidation = [
     ),
   body("role")
     .optional()
-    .isIn(["user", "operator", "venue"])
+    .isIn(["user", "venue", "gallera"])
     .withMessage("Invalid role specified"),
 ];
 
@@ -107,6 +107,7 @@ router.post(
           email,
           passwordHash: password, // Se hashea automáticamente en el hook
           role,
+          approved: false, // ✅ Usuarios de registro público requieren aprobación
           emailVerified: false,
           verificationToken: verificationToken,
           verificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -126,6 +127,36 @@ router.post(
         },
         { transaction: t }
       );
+
+      // ✅ AUTO-CREATE venue/gallera entity if role requires it
+      if (role === "venue") {
+        await Venue.create(
+          {
+            ownerId: user.id,
+            name: null,
+            location: null,
+            description: null,
+            status: "pending",
+            contactInfo: {},
+            images: [],
+          },
+          { transaction: t }
+        );
+      } else if (role === "gallera") {
+        await Gallera.create(
+          {
+            ownerId: user.id,
+            name: null,
+            location: null,
+            description: null,
+            specialties: [],
+            status: "pending",
+            contactInfo: {},
+            images: [],
+          },
+          { transaction: t }
+        );
+      }
 
       // Enviar email de verificación
       await emailService.sendVerificationEmail(email, verificationToken);

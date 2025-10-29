@@ -211,6 +211,14 @@ const Profile: React.FC = () => {
               <Calendar className="w-3 h-3" />
               {memberSince}
             </div>
+
+            {/* ✅ NUEVO: Chip de pendiente aprobación para roles venue/gallera */}
+            {!user.approved && ["venue", "gallera"].includes(user.role) && (
+              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 animate-pulse mt-3">
+                <Clock className="w-3 h-3" />
+                Pendiente de aprobación
+              </div>
+            )}
           </div>
         </div>
 

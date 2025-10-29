@@ -3,7 +3,17 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Shield, User, Filter, Eye, X, Search } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Shield,
+  User,
+  Filter,
+  Eye,
+  X,
+  Search,
+} from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
@@ -19,6 +29,7 @@ const AdminAdministratorsPage: React.FC = () => {
   const navigate = useNavigate();
   const [administrators, setAdministrators] = useState<UserType[]>([]);
   const [operators, setOperators] = useState<UserType[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -148,6 +159,35 @@ const AdminAdministratorsPage: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || "Error deleting user");
+    }
+  };
+
+  // ✅ NUEVO: Funciones para aprobar/rechazar usuarios
+  const handleApproveUser = async (userId: string) => {
+    try {
+      const response = await usersAPI.put(userId, { approved: true });
+      if (response && response.success) {
+        // Refresh list
+        fetchAdministrators();
+      } else {
+        setError("Error approving user");
+      }
+    } catch (err: any) {
+      setError(err.message || "Error approving user");
+    }
+  };
+
+  const handleRejectUser = async (userId: string) => {
+    try {
+      const response = await usersAPI.put(userId, { approved: false, isActive: false });
+      if (response && response.success) {
+        // Refresh list
+        fetchAdministrators();
+      } else {
+        setError("Error rejecting user");
+      }
+    } catch (err: any) {
+      setError(err.message || "Error rejecting user");
     }
   };
 

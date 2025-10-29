@@ -40,6 +40,7 @@ export class User extends Model<
   declare passwordHash: string; // → password_hash
   declare role: "admin" | "operator" | "venue" | "user" | "gallera";
   declare isActive: CreationOptional<boolean>; // → is_active
+  declare approved: CreationOptional<boolean>; // → approved
   declare profileInfo: CreationOptional<UserProfile>; // → profile_info
   declare lastLogin: CreationOptional<Date>; // → last_login
   declare emailVerified: CreationOptional<boolean>; // → email_verified
@@ -206,6 +207,12 @@ User.init(
       allowNull: false,
       defaultValue: true,
       field: "is_active",
+    },
+    approved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "approved",
     },
     profileInfo: {
       type: DataTypes.JSON,

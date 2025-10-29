@@ -24,9 +24,15 @@
     },
     "User": {
       "file": "/frontend/src/types/index.ts",
-      "required_properties": ["id", "username", "email", "role", "isActive", "createdAt", "updatedAt"],
+      "required_properties": ["id", "username", "email", "role", "isActive", "approved", "createdAt", "updatedAt"],
       "optional_properties": ["profileInfo", "lastLogin", "subscription", "wallet", "events"],
       "role_enum": ["admin", "operator", "venue", "user", "gallera"],
+      "approval_system": {
+        "approved_field": "boolean - NEW FIELD 2025-10-29",
+        "default_value": "false for public registrations, true for admin-created users",
+        "approval_logic": "Users with role='venue'|'gallera' and approved=false are blocked by middleware until admin approves",
+        "middleware_check": "authenticate middleware checks approved status before allowing requests"
+      },
       "profileInfo_structure": {
         "basic_fields": ["fullName", "phoneNumber", "address", "identificationNumber", "verificationLevel"],
         "venue_fields": ["businessName", "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],

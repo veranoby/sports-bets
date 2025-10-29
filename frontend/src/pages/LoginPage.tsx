@@ -20,6 +20,7 @@ const LoginPage: React.FC = () => {
     email: "",
     password: "",
   });
+  const [selectedRole, setSelectedRole] = useState<"user" | "venue" | "gallera">("user");
 
   // 🔧 MEJORA 1: Estado de error más robusto
   const [error, setError] = useState("");
@@ -64,6 +65,7 @@ const LoginPage: React.FC = () => {
           username: formData.username,
           email: formData.email,
           password: formData.password,
+          role: selectedRole,
         });
       }
       navigate("/");
@@ -254,6 +256,51 @@ const LoginPage: React.FC = () => {
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#596c95] focus:border-[#596c95] disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="tu@email.com"
                     />
+                  </div>
+                </div>
+
+                {/* Role Selection - Only in registration mode */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Tipo de Cuenta
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="user"
+                        checked={selectedRole === "user"}
+                        onChange={() => setSelectedRole("user")}
+                        disabled={localIsLoading || isLoading}
+                        className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Usuario Normal (Público)</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="venue"
+                        checked={selectedRole === "venue"}
+                        onChange={() => setSelectedRole("venue")}
+                        disabled={localIsLoading || isLoading}
+                        className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Propietario de Venue</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="gallera"
+                        checked={selectedRole === "gallera"}
+                        onChange={() => setSelectedRole("gallera")}
+                        disabled={localIsLoading || isLoading}
+                        className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Propietario de Gallera</span>
+                    </label>
                   </div>
                 </div>
               </>

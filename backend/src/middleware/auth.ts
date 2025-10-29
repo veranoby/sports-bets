@@ -88,6 +88,13 @@ export const authenticate = async (
       throw errors.unauthorized('Invalid token or user inactive');
     }
 
+    // ⚠️ Check if user account is approved (except for admins/operators who are auto-approved)
+    if (["venue", "gallera"].includes(user.role) && !user.approved) {
+      throw errors.forbidden(
+        `Your ${user.role} account is pending admin approval. Please check your email for status updates.`
+      );
+    }
+
     // lastLogin is only updated during actual login in auth.ts
     // Removed excessive database updates per request
 

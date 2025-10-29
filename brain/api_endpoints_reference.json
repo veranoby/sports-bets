@@ -22,6 +22,20 @@
       "response": {"success": true, "data": {"token": "jwt", "user": "object"}},
       "auth_required": false
     },
+    "register": {
+      "method": "POST",
+      "path": "/auth/register",
+      "body": {"username": "string", "email": "string", "password": "string", "role": "string (optional: 'user'|'venue'|'gallera', default 'user')"},
+      "response": {"success": true, "message": "User registered successfully. Please check your email..."},
+      "auth_required": false,
+      "auto_creation": {
+        "venue_entity": "If role='venue', automatically creates Venue record with ownerId and status='pending'",
+        "gallera_entity": "If role='gallera', automatically creates Gallera record with ownerId and status='pending'",
+        "approval_status": "All public registrations marked as approved=false, require admin approval",
+        "added_date": "2025-10-29"
+      },
+      "note": "UPDATED 2025-10-29: Added role selection and auto-entity creation for atomic user+entity setup"
+    },
     "check_membership": {
       "method": "POST",
       "path": "/auth/check-membership-status",
@@ -82,9 +96,20 @@
     "create_user": {
       "method": "POST",
       "path": "/users",
-      "body": {"username": "string", "email": "string", "password": "string", "role": "string"},
+      "body": {"username": "string", "email": "string", "password": "string", "role": "string ('admin'|'operator'|'venue'|'user'|'gallera')"},
       "auth_required": true,
-      "roles": ["admin", "operator"]
+      "roles": ["admin", "operator"],
+      "security": [
+        "Only admins can create admin/operator roles",
+        "Operators can only create venue/user/gallera roles"
+      ],
+      "auto_creation": {
+        "venue_entity": "If role='venue', automatically creates Venue record with ownerId and status='active'",
+        "gallera_entity": "If role='gallera', automatically creates Gallera record with ownerId and status='active'",
+        "approval_status": "Admin-created users marked as approved=true (auto-approved)",
+        "added_date": "2025-10-29"
+      },
+      "note": "UPDATED 2025-10-29: Now accepts admin/operator roles, auto-creates entity records"
     },
     "update_user_password": {
       "method": "PUT",
@@ -111,6 +136,28 @@
         "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
         "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
       ]
+    },
+    "approve_user": {
+      "method": "PUT",
+      "path": "/users/:id/approve",
+      "auth_required": true,
+      "roles": ["admin"],
+      "body": {},
+      "response": {"success": true, "message": "User approved successfully", "data": "user_object"},
+      "purpose": "Approve a pending user account (venues/galleras) for use",
+      "added_date": "2025-10-29",
+      "note": "Sets user.approved = true. User was marked approved=false on registration."
+    },
+    "reject_user": {
+      "method": "PUT",
+      "path": "/users/:id/reject",
+      "auth_required": true,
+      "roles": ["admin"],
+      "body": {"reason": "string (optional)"},
+      "response": {"success": true, "message": "User rejected successfully", "data": "user_object"},
+      "purpose": "Reject a pending user account and deactivate it",
+      "added_date": "2025-10-29",
+      "note": "Sets user.isActive = false and user.approved = false. TODO: Send rejection email to user."
     }
   },
 

@@ -361,7 +361,7 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("Password must be at least 8 characters"),
     body("role")
-      .isIn(["venue", "user", "gallera"])
+      .isIn(["admin", "operator", "venue", "user", "gallera"])
       .withMessage("Invalid role"),
   ],
   asyncHandler(async (req, res) => {
@@ -383,6 +383,11 @@ router.post(
       throw errors.forbidden("Operators can only create venue, user, or gallera accounts");
     }
 
+    // ⚡ SECURITY: Only admins can create admin/operator accounts
+    if (["admin", "operator"].includes(role) && req.user!.role !== "admin") {
+      throw errors.forbidden("Only admins can create admin/operator accounts");
+    }
+
     // Check for existing user
     const existingUser = await User.findOne({
       where: {
@@ -400,10 +405,35 @@ router.post(
       passwordHash: password,
       role,
       isActive: true,
+      approved: true, // ✅ Admin-created users are auto-approved
       profileInfo: {
         verificationLevel: "none",
       },
     });
+
+    // ✅ AUTO-CREATE venue/gallera entity if role requires it
+    if (role === "venue") {
+      await Venue.create({
+        ownerId: user.id,
+        name: null,
+        location: null,
+        description: null,
+        status: "active", // Admin-created entities are active
+        contactInfo: {},
+        images: [],
+      });
+    } else if (role === "gallera") {
+      await Gallera.create({
+        ownerId: user.id,
+        name: null,
+        location: null,
+        description: null,
+        specialties: [],
+        status: "active", // Admin-created entities are active
+        contactInfo: {},
+        images: [],
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -603,6 +633,92 @@ router.get(
     }, 300); // 5 min TTL
 
     res.json(data);
+  })
+);
+
+// PUT /api/users/:id/approve - Aprobar usuario (solo admin)
+router.put(
+  "/:id/approve",
+  authenticate,
+  authorize("admin"),
+  param("id").isUUID().withMessage("Valid user ID required"),
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const userId = req.params.id;
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    if (user.approved) {
+      throw errors.badRequest("User is already approved");
+    }
+
+    user.approved = true;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "User approved successfully",
+      data: await user.toPublicJSON(),
+    });
+  })
+);
+
+// PUT /api/users/:id/reject - Rechazar usuario (solo admin)
+router.put(
+  "/:id/reject",
+  authenticate,
+  authorize("admin"),
+  [
+    param("id").isUUID().withMessage("Valid user ID required"),
+    body("reason").optional().isString().trim(),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const userId = req.params.id;
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    if (user.approved) {
+      throw errors.badRequest("Cannot reject already approved user");
+    }
+
+    // Desactivar usuario al rechazar
+    user.isActive = false;
+    await user.save();
+
+    // TODO: Enviar email de rechazo a usuario
+
+    res.json({
+      success: true,
+      message: "User rejected successfully",
+      data: await user.toPublicJSON(),
+    });
   })
 );
 
