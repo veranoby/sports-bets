@@ -1,0 +1,176 @@
+[{
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "created_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.8566604
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "device_fingerprint",
+  "n_distinct": 2,
+  "common_values_sample": "{124d5a6b011c7921a7f03b3a1bb581c86d532ab7cd0dd6e1ea9e94c8376f63b7}",
+  "correlation": 0.85365856
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "expires_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.8566604
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "id",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.26322702
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "ip_address",
+  "n_distinct": 1,
+  "common_values_sample": "{::1}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "is_active",
+  "n_distinct": 2,
+  "common_values_sample": "{f,t}",
+  "correlation": 0.90694183
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "last_activity",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.8542214
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "session_token",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.3966229
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "updated_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.8566604
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "user_agent",
+  "n_distinct": 2,
+  "common_values_sample": "{\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"}",
+  "correlation": 0.85365856
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "attname": "user_id",
+  "n_distinct": 4,
+  "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde,d447f8ed-1e4c-42de-b919-868d58fcbe08,1401acf5-20d6-414a-b3c1-e8963b9cb1a6,a7ffac00-7458-4395-a104-84988e62eba9}",
+  "correlation": 0.46022514
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "approved",
+  "n_distinct": 1,
+  "common_values_sample": "{t}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "created_at",
+  "n_distinct": -0.6363636,
+  "common_values_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
+  "correlation": 0.36363637
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "email",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.37272727
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "email_verified",
+  "n_distinct": 1,
+  "common_values_sample": "{f}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "id",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.46363637
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "is_active",
+  "n_distinct": 1,
+  "common_values_sample": "{t}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "last_login",
+  "n_distinct": -0.5454545,
+  "common_values_sample": null,
+  "correlation": 0.14285715
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "password_hash",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.4
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "profile_info",
+  "n_distinct": -0.6363636,
+  "common_values_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
+  "correlation": 0.19090909
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "role",
+  "n_distinct": -0.45454547,
+  "common_values_sample": "{user,venue,operator}",
+  "correlation": 0.58181816
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "updated_at",
+  "n_distinct": 1,
+  "common_values_sample": "{\"2025-10-30 16:00:15.939746+00\"}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "username",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.24545455
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "verification_expires",
+  "n_distinct": 0,
+  "common_values_sample": null,
+  "correlation": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "attname": "verification_token",
+  "n_distinct": 0,
+  "common_values_sample": null,
+  "correlation": null
+}]

@@ -1,19 +1,19 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "344 kB",
-  "table_size": "16 kB",
+  "total_size": "336 kB",
+  "table_size": "8192 bytes",
   "indexes_size": "328 kB",
-  "index_to_table_ratio_percentage": 2050.00,
-  "total_bytes": 352256
+  "index_to_table_ratio_percentage": 4100.00,
+  "total_bytes": 344064
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
-  "total_size": "240 kB",
-  "table_size": "24 kB",
-  "indexes_size": "216 kB",
-  "index_to_table_ratio_percentage": 900.00,
-  "total_bytes": 245760
+  "total_size": "200 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "200 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 204800
 }, {
   "schemaname": "public",
   "tablename": "articles",

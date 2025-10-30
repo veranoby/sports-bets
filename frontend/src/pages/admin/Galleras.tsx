@@ -3,6 +3,7 @@
 // Muestra usuarios con rol "gallera" y sus entidades de gallera asociadas
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Users,
   Plus,
@@ -35,48 +36,101 @@ interface CombinedGalleraData {
 
 const AdminGallerasPage: React.FC = () => {
   // Estados
+  const navigate = useNavigate();
+  const location = useLocation();
   const [combinedData, setCombinedData] = useState<CombinedGalleraData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [galleraStatus, setGalleraStatus] = useState<string>(
+    new URLSearchParams(location.search).get("status") || "all",
+  );
+  const [ownerApproved, setOwnerApproved] = useState<string>(
+    new URLSearchParams(location.search).get("ownerApproved") || "all",
+  );
+  const [ownerSubscription, setOwnerSubscription] = useState<string>(
+    new URLSearchParams(location.search).get("subscription") || "all",
+  );
 
   // Fetch de datos combinados
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
-      // 1. Fetch all galleras and include their owner data
-      const gallerasRes = await gallerasAPI.getAll({
+      const params: any = {
         limit: 1000,
-        includeOwner: true,
-      });
-      if (!gallerasRes.success) {
-        throw new Error(gallerasRes.error || "Failed to load galleras");
+        role: 'gallera'
+      };
+      if (galleraStatus !== "all") {
+        params.status = galleraStatus;
       }
-      const allGalleras = (gallerasRes.data as any)?.galleras || [];
-
-      // 2. Combine the data and filter out galleras owned by admins
-      const combined = allGalleras
-        .map((gallera) => ({
-          user: gallera.owner,
-          gallera: gallera,
-        }))
-        .filter((item) => item.user && item.user.role !== "admin"); // Excluir galleras propiedad de admins
-
-      setCombinedData(combined as CombinedGalleraData[]);
+      if (ownerApproved !== "all") {
+        params.ownerApproved = ownerApproved === "approved";
+      }
+      if (ownerSubscription !== "all") {
+        params.ownerSubscription = ownerSubscription;
+      }
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      
+      const res = await usersAPI.getAll(params);
+      if (res.success) {
+        const users = (res.data as any)?.users || [];
+        const data = users.map((user: UserType) => ({
+          user: user,
+          gallera: user.galleras?.[0],
+        }));
+        setCombinedData(data || []);
+      } else {
+        throw new Error(res.error || "Failed to load galleras");
+      }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred",
+        err instanceof Error ? err.message : "An unknown error occurred"
       );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [galleraStatus, ownerApproved, ownerSubscription, searchTerm]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+
+    if (galleraStatus !== "all") {
+      params.set("status", galleraStatus);
+    } else {
+      params.delete("status");
+    }
+
+    if (ownerApproved !== "all") {
+      params.set("ownerApproved", ownerApproved);
+    } else {
+      params.delete("ownerApproved");
+    }
+
+    if (ownerSubscription !== "all") {
+      params.set("subscription", ownerSubscription);
+    } else {
+      params.delete("subscription");
+    }
+
+    const newSearch = params.toString();
+    if (newSearch !== new URLSearchParams(location.search).toString()) {
+      navigate(`?${newSearch}`, { replace: true });
+    }
+  }, [
+    galleraStatus,
+    ownerApproved,
+    ownerSubscription,
+    navigate,
+    location.search,
+  ]);
 
   // Filtrado por búsqueda
   const filteredData = useMemo(
@@ -206,18 +260,50 @@ const AdminGallerasPage: React.FC = () => {
       )}
 
       <Card className="p-6">
-        {/* Barra de búsqueda */}
-        <div className="mb-4">
-          <div className="relative">
+        {/* Barra de filtros */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               placeholder="Buscar por usuario, email o nombre de la gallera..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full max-w-md"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          <select
+            value={galleraStatus}
+            onChange={(e) => setGalleraStatus(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="active">Activo</option>
+            <option value="pending">Pendiente</option>
+            <option value="suspended">Suspendido</option>
+          </select>
+
+          <select
+            value={ownerApproved}
+            onChange={(e) => setOwnerApproved(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="all">Todos los propietarios</option>
+            <option value="approved">Propietario aprobado</option>
+            <option value="pending">Propietario pendiente</option>
+          </select>
+
+          <select
+            value={ownerSubscription}
+            onChange={(e) => setOwnerSubscription(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="all">Todas las suscripciones</option>
+            <option value="free">Gratis</option>
+            <option value="daily">24h (Diaria)</option>
+            <option value="monthly">Mensual</option>
+          </select>
         </div>
 
         {/* Grid de Galleras */}

@@ -71,9 +71,16 @@
     "list_users": {
       "method": "GET",
       "path": "/users",
-      "query_params": ["limit", "offset", "role", "isActive", "search"],
+      "query_params": ["limit", "offset", "role", "isActive", "search", "approved", "subscriptionType"],
       "auth_required": true,
-      "roles": ["admin", "operator"]
+      "roles": ["admin", "operator"],
+      "filter_support": {
+        "search": "string - search username or email (combined with other filters)",
+        "approved": "'true'|'false' - filter by user approval status",
+        "subscriptionType": "'free'|'monthly'|'daily' - filter by active subscription type",
+        "combining_filters": "✅ All filters can be combined. Example: /users?search=john&approved=false&subscriptionType=monthly",
+        "note_2025_10_30": "Backend updated to support combined filters using Op.and(Op.or(...)) pattern. Filters work independently AND together."
+      }
     },
     "get_user_by_id": {
       "method": "GET",
@@ -167,11 +174,18 @@
     "list_venues": {
       "method": "GET",
       "path": "/venues",
-      "query_params": ["limit", "offset", "search"],
+      "query_params": ["limit", "offset", "search", "ownerApproved", "ownerSubscription"],
       "response": {"success": true, "data": {"venues": "array", "total": "number"}},
       "auth_required": false,
       "middleware": "optionalAuth",
-      "query_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (required:false)"
+      "query_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (required:false)",
+      "filter_support": {
+        "search": "string - search venue/owner username or email",
+        "ownerApproved": "'true'|'false' - filter by venue owner approval status",
+        "ownerSubscription": "'free'|'monthly'|'daily' - filter by venue owner's subscription",
+        "combining_filters": "✅ All filters can be combined. Example: /venues?search=john&ownerApproved=true&ownerSubscription=monthly",
+        "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
+      }
     },
     "create_venue": {
       "method": "POST",
@@ -213,11 +227,18 @@
     "list_galleras": {
       "method": "GET",
       "path": "/galleras",
-      "query_params": ["limit", "offset", "search"],
+      "query_params": ["limit", "offset", "search", "ownerApproved", "ownerSubscription"],
       "response": {"success": true, "data": {"galleras": "array", "total": "number"}},
       "auth_required": false,
       "middleware": "optionalAuth",
-      "query_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (required:false)"
+      "query_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (required:false)",
+      "filter_support": {
+        "search": "string - search gallera/owner username or email",
+        "ownerApproved": "'true'|'false' - filter by gallera owner approval status",
+        "ownerSubscription": "'free'|'monthly'|'daily' - filter by gallera owner's subscription",
+        "combining_filters": "✅ All filters can be combined. Example: /galleras?search=juan&ownerApproved=false&ownerSubscription=daily",
+        "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
+      }
     },
     "create_gallera": {
       "method": "POST",

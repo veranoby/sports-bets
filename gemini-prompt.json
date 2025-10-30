@@ -41,7 +41,7 @@
         "failure_action": "Revert unauthorized changes"
       }
     },
-    "reference": "@brain/multi_ai_coordination_strategy.json � section 'build_validation_gates'"
+    "reference": "@brain/multi_ai_coordination_strategy.json � section 'build_validation_gates'"
   },
 
   "FILES_TO_MODIFY": {
@@ -79,19 +79,9 @@
           "build_validation_gates - understand mandatory validation gates",
           "checkpoint_system_for_work_preservation - ensure components are wired",
           "claude_specific_validation_responsibilities - understand what Claude validates",
-          "ai_capability_matrix_enhanced � gemini_strengths - know your role"
+          "ai_capability_matrix_enhanced � gemini_strengths - know your role"
         ],
         "purpose": "Understand integration safety and validation requirements"
-      },
-      {
-        "file": "GEMINI_CLI_ANALYSIS.md",
-        "sections": [
-          "Section 3: Ideal Gemini Use Cases - YOUR exact tasks",
-          "Section 5: Validation Gates for Gemini Work - MANDATORY checks",
-          "Section 7: Expected Gemini Session Breakdown - YOUR 4-session plan",
-          "Section 10: Integration Recommendation - why you're doing this"
-        ],
-        "purpose": "Understand your role, responsibilities, and success criteria"
       },
       {
         "file": "FILTERS_IMPLEMENTATION_PLAN.md",
@@ -304,14 +294,14 @@
       "useEffect dependencies array must be precise"
     ],
     "common_mistakes_to_avoid": [
-      "L const [filters, setFilters] = useState({}); // Missing type",
-      " const [filters, setFilters] = useState<FilterState>({...});",
+      "❌ const [filters, setFilters] = useState({}); // Missing type",
+      "✅ const [filters, setFilters] = useState<FilterState>({...});",
       "",
-      "L onClick={() => { /* untyped event */ }} ",
-      " onClick={(e: React.MouseEvent<HTMLButtonElement>) => { ... }}",
+      "❌ onClick={() => { /* untyped event */ }} ",
+      " onClick={(e: React.MouseEvent<HTMLButtonElement>) => { ... }}",
       "",
-      "L API response as 'any'",
-      " API response typed: const data: User[] = await api.getUsers();"
+      "❌ API response as 'any'",
+      "✅ API response typed: const data: User[] = await api.getUsers();"
     ]
   },
 
@@ -368,11 +358,11 @@
 
   "TESTING_REQUIREMENTS": {
     "manual_testing": [
-      "Select filter option � verify URL updates",
-      "Refresh page � verify filters persist",
-      "Click dashboard card � navigate to filtered page",
-      "Resize browser � responsive design works",
-      "Open console � no TypeScript or import errors"
+      "Select filter option � verify URL updates",
+      "Refresh page � verify filters persist",
+      "Click dashboard card � navigate to filtered page",
+      "Resize browser � responsive design works",
+      "Open console � no TypeScript or import errors"
     ],
     "browser_compatibility": [
       "Chrome/Edge - latest version",
@@ -389,14 +379,14 @@
 
   "WHAT_NOT_TO_DO": {
     "never": [
-      "L Modify backend files (that's Claude's job)",
-      "L Change API endpoints (that's QWEN's job)",
-      "L Modify api.ts or service files",
-      "L Add new npm dependencies without discussion",
-      "L Use 'any' types",
-      "L Commit without validation gates passing",
-      "L Modify files outside [FILES_TO_MODIFY] list",
-      "L Skip responsive design testing"
+      "❌ Modify backend files (that's Claude's job)",
+      "❌ Change API endpoints (that's QWEN's job)",
+      "❌ Modify api.ts or service files",
+      "❌ Add new npm dependencies without discussion",
+      "❌ Use 'any' types",
+      "❌ Commit without validation gates passing",
+      "❌ Modify files outside [FILES_TO_MODIFY] list",
+      "❌ Skip responsive design testing"
     ],
     "if_blocked": "Report blocker clearly instead of working around it"
   },
@@ -422,36 +412,36 @@
 
   "SUCCESS_CRITERIA_BY_SESSION": {
     "session_1_complete": [
-      " Users.tsx has status + subscription filters",
-      " Venues.tsx has venue status + owner approval + subscription filters",
-      " Galleras.tsx has identical filters to Venues",
-      " All filters update URL params",
-      " Filters persist on page refresh",
-      " TypeScript compilation passes",
-      " npm run build succeeds"
+      " Users.tsx has status + subscription filters",
+      " Venues.tsx has venue status + owner approval + subscription filters",
+      " Galleras.tsx has identical filters to Venues",
+      " All filters update URL params",
+      " Filters persist on page refresh",
+      " TypeScript compilation passes",
+      "☐ npm run build succeeds"
     ],
     "session_2_complete": [
-      " DashboardCard component created",
-      " AdminDashboard shows 3 pending cards",
-      " Cards are clickable and navigate to filtered views",
-      " Dashboard styling polished",
-      " All validation gates pass"
+      " DashboardCard component created",
+      " AdminDashboard shows 3 pending cards",
+      " Cards are clickable and navigate to filtered views",
+      " Dashboard styling polished",
+      " All validation gates pass"
     ],
     "session_3_complete": [
-      " ImageGalleryDisplay component created",
-      " UserProfileForm enhanced with business entity info",
-      " Responsive image gallery working",
-      " TypeScript strict mode passes"
+      " ImageGalleryDisplay component created",
+      " UserProfileForm enhanced with business entity info",
+      " Responsive image gallery working",
+      " TypeScript strict mode passes"
     ],
     "session_4_complete": [
-      " Error states implemented",
-      " Loading states implemented",
-      " Responsive design polished",
-      " Mobile (375px) tested and working",
-      " Tablet (768px) tested and working",
-      " Desktop (1024px+) tested and working",
-      " All validation gates pass",
-      " Ready for Claude integration"
+      " Error states implemented",
+      "☐ Loading states implemented",
+      " Responsive design polished",
+      " Mobile (375px) tested and working",
+      " Tablet (768px) tested and working",
+      " Desktop (1024px+) tested and working",
+      " All validation gates pass",
+      " Ready for Claude integration"
     ]
   },
 

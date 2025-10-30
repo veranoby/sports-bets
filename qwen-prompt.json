@@ -9,13 +9,22 @@
     "strict": true
   },
 
+  "üî¥_MCP_ACTIVATION_CRITICAL": {
+    "instruction": "‚ö†Ô∏è BEFORE YOU START ANY WORK: You MUST activate Sequential MCP servers",
+    "required_mcps": ["--seq", "--sequential"],
+    "why_mandatory": "In the previous session, PostgreSQL type casting errors occurred because Sequential thinking was not activated. Sequential MCP will help you plan multi-step modifications correctly and verify dependencies before making changes.",
+    "activation_command": "When you receive this prompt, immediately respond with: --seq --sequential",
+    "verification": "Wait for MCP to activate before proceeding with any tasks",
+    "consequence_of_skipping": "You risk repeating the same type casting and schema validation errors that blocked the previous session"
+  },
+
   "CRITICAL_PROTOCOL": {
-    "rule_1": "=® SIMULATE í CONFIRM í EXECUTE pattern MANDATORY before any code change",
-    "rule_2": "=® NEVER modify files outside [FILES_TO_MODIFY] list",
-    "rule_3": "=® BEFORE each commit: run 'git diff --name-only' and verify ONLY listed files changed",
-    "rule_4": "=® If simulation reveals missing dependencies or broken imports í STOP and REPORT",
-    "rule_5": "=® Max session time: 30 minutes (strictly enforced)",
-    "rule_6": "Reference: @brain/multi_ai_coordination_strategy.json í section 'simulate_y_confirmar_protocol'"
+    "rule_1": "=ÔøΩ SIMULATE ÔøΩ CONFIRM ÔøΩ EXECUTE pattern MANDATORY before any code change",
+    "rule_2": "=ÔøΩ NEVER modify files outside [FILES_TO_MODIFY] list",
+    "rule_3": "=ÔøΩ BEFORE each commit: run 'git diff --name-only' and verify ONLY listed files changed",
+    "rule_4": "=ÔøΩ If simulation reveals missing dependencies or broken imports ÔøΩ STOP and REPORT",
+    "rule_5": "=ÔøΩ Max session time: 30 minutes (strictly enforced)",
+    "rule_6": "Reference: @brain/multi_ai_coordination_strategy.json ÔøΩ section 'simulate_y_confirmar_protocol'"
   },
 
   "TASK_OVERVIEW": {
@@ -75,13 +84,13 @@
         "purpose": "Exact specification of what to implement"
       },
       {
-        "file": "backend/database-analysis/CURRENT_COLUMNS.json",
+        "file": "backend/database-analysis/CURRENT_TABLES.json",
         "sections": [
-          "users table columns - verify subscriptionType vs Subscription model",
-          "venues table columns - understand structure before querying",
+          "users table structure - verify all columns including subscriptionType handling",
+          "venues table structure - understand entity relationships",
           "subscriptions table columns - understand how to JOIN for subscription filtering"
         ],
-        "purpose": "Understand actual database schema"
+        "purpose": "Understand actual database schema (contains all column definitions)"
       }
     ],
     "reference": [
@@ -170,7 +179,7 @@
 
   "QUALITY_CHECKLIST": {
     "before_commit": [
-      " Simulate í Confirm protocol completed for each change",
+      " Simulate ÔøΩ Confirm protocol completed for each change",
       " All TypeScript types correct (Query parameters, response types)",
       " No new dependencies added without npm install",
       " npx tsc --noEmit passes with zero errors",

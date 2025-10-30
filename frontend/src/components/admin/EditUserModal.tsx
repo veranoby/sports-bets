@@ -2,9 +2,10 @@
 // Modal completo para editar usuarios incluyendo gestión de suscripciones
 
 import React, { useState } from "react";
-import { usersAPI } from "../../config/api";
+import { usersAPI, adminAPI } from "../../services/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
+import { useToast } from "../../hooks/useToast";
 
 import SubscriptionTabs from "./SubscriptionTabs";
 import { User, X } from "lucide-react";
@@ -35,6 +36,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   onClose,
   onUserUpdated,
 }) => {
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<"profile" | "subscription">(
     "profile",
   );

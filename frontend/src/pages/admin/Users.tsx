@@ -1,6 +1,6 @@
 // frontend/src/pages/admin/Users.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -13,28 +13,79 @@ import type { User } from "../../types";
 
 const AdminUsersPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>(
+    new URLSearchParams(location.search).get("status") || "all",
+  );
+  const [selectedSubscription, setSelectedSubscription] = useState<string>(
+    new URLSearchParams(location.search).get("subscription") || "all",
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const res = await usersAPI.getAll({ role: "user", limit: 1000 });
+
+    const params: any = { role: "user", limit: 1000 };
+
+    if (selectedStatus !== "all") {
+      if (selectedStatus === "active" || selectedStatus === "inactive") {
+        params.isActive = selectedStatus === "active";
+      } else if (
+        selectedStatus === "approved" ||
+        selectedStatus === "pending"
+      ) {
+        params.approved = selectedStatus === "approved";
+      }
+    }
+
+    if (selectedSubscription !== "all") {
+      params.subscriptionType = selectedSubscription;
+    }
+
+    if (searchTerm) {
+      params.search = searchTerm;
+    }
+
+    const res = await usersAPI.getAll(params);
     if (res.success) {
       setUsers((res.data as any)?.users || []);
     } else {
       setError(res.error || "Error loading users");
     }
     setLoading(false);
-  }, []);
+  }, [selectedStatus, selectedSubscription, searchTerm]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+
+    if (selectedStatus !== "all") {
+      params.set("status", selectedStatus);
+    } else {
+      params.delete("status");
+    }
+
+    if (selectedSubscription !== "all") {
+      params.set("subscription", selectedSubscription);
+    } else {
+      params.delete("subscription");
+    }
+
+    const newSearch = params.toString();
+    if (newSearch !== new URLSearchParams(location.search).toString()) {
+      navigate(`?${newSearch}`, { replace: true });
+    }
+  }, [selectedStatus, selectedSubscription, navigate, location.search]);
 
   const filteredUsers = users.filter(
     (user) =>
@@ -135,17 +186,40 @@ const AdminUsersPage: React.FC = () => {
       )}
 
       <Card className="p-6">
-        <div className="mb-4">
-          <div className="relative">
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               placeholder="Buscar por nombre o email..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="active">Activo</option>
+            <option value="inactive">Inactivo</option>
+            <option value="approved">Aprobado</option>
+            <option value="pending">Pendiente</option>
+          </select>
+
+          <select
+            value={selectedSubscription}
+            onChange={(e) => setSelectedSubscription(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="all">Todas las suscripciones</option>
+            <option value="free">Gratis</option>
+            <option value="daily">24h (Diaria)</option>
+            <option value="monthly">Mensual</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">

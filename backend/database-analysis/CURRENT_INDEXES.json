@@ -331,7 +331,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 0,
+  "times_used": 1,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -415,7 +415,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 0,
+  "times_used": 10,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -439,7 +439,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 2,
+  "times_used": 3,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -715,7 +715,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 286,
+  "times_used": 287,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -823,7 +823,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 296,
+  "times_used": 306,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -919,7 +919,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 0,
+  "times_used": 10,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -1087,8 +1087,8 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 908,
-  "tuples_read": 517,
+  "times_used": 918,
+  "tuples_read": 522,
   "tuples_fetched": 414
 }, {
   "schemaname": "public",
@@ -1219,7 +1219,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 0,
+  "times_used": 10,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {

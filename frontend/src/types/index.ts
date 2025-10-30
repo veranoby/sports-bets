@@ -89,6 +89,8 @@ export interface User {
   };
   // API response data
   events?: EventData[];
+  venues?: Venue[];
+  galleras?: Gallera[];
   user?: {
     profileInfo?: {
       fullName?: string;

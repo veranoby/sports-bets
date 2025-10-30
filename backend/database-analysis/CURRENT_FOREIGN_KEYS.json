@@ -63,6 +63,14 @@
   "update_rule": "CASCADE",
   "delete_rule": "SET NULL"
 }, {
+  "constraint_name": "events_venue_id_fkey",
+  "table_name": "events",
+  "column_name": "venue_id",
+  "foreign_table_name": "users",
+  "foreign_column_name": "id",
+  "update_rule": "NO ACTION",
+  "delete_rule": "NO ACTION"
+}, {
   "constraint_name": "fights_event_id_fkey",
   "table_name": "fights",
   "column_name": "event_id",

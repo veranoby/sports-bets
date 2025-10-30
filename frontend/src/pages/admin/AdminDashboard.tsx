@@ -40,6 +40,7 @@ interface DashboardMetrics {
   liveEventsNow: number;
   pendingUsers: number;
   pendingVenues: number;
+  pendingGalleras: number;
   pendingArticles: number;
   withdrawalRequests: number;
   withdrawalAmount: number;
@@ -62,6 +63,7 @@ const AdminDashboard: React.FC = () => {
     liveEventsNow: 0,
     pendingUsers: 0,
     pendingVenues: 0,
+    pendingGalleras: 0,
     pendingArticles: 0,
     withdrawalRequests: 0,
     withdrawalAmount: 0,
@@ -202,6 +204,9 @@ const AdminDashboard: React.FC = () => {
           : 0,
         pendingVenues: pendingVenuesData.success
           ? (pendingVenuesData.data as { total: number }).total || 0
+          : 0,
+        pendingGalleras: pendingGallerasData.success
+          ? (pendingGallerasData.data as { total: number }).total || 0
           : 0,
         pendingArticles: pendingArticlesData.success
           ? (pendingArticlesData.data as { total: number }).total || 0
@@ -391,7 +396,7 @@ const AdminDashboard: React.FC = () => {
           icon={<Users className="w-6 h-6" />}
           color={metrics.pendingUsers > 0 ? "yellow" : "gray"}
           highlighted={metrics.pendingUsers > 0}
-          onClick={() => navigateToSection("/admin/users?filter=pending")}
+          onClick={() => navigateToSection("/admin/users?status=pending")}
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
@@ -403,7 +408,19 @@ const AdminDashboard: React.FC = () => {
           icon={<Building2 className="w-6 h-6" />}
           color={metrics.pendingVenues > 0 ? "yellow" : "gray"}
           highlighted={metrics.pendingVenues > 0}
-          onClick={() => navigateToSection("/admin/venues?filter=pending")}
+          onClick={() => navigateToSection("/admin/venues?status=pending")}
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+        />
+
+        {/* Galleras a Aprobar */}
+        <Card
+          variant="stat"
+          title="Galleras a Aprobar"
+          value={metrics.pendingGalleras || 0}
+          icon={<Building2 className="w-6 h-6" />}
+          color={(metrics.pendingGalleras || 0) > 0 ? "yellow" : "gray"}
+          highlighted={(metrics.pendingGalleras || 0) > 0}
+          onClick={() => navigateToSection("/admin/galleras?status=pending")}
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
@@ -415,7 +432,7 @@ const AdminDashboard: React.FC = () => {
           icon={<FileText className="w-6 h-6" />}
           color={metrics.pendingArticles > 0 ? "yellow" : "gray"}
           highlighted={metrics.pendingArticles > 0}
-          onClick={() => navigateToSection("/admin/articles?filter=pending")}
+          onClick={() => navigateToSection("/admin/articles?status=pending")}
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
