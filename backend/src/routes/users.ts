@@ -58,16 +58,23 @@ router.get(
     if (role) where.role = role;
     if (isActive !== undefined) where.isActive = isActive === "true";
     if (approved !== undefined) where.approved = approved === "true";
-    if (search) {
-      where[Op.or] = [
-        { username: { [Op.iLike]: `%${search}%` } },
-        { email: { [Op.iLike]: `%${search}%` } },
-      ];
-    }
 
     // ⚡ PERFORMANCE OPTIMIZATION: Only operators can see non-admin/operator users
     if (req.user!.role === "operator") {
       where.role = { [Op.in]: ["venue", "user", "gallera"] };
+    }
+
+    // 🔧 FIX: Use conditions array to combine search and subscription filters WITHOUT overwriting
+    const conditions: any[] = [];
+
+    // Add search filter
+    if (search) {
+      conditions.push({
+        [Op.or]: [
+          { username: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+        ]
+      });
     }
 
     // SUBSCRIPTION FILTERING LOGIC:
@@ -91,16 +98,18 @@ router.get(
         }
       }];
       // Then filter to only include users where the subscription is NULL (no subscription) OR matches the free criteria
-      where[Op.or] = [
-        { '$subscriptions.id$': null }, // Users with no subscription (free by default)
-        { '$subscriptions.status$': 'free' },
-        {
-          [Op.and]: [
-            { '$subscriptions.expiresAt$': { [Op.lte]: new Date() } },
-            { '$subscriptions.status$': 'active' }
-          ]
-        }
-      ];
+      conditions.push({
+        [Op.or]: [
+          { '$subscriptions.id$': null }, // Users with no subscription (free by default)
+          { '$subscriptions.status$': 'free' },
+          {
+            [Op.and]: [
+              { '$subscriptions.expiresAt$': { [Op.lte]: new Date() } },
+              { '$subscriptions.status$': 'active' }
+            ]
+          }
+        ]
+      });
     } else if (subscriptionType === 'monthly') {
       subscriptionInclude = [{
         model: Subscription,
@@ -123,6 +132,11 @@ router.get(
           expiresAt: { [Op.gt]: new Date() }
         }
       }];
+    }
+
+    // Combine all conditions if any exist
+    if (conditions.length > 0) {
+      where[Op.and] = conditions;
     }
 
     const users = await User.findAndCountAll({
