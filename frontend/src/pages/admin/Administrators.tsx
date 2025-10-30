@@ -179,7 +179,10 @@ const AdminAdministratorsPage: React.FC = () => {
 
   const handleRejectUser = async (userId: string) => {
     try {
-      const response = await usersAPI.put(userId, { approved: false, isActive: false });
+      const response = await usersAPI.put(userId, {
+        approved: false,
+        isActive: false,
+      });
       if (response && response.success) {
         // Refresh list
         fetchAdministrators();

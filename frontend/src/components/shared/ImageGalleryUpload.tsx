@@ -63,8 +63,7 @@ const ImageGalleryUpload: React.FC<ImageGalleryUploadProps> = ({
         } else {
           setErrors({
             ...errors,
-            [file.name]:
-              uploadResponse.error || "Error al subir la imagen",
+            [file.name]: uploadResponse.error || "Error al subir la imagen",
           });
         }
       } catch (error) {

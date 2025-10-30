@@ -20,7 +20,9 @@ const LoginPage: React.FC = () => {
     email: "",
     password: "",
   });
-  const [selectedRole, setSelectedRole] = useState<"user" | "venue" | "gallera">("user");
+  const [selectedRole, setSelectedRole] = useState<
+    "user" | "venue" | "gallera"
+  >("user");
 
   // 🔧 MEJORA 1: Estado de error más robusto
   const [error, setError] = useState("");
@@ -275,7 +277,9 @@ const LoginPage: React.FC = () => {
                         disabled={localIsLoading || isLoading}
                         className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className="ml-3 text-sm text-gray-700">Usuario Normal (Público)</span>
+                      <span className="ml-3 text-sm text-gray-700">
+                        Usuario Normal (Público)
+                      </span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -287,7 +291,9 @@ const LoginPage: React.FC = () => {
                         disabled={localIsLoading || isLoading}
                         className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className="ml-3 text-sm text-gray-700">Propietario de Venue</span>
+                      <span className="ml-3 text-sm text-gray-700">
+                        Propietario de Venue
+                      </span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -299,7 +305,9 @@ const LoginPage: React.FC = () => {
                         disabled={localIsLoading || isLoading}
                         className="h-4 w-4 text-[#596c95] focus:ring-[#596c95] border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className="ml-3 text-sm text-gray-700">Propietario de Gallera</span>
+                      <span className="ml-3 text-sm text-gray-700">
+                        Propietario de Gallera
+                      </span>
                     </label>
                   </div>
                 </div>

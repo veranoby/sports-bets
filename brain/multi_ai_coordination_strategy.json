@@ -483,8 +483,44 @@
           "npm install BEFORE using new libraries",
           "npx tsc --noEmit AFTER all code changes",
           "Type definitions for all Request/Response extensions",
-          "Claude validation BEFORE any commit"
+          "Claude validation BEFORE any commit",
+          "SIMULATE Y CONFIRMAR protocol BEFORE any backend modifications (see below)"
         ],
+        "simulate_y_confirmar_protocol": {
+          "activation_trigger": "QWEN about to modify backend files (routes, models, middleware, services)",
+          "purpose": "Prevent destructive changes like 2025-10-14 incident (missing dependencies, broken types, broken imports)",
+          "step_1_simulate": {
+            "description": "Before writing code: describe what will happen",
+            "example": "I will add subscriptionType filter to GET /api/users endpoint. This requires:\n  1. Adding parameter: const subscriptionType = req.query.subscriptionType\n  2. Importing Subscription model (already imported? check)\n  3. Modifying where clause to include subscription filter\n  4. Testing: curl 'http://localhost:3001/api/users?subscriptionType=monthly'",
+            "requirement": "QWEN must explicitly state: \n  - What files will be modified\n  - What imports/dependencies needed\n  - What API will change\n  - How to test the change"
+          },
+          "step_2_confirm": {
+            "description": "Verify simulation against actual codebase",
+            "checks": [
+              "Does the file/method being modified actually exist?",
+              "Are the imports I plan to use already available?",
+              "Will my changes break existing code?",
+              "Are there dependencies not yet installed (npm install needed)?"
+            ],
+            "execution": "BEFORE modifying file - grep/read actual code to confirm assumptions",
+            "example": "Grep to confirm Subscription model is imported in users.ts:\n  grep -n 'import.*Subscription' backend/src/routes/users.ts\n  If not found → STOP and report: '[SIMULATION FAILED] Subscription not imported'"
+          },
+          "step_3_document": {
+            "description": "Create brief change log showing simulation → confirmation",
+            "format": "[SIMULATED] → [CONFIRMED] → [MODIFIED]",
+            "example": {
+              "simulated": "Add subscriptionType filter to users.ts GET endpoint",
+              "confirmed": "✓ Subscription model imported at line 3\n✓ Route exists at line 49\n✓ No circular dependencies",
+              "modified": "users.ts: lines 54-66 (filter logic added)"
+            }
+          },
+          "failure_condition": {
+            "situation": "Simulation + confirmation reveals problem",
+            "example": "Subscription model NOT imported - simulation fails",
+            "action": "REPORT THE PROBLEM - do NOT attempt to fix\n            Message format: '[SIMULATION FAILED] Cannot add subscriptionType filter:\n            Reason: Subscription model not imported in users.ts\n            Recommendation: Claude should add import OR remove this task from scope'"
+          },
+          "enforcement": "Claude checks that QWEN performed simulation BEFORE approving work"
+        },
         "max_qwen_session_time": "30 minutes (strictly enforced)",
         "qwen_validation_gate": "Claude must approve ALL QWEN backend work"
       },
@@ -1100,5 +1136,52 @@
       "User tests profile editing in UI",
       "Commit final changes with [FRONTEND_ONLY] tag"
     ]
+  },
+
+  "business_model_clarifications_2025_10_30": {
+    "purpose": "Clear definition of events-venues and articles-authors relationships to prevent semantic errors in data model",
+    "triggered_by": "Post-migration analysis revealed confusion about foreign key relationships",
+
+    "events_and_venues_schema": {
+      "definition": "Events are cockfighting competitions held AT venues (physical stadiums/arenas). events.venue_id references the user account of the venue owner.",
+      "semantic_model": "Event → held AT → Venue (User)",
+      "creation_flow": [
+        "ADMIN or OPERATOR creates an event",
+        "Event must be assigned to a VENUE (a user with role='venue')",
+        "Venue represents the physical location where the event occurs",
+        "Users see this venue info to know WHERE the event will be held"
+      ],
+      "business_rule": "ONLY users with role='venue' can host events. Galleras (breeding farms) and regular users cannot host events.",
+      "correct_schema": "events.venue_id → users.id WHERE users.role = 'venue'",
+      "important_note": "venue_id is NOT semantically equivalent to owner_id. venue_id specifically means 'the venue location where this event occurs'",
+      "SQL_constraint": "ALTER TABLE events ADD CONSTRAINT events_venue_id_fkey FOREIGN KEY (venue_id) REFERENCES users(id) WHERE role='venue';"
+    },
+
+    "articles_and_authors_schema": {
+      "definition": "Articles are published content created BY users (admin, venues, galleras). Articles belong to their author, not to a venue.",
+      "semantic_model": "Article → created BY → User (Author)",
+      "creation_capability": [
+        "ADMIN users can create articles",
+        "VENUE users can create articles",
+        "GALLERA users can create articles",
+        "Regular users CANNOT create articles"
+      ],
+      "business_rule": "Regular users cannot create or publish articles. Only ADMIN, VENUE, and GALLERA roles have publishing capability.",
+      "deprecated_field": "articles.venue_id - SHOULD BE REMOVED AFTER DATA MIGRATION",
+      "reason_for_removal": "Articles are author-centric, not venue-centric. A venue owner might create articles for their gallera, but the article belongs to the author, not the venue.",
+      "correct_schema": "articles.author_id → users.id (for all user types: admin, venue, gallera)",
+      "migration_plan": [
+        "Do NOT immediately remove articles.venue_id",
+        "After business data consolidation completes, migrate any venue references to author_id",
+        "Only then drop articles.venue_id column"
+      ]
+    },
+
+    "semantic_correctness_principle": {
+      "core_principle": "Foreign keys must represent semantic relationships, not just technical references",
+      "bad_example": "ALTER TABLE events ADD FOREIGN KEY (venue_id) REFERENCES users(id); -- Wrong: venue_id values won't match users.id values",
+      "good_example": "ALTER TABLE events ADD FOREIGN KEY (venue_id) REFERENCES users(id) WHERE role='venue'; -- Correct: ensures referential integrity",
+      "lesson_learned": "Type compatibility != Semantic correctness. Verify the MEANING of the relationship, not just the data types."
+    }
   }
 }

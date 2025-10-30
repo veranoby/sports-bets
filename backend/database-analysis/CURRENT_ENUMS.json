@@ -29,9 +29,6 @@
   "enum_name": "enum_fights_status",
   "enum_values": "{upcoming,betting,live,completed,cancelled}"
 }, {
-  "enum_name": "enum_galleras_status",
-  "enum_values": "{pending,active,inactive,rejected}"
-}, {
   "enum_name": "enum_membership_change_requests_status",
   "enum_values": "{pending,approved,rejected,completed}"
 }, {
@@ -70,7 +67,4 @@
 }, {
   "enum_name": "enum_users_role",
   "enum_values": "{admin,operator,venue,user,gallera}"
-}, {
-  "enum_name": "enum_venues_status",
-  "enum_values": "{pending,active,suspended}"
 }]

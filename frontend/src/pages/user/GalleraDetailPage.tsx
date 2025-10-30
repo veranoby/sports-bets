@@ -58,7 +58,8 @@ const GalleraDetailPage: React.FC = () => {
         setGallera(galleraResponse.data);
 
         // ⚡ Optimized: Try ownerId first, then fallback to owner data
-        let ownerId = galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
+        let ownerId =
+          galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
 
         // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
         if (!ownerId && galleraResponse.data.owner?.id) {

@@ -3,14 +3,7 @@ import { gallerasAPI } from "../../services/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import ImageGalleryUpload from "../shared/ImageGalleryUpload";
-import {
-  MapPin,
-  Trophy,
-  Users,
-  Mail,
-  Phone,
-  Globe,
-} from "lucide-react";
+import { MapPin, Trophy, Users, Mail, Phone, Globe } from "lucide-react";
 import type { Gallera } from "../../types";
 
 interface GalleraEntityFormProps {

@@ -55,7 +55,8 @@ const VenueDetailPage: React.FC = () => {
         setVenue(venueResponse.data);
 
         // ⚡ Optimized: Try ownerId first, then fallback to owner data
-        let ownerId = venueResponse.data.ownerId || venueResponse.data.owner?.id;
+        let ownerId =
+          venueResponse.data.ownerId || venueResponse.data.owner?.id;
 
         // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
         if (!ownerId && venueResponse.data.owner?.id) {

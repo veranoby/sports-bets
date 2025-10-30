@@ -1,0 +1,464 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-10-30",
+    "ai": "Gemini CLI",
+    "project": "GalloBets - Admin Dashboard Filter UI Implementation",
+    "session_type": "Frontend React/TypeScript Component Development",
+    "duration_max": "30 minutes per session (4 sessions total)",
+    "total_sessions": 4,
+    "strict": true
+  },
+
+  "PROJECT_CONTEXT": {
+    "phase": "Phase 2-3: Frontend filter UI implementation",
+    "prerequisite": "Backend API endpoints must be extended FIRST (QWEN task)",
+    "frontend_scope": "Admin dashboard + filter pages (Users, Venues, Galleras)",
+    "design_system": "React + TypeScript + Tailwind CSS",
+    "build_stability": "CRITICAL - all work must pass npm run build + npx tsc --noEmit"
+  },
+
+  "CRITICAL_VALIDATION_GATES": {
+    "mandatory_after_each_session": {
+      "gate_1_typescript": {
+        "command": "npx tsc --noEmit",
+        "requirement": "ZERO TypeScript errors",
+        "failure_action": "Immediate rollback - cannot proceed"
+      },
+      "gate_2_build": {
+        "command": "npm run build",
+        "requirement": "Successful build completion",
+        "failure_action": "Immediate rollback"
+      },
+      "gate_3_imports": {
+        "check": "All imports resolve correctly",
+        "command": "grep -r 'import.*from.*\\.\\./' frontend/src/pages/admin/ | verify no broken paths",
+        "failure_action": "Fix import paths before commit"
+      },
+      "gate_4_git_scope": {
+        "command": "git diff --name-only",
+        "requirement": "ONLY files in [FILES_TO_MODIFY] changed",
+        "failure_action": "Revert unauthorized changes"
+      }
+    },
+    "reference": "@brain/multi_ai_coordination_strategy.json ’ section 'build_validation_gates'"
+  },
+
+  "FILES_TO_MODIFY": {
+    "strict_scope": "ONLY these files - NO exceptions",
+    "session_1_filters": [
+      "frontend/src/pages/admin/Users.tsx",
+      "frontend/src/pages/admin/Venues.tsx",
+      "frontend/src/pages/admin/Galleras.tsx"
+    ],
+    "session_2_dashboard": [
+      "frontend/src/pages/admin/AdminDashboard.tsx",
+      "frontend/src/components/admin/DashboardCard.tsx (create new)"
+    ],
+    "session_3_components": [
+      "frontend/src/components/shared/ImageGalleryDisplay.tsx (create new)",
+      "frontend/src/components/forms/UserProfileForm.tsx (enhance)"
+    ],
+    "session_4_polish": [
+      "frontend/src/pages/admin/Users.tsx (refinements)",
+      "frontend/src/pages/admin/Venues.tsx (refinements)",
+      "frontend/src/pages/admin/Galleras.tsx (refinements)"
+    ],
+    "never_modify": [
+      "frontend/src/services/api.ts (QWEN territory)",
+      "backend/* files (Claude only)",
+      "frontend/src/App.tsx routing (unless explicitly instructed)"
+    ]
+  },
+
+  "FILES_TO_CONSULT": {
+    "mandatory": [
+      {
+        "file": "@brain/multi_ai_coordination_strategy.json",
+        "sections": [
+          "build_validation_gates - understand mandatory validation gates",
+          "checkpoint_system_for_work_preservation - ensure components are wired",
+          "claude_specific_validation_responsibilities - understand what Claude validates",
+          "ai_capability_matrix_enhanced ’ gemini_strengths - know your role"
+        ],
+        "purpose": "Understand integration safety and validation requirements"
+      },
+      {
+        "file": "GEMINI_CLI_ANALYSIS.md",
+        "sections": [
+          "Section 3: Ideal Gemini Use Cases - YOUR exact tasks",
+          "Section 5: Validation Gates for Gemini Work - MANDATORY checks",
+          "Section 7: Expected Gemini Session Breakdown - YOUR 4-session plan",
+          "Section 10: Integration Recommendation - why you're doing this"
+        ],
+        "purpose": "Understand your role, responsibilities, and success criteria"
+      },
+      {
+        "file": "FILTERS_IMPLEMENTATION_PLAN.md",
+        "sections": [
+          "Section 3: Implementation Steps - EXACT specifications",
+          "Section 3.1: Update Users.tsx with filter dropdowns - CODE EXAMPLE",
+          "Section 3.2: Update Venues.tsx with filter dropdowns - CODE EXAMPLE",
+          "Section 3.3: Update Galleras.tsx with filter dropdowns - CODE EXAMPLE",
+          "Section 4: Frontend Dashboard Updates - DASHBOARD CARD"
+        ],
+        "purpose": "Exact code specifications for each component"
+      },
+      {
+        "file": "@brain/api_endpoints_reference.json",
+        "sections": [
+          "GET /api/users - understand response format",
+          "GET /api/venues - understand response format",
+          "GET /api/galleras - understand response format"
+        ],
+        "purpose": "Know API response structure for TypeScript typing"
+      },
+      {
+        "file": "@brain/typescript_interfaces_reference.json",
+        "sections": [
+          "User interface - props for displaying user data",
+          "Venue interface - props for displaying venue data",
+          "Gallera interface - props for displaying gallera data",
+          "Subscription interface - understand subscription object shape"
+        ],
+        "purpose": "Use correct TypeScript types"
+      }
+    ],
+    "reference": [
+      "frontend/src/pages/admin/Users.tsx - current implementation to enhance",
+      "frontend/src/pages/admin/Venues.tsx - current implementation to enhance",
+      "frontend/src/pages/admin/Galleras.tsx - current implementation to enhance",
+      "frontend/src/pages/admin/AdminDashboard.tsx - dashboard to enhance",
+      "frontend/src/components/shared/ImageGalleryUpload.tsx - existing reusable component (reference)"
+    ]
+  },
+
+  "RECOMMENDED_MCP_SERVERS": {
+    "primary": ["--c7", "--context7"],
+    "reasoning": "Context7 for React patterns, component best practices, Tailwind CSS documentation",
+    "secondary": ["--play", "--playwright"],
+    "reasoning_secondary": "Playwright for UI component testing, responsive design validation",
+    "usage": [
+      "Use Context7 for React hooks patterns (useEffect, useState optimization)",
+      "Use Context7 for Tailwind CSS responsive design (md:, lg: breakpoints)",
+      "Use Playwright for testing filter interactions if time permits"
+    ]
+  },
+
+  "IMPLEMENTATION_BREAKDOWN": {
+    "session_1_filter_dropdowns": {
+      "duration": "20-30 minutes",
+      "objective": "Implement filter UI in Users, Venues, Galleras pages",
+      "files": [
+        "frontend/src/pages/admin/Users.tsx",
+        "frontend/src/pages/admin/Venues.tsx",
+        "frontend/src/pages/admin/Galleras.tsx"
+      ],
+      "specification": {
+        "users_page": {
+          "add_filters": [
+            "Status dropdown: all | active | inactive | approved | pending",
+            "Subscription dropdown: all | free | monthly | daily"
+          ],
+          "implementation": "See FILTERS_IMPLEMENTATION_PLAN.md Section 3.1 for code example",
+          "requirements": [
+            "Use URLSearchParams to handle URL params",
+            "State: selectedStatus, selectedSubscription (useState)",
+            "useEffect to sync filters with URL",
+            "API call passes filters as query params",
+            "Dropdown onChange updates URL + refetches data"
+          ]
+        },
+        "venues_page": {
+          "add_filters": [
+            "Venue status dropdown: all | active | pending | rejected",
+            "Owner approval dropdown: all | approved | pending",
+            "Owner subscription dropdown: all | free | monthly | daily",
+            "Search box (optional enhancement)"
+          ],
+          "implementation": "See FILTERS_IMPLEMENTATION_PLAN.md Section 3.2 for code example",
+          "requirements": [
+            "Copy pattern from Users.tsx",
+            "Adapt filter options for venue-specific statuses",
+            "All filters sync to URL params"
+          ]
+        },
+        "galleras_page": {
+          "add_filters": "Identical to Venues.tsx",
+          "implementation": "See FILTERS_IMPLEMENTATION_PLAN.md Section 3.3"
+        }
+      },
+      "typescript_requirements": [
+        "Type filter state: type FilterState = { status: 'all' | 'active' | ... }",
+        "Type API query params correctly",
+        "No 'any' types - use specific types",
+        "useEffect dependencies array must be correct"
+      ],
+      "testing": "Browser DevTools - verify URL updates, filters persist on refresh"
+    },
+
+    "session_2_dashboard_enhancement": {
+      "duration": "20-30 minutes",
+      "objective": "Add pending cards + create reusable DashboardCard component",
+      "files": [
+        "frontend/src/pages/admin/AdminDashboard.tsx",
+        "frontend/src/components/admin/DashboardCard.tsx (create new)"
+      ],
+      "specification": {
+        "dashboard_card_component": {
+          "create": "frontend/src/components/admin/DashboardCard.tsx",
+          "props": {
+            "title": "string (e.g., 'Users Pending Approval')",
+            "count": "number (pending count)",
+            "onClick": "() => void (navigate to filtered view)"
+          },
+          "requirements": [
+            "Responsive Tailwind design",
+            "Show count as badge",
+            "Clickable - navigate on click",
+            "Visual feedback on hover"
+          ]
+        },
+        "dashboard_cards": {
+          "users_pending": {
+            "title": "Users Pending Approval",
+            "count": "pendingUsers",
+            "onClick": "navigate('/admin/users?status=pending')"
+          },
+          "venues_pending": {
+            "title": "Venues Pending",
+            "count": "pendingVenues",
+            "onClick": "navigate('/admin/venues?status=pending')"
+          },
+          "galleras_pending": {
+            "title": "Galleras Pending",
+            "count": "pendingGalleras",
+            "onClick": "navigate('/admin/galleras?status=pending')"
+          }
+        }
+      },
+      "testing": "Click each card - verify navigation to correct filtered page"
+    },
+
+    "session_3_component_creation": {
+      "duration": "20-30 minutes",
+      "objective": "Create ImageGalleryDisplay component, enhance UserProfileForm",
+      "files": [
+        "frontend/src/components/shared/ImageGalleryDisplay.tsx (create new)",
+        "frontend/src/components/forms/UserProfileForm.tsx (enhance)"
+      ],
+      "specification": {
+        "image_gallery_display": {
+          "purpose": "Read-only image carousel (complementary to ImageGalleryUpload)",
+          "props": {
+            "images": "string[] (image URLs)",
+            "label": "string (optional)",
+            "maxColumns": "number (responsive layout)"
+          },
+          "features": [
+            "Display images in grid",
+            "Responsive (1 col mobile, 2 col tablet, 3 col desktop)",
+            "Click to expand (if time permits)",
+            "Empty state handling"
+          ]
+        },
+        "profile_form_enhancements": {
+          "add": [
+            "Show business entity status (approved/pending)",
+            "Display venue/gallera name if role is venue/gallera",
+            "Use ImageGalleryUpload for profile image",
+            "TypeScript strict typing for all form fields"
+          ]
+        }
+      },
+      "testing": "Render components with sample data - verify responsive design on mobile/tablet/desktop"
+    },
+
+    "session_4_polish_refinements": {
+      "duration": "20-30 minutes",
+      "objective": "Polish + refinements based on feedback",
+      "focus_areas": [
+        "Error states (empty results, API errors)",
+        "Loading states (while filters load data)",
+        "Responsive design (test on multiple screen sizes)",
+        "Accessibility (button labels, keyboard navigation)",
+        "Performance (useMemo for expensive computations)"
+      ],
+      "requirements": [
+        "All filters have working error boundaries",
+        "Loading spinners appear while data loads",
+        "Mobile responsive (test with DevTools)",
+        "No console warnings",
+        "TypeScript strict mode passes"
+      ]
+    }
+  },
+
+  "TYPESCRIPT_REQUIREMENTS": {
+    "strict_mode_mandatory": true,
+    "typing_rules": [
+      "No 'any' types - use specific types or generics",
+      "All props must be typed (React.FC<PropsType>)",
+      "API response shapes must be typed",
+      "useState with explicit types: useState<FilterState>(...)",
+      "useEffect dependencies array must be precise"
+    ],
+    "common_mistakes_to_avoid": [
+      "L const [filters, setFilters] = useState({}); // Missing type",
+      " const [filters, setFilters] = useState<FilterState>({...});",
+      "",
+      "L onClick={() => { /* untyped event */ }} ",
+      " onClick={(e: React.MouseEvent<HTMLButtonElement>) => { ... }}",
+      "",
+      "L API response as 'any'",
+      " API response typed: const data: User[] = await api.getUsers();"
+    ]
+  },
+
+  "BUILD_VALIDATION_WORKFLOW": {
+    "before_commit": {
+      "step_1_typescript": "npx tsc --noEmit",
+      "step_2_build": "npm run build",
+      "step_3_imports": "Verify import paths resolve correctly",
+      "step_4_git_scope": "git diff --name-only | grep -v frontend/src/pages/admin/Users.tsx",
+      "step_5_responsive": "Browser DevTools - test responsive design"
+    },
+    "failure_protocol": {
+      "if_typescript_fails": "FIX immediately - do not commit",
+      "if_build_fails": "Rollback - do not commit",
+      "if_imports_broken": "Fix paths - do not commit",
+      "if_scope_violated": "Revert unauthorized changes - do not commit"
+    }
+  },
+
+  "GIT_WORKFLOW": {
+    "branch_pattern": "feature/admin-filters (or feature/admin-ui-[session-number])",
+    "commit_frequency": "One commit per session completion",
+    "commit_message_format": "feat: Implement admin filter UI - Session [N]\n\n[IMPLEMENTED]\n- Added filter dropdowns to Users.tsx\n- Added filter dropdowns to Venues.tsx\n- Added filter dropdowns to Galleras.tsx\n- URL param handling for filter persistence\n\n[VALIDATED]\n npx tsc --noEmit passes\n npm run build succeeds\n TypeScript strict mode compliant\n Responsive design tested\n All imports resolve correctly\n\n[TESTED]\n Filters persist on page refresh\n Dashboard cards navigate correctly\n Mobile responsive (tested 375px, 768px, 1024px)\n\n> Generated with Gemini CLI\nCo-Authored-By: Gemini <noreply@anthropic.com>",
+    "verification": "Before each commit run: git diff --name-only (verify ONLY frontend/src/pages/admin/* files modified)"
+  },
+
+  "QUALITY_CHECKLIST": {
+    "typescript_quality": [
+      " Zero TypeScript errors (npx tsc --noEmit)",
+      " No 'any' types in code",
+      " All props properly typed",
+      " useState with explicit types",
+      " useEffect dependencies correct"
+    ],
+    "react_quality": [
+      " No unnecessary re-renders (useCallback for handlers)",
+      " Proper dependency arrays in useEffect",
+      " Event handlers typed correctly",
+      " No missing keys in lists"
+    ],
+    "ux_quality": [
+      " Loading states implemented",
+      " Error states handled",
+      " Empty state messages",
+      " Responsive design tested"
+    ],
+    "build_quality": [
+      " npm run build succeeds",
+      " No console warnings",
+      " All imports resolve",
+      " Component rendering correct"
+    ]
+  },
+
+  "TESTING_REQUIREMENTS": {
+    "manual_testing": [
+      "Select filter option ’ verify URL updates",
+      "Refresh page ’ verify filters persist",
+      "Click dashboard card ’ navigate to filtered page",
+      "Resize browser ’ responsive design works",
+      "Open console ’ no TypeScript or import errors"
+    ],
+    "browser_compatibility": [
+      "Chrome/Edge - latest version",
+      "Safari - latest version",
+      "Mobile Safari - iOS 14+",
+      "Chrome mobile - Android"
+    ],
+    "responsive_breakpoints": [
+      "Mobile: 375px (iPhone SE)",
+      "Tablet: 768px (iPad)",
+      "Desktop: 1024px+ (MacBook)"
+    ]
+  },
+
+  "WHAT_NOT_TO_DO": {
+    "never": [
+      "L Modify backend files (that's Claude's job)",
+      "L Change API endpoints (that's QWEN's job)",
+      "L Modify api.ts or service files",
+      "L Add new npm dependencies without discussion",
+      "L Use 'any' types",
+      "L Commit without validation gates passing",
+      "L Modify files outside [FILES_TO_MODIFY] list",
+      "L Skip responsive design testing"
+    ],
+    "if_blocked": "Report blocker clearly instead of working around it"
+  },
+
+  "HANDOFF_TO_CLAUDE": {
+    "when_complete": "Provide these deliverables:",
+    "deliverables": [
+      "List of all commits made (git log --oneline)",
+      "Build validation output (npx tsc --noEmit, npm run build)",
+      "Branch name and merge-ready status",
+      "Any blockers encountered (and how resolved)",
+      "Files modified with change summaries",
+      "Testing confirmation (responsive, interactive, error states)"
+    ],
+    "session_summary": {
+      "ai_used": "Gemini",
+      "sessions_completed": "[1/4, 2/4, etc]",
+      "files_modified": "[list with purpose]",
+      "validation_status": "[all gates passed / specific failures]",
+      "next_steps": "[what Gemini will do next OR handoff ready to Claude]"
+    }
+  },
+
+  "SUCCESS_CRITERIA_BY_SESSION": {
+    "session_1_complete": [
+      " Users.tsx has status + subscription filters",
+      " Venues.tsx has venue status + owner approval + subscription filters",
+      " Galleras.tsx has identical filters to Venues",
+      " All filters update URL params",
+      " Filters persist on page refresh",
+      " TypeScript compilation passes",
+      " npm run build succeeds"
+    ],
+    "session_2_complete": [
+      " DashboardCard component created",
+      " AdminDashboard shows 3 pending cards",
+      " Cards are clickable and navigate to filtered views",
+      " Dashboard styling polished",
+      " All validation gates pass"
+    ],
+    "session_3_complete": [
+      " ImageGalleryDisplay component created",
+      " UserProfileForm enhanced with business entity info",
+      " Responsive image gallery working",
+      " TypeScript strict mode passes"
+    ],
+    "session_4_complete": [
+      " Error states implemented",
+      " Loading states implemented",
+      " Responsive design polished",
+      " Mobile (375px) tested and working",
+      " Tablet (768px) tested and working",
+      " Desktop (1024px+) tested and working",
+      " All validation gates pass",
+      " Ready for Claude integration"
+    ]
+  },
+
+  "INTEGRATION_NOTES": {
+    "from_claude": "You're implementing Phase 2-3 of a 3-phase data consolidation + filter project",
+    "before_you": "QWEN completed backend API extensions (Phase 1)",
+    "after_you": "Claude will integrate all work and run final validation (Phase 3)",
+    "critical_success_factor": "All your work must pass TypeScript + build validation before Claude can integrate"
+  }
+}

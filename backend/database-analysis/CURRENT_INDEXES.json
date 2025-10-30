@@ -19,9 +19,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 4,
-  "tuples_read": 7,
-  "tuples_fetched": 4
+  "times_used": 49,
+  "tuples_read": 95,
+  "tuples_fetched": 49
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -30,7 +30,7 @@
   "is_unique": true,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "16 kB",
+  "index_size": "32 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -55,9 +55,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
+  "times_used": 827,
+  "tuples_read": 827,
+  "tuples_fetched": 551
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -90,10 +90,10 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 4,
-  "tuples_read": 7,
-  "tuples_fetched": 4
+  "index_size": "32 kB",
+  "times_used": 49,
+  "tuples_read": 91,
+  "tuples_fetched": 49
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -103,9 +103,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 3,
-  "tuples_read": 1,
-  "tuples_fetched": 1
+  "times_used": 6,
+  "tuples_read": 8,
+  "tuples_fetched": 2
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -715,43 +715,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 96,
-  "tuples_read": 0,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "galleras",
-  "indexname": "galleras_pkey",
-  "indexdef": "CREATE UNIQUE INDEX galleras_pkey ON public.galleras USING btree (id)",
-  "is_unique": true,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 726,
-  "tuples_read": 726,
-  "tuples_fetched": 726
-}, {
-  "schemaname": "public",
-  "tablename": "galleras",
-  "indexname": "idx_galleras_owner_id",
-  "indexdef": "CREATE INDEX idx_galleras_owner_id ON public.galleras USING btree (owner_id)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 7,
-  "tuples_read": 6,
-  "tuples_fetched": 5
-}, {
-  "schemaname": "public",
-  "tablename": "galleras",
-  "indexname": "idx_galleras_status",
-  "indexdef": "CREATE INDEX idx_galleras_status ON public.galleras USING btree (status)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 3,
+  "times_used": 286,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -871,7 +835,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 98,
+  "times_used": 166,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -919,7 +883,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "8192 bytes",
-  "times_used": 0,
+  "times_used": 3,
   "tuples_read": 0,
   "tuples_fetched": 0
 }, {
@@ -1038,7 +1002,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1050,7 +1014,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1062,7 +1026,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1074,7 +1038,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 579,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1086,7 +1050,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1098,10 +1062,10 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
-  "times_used": 775,
-  "tuples_read": 0,
-  "tuples_fetched": 0
+  "index_size": "16 kB",
+  "times_used": 809,
+  "tuples_read": 1,
+  "tuples_fetched": 1
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
@@ -1110,7 +1074,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1122,10 +1086,10 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
+  "index_size": "16 kB",
+  "times_used": 908,
+  "tuples_read": 517,
+  "tuples_fetched": 414
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
@@ -1134,7 +1098,7 @@
   "is_unique": true,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1146,10 +1110,10 @@
   "is_unique": true,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
+  "index_size": "16 kB",
+  "times_used": 2,
+  "tuples_read": 3,
+  "tuples_fetched": 2
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
@@ -1345,6 +1309,30 @@
 }, {
   "schemaname": "public",
   "tablename": "users",
+  "indexname": "idx_users_approved",
+  "indexdef": "CREATE INDEX idx_users_approved ON public.users USING btree (approved)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_business_entities",
+  "indexdef": "CREATE INDEX idx_users_business_entities ON public.users USING gin (((profile_info -> 'businessEntities'::text)))",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "gin",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
   "indexname": "idx_users_email_active",
   "indexdef": "CREATE INDEX idx_users_email_active ON public.users USING btree (email, is_active)",
   "is_unique": false,
@@ -1369,11 +1357,35 @@
 }, {
   "schemaname": "public",
   "tablename": "users",
+  "indexname": "idx_users_gallera_status",
+  "indexdef": "CREATE INDEX idx_users_gallera_status ON public.users USING btree (((((profile_info -> 'businessEntities'::text) -> 'gallera'::text) ->> 'status'::text))) WHERE (role = 'gallera'::enum_users_role)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
   "indexname": "idx_users_id_active",
   "indexdef": "CREATE INDEX idx_users_id_active ON public.users USING btree (id, is_active) WHERE (is_active = true)",
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_profile_info_gin",
+  "indexdef": "CREATE INDEX idx_users_profile_info_gin ON public.users USING gin (profile_info)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "gin",
   "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
@@ -1407,6 +1419,30 @@
   "tablename": "users",
   "indexname": "idx_users_role_active_optimized",
   "indexdef": "CREATE INDEX idx_users_role_active_optimized ON public.users USING btree (role, is_active, created_at)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_role_approved",
+  "indexdef": "CREATE INDEX idx_users_role_approved ON public.users USING btree (role, approved)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "idx_users_venue_status",
+  "indexdef": "CREATE INDEX idx_users_venue_status ON public.users USING btree (((((profile_info -> 'businessEntities'::text) -> 'venue'::text) ->> 'status'::text))) WHERE (role = 'venue'::enum_users_role)",
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
@@ -1486,78 +1522,6 @@
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "idx_venues_owner_status",
-  "indexdef": "CREATE INDEX idx_venues_owner_status ON public.venues USING btree (owner_id, status)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 3,
-  "tuples_read": 1,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "venues_is_verified",
-  "indexdef": "CREATE INDEX venues_is_verified ON public.venues USING btree (is_verified)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "venues_name",
-  "indexdef": "CREATE INDEX venues_name ON public.venues USING btree (name)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "venues_owner_id",
-  "indexdef": "CREATE INDEX venues_owner_id ON public.venues USING btree (owner_id)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "venues_pkey",
-  "indexdef": "CREATE UNIQUE INDEX venues_pkey ON public.venues USING btree (id)",
-  "is_unique": true,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 1458,
-  "tuples_read": 114,
-  "tuples_fetched": 110
-}, {
-  "schemaname": "public",
-  "tablename": "venues",
-  "indexname": "venues_status",
-  "indexdef": "CREATE INDEX venues_status ON public.venues USING btree (status)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 147,
-  "tuples_read": 180,
-  "tuples_fetched": 170
 }, {
   "schemaname": "public",
   "tablename": "wallets",

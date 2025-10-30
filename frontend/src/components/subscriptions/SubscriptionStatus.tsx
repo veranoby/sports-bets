@@ -12,14 +12,22 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 }) => {
   if (!subscription) {
     return (
-      <div className="flex flex-col items-start">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200">
-          <span className="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
-          FREE
-        </span>
-        <span className="mt-1 text-xs text-gray-500">
-          Sin acceso a contenido premium
-        </span>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        {/* Columna 1 */}
+        <div className="flex flex-col gap-1">
+          <span
+            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200 cursor-help"
+            title="Sin acceso a contenido premium"
+          >
+            <span className="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+            FREE
+          </span>
+        </div>
+
+        {/* Columna 2 */}
+        <div className="flex flex-col gap-1">
+          <span className="text-gray-400">Sin suscripción</span>
+        </div>
       </div>
     );
   }
@@ -44,7 +52,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
     statusClass =
       "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold border-yellow-600";
     icon = <Crown className="w-3.5 h-3.5 mr-2" />;
-    description = "Acceso completo a contenido premium";
+    description = "Acceso a contenido premium";
   } else if (isExpired) {
     statusText = "EXPIRADA";
     statusClass = "bg-red-100 text-red-800 border-red-200";
@@ -73,26 +81,41 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const showWarning = isPremium && daysRemaining > 0 && daysRemaining <= 7;
 
   return (
-    <div className="flex flex-col items-start">
-      <span
-        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusClass}`}
-      >
-        {icon}
-        {statusText}
-      </span>
-      <span className="mt-1 text-xs text-gray-500">{description}</span>
-      {isPremium && subscription.expiresAt && (
-        <span className="mt-1 text-xs flex items-center gap-1">
-          <CheckCircle className="w-3 h-3 text-green-500" />
-          Expira: {format(new Date(subscription.expiresAt), "MMM dd, yyyy")}
-        </span>
-      )}
-      {showWarning && (
-        <span className="mt-1 text-xs flex items-center gap-1 text-red-500">
-          <AlertTriangle className="w-3 h-3" />
-          ¡Expira en {daysRemaining} día(s)!
-        </span>
-      )}
+    <div className="grid grid-cols-2 gap-2 text-xs">
+      {/* Columna 1 */}
+      <div className="flex flex-col gap-1">
+        <div className="relative group">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border cursor-help ${statusClass}`}
+            title={description}
+          >
+            {icon}
+            {statusText}
+          </span>
+        </div>
+      </div>
+
+      {/* Columna 2 */}
+      <div className="flex flex-col gap-1">
+        {isPremium && subscription.expiresAt && (
+          <span className="flex items-center gap-1 text-green-600">
+            <CheckCircle className="w-3 h-3" />
+            {format(new Date(subscription.expiresAt), "MMM dd")}
+          </span>
+        )}
+        {showWarning && (
+          <span className="flex items-center gap-1 text-red-500">
+            <AlertTriangle className="w-3 h-3" />
+            {daysRemaining}d restantes
+          </span>
+        )}
+        {!isPremium &&
+          !isExpired &&
+          subscription.status !== "pending" &&
+          subscription.status !== "cancelled" && (
+            <span className="text-gray-400">Sin suscripción</span>
+          )}
+      </div>
     </div>
   );
 };

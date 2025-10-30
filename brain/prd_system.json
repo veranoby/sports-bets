@@ -1,8 +1,9 @@
 {
   "metadata": {
     "purpose": "Product requirements and business context for GalloBets platform",
-    "updated": "2025-09-21",
-    "version": "2.0",
+    "updated": "2025-10-30",
+    "version": "2.1",
+    "changes": "Added data_model_clarifications section for events-venues and articles-authors relationships",
     "cross_references": ["sdd_system.json", "multi_ai_coordination_strategy.json", "backlog.json"]
   },
   
@@ -146,11 +147,39 @@
     }
   },
   
+  "data_model_clarifications": {
+    "events_and_venues": {
+      "definition": "Events are organized AT venues (cockfighting stadiums/arenas). events.venue_id points to the user account of the venue owner.",
+      "creation_flow": [
+        "ADMIN or OPERATOR create events",
+        "Event is assigned to a VENUE (a user with role='venue')",
+        "Venue represents the physical location where the event occurs",
+        "Users see event location to know where event will be held"
+      ],
+      "business_rule": "ONLY users with role='venue' can host events. Galleras (breeding farms) and regular users cannot host events.",
+      "schema": "events.venue_id → users.id (where users.role = 'venue')"
+    },
+
+    "articles_and_authors": {
+      "definition": "Articles are created and published BY users (admin, venues, galleras). Articles belong to their author, not to a specific venue.",
+      "creation_flow": [
+        "ADMIN, VENUE, or GALLERA users can create articles",
+        "Article.author_id points to the user who created it",
+        "No venue-specific articles - articles are user-authored content"
+      ],
+      "business_rule": "Regular users cannot create articles. Only ADMIN, VENUE, and GALLERA roles have publishing capability.",
+      "deprecated_field": "articles.venue_id - SHOULD BE REMOVED. Use articles.author_id only.",
+      "schema": "articles.author_id → users.id (for all user types who can create articles)"
+    }
+  },
+
   "user_workflows": {
     "event_creation_workflow": {
-      "actors": ["Admin", "Operator", "Venue"],
+      "actors": ["Admin", "Operator"],
+      "venue_assignment": "Event is assigned to a specific venue (user with role='venue')",
       "steps": [
-        "Create event with date/time",
+        "Admin/Operator creates event with date/time",
+        "Assign venue (the physical location where event will occur)",
         "Assign operator (if admin creating)",
         "Generate stream key",
         "Configure OBS with stream key",

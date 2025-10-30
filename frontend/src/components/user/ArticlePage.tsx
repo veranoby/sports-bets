@@ -80,11 +80,21 @@ const ArticlePage: React.FC = () => {
       <Card className="p-6">
         {/* Imagen featured */}
         {article.featured_image_url && (
-          <div className="w-full h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+          <div className="w-full h-64 mb-6 rounded-lg overflow-hidden bg-gray-300 relative">
             <img
               src={article.featured_image_url}
               alt={article.title}
-              className="w-full h-full object-cover"
+              className="h-full object-cover object-left"
+              style={{ width: "auto", minWidth: "100%" }}
+            />
+            {/* Degradado overlay: inicia al 60% */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 60%, #e5e7eb 100%)",
+                // #e5e7eb es gray-300 de TailwindCSS
+              }}
             />
           </div>
         )}
@@ -125,8 +135,8 @@ const ArticlePage: React.FC = () => {
         </div>
 
         {/* Summary */}
-        <div className="mb-6 p-4 bg-[#1a1f37]/30 rounded-lg border-l-4 border-red-500">
-          <p className="text-theme-light italic">{article.summary}</p>
+        <div className="mb-6 p-4 bg-white rounded-lg border-l-4 border-blue-500">
+          <p className="text-blue-500 italic">{article.summary}</p>
         </div>
 
         {/* Contenido */}

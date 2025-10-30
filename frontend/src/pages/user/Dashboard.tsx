@@ -120,9 +120,74 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
+        {/* ⚡ EVENTOS EN VIVO BÁSICOS (Versión gratuita) */}
+        {liveEvents.length > 0 && (
+          <div className="grid grid-cols-1">
+            {/* ROW SUPERIOR: Eventos en Vivo Básicos */}
+            <div className="card-background p-6">
+              <div className="space-y-4"></div>
+
+              {/* Columna PREMIUM: Widget Premium - Eventos en vivo premium (solo si hay eventos) */}
+
+              <SubscriptionGuard
+                feature="eventos en vivo"
+                showUpgradePrompt={false}
+                fallback={
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-red-400" />
+                        Hay Eventos en Vivo!
+                      </h2>
+
+                      {liveEvents.map((event) => (
+                        <div key={event.id}>
+                          <h3 className="font-medium text-theme-primary mb-1 flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            {event.name}
+                          </h3>
+                          <p className="text-sm text-theme-light">
+                            {event.venue?.name}
+                          </p>
+
+                          {/* Removed currentViewers display due to missing type on EventData */}
+                        </div>
+                      ))}
+
+                      <button
+                        onClick={() => navigate("/events")}
+                        className="btn-ghost text-sm"
+                      >
+                        Ver todos
+                      </button>
+                    </div>
+
+                    <div className="text-center">
+                      <Lock className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500">
+                        Actualiza a Premium para ver el widget avanzado
+                      </p>
+                    </div>
+                  </div>
+                }
+              >
+                <LiveEventsWidget />
+              </SubscriptionGuard>
+            </div>
+          </div>
+        )}
+
+        {/* 🚫 ESTADOS VACÍOS */}
+        {!isLoading && liveEvents?.length === 0 && (
+          <EmptyState
+            title="No hay Eventos en Vivo"
+            description="Parece que no hay eventos en vivo en este momento. ¡Vuelve pronto!"
+            icon={<Webcam className="w-12 h-12" />}
+          />
+        )}
         {/* ArticleManagement component moved to News.tsx for venue and gallera roles */}
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* ⚡ EVENTOS PARA HOY */}
           <div className="card-background p-6">
             <div className="flex items-center justify-between mb-4">
@@ -229,72 +294,6 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* ⚡ EVENTOS EN VIVO BÁSICOS (Versión gratuita) */}
-        {liveEvents.length > 0 && (
-          <div className="grid grid-cols-1">
-            {/* ROW SUPERIOR: Eventos en Vivo Básicos */}
-            <div className="card-background p-6">
-              <div className="space-y-4"></div>
-
-              {/* Columna PREMIUM: Widget Premium - Eventos en vivo premium (solo si hay eventos) */}
-
-              <SubscriptionGuard
-                feature="eventos en vivo"
-                showUpgradePrompt={false}
-                fallback={
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-red-400" />
-                        Hay Eventos en Vivo!
-                      </h2>
-
-                      {liveEvents.map((event) => (
-                        <div key={event.id}>
-                          <h3 className="font-medium text-theme-primary mb-1 flex items-center gap-2">
-                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                            {event.name}
-                          </h3>
-                          <p className="text-sm text-theme-light">
-                            {event.venue?.name}
-                          </p>
-
-                          {/* Removed currentViewers display due to missing type on EventData */}
-                        </div>
-                      ))}
-
-                      <button
-                        onClick={() => navigate("/events")}
-                        className="btn-ghost text-sm"
-                      >
-                        Ver todos
-                      </button>
-                    </div>
-
-                    <div className="text-center">
-                      <Lock className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500">
-                        Actualiza a Premium para ver el widget avanzado
-                      </p>
-                    </div>
-                  </div>
-                }
-              >
-                <LiveEventsWidget />
-              </SubscriptionGuard>
-            </div>
-          </div>
-        )}
-
-        {/* 🚫 ESTADOS VACÍOS */}
-        {!isLoading && liveEvents?.length === 0 && (
-          <EmptyState
-            title="No hay Eventos en Vivo"
-            description="Parece que no hay eventos en vivo en este momento. ¡Vuelve pronto!"
-            icon={<Webcam className="w-12 h-12" />}
-          />
-        )}
 
         {/* ⚠️ MANEJO DE ERRORES */}
         {eventsError && (

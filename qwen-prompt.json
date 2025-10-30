@@ -1,250 +1,250 @@
 {
   "metadata": {
-    "task_id": "VISUAL_FIX_MEMBERSHIP_UI_001",
-    "created": "2025-10-14",
-    "priority": "MEDIUM",
-    "estimated_time": "15 minutes",
-    "max_time": "30 minutes",
-    "ai_assigned": "QWEN",
-    "validated_by": "Claude",
-    "status": "READY_FOR_EXECUTION"
+    "version": "2.0",
+    "created": "2025-10-30",
+    "ai": "QWEN CLI",
+    "project": "GalloBets - Admin Filters Backend Implementation",
+    "session_type": "Backend API Extensions",
+    "duration_max": "30 minutes",
+    "strict": true
   },
 
-  "CRITICAL_SAFETY_RULES": {
-    "ABSOLUTELY_FORBIDDEN_FILES": [
-      "frontend/src/contexts/AuthContext.tsx",
-      "backend/src/routes/auth.ts",
-      "frontend/src/services/api.ts",
-      "frontend/src/pages/user/Profile.tsx"
-    ],
-    "MAXIMUM_CHANGES": "2 files ONLY",
-    "MAXIMUM_LINES_CHANGED": "30 lines total",
-    "MAXIMUM_SESSION_TIME": "30 minutes",
-    "VALIDATION_REQUIRED": "YES - Claude must approve",
-    "NO_PLACEHOLDER_COMMENTS": "NEVER use {/* */} placeholders",
-    "NO_CODE_DELETION": "ONLY add lines, never delete existing code",
-    "GIT_BACKUP_REQUIRED": "YES - user will create before starting"
+  "CRITICAL_PROTOCOL": {
+    "rule_1": "=¨ SIMULATE ’ CONFIRM ’ EXECUTE pattern MANDATORY before any code change",
+    "rule_2": "=¨ NEVER modify files outside [FILES_TO_MODIFY] list",
+    "rule_3": "=¨ BEFORE each commit: run 'git diff --name-only' and verify ONLY listed files changed",
+    "rule_4": "=¨ If simulation reveals missing dependencies or broken imports ’ STOP and REPORT",
+    "rule_5": "=¨ Max session time: 30 minutes (strictly enforced)",
+    "rule_6": "Reference: @brain/multi_ai_coordination_strategy.json ’ section 'simulate_y_confirmar_protocol'"
   },
 
-  "TASK_DESCRIPTION": {
-    "summary": "Fix two simple UI state update issues in membership system",
-    "problems": [
-      {
-        "id": 1,
-        "location": "/profile page - MembershipSection component",
-        "issue": "When user submits membership request, modal closes but request history doesn't update until page refresh",
-        "root_cause": "After successful createRequest(), the component doesn't call fetchRequests() to update local state",
-        "impact": "User must manually refresh page to see their new request",
-        "severity": "LOW - Cosmetic UX issue"
-      },
-      {
-        "id": 2,
-        "location": "/admin dashboard - AdminDashboard component",
-        "issue": "New membership requests don't show in 'Cambios de Membresía' card until dashboard auto-refreshes (5 min) or manual refresh",
-        "root_cause": "Dashboard fetches data on mount and every 5 minutes, but doesn't have real-time updates",
-        "impact": "Admin doesn't see new requests immediately",
-        "severity": "LOW - Acceptable for now, can be enhanced later with SSE"
-      }
-    ],
-    "user_requirement": "Simple fixes without major complications"
-  },
-
-  "DETAILED_SOLUTION": {
-    "problem_1_fix": {
-      "file": "frontend/src/components/user/MembershipSection.tsx",
-      "current_code_location": "Lines 224-238: fetchRequests() function inside useEffect",
-      "problem_code_location": "Lines 178-185: handleSubmit success handler",
-      "what_to_change": [
-        "Move fetchRequests function OUT of useEffect to make it reusable",
-        "Add call to fetchRequests() AFTER successful request creation",
-        "This will update the local 'requests' state immediately after modal closes"
-      ],
-      "exact_changes": [
-        {
-          "step": 1,
-          "action": "Move fetchRequests function",
-          "from_line": 224,
-          "to_line": 238,
-          "new_location": "After line 213 (before useEffect)",
-          "code_to_add": "  // Fetch user's request history\n  const fetchRequests = async () => {\n    setLoadingRequests(true);\n    try {\n      const response = await membershipRequestsAPI.getMyRequests();\n      if (response.success && response.data) {\n        setRequests((response.data as any).requests || []);\n      }\n    } catch (err) {\n      console.error('Error fetching requests:', err);\n    } finally {\n      setLoadingRequests(false);\n    }\n  };"
-        },
-        {
-          "step": 2,
-          "action": "Update useEffect to call fetchRequests",
-          "at_line": 224,
-          "code_to_replace": "  useEffect(() => {\n    const fetchRequests = async () => {\n      setLoadingRequests(true);\n      try {\n        const response = await membershipRequestsAPI.getMyRequests();\n        if (response.success && response.data) {\n          setRequests((response.data as any).requests || []);\n        }\n      } catch (err) {\n        console.error('Error fetching requests:', err);\n      } finally {\n        setLoadingRequests(false);\n      }\n    };\n    fetchRequests();\n  }, []);",
-          "code_to_use": "  useEffect(() => {\n    fetchRequests();\n  }, []);"
-        },
-        {
-          "step": 3,
-          "action": "Pass fetchRequests to RequestChangeModal",
-          "at_line": 395,
-          "code_to_replace": "      {user && (\n        <RequestChangeModal\n          isOpen={isModalOpen}\n          onClose={() => setIsModalOpen(false)}\n          user={user}\n        />\n      )}",
-          "code_to_use": "      {user && (\n        <RequestChangeModal\n          isOpen={isModalOpen}\n          onClose={() => setIsModalOpen(false)}\n          user={user}\n          onRequestCreated={fetchRequests}\n        />\n      )}"
-        },
-        {
-          "step": 4,
-          "action": "Update RequestChangeModal interface",
-          "at_line": 111,
-          "code_to_replace": "const RequestChangeModal: React.FC<{\n  isOpen: boolean;\n  onClose: () => void;\n  user: User;\n}> = ({ isOpen, onClose, user }) => {",
-          "code_to_use": "const RequestChangeModal: React.FC<{\n  isOpen: boolean;\n  onClose: () => void;\n  user: User;\n  onRequestCreated?: () => void;\n}> = ({ isOpen, onClose, user, onRequestCreated }) => {"
-        },
-        {
-          "step": 5,
-          "action": "Call onRequestCreated after success",
-          "at_line": 180,
-          "code_to_replace": "      if (response.success) {\n        setSuccess('Solicitud de cambio de membresía enviada correctamente.');\n        setTimeout(() => {\n          onClose();\n          setSuccess(null);\n        }, 3000);\n      }",
-          "code_to_use": "      if (response.success) {\n        setSuccess('Solicitud de cambio de membresía enviada correctamente.');\n        // Refresh the requests list immediately\n        if (onRequestCreated) {\n          onRequestCreated();\n        }\n        setTimeout(() => {\n          onClose();\n          setSuccess(null);\n        }, 3000);\n      }"
-        }
-      ],
-      "safety_notes": [
-        "ONLY modifying MembershipSection.tsx",
-        "NO authentication changes",
-        "NO API changes",
-        "Simple state refresh logic",
-        "Total lines changed: ~20 lines"
-      ]
-    },
-
-    "problem_2_fix": {
-      "file": "frontend/src/pages/admin/AdminDashboard.tsx",
-      "why_not_fixing_now": "Dashboard already refreshes every 5 minutes (line 70-76). User said 'simple fix without complications'",
-      "recommended_approach": "NO CHANGES for now - current behavior is acceptable",
-      "future_enhancement": "Could add SSE for real-time updates, but that's complex and user wants simple fixes",
-      "alternative_simple_fix": "Reduce auto-refresh interval from 5 min to 1-2 min",
-      "exact_change_if_needed": {
-        "file": "frontend/src/pages/admin/AdminDashboard.tsx",
-        "at_line": 75,
-        "code_to_replace": "      5 * 60 * 1000,",
-        "code_to_use": "      2 * 60 * 1000, // Reduced from 5min to 2min for faster updates",
-        "impact": "Admin will see new requests within 2 minutes instead of 5"
-      },
-      "safety_notes": [
-        "MINIMAL change - just one number",
-        "NO authentication changes",
-        "NO complex logic",
-        "Total lines changed: 1 line"
-      ]
-    }
+  "TASK_OVERVIEW": {
+    "objective": "Extend backend API endpoints to support admin filter parameters",
+    "complexity": "Medium",
+    "phase": "Phase 1 of 3-phase implementation",
+    "deliverables": [
+      "GET /api/users extended with approved + subscriptionType filters",
+      "GET /api/venues extended with ownerApproved + ownerSubscription filters",
+      "GET /api/galleras extended with ownerApproved + ownerSubscription filters",
+      "Verification that all changes pass TypeScript + build"
+    ]
   },
 
   "FILES_TO_MODIFY": {
-    "count": 2,
-    "files": [
+    "strict_scope": "ONLY these files - NO exceptions, NO improvements to other files",
+    "backend": [
+      "backend/src/routes/users.ts",
+      "backend/src/routes/venues.ts",
+      "backend/src/routes/galleras.ts"
+    ],
+    "danger_if_modified": [
+      "backend/src/middleware/auth.ts (NEVER without explicit instruction)",
+      "backend/src/models/* (NEVER without explicit instruction)",
+      "Any database migration files (NEVER without explicit instruction)"
+    ]
+  },
+
+  "FILES_TO_CONSULT": {
+    "mandatory": [
       {
-        "path": "frontend/src/components/user/MembershipSection.tsx",
-        "changes": "Move fetchRequests function + add callback to modal",
-        "lines_changed": "~20 lines",
-        "risk": "LOW - Simple state management change"
+        "file": "@brain/multi_ai_coordination_strategy.json",
+        "sections": [
+          "simulate_y_confirmar_protocol - MANDATORY before each change",
+          "qwen_cli_optimizations - understand your role and limitations",
+          "critical_safety_restrictions - know what you're NOT allowed to do"
+        ],
+        "purpose": "Understand safety protocols and error prevention"
       },
       {
-        "path": "frontend/src/pages/admin/AdminDashboard.tsx",
-        "changes": "Optional: Reduce auto-refresh interval from 5min to 2min",
-        "lines_changed": "1 line",
-        "risk": "MINIMAL - Just changing a number"
+        "file": "@brain/api_endpoints_reference.json",
+        "sections": [
+          "GET /api/users (line 1-50) - understand current parameters",
+          "GET /api/venues (line 100-150) - understand current parameters",
+          "GET /api/galleras (line 200-250) - understand current parameters"
+        ],
+        "purpose": "Know exact current API contract before modifying"
+      },
+      {
+        "file": "FILTERS_IMPLEMENTATION_PLAN.md",
+        "sections": [
+          "Section 3.1 - Extend GET /api/users with new filters",
+          "Section 3.2 - Extend GET /api/venues with new filters",
+          "Section 3.3 - Extend GET /api/galleras with new filters",
+          "Section 4 - Backend API Extensions (Detailed Implementation)"
+        ],
+        "purpose": "Exact specification of what to implement"
+      },
+      {
+        "file": "backend/database-analysis/CURRENT_COLUMNS.json",
+        "sections": [
+          "users table columns - verify subscriptionType vs Subscription model",
+          "venues table columns - understand structure before querying",
+          "subscriptions table columns - understand how to JOIN for subscription filtering"
+        ],
+        "purpose": "Understand actual database schema"
       }
+    ],
+    "reference": [
+      "@brain/typescript_interfaces_reference.json - Review Subscription interface",
+      "backend/src/models/Subscription.ts - Understand Subscription model"
     ]
   },
 
-  "TESTING_CHECKLIST": {
-    "before_changes": [
-      " Verify current behavior: Modal closes, history doesn't update",
-      " Check AdminDashboard shows requests after 5 min",
-      " Create git backup"
+  "RECOMMENDED_MCP_SERVERS": {
+    "primary": ["--seq", "--sequential"],
+    "reasoning": "Sequential thinking for multi-step API modifications with dependency analysis",
+    "usage": "Use Sequential to plan filter logic + dependency verification before coding"
+  },
+
+  "IMPLEMENTATION_SPECIFICATION": {
+    "task_1_get_api_users_filters": {
+      "file": "backend/src/routes/users.ts",
+      "current_state": "Line 54: Supports role, isActive, search parameters",
+      "required_additions": [
+        "approved (boolean) - filter users by approval status",
+        "subscriptionType (enum: 'free' | 'daily' | 'monthly') - filter by subscription"
+      ],
+      "simulation_template": [
+        "[SIMULATE] Adding approved filter to users.ts:",
+        "  1. Parameter: const approved = req.query.approved",
+        "  2. Logic: if (approved) where.approved = approved === 'true'",
+        "  3. No new imports needed? Check line 3-10 for existing Op",
+        "  4. Testing: curl 'http://localhost:3001/api/users?approved=true'",
+        "",
+        "[CONFIRM] Before modifying:",
+        "   Op is imported from sequelize (grep 'import.*Op')",
+        "   where clause pattern exists (grep 'where\\.approved')",
+        "   No circular dependencies",
+        "",
+        "[EXECUTE] Make changes"
+      ],
+      "implementation_challenge": "subscriptionType filtering requires Subscription model JOIN",
+      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 4 for subscription filtering solution",
+      "testing": "curl 'http://localhost:3001/api/users?subscriptionType=monthly'"
+    },
+
+    "task_2_get_api_venues_filters": {
+      "file": "backend/src/routes/venues.ts",
+      "current_state": "Line 40: Supports status parameter only",
+      "required_additions": [
+        "ownerApproved (boolean) - filter by user.approved status",
+        "ownerSubscription (enum: 'free' | 'daily' | 'monthly') - filter by owner subscription",
+        "search (string) - search by venue name or owner username"
+      ],
+      "note": "Same challenge as users.ts but filtering USER properties via JOIN",
+      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 3.2 for detailed code example",
+      "testing": "curl 'http://localhost:3001/api/venues?ownerApproved=true&ownerSubscription=monthly'"
+    },
+
+    "task_3_get_api_galleras_filters": {
+      "file": "backend/src/routes/galleras.ts",
+      "current_state": "Line 18: Supports status parameter only",
+      "required_additions": "Identical to venues.ts - same filter parameters",
+      "note": "Copy pattern from venues.ts - should be straightforward",
+      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 3.3",
+      "testing": "curl 'http://localhost:3001/api/galleras?ownerApproved=true&ownerSubscription=monthly'"
+    }
+  },
+
+  "ERROR_PREVENTION_PROTOCOL": {
+    "before_each_modification": {
+      "step_1": "Read the target file completely - understand full context",
+      "step_2": "Identify ALL imports at top - verify needed models are imported",
+      "step_3": "Simulate change - describe exactly what you'll add",
+      "step_4": "Grep actual code - confirm assumptions (grep -n 'import.*Subscription' backend/src/routes/users.ts)",
+      "step_5": "If grep returns nothing - STOP and REPORT: '[SIMULATION FAILED] Subscription not imported'",
+      "step_6": "Only proceed if CONFIRM step succeeds"
+    },
+    "validation_gates": [
+      "npm install (if package.json changed - should NOT happen)",
+      "npx tsc --noEmit (zero TypeScript errors required)",
+      "npm run build (must succeed completely)",
+      "git diff --name-only (verify ONLY target files modified)"
     ],
-    "after_changes": [
-      " Create membership request from /profile",
-      " Verify modal closes",
-      " Verify request appears in history IMMEDIATELY (no refresh needed)",
-      " Check AdminDashboard updates faster (if interval changed)",
-      " Verify no console errors",
-      " Verify existing requests still show correctly"
-    ],
-    "validation_commands": [
-      "npm run build - Must complete without errors",
-      "Check browser console - No errors",
-      "Test complete user flow"
+    "on_error": {
+      "situation": "Any validation gate fails",
+      "action": "REVERT changes immediately - do NOT attempt fix",
+      "report_format": "[IMPLEMENTATION FAILED] in [filename]:\nError: [exact error message]\nRoots cause analysis: [why it happened]\nRecommendation: [what should be done instead]"
+    }
+  },
+
+  "QUALITY_CHECKLIST": {
+    "before_commit": [
+      " Simulate ’ Confirm protocol completed for each change",
+      " All TypeScript types correct (Query parameters, response types)",
+      " No new dependencies added without npm install",
+      " npx tsc --noEmit passes with zero errors",
+      " npm run build succeeds",
+      " git diff --name-only shows ONLY users.ts, venues.ts, galleras.ts",
+      " Commit message includes [SIMULATED] [CONFIRMED] tags",
+      " Test commands documented in commit message"
     ]
   },
 
-  "STEP_BY_STEP_EXECUTION": {
-    "step_1": {
-      "action": "Read current MembershipSection.tsx",
-      "verify": "Understand current structure",
-      "time": "2 minutes"
-    },
-    "step_2": {
-      "action": "Move fetchRequests function outside useEffect",
-      "verify": "Function is now reusable",
-      "time": "3 minutes"
-    },
-    "step_3": {
-      "action": "Update useEffect to call the extracted function",
-      "verify": "Component still loads requests on mount",
-      "time": "2 minutes"
-    },
-    "step_4": {
-      "action": "Add onRequestCreated prop to RequestChangeModal interface",
-      "verify": "TypeScript compiles",
-      "time": "2 minutes"
-    },
-    "step_5": {
-      "action": "Pass fetchRequests as prop when rendering modal",
-      "verify": "No TypeScript errors",
-      "time": "2 minutes"
-    },
-    "step_6": {
-      "action": "Call onRequestCreated in success handler",
-      "verify": "Logic flows correctly",
-      "time": "2 minutes"
-    },
-    "step_7": {
-      "action": "OPTIONAL: Update AdminDashboard refresh interval",
-      "verify": "Only if user wants faster updates",
-      "time": "1 minute"
-    },
-    "step_8": {
-      "action": "Test complete flow",
-      "verify": "All checklist items pass",
-      "time": "5 minutes"
-    },
-    "total_time": "~19 minutes (well within 30min limit)"
-  },
-
-  "EXPECTED_RESULT": {
-    "user_experience_before": [
-      "User submits request ’ Modal closes ’ History empty ’ Must refresh page"
+  "TESTING_COMMANDS": {
+    "unit_tests": [
+      "curl 'http://localhost:3001/api/users?role=user&approved=true'",
+      "curl 'http://localhost:3001/api/users?subscriptionType=monthly'",
+      "curl 'http://localhost:3001/api/venues?ownerApproved=true'",
+      "curl 'http://localhost:3001/api/venues?ownerSubscription=monthly'",
+      "curl 'http://localhost:3001/api/galleras?status=pending&ownerApproved=true'"
     ],
-    "user_experience_after": [
-      "User submits request ’ Modal closes ’ History shows new request IMMEDIATELY"
-    ],
-    "admin_experience_before": [
-      "New request submitted ’ Admin sees it after 5 minutes or manual refresh"
-    ],
-    "admin_experience_after": [
-      "New request submitted ’ Admin sees it after 2 minutes (if interval changed)"
+    "build_validation": [
+      "npx tsc --noEmit",
+      "npm run build",
+      "npm run lint"
     ]
   },
 
-  "VALIDATION_BY_CLAUDE": {
-    "code_review_required": true,
-    "test_required": true,
-    "git_commit_message": "fix(frontend): Update membership request history immediately after creation\n\n- Move fetchRequests outside useEffect for reusability\n- Add onRequestCreated callback to RequestChangeModal\n- Call fetchRequests after successful request creation\n- Optional: Reduce admin dashboard refresh from 5min to 2min\n\nFixes #VISUAL_FIX_MEMBERSHIP_UI_001"
+  "GIT_WORKFLOW": {
+    "branch": "Always work on feature branch, never main",
+    "commit_message_format": "feat: Add filter parameters to admin API endpoints\n\n[SIMULATED]\n- Added approved filter to GET /api/users\n- Added subscriptionType filter to GET /api/users\n- Added ownerApproved filter to GET /api/venues\n- Added ownerSubscription filter to GET /api/venues/galleras\n- Added search parameter to GET /api/venues/galleras\n\n[CONFIRMED]\n Subscription model imported\n Sequelize Op imported\n No circular dependencies\n All filters follow existing pattern\n\n[TESTED]\n npx tsc --noEmit passes\n npm run build succeeds\n Verified with curl commands\n\n> Generated with QWEN CLI\nCo-Authored-By: QWEN <noreply@anthropic.com>",
+    "scope_validation": "Run 'git diff --name-only' before commit - output must be:\nbackend/src/routes/users.ts\nbackend/src/routes/venues.ts\nbackend/src/routes/galleras.ts"
   },
 
-  "CONTINGENCY_PLAN": {
-    "if_typescript_errors": "STOP immediately, do not proceed, call Claude",
-    "if_tests_fail": "STOP immediately, do not proceed, call Claude",
-    "if_behavior_broken": "STOP immediately, git reset --hard, call Claude",
-    "if_takes_too_long": "STOP at 25 minutes, report progress to Claude",
-    "emergency_rollback": "git reset --hard HEAD"
+  "WHAT_NOT_TO_DO": {
+    "never": [
+      "L Modify auth.ts, User.ts, or database migration files",
+      "L Change database schema (that's for SQL migrations)",
+      "L Add new dependencies without npm install",
+      "L Skip TypeScript compilation validation",
+      "L Commit changes that fail build",
+      "L Modify files outside [FILES_TO_MODIFY] list",
+      "L Attempt 'improvements' to other files (no scope creep)",
+      "L Commit without [SIMULATED] [CONFIRMED] tags"
+    ],
+    "if_tempted": "Pause and document the opportunity in [OUT_OF_SCOPE] format instead of making changes"
   },
 
-  "FINAL_NOTES": {
-    "approach": "Simple state management fix, no complex logic",
-    "complexity": "LOW - Basic React state update pattern",
-    "risk": "MINIMAL - Only UI state, no backend changes",
-    "reversible": "100% - Easy to rollback if needed",
-    "user_satisfaction": "HIGH - Fixes annoying UX issue"
+  "HANDOFF_REQUIREMENTS": {
+    "when_complete": "Provide Claude with:",
+    "deliverables": [
+      "List of exact changes made (git diff output)",
+      "TypeScript compilation status (output of npx tsc --noEmit)",
+      "Build status (output of npm run build)",
+      "Test command results (curl commands executed)",
+      "Any blockers or issues encountered",
+      "Commit hash and branch name"
+    ],
+    "session_summary": {
+      "ai_used": "QWEN",
+      "duration_actual": "[actual time spent]",
+      "files_modified": "[list with line count changes]",
+      "validation_status": "[all gates passed / failed with details]",
+      "next_ai_context": "Frontend implementation ready to start (Gemini)"
+    }
+  },
+
+  "SUCCESS_CRITERIA": {
+    "task_complete": [
+      " GET /api/users supports approved + subscriptionType filters",
+      " GET /api/venues supports ownerApproved + ownerSubscription + search",
+      " GET /api/galleras supports ownerApproved + ownerSubscription + search",
+      " TypeScript compilation passes",
+      " npm run build succeeds",
+      " Test commands return correct filtered results",
+      " git diff shows ONLY approved files modified",
+      " Commit message includes simulation/confirmation tags"
+    ]
   }
 }

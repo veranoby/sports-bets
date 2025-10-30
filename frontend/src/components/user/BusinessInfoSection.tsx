@@ -43,7 +43,8 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
       <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="flex justify-between items-center mb-4">
           <p className="text-gray-500 text-center flex-1">
-            No se encontró información de la entidad de negocio para este usuario.
+            No se encontró información de la entidad de negocio para este
+            usuario.
           </p>
           {onEdit && (
             <button
