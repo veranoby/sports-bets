@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { User, Venue, Gallera } from "../models";
+import { User, Venue, Gallera, Subscription } from "../models";
 import { body, param, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis";
@@ -51,12 +51,13 @@ router.get(
   authenticate,
   authorize("admin", "operator"),
   asyncHandler(async (req, res) => {
-    const { limit = 50, offset = 0, role, isActive, search } = req.query;
+    const { limit = 50, offset = 0, role, isActive, search, approved, subscriptionType } = req.query;
 
     // Construir filtros
     const where: any = {};
     if (role) where.role = role;
     if (isActive !== undefined) where.isActive = isActive === "true";
+    if (approved !== undefined) where.approved = approved === "true";
     if (search) {
       where[Op.or] = [
         { username: { [Op.iLike]: `%${search}%` } },
@@ -69,6 +70,61 @@ router.get(
       where.role = { [Op.in]: ["venue", "user", "gallera"] };
     }
 
+    // SUBSCRIPTION FILTERING LOGIC:
+    let subscriptionInclude = [];
+    if (subscriptionType === 'free') {
+      // Find users WITH NO active subscription OR with status='free'
+      subscriptionInclude = [{
+        model: Subscription,
+        attributes: ['type', 'status', 'expiresAt'],
+        required: false, // LEFT JOIN to include users without subscriptions
+        where: {
+          [Op.or]: [
+            { status: 'free' },
+            {
+              [Op.and]: [
+                { expiresAt: { [Op.lte]: new Date() } },
+                { status: 'active' }
+              ]
+            }
+          ]
+        }
+      }];
+      // Then filter to only include users where the subscription is NULL (no subscription) OR matches the free criteria
+      where[Op.or] = [
+        { '$subscriptions.id$': null }, // Users with no subscription (free by default)
+        { '$subscriptions.status$': 'free' },
+        {
+          [Op.and]: [
+            { '$subscriptions.expiresAt$': { [Op.lte]: new Date() } },
+            { '$subscriptions.status$': 'active' }
+          ]
+        }
+      ];
+    } else if (subscriptionType === 'monthly') {
+      subscriptionInclude = [{
+        model: Subscription,
+        attributes: ['type', 'status', 'expiresAt'],
+        required: true, // INNER JOIN - only users WITH matching subscription
+        where: {
+          type: 'monthly',
+          status: 'active',
+          expiresAt: { [Op.gt]: new Date() }
+        }
+      }];
+    } else if (subscriptionType === 'daily') {
+      subscriptionInclude = [{
+        model: Subscription,
+        attributes: ['type', 'status', 'expiresAt'],
+        required: true, // INNER JOIN - only users WITH matching subscription
+        where: {
+          type: 'daily',
+          status: 'active',
+          expiresAt: { [Op.gt]: new Date() }
+        }
+      }];
+    }
+
     const users = await User.findAndCountAll({
       where,
       limit: Math.min(parseInt(limit as string), 100),
@@ -76,6 +132,7 @@ router.get(
       attributes: {
         exclude: ["passwordHash", "verificationToken"],
       },
+      include: subscriptionInclude,
       order: [["createdAt", "DESC"]],
     });
 

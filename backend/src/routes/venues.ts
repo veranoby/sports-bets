@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Venue, User } from "../models";
+import { Venue, User, Subscription } from "../models";
 import { body, validationResult } from "express-validator";
 import { getOrSet, invalidatePattern } from "../config/redis";
 import { Op } from "sequelize";
@@ -37,11 +37,11 @@ router.get(
   "/",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const { status, limit = 20, offset = 0 } = req.query as any;
+    const { status, limit = 20, offset = 0, ownerApproved, ownerSubscription, search } = req.query as any;
     const userRole = req.user?.role || 'public';
 
     // ⚡ Redis cache key
-    const cacheKey = `venues:list:${userRole}:${status || ''}:${limit}:${offset}`;
+    const cacheKey = `venues:list:${userRole}:${status || 'all'}:${ownerApproved || 'all'}:${ownerSubscription || 'all'}:${search || 'all'}:${limit}:${offset}`;
 
     const data = await getOrSet(cacheKey, async () => {
       const attributes = getVenueAttributes(req.user?.role);
@@ -51,6 +51,19 @@ router.get(
         role: 'venue',
         isActive: true
       };
+
+      // Add owner approval filter
+      if (ownerApproved !== undefined) {
+        userWhere.approved = ownerApproved === "true";
+      }
+
+      // Add search filter
+      if (search) {
+        userWhere[Op.or] = [
+          { username: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+        ];
+      }
 
       const venueAttributes = [
         "id",
@@ -64,9 +77,64 @@ router.get(
         "updatedAt",
       ];
 
+      // SUBSCRIPTION FILTERING LOGIC:
+      let subscriptionInclude = [];
+      if (ownerSubscription === 'free') {
+        // Find users WITH NO active subscription OR with status='free'
+        subscriptionInclude = [{
+          model: Subscription,
+          attributes: ['type', 'status', 'expiresAt'],
+          required: false, // LEFT JOIN to include users without subscriptions
+          where: {
+            [Op.or]: [
+              { status: 'free' },
+              {
+                [Op.and]: [
+                  { expiresAt: { [Op.lte]: new Date() } },
+                  { status: 'active' }
+                ]
+              }
+            ]
+          }
+        }];
+        // Then filter to only include users where the subscription is NULL (no subscription) OR matches the free criteria
+        userWhere[Op.or] = [
+          { '$subscriptions.id$': null }, // Users with no subscription (free by default)
+          { '$subscriptions.status$': 'free' },
+          {
+            [Op.and]: [
+              { '$subscriptions.expiresAt$': { [Op.lte]: new Date() } },
+              { '$subscriptions.status$': 'active' }
+            ]
+          }
+        ];
+      } else if (ownerSubscription === 'monthly') {
+        subscriptionInclude = [{
+          model: Subscription,
+          attributes: ['type', 'status', 'expiresAt'],
+          required: true, // INNER JOIN - only users WITH matching subscription
+          where: {
+            type: 'monthly',
+            status: 'active',
+            expiresAt: { [Op.gt]: new Date() }
+          }
+        }];
+      } else if (ownerSubscription === 'daily') {
+        subscriptionInclude = [{
+          model: Subscription,
+          attributes: ['type', 'status', 'expiresAt'],
+          required: true, // INNER JOIN - only users WITH matching subscription
+          where: {
+            type: 'daily',
+            status: 'active',
+            expiresAt: { [Op.gt]: new Date() }
+          }
+        }];
+      }
+
       const { count, rows } = await User.findAndCountAll({
         where: userWhere,
-        attributes: ["id", "username", "email", "profileInfo", "createdAt", "updatedAt"],
+        attributes: ["id", "username", "email", "profileInfo", "approved", "createdAt", "updatedAt"],
         include: [
           {
             model: Venue,
@@ -76,6 +144,8 @@ router.get(
             separate: true, // Prevents LIMIT issues with associations
             where: status ? { status } : {},
           },
+          // NEW: Include Subscription for filtering
+          ...subscriptionInclude,
         ],
         order: [["createdAt", "DESC"]],
         limit: parseInt(limit as string),
