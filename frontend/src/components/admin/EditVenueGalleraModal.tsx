@@ -2,7 +2,7 @@
 // Modal unificado para editar venues y galleras con pestañas
 
 import React, { useState } from "react";
-import { usersAPI, venuesAPI, gallerasAPI } from "../../config/api";
+import { usersAPI } from "../../config/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import SubscriptionTabs from "./SubscriptionTabs";
@@ -130,19 +130,21 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     try {
       // Map entity form fields to User.profileInfo based on role
       const entityProfileInfoUpdate = {
-        ...(role === "venue" ? {
-          venueName: entityData.name || "New Venue",
-          venueLocation: entityData.location || "Location TBD",
-          venueDescription: entityData.description,
-          venueEmail: entityData.contactInfo?.email,
-          venueWebsite: entityData.contactInfo?.website,
-        } : {
-          galleraName: entityData.name || "New Gallera",
-          galleraLocation: entityData.location || "Location TBD",
-          galleraDescription: entityData.description,
-          galleraEmail: entityData.contactInfo?.email,
-          galleraWebsite: entityData.contactInfo?.website,
-        })
+        ...(role === "venue"
+          ? {
+              venueName: entityData.name || "New Venue",
+              venueLocation: entityData.location || "Location TBD",
+              venueDescription: entityData.description,
+              venueEmail: entityData.contactInfo?.email,
+              venueWebsite: entityData.contactInfo?.website,
+            }
+          : {
+              galleraName: entityData.name || "New Gallera",
+              galleraLocation: entityData.location || "Location TBD",
+              galleraDescription: entityData.description,
+              galleraEmail: entityData.contactInfo?.email,
+              galleraWebsite: entityData.contactInfo?.website,
+            }),
       };
 
       // Update user profile with both personal and entity info
