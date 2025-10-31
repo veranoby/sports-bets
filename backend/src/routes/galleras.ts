@@ -4,7 +4,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Gallera, User, Subscription } from "../models";
+import { User, Subscription } from "../models";
 import { body, validationResult } from "express-validator";
 import { getOrSet, invalidatePattern } from "../config/redis";
 import { Op } from "sequelize";
@@ -16,14 +16,15 @@ router.get(
   "/",
   optionalAuth, // O `authenticate` si solo usuarios logueados pueden verlas
   asyncHandler(async (req, res) => {
-    const { status, limit = 50, offset = 0, ownerApproved, ownerSubscription, search } = req.query as any;
+    const { limit = 50, offset = 0, ownerApproved, ownerSubscription, search } = req.query as any;
     const userRole = req.user?.role || 'public';
 
     // ⚡ Redis cache key
-    const cacheKey = `galleras:list:${userRole}:${status || 'all'}:${ownerApproved || 'all'}:${ownerSubscription || 'all'}:${search || 'all'}:${limit}:${offset}`;
+    const cacheKey = `galleras:list:${userRole}:${ownerApproved || 'all'}:${ownerSubscription || 'all'}:${search || 'all'}:${limit}:${offset}`;
 
     const data = await getOrSet(cacheKey, async () => {
-      // ✅ CORRECTED: Query from users table (source of truth) → LEFT JOIN galleras
+      // ✅ CONSOLIDATED ARCHITECTURE: Query from users table (source of truth)
+      // Galleras table ELIMINATED - all data in User.profileInfo
       const userWhere: any = {
         role: 'gallera',
         isActive: true
@@ -33,18 +34,6 @@ router.get(
       if (ownerApproved !== undefined) {
         userWhere.approved = ownerApproved === "true";
       }
-
-      const galleraAttributes = [
-        "id",
-        "name",
-        "location",
-        "description",
-        "status",
-        "isVerified",
-        "images",
-        "createdAt",
-        "updatedAt",
-      ];
 
       // 🔧 FIX: Use conditions array to combine search and subscription filters WITHOUT overwriting
       const conditions: any[] = [];
@@ -123,17 +112,9 @@ router.get(
 
       const { count, rows } = await User.findAndCountAll({
         where: userWhere,
-        attributes: ["id", "username", "email", "profileInfo", "approved", "createdAt", "updatedAt"],
+        attributes: ["id", "username", "email", "profileInfo", "approved", "isActive", "createdAt", "updatedAt"],
         include: [
-          {
-            model: Gallera,
-            as: "galleras",
-            attributes: galleraAttributes,
-            required: false, // LEFT JOIN - keeps users without galleras
-            separate: true, // Prevents LIMIT issues with associations
-            where: status ? { status } : {},
-          },
-          // NEW: Include Subscription for filtering
+          // Include Subscription for filtering only
           ...subscriptionInclude,
         ],
         order: [["createdAt", "DESC"]],
@@ -143,28 +124,21 @@ router.get(
       });
 
       // ✅ Transform response to match expected format
+      // CONSOLIDATED ARCHITECTURE: Data comes ONLY from User.profileInfo
       const transformedRows = rows.map((user: any) => {
-        // If user has galleras, return first gallera with user info
-        const gallera = user.galleras?.[0];
-        if (gallera) {
-          return {
-            ...gallera.toJSON(),
-            owner: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              profileInfo: user.profileInfo,
-            },
-          };
-        }
-        // If no gallera record, create synthetic gallera entry from user
         const profile = user.profileInfo || {};
+        // Status is CALCULATED: (isActive && approved) determines status
+        const calculatedStatus =
+          user.isActive && user.approved ? 'active' :
+          user.isActive && !user.approved ? 'pending' :
+          'inactive';
+
         return {
           id: user.id,
           name: (profile as any).galleraName || user.username,
           location: (profile as any).galleraLocation || '',
           description: (profile as any).galleraDescription || '',
-          status: 'pending',
+          status: calculatedStatus,
           isVerified: false,
           images: (profile as any).galleraImages || [],
           createdAt: user.createdAt,
@@ -193,7 +167,7 @@ router.get(
   })
 );
 
-// GET /api/galleras/:id - Obtener gallera específica
+// GET /api/galleras/:id - Obtener gallera específica (usuario con rol='gallera')
 router.get(
   "/:id",
   optionalAuth,
@@ -202,24 +176,44 @@ router.get(
     const cacheKey = `gallera:${req.params.id}:${userRole}`;
 
     const data = await getOrSet(cacheKey, async () => {
-      const gallera = await Gallera.findByPk(req.params.id, {
-        include: [
-          {
-            model: User,
-            as: "owner",
-            attributes: ["id", "username", "email", "profileInfo"],
-            separate: false,
-          },
-        ],
+      // CONSOLIDATED ARCHITECTURE: Get user with role='gallera' instead of Gallera table
+      const user = await User.findOne({
+        where: { id: req.params.id, role: 'gallera' },
+        attributes: ["id", "username", "email", "profileInfo", "approved", "isActive", "createdAt", "updatedAt"],
       });
 
-      if (!gallera) {
+      if (!user) {
         throw errors.notFound("Gallera not found");
       }
 
+      // Transform user to gallera response format
+      const profile = user.profileInfo || {};
+      const calculatedStatus =
+        user.isActive && user.approved ? 'active' :
+        user.isActive && !user.approved ? 'pending' :
+        'inactive';
+
+      const galleraData = {
+        id: user.id,
+        name: (profile as any).galleraName || user.username,
+        location: (profile as any).galleraLocation || '',
+        description: (profile as any).galleraDescription || '',
+        status: calculatedStatus,
+        isVerified: false,
+        images: (profile as any).galleraImages || [],
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        owner: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          profileInfo: user.profileInfo,
+        },
+      };
+
       return {
         success: true,
-        data: gallera,
+        data: galleraData,
       };
     }, 300); // 5 min TTL
 
@@ -227,244 +221,9 @@ router.get(
   })
 );
 
-// POST /api/galleras - Crear nueva gallera (admin/owner)
-router.post(
-  "/",
-  authenticate,
-  authorize("admin", "gallera"),
-  [
-    body("name")
-      .isLength({ min: 3, max: 255 })
-      .withMessage("Name must be between 3 and 255 characters"),
-    body("location")
-      .isLength({ min: 5, max: 500 })
-      .withMessage("Location must be between 5 and 500 characters"),
-    body("description")
-      .optional()
-      .isLength({ max: 2000 })
-      .withMessage("Description must not exceed 2000 characters"),
-    body("contactInfo")
-      .optional()
-      .isObject()
-      .withMessage("Contact info must be an object"),
-    body("ownerId")
-      .optional()
-      .isUUID()
-      .withMessage("Owner ID must be a valid UUID"),
-  ],
-  asyncHandler(async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      throw errors.badRequest(
-        "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
-      );
-    }
-
-    const { name, location, description, specialties, activeRoosters, fightRecord, ownerId, contactInfo } = req.body;
-    
-    console.log('Creating gallera with data:', req.body);
-    
-    // Admin can create for any user, others only for themselves
-    const finalOwnerId = req.user!.role === 'admin' ? (ownerId || req.user!.id) : req.user!.id;
-
-    const gallera = await Gallera.create({
-      name,
-      location,
-      description,
-      ownerId: finalOwnerId,
-      specialties,
-      activeRoosters: activeRoosters || 0,
-      fightRecord,
-      contactInfo: contactInfo || {},
-      status: req.user!.role === 'admin' ? 'active' : 'pending'
-    });
-
-    console.log('Gallera created successfully:', gallera.toJSON());
-
-    // ⚡ Invalidate cache
-    await invalidatePattern('galleras:list:*');
-
-    res.status(201).json({
-      success: true,
-      message: "Gallera creada exitosamente",
-      data: gallera,
-    });
-  })
-);
-
-// PUT /api/galleras/:id - Actualizar gallera
-router.put(
-  "/:id",
-  authenticate,
-  authorize("admin", "gallera"),
-  [
-    body("name")
-      .optional()
-      .isLength({ min: 3, max: 255 })
-      .withMessage("Name must be between 3 and 255 characters"),
-    body("location")
-      .optional()
-      .isLength({ min: 5, max: 500 })
-      .withMessage("Location must be between 5 and 500 characters"),
-    body("description")
-      .optional()
-      .isLength({ max: 2000 })
-      .withMessage("Description must not exceed 2000 characters"),
-    body("contactInfo")
-      .optional()
-      .isObject()
-      .withMessage("Contact info must be an object"),
-    body("images")
-      .optional()
-      .isArray()
-      .withMessage("Images must be an array of URLs"),
-    body("status")
-      .optional()
-      .isIn(["pending", "active", "suspended", "rejected"])
-      .withMessage("Invalid status"),
-  ],
-  asyncHandler(async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      throw errors.badRequest(
-        "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
-      );
-    }
-
-    const gallera = await Gallera.findByPk(req.params.id);
-    
-    if (!gallera) {
-      throw errors.notFound("Gallera not found");
-    }
-
-    // Check permissions
-    const isOwner = gallera.ownerId === req.user!.id;
-    const isAdmin = req.user!.role === 'admin';
-    
-    if (!isOwner && !isAdmin) {
-      throw errors.forbidden("You can only edit your own gallera");
-    }
-
-    console.log('Updating gallera with data:', req.body);
-
-    const allowedFields = ["name", "location", "description", "specialties", "activeRoosters", "fightRecord", "images", "contactInfo"];
-    if (isAdmin) {
-      allowedFields.push("status", "isVerified");
-    }
-
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        (gallera as any)[field] = req.body[field];
-        console.log(`Updated field ${field}:`, (gallera as any)[field]);
-      }
-    });
-
-    await gallera.save();
-    console.log('Gallera saved successfully');
-
-    // ⚡ Invalidate cache
-    await Promise.all([
-      invalidatePattern('galleras:list:*'),
-      invalidatePattern(`gallera:${req.params.id}:*`)
-    ]);
-
-    res.json({
-      success: true,
-      message: "Información de la gallera actualizada exitosamente",
-      data: gallera,
-    });
-  })
-);
-
-// DELETE /api/galleras/:id - Eliminar gallera (admin only)
-router.delete(
-  "/:id",
-  authenticate,
-  authorize("admin"),
-  asyncHandler(async (req, res) => {
-    const gallera = await Gallera.findByPk(req.params.id);
-    
-    if (!gallera) {
-      throw errors.notFound("Gallera not found");
-    }
-
-    await gallera.destroy();
-
-    // ⚡ Invalidate cache
-    await Promise.all([
-      invalidatePattern('galleras:list:*'),
-      invalidatePattern(`gallera:${req.params.id}:*`)
-    ]);
-
-    res.json({
-      success: true,
-      message: "Gallera deleted successfully",
-    });
-  })
-);
-
-// PUT /api/galleras/:id/status - Cambiar estado de gallera (solo admin)
-router.put(
-  "/:id/status",
-  authenticate,
-  authorize("admin"),
-  [
-    body("status")
-      .isIn(["pending", "active", "suspended", "rejected"])
-      .withMessage("Invalid status"),
-    body("reason")
-      .optional()
-      .isLength({ max: 500 })
-      .withMessage("Reason must not exceed 500 characters"),
-  ],
-  asyncHandler(async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      throw errors.badRequest(
-        "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
-      );
-    }
-
-    const { status, reason } = req.body;
-
-    const gallera = await Gallera.findByPk(req.params.id);
-    if (!gallera) {
-      throw errors.notFound("Gallera not found");
-    }
-
-    const oldStatus = gallera.status;
-    gallera.status = status;
-    await gallera.save();
-
-    // Log de auditoría
-    require("../config/logger").logger.info(
-      `Gallera ${gallera.name} (${gallera.id}) status changed from ${oldStatus} to ${status} by admin ${req.user!.username}. Reason: ${reason || "Not specified"}`
-    );
-
-    // ⚡ Invalidate cache
-    await Promise.all([
-      invalidatePattern('galleras:list:*'),
-      invalidatePattern(`gallera:${req.params.id}:*`)
-    ]);
-
-    res.json({
-      success: true,
-      message: `Gallera status updated to ${status}`,
-      data: gallera,
-    });
-  })
-);
+// NOTE 2025-10-30: POST, PUT, DELETE endpoints removed
+// CONSOLIDATED ARCHITECTURE: Gallera data is now managed through User endpoints
+// Instead of /galleras POST/PUT/DELETE, use /users POST/PUT endpoints
+// Gallera profile data is stored in User.profileInfo (galleraName, galleraLocation, etc.)
 
 export default router;

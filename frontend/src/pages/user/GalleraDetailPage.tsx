@@ -20,6 +20,7 @@ import {
   Award,
   Clock,
 } from "lucide-react";
+import ImageCarouselViewer from "../../components/shared/ImageCarouselViewer";
 
 interface ArticleLite {
   id: string;
@@ -55,15 +56,16 @@ const GalleraDetailPage: React.FC = () => {
             galleraResponse.error || "Error al cargar institución",
           );
         }
-        setGallera(galleraResponse.data);
+        const galleraData = galleraResponse.data as any;
+        setGallera(galleraData);
 
         // ⚡ Optimized: Try ownerId first, then fallback to owner data
         let ownerId =
-          galleraResponse.data.ownerId || galleraResponse.data.owner?.id;
+          galleraData.ownerId || galleraData.owner?.id;
 
         // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
-        if (!ownerId && galleraResponse.data.owner?.id) {
-          ownerId = galleraResponse.data.owner.id;
+        if (!ownerId && galleraData.owner?.id) {
+          ownerId = galleraData.owner.id;
         }
 
         if (ownerId) {
@@ -71,7 +73,7 @@ const GalleraDetailPage: React.FC = () => {
             author_id: ownerId,
           });
           if (articlesResponse.success) {
-            setArticles(articlesResponse.data.articles || []);
+            setArticles((articlesResponse.data as any)?.articles || []);
           }
         }
       } catch (err) {
@@ -252,6 +254,14 @@ const GalleraDetailPage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Image Carousel */}
+          {gallera.images && gallera.images.length > 0 && (
+            <ImageCarouselViewer
+              images={gallera.images}
+              title="Galería de la Institución"
+            />
+          )}
         </div>
 
         {/* Statistics Grid */}

@@ -19,6 +19,7 @@ import {
   Clock,
   Zap,
 } from "lucide-react";
+import ImageCarouselViewer from "../../components/shared/ImageCarouselViewer";
 
 interface ArticleLite {
   id: string;
@@ -52,15 +53,16 @@ const VenueDetailPage: React.FC = () => {
         if (!venueResponse.success) {
           throw new Error(venueResponse.error || "Error al cargar venue");
         }
-        setVenue(venueResponse.data);
+        const venueData = venueResponse.data as any;
+        setVenue(venueData);
 
         // ⚡ Optimized: Try ownerId first, then fallback to owner data
         let ownerId =
-          venueResponse.data.ownerId || venueResponse.data.owner?.id;
+          venueData.ownerId || venueData.owner?.id;
 
         // Fallback: If no ownerId, try to find via owner relationship (for compatibility)
-        if (!ownerId && venueResponse.data.owner?.id) {
-          ownerId = venueResponse.data.owner.id;
+        if (!ownerId && venueData.owner?.id) {
+          ownerId = venueData.owner.id;
         }
 
         if (ownerId) {
@@ -178,6 +180,14 @@ const VenueDetailPage: React.FC = () => {
               <p className="text-theme-light leading-relaxed">{description}</p>
             </div>
           </div>
+
+          {/* Image Carousel */}
+          {venue.images && venue.images.length > 0 && (
+            <ImageCarouselViewer
+              images={venue.images}
+              title="Galería del Local"
+            />
+          )}
         </div>
 
         {/* Statistics Grid */}

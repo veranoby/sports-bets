@@ -12,7 +12,7 @@ interface ImageGalleryUploadProps {
 const ImageGalleryUpload: React.FC<ImageGalleryUploadProps> = ({
   images,
   onImagesChange,
-  maxImages = 10,
+  maxImages = 3,
   label = "Galería de Imágenes",
 }) => {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);

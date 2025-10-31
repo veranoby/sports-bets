@@ -34,6 +34,7 @@ export interface User {
   passwordUpdatedAt?: string;
   role: "admin" | "operator" | "venue" | "user" | "gallera";
   isActive: boolean;
+  approved?: boolean;
   profileInfo?: {
     fullName?: string;
     phoneNumber?: string;

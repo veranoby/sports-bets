@@ -24,14 +24,13 @@ import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"
 import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
 
 // APIs
-import { venuesAPI, usersAPI, userAPI } from "../../services/api";
+import { userAPI } from "../../services/api";
 
 // Tipos
-import type { User as UserType, Venue as VenueType } from "../../types";
+import type { User as UserType } from "../../types";
 
 interface CombinedVenueData {
   user: UserType;
-  venue?: VenueType;
 }
 
 const AdminVenuesPage: React.FC = () => {
@@ -62,27 +61,26 @@ const AdminVenuesPage: React.FC = () => {
     try {
       const params: any = {
         limit: 1000,
-        role: 'venue'
+        role: "venue",
       };
-      if (venueStatus !== 'all') {
+      if (venueStatus !== "all") {
         params.status = venueStatus;
       }
-      if (ownerApproved !== 'all') {
-        params.ownerApproved = ownerApproved === 'approved';
+      if (ownerApproved !== "all") {
+        params.ownerApproved = ownerApproved === "approved";
       }
-      if (ownerSubscription !== 'all') {
+      if (ownerSubscription !== "all") {
         params.ownerSubscription = ownerSubscription;
       }
       if (searchTerm) {
         params.search = searchTerm;
       }
-      
-      const res = await usersAPI.getAll(params);
+
+      const res = await userAPI.getAll(params);
       if (res.success) {
         const users = (res.data as any)?.users || [];
         const data = users.map((user: UserType) => ({
           user: user,
-          venue: user.venues?.[0],
         }));
         setCombinedData(data || []);
       } else {
@@ -90,7 +88,7 @@ const AdminVenuesPage: React.FC = () => {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred",
       );
     } finally {
       setLoading(false);
@@ -139,12 +137,13 @@ const AdminVenuesPage: React.FC = () => {
   const filteredData = useMemo(
     () =>
       combinedData.filter(
-        ({ user, venue }) =>
+        ({ user }) =>
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (venue &&
-            venue.name.toLowerCase().includes(searchTerm.toLowerCase())),
+          ((user.profileInfo as any)?.venueName || '')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
       ),
     [combinedData, searchTerm],
   );
@@ -162,49 +161,6 @@ const AdminVenuesPage: React.FC = () => {
       setEditingData(userData);
       setIsEditModalOpen(true);
     }
-  };
-
-  // Handler para suspensión/activación
-  const handleToggleStatus = async (
-    venueId?: string,
-    currentStatus?: string,
-  ) => {
-    if (!venueId) {
-      setError("No hay venue asociado para actualizar.");
-      return;
-    }
-
-    const newStatus = currentStatus === "suspended" ? "active" : "suspended";
-    const actionMessage =
-      currentStatus === "suspended" ? "reactivar" : "desactivar";
-
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres ${actionMessage} este venue?`,
-      )
-    ) {
-      return;
-    }
-
-    setError(null);
-
-    try {
-      const venueRes = await venuesAPI.updateStatus(venueId, newStatus);
-      if (!venueRes.success) {
-        setError(venueRes.error || `Error al ${actionMessage} el venue`);
-        return;
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : `Error al ${actionMessage} el venue`,
-      );
-      return;
-    }
-
-    // Actualizar la lista
-    fetchData();
   };
 
   const handleCreate = () => {
@@ -308,7 +264,13 @@ const AdminVenuesPage: React.FC = () => {
 
         {/* Grid de Venues */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(({ user, venue }) => (
+          {filteredData.map(({ user }) => {
+            const profile = user.profileInfo || {};
+            const venueName = (profile as any).venueName || user.username;
+            const venueLocation = (profile as any).venueLocation || "Ubicación no especificada";
+            const venueStatus = user.isActive && user.approved ? "active" : user.isActive && !user.approved ? "pending" : "inactive";
+
+            return (
             <div
               key={user.id}
               className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
@@ -316,17 +278,15 @@ const AdminVenuesPage: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {venue ? venue.name : "Venue no asignada"}
+                    {venueName}
                   </h3>
-                  {venue && <StatusChip status={venue.status} size="sm" />}
+                  <StatusChip status={venueStatus} size="sm" />
                 </div>
 
-                {venue && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{venue.location}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span>{venueLocation}</span>
+                </div>
 
                 <div className="border-t border-gray-100 pt-3 mt-3">
                   <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
@@ -353,59 +313,10 @@ const AdminVenuesPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                {venue && venue.status === "active" ? (
-                  <button
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `¿Estás seguro de que quieres desactivar la venue "${venue.name}"?`,
-                        )
-                      ) {
-                        venuesAPI.updateStatus(venue.id, "suspended");
-                      }
-                    }}
-                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Desactivar
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `¿Estás seguro de que quieres activar la venue "${user.username}"?`,
-                          )
-                        ) {
-                          venuesAPI.update(venue.id, { status: "active" });
-                        }
-                      }}
-                      className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Activar
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
-                          )
-                        ) {
-                          userAPI.delete(user.id);
-                        }
-                      }}
-                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Eliminar
-                    </button>
-                  </>
-                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredData.length === 0 && !loading && (
@@ -432,7 +343,6 @@ const AdminVenuesPage: React.FC = () => {
       {isEditModalOpen && editingData && (
         <EditVenueGalleraModal
           user={editingData.user}
-          venue={editingData.venue}
           role="venue"
           onClose={handleCloseModal}
           onSaved={handleSave}

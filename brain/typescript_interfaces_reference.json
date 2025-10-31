@@ -40,9 +40,10 @@
         "extended_fields": ["location", "description", "establishedDate", "certified", "rating", "premiumLevel", "specialties", "imageUrl"]
       },
       "backend_sync": {
-        "automatic_sync": "User.profileInfo changes sync to Venue/Gallera dedicated tables",
-        "trigger_fields": ["venueName → venues.name", "galleraName → galleras.name"],
-        "endpoint": "/users/profile (PUT) - triggers sync in backend/src/routes/users.ts:220-290"
+        "🔴_CRITICAL_2025_10_30": "CONSOLIDATED ARCHITECTURE - NO SYNC NEEDED",
+        "architecture_note": "venues and galleras tables ELIMINATED. All data stored ONLY in User.profileInfo JSONB field",
+        "profile_data_location": "User.profileInfo (single source of truth)",
+        "endpoint": "/users/profile (PUT) - updates User.profileInfo directly, no sync to other tables needed"
       }
     },
     "UserSubscription": {
@@ -154,29 +155,30 @@
     },
     "Venue": {
       "file": "/frontend/src/types/index.ts",
-      "required_properties": ["id", "name", "isActive", "createdAt", "updatedAt"],
-      "optional_properties": ["address", "location", "description", "status", "images", "ownerId", "contactInfo"],
-      "contactInfo_structure": {
-        "phone": "string?",
-        "email": "string?",
-        "website": "string?",
-        "address": "string?"
-      },
-      "api_endpoint_note": "✅ CORRECTED 2025-10-18: GET /venues now returns complete list of venue users (role='venue') including those without extended venues records. Response includes synthetic venue objects for users without venues table entries.",
+      "deprecated": "🔴 2025-10-30 CRITICAL: venues table ELIMINATED. Venue data now in User.profileInfo",
+      "note_2025_10_30": "GET /venues returns User objects (role='venue'), NOT Venue objects. Frontend MUST access profileInfo for venue details.",
+      "api_endpoint_note": "🔴 CHANGED 2025-10-30: GET /venues now returns User.findAndCountAll({role:'venue'}) with data in profileInfo (venueName, venueLocation, venueDescription, etc). NO venues table exists.",
       "response_structure": {
-        "venues": [
+        "users": [
           {
-            "id": "UUID (user.id if no venue record)",
-            "name": "venue.name OR user.profileInfo.venueName OR user.username",
-            "location": "venue.location OR ''",
-            "description": "venue.description OR ''",
-            "status": "venue.status OR 'pending'",
-            "isVerified": "venue.isVerified OR false",
-            "images": "venue.images OR []",
-            "owner": {"id": "string", "username": "string", "email": "string", "profileInfo": "object"}
+            "id": "UUID (user.id)",
+            "username": "string",
+            "email": "string",
+            "role": "'venue'",
+            "approved": "boolean",
+            "profileInfo": {
+              "venueName": "string (was venue.name)",
+              "venueLocation": "string (was venue.location)",
+              "venueDescription": "string (was venue.description)",
+              "venueEmail": "string",
+              "venueWebsite": "string",
+              "businessName": "string"
+            },
+            "images": "string[] | null"
           }
         ]
-      }
+      },
+      "frontend_migration": "Replace venue.name → user.profileInfo.venueName, venue.location → user.profileInfo.venueLocation, etc"
     },
     "Article": {
       "file": "/frontend/src/types/article.ts",
@@ -205,29 +207,36 @@
     },
     "Gallera": {
       "file": "/frontend/src/types/index.ts",
-      "required_properties": ["id", "name", "createdAt", "updatedAt"],
-      "optional_properties": ["location", "description", "status", "specialties", "fightRecord", "images", "ownerId", "articles"],
-      "specialties_union": "string | { breeds: unknown[]; trainingMethods: unknown[]; experience: string }",
-      "api_endpoint_note": "✅ CORRECTED 2025-10-18: GET /galleras now returns complete list of gallera users (role='gallera') including those without extended galleras records. Response includes synthetic gallera objects for users without galleras table entries.",
+      "deprecated": "🔴 2025-10-30 CRITICAL: galleras table ELIMINATED. Gallera data now in User.profileInfo",
+      "note_2025_10_30": "GET /galleras returns User objects (role='gallera'), NOT Gallera objects. Frontend MUST access profileInfo for gallera details.",
+      "api_endpoint_note": "🔴 CHANGED 2025-10-30: GET /galleras now returns User.findAndCountAll({role:'gallera'}) with data in profileInfo (galleraName, galleraLocation, galleraDescription, etc). NO galleras table exists.",
       "response_structure": {
-        "galleras": [
+        "users": [
           {
-            "id": "UUID (user.id if no gallera record)",
-            "name": "gallera.name OR user.profileInfo.galleraName OR user.username",
-            "location": "gallera.location OR ''",
-            "description": "gallera.description OR ''",
-            "status": "gallera.status OR 'pending'",
-            "isVerified": "gallera.isVerified OR false",
-            "images": "gallera.images OR []",
-            "owner": {"id": "string", "username": "string", "email": "string", "profileInfo": "object"}
+            "id": "UUID (user.id)",
+            "username": "string",
+            "email": "string",
+            "role": "'gallera'",
+            "approved": "boolean",
+            "profileInfo": {
+              "galleraName": "string (was gallera.name)",
+              "galleraLocation": "string (was gallera.location)",
+              "galleraDescription": "string (was gallera.description)",
+              "galleraEmail": "string",
+              "galleraWebsite": "string",
+              "galleraSpecialties": "string | object (was specialties)",
+              "galleraActiveRoosters": "number (was activeRoosters)",
+              "businessName": "string"
+            },
+            "images": "string[] | null"
           }
         ]
       },
+      "frontend_migration": "Replace gallera.name → user.profileInfo.galleraName, gallera.location → user.profileInfo.galleraLocation, etc",
       "common_errors": [
-        "Assuming specialties is always string",
-        "Missing fightRecord property access",
-        "Forgetting articles array for gallera detail pages",
-        "Assuming all role='gallera' users have galleras table records (NOW FIXED)"
+        "❌ NEVER access venue or gallera table directly - tables don't exist",
+        "❌ NEVER destructure response.data.venues/galleras - it returns response.data.users",
+        "✅ Always access profileInfo fields: user.profileInfo.galleraName, user.profileInfo.venueName, etc"
       ]
     }
   },

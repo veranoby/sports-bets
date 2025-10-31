@@ -80,7 +80,12 @@
         "subscriptionType": "'free'|'monthly'|'daily' - filter by active subscription type",
         "combining_filters": "✅ All filters can be combined. Example: /users?search=john&approved=false&subscriptionType=monthly",
         "note_2025_10_30": "Backend updated to support combined filters using Op.and(Op.or(...)) pattern. Filters work independently AND together."
-      }
+      },
+      "🔴_CRITICAL_CHANGE_2025_10_30": "CONSOLIDATED ARCHITECTURE: venues and galleras tables ELIMINATED. All data now in User.profileInfo for users with role='venue' or role='gallera'",
+      "usage_for_venues": "/users?role=venue → Returns User[] with profileInfo.venueName, venueLocation, venueDescription, venueEmail, venueWebsite, venueImages (max 3)",
+      "usage_for_galleras": "/users?role=gallera → Returns User[] with profileInfo.galleraName, galleraLocation, galleraDescription, galleraEmail, galleraWebsite, galleraSpecialties, galleraActiveRoosters, galleraImages (max 3)",
+      "status_field_logic": "Status is CALCULATED field, not stored. Derived from (User.isActive && User.approved): true+true='active', true+false='pending', false+true='inactive', false+false='rejected'. NO status filter in venues/galleras queries.",
+      "image_constraints": "profileInfo.venueImages and profileInfo.galleraImages limited to maximum 3 images per business for security and bandwidth"
     },
     "get_user_by_id": {
       "method": "GET",
@@ -111,12 +116,12 @@
         "Operators can only create venue/user/gallera roles"
       ],
       "auto_creation": {
-        "venue_entity": "If role='venue', automatically creates Venue record with ownerId and status='active'",
-        "gallera_entity": "If role='gallera', automatically creates Gallera record with ownerId and status='active'",
+        "🔴_NOTE_2025_10_30": "Venue/Gallera tables ELIMINATED. No longer creates dedicated records.",
+        "profile_initialization": "If role='venue' or role='gallera', prepares empty profileInfo structure for user to fill in business details",
         "approval_status": "Admin-created users marked as approved=true (auto-approved)",
         "added_date": "2025-10-29"
       },
-      "note": "UPDATED 2025-10-29: Now accepts admin/operator roles, auto-creates entity records"
+      "note": "UPDATED 2025-10-30: role='venue'|'gallera' users store business data in User.profileInfo, NOT in separate tables"
     },
     "update_user_password": {
       "method": "PUT",
@@ -169,16 +174,16 @@
   },
 
   "venue_endpoints": {
-    "CRITICAL_NOTE": "Frontend MUST use /venues NOT /users?role=venue",
-    "implementation_note": "✅ CORRECTED 2025-10-18: Query fixed from Venue.findAndCountAll() to User.findAndCountAll(role='venue') → LEFT JOIN venues. Returns all venue users including those without venues records.",
+    "CRITICAL_NOTE": "⚠️ 2025-10-30: Venues table ELIMINATED. Frontend MUST use /venues (returns User objects with role='venue')",
+    "implementation_note": "🔴 CRITICAL CHANGE 2025-10-30: venues table DELETED from Neon. GET /venues now returns User.findAndCountAll({role:'venue'}) with profileInfo containing venueName, venueLocation, etc. NO MORE LEFT JOIN venues. Data consolidated in User.profileInfo.",
     "list_venues": {
       "method": "GET",
       "path": "/venues",
       "query_params": ["limit", "offset", "search", "ownerApproved", "ownerSubscription"],
-      "response": {"success": true, "data": {"venues": "array", "total": "number"}},
+      "response": {"success": true, "data": {"users": "array (users with role='venue')", "total": "number"}},
       "auth_required": false,
       "middleware": "optionalAuth",
-      "query_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (required:false)",
+      "query_pattern": "User.findAndCountAll({role:'venue', isActive:true}) - NO JOIN, data in profileInfo",
       "filter_support": {
         "search": "string - search venue/owner username or email",
         "ownerApproved": "'true'|'false' - filter by venue owner approval status",
@@ -197,13 +202,15 @@
       "path": "/venues/:id",
       "auth_required": false,
       "middleware": "optionalAuth",
-      "response": {"success": true, "data": "venue_object_with_owner"}
+      "response": {"success": true, "data": "user_object (role='venue') with profileInfo.venueName, venueLocation, etc"},
+      "note": "Returns User, not Venue. Venue data in User.profileInfo"
     },
     "update_venue": {
       "method": "PUT",
       "path": "/venues/:id",
       "auth_required": true,
-      "body": {"name": "string (optional)", "location": "string (optional)", "description": "string (optional)", "contactInfo": "object (optional)", "images": "string[] (optional) - Array of image URLs"},
+      "body": {"profileInfo": {venueName: "string", venueLocation: "string", venueDescription: "string", venueEmail: "string", venueWebsite: "string"}, "images": "string[] (optional)"},
+      "note": "🔴 CHANGED 2025-10-30: Updates User.profileInfo (venue fields), not venue table",
       "images_support": {
         "field_name": "images",
         "type": "Array<string>",
@@ -222,16 +229,16 @@
   },
 
   "gallera_endpoints": {
-    "CRITICAL_NOTE": "Frontend MUST use /galleras NOT /users?role=gallera",
-    "implementation_note": "✅ CORRECTED 2025-10-18: Query fixed from Gallera.findAndCountAll() to User.findAndCountAll(role='gallera') → LEFT JOIN galleras. Returns all gallera users including those without galleras records.",
+    "CRITICAL_NOTE": "⚠️ 2025-10-30: Galleras table ELIMINATED. Frontend MUST use /galleras (returns User objects with role='gallera')",
+    "implementation_note": "🔴 CRITICAL CHANGE 2025-10-30: galleras table DELETED from Neon. GET /galleras now returns User.findAndCountAll({role:'gallera'}) with profileInfo containing galleraName, galleraLocation, etc. NO MORE LEFT JOIN galleras. Data consolidated in User.profileInfo.",
     "list_galleras": {
       "method": "GET",
       "path": "/galleras",
       "query_params": ["limit", "offset", "search", "ownerApproved", "ownerSubscription"],
-      "response": {"success": true, "data": {"galleras": "array", "total": "number"}},
+      "response": {"success": true, "data": {"users": "array (users with role='gallera')", "total": "number"}},
       "auth_required": false,
       "middleware": "optionalAuth",
-      "query_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (required:false)",
+      "query_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) - NO JOIN, data in profileInfo",
       "filter_support": {
         "search": "string - search gallera/owner username or email",
         "ownerApproved": "'true'|'false' - filter by gallera owner approval status",
@@ -250,13 +257,15 @@
       "path": "/galleras/:id",
       "auth_required": false,
       "middleware": "optionalAuth",
-      "response": {"success": true, "data": "gallera_object_with_owner"}
+      "response": {"success": true, "data": "user_object (role='gallera') with profileInfo.galleraName, galleraLocation, etc"},
+      "note": "Returns User, not Gallera. Gallera data in User.profileInfo"
     },
     "update_gallera": {
       "method": "PUT",
       "path": "/galleras/:id",
       "auth_required": true,
-      "body": {"name": "string (optional)", "location": "string (optional)", "description": "string (optional)", "specialties": "object (optional)", "activeRoosters": "number (optional)", "fightRecord": "object (optional)", "contactInfo": "object (optional)", "images": "string[] (optional) - Array of image URLs"},
+      "body": {"profileInfo": {galleraName: "string", galleraLocation: "string", galleraDescription: "string", galleraEmail: "string", galleraWebsite: "string", galleraSpecialties: "object", galleraActiveRoosters: "number"}, "images": "string[] (optional)"},
+      "note": "🔴 CHANGED 2025-10-30: Updates User.profileInfo (gallera fields), not gallera table",
       "images_support": {
         "field_name": "images",
         "type": "Array<string>",

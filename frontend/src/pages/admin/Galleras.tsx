@@ -24,14 +24,13 @@ import CreateUserModal from "../../components/admin/CreateUserModal"; // Import 
 import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
 
 // APIs
-import { gallerasAPI, usersAPI, userAPI } from "../../services/api";
+import { userAPI } from "../../services/api";
 
 // Tipos
-import type { User as UserType, Gallera as GalleraType } from "../../types";
+import type { User as UserType } from "../../types";
 
 interface CombinedGalleraData {
   user: UserType;
-  gallera?: GalleraType;
 }
 
 const AdminGallerasPage: React.FC = () => {
@@ -59,7 +58,7 @@ const AdminGallerasPage: React.FC = () => {
     try {
       const params: any = {
         limit: 1000,
-        role: 'gallera'
+        role: "gallera",
       };
       if (galleraStatus !== "all") {
         params.status = galleraStatus;
@@ -73,13 +72,12 @@ const AdminGallerasPage: React.FC = () => {
       if (searchTerm) {
         params.search = searchTerm;
       }
-      
-      const res = await usersAPI.getAll(params);
+
+      const res = await userAPI.getAll(params);
       if (res.success) {
         const users = (res.data as any)?.users || [];
         const data = users.map((user: UserType) => ({
           user: user,
-          gallera: user.galleras?.[0],
         }));
         setCombinedData(data || []);
       } else {
@@ -87,7 +85,7 @@ const AdminGallerasPage: React.FC = () => {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred",
       );
     } finally {
       setLoading(false);
@@ -136,12 +134,13 @@ const AdminGallerasPage: React.FC = () => {
   const filteredData = useMemo(
     () =>
       combinedData.filter(
-        ({ user, gallera }) =>
+        ({ user }) =>
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (gallera &&
-            gallera.name.toLowerCase().includes(searchTerm.toLowerCase())),
+          ((user.profileInfo as any)?.galleraName || '')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
       ),
     [combinedData, searchTerm],
   );
@@ -162,49 +161,6 @@ const AdminGallerasPage: React.FC = () => {
       setEditingData(userData);
       setIsEditModalOpen(true);
     }
-  };
-
-  // Handler para suspensión/activación
-  const handleToggleStatus = async (
-    galleraId?: string,
-    currentStatus?: string,
-  ) => {
-    if (!galleraId) {
-      setError("No hay gallera asociada para actualizar.");
-      return;
-    }
-
-    const newStatus = currentStatus === "suspended" ? "active" : "suspended";
-    const actionMessage =
-      currentStatus === "suspended" ? "reactivar" : "desactivar";
-
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres ${actionMessage} esta gallera?`,
-      )
-    ) {
-      return;
-    }
-
-    setError(null);
-
-    try {
-      const galleraRes = await gallerasAPI.updateStatus(galleraId, newStatus);
-      if (!galleraRes.success) {
-        setError(galleraRes.error || `Error al ${actionMessage} la gallera`);
-        return;
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : `Error al ${actionMessage} la gallera`,
-      );
-      return;
-    }
-
-    // Actualizar la lista
-    fetchData();
   };
 
   const handleCreate = () => {
@@ -308,7 +264,13 @@ const AdminGallerasPage: React.FC = () => {
 
         {/* Grid de Galleras */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(({ user, gallera }) => (
+          {filteredData.map(({ user }) => {
+            const profile = user.profileInfo || {};
+            const galleraName = (profile as any).galleraName || user.username;
+            const galleraLocation = (profile as any).galleraLocation || "Ubicación no especificada";
+            const galleraStatus = user.isActive && user.approved ? "active" : user.isActive && !user.approved ? "pending" : "inactive";
+
+            return (
             <div
               key={user.id}
               className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
@@ -316,17 +278,15 @@ const AdminGallerasPage: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {gallera ? gallera.name : "Gallera no asignada"}
+                    {galleraName}
                   </h3>
-                  {gallera && <StatusChip status={gallera.status} size="sm" />}
+                  <StatusChip status={galleraStatus} size="sm" />
                 </div>
 
-                {gallera && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{gallera.location}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span>{galleraLocation}</span>
+                </div>
 
                 <div className="border-t border-gray-100 pt-3 mt-3">
                   <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
@@ -361,59 +321,10 @@ const AdminGallerasPage: React.FC = () => {
                   <Edit className="w-4 h-4" />
                   Editar
                 </button>
-                {gallera && gallera.status === "active" ? (
-                  <button
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `¿Estás seguro de que quieres desactivar la gallera "${gallera.name}"?`,
-                        )
-                      ) {
-                        gallerasAPI.updateStatus(gallera.id, "suspended");
-                      }
-                    }}
-                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Desactivar
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `¿Estás seguro de que quieres activar al usuario "${user.username}"?`,
-                          )
-                        ) {
-                          usersAPI.updateStatus(user.id, true);
-                        }
-                      }}
-                      className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Activar
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`,
-                          )
-                        ) {
-                          userAPI.delete(user.id);
-                        }
-                      }}
-                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Eliminar
-                    </button>
-                  </>
-                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredData.length === 0 && !loading && (
@@ -433,7 +344,6 @@ const AdminGallerasPage: React.FC = () => {
       {isEditModalOpen && editingData && (
         <EditVenueGalleraModal
           user={editingData.user}
-          venue={editingData.gallera}
           role="gallera"
           onClose={handleCloseModal}
           onSaved={handleSave}
