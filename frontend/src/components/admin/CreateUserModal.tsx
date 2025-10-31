@@ -14,6 +14,20 @@ interface CreateUserData {
   profileInfo: {
     fullName: string;
     phoneNumber: string;
+    // Venue fields
+    venueName?: string;
+    venueLocation?: string;
+    venueDescription?: string;
+    venueEmail?: string;
+    venueWebsite?: string;
+    // Gallera fields
+    galleraName?: string;
+    galleraLocation?: string;
+    galleraDescription?: string;
+    galleraEmail?: string;
+    galleraWebsite?: string;
+    galleraSpecialties?: string[];
+    galleraActiveRoosters?: string[];
   };
 }
 
@@ -37,6 +51,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     profileInfo: {
       fullName: "",
       phoneNumber: "",
+      // Venue fields
+      venueName: "",
+      venueLocation: "",
+      venueDescription: "",
+      venueEmail: "",
+      venueWebsite: "",
+      // Gallera fields
+      galleraName: "",
+      galleraLocation: "",
+      galleraDescription: "",
+      galleraEmail: "",
+      galleraWebsite: "",
+      galleraSpecialties: [],
+      galleraActiveRoosters: [],
     },
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -74,9 +102,16 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name === "fullName" || name === "phoneNumber") {
+    // All profileInfo fields
+    const profileFields = [
+      "fullName", "phoneNumber",
+      "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite",
+      "galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite",
+    ];
+
+    if (profileFields.includes(name)) {
       setFormData((prev) => ({
         ...prev,
         profileInfo: {
@@ -90,6 +125,16 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
         [name]: value,
       }));
     }
+  };
+
+  const handleArrayChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      profileInfo: {
+        ...prev.profileInfo,
+        [field]: value ? value.split(",").map(s => s.trim()) : [],
+      },
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -240,6 +285,190 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 />
               </div>
             </div>
+
+            {/* Venue-specific fields */}
+            {role === "venue" && (
+              <>
+                <hr />
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Información del Local
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="venueName" className={labelStyle}>
+                      Nombre del Local
+                    </label>
+                    <input
+                      type="text"
+                      id="venueName"
+                      name="venueName"
+                      value={formData.profileInfo.venueName || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="venueLocation" className={labelStyle}>
+                      Ubicación
+                    </label>
+                    <input
+                      type="text"
+                      id="venueLocation"
+                      name="venueLocation"
+                      value={formData.profileInfo.venueLocation || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="venueDescription" className={labelStyle}>
+                    Descripción
+                  </label>
+                  <textarea
+                    id="venueDescription"
+                    name="venueDescription"
+                    value={formData.profileInfo.venueDescription || ""}
+                    onChange={handleChange}
+                    rows={3}
+                    className={inputStyle}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="venueEmail" className={labelStyle}>
+                      Email del Local
+                    </label>
+                    <input
+                      type="email"
+                      id="venueEmail"
+                      name="venueEmail"
+                      value={formData.profileInfo.venueEmail || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="venueWebsite" className={labelStyle}>
+                      Sitio Web
+                    </label>
+                    <input
+                      type="url"
+                      id="venueWebsite"
+                      name="venueWebsite"
+                      value={formData.profileInfo.venueWebsite || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Gallera-specific fields */}
+            {role === "gallera" && (
+              <>
+                <hr />
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Información de la Gallera
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="galleraName" className={labelStyle}>
+                      Nombre de la Gallera
+                    </label>
+                    <input
+                      type="text"
+                      id="galleraName"
+                      name="galleraName"
+                      value={formData.profileInfo.galleraName || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="galleraLocation" className={labelStyle}>
+                      Ubicación
+                    </label>
+                    <input
+                      type="text"
+                      id="galleraLocation"
+                      name="galleraLocation"
+                      value={formData.profileInfo.galleraLocation || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="galleraDescription" className={labelStyle}>
+                    Descripción
+                  </label>
+                  <textarea
+                    id="galleraDescription"
+                    name="galleraDescription"
+                    value={formData.profileInfo.galleraDescription || ""}
+                    onChange={handleChange}
+                    rows={3}
+                    className={inputStyle}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="galleraEmail" className={labelStyle}>
+                      Email de la Gallera
+                    </label>
+                    <input
+                      type="email"
+                      id="galleraEmail"
+                      name="galleraEmail"
+                      value={formData.profileInfo.galleraEmail || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="galleraWebsite" className={labelStyle}>
+                      Sitio Web
+                    </label>
+                    <input
+                      type="url"
+                      id="galleraWebsite"
+                      name="galleraWebsite"
+                      value={formData.profileInfo.galleraWebsite || ""}
+                      onChange={handleChange}
+                      className={inputStyle}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="galleraSpecialties" className={labelStyle}>
+                    Especialidades (separadas por coma)
+                  </label>
+                  <textarea
+                    id="galleraSpecialties"
+                    value={(formData.profileInfo.galleraSpecialties || []).join(", ")}
+                    onChange={(e) => handleArrayChange("galleraSpecialties", e.target.value)}
+                    rows={2}
+                    placeholder="ej: Gallos de Pelea, Crianza, Entrenamiento"
+                    className={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="galleraActiveRoosters" className={labelStyle}>
+                    Roosters Activos (separados por coma)
+                  </label>
+                  <textarea
+                    id="galleraActiveRoosters"
+                    value={(formData.profileInfo.galleraActiveRoosters || []).join(", ")}
+                    onChange={(e) => handleArrayChange("galleraActiveRoosters", e.target.value)}
+                    rows={2}
+                    placeholder="ej: Rojo, Negro, Pinto"
+                    className={inputStyle}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end pt-4 gap-3">
               <button

@@ -292,6 +292,23 @@ router.put(
       }
     }
 
+    // Validate image array limits for venue and gallera accounts
+    if (profileInfo) {
+      // Validate gallera images: max 3
+      if (profileInfo.galleraImages && Array.isArray(profileInfo.galleraImages)) {
+        if (profileInfo.galleraImages.length > 3) {
+          throw errors.badRequest("Maximum 3 images allowed for galleras");
+        }
+      }
+
+      // Validate venue images: max 2
+      if (profileInfo.venueImages && Array.isArray(profileInfo.venueImages)) {
+        if (profileInfo.venueImages.length > 2) {
+          throw errors.badRequest("Maximum 2 images allowed for venues");
+        }
+      }
+    }
+
     if (profileInfo) {
       // Initialize profileInfo if it doesn't exist
       if (!user.profileInfo) {

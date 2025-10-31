@@ -128,50 +128,39 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     setError(null);
 
     try {
-      // Update user profile
-      console.log("Updating user profile with data:", profileData.profileInfo);
+      // Map entity form fields to User.profileInfo based on role
+      const entityProfileInfoUpdate = {
+        ...(role === "venue" ? {
+          venueName: entityData.name || "New Venue",
+          venueLocation: entityData.location || "Location TBD",
+          venueDescription: entityData.description,
+          venueEmail: entityData.contactInfo?.email,
+          venueWebsite: entityData.contactInfo?.website,
+        } : {
+          galleraName: entityData.name || "New Gallera",
+          galleraLocation: entityData.location || "Location TBD",
+          galleraDescription: entityData.description,
+          galleraEmail: entityData.contactInfo?.email,
+          galleraWebsite: entityData.contactInfo?.website,
+        })
+      };
+
+      // Update user profile with both personal and entity info
+      console.log("Updating user profile with data:", {
+        ...profileData.profileInfo,
+        ...entityProfileInfoUpdate,
+      });
       await usersAPI.updateProfile({
-        profileInfo: profileData.profileInfo,
+        profileInfo: {
+          ...profileData.profileInfo,
+          ...entityProfileInfoUpdate,
+        },
       });
 
       // Update user email
       if (profileData.email !== user.email) {
         console.log("Updating user email to:", profileData.email);
         await usersAPI.update(user.id, { email: profileData.email });
-      }
-
-      // Update entity (venue or gallera)
-      let result;
-      if (venue?.id) {
-        console.log("Updating entity with data:", entityData);
-        if (role === "venue") {
-          result = await venuesAPI.update(venue.id, {
-            ...entityData,
-          });
-        } else {
-          result = await gallerasAPI.update(venue.id, {
-            ...entityData,
-          });
-        }
-      } else {
-        console.log("Creating new entity with data:", entityData);
-        if (role === "venue") {
-          result = await venuesAPI.create({
-            name: entityData.name || "New Venue",
-            location: entityData.location || "Location TBD",
-            description: entityData.description,
-            contactInfo: entityData.contactInfo,
-            ownerId: user.id,
-          });
-        } else {
-          result = await gallerasAPI.create({
-            name: entityData.name || "New Gallera",
-            location: entityData.location || "Location TBD",
-            description: entityData.description,
-            contactInfo: entityData.contactInfo,
-            ownerId: user.id,
-          });
-        }
       }
 
       const updatedUser = {
@@ -181,13 +170,14 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         isActive: profileData.is_active,
         profileInfo: {
           ...profileData.profileInfo,
+          ...entityProfileInfoUpdate,
           verificationLevel: user.profileInfo?.verificationLevel || "none",
         },
       } as UserType;
 
       onSaved({
         user: updatedUser,
-        venue: result,
+        venue: undefined,
       });
 
       // Show success message
