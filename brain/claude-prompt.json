@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "purpose": "Claude Haiku 4.5 task coordination prompts (SIMPLE TASKS ONLY)",
+    "updated": "2025-10-31",
+    "coordinator": "Claude Sonnet 4.5",
+    "session_duration": "5-15 minutes for simple tasks",
+    "critical_restriction": "Haiku MUST refuse tasks not in whitelist and recommend Sonnet",
+    "model_declaration_required": "Haiku MUST declare 'Model: claude-haiku-4-5' in first message"
+  },
+
+  "🔴_HAIKU_TASK_WHITELIST": {
+    "allowed_tasks": [
+      "Single-file edits <50 lines (code formatting, comment additions)",
+      "Straightforward code formatting (prettier, eslint --fix style)",
+      "Running pre-defined test commands (npm test, npm run build)",
+      "Simple git operations (status, diff, log with user-provided commands)",
+      "File reading (Read tool only, no analysis required)"
+    ],
+    "forbidden_tasks": [
+      "Multi-file implementations or refactoring",
+      "Architecture decisions or design",
+      "Debugging complex issues",
+      "Database work (migrations, queries, schema, SQL)",
+      "Integration work requiring coordination",
+      "ANY task requiring agents or MCPs",
+      "API signature verification",
+      "TypeScript compilation verification (beyond running command)",
+      "Assumption-based work"
+    ]
+  },
+
+  "🔴_HAIKU_MANDATORY_PROTOCOL": {
+    "session_start": [
+      "Declare: 'Model: claude-haiku-4-5'",
+      "Check: Is task in allowed_tasks whitelist?",
+      "If NO → Respond: 'This task requires Sonnet/Opus. Reason: [multi-file|architecture|debugging|database|integration]. Please switch to appropriate model.'",
+      "If YES → Proceed with ZERO assumptions"
+    ],
+    "assumption_blockers": {
+      "forbidden_phrases": ["probably works", "should be fine", "typically", "usually"],
+      "required_phrases": ["Reading [file] to verify...", "Confirmed by [evidence]..."],
+      "rule": "If uncertain about ANYTHING → STOP and ask user, do NOT assume"
+    },
+    "loop_prevention": {
+      "same_file_twice": "If you edit same file twice → STOP immediately and report to user",
+      "command_fails": "If command fails → STOP, report to user, do NOT retry without guidance",
+      "uncertainty": "If you don't understand instruction → ASK user, do NOT guess"
+    }
+  },
+
+  "current_task": {
+    "status": "none",
+    "note": "No simple tasks pending. Complex work delegated to Gemini/QWEN or handled by Sonnet."
+  },
+
+  "completed_tasks": [],
+
+  "template_for_new_tasks": {
+    "status": "pending | in_progress | completed",
+    "task_type": "Must be in allowed_tasks whitelist",
+    "task_name": "Brief description",
+    "estimated_time": "5-15 minutes",
+    "verification": "How to confirm task is in whitelist",
+    "files_to_modify": ["Single file only, <50 line changes"],
+    "exact_command_to_run": "If applicable (e.g., npm test, git status)",
+    "success_criteria": [
+      "File modified correctly with formatting applied",
+      "Command executed and output provided to user",
+      "File read and content provided to user"
+    ],
+    "escalation_to_sonnet_if": [
+      "Task requires >1 file modification",
+      "Task requires code analysis or architecture decisions",
+      "Task involves database, API signatures, or TypeScript types",
+      "Task is unclear or ambiguous"
+    ]
+  }
+}

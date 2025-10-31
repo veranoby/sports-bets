@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "purpose": "QWEN 2.5-Coder 32B Instruct task coordination prompts",
+    "updated": "2025-10-31",
+    "coordinator": "Claude Sonnet 4.5",
+    "session_duration": "20-30 minutes MAXIMUM",
+    "mandatory_mcps": ["--seq", "--sequential"],
+    "mandatory_protocol": "SIMULATE + CONFIRM before ANY code modification"
+  },
+
+  "🔴_CRITICAL_RESTRICTIONS": {
+    "forbidden_files": [
+      "backend/src/routes/auth.ts",
+      "backend/src/models/User.ts (without Claude approval)",
+      "backend/src/middleware/auth.ts",
+      "Any migration files",
+      "Any authentication logic"
+    ],
+    "forbidden_actions": [
+      "Modifying files outside [FILES_TO_MODIFY] list",
+      "Adding backend dependencies without npm install first",
+      "Code commits without TypeScript validation (npx tsc --noEmit)",
+      "Skipping SIMULATE + CONFIRM protocol"
+    ],
+    "mandatory_checks": [
+      "git diff --name-only BEFORE commit → verify ONLY approved files changed",
+      "npx tsc --noEmit AFTER all changes → ZERO errors required",
+      "npm install if package.json changed"
+    ]
+  },
+
+  "current_task": {
+    "status": "none",
+    "note": "No pending backend tasks. All critical fixes completed by Sonnet (commit 1250dcb)."
+  },
+
+  "completed_tasks": [
+    {
+      "date": "2025-10-30",
+      "task": "Op.or filter conflict resolution",
+      "files": ["backend/src/routes/users.ts", "backend/src/routes/venues.ts", "backend/src/routes/galleras.ts"],
+      "result": "✅ Combined search + subscription filters working"
+    }
+  ],
+
+  "template_for_new_tasks": {
+    "status": "pending | in_progress | completed",
+    "priority": "HIGH | MEDIUM | LOW",
+    "task_name": "Brief description",
+    "estimated_time": "X minutes (MAX 30)",
+    "mcps_required": ["--seq", "--sequential"],
+    "description": "Detailed task description",
+    "context": {},
+    "requirements": {},
+    "files_to_modify": [],
+    "files_forbidden": [],
+    "simulate_confirm_steps": [
+      "SIMULATE: Describe exact changes to make",
+      "CONFIRM: Verify against codebase (files exist? imports available? breaks anything?)",
+      "EXECUTE: Make changes only after confirmation",
+      "VALIDATE: npx tsc --noEmit + git diff --name-only"
+    ],
+    "success_criteria": [
+      "npx tsc --noEmit shows ZERO errors",
+      "npm run build succeeds (if applicable)",
+      "git diff --name-only shows ONLY files in [FILES_TO_MODIFY]",
+      "No authentication breaks"
+    ],
+    "testing_steps": []
+  }
+}
