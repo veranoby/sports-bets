@@ -3,8 +3,20 @@
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
     "version": "1.0",
+    "last_updated": "2025-10-30 - FASE 1,2,3 frontend consolidation",
     "critical_note": "NEVER change these endpoints without updating this documentation",
-    "validation_command": "npm run test:api-endpoints"
+    "validation_command": "npm run test:api-endpoints",
+    "frontend_updates_2025_10_30": {
+      "fase_1": "EditVenueGalleraModal - Removed venuesAPI/gallerasAPI calls, consolidated to usersAPI.updateProfile()",
+      "fase_2": "CreateUserModal - Extended with role-based business field collection (venue/gallera fields)",
+      "fase_3": "Backend image validation - Added max image limits: galleras=3, venues=2",
+      "impact": "Single-step user creation workflow with complete business info stored in User.profileInfo",
+      "affected_files": [
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "frontend/src/components/admin/CreateUserModal.tsx",
+        "backend/src/routes/users.ts"
+      ]
+    }
   },
 
   "base_configuration": {
@@ -60,12 +72,19 @@
       "read_only_fields": ["username", "email"],
       "protection_note": "✅ ENFORCED 2025-10-19: Attempts to modify username/email are rejected with 400 error",
       "frontend_method": "userAPI.updateProfile(data) in frontend/src/services/api.ts",
+      "validation_added_2025_10_30": {
+        "image_limits": "ENFORCED - Validates image array sizes before persisting",
+        "gallera_images_max": 3,
+        "venue_images_max": 2,
+        "validation_location": "backend/src/routes/users.ts:295-310",
+        "error_response": "400 BadRequest with 'Maximum X images allowed for [type]' message"
+      },
       "special_features": {
         "data_synchronization": "Automatically syncs venue/gallera profile data to dedicated tables",
-        "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
-        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
+        "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "venueImages"],
+        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters", "galleraImages"],
         "display_logic": "venue/gallera names replace username in headers and profile display",
-        "image_upload": "Supports profileImage field for avatar upload"
+        "image_upload": "Supports profileImage field for avatar upload, venueImages (max 2), galleraImages (max 3)"
       }
     },
     "list_users": {

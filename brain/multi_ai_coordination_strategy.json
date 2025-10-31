@@ -241,9 +241,56 @@
     ]
   },
 
+  "claude_fase_1_2_3_consolidation_2025_10_30": {
+    "status": "🔴 INCOMPLETE VERIFICATION - Implemented but NOT fully tested in live environment",
+    "phase_1_editvenueegalleramodal": {
+      "change": "Removed venuesAPI.update/create, gallerasAPI.update/create calls",
+      "new_approach": "usersAPI.updateProfile() with mapped entity fields → User.profileInfo",
+      "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx:125-196"],
+      "verification_status": "✅ Static analysis passed (no removed calls remain)",
+      "potential_issues": [
+        "⚠️ NOT TESTED: usersAPI.updateProfile() signature - verify accepts {profileInfo: {...}}",
+        "⚠️ NOT TESTED: Entity field mapping - verify venueName/galleraName fields render correctly in edit modal"
+      ]
+    },
+    "phase_2_createusermodal": {
+      "change": "Extended with role-conditional business fields (venue/gallera)",
+      "new_features": [
+        "venueName, venueLocation, venueDescription, venueEmail, venueWebsite",
+        "galleraName, galleraLocation, galleraDescription, galleraEmail, galleraWebsite, galleraSpecialties, galleraActiveRoosters"
+      ],
+      "files": ["frontend/src/components/admin/CreateUserModal.tsx:9-479"],
+      "verification_status": "✅ TypeScript compilation passed, conditional rendering logic correct",
+      "potential_issues": [
+        "⚠️ NOT TESTED: handleChange array handling for galleraSpecialties/galleraActiveRoosters",
+        "⚠️ NOT TESTED: useToast hook - check if imported correctly (line 31 uses addToast but hook may export differently)",
+        "⚠️ NOT TESTED: Form submission - verify all fields sent to backend correctly"
+      ]
+    },
+    "phase_3_image_validation": {
+      "change": "Added backend validation for image array sizes",
+      "rules": ["Galleras: max 3 images", "Venues: max 2 images"],
+      "files": ["backend/src/routes/users.ts:295-310"],
+      "verification_status": "✅ Code pattern correct, validation placed before save",
+      "potential_issues": [
+        "⚠️ NOT TESTED: Frontend image upload - verify client respects limits or server rejection graceful",
+        "⚠️ NOT TESTED: Error message formatting - verify 'Maximum X images allowed' matches frontend error handling"
+      ]
+    },
+    "testing_required_before_production": [
+      "1. Create venue user in admin → Verify all venueName fields save correctly",
+      "2. Create gallera user in admin → Verify galleraSpecialties/galleraActiveRoosters persist",
+      "3. Edit venue/gallera in modal → Verify Entity Info tab updates saved correctly",
+      "4. Upload 4 images for gallera → Verify server rejects with 400 BadRequest",
+      "5. Upload 3 images for venue → Verify server rejects with 400 BadRequest (max=2)"
+    ],
+    "verification_approach": "Static analysis and grep-based only. NO runtime testing performed. User should test in admin environment."
+  },
+
   "next_sessions": {
+    "claude_task": "🔴 LIVE TESTING REQUIRED - Test FASE 1,2,3 in admin environment before go-live",
     "gemini_task": "Admin filters frontend UI (4 × 30 min sessions, --c7 --context7 required)",
-    "claude_task": "Integration validation + final brain updates + deployment prep",
-    "backend_status": "✅ COMPLETE - Op.or filters validated and working. Ready for frontend consumption."
+    "testing_focus": "Verify user creation workflow: create→edit→save with complete business info",
+    "backend_status": "✅ COMPLETE - Op.or filters + image validation ready. Ready for frontend testing."
   }
 }
