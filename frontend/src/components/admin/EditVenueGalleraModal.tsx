@@ -159,11 +159,8 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         },
       });
 
-      // Update user email
-      if (profileData.email !== user.email) {
-        console.log("Updating user email to:", profileData.email);
-        await usersAPI.update(user.id, { email: profileData.email });
-      }
+      // ✅ Email updates not allowed here (security restriction - backend only permits role/isActive modifications)
+      // If admin needs to change email, use dedicated user management interface
 
       const updatedUser = {
         ...user,

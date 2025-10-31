@@ -464,7 +464,7 @@ router.post(
       );
     }
 
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, profileInfo } = req.body;
 
     // ⚡ SECURITY: Operators can only create venue/user/gallera accounts
     if (req.user!.role === "operator" && !["venue", "user", "gallera"].includes(role)) {
@@ -496,32 +496,9 @@ router.post(
       approved: true, // ✅ Admin-created users are auto-approved
       profileInfo: {
         verificationLevel: "none",
+        ...(profileInfo || {}), // ✅ Merge incoming business fields (venue/gallera data)
       },
     });
-
-    // ✅ AUTO-CREATE venue/gallera entity if role requires it
-    if (role === "venue") {
-      await Venue.create({
-        ownerId: user.id,
-        name: null,
-        location: null,
-        description: null,
-        status: "active", // Admin-created entities are active
-        contactInfo: {},
-        images: [],
-      });
-    } else if (role === "gallera") {
-      await Gallera.create({
-        ownerId: user.id,
-        name: null,
-        location: null,
-        description: null,
-        specialties: [],
-        status: "active", // Admin-created entities are active
-        contactInfo: {},
-        images: [],
-      });
-    }
 
     res.status(201).json({
       success: true,
