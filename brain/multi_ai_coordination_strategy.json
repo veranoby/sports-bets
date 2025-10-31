@@ -10,10 +10,11 @@
   },
 
   "metadata": {
-    "version": "3.0",
-    "updated": "2025-10-30",
+    "version": "3.1",
+    "updated": "2025-10-31",
     "purpose": "Multi-AI coordination strategy - concise, scannable, critical info first",
-    "note": "This file is READ-FIRST by all AIs. Keep it under 700 lines. Verbose sections moved to session_logs."
+    "note": "This file is READ-FIRST by all AIs. Keep it under 700 lines. Verbose sections moved to session_logs.",
+    "prompt_files_location": "PROJECT ROOT (claude-prompt.json, qwen-prompt.json, gemini-prompt.json) - moved from brain/ for easier AI access"
   },
 
   "🔴_MCP_ACTIVATION_FOR_ALL_AIS": {
@@ -505,19 +506,51 @@
     ]
   },
 
+  "session_log_2025_10_31_qwen_config_optimization": {
+    "reporter": "Claude Sonnet 4.5",
+    "trigger": "User requested optimization of QWEN global config based on learnings from Claude/Brain protocols",
+    "changes_applied": [
+      "~/.qwen/QWEN.md: Added BASIC PROTOCOL, MCP ACTIVATION PROTOCOL, QWEN MANDATORY PROTOCOL, SIMULATE+CONFIRM, INFINITE LOOP PREVENTION",
+      "~/.qwen/FLAGS.md: Added QWEN-Specific Flag Guidance with mandatory flag activation table and declaration protocol",
+      "~/.qwen/RULES.md: Added QWEN-Specific Rules section with SIMULATE+CONFIRM, FILES_TO_MODIFY enforcement, TypeScript strict mode, dependency installation protocol",
+      "~/.qwen/PRINCIPLES.md: Added QWEN-Specific Principle Applications with evidence-based reasoning examples and validation gates"
+    ],
+    "key_improvements": [
+      "Session start declaration protocol (Model + Task Type + Flags + MCPs)",
+      "SIMULATE+CONFIRM workflow detailed with 4 phases (SIMULATE → CONFIRM → EXECUTE → VALIDATE)",
+      "FILES_TO_MODIFY strict enforcement to prevent scope creep",
+      "Assumption prevention protocol with forbidden/required phrases",
+      "Session time management (backend 20-40min, frontend 30-50min, integration 40-60min)",
+      "Infinite loop detection and breaking protocol"
+    ],
+    "prompt_files_relocated": {
+      "from": "brain/claude-prompt.json, brain/qwen-prompt.json, brain/gemini-prompt.json",
+      "to": "PROJECT_ROOT/claude-prompt.json, PROJECT_ROOT/qwen-prompt.json, PROJECT_ROOT/gemini-prompt.json",
+      "reason": "Easier access for AIs at session start, reduces path complexity"
+    },
+    "coordination_improvements": [
+      "QWEN promoted to PRIMARY EXECUTOR (backend + frontend + integration)",
+      "Mandatory MCP activation tables added to all config files",
+      "Evidence-based development emphasized across all protocols",
+      "Flag declaration required at session start for transparency"
+    ]
+  },
+
   "next_sessions": {
     "critical_fixes_status": "✅ COMPLETED 2025-10-31 - Backend POST /users + email update removed",
     "user_creation_workflows": "✅ READY FOR RUNTIME TESTING - All critical code fixes applied, TypeScript compiles",
+    "qwen_config_optimization": "✅ COMPLETED 2025-10-31 - All 4 QWEN config files optimized with protocols",
     "testing_required": [
       "Create venue user through CreateUserModal with business fields (name, location, description, email, website)",
       "Create gallera user through CreateUserModal with specialties and activeRoosters arrays",
       "Verify all profileInfo fields persist correctly in database",
       "Edit venue/gallera through EditVenueGalleraModal and verify updates save properly"
     ],
-    "gemini_task": "Admin filters frontend UI (4 × 30 min sessions, --c7 --context7 required)",
+    "next_task": "Image upload UI for CreateUserModal and EditVenueGalleraModal (see qwen-prompt.json in project root)",
     "backend_status": "✅ COMPLETE - User creation workflows fixed, Op.or filters ready, image validation working",
     "protocol_enforcement": "All AIs must follow mandatory_reads_at_start, exit_infinite_loops_protocol, AND model_awareness_protocol from this session forward",
     "model_verification": "CRITICAL: All AIs must declare model in first message. User should interrupt if missing.",
-    "coordination_strategy": "Sonnet coordinates, delegates to QWEN (backend) / Gemini (frontend) / Haiku (simple tasks only)"
+    "coordination_strategy": "Sonnet coordinates, delegates to QWEN (PRIMARY EXECUTOR: backend+frontend) / Gemini (secondary) / Haiku (simple tasks only)",
+    "prompt_files_location": "Read [ai]-prompt.json from PROJECT ROOT (not brain/) for task-specific instructions"
   }
 }
