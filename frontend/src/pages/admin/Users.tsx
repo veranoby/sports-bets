@@ -8,6 +8,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import EditUserModal from "../../components/admin/EditUserModal";
+import CreateUserModal from "../../components/admin/CreateUserModal";
 import { usersAPI, userAPI } from "../../services/api";
 import type { User } from "../../types";
 
@@ -26,6 +27,7 @@ const AdminUsersPage: React.FC = () => {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -113,7 +115,16 @@ const AdminUsersPage: React.FC = () => {
   };
 
   const handleCreateUser = () => {
-    navigate("/admin/users/create");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleUserCreated = () => {
+    fetchUsers();
+    handleCloseCreateModal();
   };
 
   const handleToggleUserStatus = async (
@@ -365,6 +376,14 @@ const AdminUsersPage: React.FC = () => {
           user={editingUser}
           onClose={handleCloseModal}
           onUserUpdated={handleUserUpdated}
+        />
+      )}
+
+      {isCreateModalOpen && (
+        <CreateUserModal
+          role="user"
+          onClose={handleCloseCreateModal}
+          onUserCreated={handleUserCreated}
         />
       )}
     </div>

@@ -135,6 +135,7 @@ const AdminDashboard: React.FC = () => {
 
     const eventsData = await eventsAPI.getAll({ today: true });
     const pendingUsersData = await usersAPI.getAll({
+      role: "user",
       status: "pending",
       limit: 1,
     });
