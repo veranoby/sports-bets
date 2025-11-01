@@ -10,8 +10,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
-import EditOperatorModal from "../../components/admin/EditOperatorModal";
-import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
+import UserModal from "../../components/admin/UserModal";
 
 // APIs
 import { usersAPI } from "../../services/api";
@@ -26,10 +25,11 @@ const AdminOperatorsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // State for modals
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingOperator, setEditingOperator] = useState<User | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // New state for create modal
+  // State for unified modal
+  const [modalState, setModalState] = useState<{
+    mode: "create" | "edit" | null;
+    user?: User;
+  }>({ mode: null });
 
   // Fetch de operadores
   const fetchOperators = useCallback(async () => {
@@ -52,18 +52,12 @@ const AdminOperatorsPage: React.FC = () => {
 
   // Abrir modal de edición
   const handleEditOperator = (operator: User) => {
-    setEditingOperator(operator);
-    setIsEditModalOpen(true);
+    setModalState({ mode: "edit", user: operator });
   };
 
   // Cerrar modales
-  const closeEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingOperator(null);
-  };
-
-  const closeCreateModal = () => {
-    setIsCreateModalOpen(false);
+  const closeModals = () => {
+    setModalState({ mode: null });
   };
 
   // Filtrar operadores por término de búsqueda
@@ -86,7 +80,7 @@ const AdminOperatorsPage: React.FC = () => {
               Gestión de Operadores
             </h1>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => setModalState({ mode: "create", user: undefined })}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -188,27 +182,17 @@ const AdminOperatorsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de edición */}
-      {isEditModalOpen && editingOperator && (
-        <EditOperatorModal
-          {...({
-            operator: editingOperator,
-            isOpen: isEditModalOpen,
-            onClose: closeEditModal,
-            onOperatorUpdated: fetchOperators,
-          } as any)}
-        />
-      )}
-
-      {/* Modal de creación */}
-      {isCreateModalOpen && (
-        <CreateUserModal
-          {...({
-            isOpen: isCreateModalOpen,
-            onClose: closeCreateModal,
-            onUserCreated: fetchOperators,
-            defaultRole: "operator",
-          } as any)}
+      {/* User Modal (Unified Create/Edit) */}
+      {modalState.mode && (
+        <UserModal
+          mode={modalState.mode}
+          role="operator"
+          user={modalState.user}
+          onClose={closeModals}
+          onSuccess={() => {
+            closeModals();
+            fetchOperators();
+          }}
         />
       )}
     </div>

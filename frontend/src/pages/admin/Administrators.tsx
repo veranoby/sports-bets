@@ -20,9 +20,8 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
-import EditUserModal from "../../components/admin/EditUserModal";
-import CreateUserModal from "../../components/admin/CreateUserModal";
-import { usersAPI } from "../../services/api";
+import UserModal from "../../components/admin/UserModal";
+import { userAPI } from "../../services/api";
 import type { User as UserType } from "../../types";
 
 const AdminAdministratorsPage: React.FC = () => {
@@ -36,14 +35,15 @@ const AdminAdministratorsPage: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "operator">(
     "all",
   );
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRoleSelectModalOpen, setIsRoleSelectModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"admin" | "operator">(
     "admin",
   );
-  const [editingUser, setEditingUser] = useState<UserType | null>(null);
+  const [modalState, setModalState] = useState<{
+    mode: "create" | "edit" | null;
+    user?: UserType;
+  }>({ mode: null });
   const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
@@ -51,9 +51,9 @@ const AdminAdministratorsPage: React.FC = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await usersAPI.getProfile();
+        const response = await userAPI.getProfile();
         if (response.success) {
-          setCurrentUser(response.data.user);
+          setCurrentUser((response.data as any).user);
         }
       } catch (err) {
         console.error("Error fetching current user:", err);
@@ -68,13 +68,13 @@ const AdminAdministratorsPage: React.FC = () => {
 
     try {
       // Fetch admins
-      const adminResponse = await usersAPI.getAll({
+      const adminResponse = await userAPI.getAll({
         role: "admin",
         limit: 1000,
       });
 
       // Fetch operators
-      const operatorResponse = await usersAPI.getAll({
+      const operatorResponse = await userAPI.getAll({
         role: "operator",
         limit: 1000,
       });
@@ -129,8 +129,7 @@ const AdminAdministratorsPage: React.FC = () => {
       return;
     }
 
-    setEditingUser(user);
-    setIsEditModalOpen(true);
+    setModalState({ mode: "edit", user: user });
   };
 
   const handleDeleteUser = (user: UserType) => {
@@ -148,7 +147,7 @@ const AdminAdministratorsPage: React.FC = () => {
     if (!deletingUser) return;
 
     try {
-      const response = await usersAPI.delete(deletingUser.id);
+      const response = await userAPI.delete(deletingUser.id);
       if (response.success) {
         // Refresh the list
         fetchAdministrators();
@@ -165,7 +164,7 @@ const AdminAdministratorsPage: React.FC = () => {
   // ✅ NUEVO: Funciones para aprobar/rechazar usuarios
   const handleApproveUser = async (userId: string) => {
     try {
-      const response = await usersAPI.put(userId, { approved: true });
+      const response = await userAPI.update(userId, { approved: true });
       if (response && response.success) {
         // Refresh list
         fetchAdministrators();
@@ -179,7 +178,7 @@ const AdminAdministratorsPage: React.FC = () => {
 
   const handleRejectUser = async (userId: string) => {
     try {
-      const response = await usersAPI.put(userId, {
+      const response = await userAPI.update(userId, {
         approved: false,
         isActive: false,
       });
@@ -276,7 +275,7 @@ const AdminAdministratorsPage: React.FC = () => {
                   onClick={() => {
                     setSelectedRole("admin");
                     setIsRoleSelectModalOpen(false);
-                    setIsCreateModalOpen(true);
+                    setModalState({ mode: "create", user: undefined });
                   }}
                   className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -294,7 +293,7 @@ const AdminAdministratorsPage: React.FC = () => {
                   onClick={() => {
                     setSelectedRole("operator");
                     setIsRoleSelectModalOpen(false);
-                    setIsCreateModalOpen(true);
+                    setModalState({ mode: "create", user: undefined });
                   }}
                   className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -501,27 +500,19 @@ const AdminAdministratorsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Edit Modal */}
-      {isEditModalOpen && editingUser && (
-        <EditUserModal
-          user={editingUser as UserType}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingUser(null);
-          }}
-          onUserUpdated={(updatedUser) => {
-            fetchAdministrators();
-          }}
-        />
-      )}
-
-      {/* Create User Modal */}
-      {isCreateModalOpen && (
-        <CreateUserModal
-          role={selectedRole}
-          onClose={() => setIsCreateModalOpen(false)}
-          onUserCreated={() => {
-            setIsCreateModalOpen(false);
+      {/* User Modal (Unified Create/Edit) */}
+      {modalState.mode && (
+        <UserModal
+          mode={modalState.mode}
+          role={
+            (modalState.mode === "edit" && modalState.user
+              ? modalState.user.role
+              : selectedRole) as any
+          }
+          user={modalState.user}
+          onClose={() => setModalState({ mode: null })}
+          onSuccess={() => {
+            setModalState({ mode: null });
             fetchAdministrators();
           }}
         />

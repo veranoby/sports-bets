@@ -90,7 +90,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
         assigned_username: assignedUsername.trim(),
       });
 
-      if (response.success) {
+      if ((response as any).success) {
         // Success - pass data to parent
         if (onSave) {
           onSave({
@@ -104,7 +104,9 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
         }
         onCancel();
       } else {
-        throw new Error(response.error || "Error al actualizar membresía");
+        throw new Error(
+          (response as any).error || "Error al actualizar membresía",
+        );
       }
     } catch (err) {
       const errorMsg =

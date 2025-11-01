@@ -12,7 +12,7 @@ import {
   Plus,
 } from "lucide-react";
 import { notificationsAPI } from "../../services/api";
-import { Notification } from "../../types";
+import type { Notification } from "../../types";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";

@@ -1,259 +1,343 @@
 {
-  "metadata": {
-    "version": "2.0",
-    "created": "2025-10-30",
-    "ai": "QWEN CLI",
-    "project": "GalloBets - Admin Filters Backend Implementation",
-    "session_type": "Backend API Extensions",
-    "duration_max": "30 minutes",
-    "strict": true
+  "task_id": "SUBSCRIPTION_CREATE_MODE_FIX_2025_11_01",
+  "task_type": "BUG_FIX + VALIDATION_ANALYSIS",
+  "complexity": "MEDIUM (5/10)",
+  "session_model_required": "QWEN2.5-Coder 32B Instruct",
+  "estimated_time": "60-90 minutes",
+  "git_branch": "main",
+
+  "🔴_CRITICAL_PROTOCOLS": {
+    "session_start_declaration": {
+      "MANDATORY_FIRST_MESSAGE": "Model: qwen2.5-coder-32b-instruct | Task: Fix SubscriptionTabs CREATE mode + Profile validation | Activating: --c7 --context7 + --seq --sequential | Branch: main | Time: 60-90min"
+    },
+    "mcp_activation": {
+      "--c7 --context7": "React TypeScript patterns",
+      "--seq --sequential": "Multi-step analysis + fixes"
+    },
+    "simulate_confirm_protocol": {
+      "PHASE_1_SIMULATE": "Describe changes: which files, which lines, what logic",
+      "PHASE_2_CONFIRM": "Read files to verify structure exists",
+      "PHASE_3_EXECUTE": "Make changes incrementally",
+      "PHASE_4_VALIDATE": "npx tsc --noEmit after EACH file"
+    },
+    "infinite_loop_prevention": {
+      "same_file_3_times": "STOP - report to user",
+      "command_fails_twice": "STOP - report error"
+    }
   },
 
-  "🔴_MCP_ACTIVATION_CRITICAL": {
-    "instruction": "⚠️ BEFORE YOU START ANY WORK: You MUST activate Sequential MCP servers",
-    "required_mcps": ["--seq", "--sequential"],
-    "why_mandatory": "In the previous session, PostgreSQL type casting errors occurred because Sequential thinking was not activated. Sequential MCP will help you plan multi-step modifications correctly and verify dependencies before making changes.",
-    "activation_command": "When you receive this prompt, immediately respond with: --seq --sequential",
-    "verification": "Wait for MCP to activate before proceeding with any tasks",
-    "consequence_of_skipping": "You risk repeating the same type casting and schema validation errors that blocked the previous session"
+  "📋_TASK_OVERVIEW": {
+    "problem_statement": "UserModal CREATE mode shows wrong button in Subscription tab ('Actualizar Membresía' should be 'Crear Usuario'). Also need deep validation of /profile, /galleras, /venues pages.",
+    "root_cause": "SubscriptionTabs.tsx hardcoded button text without mode awareness",
+    "solution": "Pass mode prop to SubscriptionTabs, conditional button text, validate CREATE flow saves subscription AFTER user creation"
   },
 
-  "CRITICAL_PROTOCOL": {
-    "rule_1": "=� SIMULATE � CONFIRM � EXECUTE pattern MANDATORY before any code change",
-    "rule_2": "=� NEVER modify files outside [FILES_TO_MODIFY] list",
-    "rule_3": "=� BEFORE each commit: run 'git diff --name-only' and verify ONLY listed files changed",
-    "rule_4": "=� If simulation reveals missing dependencies or broken imports � STOP and REPORT",
-    "rule_5": "=� Max session time: 30 minutes (strictly enforced)",
-    "rule_6": "Reference: @brain/multi_ai_coordination_strategy.json � section 'simulate_y_confirmar_protocol'"
-  },
+  "🎯_DELIVERABLES": [
+    "1. Fix SubscriptionTabs.tsx to accept mode prop and render correct button",
+    "2. Update UserModal.tsx to pass mode to SubscriptionTabs",
+    "3. Unify 'membresía' → 'suscripción' terminology everywhere",
+    "4. Deep validation: /profile page for user/gallera/venue roles",
+    "5. Deep validation: Public /galleras and /venues pages",
+    "6. Report findings in chat text AND append to brain/backlog.json"
+  ],
 
-  "TASK_OVERVIEW": {
-    "objective": "Extend backend API endpoints to support admin filter parameters",
-    "complexity": "Medium",
-    "phase": "Phase 1 of 3-phase implementation",
-    "deliverables": [
-      "GET /api/users extended with approved + subscriptionType filters",
-      "GET /api/venues extended with ownerApproved + ownerSubscription filters",
-      "GET /api/galleras extended with ownerApproved + ownerSubscription filters",
-      "Verification that all changes pass TypeScript + build"
-    ]
-  },
-
-  "FILES_TO_MODIFY": {
-    "strict_scope": "ONLY these files - NO exceptions, NO improvements to other files",
-    "backend": [
-      "backend/src/routes/users.ts",
-      "backend/src/routes/venues.ts",
-      "backend/src/routes/galleras.ts"
+  "🔧_STEP_0_PRE_IMPLEMENTATION_READS": {
+    "MANDATORY": "Read these files BEFORE Step 1",
+    "files": [
+      "frontend/src/components/admin/SubscriptionTabs.tsx (understand current structure)",
+      "frontend/src/components/admin/UserModal.tsx (see how SubscriptionTabs is called)",
+      "frontend/src/hooks/useUserForm.ts (understand CREATE flow saves subscription)",
+      "frontend/src/pages/user/Profile.tsx (validate profileInfo display logic)",
+      "frontend/src/pages/user/Galleras.tsx (validate gallera card rendering)",
+      "frontend/src/pages/user/Venues.tsx (validate venue card rendering)"
     ],
-    "danger_if_modified": [
-      "backend/src/middleware/auth.ts (NEVER without explicit instruction)",
-      "backend/src/models/* (NEVER without explicit instruction)",
-      "Any database migration files (NEVER without explicit instruction)"
-    ]
+    "output_required": {
+      "summary": "OUTPUT: 'SubscriptionTabs currently: [structure]. UserModal passes: [props]. CREATE flow: [how subscription saved]'",
+      "validation": "Confirm mode prop will work with existing structure"
+    }
   },
 
-  "FILES_TO_CONSULT": {
-    "mandatory": [
-      {
-        "file": "@brain/multi_ai_coordination_strategy.json",
-        "sections": [
-          "simulate_y_confirmar_protocol - MANDATORY before each change",
-          "qwen_cli_optimizations - understand your role and limitations",
-          "critical_safety_restrictions - know what you're NOT allowed to do"
-        ],
-        "purpose": "Understand safety protocols and error prevention"
+  "📝_STEP_BY_STEP_IMPLEMENTATION": {
+
+    "STEP_1_FIX_SUBSCRIPTION_TABS": {
+      "action": "MODIFY existing file",
+      "file": "frontend/src/components/admin/SubscriptionTabs.tsx",
+      "purpose": "Add mode prop and conditional button text",
+      "simulate": "Will add mode: 'create' | 'edit' to SubscriptionTabsProps interface (line ~25). Will update button text at line ~250 to check mode.",
+      "confirm_before_modifying": [
+        "Read SubscriptionTabsProps interface (line ~25-30)",
+        "Find button with 'Actualizar Membresía' text (line ~250)",
+        "Verify onSave callback structure"
+      ],
+      "changes": [
+        {
+          "location": "Line ~25-30 (SubscriptionTabsProps interface)",
+          "change": "Add: mode: 'create' | 'edit';",
+          "reasoning": "Need to pass mode from UserModal to determine button text"
+        },
+        {
+          "location": "Line ~250 (button text)",
+          "old": "\"Actualizar Membresía\"",
+          "new": "{mode === 'create' ? 'Crear Usuario' : 'Actualizar Suscripción'}",
+          "reasoning": "CREATE mode creates user+subscription, EDIT mode updates existing subscription"
+        }
+      ],
+      "validate_after_modification": [
+        "npx tsc --noEmit frontend/src/components/admin/SubscriptionTabs.tsx",
+        "grep 'mode.*create.*edit' frontend/src/components/admin/SubscriptionTabs.tsx",
+        "Verify: SubscriptionTabsProps has mode prop"
+      ],
+      "if_errors": "STOP - Report TypeScript errors - DO NOT continue"
+    },
+
+    "STEP_2_UPDATE_USER_MODAL": {
+      "action": "MODIFY existing file",
+      "file": "frontend/src/components/admin/UserModal.tsx",
+      "purpose": "Pass mode prop to SubscriptionTabs component",
+      "simulate": "Will find SubscriptionTabs component instantiation (line ~503) and add mode={mode} prop.",
+      "confirm_before_modifying": [
+        "Read UserModal.tsx line ~500-530 (SubscriptionTabs usage)",
+        "Verify mode variable is available in scope",
+        "Check if other props are passed correctly"
+      ],
+      "changes": [
+        {
+          "location": "Line ~503 (SubscriptionTabs component)",
+          "change": "Add prop: mode={mode}",
+          "code_example": "<SubscriptionTabs\n  mode={mode}\n  userId={user?.id || ''}\n  subscription={subscription || user?.subscription}\n  onSave={...}\n  onCancel={onClose}\n/>",
+          "reasoning": "SubscriptionTabs needs mode to render correct button text"
+        }
+      ],
+      "validate_after_modification": [
+        "npx tsc --noEmit frontend/src/components/admin/UserModal.tsx",
+        "grep 'mode={mode}' frontend/src/components/admin/UserModal.tsx",
+        "Verify: mode prop passed to SubscriptionTabs"
+      ],
+      "if_errors": "STOP - Report TypeScript errors"
+    },
+
+    "STEP_3_UNIFY_TERMINOLOGY": {
+      "action": "FIND AND REPLACE across files",
+      "files": [
+        "frontend/src/components/admin/SubscriptionTabs.tsx",
+        "frontend/src/components/admin/UserModal.tsx",
+        "frontend/src/pages/user/Profile.tsx"
+      ],
+      "purpose": "Standardize 'membresía' → 'suscripción' for consistency",
+      "simulate": "Will search for 'membresía', 'Membresía', 'membership' and replace with 'suscripción', 'Suscripción', 'subscription' variants.",
+      "confirm_before_replacing": [
+        "grep -i 'membresía\\|membership' frontend/src/components/admin/SubscriptionTabs.tsx",
+        "List all occurrences to understand context"
+      ],
+      "replacements": [
+        {"old": "Membresía", "new": "Suscripción"},
+        {"old": "membresía", "new": "suscripción"},
+        {"old": "Actualizar Membresía", "new": "Actualizar Suscripción"},
+        {"old": "Gestionar Membresía", "new": "Gestionar Suscripción"}
+      ],
+      "validate_after_replacement": [
+        "grep -i 'membresía' frontend/src/components/admin/SubscriptionTabs.tsx",
+        "Expected: 0 results (all replaced with suscripción)",
+        "npx tsc --noEmit (verify no type errors introduced)"
+      ],
+      "if_errors": "Report if terminology inconsistencies remain"
+    },
+
+    "CHECKPOINT_A_TYPESCRIPT_BUILD": {
+      "description": "Validate Steps 1-3 before proceeding to validation analysis",
+      "commands": [
+        "cd frontend && npx tsc --noEmit",
+        "npm run build"
+      ],
+      "expected_results": [
+        "TypeScript: ✅ ZERO errors in SubscriptionTabs.tsx and UserModal.tsx",
+        "Build: ✅ SUCCESS"
+      ],
+      "if_fail": "STOP - Fix TypeScript errors before continuing to Step 4"
+    },
+
+    "STEP_4_VALIDATE_PROFILE_PAGE": {
+      "action": "DEEP ANALYSIS (no code changes unless bugs found)",
+      "file": "frontend/src/pages/user/Profile.tsx",
+      "purpose": "Validate profileInfo architecture for user/gallera/venue roles",
+      "analysis_checklist": [
+        "A1. Does Profile.tsx correctly read user.profileInfo.verificationLevel?",
+        "A2. For role='gallera': Does it display galleraName, galleraLocation, galleraDescription, galleraSpecialties, galleraActiveRoosters?",
+        "A3. For role='venue': Does it display venueName, venueLocation, venueDescription, venueEmail, venueWebsite?",
+        "A4. For role='user': Does it display only fullName, phoneNumber, address, identificationNumber?",
+        "A5. Are images displayed correctly from user.profileInfo.images array?",
+        "A6. Is there conditional rendering based on role (venue fields only show for venues)?",
+        "A7. Does edit flow use userAPI.updateProfile({ profileInfo: {...} })?",
+        "A8. Are form handlers properly saving nested profileInfo fields?"
+      ],
+      "validation_commands": [
+        "grep 'profileInfo.galleraName\\|profileInfo.venueName' frontend/src/pages/user/Profile.tsx",
+        "grep 'role.*venue\\|role.*gallera' frontend/src/pages/user/Profile.tsx",
+        "grep 'updateProfile' frontend/src/pages/user/Profile.tsx"
+      ],
+      "output_required": {
+        "format": "PROFILE PAGE VALIDATION:\n✅ A1: [YES/NO with line number]\n✅ A2: [YES/NO with evidence]\n...\n❌ ISSUES: [List any problems found]"
       },
-      {
-        "file": "@brain/api_endpoints_reference.json",
-        "sections": [
-          "GET /api/users (line 1-50) - understand current parameters",
-          "GET /api/venues (line 100-150) - understand current parameters",
-          "GET /api/galleras (line 200-250) - understand current parameters"
-        ],
-        "purpose": "Know exact current API contract before modifying"
+      "if_issues_found": "Document in findings, propose fixes if needed"
+    },
+
+    "STEP_5_VALIDATE_PUBLIC_GALLERAS_PAGE": {
+      "action": "DEEP ANALYSIS",
+      "file": "frontend/src/pages/user/Galleras.tsx",
+      "purpose": "Validate public gallera listing shows profileInfo correctly",
+      "analysis_checklist": [
+        "B1. Does page query users with role='gallera'?",
+        "B2. Are gallera cards displaying user.profileInfo.galleraName?",
+        "B3. Are gallera cards displaying user.profileInfo.galleraLocation?",
+        "B4. Are gallera cards displaying user.profileInfo.galleraSpecialties (array)?",
+        "B5. Are gallera images from user.profileInfo.images displayed?",
+        "B6. Does detail view (click on gallera) show full profileInfo?",
+        "B7. Is GalleraDetailPage component properly rendering all fields?",
+        "B8. Are there any references to OLD Gallera table/model that should be removed?"
+      ],
+      "validation_commands": [
+        "grep 'role.*gallera' frontend/src/pages/user/Galleras.tsx",
+        "grep 'profileInfo.gallera' frontend/src/pages/user/Galleras.tsx",
+        "grep -i 'gallera.*table\\|Gallera.findAll' frontend/src/pages/user/Galleras.tsx"
+      ],
+      "output_required": {
+        "format": "GALLERAS PAGE VALIDATION:\n✅ B1-B8: [YES/NO with evidence]\n❌ ISSUES: [List problems]"
       },
-      {
-        "file": "FILTERS_IMPLEMENTATION_PLAN.md",
-        "sections": [
-          "Section 3.1 - Extend GET /api/users with new filters",
-          "Section 3.2 - Extend GET /api/venues with new filters",
-          "Section 3.3 - Extend GET /api/galleras with new filters",
-          "Section 4 - Backend API Extensions (Detailed Implementation)"
-        ],
-        "purpose": "Exact specification of what to implement"
+      "if_old_code_found": "Report OLD Gallera table references for removal"
+    },
+
+    "STEP_6_VALIDATE_PUBLIC_VENUES_PAGE": {
+      "action": "DEEP ANALYSIS",
+      "file": "frontend/src/pages/user/Venues.tsx",
+      "purpose": "Validate public venue listing shows profileInfo correctly",
+      "analysis_checklist": [
+        "C1. Does page query users with role='venue'?",
+        "C2. Are venue cards displaying user.profileInfo.venueName?",
+        "C3. Are venue cards displaying user.profileInfo.venueLocation?",
+        "C4. Are venue cards displaying user.profileInfo.venueDescription?",
+        "C5. Are venue images from user.profileInfo.images displayed?",
+        "C6. Does detail view (click on venue) show full profileInfo?",
+        "C7. Is VenueDetailPage component properly rendering all fields?",
+        "C8. Are there any references to OLD Venue table/model that should be removed?"
+      ],
+      "validation_commands": [
+        "grep 'role.*venue' frontend/src/pages/user/Venues.tsx",
+        "grep 'profileInfo.venue' frontend/src/pages/user/Venues.tsx",
+        "grep -i 'venue.*table\\|Venue.findAll' frontend/src/pages/user/Venues.tsx"
+      ],
+      "output_required": {
+        "format": "VENUES PAGE VALIDATION:\n✅ C1-C8: [YES/NO with evidence]\n❌ ISSUES: [List problems]"
       },
-      {
-        "file": "backend/database-analysis/CURRENT_TABLES.json",
-        "sections": [
-          "users table structure - verify all columns including subscriptionType handling",
-          "venues table structure - understand entity relationships",
-          "subscriptions table columns - understand how to JOIN for subscription filtering"
-        ],
-        "purpose": "Understand actual database schema (contains all column definitions)"
+      "if_old_code_found": "Report OLD Venue table references for removal"
+    },
+
+    "CHECKPOINT_B_VALIDATION_SUMMARY": {
+      "description": "Summarize all validation findings from Steps 4-6",
+      "output_format": {
+        "section_1_profile_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
+        "section_2_galleras_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
+        "section_3_venues_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
+        "critical_issues": "List any blocking issues found",
+        "minor_issues": "List non-blocking improvements needed",
+        "recommendation": "READY FOR TESTING / NEEDS FIXES"
       }
-    ],
-    "reference": [
-      "@brain/typescript_interfaces_reference.json - Review Subscription interface",
-      "backend/src/models/Subscription.ts - Understand Subscription model"
-    ]
-  },
-
-  "RECOMMENDED_MCP_SERVERS": {
-    "primary": ["--seq", "--sequential"],
-    "reasoning": "Sequential thinking for multi-step API modifications with dependency analysis",
-    "usage": "Use Sequential to plan filter logic + dependency verification before coding"
-  },
-
-  "IMPLEMENTATION_SPECIFICATION": {
-    "task_1_get_api_users_filters": {
-      "file": "backend/src/routes/users.ts",
-      "current_state": "Line 54: Supports role, isActive, search parameters",
-      "required_additions": [
-        "approved (boolean) - filter users by approval status",
-        "subscriptionType (enum: 'free' | 'daily' | 'monthly') - filter by subscription"
-      ],
-      "simulation_template": [
-        "[SIMULATE] Adding approved filter to users.ts:",
-        "  1. Parameter: const approved = req.query.approved",
-        "  2. Logic: if (approved) where.approved = approved === 'true'",
-        "  3. No new imports needed? Check line 3-10 for existing Op",
-        "  4. Testing: curl 'http://localhost:3001/api/users?approved=true'",
-        "",
-        "[CONFIRM] Before modifying:",
-        "   Op is imported from sequelize (grep 'import.*Op')",
-        "   where clause pattern exists (grep 'where\\.approved')",
-        "   No circular dependencies",
-        "",
-        "[EXECUTE] Make changes"
-      ],
-      "implementation_challenge": "subscriptionType filtering requires Subscription model JOIN",
-      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 4 for subscription filtering solution",
-      "testing": "curl 'http://localhost:3001/api/users?subscriptionType=monthly'"
     },
 
-    "task_2_get_api_venues_filters": {
-      "file": "backend/src/routes/venues.ts",
-      "current_state": "Line 40: Supports status parameter only",
-      "required_additions": [
-        "ownerApproved (boolean) - filter by user.approved status",
-        "ownerSubscription (enum: 'free' | 'daily' | 'monthly') - filter by owner subscription",
-        "search (string) - search by venue name or owner username"
-      ],
-      "note": "Same challenge as users.ts but filtering USER properties via JOIN",
-      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 3.2 for detailed code example",
-      "testing": "curl 'http://localhost:3001/api/venues?ownerApproved=true&ownerSubscription=monthly'"
+    "STEP_7_REPORT_TO_BACKLOG": {
+      "action": "UPDATE brain/backlog.json with work report",
+      "purpose": "Centralized work tracking for multi-AI coordination",
+      "no_file_creation": "DO NOT create .md files, DO NOT update api_endpoints_reference.json or typescript_interfaces_reference.json with work logs",
+      "file_to_update": "brain/backlog.json",
+      "append_location": "Add new section: recent_achievements_2025_11_01_subscription_create_fix",
+      "report_structure": {
+        "executor": "QWEN 2.5-Coder 32B Instruct with --c7 --context7 + --seq --sequential",
+        "date": "2025-11-01",
+        "task": "Fix SubscriptionTabs CREATE mode button + Deep validation of Profile/Galleras/Venues pages",
+        "files_modified": ["List with line numbers"],
+        "validation_status": {
+          "typescript_compilation": "✅ ZERO errors",
+          "build_process": "✅ SUCCESS",
+          "terminology_unified": "membresía → suscripción (X replacements)"
+        },
+        "validation_findings": {
+          "profile_page": "A1-A8 checklist results",
+          "galleras_page": "B1-B8 checklist results",
+          "venues_page": "C1-C8 checklist results"
+        },
+        "impact": "Description of changes and improvements",
+        "commit": "Hash and message"
+      },
+      "use_template_from_line_313": "Follow exact format specified in 📊_REPORT_FORMAT_FOR_CLAUDE for chat output, then append to backlog.json"
     },
 
-    "task_3_get_api_galleras_filters": {
-      "file": "backend/src/routes/galleras.ts",
-      "current_state": "Line 18: Supports status parameter only",
-      "required_additions": "Identical to venues.ts - same filter parameters",
-      "note": "Copy pattern from venues.ts - should be straightforward",
-      "reference": "FILTERS_IMPLEMENTATION_PLAN.md Section 3.3",
-      "testing": "curl 'http://localhost:3001/api/galleras?ownerApproved=true&ownerSubscription=monthly'"
+    "STEP_8_FINAL_VALIDATION": {
+      "description": "Comprehensive final checks before commit",
+      "checks": [
+        "1. npx tsc --noEmit (MUST be ZERO errors)",
+        "2. npm run build (MUST succeed)",
+        "3. git diff --name-only (verify ONLY intended files modified)",
+        "4. grep -r 'membresía' frontend/src/components/admin/ (expect 0 results)",
+        "5. grep 'mode={mode}' frontend/src/components/admin/UserModal.tsx (verify prop passed)",
+        "6. No 'any' types introduced: grep 'any' [modified files] (expect 0 new 'any')"
+      ],
+      "if_any_fail": "STOP - Fix before commit - Report to user"
+    },
+
+    "STEP_9_COMMIT": {
+      "when": "ONLY after Step 8 passes ALL checks",
+      "commit_message_template": "fix: SubscriptionTabs CREATE mode shows correct button + Profile validation\n\nBUG FIX:\n- SubscriptionTabs.tsx: Added mode prop ('create' | 'edit')\n- Button text now conditional: CREATE → 'Crear Usuario', EDIT → 'Actualizar Suscripción'\n- UserModal.tsx: Pass mode prop to SubscriptionTabs\n\nTERMINOLOGY UNIFICATION:\n- Replaced 'membresía' → 'suscripción' across admin components\n- Consistent terminology for better UX\n\nVALIDATION PERFORMED:\n- ✅ Profile.tsx: [Status - list issues if any]\n- ✅ Galleras.tsx: [Status - list issues if any]\n- ✅ Venues.tsx: [Status - list issues if any]\n\nTYPESCRIPT VALIDATION:\n- ✅ ZERO errors (npx tsc --noEmit)\n- ✅ Build succeeds (npm run build)\n- ✅ No 'any' types introduced\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "commit_command": "git add frontend/src/components/admin/SubscriptionTabs.tsx frontend/src/components/admin/UserModal.tsx brain/backlog.json && git commit -m \"[message above]\"",
+      "verify_after_commit": "git log -1 --stat"
+    },
+
+    "STEP_10_UPDATE_BACKLOG": {
+      "action": "APPEND work report to brain/backlog.json",
+      "when": "After commit succeeds",
+      "location": "Add new section after existing recent_achievements",
+      "section_name": "recent_achievements_2025_11_01_subscription_create_fix",
+      "content_template": {
+        "executor": "QWEN 2.5-Coder 32B Instruct",
+        "date": "2025-11-01",
+        "task": "Fix SubscriptionTabs CREATE mode button + Deep validation",
+        "files_modified": ["array of files with line numbers"],
+        "validation_status": {
+          "typescript_compilation": "✅ ZERO errors",
+          "build_process": "✅ SUCCESS",
+          "terminology_changes": "membresía → suscripción (X occurrences)"
+        },
+        "validation_findings": {
+          "profile_page": "A1-A8 results",
+          "galleras_page": "B1-B8 results",
+          "venues_page": "C1-C8 results"
+        },
+        "impact": "Button text now correct in CREATE mode, terminology unified",
+        "commit": "hash and message"
+      }
     }
   },
 
-  "ERROR_PREVENTION_PROTOCOL": {
-    "before_each_modification": {
-      "step_1": "Read the target file completely - understand full context",
-      "step_2": "Identify ALL imports at top - verify needed models are imported",
-      "step_3": "Simulate change - describe exactly what you'll add",
-      "step_4": "Grep actual code - confirm assumptions (grep -n 'import.*Subscription' backend/src/routes/users.ts)",
-      "step_5": "If grep returns nothing - STOP and REPORT: '[SIMULATION FAILED] Subscription not imported'",
-      "step_6": "Only proceed if CONFIRM step succeeds"
-    },
-    "validation_gates": [
-      "npm install (if package.json changed - should NOT happen)",
-      "npx tsc --noEmit (zero TypeScript errors required)",
-      "npm run build (must succeed completely)",
-      "git diff --name-only (verify ONLY target files modified)"
-    ],
-    "on_error": {
-      "situation": "Any validation gate fails",
-      "action": "REVERT changes immediately - do NOT attempt fix",
-      "report_format": "[IMPLEMENTATION FAILED] in [filename]:\nError: [exact error message]\nRoots cause analysis: [why it happened]\nRecommendation: [what should be done instead]"
-    }
+  "✅_SUCCESS_CRITERIA": [
+    "1. TypeScript compilation: ✅ ZERO errors",
+    "2. Build process: ✅ SUCCESS",
+    "3. SubscriptionTabs has mode prop: ✅ VERIFIED",
+    "4. Button text conditional on mode: ✅ IMPLEMENTED",
+    "5. Terminology unified to 'suscripción': ✅ CONSISTENT",
+    "6. Profile validation: ✅ COMPLETED with findings documented",
+    "7. Galleras validation: ✅ COMPLETED with findings documented",
+    "8. Venues validation: ✅ COMPLETED with findings documented",
+    "9. Report in chat text: ✅ COMPREHENSIVE",
+    "10. Report appended to backlog.json: ✅ DOCUMENTED",
+    "11. No 'any' types introduced: ✅ TYPE SAFETY MAINTAINED"
+  ],
+
+  "🔴_ERROR_HANDLING": {
+    "typescript_errors": "STOP immediately - Report exact error line numbers - DO NOT continue",
+    "build_errors": "STOP - Report full error output - DO NOT commit",
+    "infinite_loop_detection": "If same file edited 3 times: STOP and report to user",
+    "validation_issues": "Document all findings, propose fixes if critical"
   },
 
-  "QUALITY_CHECKLIST": {
-    "before_commit": [
-      " Simulate � Confirm protocol completed for each change",
-      " All TypeScript types correct (Query parameters, response types)",
-      " No new dependencies added without npm install",
-      " npx tsc --noEmit passes with zero errors",
-      " npm run build succeeds",
-      " git diff --name-only shows ONLY users.ts, venues.ts, galleras.ts",
-      " Commit message includes [SIMULATED] [CONFIRMED] tags",
-      " Test commands documented in commit message"
-    ]
-  },
-
-  "TESTING_COMMANDS": {
-    "unit_tests": [
-      "curl 'http://localhost:3001/api/users?role=user&approved=true'",
-      "curl 'http://localhost:3001/api/users?subscriptionType=monthly'",
-      "curl 'http://localhost:3001/api/venues?ownerApproved=true'",
-      "curl 'http://localhost:3001/api/venues?ownerSubscription=monthly'",
-      "curl 'http://localhost:3001/api/galleras?status=pending&ownerApproved=true'"
-    ],
-    "build_validation": [
-      "npx tsc --noEmit",
-      "npm run build",
-      "npm run lint"
-    ]
-  },
-
-  "GIT_WORKFLOW": {
-    "branch": "Always work on feature branch, never main",
-    "commit_message_format": "feat: Add filter parameters to admin API endpoints\n\n[SIMULATED]\n- Added approved filter to GET /api/users\n- Added subscriptionType filter to GET /api/users\n- Added ownerApproved filter to GET /api/venues\n- Added ownerSubscription filter to GET /api/venues/galleras\n- Added search parameter to GET /api/venues/galleras\n\n[CONFIRMED]\n Subscription model imported\n Sequelize Op imported\n No circular dependencies\n All filters follow existing pattern\n\n[TESTED]\n npx tsc --noEmit passes\n npm run build succeeds\n Verified with curl commands\n\n> Generated with QWEN CLI\nCo-Authored-By: QWEN <noreply@anthropic.com>",
-    "scope_validation": "Run 'git diff --name-only' before commit - output must be:\nbackend/src/routes/users.ts\nbackend/src/routes/venues.ts\nbackend/src/routes/galleras.ts"
-  },
-
-  "WHAT_NOT_TO_DO": {
-    "never": [
-      "L Modify auth.ts, User.ts, or database migration files",
-      "L Change database schema (that's for SQL migrations)",
-      "L Add new dependencies without npm install",
-      "L Skip TypeScript compilation validation",
-      "L Commit changes that fail build",
-      "L Modify files outside [FILES_TO_MODIFY] list",
-      "L Attempt 'improvements' to other files (no scope creep)",
-      "L Commit without [SIMULATED] [CONFIRMED] tags"
-    ],
-    "if_tempted": "Pause and document the opportunity in [OUT_OF_SCOPE] format instead of making changes"
-  },
-
-  "HANDOFF_REQUIREMENTS": {
-    "when_complete": "Provide Claude with:",
-    "deliverables": [
-      "List of exact changes made (git diff output)",
-      "TypeScript compilation status (output of npx tsc --noEmit)",
-      "Build status (output of npm run build)",
-      "Test command results (curl commands executed)",
-      "Any blockers or issues encountered",
-      "Commit hash and branch name"
-    ],
-    "session_summary": {
-      "ai_used": "QWEN",
-      "duration_actual": "[actual time spent]",
-      "files_modified": "[list with line count changes]",
-      "validation_status": "[all gates passed / failed with details]",
-      "next_ai_context": "Frontend implementation ready to start (Gemini)"
-    }
-  },
-
-  "SUCCESS_CRITERIA": {
-    "task_complete": [
-      " GET /api/users supports approved + subscriptionType filters",
-      " GET /api/venues supports ownerApproved + ownerSubscription + search",
-      " GET /api/galleras supports ownerApproved + ownerSubscription + search",
-      " TypeScript compilation passes",
-      " npm run build succeeds",
-      " Test commands return correct filtered results",
-      " git diff shows ONLY approved files modified",
-      " Commit message includes simulation/confirmation tags"
-    ]
+  "📊_REPORT_FORMAT_FOR_CLAUDE": {
+    "use_this_template": "## QWEN REPORT - Subscription CREATE Fix + Validation\n\n### FILES MODIFIED\n- frontend/src/components/admin/SubscriptionTabs.tsx (line X-Y): Added mode prop\n- frontend/src/components/admin/UserModal.tsx (line X): Pass mode={mode}\n\n### TYPESCRIPT VALIDATION\n- npx tsc --noEmit: ✅ ZERO errors\n- npm run build: ✅ SUCCESS\n\n### TERMINOLOGY CHANGES\n- Replaced 'membresía' with 'suscripción' in X locations\n\n### VALIDATION FINDINGS\n#### Profile.tsx\n- A1-A8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n#### Galleras.tsx\n- B1-B8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n#### Venues.tsx\n- C1-C8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n### COMMIT\n- Hash: [abc1234]\n- Message: \"fix: SubscriptionTabs CREATE mode...\"\n\n### ISSUES ENCOUNTERED\n- [None | List with root cause + how resolved]"
   }
 }

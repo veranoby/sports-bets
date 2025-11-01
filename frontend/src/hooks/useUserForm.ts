@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { userAPI } from '../services/api';
-import { useToast } from '../hooks/useToast';
-import type { User } from '../types';
+import { useState } from "react";
+import { userAPI } from "../services/api";
+import { useToast } from "../hooks/useToast";
+import type { User } from "../types";
 
-type UserRole = 'operator' | 'venue' | 'gallera' | 'user';
-type FormMode = 'create' | 'edit';
+type UserRole = "operator" | "venue" | "gallera" | "user";
+type FormMode = "create" | "edit";
 
 interface UserFormData {
   username: string;
@@ -38,11 +38,11 @@ interface UserFormData {
 export const useUserForm = (
   mode: FormMode,
   role: UserRole,
-  initialUser?: User
+  initialUser?: User,
 ) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<UserFormData>(() => {
-    if (mode === 'edit' && initialUser) {
+    if (mode === "edit" && initialUser) {
       return {
         username: initialUser.username,
         email: initialUser.email,
@@ -51,47 +51,49 @@ export const useUserForm = (
         isActive: initialUser.isActive,
         approved: initialUser.approved || true,
         profileInfo: {
-          fullName: initialUser.profileInfo?.fullName || '',
-          phoneNumber: initialUser.profileInfo?.phoneNumber || '',
+          fullName: initialUser.profileInfo?.fullName || "",
+          phoneNumber: initialUser.profileInfo?.phoneNumber || "",
           images: initialUser.profileInfo?.images || [],
-          verificationLevel: initialUser.profileInfo?.verificationLevel || 'none',
-          venueName: initialUser.profileInfo?.venueName || '',
-          venueLocation: initialUser.profileInfo?.venueLocation || '',
-          venueDescription: initialUser.profileInfo?.venueDescription || '',
-          venueEmail: initialUser.profileInfo?.venueEmail || '',
-          venueWebsite: initialUser.profileInfo?.venueWebsite || '',
-          galleraName: initialUser.profileInfo?.galleraName || '',
-          galleraLocation: initialUser.profileInfo?.galleraLocation || '',
-          galleraDescription: initialUser.profileInfo?.galleraDescription || '',
-          galleraEmail: initialUser.profileInfo?.galleraEmail || '',
-          galleraWebsite: initialUser.profileInfo?.galleraWebsite || '',
+          verificationLevel:
+            initialUser.profileInfo?.verificationLevel || "none",
+          venueName: initialUser.profileInfo?.venueName || "",
+          venueLocation: initialUser.profileInfo?.venueLocation || "",
+          venueDescription: initialUser.profileInfo?.venueDescription || "",
+          venueEmail: initialUser.profileInfo?.venueEmail || "",
+          venueWebsite: initialUser.profileInfo?.venueWebsite || "",
+          galleraName: initialUser.profileInfo?.galleraName || "",
+          galleraLocation: initialUser.profileInfo?.galleraLocation || "",
+          galleraDescription: initialUser.profileInfo?.galleraDescription || "",
+          galleraEmail: initialUser.profileInfo?.galleraEmail || "",
+          galleraWebsite: initialUser.profileInfo?.galleraWebsite || "",
           galleraSpecialties: initialUser.profileInfo?.galleraSpecialties || [],
-          galleraActiveRoosters: initialUser.profileInfo?.galleraActiveRoosters || [],
+          galleraActiveRoosters:
+            initialUser.profileInfo?.galleraActiveRoosters || [],
         },
       };
     } else {
       return {
-        username: '',
-        email: '',
-        password: '',
+        username: "",
+        email: "",
+        password: "",
         role: role,
         isActive: true,
         approved: true,
         profileInfo: {
-          fullName: '',
-          phoneNumber: '',
+          fullName: "",
+          phoneNumber: "",
           images: [],
-          verificationLevel: 'none',
-          venueName: '',
-          venueLocation: '',
-          venueDescription: '',
-          venueEmail: '',
-          venueWebsite: '',
-          galleraName: '',
-          galleraLocation: '',
-          galleraDescription: '',
-          galleraEmail: '',
-          galleraWebsite: '',
+          verificationLevel: "none",
+          venueName: "",
+          venueLocation: "",
+          venueDescription: "",
+          venueEmail: "",
+          venueWebsite: "",
+          galleraName: "",
+          galleraLocation: "",
+          galleraDescription: "",
+          galleraEmail: "",
+          galleraWebsite: "",
           galleraSpecialties: [],
           galleraActiveRoosters: [],
         },
@@ -102,38 +104,40 @@ export const useUserForm = (
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
 
     // Check if it's a nested field (contains dot notation)
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      if (parent === 'profileInfo') {
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      if (parent === "profileInfo") {
         // Handle profileInfo nested fields correctly
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           profileInfo: {
             ...prev.profileInfo,
-            [child]: value
-          }
+            [child]: value,
+          },
         }));
       } else {
         // Handle other nested fields if any
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [parent]: {
             ...prev[parent],
-            [child]: value
-          }
+            [child]: value,
+          },
         }));
       }
     } else {
       // Handle root level fields (checkboxes, username, email, etc.)
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: type === "checkbox" ? checked : value
+        [name]: type === "checkbox" ? checked : value,
       }));
     }
   };
@@ -162,12 +166,12 @@ export const useUserForm = (
     setError(null);
 
     try {
-      if (mode === 'create') {
+      if (mode === "create") {
         // For create mode, we need to include profileInfo and make sure it's properly structured
         const createUserData = {
           username: formData.username,
           email: formData.email,
-          password: formData.password || '',
+          password: formData.password || "",
           role: formData.role,
           profileInfo: {
             ...formData.profileInfo,
@@ -183,7 +187,8 @@ export const useUserForm = (
           });
           return res;
         } else {
-          const errorMessage = res.error || "Ocurrió un error al crear el usuario.";
+          const errorMessage =
+            res.error || "Ocurrió un error al crear el usuario.";
           setError(errorMessage);
           addToast({
             type: "error",
@@ -192,7 +197,7 @@ export const useUserForm = (
           });
           throw new Error(errorMessage);
         }
-      } else if (mode === 'edit' && initialUser) {
+      } else if (mode === "edit" && initialUser) {
         // For edit mode, update the profile info
         await userAPI.updateProfile({
           profileInfo: formData.profileInfo,
@@ -210,7 +215,9 @@ export const useUserForm = (
 
         // Update user approval status if changed
         if (formData.approved !== initialUser.approved) {
-          await userAPI.update(initialUser.id, { approved: formData.approved } as Partial<User>);
+          await userAPI.update(initialUser.id, {
+            approved: formData.approved,
+          } as Partial<User>);
         }
 
         addToast({
@@ -221,9 +228,9 @@ export const useUserForm = (
         return { success: true, data: { ...initialUser, ...formData } };
       }
     } catch (err) {
-      const errorMessage = 
-        err instanceof Error 
-          ? err.message 
+      const errorMessage =
+        err instanceof Error
+          ? err.message
           : "Ocurrió un error al procesar el usuario.";
       setError(errorMessage);
       addToast({

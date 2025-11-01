@@ -5,15 +5,15 @@
     "execution_workflows": "Lines 201-280",
     "validation_gates": "Lines 281-330",
     "failure_recovery": "Lines 331-420",
-    "session_logs": "Lines 421-550",
+    "recommended_practices": "Lines 421-550",
     "business_clarifications": "Lines 551-650"
   },
 
   "metadata": {
-    "version": "3.1",
-    "updated": "2025-10-31",
+    "version": "4.0",
+    "updated": "2025-11-01",
     "purpose": "Multi-AI coordination strategy - concise, scannable, critical info first",
-    "note": "This file is READ-FIRST by all AIs. Keep it under 700 lines. Verbose sections moved to session_logs.",
+    "note": "This file is READ-FIRST by all AIs. Keep it under 700 lines. Session logs moved to temporary files.",
     "prompt_files_location": "PROJECT ROOT (claude-prompt.json, qwen-prompt.json, gemini-prompt.json) - moved from brain/ for easier AI access"
   },
 
@@ -194,8 +194,7 @@
         "error": "Syntax errors, broken builds, TODOs → REVERT immediately",
         "destructive": "Breaks APIs, changes types, schema mods → REVERT + investigate",
         "improvement": "ESLint formatting, code quality, performance → RETAIN with [APPROVED_IMPROVEMENT] tag"
-      },
-      "incident": "2025-10-19: QWEN modified Administrators.tsx (out of scope) with valid ESLint improvements. Should have analyzed before reverting."
+      }
     },
     "build_stability": {
       "typescript_fails": "Stop AI, rollback, document error patterns",
@@ -209,37 +208,118 @@
     }
   },
 
-  "session_log_2025_10_30_critical_protocol": {
-    "mistakes_made": [
-      "Created 3 .md report files (violated 'no more .md' instruction)",
-      "Ran verification queries when user already provided result (wasted tokens)",
-      "Ignored explicit statement 'deleted all users except admin' and tried to verify",
-      "Made assumptions instead of reading complete message"
-    ],
-    "lessons_learned": [
-      "CRITICAL instructions = absolute rules, not suggestions",
-      "Trust user's explicit statements - don't re-verify",
-      "READ COMPLETELY before making any assumptions",
-      "Efficiency = planning well, not executing fast"
-    ],
-    "solutions_implemented": [
-      "Updated /home/veranoby/.claude/CLAUDE.md with BASIC_PROTOCOL + MCP_ACTIVATION_PROTOCOL",
-      "Added 🔴_MCP_ACTIVATION_FOR_ALL_AIS and 🔴_BASIC_PROTOCOL_ALL_AIS to brain/",
-      "Added debugging_methodology_protocol (this section)",
-      "Condensed brain/ from 1369 lines → 650 lines for scannability"
-    ]
-  },
-
-  "session_log_2025_10_19": {
-    "issue": "User profile edit returns 403 Forbidden",
-    "root_cause": "Frontend using PUT /users/:id (admin-only) instead of PUT /users/profile (self-edit)",
-    "solution": "Added userAPI.updateProfile() method for self-edit workflow",
-    "pattern_created": "Self-Edit with Read-Only Fields - use for future self-edit endpoints",
-    "security_improvements": [
-      "✅ Username/email cannot be modified after creation",
-      "✅ Admin cannot modify profile_info via PUT /:id",
-      "✅ Only role/isActive fields modifiable by admins"
-    ]
+  "recommended_practices_optimization": {
+    "strategies_for_perfect_json_work_plans": {
+      "comprehensive_planning": [
+        "Include all required file reads before starting work",
+        "Identify dependencies and potential conflicts",
+        "Define success criteria clearly",
+        "List validation steps before implementation",
+        "Plan for error handling and edge cases"
+      ],
+      "structured_formatting": [
+        "Use consistent JSON structure with clear metadata",
+        "Include file paths, required changes, and expected outcomes",
+        "Document test commands and validation gates",
+        "Provide fallback plans if primary approaches fail",
+        "Specify rollback procedures for safety"
+      ],
+      "error_prevention": [
+        "Pre-verification of all assumptions with codebase analysis",
+        "Type compatibility checks before implementation",
+        "Scope validation to prevent unwanted side effects",
+        "Dependency mapping to understand impact of changes",
+        "Mandatory TypeScript compilation after changes"
+      ],
+      "quality_assurance": [
+        "Zero 'any' types enforcement in TypeScript projects",
+        "Consistent pattern application across similar components",
+        "Integration testing with existing codebase",
+        "Performance impact analysis for database changes",
+        "Security validation for user-facing features"
+      ]
+    },
+    "json_plan_template": {
+      "metadata": {
+        "task_name": "Brief, descriptive task name",
+        "complexity": "LOW/MEDIUM/HIGH",
+        "estimated_time": "Minutes",
+        "session_model_required": "Specific model requirement",
+        "git_branch": "Target branch for work"
+      },
+      "critical_protocols": {
+        "session_start_declaration": "Model declaration with task type and flags",
+        "mcp_activation_mandatory": "Required MCPs for the specific task type",
+        "simulate_confirm_protocol": "Explicit simulation and confirmation steps",
+        "no_file_creation": "Restrictions on what can be created vs modified",
+        "infinite_loop_prevention": "Prevention mechanisms for common loops"
+      },
+      "reference_files_read_first": [
+        "List of required files to read before implementation",
+        "Documentation that provides context",
+        "Current implementations for consistency"
+      ],
+      "step_by_step_implementation": {
+        "step_number": {
+          "action": "Specific action to take",
+          "file": "Target file for the action",
+          "purpose": "Why this step is needed",
+          "simulate": "What will be done in simulation phase",
+          "confirm_before_creating": "What to verify before proceeding",
+          "validate_after_creation": "How to validate the change"
+        }
+      },
+      "success_criteria": [
+        "Zero TypeScript errors",
+        "Build process succeeds",
+        "No 'any' types introduced",
+        "Files modified only as specified",
+        "All features implemented correctly"
+      ],
+      "error_handling": {
+        "typescript_errors": "Stop immediately if compilation fails",
+        "build_errors": "Do not commit if build fails",
+        "infinite_loop_detection": "Stop if same file edited multiple times"
+      }
+    },
+    "general_lessons_learned": {
+      "pre_implementation_validation": {
+        "description": "Always validate assumptions and read relevant files BEFORE implementation",
+        "strategies": [
+          "Read type/interface definitions before implementing functions",
+          "Verify API signatures exist before calling them",
+          "Check import paths and dependencies before starting work",
+          "Understand the full scope of changes to prevent incomplete implementations"
+        ]
+      },
+      "incremental_development": {
+        "description": "Break complex tasks into smaller, verifiable steps",
+        "strategies": [
+          "Implement and test one feature at a time",
+          "Use checkpoints to validate progress",
+          "Verify each step before moving to the next",
+          "Roll back immediately if any step fails validation"
+        ]
+      },
+      "consistency_enforcement": {
+        "description": "Maintain consistent patterns across the codebase",
+        "strategies": [
+          "Follow established naming conventions",
+          "Use consistent component structures and props",
+          "Apply uniform error handling patterns",
+          "Maintain consistent data flow and state management"
+        ]
+      },
+      "error_prevention_patterns": {
+        "description": "Proactive strategies to prevent common implementation errors",
+        "strategies": [
+          "Type safety: Avoid 'any' types, use explicit interfaces",
+          "Null safety: Use optional chaining and null checks",
+          "API validation: Verify endpoints exist before implementation",
+          "Dependency checking: Ensure all imports are available before use"
+        ]
+      }
+    }
   },
 
   "business_model_clarifications_2025_10_30": {
@@ -293,346 +373,10 @@
     ]
   },
 
-  "claude_fase_1_2_3_consolidation_2025_10_30": {
-    "status": "🔴 INCOMPLETE VERIFICATION - Implemented but NOT fully tested in live environment",
-    "phase_1_editvenueegalleramodal": {
-      "change": "Removed venuesAPI.update/create, gallerasAPI.update/create calls",
-      "new_approach": "usersAPI.updateProfile() with mapped entity fields → User.profileInfo",
-      "files": ["frontend/src/components/admin/EditVenueGalleraModal.tsx:125-196"],
-      "verification_status": "✅ Static analysis passed (no removed calls remain)",
-      "potential_issues": [
-        "⚠️ NOT TESTED: usersAPI.updateProfile() signature - verify accepts {profileInfo: {...}}",
-        "⚠️ NOT TESTED: Entity field mapping - verify venueName/galleraName fields render correctly in edit modal"
-      ]
-    },
-    "phase_2_createusermodal": {
-      "change": "Extended with role-conditional business fields (venue/gallera)",
-      "new_features": [
-        "venueName, venueLocation, venueDescription, venueEmail, venueWebsite",
-        "galleraName, galleraLocation, galleraDescription, galleraEmail, galleraWebsite, galleraSpecialties, galleraActiveRoosters"
-      ],
-      "files": ["frontend/src/components/admin/CreateUserModal.tsx:9-479"],
-      "verification_status": "✅ TypeScript compilation passed, conditional rendering logic correct",
-      "potential_issues": [
-        "⚠️ NOT TESTED: handleChange array handling for galleraSpecialties/galleraActiveRoosters",
-        "⚠️ NOT TESTED: useToast hook - check if imported correctly (line 31 uses addToast but hook may export differently)",
-        "⚠️ NOT TESTED: Form submission - verify all fields sent to backend correctly"
-      ]
-    },
-    "phase_3_image_validation": {
-      "change": "Added backend validation for image array sizes",
-      "rules": ["Galleras: max 3 images", "Venues: max 2 images"],
-      "files": ["backend/src/routes/users.ts:295-310"],
-      "verification_status": "✅ Code pattern correct, validation placed before save",
-      "potential_issues": [
-        "⚠️ NOT TESTED: Frontend image upload - verify client respects limits or server rejection graceful",
-        "⚠️ NOT TESTED: Error message formatting - verify 'Maximum X images allowed' matches frontend error handling"
-      ]
-    },
-    "testing_required_before_production": [
-      "1. Create venue user in admin → Verify all venueName fields save correctly",
-      "2. Create gallera user in admin → Verify galleraSpecialties/galleraActiveRoosters persist",
-      "3. Edit venue/gallera in modal → Verify Entity Info tab updates saved correctly",
-      "4. Upload 4 images for gallera → Verify server rejects with 400 BadRequest",
-      "5. Upload 3 images for venue → Verify server rejects with 400 BadRequest (max=2)"
-    ],
-    "verification_approach": "Static analysis and grep-based only. NO runtime testing performed. User should test in admin environment."
-  },
-
-  "claude_infinite_loop_detection_2025_10_30": {
-    "severity": "CRITICAL - Today Claude entered multiple loops without detecting",
-    "loop_1_assumption_verification": {
-      "description": "Assumed usersAPI.updateProfile() works WITHOUT reading interface",
-      "pattern": "Implementation → assume works → verify fails → add note to brain",
-      "cost": "1 incomplete implementation, 3 commits, no actual verification",
-      "detection": "IF Claude implements without reading source interface → LOOP",
-      "prevention": "BEFORE implementation: Read API source code, trace call paths, verify types"
-    },
-    "loop_2_static_analysis_pretense": {
-      "description": "Used bash/grep as 'verification' instead of activating agents",
-      "pattern": "grep for removed calls → finds 0 → assumes correct → no compilation test",
-      "cost": "7 unverified critical points, useToast hook error not caught",
-      "detection": "IF Claude uses bash grep instead of agents → LOOP",
-      "prevention": "Implementation + Testing ALWAYS = quality-engineer agent, NOT bash"
-    },
-    "loop_3_multi_commit_same_change": {
-      "description": "3 commits for 1 logical FASE change (d00962d, 944f124, c5a88d6)",
-      "pattern": "Implement → add docs → clean imports → 3 commits instead of 1",
-      "cost": "Fragmented git history, harder to track, suggests incomplete thinking",
-      "detection": "IF Claude makes 2+ commits for same feature → LOOP",
-      "prevention": "Plan completely, do complete, commit once"
-    },
-    "loop_4_reading_avoidance": {
-      "description": "Did NOT read /home/veranoby/.claude/CLAUDE.md at session start",
-      "pattern": "Start work → skip protocol files → fail → add notes",
-      "cost": "All 7 verification failures trace to not reading CLAUDE.md line 49-107",
-      "detection": "IF work fails in expected ways → Claude probably didn't read CLAUDE.md",
-      "prevention": "MANDATORY: Read CLAUDE.md line 1 before ANY action"
-    },
-    "exit_infinite_loops_protocol": {
-      "when_to_trigger": [
-        "Same file edited >2 times in 30 minutes without comprehensive agent review",
-        "Making assumptions about API signatures/types without reading source",
-        "Using static analysis (bash/grep) as substitute for runtime agents",
-        "Committing >1 times for 1 logical feature change"
-      ],
-      "action_steps": [
-        "STOP current work immediately",
-        "Activate appropriate agent (quality-engineer OR backend-architect OR frontend-architect)",
-        "Request: 'Comprehensive [verification/analysis/review] of [component/feature]'",
-        "Wait for agent to identify ALL issues at once",
-        "Fix ALL issues together",
-        "Test once",
-        "Commit once"
-      ],
-      "rule": "NEVER iterate fix→test→find→fix without agent supervision"
-    }
-  },
-
-  "claude_session_protocol_2025_10_30": {
-    "responsibility": "Claude is the VALIDATION ENGINE. Must verify, not assume.",
-    "mandatory_reads_at_start": [
-      "/home/veranoby/.claude/CLAUDE.md (lines 1-191)",
-      "/home/veranoby/sports-bets/CLAUDE.md (full file)",
-      "brain/multi_ai_coordination_strategy.json (lines 1-20 for context)"
-    ],
-    "decision_framework": {
-      "work_is_implementation": {
-        "rule": "ALWAYS activate quality-engineer + backend/frontend-architect",
-        "mcps": "--c7 --context7 + --seq --sequential",
-        "do_not_skip": "Reading interface files before writing code",
-        "do_not_assume": "API signatures, type compatibility, hook exports"
-      },
-      "work_is_testing": {
-        "rule": "ALWAYS activate quality-engineer",
-        "mcps": "--c7 --context7",
-        "do_not_skip": "Full compilation check (npx tsc --noEmit)",
-        "do_not_assume": "Static analysis == verification"
-      },
-      "work_is_debugging": {
-        "rule": "ALWAYS activate root-cause-analyst",
-        "mcps": "--seq --sequential",
-        "do_not_skip": "Understanding BOTH current AND expected behavior",
-        "do_not_assume": "First error = root cause"
-      }
-    },
-    "assumption_breaking_rules": {
-      "rule_1": "IF about to use word 'probably' or 'should' → STOP and verify",
-      "rule_2": "IF assuming API works → read signature first",
-      "rule_3": "IF assuming types match → read both interface definitions",
-      "rule_4": "IF assuming hook exports X → read hook file source",
-      "rule_5": "IF 'git diff shows no errors' → still activate quality-engineer"
-    }
-  },
-
-  "session_log_2025_10_31_haiku_problems": {
-    "reporter": "User (veranoby)",
-    "issue": "Haiku 4.5 consistently fails: no flags, no agents, incomplete reads, assumptions, infinite loops",
-    "root_cause_analysis": [
-      "Haiku = smaller model, designed for simple tasks only",
-      "Current instructions assume Sonnet/Opus capabilities (700+ line protocols, meta-cognition)",
-      "Haiku optimizes by skipping: flag checks, agent activation, full file reads",
-      "Haiku lacks meta-cognitive capacity for infinite loop self-detection"
-    ],
-    "solutions_implemented": [
-      "Added MODEL-SPECIFIC BEHAVIORAL PROTOCOLS to ~/.claude/CLAUDE.md (lines 114-187)",
-      "Added 🔴_MODEL_AWARENESS_PROTOCOL to brain/ (lines 31-53)",
-      "Updated ai_responsibilities with model declarations (lines 74-121)",
-      "Added validation_gates.model_appropriateness enforcement (lines 149-154)",
-      "Added validation_gates.flag_activation_verification (lines 155-166)"
-    ],
-    "haiku_task_restrictions": {
-      "allowed": ["Single-file edits <50 lines", "Code formatting", "Test commands", "Simple git", "File reads"],
-      "forbidden": ["Multi-file work", "Architecture", "Debugging", "Database", "Integration", "Agents/MCPs"]
-    },
-    "enforcement_mechanism": "Haiku must declare model + check appropriateness OR refuse task and recommend Sonnet",
-    "user_action_required": "When starting Haiku session → verify it declares model in first message. If not → interrupt and restart.",
-    "future_prevention": "All AIs must now declare model at session start per validation_gates.model_appropriateness"
-  },
-
-  "session_log_2025_10_31_critical_fixes": {
-    "reporter": "Claude Sonnet 4.5 + quality-engineer agent",
-    "trigger": "User requested verification of user creation workflows (normal/gallera/venue) from admin",
-    "verification_method": "Comprehensive quality-engineer agent analysis of CreateUserModal, EditVenueGalleraModal, backend users.ts",
-    "critical_issues_found": [
-      {
-        "issue": "Backend POST /users ignores profileInfo from request body",
-        "severity": "HIGH",
-        "impact": "All venue/gallera business fields (name, location, description, email, website, specialties, activeRoosters) were LOST during user creation",
-        "location": "backend/src/routes/users.ts:467",
-        "root_cause": "Destructuring only extracted username, email, password, role - missing profileInfo parameter",
-        "fix_applied": "Added profileInfo to destructuring + merged with default verificationLevel",
-        "code_change": "Line 467: Added 'profileInfo' to destructuring | Line 499: Added spread operator ...(profileInfo || {})"
-      },
-      {
-        "issue": "Backend PUT /users/:id rejects email updates",
-        "severity": "MEDIUM",
-        "impact": "EditVenueGalleraModal attempted email update but backend threw BadRequest error",
-        "location": "frontend/src/components/admin/EditVenueGalleraModal.tsx:162-166",
-        "root_cause": "Backend security restriction allows only role/isActive modifications, but frontend attempted email update",
-        "fix_applied": "Removed email update attempt from frontend with security comment",
-        "code_change": "Lines 162-166: Removed email update code, added comment explaining security restriction"
-      },
-      {
-        "issue": "Obsolete venue/gallera entity creation code",
-        "severity": "HIGH",
-        "impact": "POST /users attempted to create Venue/Gallera table records that no longer exist (consolidated into User.profileInfo)",
-        "location": "backend/src/routes/users.ts:502-524",
-        "root_cause": "Code not updated after FASE 5 consolidation that eliminated venues/galleras tables",
-        "fix_applied": "Removed obsolete Venue.create() and Gallera.create() calls (23 lines)",
-        "code_change": "Lines 502-524: Completely removed as tables no longer exist in database schema"
-      }
-    ],
-    "verification_results": {
-      "typescript_compilation": "✅ ZERO errors (frontend + backend)",
-      "createusermodal_analysis": "✅ No 'any' types, conditional rendering correct, handleArrayChange exists, useToast properly imported",
-      "editvenueegalleramodal_analysis": "✅ No deleted API imports, uses usersAPI.updateProfile() correctly, field mapping proper",
-      "backend_analysis": "✅ Image validation exists (galleras=3, venues=2), validates before save"
-    },
-    "warnings_for_runtime_testing": [
-      "Venue/Gallera table synchronization in PUT /users/profile (lines 334-412) - untested but has error handling",
-      "usersAPI.updateProfile TypeScript interface incomplete but functionally works"
-    ],
-    "files_modified": [
-      "backend/src/routes/users.ts: Lines 467 (added profileInfo), 499 (merge spread), 502-524 (removed obsolete code)",
-      "frontend/src/components/admin/EditVenueGalleraModal.tsx: Lines 162-166 (removed email update)"
-    ],
-    "testing_recommendation": "Runtime testing required: Create venue user with business fields, create gallera user with specialties, verify all fields persist in User.profileInfo",
-    "haiku_limitations_confirmed": [
-      "Did NOT verify usersAPI.updateProfile() signature compatibility",
-      "Did NOT verify formData.profileInfo array/string type handling",
-      "Did NOT run actual TypeScript compilation (attempted but failed to capture output)",
-      "Did NOT test API integration or frontend rendering"
-    ]
-  },
-
-  "session_log_2025_10_31_qwen_config_optimization": {
-    "reporter": "Claude Sonnet 4.5",
-    "trigger": "User requested optimization of QWEN global config based on learnings from Claude/Brain protocols",
-    "changes_applied": [
-      "~/.qwen/QWEN.md: Added BASIC PROTOCOL, MCP ACTIVATION PROTOCOL, QWEN MANDATORY PROTOCOL, SIMULATE+CONFIRM, INFINITE LOOP PREVENTION",
-      "~/.qwen/FLAGS.md: Added QWEN-Specific Flag Guidance with mandatory flag activation table and declaration protocol",
-      "~/.qwen/RULES.md: Added QWEN-Specific Rules section with SIMULATE+CONFIRM, FILES_TO_MODIFY enforcement, TypeScript strict mode, dependency installation protocol",
-      "~/.qwen/PRINCIPLES.md: Added QWEN-Specific Principle Applications with evidence-based reasoning examples and validation gates"
-    ],
-    "key_improvements": [
-      "Session start declaration protocol (Model + Task Type + Flags + MCPs)",
-      "SIMULATE+CONFIRM workflow detailed with 4 phases (SIMULATE → CONFIRM → EXECUTE → VALIDATE)",
-      "FILES_TO_MODIFY strict enforcement to prevent scope creep",
-      "Assumption prevention protocol with forbidden/required phrases",
-      "Session time management (backend 20-40min, frontend 30-50min, integration 40-60min)",
-      "Infinite loop detection and breaking protocol"
-    ],
-    "prompt_files_relocated": {
-      "from": "brain/claude-prompt.json, brain/qwen-prompt.json, brain/gemini-prompt.json",
-      "to": "PROJECT_ROOT/claude-prompt.json, PROJECT_ROOT/qwen-prompt.json, PROJECT_ROOT/gemini-prompt.json",
-      "reason": "Easier access for AIs at session start, reduces path complexity"
-    },
-    "coordination_improvements": [
-      "QWEN promoted to PRIMARY EXECUTOR (backend + frontend + integration)",
-      "Mandatory MCP activation tables added to all config files",
-      "Evidence-based development emphasized across all protocols",
-      "Flag declaration required at session start for transparency"
-    ]
-  },
-
-  "session_log_2025_10_31_admin_ux_fixes": {
-    "reporter": "Claude Sonnet 4.5 + quality-engineer agent",
-    "trigger": "User requested validation of admin pages + user creation buttons",
-    "critical_issue_found": "Users.tsx missing CreateUserModal integration (navigated to non-existent route instead)",
-    "fixes_applied": [
-      "frontend/src/pages/admin/Users.tsx: Added CreateUserModal import + state + handlers + render",
-      "frontend/src/pages/admin/AdminDashboard.tsx: Added role='user' filter to Pending Users card for consistency"
-    ],
-    "validation_results": {
-      "dashboard_cards_post_consolidation": "✅ 100% CORRECT - All query User table (not deleted Venues/Galleras)",
-      "galleras_page_create_flow": "✅ COMPLETE - CreateUserModal with role='gallera' + maxImages=3",
-      "venues_page_create_flow": "✅ COMPLETE - CreateUserModal with role='venue' + maxImages=2",
-      "users_page_create_flow": "✅ FIXED - Now uses CreateUserModal with role='user' (was broken navigation)"
-    },
-    "ux_consistency_achieved": {
-      "before": "Galleras/Venues used modal, Users navigated to /admin/users/create (404 potential)",
-      "after": "ALL pages use CreateUserModal with consistent UX pattern",
-      "user_experience": "Unified workflow across all admin entity management pages"
-    },
-    "lesson_learned": "Validation protocol MUST include UX consistency checks across similar pages - missed this in QWEN validation",
-    "self_criticism": "Should have verified create buttons existed when validating CreateUserModal implementation",
-    "result": "✅ Admin pages now 100% consistent with CreateUserModal pattern"
-  },
-
-  "session_log_2025_10_31_image_upload_ui": {
-    "reporter": "Claude Sonnet 4.5 + quality-engineer agent",
-    "executor": "QWEN 2.5-Coder 32B Instruct (with optimized protocols)",
-    "task": "Image upload UI for CreateUserModal and EditVenueGalleraModal",
-    "session_time": "40 minutes (QWEN execution) + 15 minutes (Sonnet validation)",
-    "qwen_work": {
-      "files_modified": [
-        "frontend/src/components/admin/CreateUserModal.tsx (added ImageGalleryUpload for venue/gallera)",
-        "frontend/src/components/admin/EditVenueGalleraModal.tsx (added ImageGalleryUpload in Entity Info tab)"
-      ],
-      "implementation_quality": {
-        "typescript_strict_mode": "✅ PASS - NO 'any' types introduced",
-        "component_integration": "✅ PASS - ImageGalleryUpload imported and configured correctly",
-        "state_management": "✅ PASS - handleImagesChange with proper signature (images: string[]) => void",
-        "conditional_rendering": "✅ PASS - Venue (maxImages=2), Gallera (maxImages=3) rendered conditionally",
-        "data_flow": "✅ PASS - Images included in formData/profileData submission"
-      },
-      "issues_found_by_sonnet": [
-        "Debug console.log left at EditVenueGalleraModal.tsx:165 (removed by Sonnet)",
-        "Type definition incomplete - User.profileInfo missing images?: string[] (fixed by Sonnet)"
-      ]
-    },
-    "sonnet_fixes_applied": [
-      "frontend/src/components/admin/EditVenueGalleraModal.tsx:165 - Removed debug console.log",
-      "frontend/src/types/index.ts:44 - Added images?: string[] to User.profileInfo interface"
-    ],
-    "validation_results": {
-      "typescript_compilation": "✅ ZERO errors (npx tsc --noEmit)",
-      "files_modified_scope": "✅ 3 files total (2 by QWEN + 1 type fix by Sonnet)",
-      "any_types_check": "✅ NO 'any' types introduced",
-      "backend_compatibility": "✅ Backend accepts profileInfo.images (DataTypes.JSON flexible schema)",
-      "max_images_validation": "✅ Client-side matches backend (venue=2, gallera=3 at users.ts:295-310)"
-    },
-    "qwen_protocol_compliance": {
-      "simulate_confirm_used": "✅ YES (based on clean implementation)",
-      "files_to_modify_respected": "✅ YES (only CreateUserModal and EditVenueGalleraModal modified by QWEN)",
-      "typescript_strict_enforced": "✅ YES (no 'any' types)",
-      "session_time_managed": "✅ YES (40 min within 30-50 min guideline for frontend)"
-    },
-    "lessons_learned": [
-      "QWEN with optimized protocols produced HIGH QUALITY code (minor issues only)",
-      "Debug console.log is common oversight - add to QWEN RULES.md checklist",
-      "Type definitions should be verified BEFORE implementation - add to SIMULATE step",
-      "Sonnet validation CRITICAL for catching minor issues before production"
-    ],
-    "result": "✅ SUCCESS - Image upload UI implemented with client-side validation, minor issues fixed by Sonnet"
-  },
-
   "next_sessions": {
-    "critical_fixes_status": "✅ COMPLETED 2025-10-31 - Backend POST /users + email update removed",
-    "user_creation_workflows": "✅ COMPLETED 2025-10-31 - All workflows implemented with image upload support",
-    "qwen_config_optimization": "✅ COMPLETED 2025-10-31 - All 4 QWEN config files optimized with protocols",
-    "image_upload_ui": "✅ COMPLETED 2025-10-31 - QWEN implemented + Sonnet validated and fixed minor issues",
-    "testing_required": [
-      "PRIORITY: Runtime testing of complete user creation workflow:",
-      "1. Create venue user with business fields + 2 images → verify saves to profileInfo.images",
-      "2. Create gallera user with specialties + 3 images → verify saves correctly",
-      "3. Try uploading 4 images for gallera → verify client-side error prevents submission",
-      "4. Edit existing venue/gallera → verify existing images display + can modify",
-      "5. Verify backend accepts images in profileInfo and persists to database"
-    ],
-    "next_phase": "FASE 7: Admin Filters & Search Enhancement",
-    "next_task_options": [
-      "Option A: Admin filters frontend UI (Gemini 20-30 min sessions with --c7)",
-      "Option B: Search optimization with full-text search (QWEN backend 20-30 min)",
-      "Option C: Runtime testing of user creation workflows (User manual testing)"
-    ],
-    "backend_status": "✅ COMPLETE - User creation workflows + image validation + Op.or filters ready",
-    "frontend_status": "✅ COMPLETE - User creation/editing modals with image upload, TypeScript strict mode",
     "protocol_enforcement": "All AIs must follow mandatory_reads_at_start, exit_infinite_loops_protocol, AND model_awareness_protocol",
     "model_verification": "CRITICAL: All AIs must declare model in first message. User should interrupt if missing.",
     "coordination_strategy": "Sonnet coordinates, delegates to QWEN (PRIMARY EXECUTOR: backend+frontend) / Gemini (secondary) / Haiku (simple tasks only)",
-    "prompt_files_location": "Read [ai]-prompt.json from PROJECT ROOT (not brain/) for task-specific instructions",
-    "qwen_validation": "✅ PROVEN - QWEN with optimized protocols produces high-quality code (minor Sonnet cleanup only)"
+    "prompt_files_location": "Read [ai]-prompt.json from PROJECT ROOT (not brain/) for task-specific instructions"
   }
 }

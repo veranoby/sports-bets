@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { articlesAPI } from "../../config/api";
-import { User } from "../../types";
+import type { User } from "../../types";
 import Card from "../../components/shared/Card";
 import { ArrowLeft, Upload, Save } from "lucide-react";
 

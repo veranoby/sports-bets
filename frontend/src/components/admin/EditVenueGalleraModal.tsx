@@ -463,7 +463,11 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   images={profileData.profileInfo.images || []}
                   onImagesChange={handleImagesChange}
                   maxImages={role === "venue" ? 2 : 3}
-                  label={role === "venue" ? "Imágenes del Local" : "Imágenes de la Gallera"}
+                  label={
+                    role === "venue"
+                      ? "Imágenes del Local"
+                      : "Imágenes de la Gallera"
+                  }
                 />
               </div>
 

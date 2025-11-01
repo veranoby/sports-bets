@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { useUserForm } from '../../hooks/useUserForm';
-import { useUserSubscription } from '../../hooks/useUserSubscription';
-import { useToast } from '../../hooks/useToast';
-import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
-import ErrorMessage from '../shared/ErrorMessage';
-import ImageGalleryUpload from '../shared/ImageGalleryUpload';
-import SubscriptionTabs from './SubscriptionTabs';
-import type { User } from '../../types';
+import React, { useState } from "react";
+import { useUserForm } from "../../hooks/useUserForm";
+import { useUserSubscription } from "../../hooks/useUserSubscription";
+import { useToast } from "../../hooks/useToast";
+import { Loader2, UserPlus, Eye, EyeOff } from "lucide-react";
+import ErrorMessage from "../shared/ErrorMessage";
+import ImageGalleryUpload from "../shared/ImageGalleryUpload";
+import SubscriptionTabs from "./SubscriptionTabs";
+import type { User } from "../../types";
 
-type UserRole = 'operator' | 'venue' | 'gallera' | 'user';
-type FormMode = 'create' | 'edit';
+type UserRole = "operator" | "venue" | "gallera" | "user";
+type FormMode = "create" | "edit";
 
 interface UserModalProps {
   mode: FormMode;
@@ -19,9 +19,17 @@ interface UserModalProps {
   onSuccess: (user?: User) => void;
 }
 
-const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSuccess }) => {
+const UserModal: React.FC<UserModalProps> = ({
+  mode,
+  role,
+  user,
+  onClose,
+  onSuccess,
+}) => {
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'profile' | 'subscription'>('profile');
+  const [activeTab, setActiveTab] = useState<"profile" | "subscription">(
+    "profile",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,20 +43,24 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
   } = useUserForm(mode, role, user);
 
   const { subscription, updateSubscription } = useUserSubscription(
-    user?.id || '',
-    user?.subscription
+    user?.id || "",
+    user?.subscription,
   );
 
   const getModalTitle = () => {
-    if (mode === 'create') {
+    if (mode === "create") {
       switch (role) {
-        case 'operator': return 'Crear Nuevo Operador';
-        case 'venue': return 'Crear Nueva Venue';
-        case 'gallera': return 'Crear Nuevo Usuario Gallera';
-        case 'user': return 'Crear Nuevo Usuario';
+        case "operator":
+          return "Crear Nuevo Operador";
+        case "venue":
+          return "Crear Nueva Venue";
+        case "gallera":
+          return "Crear Nuevo Usuario Gallera";
+        case "user":
+          return "Crear Nuevo Usuario";
       }
     } else {
-      return 'Editar Usuario';
+      return "Editar Usuario";
     }
   };
 
@@ -71,8 +83,8 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
   };
 
   const inputStyle =
-    'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm';
-  const labelStyle = 'block text-sm font-medium text-gray-700';
+    "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+  const labelStyle = "block text-sm font-medium text-gray-700";
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -91,21 +103,21 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
           <div className="border-b border-gray-200 mb-4">
             <nav className="flex space-x-8">
               <button
-                onClick={() => setActiveTab('profile')}
+                onClick={() => setActiveTab("profile")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  activeTab === "profile"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
                 👤 Perfil
               </button>
               <button
-                onClick={() => setActiveTab('subscription')}
+                onClick={() => setActiveTab("subscription")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'subscription'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  activeTab === "subscription"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
                 💳 Suscripción
@@ -115,7 +127,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
 
           {error && <ErrorMessage error={error} />}
 
-          {activeTab === 'profile' ? (
+          {activeTab === "profile" ? (
             <form onSubmit={onSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Username */}
@@ -130,8 +142,8 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     value={formData.username}
                     onChange={handleChange}
                     required
-                    disabled={mode === 'edit'} // Username is read-only in edit mode
-                    className={`${inputStyle} ${mode === 'edit' ? 'bg-gray-100' : ''}`}
+                    disabled={mode === "edit"} // Username is read-only in edit mode
+                    className={`${inputStyle} ${mode === "edit" ? "bg-gray-100" : ""}`}
                   />
                 </div>
 
@@ -153,19 +165,19 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
               </div>
 
               {/* Password - only show in create mode */}
-              {mode === 'create' && (
+              {mode === "create" && (
                 <div>
                   <label htmlFor="password" className={labelStyle}>
                     Contraseña
                   </label>
                   <div className="relative">
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
-                      value={formData.password || ''}
+                      value={formData.password || ""}
                       onChange={handleChange}
-                      required={mode === 'create'}
+                      required={mode === "create"}
                       minLength={8}
                       className={inputStyle}
                     />
@@ -223,7 +235,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
               </div>
 
               {/* Role-specific fields */}
-              {role === 'venue' && (
+              {role === "venue" && (
                 <>
                   <hr />
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -238,7 +250,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="text"
                         id="venueName"
                         name="profileInfo.venueName"
-                        value={formData.profileInfo.venueName || ''}
+                        value={formData.profileInfo.venueName || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -251,7 +263,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="text"
                         id="venueLocation"
                         name="profileInfo.venueLocation"
-                        value={formData.profileInfo.venueLocation || ''}
+                        value={formData.profileInfo.venueLocation || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -264,7 +276,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     <textarea
                       id="venueDescription"
                       name="profileInfo.venueDescription"
-                      value={formData.profileInfo.venueDescription || ''}
+                      value={formData.profileInfo.venueDescription || ""}
                       onChange={handleChange}
                       rows={3}
                       className={inputStyle}
@@ -279,7 +291,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="email"
                         id="venueEmail"
                         name="profileInfo.venueEmail"
-                        value={formData.profileInfo.venueEmail || ''}
+                        value={formData.profileInfo.venueEmail || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -292,7 +304,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="url"
                         id="venueWebsite"
                         name="profileInfo.venueWebsite"
-                        value={formData.profileInfo.venueWebsite || ''}
+                        value={formData.profileInfo.venueWebsite || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -312,7 +324,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
               )}
 
               {/* Gallera-specific fields */}
-              {role === 'gallera' && (
+              {role === "gallera" && (
                 <>
                   <hr />
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -327,7 +339,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="text"
                         id="galleraName"
                         name="profileInfo.galleraName"
-                        value={formData.profileInfo.galleraName || ''}
+                        value={formData.profileInfo.galleraName || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -340,7 +352,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="text"
                         id="galleraLocation"
                         name="profileInfo.galleraLocation"
-                        value={formData.profileInfo.galleraLocation || ''}
+                        value={formData.profileInfo.galleraLocation || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -353,7 +365,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     <textarea
                       id="galleraDescription"
                       name="profileInfo.galleraDescription"
-                      value={formData.profileInfo.galleraDescription || ''}
+                      value={formData.profileInfo.galleraDescription || ""}
                       onChange={handleChange}
                       rows={3}
                       className={inputStyle}
@@ -368,7 +380,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="email"
                         id="galleraEmail"
                         name="profileInfo.galleraEmail"
-                        value={formData.profileInfo.galleraEmail || ''}
+                        value={formData.profileInfo.galleraEmail || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -381,7 +393,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                         type="url"
                         id="galleraWebsite"
                         name="profileInfo.galleraWebsite"
-                        value={formData.profileInfo.galleraWebsite || ''}
+                        value={formData.profileInfo.galleraWebsite || ""}
                         onChange={handleChange}
                         className={inputStyle}
                       />
@@ -393,11 +405,11 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     </label>
                     <textarea
                       id="galleraSpecialties"
-                      value={(formData.profileInfo.galleraSpecialties || []).join(
-                        ', ',
-                      )}
+                      value={(
+                        formData.profileInfo.galleraSpecialties || []
+                      ).join(", ")}
                       onChange={(e) =>
-                        handleArrayChange('galleraSpecialties', e.target.value)
+                        handleArrayChange("galleraSpecialties", e.target.value)
                       }
                       rows={2}
                       placeholder="ej: Gallos de Pelea, Crianza, Entrenamiento"
@@ -405,16 +417,22 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     />
                   </div>
                   <div>
-                    <label htmlFor="galleraActiveRoosters" className={labelStyle}>
+                    <label
+                      htmlFor="galleraActiveRoosters"
+                      className={labelStyle}
+                    >
                       Roosters Activos (separados por coma)
                     </label>
                     <textarea
                       id="galleraActiveRoosters"
                       value={(
                         formData.profileInfo.galleraActiveRoosters || []
-                      ).join(', ')}
+                      ).join(", ")}
                       onChange={(e) =>
-                        handleArrayChange('galleraActiveRoosters', e.target.value)
+                        handleArrayChange(
+                          "galleraActiveRoosters",
+                          e.target.value,
+                        )
                       }
                       rows={2}
                       placeholder="ej: Rojo, Negro, Pinto"
@@ -448,7 +466,7 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                     Usuario Aprobado
                   </label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -480,19 +498,19 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {mode === 'create' ? 'Creando...' : 'Actualizando...'}
+                      {mode === "create" ? "Creando..." : "Actualizando..."}
                     </>
                   ) : (
                     <>
                       <UserPlus className="w-4 h-4 mr-2" />
-                      {mode === 'create' ? 'Crear' : 'Actualizar'}{' '}
-                      {role === 'operator'
-                        ? 'Operador'
-                        : role === 'venue'
-                          ? 'Venue'
-                          : role === 'gallera'
-                            ? 'Gallera'
-                            : 'Usuario'}
+                      {mode === "create" ? "Crear" : "Actualizar"}{" "}
+                      {role === "operator"
+                        ? "Operador"
+                        : role === "venue"
+                          ? "Venue"
+                          : role === "gallera"
+                            ? "Gallera"
+                            : "Usuario"}
                     </>
                   )}
                 </button>
@@ -501,20 +519,25 @@ const UserModal: React.FC<UserModalProps> = ({ mode, role, user, onClose, onSucc
           ) : (
             // Subscription tab
             <SubscriptionTabs
-              userId={user?.id || ''}
+              userId={user?.id || ""}
               subscription={subscription || user?.subscription}
               onSave={(subscriptionData) => {
                 // Update the parent with the new subscription info
                 if (user) {
-                  onSuccess({ 
-                    ...user, 
+                  onSuccess({
+                    ...user,
                     subscription: {
-                      id: subscriptionData.id || '',
-                      plan: subscriptionData.type === 'daily' ? 'basic' : subscriptionData.type === 'monthly' ? 'premium' : 'free',
-                      status: subscriptionData.status || 'active',
+                      id: subscriptionData.id || "",
+                      plan:
+                        subscriptionData.type === "daily"
+                          ? "basic"
+                          : subscriptionData.type === "monthly"
+                            ? "premium"
+                            : "free",
+                      status: subscriptionData.status || "active",
                       expiresAt: subscriptionData.expiresAt || null,
-                      features: subscriptionData.features || []
-                    } as import('../../types').UserSubscription
+                      features: subscriptionData.features || [],
+                    } as import("../../types").UserSubscription,
                   });
                 }
               }}

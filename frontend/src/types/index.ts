@@ -60,8 +60,8 @@ export interface User {
     galleraDescription?: string;
     galleraEmail?: string;
     galleraWebsite?: string;
-    galleraSpecialties?: string;
-    galleraActiveRoosters?: number;
+    galleraSpecialties?: string[];
+    galleraActiveRoosters?: string[];
     // Additional properties for GalleraDetailPage
     location?: string;
     description?: string;

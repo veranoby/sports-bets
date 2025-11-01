@@ -42,5 +42,6 @@
         "@morph-llm/morph-fast-apply"
       ]
     }
-  }
+  },
+  "$version": 2
 }

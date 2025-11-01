@@ -75,7 +75,7 @@ const MembershipRequestsPage: React.FC = () => {
         status: "all", // Fetch all requests, then filter in frontend
       });
       if (response.success && response.data) {
-        setRequests(response.data.requests || []);
+        setRequests((response.data as any).requests || []);
       } else {
         setError(response.error || "Error al cargar solicitudes");
       }

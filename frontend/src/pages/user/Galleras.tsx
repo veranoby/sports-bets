@@ -277,7 +277,7 @@ const GallerasPage: React.FC = () => {
                 author_id: gallera.ownerId,
               });
               const articleCount = articles.success
-                ? articles.data.total || 0
+                ? (articles.data as any)?.total || 0
                 : 0;
 
               // Use gallera table data first, then fallback to user profileInfo

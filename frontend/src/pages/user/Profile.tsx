@@ -5,6 +5,7 @@ import {
   Shield,
   Calendar,
   Camera,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -37,15 +38,15 @@ const Profile: React.FC = () => {
         );
 
         if (
-          response.data?.data?.type === "venue" &&
-          response.data?.data?.entity
+          (response.data as any)?.data?.type === "venue" &&
+          (response.data as any)?.data?.entity
         ) {
-          setVenueData(response.data.data.entity);
+          setVenueData((response.data as any).data.entity);
         } else if (
-          response.data?.data?.type === "gallera" &&
-          response.data?.data?.entity
+          (response.data as any)?.data?.type === "gallera" &&
+          (response.data as any)?.data?.entity
         ) {
-          setGalleraData(response.data.data.entity);
+          setGalleraData((response.data as any).data.entity);
         }
       } catch (error) {
         console.error("Error fetching business data:", error);
@@ -213,12 +214,13 @@ const Profile: React.FC = () => {
             </div>
 
             {/* ✅ NUEVO: Chip de pendiente aprobación para roles venue/gallera */}
-            {!user.approved && ["venue", "gallera"].includes(user.role) && (
-              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 animate-pulse mt-3">
-                <Clock className="w-3 h-3" />
-                Pendiente de aprobación
-              </div>
-            )}
+            {!(user as any).approved &&
+              ["venue", "gallera"].includes(user.role) && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 animate-pulse mt-3">
+                  <Clock className="w-3 h-3" />
+                  Pendiente de aprobación
+                </div>
+              )}
           </div>
         </div>
 

@@ -7,8 +7,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
-import EditUserModal from "../../components/admin/EditUserModal";
-import CreateUserModal from "../../components/admin/CreateUserModal";
+import UserModal from "../../components/admin/UserModal";
 import { usersAPI, userAPI } from "../../services/api";
 import type { User } from "../../types";
 
@@ -25,9 +24,10 @@ const AdminUsersPage: React.FC = () => {
   const [selectedSubscription, setSelectedSubscription] = useState<string>(
     new URLSearchParams(location.search).get("subscription") || "all",
   );
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<{
+    mode: "create" | "edit" | null;
+    user?: User;
+  }>({ mode: null });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -99,14 +99,12 @@ const AdminUsersPage: React.FC = () => {
   const handleEditUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
-      setEditingUser(user);
-      setIsEditModalOpen(true);
+      setModalState({ mode: "edit", user: user });
     }
   };
 
   const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-    setEditingUser(null);
+    setModalState({ mode: null });
   };
 
   const handleUserUpdated = (updatedUser: User) => {
@@ -115,16 +113,12 @@ const AdminUsersPage: React.FC = () => {
   };
 
   const handleCreateUser = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setIsCreateModalOpen(false);
+    setModalState({ mode: "create", user: undefined });
   };
 
   const handleUserCreated = () => {
     fetchUsers();
-    handleCloseCreateModal();
+    handleCloseModal();
   };
 
   const handleToggleUserStatus = async (
@@ -371,19 +365,16 @@ const AdminUsersPage: React.FC = () => {
         )}
       </Card>
 
-      {isEditModalOpen && editingUser && (
-        <EditUserModal
-          user={editingUser}
-          onClose={handleCloseModal}
-          onUserUpdated={handleUserUpdated}
-        />
-      )}
-
-      {isCreateModalOpen && (
-        <CreateUserModal
+      {modalState.mode && (
+        <UserModal
+          mode={modalState.mode}
           role="user"
-          onClose={handleCloseCreateModal}
-          onUserCreated={handleUserCreated}
+          user={modalState.user}
+          onClose={handleCloseModal}
+          onSuccess={() => {
+            handleCloseModal();
+            fetchUsers();
+          }}
         />
       )}
     </div>

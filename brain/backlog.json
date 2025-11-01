@@ -693,6 +693,25 @@
     "daily_progress": "Update current day status"
   },
 
+  "work_reports_protocol": {
+    "purpose": "Centralized work tracking and progress reporting",
+    "file_organization": {
+      "brain/api_endpoints_reference.json": "ONLY technical endpoint specifications",
+      "brain/typescript_interfaces_reference.json": "ONLY TypeScript interface definitions",
+      "brain/backlog.json": "Work reports, session logs, progress tracking"
+    },
+    "report_format": {
+      "structure": "recent_achievements_YYYY_MM_DD or work_session_YYYY_MM_DD",
+      "required_fields": ["executor", "task", "files_modified", "validation_status", "impact"],
+      "location": "Add to backlog.json in chronological order"
+    },
+    "ai_coordination": {
+      "QWEN": "Report completed work to backlog.json using recent_achievements pattern",
+      "Gemini": "Report completed work to backlog.json using recent_achievements pattern",
+      "Claude": "Validate work and update backlog.json with achievements"
+    }
+  },
+
   "work_session_october_14_2025": {
     "date": "2025-10-14",
     "problems_found_and_fixed": [

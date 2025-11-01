@@ -20,8 +20,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import StatusChip from "../../components/shared/StatusChip";
-import CreateUserModal from "../../components/admin/CreateUserModal"; // Import universal create modal
-import EditVenueGalleraModal from "../../components/admin/EditVenueGalleraModal"; // Import unified edit modal
+import UserModal from "../../components/admin/UserModal";
 
 // APIs
 import { userAPI } from "../../services/api";
@@ -138,47 +137,33 @@ const AdminGallerasPage: React.FC = () => {
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          ((user.profileInfo as any)?.galleraName || '')
+          ((user.profileInfo as any)?.galleraName || "")
             .toLowerCase()
             .includes(searchTerm.toLowerCase()),
       ),
     [combinedData, searchTerm],
   );
 
-  // Estado para modal de edición dual
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<CombinedGalleraData | null>(
-    null,
-  );
-
-  // Estado para modal de creación
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Estado para unified modal
+  const [modalState, setModalState] = useState<{
+    mode: "create" | "edit" | null;
+    user?: UserType;
+  }>({ mode: null });
 
   // Handlers para edición dual
   const handleEdit = (userId: string) => {
     const userData = combinedData.find((item) => item.user.id === userId);
     if (userData) {
-      setEditingData(userData);
-      setIsEditModalOpen(true);
+      setModalState({ mode: "edit", user: userData.user });
     }
   };
 
   const handleCreate = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setIsCreateModalOpen(false);
-  };
-
-  const handleUserCreated = () => {
-    fetchData(); // Refresh data
-    handleCloseCreateModal(); // Close the modal
+    setModalState({ mode: "create", user: undefined });
   };
 
   const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-    setEditingData(null);
+    setModalState({ mode: null });
   };
 
   const handleSave = () => {
@@ -267,62 +252,68 @@ const AdminGallerasPage: React.FC = () => {
           {filteredData.map(({ user }) => {
             const profile = user.profileInfo || {};
             const galleraName = (profile as any).galleraName || user.username;
-            const galleraLocation = (profile as any).galleraLocation || "Ubicación no especificada";
-            const galleraStatus = user.isActive && user.approved ? "active" : user.isActive && !user.approved ? "pending" : "inactive";
+            const galleraLocation =
+              (profile as any).galleraLocation || "Ubicación no especificada";
+            const galleraStatus =
+              user.isActive && user.approved
+                ? "active"
+                : user.isActive && !user.approved
+                  ? "pending"
+                  : "inactive";
 
             return (
-            <div
-              key={user.id}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {galleraName}
-                  </h3>
-                  <StatusChip status={galleraStatus} size="sm" />
+              <div
+                key={user.id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {galleraName}
+                    </h3>
+                    <StatusChip status={galleraStatus} size="sm" />
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>{galleraLocation}</span>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-3 mt-3">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
+                      Propietario
+                    </h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {user.username}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                      <Mail className="w-4 h-4" />
+                      <span>{user.email}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      <span className="font-medium">Membresía expira:</span>{" "}
+                      {user.subscription?.manual_expires_at
+                        ? new Date(
+                            user.subscription.manual_expires_at,
+                          ).toLocaleDateString("es-ES")
+                        : "Gratuita"}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span>{galleraLocation}</span>
-                </div>
-
-                <div className="border-t border-gray-100 pt-3 mt-3">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
-                    Propietario
-                  </h4>
-                  <div className="flex items-center gap-2 mb-1">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {user.username}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <Mail className="w-4 h-4" />
-                    <span>{user.email}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    <span className="font-medium">Membresía expira:</span>{" "}
-                    {user.subscription?.manual_expires_at
-                      ? new Date(
-                          user.subscription.manual_expires_at,
-                        ).toLocaleDateString("es-ES")
-                      : "Gratuita"}
-                  </div>
+                <div className="mt-4 flex justify-end gap-3">
+                  <button
+                    onClick={() => handleEdit(user.id)}
+                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Editar
+                  </button>
                 </div>
               </div>
-
-              <div className="mt-4 flex justify-end gap-3">
-                <button
-                  onClick={() => handleEdit(user.id)}
-                  className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-                >
-                  <Edit className="w-4 h-4" />
-                  Editar
-                </button>
-              </div>
-            </div>
             );
           })}
         </div>
@@ -340,22 +331,17 @@ const AdminGallerasPage: React.FC = () => {
         )}
       </Card>
 
-      {/* Modal de Edición con Pestañas */}
-      {isEditModalOpen && editingData && (
-        <EditVenueGalleraModal
-          user={editingData.user}
+      {/* User Modal (Unified Create/Edit) */}
+      {modalState.mode && (
+        <UserModal
+          mode={modalState.mode}
           role="gallera"
+          user={modalState.user}
           onClose={handleCloseModal}
-          onSaved={handleSave}
-        />
-      )}
-
-      {/* Modal de Creación */}
-      {isCreateModalOpen && (
-        <CreateUserModal
-          role="gallera"
-          onClose={handleCloseCreateModal}
-          onUserCreated={handleUserCreated}
+          onSuccess={() => {
+            handleCloseModal();
+            fetchData();
+          }}
         />
       )}
     </div>

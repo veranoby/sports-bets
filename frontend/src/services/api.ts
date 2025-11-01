@@ -261,6 +261,9 @@ export const venuesAPI = {
   delete: async (id: string) => {
     return apiCall("delete", `/venues/${id}`);
   },
+  updateStatus: async (id: string, status: string) => {
+    return apiCall("put", `/venues/${id}/status`, { status });
+  },
 };
 
 export const gallerasAPI = {
@@ -278,6 +281,9 @@ export const gallerasAPI = {
   },
   delete: async (id: string) => {
     return apiCall("delete", `/galleras/${id}`);
+  },
+  updateStatus: async (id: string, status: string) => {
+    return apiCall("put", `/galleras/${id}/status`, { status });
   },
 };
 

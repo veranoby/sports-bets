@@ -123,7 +123,9 @@
       "Bash(frontend/src/pages/admin/Administrators.tsx )",
       "Bash(frontend/src/pages/user/Profile.tsx )",
       "Bash(brain/api_endpoints_reference.json )",
-      "Bash(brain/typescript_interfaces_reference.json)"
+      "Bash(brain/typescript_interfaces_reference.json)",
+      "Bash(bash:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
