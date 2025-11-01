@@ -2,11 +2,11 @@
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform - PRODUCTION READY",
     "created": "2025-09-28",
-    "updated": "2025-10-14",
-    "version": "2.2",
+    "updated": "2025-10-31",
+    "version": "2.3",
     "status": "✅ PRODUCTION VERIFIED - 0 TypeScript errors",
     "critical_note": "VERIFIED against backend database models and production deployment",
-    "recent_additions": "Express Request type extensions (sessionToken), ActiveSession model validation"
+    "recent_additions": "User.profileInfo.images field, CreateUserModal image upload integration, Admin UX consistency"
   },
 
   "core_interfaces": {
@@ -35,6 +35,7 @@
       },
       "profileInfo_structure": {
         "basic_fields": ["fullName", "phoneNumber", "address", "identificationNumber", "verificationLevel"],
+        "image_fields": ["images?: string[] - ADDED 2025-10-31 - Max 2 for venues, max 3 for galleras"],
         "venue_fields": ["businessName", "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
         "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
         "extended_fields": ["location", "description", "establishedDate", "certified", "rating", "premiumLevel", "specialties", "imageUrl"]
@@ -266,6 +267,8 @@
       "usage_examples": [
         "VenueEntityForm.tsx: Manages venue images gallery",
         "GalleraEntityForm.tsx: Manages gallera images gallery",
+        "CreateUserModal.tsx: Role-based image upload (venue maxImages=2, gallera maxImages=3) - ADDED 2025-10-31",
+        "EditVenueGalleraModal.tsx: Entity Info tab image management - ADDED 2025-10-31",
         "Supports ARRAY(string) database fields"
       ],
       "validation": {
@@ -509,6 +512,34 @@
         "correct": "// In models/index.ts: ActiveSession.belongsTo(User, { foreignKey: 'userId' })"
       }
     }
+  },
+  "admin_ux_consistency_2025_10_31": {
+    "status": "✅ COMPLETED - Unified admin page UX with CreateUserModal pattern",
+    "date": "2025-10-31",
+    "achievement": "All admin pages now use consistent modal-based user creation instead of mixed navigation patterns",
+    "pages_unified": [
+      "/admin/users - Uses CreateUserModal with role='user'",
+      "/admin/venues - Uses CreateUserModal with role='venue' + venue business fields",
+      "/admin/galleras - Uses CreateUserModal with role='gallera' + gallera business fields"
+    ],
+    "ux_improvements": [
+      "Single workflow for user creation across all admin pages",
+      "Consistent modal UI/UX pattern",
+      "Role-specific field collection in one component",
+      "Image upload integrated with conditional maxImages enforcement",
+      "No navigation to non-existent routes"
+    ],
+    "type_safety_improvements": [
+      "Added images?: string[] to User.profileInfo interface (frontend/src/types/index.ts:44)",
+      "Resolved TypeScript strict mode violations in CreateUserModal and EditVenueGalleraModal",
+      "Zero 'any' types introduced"
+    ],
+    "validation_protocol_enhancement": "Future validations MUST verify UX consistency across similar admin pages",
+    "files_affected": [
+      "frontend/src/pages/admin/Users.tsx - Added CreateUserModal integration",
+      "frontend/src/pages/admin/AdminDashboard.tsx - Added role='user' filter to Pending Users card",
+      "frontend/src/types/index.ts - Added images?: string[] to User.profileInfo"
+    ]
   },
   "claude_profile_optimization_2025_10_29": {
     "status": "✅ COMPLETED - Profile system optimization and bug fixes",

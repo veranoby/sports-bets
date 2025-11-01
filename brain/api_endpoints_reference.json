@@ -3,7 +3,7 @@
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
     "version": "1.0",
-    "last_updated": "2025-10-30 - FASE 1,2,3 frontend consolidation",
+    "last_updated": "2025-10-31 - Image upload UI + Admin UX consistency",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {
@@ -15,6 +15,20 @@
         "frontend/src/components/admin/EditVenueGalleraModal.tsx",
         "frontend/src/components/admin/CreateUserModal.tsx",
         "backend/src/routes/users.ts"
+      ]
+    },
+    "frontend_updates_2025_10_31": {
+      "image_upload_ui": "Added ImageGalleryUpload component integration to CreateUserModal and EditVenueGalleraModal for image management",
+      "admin_ux_consistency": "Unified all admin pages (/admin/users, /admin/venues, /admin/galleras) to use CreateUserModal pattern instead of navigation",
+      "type_definition_completion": "Added images?: string[] to User.profileInfo interface for type safety",
+      "dashboard_filter_clarification": "AdminDashboard 'Pending Users' card now explicitly filters by role='user' to prevent ambiguity",
+      "client_side_validation": "CreateUserModal enforces maxImages limits (venue=2, gallera=3) with conditional rendering",
+      "affected_files": [
+        "frontend/src/components/admin/CreateUserModal.tsx",
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "frontend/src/pages/admin/Users.tsx",
+        "frontend/src/pages/admin/AdminDashboard.tsx",
+        "frontend/src/types/index.ts"
       ]
     }
   },
@@ -127,7 +141,7 @@
     "create_user": {
       "method": "POST",
       "path": "/users",
-      "body": {"username": "string", "email": "string", "password": "string", "role": "string ('admin'|'operator'|'venue'|'user'|'gallera')"},
+      "body": {"username": "string", "email": "string", "password": "string", "role": "string ('admin'|'operator'|'venue'|'user'|'gallera')", "profileInfo": "object (optional - includes business fields for venue/gallera)"},
       "auth_required": true,
       "roles": ["admin", "operator"],
       "security": [
@@ -140,7 +154,18 @@
         "approval_status": "Admin-created users marked as approved=true (auto-approved)",
         "added_date": "2025-10-29"
       },
-      "note": "UPDATED 2025-10-30: role='venue'|'gallera' users store business data in User.profileInfo, NOT in separate tables"
+      "frontend_integration_2025_10_31": {
+        "component": "CreateUserModal (frontend/src/components/admin/CreateUserModal.tsx)",
+        "admin_pages": [
+          "/admin/users - Creates users with role='user'",
+          "/admin/venues - Creates users with role='venue' + venue business fields + images (max 2)",
+          "/admin/galleras - Creates users with role='gallera' + gallera business fields + images (max 3)"
+        ],
+        "ux_pattern": "All admin pages use CreateUserModal component for consistent UX (no navigation to separate creation pages)",
+        "image_upload": "Uses ImageGalleryUpload component for client-side image selection before user creation",
+        "validation": "Client-side enforcement of maxImages limits (venue=2, gallera=3) before API call"
+      },
+      "note": "UPDATED 2025-10-31: CreateUserModal now collects complete business info + images in single workflow. All admin pages unified with modal pattern."
     },
     "update_user_password": {
       "method": "PUT",
