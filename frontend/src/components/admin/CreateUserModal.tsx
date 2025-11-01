@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { userAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Eye, EyeOff } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
 import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 
@@ -72,6 +72,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Función para obtener el título del modal según el rol
   const getModalTitle = () => {
@@ -260,16 +261,29 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <label htmlFor="password" className={labelStyle}>
                 Contraseña
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={8}
-                className={inputStyle}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  className={inputStyle}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <hr />
