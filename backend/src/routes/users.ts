@@ -435,8 +435,8 @@ router.post(
     body("username")
       .isLength({ min: 3, max: 50 })
       .withMessage("Username must be between 3 and 50 characters")
-      .isAlphanumeric()
-      .withMessage("Username must be alphanumeric")
+      .matches(/^[a-zA-Z0-9_]+$/)
+      .withMessage("Username must contain only letters, numbers, and underscores")
       .trim()
       .toLowerCase(),
     body("email")
