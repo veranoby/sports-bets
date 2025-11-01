@@ -622,5 +622,63 @@
       "Always verify package API compatibility (ioredis v4 vs v5)",
       "Sequelize v5 vs v6 patterns are incompatible"
     ]
+  },
+  "session_logs": {
+    "session_log_2025_11_01_user_modal_unification": {
+      "executor": "QWEN 2.5-Coder 32B Instruct with --c7 --context7 + --seq --sequential",
+      "task": "Unify CreateUserModal + EditUserModal into single UserModal component",
+      "deliverables": [
+        "UserModal.tsx - Unified component with mode='create'|'edit'",
+        "useUserForm.ts - Shared form state management hook",
+        "useUserSubscription.ts - Shared subscription logic hook",
+        "Updated 5 admin pages: Administrators, Operators, Venues, Galleras, Users"
+      ],
+      "features_added": [
+        "approved checkbox in create mode",
+        "isActive checkbox in create mode",
+        "Subscription tab in both create and edit modes"
+      ],
+      "hooks_documentation": {
+        "useUserForm": {
+          "purpose": "Centralize form state management for create/edit modes",
+          "parameters": ["mode: 'create' | 'edit'", "role: 'operator' | 'venue' | 'gallera' | 'user'", "initialUser?: User"],
+          "returns": ["formData", "handleChange", "handleArrayChange", "handleImagesChange", "handleSubmit", "error"]
+        },
+        "useUserSubscription": {
+          "purpose": "Centralize subscription management logic",
+          "parameters": ["userId: string", "initialSubscription?: UserSubscription"],
+          "returns": ["subscription", "isUpdating", "updateSubscription"]
+        }
+      },
+    },
+    "session_log_2025_11_01_form_handling_fix": {
+      "executor": "QWEN 2.5-Coder 32B Instruct with --c7 --context7 + --seq --sequential",
+      "task": "Fix form handling issue preventing fullName and phoneNumber fields from accepting input",
+      "issue_identified": "Fields with names like 'profileInfo.fullName' were not updating due to mismatch between field naming and handleChange logic",
+      "root_cause": "handleChange function in useUserForm.ts looked for exact matches in profileFields array, but input fields used dot notation like 'profileInfo.fullName'",
+      "solution_implemented": "Modified handleChange to properly parse nested field names and update the correct nested structure",
+      "files_modified": [
+        "frontend/src/hooks/useUserForm.ts - Updated handleChange function to handle nested field names correctly"
+      ],
+      "hooks_improved": {
+        "useUserForm": {
+          "handleChange_improvement": "Enhanced to properly handle nested field names with dot notation (e.g., 'profileInfo.fullName')",
+          "nested_field_support": "Added logic to parse parent.child field names and update nested objects correctly",
+          "backward_compatibility": "Maintained support for all existing field types and update patterns"
+        }
+      },
+      "component_documentation": {
+        "UserModal": {
+          "props": ["mode: 'create' | 'edit'", "role: 'operator' | 'venue' | 'gallera' | 'user'", "user?: User", "onClose: () => void", "onSuccess: (user?: User) => void"],
+          "features": ["Profile and Subscription tabs", "Role-based conditional fields", "Image upload integration", "Approval status management"]
+        }
+      },
+      "validation_status": {
+        "typescript_compilation": "✅ ZERO errors",
+        "build_process": "✅ SUCCESS",
+        "any_types_introduced": "✅ ZERO 'any' types",
+        "pages_migrated": "✅ 5/5 admin pages using UserModal"
+      }
+    }
   }
 }
