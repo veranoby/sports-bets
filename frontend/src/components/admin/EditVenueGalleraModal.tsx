@@ -14,6 +14,7 @@ import type {
   Gallera,
   UserSubscription,
 } from "../../types";
+import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 
 interface EditVenueGalleraModalProps {
   user: UserType;
@@ -60,6 +61,7 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
       phoneNumber: user?.profileInfo?.phoneNumber || "",
       address: user?.profileInfo?.address || "",
       identificationNumber: user?.profileInfo?.identificationNumber || "",
+      images: user?.profileInfo?.images || [],
     },
     is_active: user?.isActive !== false,
   });
@@ -122,6 +124,16 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
     }
   };
 
+  const handleImagesChange = (images: string[]) => {
+    setProfileData((prev) => ({
+      ...prev,
+      profileInfo: {
+        ...prev.profileInfo,
+        images: images,
+      },
+    }));
+  };
+
   const handleSaveAll = async () => {
     setLoading(true);
 
@@ -145,13 +157,11 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
               galleraEmail: entityData.contactInfo?.email,
               galleraWebsite: entityData.contactInfo?.website,
             }),
+        // Include images in the update
+        images: profileData.profileInfo.images,
       };
 
       // Update user profile with both personal and entity info
-      console.log("Updating user profile with data:", {
-        ...profileData.profileInfo,
-        ...entityProfileInfoUpdate,
-      });
       await usersAPI.updateProfile({
         profileInfo: {
           ...profileData.profileInfo,
@@ -444,6 +454,16 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
                   onChange={handleEntityChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Image Gallery */}
+              <div>
+                <ImageGalleryUpload
+                  images={profileData.profileInfo.images || []}
+                  onImagesChange={handleImagesChange}
+                  maxImages={role === "venue" ? 2 : 3}
+                  label={role === "venue" ? "Imágenes del Local" : "Imágenes de la Gallera"}
                 />
               </div>
 

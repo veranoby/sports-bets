@@ -41,6 +41,7 @@ export interface User {
     address?: string;
     identificationNumber?: string;
     verificationLevel: "none" | "basic" | "full";
+    images?: string[];
     // Venue fields
     businessName?: string;
     businessAddress?: string;

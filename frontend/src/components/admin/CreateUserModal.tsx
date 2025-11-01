@@ -3,6 +3,7 @@ import { userAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import { Loader2, UserPlus } from "lucide-react";
 import ErrorMessage from "../shared/ErrorMessage";
+import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 
 type UserRole = "operator" | "venue" | "gallera" | "user";
 
@@ -14,6 +15,7 @@ interface CreateUserData {
   profileInfo: {
     fullName: string;
     phoneNumber: string;
+    images?: string[];
     // Venue fields
     venueName?: string;
     venueLocation?: string;
@@ -51,6 +53,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     profileInfo: {
       fullName: "",
       phoneNumber: "",
+      images: [],
       // Venue fields
       venueName: "",
       venueLocation: "",
@@ -102,13 +105,24 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     // All profileInfo fields
     const profileFields = [
-      "fullName", "phoneNumber",
-      "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite",
-      "galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite",
+      "fullName",
+      "phoneNumber",
+      "venueName",
+      "venueLocation",
+      "venueDescription",
+      "venueEmail",
+      "venueWebsite",
+      "galleraName",
+      "galleraLocation",
+      "galleraDescription",
+      "galleraEmail",
+      "galleraWebsite",
     ];
 
     if (profileFields.includes(name)) {
@@ -132,7 +146,17 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       ...prev,
       profileInfo: {
         ...prev.profileInfo,
-        [field]: value ? value.split(",").map(s => s.trim()) : [],
+        [field]: value ? value.split(",").map((s) => s.trim()) : [],
+      },
+    }));
+  };
+
+  const handleImagesChange = (images: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      profileInfo: {
+        ...prev.profileInfo,
+        images: images,
       },
     }));
   };
@@ -362,6 +386,16 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                   </div>
                 </div>
+
+                {/* Venue Image Gallery */}
+                <div>
+                  <ImageGalleryUpload
+                    images={formData.profileInfo.images || []}
+                    onImagesChange={handleImagesChange}
+                    maxImages={2}
+                    label="Imágenes del Local"
+                  />
+                </div>
               </>
             )}
 
@@ -447,8 +481,12 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   </label>
                   <textarea
                     id="galleraSpecialties"
-                    value={(formData.profileInfo.galleraSpecialties || []).join(", ")}
-                    onChange={(e) => handleArrayChange("galleraSpecialties", e.target.value)}
+                    value={(formData.profileInfo.galleraSpecialties || []).join(
+                      ", ",
+                    )}
+                    onChange={(e) =>
+                      handleArrayChange("galleraSpecialties", e.target.value)
+                    }
                     rows={2}
                     placeholder="ej: Gallos de Pelea, Crianza, Entrenamiento"
                     className={inputStyle}
@@ -460,11 +498,25 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   </label>
                   <textarea
                     id="galleraActiveRoosters"
-                    value={(formData.profileInfo.galleraActiveRoosters || []).join(", ")}
-                    onChange={(e) => handleArrayChange("galleraActiveRoosters", e.target.value)}
+                    value={(
+                      formData.profileInfo.galleraActiveRoosters || []
+                    ).join(", ")}
+                    onChange={(e) =>
+                      handleArrayChange("galleraActiveRoosters", e.target.value)
+                    }
                     rows={2}
                     placeholder="ej: Rojo, Negro, Pinto"
                     className={inputStyle}
+                  />
+                </div>
+
+                {/* Gallera Image Gallery */}
+                <div>
+                  <ImageGalleryUpload
+                    images={formData.profileInfo.images || []}
+                    onImagesChange={handleImagesChange}
+                    maxImages={3}
+                    label="Imágenes de la Gallera"
                   />
                 </div>
               </>
