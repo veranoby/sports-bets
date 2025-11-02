@@ -209,6 +209,7 @@ export const authAPI = {
     username: string;
     email: string;
     password: string;
+    role?: string;
   }) => {
     return apiCall("post", "/auth/register", userData);
   },
