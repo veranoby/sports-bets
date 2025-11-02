@@ -519,6 +519,7 @@ const UserModal: React.FC<UserModalProps> = ({
           ) : (
             // Subscription tab
             <SubscriptionTabs
+              mode={mode}
               userId={user?.id || ""}
               subscription={subscription || user?.subscription}
               onSave={(subscriptionData) => {

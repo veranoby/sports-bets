@@ -25,6 +25,7 @@ interface SubscriptionData {
 interface SubscriptionTabsProps {
   userId: string;
   subscription?: SubscriptionData;
+  mode?: 'create' | 'edit';
   onSave: (subscriptionData: SubscriptionData) => void;
   onCancel: () => void;
 }
@@ -32,6 +33,7 @@ interface SubscriptionTabsProps {
 const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
   userId,
   subscription,
+  mode = 'edit', // Default to 'edit' for backward compatibility
   onSave,
   onCancel,
 }) => {
@@ -48,7 +50,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
     }
   }, [user]);
 
-  // Opciones de membresía freemium
+  // Opciones de suscripción freemium
   const membershipOptions = [
     {
       value: "free",
@@ -90,7 +92,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
         assigned_username: assignedUsername.trim(),
       });
 
-      if ((response as any).success) {
+      if (response.success) {
         // Success - pass data to parent
         if (onSave) {
           onSave({
@@ -104,13 +106,11 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
         }
         onCancel();
       } else {
-        throw new Error(
-          (response as any).error || "Error al actualizar membresía",
-        );
+        throw new Error(response.error || "Error al actualizar suscripción");
       }
     } catch (err) {
       const errorMsg =
-        err instanceof Error ? err.message : "Error al actualizar membresía";
+        err instanceof Error ? err.message : "Error al actualizar suscripción";
       setError(errorMsg);
     } finally {
       setIsSaving(false);
@@ -127,10 +127,10 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
       </div>
 
       <div className="space-y-6">
-        {/* Estado Actual de Membresía */}
+        {/* Estado Actual de Suscripción */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-2">
-            Estado Actual de Membresía
+            Estado Actual de Suscripción
           </h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -158,10 +158,10 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
           </div>
         </div>
 
-        {/* Gestión de Membresía Freemium */}
+        {/* Gestión de Suscripción Freemium */}
         <div>
           <h4 className="text-md font-medium text-gray-900 mb-3">
-            Gestionar Membresía
+            Gestionar Suscripción
           </h4>
 
           <div className="space-y-3 mb-4">
@@ -219,7 +219,7 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                Se registrará quién asignó esta membresía para auditoría
+                Se registrará quién asignó esta suscripción para auditoría
               </p>
             </div>
           )}
@@ -244,10 +244,10 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
-                Actualizando...
+                {mode === 'create' ? 'Creando...' : 'Actualizando...'}
               </>
             ) : (
-              "Actualizar Membresía"
+              mode === 'create' ? 'Crear Usuario' : 'Actualizar Suscripción'
             )}
           </button>
         </div>

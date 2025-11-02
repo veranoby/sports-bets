@@ -100,7 +100,7 @@ const AdminSidebar: React.FC = () => {
     {
       path: "/admin/membership-requests",
       icon: CreditCard,
-      label: "Membresías",
+      label: "Suscripciones",
       roles: ["admin"],
     },
     {

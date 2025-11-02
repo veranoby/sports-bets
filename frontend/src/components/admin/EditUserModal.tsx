@@ -164,15 +164,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         // Show success message
         addToast({
           type: "success",
-          title: "Membresía Actualizada",
-          message: "La membresía del usuario se ha actualizado correctamente",
+          title: "Suscripción Actualizada",
+          message: "La suscripción del usuario se ha actualizado correctamente",
         });
       } else {
-        throw new Error(response.error || "Error al actualizar membresía");
+        throw new Error(response.error || "Error al actualizar suscripción");
       }
     } catch (err) {
       const errorMsg =
-        err instanceof Error ? err.message : "Error al actualizar membresía";
+        err instanceof Error ? err.message : "Error al actualizar suscripción";
       setError(errorMsg);
       addToast({
         type: "error",
