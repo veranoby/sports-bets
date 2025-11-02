@@ -14,7 +14,7 @@ import {
   Crown,
   MapPin,
 } from "lucide-react";
-import { articlesAPI, usersAPI, gallerasAPI } from "../../services/api";
+import { articlesAPI, usersAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
@@ -266,62 +266,61 @@ const GallerasPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Get galleras from dedicated API
-      const gallerasData = await gallerasAPI.getAll();
+      // Get galleras from consolidated users API
+      const gallerasData = await usersAPI.getAll({ role: 'gallera' });
       if (gallerasData.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
-          ((gallerasData.data as { galleras: any[] })?.galleras || []).map(
-            async (gallera: any) => {
+          ((gallerasData.data as { users: any[] })?.users || []).map(
+            async (user: any) => {
               const articles = await articlesAPI.getAll({
-                author_id: gallera.ownerId,
+                author_id: user.id,
               });
               const articleCount = articles.success
                 ? (articles.data as any)?.total || 0
                 : 0;
 
-              // Use gallera table data first, then fallback to user profileInfo
+              // Use user profileInfo for gallera data (FASE 5 consolidation)
               const galleraName =
-                gallera.name ||
-                gallera.owner?.profileInfo?.galleraName ||
+                user.profileInfo?.galleraName ||
+                user.profileInfo?.businessName ||
+                user.username ||
                 "Gallera";
               const description =
-                gallera.description ||
-                gallera.owner?.profileInfo?.galleraDescription ||
+                user.profileInfo?.galleraDescription ||
+                user.profileInfo?.description ||
                 "Institución criadora profesional";
               const location =
-                gallera.location ||
-                gallera.owner?.profileInfo?.galleraLocation ||
+                user.profileInfo?.galleraLocation ||
+                user.profileInfo?.location ||
                 "Ecuador";
 
-              // Extract specialties from gallera.specialties or user profile
+              // Extract specialties from user profileInfo
               let specialties: string[] = [];
-              if (gallera.specialties?.specialties) {
-                specialties = Array.isArray(gallera.specialties.specialties)
-                  ? gallera.specialties.specialties
-                  : [gallera.specialties.specialties];
-              } else if (gallera.owner?.profileInfo?.galleraSpecialties) {
-                specialties = [gallera.owner.profileInfo.galleraSpecialties];
+              if (user.profileInfo?.galleraSpecialties) {
+                specialties = Array.isArray(user.profileInfo.galleraSpecialties)
+                  ? user.profileInfo.galleraSpecialties
+                  : [user.profileInfo.galleraSpecialties];
               }
 
               return {
-                id: gallera.id,
+                id: user.id,
                 name: galleraName,
                 description: description,
                 location: location,
                 imageUrl:
-                  gallera.images?.[0] ||
-                  gallera.owner?.profileInfo?.profileImage,
-                ownerImage: gallera.owner?.profileInfo?.profileImage,
-                galleryImages: gallera.images || [],
+                  user.profileInfo?.images?.[0] ||
+                  user.profileInfo?.profileImage,
+                ownerImage: user.profileInfo?.profileImage,
+                galleryImages: user.profileInfo?.images || [],
                 articlesCount: articleCount,
-                establishedDate: gallera.createdAt,
+                establishedDate: user.createdAt,
                 isCertified:
-                  gallera.owner?.profileInfo?.verificationLevel === "full" ||
+                  user.profileInfo?.verificationLevel === "full" ||
                   false,
-                rating: gallera.owner?.profileInfo?.rating || 0,
+                rating: user.profileInfo?.rating || 0,
                 specialties: specialties,
-                premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
+                premiumLevel: user.profileInfo?.premiumLevel,
               };
             },
           ),

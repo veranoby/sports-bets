@@ -18,7 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usersAPI, articlesAPI, venuesAPI } from "../../services/api";
+import { usersAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
@@ -194,30 +194,30 @@ const VenuesPage: React.FC = () => {
     const fetchVenues = async () => {
       try {
         setLoading(true);
-        const response = await venuesAPI.getAll();
+        const response = await usersAPI.getAll({ role: 'venue' });
         if (response.success) {
           const venueProfiles = await Promise.all(
-            ((response.data as { venues: any[] })?.venues || []).map(
-              async (venue: any) => {
+            ((response.data as { users: any[] })?.users || []).map(
+              async (user: any) => {
                 const articles = await articlesAPI.getAll({
-                  author_id: venue.owner?.id,
+                  author_id: user.id,
                 });
                 return {
-                  id: venue.id,
-                  name: venue.name,
+                  id: user.id,
+                  name: user.profileInfo?.venueName || user.profileInfo?.businessName || user.username || "Venue",
                   description:
-                    venue.description || "Local para eventos de gallos",
-                  location: venue.location || "Ubicación no especificada",
+                    user.profileInfo?.venueDescription || user.profileInfo?.description || "Local para eventos de gallos",
+                  location: user.profileInfo?.venueLocation || user.profileInfo?.location || "Ubicación no especificada",
                   imageUrl:
-                    venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
-                  ownerImage: venue.owner?.profileInfo?.profileImage,
-                  galleryImages: venue.images || [],
+                    user.profileInfo?.images?.[0] || user.profileInfo?.profileImage,
+                  ownerImage: user.profileInfo?.profileImage,
+                  galleryImages: user.profileInfo?.images || [],
                   articlesCount: articles.success
                     ? (articles.data as { total: number })?.total || 0
                     : 0,
-                  establishedDate: venue.createdAt,
+                  establishedDate: user.createdAt,
                   isVerified:
-                    venue.owner?.profileInfo?.verificationLevel === "full" ||
+                    user.profileInfo?.verificationLevel === "full" ||
                     false,
                   rating: 0,
                   activeEvents: 0,

@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { gallerasAPI, articlesAPI } from "../../services/api";
+import { usersAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
@@ -50,7 +50,7 @@ const GalleraDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const galleraResponse = await gallerasAPI.getById(id);
+        const galleraResponse = await usersAPI.getById(id);
         if (!galleraResponse.success) {
           throw new Error(
             galleraResponse.error || "Error al cargar institución",
@@ -158,21 +158,21 @@ const GalleraDetailPage: React.FC = () => {
     );
 
   const galleraName =
-    gallera.name ||
-    gallera.owner?.profileInfo?.galleraName ||
-    gallera.owner?.username ||
+    gallera.profileInfo?.galleraName ||
+    gallera.profileInfo?.businessName ||
+    gallera.username ||
     "Gallera";
-  const location = gallera.location || "Ubicación no especificada";
-  const description = gallera.description || "Institución criadora profesional";
+  const location = gallera.profileInfo?.galleraLocation || gallera.profileInfo?.location || "Ubicación no especificada";
+  const description = gallera.profileInfo?.galleraDescription || gallera.profileInfo?.description || "Institución criadora profesional";
   const establishedDate = gallera.createdAt;
   const isCertified =
-    gallera.owner?.profileInfo?.verificationLevel === "full" || false;
-  const rating = gallera.owner?.profileInfo?.rating || 0;
-  const premiumLevel = gallera.owner?.profileInfo?.premiumLevel;
-  // ⚡ Fixed: specialties puede ser string[] o {breeds, trainingMethods, experience}
-  const specialties = Array.isArray(gallera.specialties)
-    ? gallera.specialties
-    : gallera.specialties?.breeds || [];
+    gallera.profileInfo?.verificationLevel === "full" || false;
+  const rating = gallera.profileInfo?.rating || 0;
+  const premiumLevel = gallera.profileInfo?.premiumLevel;
+  // ⚡ Fixed: specialties from profileInfo instead of separate specialties field
+  const specialties = Array.isArray(gallera.profileInfo?.galleraSpecialties)
+    ? gallera.profileInfo.galleraSpecialties
+    : gallera.profileInfo?.galleraSpecialties || [];
 
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");
@@ -192,9 +192,9 @@ const GalleraDetailPage: React.FC = () => {
         {/* Gallera Header */}
         <div className="card-background p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {gallera.images?.[0] ? (
+            {gallera.profileInfo?.images?.[0] ? (
               <img
-                src={gallera.images[0]}
+                src={gallera.profileInfo.images[0]}
                 alt={galleraName}
                 className={`w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 ${
                   premiumLevel
@@ -255,9 +255,9 @@ const GalleraDetailPage: React.FC = () => {
           </div>
 
           {/* Image Carousel */}
-          {gallera.images && gallera.images.length > 0 && (
+          {gallera.profileInfo?.images && gallera.profileInfo.images.length > 0 && (
             <ImageCarouselViewer
-              images={gallera.images}
+              images={gallera.profileInfo.images}
               title="Galería de la Institución"
             />
           )}

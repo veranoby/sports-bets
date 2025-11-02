@@ -393,6 +393,32 @@
     }
   },
 
+  "recent_achievements_2025_11_01_api_migration": {
+    "executor": "QWEN 2.5-Coder 32B Instruct",
+    "date": "2025-11-01",
+    "task": "Migrate Galleras/Venues pages to consolidated usersAPI architecture",
+    "status": "✅ COMPLETED",
+    "files_modified": [
+      "frontend/src/pages/user/Galleras.tsx: gallerasAPI → usersAPI.getAll({role:'gallera'})",
+      "frontend/src/pages/user/Venues.tsx: venuesAPI → usersAPI.getAll({role:'venue'})",
+      "frontend/src/pages/user/GalleraDetailPage.tsx: Migrated to usersAPI",
+      "frontend/src/pages/user/VenueDetailPage.tsx: Migrated to usersAPI"
+    ],
+    "architectural_changes": {
+      "api_migration": "gallerasAPI/venuesAPI (ELIMINATED) → usersAPI with role filtering",
+      "data_structure": "gallera.owner.profileInfo → user.profileInfo (direct access)",
+      "response_format": "{ galleras/venues: [...] } → { users: [...] }"
+    },
+    "validation_status": {
+      "typescript_compilation": "✅ ZERO errors",
+      "build_process": "✅ SUCCESS",
+      "obsolete_api_usage": "✅ ZERO occurrences of gallerasAPI/venuesAPI",
+      "data_access_patterns": "✅ No gallera.owner or venue.owner references remain"
+    },
+    "impact": "Public /galleras and /venues pages now use FASE 5 consolidated architecture",
+    "commit": "Pending - to be committed with full validation report"
+  },
+
   "recent_achievements_2025_10_18": {
     "qwen_frontend_recovery_confirmed": {
       "status": "✅ ALL RECOVERED - FULLY INTACT",

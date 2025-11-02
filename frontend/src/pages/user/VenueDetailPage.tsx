@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { venuesAPI, articlesAPI } from "../../services/api";
+import { usersAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
@@ -49,7 +49,7 @@ const VenueDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const venueResponse = await venuesAPI.getById(id);
+        const venueResponse = await usersAPI.getById(id);
         if (!venueResponse.success) {
           throw new Error(venueResponse.error || "Error al cargar venue");
         }
@@ -124,15 +124,15 @@ const VenueDetailPage: React.FC = () => {
     );
 
   const venueName =
-    venue.name ||
-    venue.owner?.profileInfo?.businessName ||
-    venue.owner?.username ||
+    venue.profileInfo?.venueName ||
+    venue.profileInfo?.businessName ||
+    venue.username ||
     "Venue";
-  const location = venue.location || "Ubicación no especificada";
-  const description = venue.description || "Local para eventos de gallos";
+  const location = venue.profileInfo?.venueLocation || venue.profileInfo?.location || "Ubicación no especificada";
+  const description = venue.profileInfo?.venueDescription || venue.profileInfo?.description || "Local para eventos de gallos";
   const establishedDate = venue.createdAt;
   const isVerified =
-    venue.owner?.profileInfo?.verificationLevel === "full" || false;
+    venue.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
   const rating = 0; // This would need to come from ratings API
 
@@ -154,9 +154,9 @@ const VenueDetailPage: React.FC = () => {
         {/* Venue Header */}
         <div className="card-background p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {venue.images?.[0] ? (
+            {venue.profileInfo?.images?.[0] ? (
               <img
-                src={venue.images[0]}
+                src={venue.profileInfo.images[0]}
                 alt={venueName}
                 className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 border-blue-500"
               />
@@ -181,9 +181,9 @@ const VenueDetailPage: React.FC = () => {
           </div>
 
           {/* Image Carousel */}
-          {venue.images && venue.images.length > 0 && (
+          {venue.profileInfo?.images && venue.profileInfo.images.length > 0 && (
             <ImageCarouselViewer
-              images={venue.images}
+              images={venue.profileInfo.images}
               title="Galería del Local"
             />
           )}
