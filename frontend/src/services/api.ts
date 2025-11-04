@@ -246,48 +246,6 @@ export const eventsAPI = {
   },
 };
 
-export const venuesAPI = {
-  getById: async (id: string) => {
-    return apiCall("get", `/venues/${id}`);
-  },
-  update: async (id: string, data: Partial<Venue>) => {
-    return apiCall("put", `/venues/${id}`, data);
-  },
-  create: async (data: Partial<Venue>) => {
-    return apiCall("post", "/venues", data);
-  },
-  getAll: async (params?: Record<string, unknown>) => {
-    return apiCall("get", "/venues", params);
-  },
-  delete: async (id: string) => {
-    return apiCall("delete", `/venues/${id}`);
-  },
-  updateStatus: async (id: string, status: string) => {
-    return apiCall("put", `/venues/${id}/status`, { status });
-  },
-};
-
-export const gallerasAPI = {
-  getById: async (id: string) => {
-    return apiCall("get", `/galleras/${id}`);
-  },
-  getAll: async (params?: Record<string, unknown>) => {
-    return apiCall("get", "/galleras", params);
-  },
-  update: async (id: string, data: Partial<Gallera>) => {
-    return apiCall("put", `/galleras/${id}`, data);
-  },
-  create: async (data: Partial<Gallera>) => {
-    return apiCall("post", "/galleras", data);
-  },
-  delete: async (id: string) => {
-    return apiCall("delete", `/galleras/${id}`);
-  },
-  updateStatus: async (id: string, status: string) => {
-    return apiCall("put", `/galleras/${id}/status`, { status });
-  },
-};
-
 // Add systemAPI for monitoring
 export const systemAPI = {
   getAlerts: async () => {

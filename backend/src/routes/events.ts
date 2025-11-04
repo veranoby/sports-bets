@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth, filterByOperatorAssignment } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { Event, Venue, User, Fight, Bet, EventConnection } from "../models";
+import { Event, User, Fight, Bet, EventConnection } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
@@ -56,7 +56,7 @@ export const getEventsPaginated = async (page: number = 1, limit: number = 20, f
     offset,
     limit,
     include: [
-      { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
+      { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
       { model: User, as: 'operator', attributes: ['id', 'username'] },
       { model: User, as: 'creator', attributes: ['id', 'username'] },
       { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
@@ -132,7 +132,7 @@ router.get(
       where,
       attributes,
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'], separate: false },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'], separate: false },
         { model: User, as: 'operator', attributes: ['id', 'username'], separate: false },
         { model: User, as: 'creator', attributes: ['id', 'username'], separate: false },
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'], separate: false }
@@ -181,7 +181,7 @@ router.get(
 
     const event = await Event.findByPk(req.params.id, {
   include: [
-    { model: Venue, as: 'venue' },
+    { model: User, as: 'venue' },
     { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },
     { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },
     { 
@@ -243,9 +243,9 @@ router.post(
 
     const { name, venueId, scheduledDate, operatorId } = req.body;
 
-    const venue = await Venue.findByPk(venueId);
+    const venue = await User.findOne({ where: { id: venueId, role: 'venue' } });
     if (!venue) {
-      throw errors.notFound("Venue not found");
+      throw errors.notFound("Venue (User with role='venue') not found");
     }
 
     if (req.user!.role === "venue" && venue.ownerId !== req.user!.id) {
@@ -273,7 +273,7 @@ router.post(
 
     await event.reload({
       include: [
-        { model: Venue, as: "venue" },
+        { model: User, as: "venue" },
         { model: User, as: "operator", attributes: ["id", "username"] },
       ],
     });
@@ -375,7 +375,7 @@ router.patch(
     const event = await Event.findByPk(req.params.id, {
       include: [
         { model: Fight, as: "fights" },
-        { model: Venue, as: "venue" },
+        { model: User, as: "venue" },
         { model: User, as: "operator", attributes: ["id", "username"] }
       ],
     });

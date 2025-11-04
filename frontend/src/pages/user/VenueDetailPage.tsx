@@ -128,11 +128,16 @@ const VenueDetailPage: React.FC = () => {
     venue.profileInfo?.businessName ||
     venue.username ||
     "Venue";
-  const location = venue.profileInfo?.venueLocation || venue.profileInfo?.location || "Ubicación no especificada";
-  const description = venue.profileInfo?.venueDescription || venue.profileInfo?.description || "Local para eventos de gallos";
+  const location =
+    venue.profileInfo?.venueLocation ||
+    venue.profileInfo?.location ||
+    "Ubicación no especificada";
+  const description =
+    venue.profileInfo?.venueDescription ||
+    venue.profileInfo?.description ||
+    "Local para eventos de gallos";
   const establishedDate = venue.createdAt;
-  const isVerified =
-    venue.profileInfo?.verificationLevel === "full" || false;
+  const isVerified = venue.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
   const rating = 0; // This would need to come from ratings API
 

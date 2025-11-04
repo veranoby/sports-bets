@@ -343,7 +343,7 @@ const LiveEvent = () => {
               {currentEvent?.name}
             </h3>
             <p className="text-sm text-theme-light">
-              {currentEvent?.venue?.name}
+              {currentEvent?.venue?.profileInfo?.venueName}
             </p>
             <div className="flex items-center justify-center gap-4 mt-3 text-xs">
               <div className="flex items-center gap-1">
@@ -580,10 +580,10 @@ const LiveEvent = () => {
                   <div>
                     <p className="text-theme-light text-sm">Ubicación</p>
                     <p className="text-theme-primary font-medium">
-                      {currentEvent.venue.name}
+                      {currentEvent.venue.profileInfo?.venueName}
                     </p>
                     <p className="text-theme-light text-sm">
-                      {currentEvent.venue.location}
+                      {currentEvent.venue.profileInfo?.venueLocation}
                     </p>
                   </div>
                 )}

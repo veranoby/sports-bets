@@ -13,7 +13,6 @@ import {
 } from "sequelize";
 import sequelize from "../config/database";
 import { User } from "./User";
-import { Venue } from "./Venue";
 import { Fight } from "./Fight";
 
 // Definición del modelo Event
@@ -23,7 +22,7 @@ export class Event extends Model<
 > {
   declare id: CreationOptional<string>;
   declare name: string;
-  declare venueId: ForeignKey<Venue["id"]>;
+  declare venueId: ForeignKey<User["id"]>;
   declare scheduledDate: Date;
   declare endDate: CreationOptional<Date>;
   declare status: CreationOptional<
@@ -41,13 +40,13 @@ export class Event extends Model<
   declare updatedAt: CreationOptional<Date>;
 
   // Asociaciones
-  public readonly venue?: Venue;
+  public readonly venue?: User;
   public readonly operator?: User;
   public readonly creator?: User;
   public readonly fights?: Fight[];
 
-  declare getVenue: BelongsToGetAssociationMixin<Venue>;
-  declare setVenue: BelongsToSetAssociationMixin<Venue, number>;
+  declare getVenue: BelongsToGetAssociationMixin<User>;
+  declare setVenue: BelongsToSetAssociationMixin<User, number>;
   declare getOperator: BelongsToGetAssociationMixin<User>;
   declare setOperator: BelongsToSetAssociationMixin<User, number>;
   declare getCreatedBy: BelongsToGetAssociationMixin<User>;
@@ -125,7 +124,7 @@ Event.init(
       allowNull: false,
       field: "venue_id",
       references: {
-        model: Venue,
+        model: User,
         key: "id",
       },
     },

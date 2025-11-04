@@ -73,7 +73,7 @@ const EventCard = React.memo(
 
           <div className="flex items-center gap-2 text-sm text-theme-dark">
             <MapPin className="w-4 h-4" />
-            <span className="truncate">{event.venue?.name || "Venue TBD"}</span>
+            <span className="truncate">{event.venue?.profileInfo?.venueName || "Venue TBD"}</span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-theme-dark">
@@ -343,7 +343,7 @@ const EventsPage: React.FC = () => {
                         <p className="text-xs text-theme-light">
                           {
                             events.find((e) => e.status === "in-progress")
-                              ?.venue?.name
+                              ?.venue?.profileInfo?.venueName
                           }
                         </p>
                       </div>
@@ -430,7 +430,7 @@ const EventsPage: React.FC = () => {
               <div>
                 <span className="text-theme-light text-sm">Venue:</span>
                 <p className="text-theme-primary">
-                  {selectedEvent.venue?.name}
+                  {selectedEvent.venue?.profileInfo?.venueName}
                 </p>
               </div>
 

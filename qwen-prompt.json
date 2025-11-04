@@ -1,343 +1,238 @@
 {
-  "task_id": "SUBSCRIPTION_CREATE_MODE_FIX_2025_11_01",
-  "task_type": "BUG_FIX + VALIDATION_ANALYSIS",
-  "complexity": "MEDIUM (5/10)",
-  "session_model_required": "QWEN2.5-Coder 32B Instruct",
-  "estimated_time": "60-90 minutes",
-  "git_branch": "main",
+  "task_id": "FIX_EVENTS_FASE5_MIGRATION_2025_11_02",
+  "task_type": "ARCHITECTURAL_FIX",
+  "complexity": "HIGH (8/10)",
+  "executor": "QWEN 2.5-Coder 32B Instruct",
+  "estimated_duration": "35-45 minutes",
+  "priority": "P0_CRITICAL - Events system BLOCKED",
 
-  "🔴_CRITICAL_PROTOCOLS": {
-    "session_start_declaration": {
-      "MANDATORY_FIRST_MESSAGE": "Model: qwen2.5-coder-32b-instruct | Task: Fix SubscriptionTabs CREATE mode + Profile validation | Activating: --c7 --context7 + --seq --sequential | Branch: main | Time: 60-90min"
+  "objective": "Fix 6 critical issues in Events system to complete FASE 5 migration. Remove all Venue/Gallera model references, migrate to User model with role filtering.",
+
+  "context": {
+    "current_status": "Events system BROKEN - Still uses eliminated Venue/Gallera models",
+    "validation_report": "brain/backlog.json lines 454-485 - 6 CRITICAL issues documented",
+    "reference_work": "Commit a4561a4 successfully migrated Galleras/Venues pages - use same pattern",
+    "migration_pattern": "Venue model → User model where role='venue', access via user.profileInfo.venueName"
+  },
+
+  "critical_issues_to_fix": [
+    {
+      "issue": "Event model associations reference eliminated Venue model",
+      "file": "backend/src/models/Event.ts",
+      "fix": "Change Event.belongsTo(Venue, {as:'venue'}) → Event.belongsTo(User, {as:'venue', foreignKey:'venueId'})"
     },
-    "mcp_activation": {
-      "--c7 --context7": "React TypeScript patterns",
-      "--seq --sequential": "Multi-step analysis + fixes"
+    {
+      "issue": "Backend event routes use Venue model",
+      "file": "backend/src/routes/events.ts",
+      "fix": "Remove Venue imports, use User model with {role:'venue'}, include profileInfo in queries"
     },
-    "simulate_confirm_protocol": {
-      "PHASE_1_SIMULATE": "Describe changes: which files, which lines, what logic",
-      "PHASE_2_CONFIRM": "Read files to verify structure exists",
-      "PHASE_3_EXECUTE": "Make changes incrementally",
-      "PHASE_4_VALIDATE": "npx tsc --noEmit after EACH file"
+    {
+      "issue": "Frontend uses obsolete venuesAPI",
+      "file": "frontend/src/pages/admin/Events.tsx",
+      "fix": "Replace venuesAPI.getAll() → usersAPI.getAll({role:'venue'})"
     },
-    "infinite_loop_prevention": {
-      "same_file_3_times": "STOP - report to user",
-      "command_fails_twice": "STOP - report error"
+    {
+      "issue": "API services define obsolete venuesAPI/gallerasAPI",
+      "file": "frontend/src/services/api.ts",
+      "fix": "Remove venuesAPI and gallerasAPI exports (already consolidated to usersAPI)"
+    },
+    {
+      "issue": "Frontend expects event.venue.name instead of profileInfo",
+      "files": ["frontend/src/pages/admin/Events.tsx", "frontend/src/pages/user/Events.tsx", "frontend/src/pages/user/LiveEvent.tsx"],
+      "fix": "Change event.venue.name → event.venue.profileInfo.venueName"
+    },
+    {
+      "issue": "Models index has Venue associations",
+      "file": "backend/src/models/index.ts",
+      "fix": "Remove any Venue/Event associations, ensure User/Event associations exist"
     }
-  },
-
-  "📋_TASK_OVERVIEW": {
-    "problem_statement": "UserModal CREATE mode shows wrong button in Subscription tab ('Actualizar Membresía' should be 'Crear Usuario'). Also need deep validation of /profile, /galleras, /venues pages.",
-    "root_cause": "SubscriptionTabs.tsx hardcoded button text without mode awareness",
-    "solution": "Pass mode prop to SubscriptionTabs, conditional button text, validate CREATE flow saves subscription AFTER user creation"
-  },
-
-  "🎯_DELIVERABLES": [
-    "1. Fix SubscriptionTabs.tsx to accept mode prop and render correct button",
-    "2. Update UserModal.tsx to pass mode to SubscriptionTabs",
-    "3. Unify 'membresía' → 'suscripción' terminology everywhere",
-    "4. Deep validation: /profile page for user/gallera/venue roles",
-    "5. Deep validation: Public /galleras and /venues pages",
-    "6. Report findings in chat text AND append to brain/backlog.json"
   ],
 
-  "🔧_STEP_0_PRE_IMPLEMENTATION_READS": {
-    "MANDATORY": "Read these files BEFORE Step 1",
-    "files": [
-      "frontend/src/components/admin/SubscriptionTabs.tsx (understand current structure)",
-      "frontend/src/components/admin/UserModal.tsx (see how SubscriptionTabs is called)",
-      "frontend/src/hooks/useUserForm.ts (understand CREATE flow saves subscription)",
-      "frontend/src/pages/user/Profile.tsx (validate profileInfo display logic)",
-      "frontend/src/pages/user/Galleras.tsx (validate gallera card rendering)",
-      "frontend/src/pages/user/Venues.tsx (validate venue card rendering)"
+  "implementation_steps": [
+    {
+      "step": "STEP_1_BACKEND_EVENT_MODEL",
+      "description": "Fix Event model associations",
+      "priority": "CRITICAL - Must be first",
+      "actions": [
+        "Read backend/src/models/Event.ts",
+        "Find: Event.belongsTo(Venue, ...)",
+        "Replace with: Event.belongsTo(User, { as: 'venue', foreignKey: 'venueId' })",
+        "Ensure: Event.belongsTo(User, { as: 'operator', foreignKey: 'operatorId' }) exists",
+        "Remove: Any imports of Venue model"
+      ],
+      "validation": "Verify no Venue model references remain in Event.ts"
+    },
+
+    {
+      "step": "STEP_2_BACKEND_MODELS_INDEX",
+      "description": "Fix models/index.ts associations",
+      "priority": "CRITICAL",
+      "actions": [
+        "Read backend/src/models/index.ts",
+        "Remove: Any Venue.hasMany(Event) or similar",
+        "Ensure: User.hasMany(Event, { as: 'venueEvents', foreignKey: 'venueId' }) exists",
+        "Ensure: User.hasMany(Event, { as: 'operatorEvents', foreignKey: 'operatorId' }) exists",
+        "Remove: Venue/Gallera model imports if present"
+      ],
+      "validation": "No Venue/Gallera associations remain"
+    },
+
+    {
+      "step": "STEP_3_BACKEND_EVENT_ROUTES",
+      "description": "Migrate backend/src/routes/events.ts to User model",
+      "priority": "CRITICAL",
+      "checkpoint": "✅ CHECKPOINT 1: Backend models fixed, now routes",
+      "actions": [
+        "Read backend/src/routes/events.ts",
+        "Remove: import Venue from '../models/Venue'",
+        "Remove: import Gallera from '../models/Gallera'",
+        "Update event queries to include User with profileInfo:",
+        "  include: [{ model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] }]",
+        "Update venue filtering: where: { role: 'venue', isActive: true }",
+        "Verify venueId validation checks users table: await User.findOne({ where: { id: venueId, role: 'venue' } })"
+      ],
+      "validation": "No Venue/Gallera imports, queries use User model"
+    },
+
+    {
+      "step": "STEP_4_FRONTEND_API_SERVICES",
+      "description": "Remove obsolete API exports",
+      "priority": "HIGH",
+      "actions": [
+        "Read frontend/src/services/api.ts",
+        "Remove: export const venuesAPI = {...}",
+        "Remove: export const gallerasAPI = {...}",
+        "Verify usersAPI exists with getAll() supporting role parameter"
+      ],
+      "validation": "Only usersAPI exported for user/venue/gallera management"
+    },
+
+    {
+      "step": "STEP_5_FRONTEND_ADMIN_EVENTS",
+      "description": "Fix admin Events.tsx to use usersAPI",
+      "priority": "CRITICAL",
+      "checkpoint": "✅ CHECKPOINT 2: Backend complete, now frontend",
+      "actions": [
+        "Read frontend/src/pages/admin/Events.tsx",
+        "Find: venuesAPI.getAll() or gallerasAPI references",
+        "Replace: usersAPI.getAll({ role: 'venue' })",
+        "Update venue dropdown: venues.map(user => ({ id: user.id, name: user.profileInfo.venueName }))",
+        "Update operator dropdown: usersAPI.getAll({ role: 'operator' })",
+        "Update event display: event.venue.profileInfo.venueName instead of event.venue.name"
+      ],
+      "validation": "No venuesAPI/gallerasAPI imports, uses usersAPI with role filtering"
+    },
+
+    {
+      "step": "STEP_6_FRONTEND_PUBLIC_EVENTS",
+      "description": "Fix public Events.tsx data access",
+      "priority": "HIGH",
+      "actions": [
+        "Read frontend/src/pages/user/Events.tsx",
+        "Update event display: event.venue?.profileInfo?.venueName || 'Venue TBD'",
+        "Update venue location: event.venue?.profileInfo?.venueLocation",
+        "Remove any venuesAPI imports if present"
+      ],
+      "validation": "Events display venue info from user.profileInfo"
+    },
+
+    {
+      "step": "STEP_7_FRONTEND_LIVE_EVENT",
+      "description": "Fix LiveEvent.tsx venue display",
+      "priority": "HIGH",
+      "actions": [
+        "Read frontend/src/pages/user/LiveEvent.tsx",
+        "Update: event.venue?.profileInfo?.venueName",
+        "Update: event.venue?.profileInfo?.venueLocation",
+        "Verify streaming data still loads correctly"
+      ],
+      "validation": "Live event shows correct venue info"
+    },
+
+    {
+      "step": "STEP_8_TYPESCRIPT_VALIDATION",
+      "description": "Verify TypeScript compilation",
+      "priority": "CRITICAL",
+      "actions": [
+        "Run: cd frontend && npx tsc --noEmit",
+        "Check for errors in modified files",
+        "If errors: Fix type mismatches related to venue/user structure"
+      ],
+      "validation": "Zero TypeScript errors in Event-related files"
+    },
+
+    {
+      "step": "STEP_9_UPDATE_BRAIN",
+      "description": "Update brain/backlog.json with fix completion",
+      "actions": [
+        "Update 'recent_achievements_2025_11_02_events_validation'",
+        "Change status: 'NEEDS_FIXES' → 'FIXED'",
+        "Change mvp_readiness: 'BLOCKED' → 'FUNCTIONAL'",
+        "Add fixes_applied section documenting all changes"
+      ]
+    }
+  ],
+
+  "files_to_modify": {
+    "backend": [
+      "backend/src/models/Event.ts - Event model associations",
+      "backend/src/models/index.ts - Remove Venue associations",
+      "backend/src/routes/events.ts - Migrate to User model queries"
     ],
-    "output_required": {
-      "summary": "OUTPUT: 'SubscriptionTabs currently: [structure]. UserModal passes: [props]. CREATE flow: [how subscription saved]'",
-      "validation": "Confirm mode prop will work with existing structure"
-    }
+    "frontend": [
+      "frontend/src/services/api.ts - Remove venuesAPI/gallerasAPI",
+      "frontend/src/pages/admin/Events.tsx - Use usersAPI, fix data access",
+      "frontend/src/pages/user/Events.tsx - Fix venue display",
+      "frontend/src/pages/user/LiveEvent.tsx - Fix venue display"
+    ]
   },
 
-  "📝_STEP_BY_STEP_IMPLEMENTATION": {
-
-    "STEP_1_FIX_SUBSCRIPTION_TABS": {
-      "action": "MODIFY existing file",
-      "file": "frontend/src/components/admin/SubscriptionTabs.tsx",
-      "purpose": "Add mode prop and conditional button text",
-      "simulate": "Will add mode: 'create' | 'edit' to SubscriptionTabsProps interface (line ~25). Will update button text at line ~250 to check mode.",
-      "confirm_before_modifying": [
-        "Read SubscriptionTabsProps interface (line ~25-30)",
-        "Find button with 'Actualizar Membresía' text (line ~250)",
-        "Verify onSave callback structure"
-      ],
-      "changes": [
-        {
-          "location": "Line ~25-30 (SubscriptionTabsProps interface)",
-          "change": "Add: mode: 'create' | 'edit';",
-          "reasoning": "Need to pass mode from UserModal to determine button text"
-        },
-        {
-          "location": "Line ~250 (button text)",
-          "old": "\"Actualizar Membresía\"",
-          "new": "{mode === 'create' ? 'Crear Usuario' : 'Actualizar Suscripción'}",
-          "reasoning": "CREATE mode creates user+subscription, EDIT mode updates existing subscription"
-        }
-      ],
-      "validate_after_modification": [
-        "npx tsc --noEmit frontend/src/components/admin/SubscriptionTabs.tsx",
-        "grep 'mode.*create.*edit' frontend/src/components/admin/SubscriptionTabs.tsx",
-        "Verify: SubscriptionTabsProps has mode prop"
-      ],
-      "if_errors": "STOP - Report TypeScript errors - DO NOT continue"
-    },
-
-    "STEP_2_UPDATE_USER_MODAL": {
-      "action": "MODIFY existing file",
-      "file": "frontend/src/components/admin/UserModal.tsx",
-      "purpose": "Pass mode prop to SubscriptionTabs component",
-      "simulate": "Will find SubscriptionTabs component instantiation (line ~503) and add mode={mode} prop.",
-      "confirm_before_modifying": [
-        "Read UserModal.tsx line ~500-530 (SubscriptionTabs usage)",
-        "Verify mode variable is available in scope",
-        "Check if other props are passed correctly"
-      ],
-      "changes": [
-        {
-          "location": "Line ~503 (SubscriptionTabs component)",
-          "change": "Add prop: mode={mode}",
-          "code_example": "<SubscriptionTabs\n  mode={mode}\n  userId={user?.id || ''}\n  subscription={subscription || user?.subscription}\n  onSave={...}\n  onCancel={onClose}\n/>",
-          "reasoning": "SubscriptionTabs needs mode to render correct button text"
-        }
-      ],
-      "validate_after_modification": [
-        "npx tsc --noEmit frontend/src/components/admin/UserModal.tsx",
-        "grep 'mode={mode}' frontend/src/components/admin/UserModal.tsx",
-        "Verify: mode prop passed to SubscriptionTabs"
-      ],
-      "if_errors": "STOP - Report TypeScript errors"
-    },
-
-    "STEP_3_UNIFY_TERMINOLOGY": {
-      "action": "FIND AND REPLACE across files",
-      "files": [
-        "frontend/src/components/admin/SubscriptionTabs.tsx",
-        "frontend/src/components/admin/UserModal.tsx",
-        "frontend/src/pages/user/Profile.tsx"
-      ],
-      "purpose": "Standardize 'membresía' → 'suscripción' for consistency",
-      "simulate": "Will search for 'membresía', 'Membresía', 'membership' and replace with 'suscripción', 'Suscripción', 'subscription' variants.",
-      "confirm_before_replacing": [
-        "grep -i 'membresía\\|membership' frontend/src/components/admin/SubscriptionTabs.tsx",
-        "List all occurrences to understand context"
-      ],
-      "replacements": [
-        {"old": "Membresía", "new": "Suscripción"},
-        {"old": "membresía", "new": "suscripción"},
-        {"old": "Actualizar Membresía", "new": "Actualizar Suscripción"},
-        {"old": "Gestionar Membresía", "new": "Gestionar Suscripción"}
-      ],
-      "validate_after_replacement": [
-        "grep -i 'membresía' frontend/src/components/admin/SubscriptionTabs.tsx",
-        "Expected: 0 results (all replaced with suscripción)",
-        "npx tsc --noEmit (verify no type errors introduced)"
-      ],
-      "if_errors": "Report if terminology inconsistencies remain"
-    },
-
-    "CHECKPOINT_A_TYPESCRIPT_BUILD": {
-      "description": "Validate Steps 1-3 before proceeding to validation analysis",
-      "commands": [
-        "cd frontend && npx tsc --noEmit",
-        "npm run build"
-      ],
-      "expected_results": [
-        "TypeScript: ✅ ZERO errors in SubscriptionTabs.tsx and UserModal.tsx",
-        "Build: ✅ SUCCESS"
-      ],
-      "if_fail": "STOP - Fix TypeScript errors before continuing to Step 4"
-    },
-
-    "STEP_4_VALIDATE_PROFILE_PAGE": {
-      "action": "DEEP ANALYSIS (no code changes unless bugs found)",
-      "file": "frontend/src/pages/user/Profile.tsx",
-      "purpose": "Validate profileInfo architecture for user/gallera/venue roles",
-      "analysis_checklist": [
-        "A1. Does Profile.tsx correctly read user.profileInfo.verificationLevel?",
-        "A2. For role='gallera': Does it display galleraName, galleraLocation, galleraDescription, galleraSpecialties, galleraActiveRoosters?",
-        "A3. For role='venue': Does it display venueName, venueLocation, venueDescription, venueEmail, venueWebsite?",
-        "A4. For role='user': Does it display only fullName, phoneNumber, address, identificationNumber?",
-        "A5. Are images displayed correctly from user.profileInfo.images array?",
-        "A6. Is there conditional rendering based on role (venue fields only show for venues)?",
-        "A7. Does edit flow use userAPI.updateProfile({ profileInfo: {...} })?",
-        "A8. Are form handlers properly saving nested profileInfo fields?"
-      ],
-      "validation_commands": [
-        "grep 'profileInfo.galleraName\\|profileInfo.venueName' frontend/src/pages/user/Profile.tsx",
-        "grep 'role.*venue\\|role.*gallera' frontend/src/pages/user/Profile.tsx",
-        "grep 'updateProfile' frontend/src/pages/user/Profile.tsx"
-      ],
-      "output_required": {
-        "format": "PROFILE PAGE VALIDATION:\n✅ A1: [YES/NO with line number]\n✅ A2: [YES/NO with evidence]\n...\n❌ ISSUES: [List any problems found]"
-      },
-      "if_issues_found": "Document in findings, propose fixes if needed"
-    },
-
-    "STEP_5_VALIDATE_PUBLIC_GALLERAS_PAGE": {
-      "action": "DEEP ANALYSIS",
-      "file": "frontend/src/pages/user/Galleras.tsx",
-      "purpose": "Validate public gallera listing shows profileInfo correctly",
-      "analysis_checklist": [
-        "B1. Does page query users with role='gallera'?",
-        "B2. Are gallera cards displaying user.profileInfo.galleraName?",
-        "B3. Are gallera cards displaying user.profileInfo.galleraLocation?",
-        "B4. Are gallera cards displaying user.profileInfo.galleraSpecialties (array)?",
-        "B5. Are gallera images from user.profileInfo.images displayed?",
-        "B6. Does detail view (click on gallera) show full profileInfo?",
-        "B7. Is GalleraDetailPage component properly rendering all fields?",
-        "B8. Are there any references to OLD Gallera table/model that should be removed?"
-      ],
-      "validation_commands": [
-        "grep 'role.*gallera' frontend/src/pages/user/Galleras.tsx",
-        "grep 'profileInfo.gallera' frontend/src/pages/user/Galleras.tsx",
-        "grep -i 'gallera.*table\\|Gallera.findAll' frontend/src/pages/user/Galleras.tsx"
-      ],
-      "output_required": {
-        "format": "GALLERAS PAGE VALIDATION:\n✅ B1-B8: [YES/NO with evidence]\n❌ ISSUES: [List problems]"
-      },
-      "if_old_code_found": "Report OLD Gallera table references for removal"
-    },
-
-    "STEP_6_VALIDATE_PUBLIC_VENUES_PAGE": {
-      "action": "DEEP ANALYSIS",
-      "file": "frontend/src/pages/user/Venues.tsx",
-      "purpose": "Validate public venue listing shows profileInfo correctly",
-      "analysis_checklist": [
-        "C1. Does page query users with role='venue'?",
-        "C2. Are venue cards displaying user.profileInfo.venueName?",
-        "C3. Are venue cards displaying user.profileInfo.venueLocation?",
-        "C4. Are venue cards displaying user.profileInfo.venueDescription?",
-        "C5. Are venue images from user.profileInfo.images displayed?",
-        "C6. Does detail view (click on venue) show full profileInfo?",
-        "C7. Is VenueDetailPage component properly rendering all fields?",
-        "C8. Are there any references to OLD Venue table/model that should be removed?"
-      ],
-      "validation_commands": [
-        "grep 'role.*venue' frontend/src/pages/user/Venues.tsx",
-        "grep 'profileInfo.venue' frontend/src/pages/user/Venues.tsx",
-        "grep -i 'venue.*table\\|Venue.findAll' frontend/src/pages/user/Venues.tsx"
-      ],
-      "output_required": {
-        "format": "VENUES PAGE VALIDATION:\n✅ C1-C8: [YES/NO with evidence]\n❌ ISSUES: [List problems]"
-      },
-      "if_old_code_found": "Report OLD Venue table references for removal"
-    },
-
-    "CHECKPOINT_B_VALIDATION_SUMMARY": {
-      "description": "Summarize all validation findings from Steps 4-6",
-      "output_format": {
-        "section_1_profile_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
-        "section_2_galleras_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
-        "section_3_venues_page": "Status: ✅ READY / ⚠️ ISSUES / ❌ BROKEN",
-        "critical_issues": "List any blocking issues found",
-        "minor_issues": "List non-blocking improvements needed",
-        "recommendation": "READY FOR TESTING / NEEDS FIXES"
-      }
-    },
-
-    "STEP_7_REPORT_TO_BACKLOG": {
-      "action": "UPDATE brain/backlog.json with work report",
-      "purpose": "Centralized work tracking for multi-AI coordination",
-      "no_file_creation": "DO NOT create .md files, DO NOT update api_endpoints_reference.json or typescript_interfaces_reference.json with work logs",
-      "file_to_update": "brain/backlog.json",
-      "append_location": "Add new section: recent_achievements_2025_11_01_subscription_create_fix",
-      "report_structure": {
-        "executor": "QWEN 2.5-Coder 32B Instruct with --c7 --context7 + --seq --sequential",
-        "date": "2025-11-01",
-        "task": "Fix SubscriptionTabs CREATE mode button + Deep validation of Profile/Galleras/Venues pages",
-        "files_modified": ["List with line numbers"],
-        "validation_status": {
-          "typescript_compilation": "✅ ZERO errors",
-          "build_process": "✅ SUCCESS",
-          "terminology_unified": "membresía → suscripción (X replacements)"
-        },
-        "validation_findings": {
-          "profile_page": "A1-A8 checklist results",
-          "galleras_page": "B1-B8 checklist results",
-          "venues_page": "C1-C8 checklist results"
-        },
-        "impact": "Description of changes and improvements",
-        "commit": "Hash and message"
-      },
-      "use_template_from_line_313": "Follow exact format specified in 📊_REPORT_FORMAT_FOR_CLAUDE for chat output, then append to backlog.json"
-    },
-
-    "STEP_8_FINAL_VALIDATION": {
-      "description": "Comprehensive final checks before commit",
-      "checks": [
-        "1. npx tsc --noEmit (MUST be ZERO errors)",
-        "2. npm run build (MUST succeed)",
-        "3. git diff --name-only (verify ONLY intended files modified)",
-        "4. grep -r 'membresía' frontend/src/components/admin/ (expect 0 results)",
-        "5. grep 'mode={mode}' frontend/src/components/admin/UserModal.tsx (verify prop passed)",
-        "6. No 'any' types introduced: grep 'any' [modified files] (expect 0 new 'any')"
-      ],
-      "if_any_fail": "STOP - Fix before commit - Report to user"
-    },
-
-    "STEP_9_COMMIT": {
-      "when": "ONLY after Step 8 passes ALL checks",
-      "commit_message_template": "fix: SubscriptionTabs CREATE mode shows correct button + Profile validation\n\nBUG FIX:\n- SubscriptionTabs.tsx: Added mode prop ('create' | 'edit')\n- Button text now conditional: CREATE → 'Crear Usuario', EDIT → 'Actualizar Suscripción'\n- UserModal.tsx: Pass mode prop to SubscriptionTabs\n\nTERMINOLOGY UNIFICATION:\n- Replaced 'membresía' → 'suscripción' across admin components\n- Consistent terminology for better UX\n\nVALIDATION PERFORMED:\n- ✅ Profile.tsx: [Status - list issues if any]\n- ✅ Galleras.tsx: [Status - list issues if any]\n- ✅ Venues.tsx: [Status - list issues if any]\n\nTYPESCRIPT VALIDATION:\n- ✅ ZERO errors (npx tsc --noEmit)\n- ✅ Build succeeds (npm run build)\n- ✅ No 'any' types introduced\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
-      "commit_command": "git add frontend/src/components/admin/SubscriptionTabs.tsx frontend/src/components/admin/UserModal.tsx brain/backlog.json && git commit -m \"[message above]\"",
-      "verify_after_commit": "git log -1 --stat"
-    },
-
-    "STEP_10_UPDATE_BACKLOG": {
-      "action": "APPEND work report to brain/backlog.json",
-      "when": "After commit succeeds",
-      "location": "Add new section after existing recent_achievements",
-      "section_name": "recent_achievements_2025_11_01_subscription_create_fix",
-      "content_template": {
-        "executor": "QWEN 2.5-Coder 32B Instruct",
-        "date": "2025-11-01",
-        "task": "Fix SubscriptionTabs CREATE mode button + Deep validation",
-        "files_modified": ["array of files with line numbers"],
-        "validation_status": {
-          "typescript_compilation": "✅ ZERO errors",
-          "build_process": "✅ SUCCESS",
-          "terminology_changes": "membresía → suscripción (X occurrences)"
-        },
-        "validation_findings": {
-          "profile_page": "A1-A8 results",
-          "galleras_page": "B1-B8 results",
-          "venues_page": "C1-C8 results"
-        },
-        "impact": "Button text now correct in CREATE mode, terminology unified",
-        "commit": "hash and message"
-      }
-    }
+  "reference_patterns": {
+    "commit_a4561a4_migration": "Successful Galleras/Venues migration - follow same approach",
+    "api_migration": "gallerasAPI.getAll() → usersAPI.getAll({role:'gallera'})",
+    "data_access": "gallera.owner.profileInfo → user.profileInfo (direct access)",
+    "response_format": "{ galleras: [...] } → { users: [...] }"
   },
 
-  "✅_SUCCESS_CRITERIA": [
-    "1. TypeScript compilation: ✅ ZERO errors",
-    "2. Build process: ✅ SUCCESS",
-    "3. SubscriptionTabs has mode prop: ✅ VERIFIED",
-    "4. Button text conditional on mode: ✅ IMPLEMENTED",
-    "5. Terminology unified to 'suscripción': ✅ CONSISTENT",
-    "6. Profile validation: ✅ COMPLETED with findings documented",
-    "7. Galleras validation: ✅ COMPLETED with findings documented",
-    "8. Venues validation: ✅ COMPLETED with findings documented",
-    "9. Report in chat text: ✅ COMPREHENSIVE",
-    "10. Report appended to backlog.json: ✅ DOCUMENTED",
-    "11. No 'any' types introduced: ✅ TYPE SAFETY MAINTAINED"
+  "success_criteria": [
+    "✅ Event model associates with User (not Venue)",
+    "✅ Backend routes use User model with role='venue'",
+    "✅ Frontend uses usersAPI for venue selection",
+    "✅ venuesAPI/gallerasAPI removed from api.ts",
+    "✅ All event displays use event.venue.profileInfo.venueName",
+    "✅ TypeScript compilation: ZERO errors in modified files",
+    "✅ brain/backlog.json updated with fix completion"
   ],
 
-  "🔴_ERROR_HANDLING": {
-    "typescript_errors": "STOP immediately - Report exact error line numbers - DO NOT continue",
-    "build_errors": "STOP - Report full error output - DO NOT commit",
-    "infinite_loop_detection": "If same file edited 3 times: STOP and report to user",
-    "validation_issues": "Document all findings, propose fixes if critical"
+  "constraints": {
+    "no_file_creation": [
+      "❌ NO crear archivos .md",
+      "✅ SOLO modificar archivos listados en files_to_modify",
+      "✅ SOLO actualizar brain/backlog.json"
+    ],
+    "follow_pattern": [
+      "Use exact same migration pattern as commit a4561a4",
+      "Venue model → User model where role='venue'",
+      "venue.name → user.profileInfo.venueName"
+    ],
+    "validate_work": [
+      "Run TypeScript check after each frontend file modification",
+      "Verify no Venue/Gallera imports remain",
+      "Test at checkpoints before continuing"
+    ]
   },
 
-  "📊_REPORT_FORMAT_FOR_CLAUDE": {
-    "use_this_template": "## QWEN REPORT - Subscription CREATE Fix + Validation\n\n### FILES MODIFIED\n- frontend/src/components/admin/SubscriptionTabs.tsx (line X-Y): Added mode prop\n- frontend/src/components/admin/UserModal.tsx (line X): Pass mode={mode}\n\n### TYPESCRIPT VALIDATION\n- npx tsc --noEmit: ✅ ZERO errors\n- npm run build: ✅ SUCCESS\n\n### TERMINOLOGY CHANGES\n- Replaced 'membresía' with 'suscripción' in X locations\n\n### VALIDATION FINDINGS\n#### Profile.tsx\n- A1-A8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n#### Galleras.tsx\n- B1-B8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n#### Venues.tsx\n- C1-C8: [✅/❌ with line numbers]\n- Issues: [None | List]\n\n### COMMIT\n- Hash: [abc1234]\n- Message: \"fix: SubscriptionTabs CREATE mode...\"\n\n### ISSUES ENCOUNTERED\n- [None | List with root cause + how resolved]"
-  }
+  "critical_validations": {
+    "after_backend": [
+      "grep -r 'import.*Venue' backend/src/models/ backend/src/routes/ → should return ZERO results",
+      "grep -r 'import.*Gallera' backend/src/models/ backend/src/routes/ → should return ZERO results"
+    ],
+    "after_frontend": [
+      "grep -r 'venuesAPI\\|gallerasAPI' frontend/src/ → should return ZERO results (except removal in api.ts)",
+      "grep -r 'event\\.venue\\.name[^I]' frontend/src/ → should return ZERO results (venue.name without profileInfo)",
+      "npx tsc --noEmit → should complete with ZERO errors in Event files"
+    ]
+  },
+
+  "commit_message_template": "refactor: Migrate Events system to FASE 5 User model architecture\n\nBACKEND CHANGES:\n- Event model: Venue associations → User associations\n- events.ts routes: Migrated to User model with role='venue'\n- models/index.ts: Removed Venue associations\n\nFRONTEND CHANGES:\n- api.ts: Removed obsolete venuesAPI/gallerasAPI\n- Events.tsx (admin): Uses usersAPI.getAll({role:'venue'})\n- Events.tsx (user): Fixed venue display from profileInfo\n- LiveEvent.tsx: Fixed venue data access patterns\n\nFASE 5 COMPLETION:\n- Events system now fully uses consolidated User model\n- venue.name → user.profileInfo.venueName\n- Consistent with Galleras/Venues migration (commit a4561a4)\n\nVALIDATION:\n- ✅ TypeScript: ZERO errors\n- ✅ No Venue/Gallera imports remain\n- ✅ Events system unblocked for MVP\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Qwen-Coder <qwen-coder@alibabacloud.com>"
 }

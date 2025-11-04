@@ -267,7 +267,7 @@ const GallerasPage: React.FC = () => {
       setLoading(true);
       setError(null);
       // Get galleras from consolidated users API
-      const gallerasData = await usersAPI.getAll({ role: 'gallera' });
+      const gallerasData = await usersAPI.getAll({ role: "gallera" });
       if (gallerasData.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
@@ -316,8 +316,7 @@ const GallerasPage: React.FC = () => {
                 articlesCount: articleCount,
                 establishedDate: user.createdAt,
                 isCertified:
-                  user.profileInfo?.verificationLevel === "full" ||
-                  false,
+                  user.profileInfo?.verificationLevel === "full" || false,
                 rating: user.profileInfo?.rating || 0,
                 specialties: specialties,
                 premiumLevel: user.profileInfo?.premiumLevel,

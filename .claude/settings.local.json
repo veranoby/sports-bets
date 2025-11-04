@@ -125,7 +125,8 @@
       "Bash(brain/api_endpoints_reference.json )",
       "Bash(brain/typescript_interfaces_reference.json)",
       "Bash(bash:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(/home/veranoby/sports-bets/qwen-prompt.json)"
     ],
     "deny": [],
     "ask": []

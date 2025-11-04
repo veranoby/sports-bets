@@ -194,7 +194,7 @@ const VenuesPage: React.FC = () => {
     const fetchVenues = async () => {
       try {
         setLoading(true);
-        const response = await usersAPI.getAll({ role: 'venue' });
+        const response = await usersAPI.getAll({ role: "venue" });
         if (response.success) {
           const venueProfiles = await Promise.all(
             ((response.data as { users: any[] })?.users || []).map(
@@ -204,12 +204,22 @@ const VenuesPage: React.FC = () => {
                 });
                 return {
                   id: user.id,
-                  name: user.profileInfo?.venueName || user.profileInfo?.businessName || user.username || "Venue",
+                  name:
+                    user.profileInfo?.venueName ||
+                    user.profileInfo?.businessName ||
+                    user.username ||
+                    "Venue",
                   description:
-                    user.profileInfo?.venueDescription || user.profileInfo?.description || "Local para eventos de gallos",
-                  location: user.profileInfo?.venueLocation || user.profileInfo?.location || "Ubicación no especificada",
+                    user.profileInfo?.venueDescription ||
+                    user.profileInfo?.description ||
+                    "Local para eventos de gallos",
+                  location:
+                    user.profileInfo?.venueLocation ||
+                    user.profileInfo?.location ||
+                    "Ubicación no especificada",
                   imageUrl:
-                    user.profileInfo?.images?.[0] || user.profileInfo?.profileImage,
+                    user.profileInfo?.images?.[0] ||
+                    user.profileInfo?.profileImage,
                   ownerImage: user.profileInfo?.profileImage,
                   galleryImages: user.profileInfo?.images || [],
                   articlesCount: articles.success
@@ -217,8 +227,7 @@ const VenuesPage: React.FC = () => {
                     : 0,
                   establishedDate: user.createdAt,
                   isVerified:
-                    user.profileInfo?.verificationLevel === "full" ||
-                    false,
+                    user.profileInfo?.verificationLevel === "full" || false,
                   rating: 0,
                   activeEvents: 0,
                 };

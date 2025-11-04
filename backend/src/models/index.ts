@@ -47,14 +47,15 @@ Transaction.belongsTo(Wallet, {
 
 
 // User -> Venues (One-to-Many)
-User.hasMany(Venue, {
-  foreignKey: "ownerId",
-  as: "venues",
-});
-Venue.belongsTo(User, {
-  foreignKey: "ownerId",
-  as: "owner",
-});
+// REMOVED IN FASE 5: Venues table eliminated, data now in User.profileInfo
+// User.hasMany(Venue, {
+//   foreignKey: "ownerId",
+//   as: "venues",
+// });
+// Venue.belongsTo(User, {
+//   foreignKey: "ownerId",
+//   as: "owner",
+// });
 
 // User -> Galleras (One-to-Many)
 User.hasMany(Gallera, {
@@ -77,30 +78,49 @@ Notification.belongsTo(User, {
 });
 
 // Venue -> Events (One-to-Many)
-Venue.hasMany(Event, {
+// REMOVED IN FASE 5: Events now associated with User where role='venue'
+// Venue.hasMany(Event, {
+//   foreignKey: "venueId",
+//   as: "events",
+// });
+// Event.belongsTo(Venue, {
+//   foreignKey: "venueId",
+//   as: "venue",
+// });
+
+// User -> Events (Three relationships with unique aliases)
+// 1. Venue events (User with role='venue')
+User.hasMany(Event, {
   foreignKey: "venueId",
-  as: "events",
+  as: "venueEvents",
 });
-Event.belongsTo(Venue, {
+Event.belongsTo(User, {
   foreignKey: "venueId",
   as: "venue",
 });
-
-// User -> Events (DOS RELACIONES DIFERENTES CON ALIASES ÚNICOS)
+// 2. Operator events
 User.hasMany(Event, {
   foreignKey: "operatorId",
   as: "operatedEvents",
 });
+// 3. Created events
 User.hasMany(Event, {
   foreignKey: "createdBy",
   as: "createdEvents",
 });
 
-// Event -> User (INVERSAS CON ALIASES ÚNICOS)
+// Event -> User (INVERSE RELATIONSHIPS WITH UNIQUE ALIASES)
+// 1. Venue (User with role='venue')
+Event.belongsTo(User, {
+  foreignKey: "venueId",
+  as: "venue",
+});
+// 2. Operator
 Event.belongsTo(User, {
   foreignKey: "operatorId",
   as: "operator",
 });
+// 3. Creator
 Event.belongsTo(User, {
   foreignKey: "createdBy",
   as: "creator",
@@ -165,8 +185,9 @@ User.hasMany(Article, { foreignKey: "author_id", as: "articles" });
 Article.belongsTo(User, { foreignKey: "author_id", as: "author" });
 
 // Venue -> Article (One-to-Many)
-Venue.hasMany(Article, { foreignKey: "venue_id", as: "articles" });
-Article.belongsTo(Venue, { foreignKey: "venue_id", as: "venue" });
+// REMOVED IN FASE 5: Articles now associated with User where role='venue'
+// Venue.hasMany(Article, { foreignKey: "venue_id", as: "articles" });
+// Article.belongsTo(Venue, { foreignKey: "venue_id", as: "venue" });
 
 // User -> SystemSetting (One-to-Many)
 User.hasMany(SystemSetting, { foreignKey: "updated_by", as: "updatedSettings" });

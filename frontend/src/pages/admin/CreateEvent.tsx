@@ -1,7 +1,7 @@
 // frontend/src/pages/admin/CreateEvent.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { venuesAPI, eventsAPI, usersAPI } from "../../config/api";
+import { eventsAPI, usersAPI } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
@@ -11,6 +11,7 @@ import { ArrowLeft, HelpCircle } from "lucide-react";
 interface Venue {
   id: string;
   name: string;
+  location?: string;
 }
 
 interface Operator {
@@ -40,23 +41,29 @@ const CreateEvent: React.FC = () => {
 
         // Fetch venues and operators in parallel
         const [venuesRes, operatorsRes] = await Promise.all([
-          venuesAPI.getAll({
-            status: "active",
+          usersAPI.getAll({
+            role: "venue",
+            isActive: true,
             limit: 1000,
           }),
           usersAPI.getOperators().catch(() => ({ data: { users: [] } })), // Handle potential error gracefully
         ]);
 
-        setVenues(
-          Array.isArray(venuesRes.data)
-            ? venuesRes.data
-            : venuesRes.data.venues || [],
-        );
+        // Transform venues data to match expected structure
+        const venuesData = Array.isArray(venuesRes.data.users)
+          ? venuesRes.data.users.map(user => ({
+              id: user.id,
+              name: user.profileInfo?.venueName || user.username,
+              location: user.profileInfo?.venueLocation || ''
+            }))
+          : [];
+
+        setVenues(venuesData);
 
         // Extract operators from response
-        const operatorsData = Array.isArray(operatorsRes.data)
-          ? operatorsRes.data
-          : operatorsRes.data.users || [];
+        const operatorsData = Array.isArray(operatorsRes.data.users)
+          ? operatorsRes.data.users
+          : [];
 
         setOperators(operatorsData);
 

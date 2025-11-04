@@ -162,8 +162,14 @@ const GalleraDetailPage: React.FC = () => {
     gallera.profileInfo?.businessName ||
     gallera.username ||
     "Gallera";
-  const location = gallera.profileInfo?.galleraLocation || gallera.profileInfo?.location || "Ubicación no especificada";
-  const description = gallera.profileInfo?.galleraDescription || gallera.profileInfo?.description || "Institución criadora profesional";
+  const location =
+    gallera.profileInfo?.galleraLocation ||
+    gallera.profileInfo?.location ||
+    "Ubicación no especificada";
+  const description =
+    gallera.profileInfo?.galleraDescription ||
+    gallera.profileInfo?.description ||
+    "Institución criadora profesional";
   const establishedDate = gallera.createdAt;
   const isCertified =
     gallera.profileInfo?.verificationLevel === "full" || false;
@@ -255,12 +261,13 @@ const GalleraDetailPage: React.FC = () => {
           </div>
 
           {/* Image Carousel */}
-          {gallera.profileInfo?.images && gallera.profileInfo.images.length > 0 && (
-            <ImageCarouselViewer
-              images={gallera.profileInfo.images}
-              title="Galería de la Institución"
-            />
-          )}
+          {gallera.profileInfo?.images &&
+            gallera.profileInfo.images.length > 0 && (
+              <ImageCarouselViewer
+                images={gallera.profileInfo.images}
+                title="Galería de la Institución"
+              />
+            )}
         </div>
 
         {/* Statistics Grid */}

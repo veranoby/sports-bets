@@ -154,7 +154,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // 🔧 MEJORA 4: Register optimizado
   const register = useCallback(
-    async (userData: { username: string; email: string; password: string; role?: string }) => {
+    async (userData: {
+      username: string;
+      email: string;
+      password: string;
+      role?: string;
+    }) => {
       isOperatingRef.current = true;
 
       try {

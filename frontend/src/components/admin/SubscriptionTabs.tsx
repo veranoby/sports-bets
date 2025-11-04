@@ -25,7 +25,7 @@ interface SubscriptionData {
 interface SubscriptionTabsProps {
   userId: string;
   subscription?: SubscriptionData;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
   onSave: (subscriptionData: SubscriptionData) => void;
   onCancel: () => void;
 }
@@ -33,7 +33,7 @@ interface SubscriptionTabsProps {
 const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
   userId,
   subscription,
-  mode = 'edit', // Default to 'edit' for backward compatibility
+  mode = "edit", // Default to 'edit' for backward compatibility
   onSave,
   onCancel,
 }) => {
@@ -244,10 +244,12 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
-                {mode === 'create' ? 'Creando...' : 'Actualizando...'}
+                {mode === "create" ? "Creando..." : "Actualizando..."}
               </>
+            ) : mode === "create" ? (
+              "Crear Usuario"
             ) : (
-              mode === 'create' ? 'Crear Usuario' : 'Actualizar Suscripción'
+              "Actualizar Suscripción"
             )}
           </button>
         </div>
