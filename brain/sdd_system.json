@@ -114,7 +114,61 @@
         "purpose": "Payment and access control",
         "payment_provider": "Kushki",
         "types": ["daily", "weekly", "monthly"],
-        "validation": "Required for stream access"
+        "validation": "Required for stream access",
+        "user_request_flow": {
+          "frontend_components": [
+            "/frontend/src/pages/user/Profile.tsx - Shows current status + request button",
+            "/frontend/src/components/user/MembershipSection.tsx - Handles request creation",
+            "/frontend/src/services/api.ts - membershipRequestsAPI for CRUD operations"
+          ],
+          "backend_endpoints": [
+            "POST /api/membership-requests - Create new request",
+            "GET /api/membership-requests/my-requests - Get user's requests", 
+            "GET /api/membership-requests/pending - Get all pending requests (admin only)"
+          ],
+          "access_logic": "Users with active subscription can access premium content",
+          "request_validation": [
+            "User must have phone number in profile",
+            "User cannot have another pending request",
+            "User must be on free tier to request upgrade"
+          ]
+        },
+        "admin_management": {
+          "frontend_components": [
+            "/frontend/src/pages/admin/MembershipRequests.tsx - Admin request dashboard",
+            "/frontend/src/components/admin/SubscriptionTabs.tsx - Direct subscription assignment",
+            "/frontend/src/services/api.ts - membershipRequestsAPI.adminComplete/Reject"
+          ],
+          "backend_endpoints": [
+            "PATCH /api/membership-requests/:id/complete - Approve request",
+            "PATCH /api/membership-requests/:id/reject - Reject request with reason",
+            "PUT /api/subscriptions/admin/:userId/membership - Direct assignment"
+          ],
+          "admin_controls": [
+            "Approve/reject user requests",
+            "Directly assign subscriptions to any user",
+            "View all pending requests with user details",
+            "Immediate effect on user access permissions"
+          ]
+        },
+        "expiration_handling": {
+          "actual_implementation": [
+            "backend/src/routes/subscriptions.ts - Query-time validation with expiresAt > now",
+            "Sequelize where clauses filter expired subscriptions (Op.gt)",
+            "NO middleware validation in auth.ts",
+            "NO background cron job service"
+          ],
+          "validation_locations": [
+            "subscriptions.ts:76-78 - Active subscription check",
+            "subscriptions.ts:221,288 - List active subscriptions filter"
+          ],
+          "user_experience": [
+            "Expiration detected on next subscription query",
+            "User retains access until profile/subscription endpoint called",
+            "Frontend checks GET /users/profile for subscription status",
+            "NO real-time automatic expiration"
+          ]
+        }
       }
     },
     

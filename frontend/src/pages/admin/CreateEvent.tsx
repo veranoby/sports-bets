@@ -51,10 +51,10 @@ const CreateEvent: React.FC = () => {
 
         // Transform venues data to match expected structure
         const venuesData = Array.isArray(venuesRes.data.users)
-          ? venuesRes.data.users.map(user => ({
+          ? venuesRes.data.users.map((user) => ({
               id: user.id,
               name: user.profileInfo?.venueName || user.username,
-              location: user.profileInfo?.venueLocation || ''
+              location: user.profileInfo?.venueLocation || "",
             }))
           : [];
 

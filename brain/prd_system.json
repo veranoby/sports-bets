@@ -117,7 +117,41 @@
         "Free tier reverts automatically on expiration",
         "Multiple payment methods via Kushki",
         "Access validation for streams"
-      ]
+      ],
+      "user_subscription_flow": {
+        "status_restrictions": "Only users with free (no) subscription can request upgrade",
+        "request_process": [
+          "User visits /profile → clicks 'Solicitar subscripción'",
+          "Modal opens allowing selection of 24-hour or monthly plan",
+          "User can optionally attach payment proof",
+          "Request created with status='pending'",
+          "User sees request in profile history"
+        ],
+        "access_logic": "While request is pending, user stays on free tier with visual indicator of pending request"
+      },
+      "admin_subscription_management": {
+        "admin_approval": [
+          "Admin visits /admin/membership-requests → sees pending requests",
+          "Admin can approve (grant subscription) or reject (with reason)",
+          "Upon approval, user's subscription status updates immediately",
+          "User gets immediate access to premium content"
+        ],
+        "direct_assignment": [
+          "Admin can set any user's subscription directly via /admin/users",
+          "No request needed - direct assignment option available",
+          "Use for manual processing or special arrangements",
+          "Changes take effect immediately for user"
+        ]
+      },
+      "expiration_logic": {
+        "automatic_processing": [
+          "Server checks subscription validity on each authenticated request",
+          "If expiresAt < current_time, subscription automatically changes to 'free'",
+          "User immediately loses access to premium content",
+          "Frontend components update access controls automatically",
+          "Cache is invalidated to reflect new status immediately"
+        ]
+      }
     },
     
     "real_time_architecture": {

@@ -73,7 +73,9 @@ const EventCard = React.memo(
 
           <div className="flex items-center gap-2 text-sm text-theme-dark">
             <MapPin className="w-4 h-4" />
-            <span className="truncate">{event.venue?.profileInfo?.venueName || "Venue TBD"}</span>
+            <span className="truncate">
+              {event.venue?.profileInfo?.venueName || "Venue TBD"}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-theme-dark">

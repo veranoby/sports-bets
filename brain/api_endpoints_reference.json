@@ -604,7 +604,7 @@
           "total": "number"
         }
       },
-      "note": "Updated 2025-10-11: Added status filter to support all request states"
+      "note": "Supports status filter parameter to query all request states"
     },
     "complete_request": {
       "method": "PATCH",
@@ -646,8 +646,74 @@
     }
   },
 
+  "subscription_user_endpoints": {
+    "description": "User-initiated subscription management endpoints",
+    "get_my_subscription": {
+      "method": "GET",
+      "path": "/users/profile",
+      "response": {
+        "success": true,
+        "data": {
+          "user": "User object",
+          "subscription": "UserSubscription object (current active subscription)"
+        }
+      },
+      "auth_required": true,
+      "purpose": "Primary endpoint to get user's current subscription status",
+      "frontend_usage": "Frontend checks this on load and periodically to update UX",
+      "subscription_display_logic": {
+        "header_display": "Shows premium badge if subscription is active",
+        "content_access": "Determines if user can access premium streams/content",
+        "navigation_items": "Shows/hides premium menu items based on subscription status"
+      }
+    },
+    "user_request_subscription": {
+      "method": "POST",
+      "path": "/membership-requests",
+      "body": {
+        "requestedMembershipType": "string (required: '24-hour'|'monthly')",
+        "requestNotes": "string (optional, max 1000 chars)",
+        "paymentProofUrl": "string (optional URL, max 500 chars)"
+      },
+      "auth_required": true,
+      "validation": {
+        "phone_required": "User must have registered phone number",
+        "no_duplicate_pending": "Cannot create request if user has pending request",
+        "free_tier_only": "User must currently be on free tier (no active subscription)"
+      },
+      "response": {
+        "success": true,
+        "data": "MembershipRequest object"
+      },
+      "frontend_integration": {
+        "MembershipSection": "/frontend/src/components/user/MembershipSection.tsx",
+        "trigger": "User clicks 'Solicitar Suscripción' in profile"
+      }
+    }
+  },
+
+  "subscription_expiration_validation": {
+    "REALITY_CHECK": "Expiration validated ONLY in subscription routes, NOT in auth middleware",
+    "actual_implementation": {
+      "location": "backend/src/routes/subscriptions.ts",
+      "validation_points": [
+        "Lines 76-78: Check expiresAt > now when fetching active subscriptions",
+        "Lines 221, 288: Filter active subscriptions by expiresAt > current time",
+        "Query-based: Uses Sequelize Op.gt(new Date()) in where clauses"
+      ],
+      "NO_MIDDLEWARE": "auth.ts does NOT check subscription expiration",
+      "NO_CRON_JOB": "No background service exists for automatic expiration",
+      "manual_check": "Expiration status determined at query time, not request time"
+    },
+    "frontend_behavior": {
+      "access_control": "Frontend checks subscription status via GET /users/profile",
+      "conditional_rendering": "Components show/hide premium features based on subscription object",
+      "no_realtime_expiration": "User keeps access until next profile refresh after expiration"
+    }
+  },
+
   "subscription_admin_endpoints": {
-    "CRITICAL_NOTE": "Admin manual membership management - Created 2025-10-11",
+    "description": "Admin manual subscription management endpoints",
     "admin_update_membership": {
       "method": "PUT",
       "path": "/subscriptions/admin/:userId/membership",

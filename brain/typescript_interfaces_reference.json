@@ -1,12 +1,8 @@
 {
   "metadata": {
-    "purpose": "TypeScript interface reference for GalloBets platform - PRODUCTION READY",
-    "created": "2025-09-28",
-    "updated": "2025-10-31",
+    "purpose": "TypeScript interface reference for GalloBets platform",
     "version": "2.3",
-    "status": "✅ PRODUCTION VERIFIED - 0 TypeScript errors",
-    "critical_note": "VERIFIED against backend database models and production deployment",
-    "recent_additions": "User.profileInfo.images field, CreateUserModal image upload integration, Admin UX consistency"
+    "note": "Verified against backend database models and production deployment"
   },
 
   "core_interfaces": {
@@ -58,12 +54,33 @@
         "24-hour": "$5 (1 day access)",
         "monthly": "$10 (30 days access)"
       },
+      "expiration_behavior": {
+        "automatic_downgrade": "When expiresAt < current_timestamp, subscription automatically changes to 'free' type",
+        "frontend_access_control": "Frontend components automatically restrict access to premium content when subscription expires",
+        "middleware_validation": "authenticate middleware checks expiresAt on each request and enforces access restrictions",
+        "immediate_effect": "Access restrictions take effect immediately when subscription expires without need for user logout/login"
+      },
       "common_errors": [
         "Using 'type' instead of 'plan' property",
         "Missing 'id' property in form data",
         "Forgetting index signature for form compatibility"
       ]
     },
+    "UserSubscriptionWithExpiry": {
+      "file": "/frontend/src/types/index.ts",
+      "extends": "UserSubscription",
+      "additional_properties_for_frontend": ["expiresAt", "manual_expires_at", "current_status"],
+      "computed_property": {
+        "current_status": "Calculated property that combines status and expiresAt to determine if user has active access",
+        "calculation": "status === 'active' && (expiresAt ? new Date(expiresAt) > new Date() : true) ? 'active_access' : 'limited_access'"
+      },
+      "frontend_usage": {
+        "component": "/frontend/src/components/user/SubscriptionGuard.tsx",
+        "purpose": "Component that hides/shows content based on subscription status",
+        "access_control": "Blocks access to premium content when subscription is expired/inactive"
+      }
+    },
+    
     "MembershipChangeRequest": {
       "file": "/backend/src/models/MembershipChangeRequest.ts",
       "required_properties": ["id", "userId", "requestedMembershipType", "status", "createdAt"],
@@ -73,7 +90,8 @@
       "business_rules": [
         "User must have registered phone number to create request",
         "Only one pending request allowed per user at a time",
-        "Cannot request 'free' tier (automatically assigned on expiration)",
+        "Cannot request if user already has active subscription (must wait for expiration)",
+        "Cannot request 'free' tier (automatically assigned on expiration/cancellation)",
         "Admin/operator can complete or reject requests",
         "Payment proof URL is optional but recommended"
       ],
@@ -239,6 +257,33 @@
         "❌ NEVER destructure response.data.venues/galleras - it returns response.data.users",
         "✅ Always access profileInfo fields: user.profileInfo.galleraName, user.profileInfo.venueName, etc"
       ]
+    },
+    
+    "UserProfileWithSubscription": {
+      "file": "/frontend/src/types/index.ts",
+      "integration": "Primary interface for user profile with subscription integration",
+      "composition": {
+        "extends": "User interface",
+        "additional_field": "subscription: UserSubscription object",
+        "usage_location": "GET /api/users/profile response includes both user data and current subscription status"
+      },
+      "frontend_utility": {
+        "access_pattern": "response.data.user for user info and response.data.subscription for subscription status",
+        "subscription_check": "Frontend components use both user.profileInfo.verificationLevel and subscription.status to determine access permissions",
+        "premium_content_logic": "Premium content access requires BOTH verified account AND active subscription"
+      },
+      "response_structure": {
+        "success": true,
+        "data": {
+          "user": "User object with profileInfo",
+          "subscription": "UserSubscription object with status and expiration"
+        }
+      },
+      "expiration_handling": {
+        "automatic_update": "Frontend components automatically update access controls when subscription expires",
+        "visual_feedback": "Premium indicators automatically hide when subscription is no longer active",
+        "navigation_adjustment": "Menu items adjust automatically based on current subscription status"
+      }
     }
   },
 
@@ -246,7 +291,6 @@
     "image_gallery_upload": {
       "file": "/frontend/src/components/shared/ImageGalleryUpload.tsx",
       "component_name": "ImageGalleryUpload",
-      "created": "2025-10-29",
       "purpose": "Reusable multi-image upload component with gallery grid display",
       "props": {
         "images": "string[] (required) - Array of image URLs",
@@ -378,38 +422,9 @@
     ]
   },
 
-  "claude_backend_fixes_report": {
-    "date": "2025-09-29",
-    "status": "✅ BACKEND USER INTERFACE OPTIMIZATION COMPLETE",
-    "fixes_applied": [
-      "User.ts: Added venue/gallera-specific profileInfo fields",
-      "UserProfile interface: Extended with businessName, venueName, galleraName etc.",
-      "TypeScript compilation: Fixed property access errors in venues.ts & galleras.ts",
-      "Data synchronization: Verified User.profileInfo ↔ Venue/Gallera table sync"
-    ],
-    "impact_verification": {
-      "profile_editing": "✅ /users/profile endpoint handles all venue/gallera fields",
-      "admin_management": "✅ Admin can edit venue/gallera users with extended profileInfo",
-      "data_consistency": "✅ Changes auto-sync to dedicated Venue/Gallera tables"
-    },
-    "typescript_status": "✅ Zero compilation errors (npx tsc --noEmit)"
-  },
-  "gemini_cli_success_report": {
-    "date": "2025-09-28",
-    "status": "✅ TYPESCRIPT COMPILATION SUCCESS",
-    "errors_reduced": "FROM 68 → TO 0",
-    "critical_fixes_applied": [
-      "Fight interface: redCorner/blueCorner (corrected from rooster_1/rooster_2)",
-      "Union type safety for operator field",
-      "API response type consistency",
-      "Component prop type alignment"
-    ],
-    "production_readiness": "✅ CONFIRMED - Zero compilation errors"
-  },
   "backend_type_extensions": {
     "express_request_extensions": {
       "file": "/backend/src/types/express.d.ts",
-      "created": "2025-10-14",
       "purpose": "Extend Express Request interface for session management",
       "properties_added": {
         "user": {
@@ -444,7 +459,6 @@
     "redis_client_interface": {
       "file": "/backend/src/config/redis.ts",
       "class": "SafeRedisClient",
-      "created": "2025-10-14",
       "purpose": "Type-safe Redis client wrapper with fallback cache",
       "public_methods": {
         "get": "async get(key: string): Promise<string | null>",
@@ -481,7 +495,6 @@
     },
     "active_session_model": {
       "file": "/backend/src/models/ActiveSession.ts",
-      "created": "2025-10-14",
       "purpose": "Session tracking model for concurrent login prevention",
       "properties": {
         "id": "string (UUID)",
@@ -513,120 +526,9 @@
       }
     }
   },
-  "admin_ux_consistency_2025_10_31": {
-    "status": "✅ COMPLETED - Unified admin page UX with CreateUserModal pattern",
-    "date": "2025-10-31",
-    "achievement": "All admin pages now use consistent modal-based user creation instead of mixed navigation patterns",
-    "pages_unified": [
-      "/admin/users - Uses CreateUserModal with role='user'",
-      "/admin/venues - Uses CreateUserModal with role='venue' + venue business fields",
-      "/admin/galleras - Uses CreateUserModal with role='gallera' + gallera business fields"
-    ],
-    "ux_improvements": [
-      "Single workflow for user creation across all admin pages",
-      "Consistent modal UI/UX pattern",
-      "Role-specific field collection in one component",
-      "Image upload integrated with conditional maxImages enforcement",
-      "No navigation to non-existent routes"
-    ],
-    "type_safety_improvements": [
-      "Added images?: string[] to User.profileInfo interface (frontend/src/types/index.ts:44)",
-      "Resolved TypeScript strict mode violations in CreateUserModal and EditVenueGalleraModal",
-      "Zero 'any' types introduced"
-    ],
-    "validation_protocol_enhancement": "Future validations MUST verify UX consistency across similar admin pages",
-    "files_affected": [
-      "frontend/src/pages/admin/Users.tsx - Added CreateUserModal integration",
-      "frontend/src/pages/admin/AdminDashboard.tsx - Added role='user' filter to Pending Users card",
-      "frontend/src/types/index.ts - Added images?: string[] to User.profileInfo"
-    ]
-  },
-  "claude_profile_optimization_2025_10_29": {
-    "status": "✅ COMPLETED - Profile system optimization and bug fixes",
-    "date": "2025-10-29",
-    "changes_made": [
-      "Fixed User.profileInfo display in Profile.tsx - expanded to show all fields (fullName, phoneNumber, address, identificationNumber, email)",
-      "Fixed imageUrl field mapping in UserProfileForm - was sending 'profileImage' instead of 'imageUrl'",
-      "Created reusable ImageGalleryUpload component for multi-image gallery management",
-      "Updated VenueEntityForm to use ImageGalleryUpload component",
-      "Updated GalleraEntityForm to use ImageGalleryUpload component",
-      "Added 'images' field support in backend PUT /api/venues/:id endpoint",
-      "Added 'images' field validation in backend PUT /api/galleras/:id endpoint",
-      "Improved GET /api/users/:id/business-entity endpoint with fallback search (ownerId -> galleraName/venueName)",
-      "Added 'Crear' button to BusinessInfoSection for users without business entities",
-      "Updated Business Info display to show all profile fields in read-only view"
-    ],
-    "files_affected": [
-      "frontend/src/pages/user/Profile.tsx",
-      "frontend/src/components/forms/UserProfileForm.tsx",
-      "frontend/src/components/forms/VenueEntityForm.tsx",
-      "frontend/src/components/forms/GalleraEntityForm.tsx",
-      "frontend/src/components/shared/ImageGalleryUpload.tsx (NEW)",
-      "frontend/src/components/user/BusinessInfoSection.tsx",
-      "backend/src/routes/users.ts",
-      "backend/src/routes/venues.ts",
-      "backend/src/routes/galleras.ts"
-    ],
-    "database_notes": "No schema changes. Uses existing ARRAY(string) field for images in venues/galleras tables",
-    "testing_verified": "Frontend tested with gallera_test user - image uploads working, profile fields displaying correctly"
-  },
-  "qwen_typescript_incident_2025_10_14": {
-    "status": "🚨 CRITICAL INCIDENT - Backend broken by QWEN",
-    "errors_introduced": 18,
-    "files_affected": [
-      "/backend/src/config/redis.ts",
-      "/backend/src/middleware/enhancedAuth.ts",
-      "/backend/src/middleware/cacheMiddleware.ts",
-      "/backend/src/models/ActiveSession.ts"
-    ],
-    "root_cause": "QWEN modified backend without dependency validation or TypeScript compilation",
-    "specific_errors": {
-      "missing_dependency": "ioredis package not installed",
-      "missing_types": "Request.sessionToken type extension not created",
-      "incorrect_api": "retryDelayOnFailover property does not exist in ioredis v5",
-      "missing_imports": "Op from sequelize not imported",
-      "missing_params": "NextFunction parameter missing in handlers",
-      "obsolete_patterns": "Sequelize v5 .associate() used instead of v6 pattern"
-    },
-    "resolution": {
-      "fixed_by": "Claude",
-      "time_to_fix": "45 minutes",
-      "actions_taken": [
-        "npm install ioredis @types/ioredis",
-        "Created /backend/src/types/express.d.ts for Request extensions",
-        "Fixed ioredis API calls (removed retryDelayOnFailover, used correct set() API)",
-        "Added Op import from sequelize",
-        "Added NextFunction to all handler signatures",
-        "Removed obsolete .associate() method from ActiveSession",
-        "Added backward-compatible helper functions to redis.ts"
-      ]
-    },
-    "prevention_rules": {
-      "mandatory_for_qwen": [
-        "npm install BEFORE using new libraries",
-        "npx tsc --noEmit AFTER all code changes",
-        "Create type definitions for all extensions",
-        "Verify API compatibility with installed package versions",
-        "Never modify auth/security files without Claude supervision"
-      ],
-      "validation_gates": [
-        "Dependency installation gate (if package.json changed)",
-        "TypeScript compilation gate (zero errors required)",
-        "Import/export dependency verification"
-      ]
-    },
-    "lessons_learned": [
-      "QWEN cannot be trusted with backend TypeScript modifications",
-      "All AI work must pass compilation validation before handoff",
-      "Type extensions require separate .d.ts files with proper module augmentation",
-      "Always verify package API compatibility (ioredis v4 vs v5)",
-      "Sequelize v5 vs v6 patterns are incompatible"
-    ]
-  },
   "component_documentation": {
     "UserModal": {
       "file": "/frontend/src/components/admin/UserModal.tsx",
-      "created": "2025-11-01",
       "purpose": "Unified component for creating and editing users with role-based fields",
       "props": {
         "mode": "'create' | 'edit' (required)",

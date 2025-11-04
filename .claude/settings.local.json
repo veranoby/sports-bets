@@ -126,7 +126,10 @@
       "Bash(brain/typescript_interfaces_reference.json)",
       "Bash(bash:*)",
       "Bash(git fetch:*)",
-      "Bash(/home/veranoby/sports-bets/qwen-prompt.json)"
+      "Bash(/home/veranoby/sports-bets/qwen-prompt.json)",
+      "Bash(wc:*)",
+      "Bash(for route in ads enhancedEvents streaming)",
+      "Bash(do echo \"=== $route ===\")"
     ],
     "deny": [],
     "ask": []

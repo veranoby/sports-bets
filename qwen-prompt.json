@@ -1,238 +1,272 @@
 {
-  "task_id": "FIX_EVENTS_FASE5_MIGRATION_2025_11_02",
-  "task_type": "ARCHITECTURAL_FIX",
-  "complexity": "HIGH (8/10)",
+  "task_id": "CODEBASE_CLEANUP_ANALYSIS_2025_11_03",
+  "task_type": "ARCHITECTURAL_AUDIT",
+  "complexity": "HIGH (7/10)",
   "executor": "QWEN 2.5-Coder 32B Instruct",
-  "estimated_duration": "35-45 minutes",
-  "priority": "P0_CRITICAL - Events system BLOCKED",
+  "estimated_duration": "25-35 minutes",
+  "priority": "P1_HIGH - Pre-deployment optimization",
 
-  "objective": "Fix 6 critical issues in Events system to complete FASE 5 migration. Remove all Venue/Gallera model references, migrate to User model with role filtering.",
+  "objective": "Analyze entire codebase to categorize files into: NECESSARY, DEPRECATED (for .expired), and MERGE_CANDIDATES. Focus on import graphs, lazy loading, and component dependency chains.",
 
   "context": {
-    "current_status": "Events system BROKEN - Still uses eliminated Venue/Gallera models",
-    "validation_report": "brain/backlog.json lines 454-485 - 6 CRITICAL issues documented",
-    "reference_work": "Commit a4561a4 successfully migrated Galleras/Venues pages - use same pattern",
-    "migration_pattern": "Venue model → User model where role='venue', access via user.profileInfo.venueName"
+    "current_status": "FASE 5 complete, Events migrated, registration fixed",
+    "deployment_timeline": "Very near future (MVP launch imminent)",
+    "architecture": "Frontend: React+TS+Tailwind, Backend: Node+Express+Sequelize+PostgreSQL",
+    "key_constraint": "ONLY REPORT findings - DO NOT modify files, DO NOT add .expired extensions"
   },
 
-  "critical_issues_to_fix": [
-    {
-      "issue": "Event model associations reference eliminated Venue model",
-      "file": "backend/src/models/Event.ts",
-      "fix": "Change Event.belongsTo(Venue, {as:'venue'}) → Event.belongsTo(User, {as:'venue', foreignKey:'venueId'})"
+  "analysis_strategy": {
+    "phase_1_import_graph": {
+      "description": "Build complete dependency graph to identify orphaned files",
+      "method": "grep -r 'import.*from' to map all imports, cross-reference with file existence",
+      "targets": [
+        "frontend/src/components/**/*.tsx - All component imports",
+        "frontend/src/pages/**/*.tsx - All page imports",
+        "frontend/src/hooks/**/*.ts - All hook imports",
+        "frontend/src/services/**/*.ts - All service imports",
+        "backend/src/routes/**/*.ts - All route registrations"
+      ],
+      "output": "List files WITH imports vs files WITHOUT imports (orphaned)"
     },
-    {
-      "issue": "Backend event routes use Venue model",
-      "file": "backend/src/routes/events.ts",
-      "fix": "Remove Venue imports, use User model with {role:'venue'}, include profileInfo in queries"
+
+    "phase_2_lazy_loading": {
+      "description": "Detect React.lazy and dynamic import patterns",
+      "method": "grep -r 'React.lazy\\|import(' to find code-split components",
+      "critical": "Lazy-loaded files may appear orphaned but are NOT - preserve them",
+      "output": "List of dynamically loaded files (MUST preserve)"
     },
-    {
-      "issue": "Frontend uses obsolete venuesAPI",
-      "file": "frontend/src/pages/admin/Events.tsx",
-      "fix": "Replace venuesAPI.getAll() → usersAPI.getAll({role:'venue'})"
+
+    "phase_3_backend_routes": {
+      "description": "Verify route registration in backend/src/index.ts or app.ts",
+      "method": "Read route index file, grep for 'app.use' or 'router.use', match against route files",
+      "targets": [
+        "backend/src/routes/*.ts - All route files",
+        "backend/src/index.ts - Route registrations"
+      ],
+      "output": "Registered routes vs orphaned route files"
     },
-    {
-      "issue": "API services define obsolete venuesAPI/gallerasAPI",
-      "file": "frontend/src/services/api.ts",
-      "fix": "Remove venuesAPI and gallerasAPI exports (already consolidated to usersAPI)"
+
+    "phase_4_component_chains": {
+      "description": "Map component hierarchies to understand dependencies",
+      "method": "For each page, trace imported components recursively",
+      "example": "Events.tsx � CreateFightModal � fightsAPI � backend/routes/fights.ts",
+      "critical": "Components deep in chains still NECESSARY if chain is active",
+      "output": "Component dependency tree with depth levels"
     },
-    {
-      "issue": "Frontend expects event.venue.name instead of profileInfo",
-      "files": ["frontend/src/pages/admin/Events.tsx", "frontend/src/pages/user/Events.tsx", "frontend/src/pages/user/LiveEvent.tsx"],
-      "fix": "Change event.venue.name → event.venue.profileInfo.venueName"
+
+    "phase_5_duplication_detection": {
+      "description": "Identify duplicate/similar components for merge consideration",
+      "method": "Compare file sizes, naming patterns, and code structure",
+      "patterns_to_check": [
+        "CreateX + EditX modal pairs (e.g., CreateUserModal vs EditUserModal)",
+        "EntityForm variants (VenueEntityForm vs GalleraEntityForm)",
+        "PaymentForm duplicates (payments/ vs subscriptions/)",
+        "Modal wrappers with identical boilerplate",
+        ".optimized.tsx or .backup.tsx suffixes"
+      ],
+      "output": "File pairs/groups with similarity scores"
+    }
+  },
+
+  "categorization_criteria": {
+    "NECESSARY": {
+      "definition": "Files actively used in import chains or registered routes",
+      "examples": [
+        "AuthContext.tsx - Core authentication",
+        "api.ts - Central API service",
+        "All pages in active routes",
+        "Components imported by active pages",
+        "Registered backend routes in index.ts"
+      ],
+      "verification": "Has imports pointing to it OR is route-registered OR is entry point"
     },
+
+    "DEPRECATED": {
+      "definition": "Orphaned files with NO imports and NO route registration",
+      "examples": [
+        "backend/src/routes/ads.ts - NOT imported in index.ts",
+        "backend/src/routes/enhancedEvents.ts - NOT imported",
+        "frontend/src/components/user/CreateBetModal.optimized.tsx - Duplicate suffix"
+      ],
+      "verification": "grep shows ZERO imports + NOT in lazy loading + NOT registered",
+      "action": "Candidates for .expired extension"
+    },
+
+    "MERGE_CANDIDATES": {
+      "definition": "Files with 50%+ code overlap or duplicate responsibilities",
+      "subcategories": {
+        "HIGH_PRIORITY": "70%+ overlap, immediate merge recommended",
+        "MEDIUM_PRIORITY": "50-70% overlap, merge after analysis",
+        "ABSTRACTION_OPPORTUNITY": "Shared patterns across 3+ files, extract to shared component/hook"
+      },
+      "examples": [
+        "PaymentForm.tsx (payments/) + PaymentForm.tsx (subscriptions/) - DUPLICATE",
+        "UserModal.tsx + EditUserModal.tsx - UserModal already handles both create/edit",
+        "VenueEntityForm + GalleraEntityForm - Both use profileInfo, can abstract"
+      ],
+      "verification": "Code comparison, shared prop interfaces, similar state management"
+    }
+  },
+
+  "execution_steps": [
     {
-      "issue": "Models index has Venue associations",
-      "file": "backend/src/models/index.ts",
-      "fix": "Remove any Venue/Event associations, ensure User/Event associations exist"
+      "step": "STEP_1_FRONTEND_COMPONENTS",
+      "description": "Analyze all components for import usage",
+      "actions": [
+        "List all files: find frontend/src/components -name '*.tsx' -o -name '*.ts'",
+        "For each component: grep -r 'import.*ComponentName' frontend/src/",
+        "Identify orphans: components with ZERO import matches",
+        "Check for lazy loading: grep -r 'React.lazy.*ComponentName' frontend/src/",
+        "Build component chains: Map page � components � sub-components"
+      ],
+      "output": "components_analysis.json with categories: necessary, orphaned, lazy_loaded"
+    },
+
+    {
+      "step": "STEP_2_FRONTEND_PAGES",
+      "description": "Verify all pages are in active routes",
+      "actions": [
+        "List all pages: find frontend/src/pages -name '*.tsx'",
+        "Read router config: frontend/src/App.tsx or routing file",
+        "Match pages to route definitions",
+        "Identify unrouted pages (candidates for deprecation)"
+      ],
+      "output": "pages_analysis.json with route mappings"
+    },
+
+    {
+      "step": "STEP_3_HOOKS_SERVICES",
+      "description": "Analyze hook and service usage",
+      "actions": [
+        "List hooks: find frontend/src/hooks -name '*.ts' -o -name '*.tsx'",
+        "List services: find frontend/src/services -name '*.ts'",
+        "For each: grep -r 'import.*{HookName}' frontend/src/",
+        "Count import references",
+        "Identify unused (0 references)"
+      ],
+      "output": "hooks_services_analysis.json with usage counts"
+    },
+
+    {
+      "step": "STEP_4_BACKEND_ROUTES",
+      "description": "Verify backend route registration",
+      "checkpoint": " CHECKPOINT 1: Frontend analysis complete",
+      "actions": [
+        "List route files: find backend/src/routes -name '*.ts'",
+        "Read backend/src/index.ts",
+        "grep 'app.use\\|router.use' to find registrations",
+        "Match route files to registrations",
+        "Identify unregistered routes (candidates for deprecation)"
+      ],
+      "output": "backend_routes_analysis.json with registration status"
+    },
+
+    {
+      "step": "STEP_5_DUPLICATION_ANALYSIS",
+      "description": "Detect merge candidates",
+      "actions": [
+        "Find modal pairs: grep -l 'CreateUserModal\\|EditUserModal' frontend/src/",
+        "Find entity forms: ls frontend/src/components/forms/*EntityForm.tsx",
+        "Find payment forms: find frontend/src -path '*/PaymentForm.tsx'",
+        "Compare file sizes: wc -l for similarity estimation",
+        "Check for .optimized, .backup, .old suffixes: find -name '*.tsx.optimized'"
+      ],
+      "output": "merge_candidates.json with similarity scores and merge strategies"
+    },
+
+    {
+      "step": "STEP_6_DEPENDENCY_CHAINS",
+      "description": "Build complete dependency graph",
+      "actions": [
+        "For each page: Extract all imports recursively",
+        "Build tree: Page � Component L1 � Component L2 � Services � Backend",
+        "Mark chain depth for each file",
+        "Identify isolated files (no chains leading to them)"
+      ],
+      "output": "dependency_graph.json with chain depths"
+    },
+
+    {
+      "step": "STEP_7_CONSOLIDATE_REPORT",
+      "description": "Generate final categorized report",
+      "checkpoint": " CHECKPOINT 2: All analysis complete",
+      "actions": [
+        "Merge all analysis JSON outputs",
+        "Categorize each file: NECESSARY | DEPRECATED | MERGE_CANDIDATE",
+        "Add confidence scores (HIGH/MEDIUM/LOW)",
+        "Generate summary statistics",
+        "Update brain/backlog.json with findings"
+      ],
+      "output": "Final report in brain/backlog.json under 'codebase_cleanup_analysis_2025_11_03'"
     }
   ],
 
-  "implementation_steps": [
-    {
-      "step": "STEP_1_BACKEND_EVENT_MODEL",
-      "description": "Fix Event model associations",
-      "priority": "CRITICAL - Must be first",
-      "actions": [
-        "Read backend/src/models/Event.ts",
-        "Find: Event.belongsTo(Venue, ...)",
-        "Replace with: Event.belongsTo(User, { as: 'venue', foreignKey: 'venueId' })",
-        "Ensure: Event.belongsTo(User, { as: 'operator', foreignKey: 'operatorId' }) exists",
-        "Remove: Any imports of Venue model"
-      ],
-      "validation": "Verify no Venue model references remain in Event.ts"
+  "report_format": {
+    "structure": "JSON in brain/backlog.json",
+    "categories": {
+      "necessary_files": {
+        "description": "Files actively used, MUST preserve",
+        "fields": ["file_path", "import_count", "used_by", "chain_depth"]
+      },
+      "deprecated_files": {
+        "description": "Candidates for .expired extension",
+        "fields": ["file_path", "reason", "last_import_reference", "confidence"],
+        "confidence_levels": "HIGH (0 imports) | MEDIUM (1-2 old imports) | LOW (uncertain)"
+      },
+      "merge_candidates": {
+        "description": "Files to consolidate",
+        "subcategories": ["high_priority", "medium_priority", "abstraction_opportunity"],
+        "fields": ["files", "overlap_score", "merge_strategy", "estimated_loc_saved"]
+      }
     },
-
-    {
-      "step": "STEP_2_BACKEND_MODELS_INDEX",
-      "description": "Fix models/index.ts associations",
-      "priority": "CRITICAL",
-      "actions": [
-        "Read backend/src/models/index.ts",
-        "Remove: Any Venue.hasMany(Event) or similar",
-        "Ensure: User.hasMany(Event, { as: 'venueEvents', foreignKey: 'venueId' }) exists",
-        "Ensure: User.hasMany(Event, { as: 'operatorEvents', foreignKey: 'operatorId' }) exists",
-        "Remove: Venue/Gallera model imports if present"
-      ],
-      "validation": "No Venue/Gallera associations remain"
-    },
-
-    {
-      "step": "STEP_3_BACKEND_EVENT_ROUTES",
-      "description": "Migrate backend/src/routes/events.ts to User model",
-      "priority": "CRITICAL",
-      "checkpoint": "✅ CHECKPOINT 1: Backend models fixed, now routes",
-      "actions": [
-        "Read backend/src/routes/events.ts",
-        "Remove: import Venue from '../models/Venue'",
-        "Remove: import Gallera from '../models/Gallera'",
-        "Update event queries to include User with profileInfo:",
-        "  include: [{ model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] }]",
-        "Update venue filtering: where: { role: 'venue', isActive: true }",
-        "Verify venueId validation checks users table: await User.findOne({ where: { id: venueId, role: 'venue' } })"
-      ],
-      "validation": "No Venue/Gallera imports, queries use User model"
-    },
-
-    {
-      "step": "STEP_4_FRONTEND_API_SERVICES",
-      "description": "Remove obsolete API exports",
-      "priority": "HIGH",
-      "actions": [
-        "Read frontend/src/services/api.ts",
-        "Remove: export const venuesAPI = {...}",
-        "Remove: export const gallerasAPI = {...}",
-        "Verify usersAPI exists with getAll() supporting role parameter"
-      ],
-      "validation": "Only usersAPI exported for user/venue/gallera management"
-    },
-
-    {
-      "step": "STEP_5_FRONTEND_ADMIN_EVENTS",
-      "description": "Fix admin Events.tsx to use usersAPI",
-      "priority": "CRITICAL",
-      "checkpoint": "✅ CHECKPOINT 2: Backend complete, now frontend",
-      "actions": [
-        "Read frontend/src/pages/admin/Events.tsx",
-        "Find: venuesAPI.getAll() or gallerasAPI references",
-        "Replace: usersAPI.getAll({ role: 'venue' })",
-        "Update venue dropdown: venues.map(user => ({ id: user.id, name: user.profileInfo.venueName }))",
-        "Update operator dropdown: usersAPI.getAll({ role: 'operator' })",
-        "Update event display: event.venue.profileInfo.venueName instead of event.venue.name"
-      ],
-      "validation": "No venuesAPI/gallerasAPI imports, uses usersAPI with role filtering"
-    },
-
-    {
-      "step": "STEP_6_FRONTEND_PUBLIC_EVENTS",
-      "description": "Fix public Events.tsx data access",
-      "priority": "HIGH",
-      "actions": [
-        "Read frontend/src/pages/user/Events.tsx",
-        "Update event display: event.venue?.profileInfo?.venueName || 'Venue TBD'",
-        "Update venue location: event.venue?.profileInfo?.venueLocation",
-        "Remove any venuesAPI imports if present"
-      ],
-      "validation": "Events display venue info from user.profileInfo"
-    },
-
-    {
-      "step": "STEP_7_FRONTEND_LIVE_EVENT",
-      "description": "Fix LiveEvent.tsx venue display",
-      "priority": "HIGH",
-      "actions": [
-        "Read frontend/src/pages/user/LiveEvent.tsx",
-        "Update: event.venue?.profileInfo?.venueName",
-        "Update: event.venue?.profileInfo?.venueLocation",
-        "Verify streaming data still loads correctly"
-      ],
-      "validation": "Live event shows correct venue info"
-    },
-
-    {
-      "step": "STEP_8_TYPESCRIPT_VALIDATION",
-      "description": "Verify TypeScript compilation",
-      "priority": "CRITICAL",
-      "actions": [
-        "Run: cd frontend && npx tsc --noEmit",
-        "Check for errors in modified files",
-        "If errors: Fix type mismatches related to venue/user structure"
-      ],
-      "validation": "Zero TypeScript errors in Event-related files"
-    },
-
-    {
-      "step": "STEP_9_UPDATE_BRAIN",
-      "description": "Update brain/backlog.json with fix completion",
-      "actions": [
-        "Update 'recent_achievements_2025_11_02_events_validation'",
-        "Change status: 'NEEDS_FIXES' → 'FIXED'",
-        "Change mvp_readiness: 'BLOCKED' → 'FUNCTIONAL'",
-        "Add fixes_applied section documenting all changes"
-      ]
+    "summary_stats": {
+      "total_files_analyzed": "number",
+      "necessary": "number",
+      "deprecated": "number",
+      "merge_candidates": "number",
+      "estimated_cleanup": "LOC to remove + files to deprecate"
     }
-  ],
-
-  "files_to_modify": {
-    "backend": [
-      "backend/src/models/Event.ts - Event model associations",
-      "backend/src/models/index.ts - Remove Venue associations",
-      "backend/src/routes/events.ts - Migrate to User model queries"
-    ],
-    "frontend": [
-      "frontend/src/services/api.ts - Remove venuesAPI/gallerasAPI",
-      "frontend/src/pages/admin/Events.tsx - Use usersAPI, fix data access",
-      "frontend/src/pages/user/Events.tsx - Fix venue display",
-      "frontend/src/pages/user/LiveEvent.tsx - Fix venue display"
-    ]
-  },
-
-  "reference_patterns": {
-    "commit_a4561a4_migration": "Successful Galleras/Venues migration - follow same approach",
-    "api_migration": "gallerasAPI.getAll() → usersAPI.getAll({role:'gallera'})",
-    "data_access": "gallera.owner.profileInfo → user.profileInfo (direct access)",
-    "response_format": "{ galleras: [...] } → { users: [...] }"
-  },
-
-  "success_criteria": [
-    "✅ Event model associates with User (not Venue)",
-    "✅ Backend routes use User model with role='venue'",
-    "✅ Frontend uses usersAPI for venue selection",
-    "✅ venuesAPI/gallerasAPI removed from api.ts",
-    "✅ All event displays use event.venue.profileInfo.venueName",
-    "✅ TypeScript compilation: ZERO errors in modified files",
-    "✅ brain/backlog.json updated with fix completion"
-  ],
-
-  "constraints": {
-    "no_file_creation": [
-      "❌ NO crear archivos .md",
-      "✅ SOLO modificar archivos listados en files_to_modify",
-      "✅ SOLO actualizar brain/backlog.json"
-    ],
-    "follow_pattern": [
-      "Use exact same migration pattern as commit a4561a4",
-      "Venue model → User model where role='venue'",
-      "venue.name → user.profileInfo.venueName"
-    ],
-    "validate_work": [
-      "Run TypeScript check after each frontend file modification",
-      "Verify no Venue/Gallera imports remain",
-      "Test at checkpoints before continuing"
-    ]
   },
 
   "critical_validations": {
-    "after_backend": [
-      "grep -r 'import.*Venue' backend/src/models/ backend/src/routes/ → should return ZERO results",
-      "grep -r 'import.*Gallera' backend/src/models/ backend/src/routes/ → should return ZERO results"
+    "before_categorizing_as_deprecated": [
+      " Verify ZERO imports: grep -r 'import.*FileName' returns nothing",
+      " Verify NOT lazy loaded: grep -r 'React.lazy.*FileName' returns nothing",
+      " Verify NOT in route registration (backend only)",
+      " Check git history: File hasn't been modified in recent commits (git log --oneline -5 -- file)"
     ],
-    "after_frontend": [
-      "grep -r 'venuesAPI\\|gallerasAPI' frontend/src/ → should return ZERO results (except removal in api.ts)",
-      "grep -r 'event\\.venue\\.name[^I]' frontend/src/ → should return ZERO results (venue.name without profileInfo)",
-      "npx tsc --noEmit → should complete with ZERO errors in Event files"
+    "before_suggesting_merge": [
+      " Both files >100 LOC (small files don't justify merge complexity)",
+      " Shared prop interfaces or similar state management",
+      " At least 50% structural similarity",
+      " Both actively used (not merging deprecated files)"
     ]
   },
 
-  "commit_message_template": "refactor: Migrate Events system to FASE 5 User model architecture\n\nBACKEND CHANGES:\n- Event model: Venue associations → User associations\n- events.ts routes: Migrated to User model with role='venue'\n- models/index.ts: Removed Venue associations\n\nFRONTEND CHANGES:\n- api.ts: Removed obsolete venuesAPI/gallerasAPI\n- Events.tsx (admin): Uses usersAPI.getAll({role:'venue'})\n- Events.tsx (user): Fixed venue display from profileInfo\n- LiveEvent.tsx: Fixed venue data access patterns\n\nFASE 5 COMPLETION:\n- Events system now fully uses consolidated User model\n- venue.name → user.profileInfo.venueName\n- Consistent with Galleras/Venues migration (commit a4561a4)\n\nVALIDATION:\n- ✅ TypeScript: ZERO errors\n- ✅ No Venue/Gallera imports remain\n- ✅ Events system unblocked for MVP\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Qwen-Coder <qwen-coder@alibabacloud.com>"
+  "constraints": {
+    "DO_NOT_MODIFY": [
+      "L NO modificar archivos - SOLO reportar",
+      "L NO agregar extensi�n .expired - Claude lo har� despu�s",
+      "L NO borrar c�digo - SOLO an�lisis",
+      "L NO crear nuevos archivos excepto actualizar brain/backlog.json"
+    ],
+    "ACCURACY_REQUIREMENTS": [
+      " Confidence scores MUST be justified with grep evidence",
+      " Merge candidates MUST show specific overlap examples",
+      " Dependency chains MUST be complete (not partial)",
+      " All categorizations MUST be verifiable"
+    ]
+  },
+
+  "output_location": "brain/backlog.json under key 'codebase_cleanup_analysis_2025_11_03'",
+
+  "success_criteria": [
+    " All frontend components categorized (NECESSARY | DEPRECATED | MERGE)",
+    " All backend routes verified for registration status",
+    " Dependency chains mapped with depth levels",
+    " Merge candidates identified with overlap scores >50%",
+    " Confidence scores provided for all DEPRECATED categorizations",
+    " Summary statistics calculated",
+    " brain/backlog.json updated with complete findings"
+  ]
 }
