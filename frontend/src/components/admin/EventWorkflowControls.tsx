@@ -2,7 +2,16 @@
 // Enhanced event workflow controls with pause/resume functionality for intermission periods
 
 import React, { useState, useEffect } from "react";
-import { Play, Square, Pause, RotateCcw, Users, Eye, Trophy, Shield } from "lucide-react";
+import {
+  Play,
+  Square,
+  Pause,
+  RotateCcw,
+  Users,
+  Eye,
+  Trophy,
+  Shield,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Fight, User } from "../../types";
 import { eventsAPI, fightsAPI } from "../../services/api";
@@ -10,7 +19,13 @@ import { eventsAPI, fightsAPI } from "../../services/api";
 interface EventWorkflowControlsProps {
   eventId: string;
   operatorId: string;
-  currentStatus: "scheduled" | "betting" | "in-progress" | "completed" | "cancelled" | "intermission";
+  currentStatus:
+    | "scheduled"
+    | "betting"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+    | "intermission";
   onStatusChange: (newStatus: string, message?: string) => void;
   currentEvent: any; // The event object
   fights: Fight[];
@@ -31,8 +46,10 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   // Check if user has permission to manage this event
   useEffect(() => {
-    if (user?.role === 'operator' && operatorId !== user.id) {
-      setError('Acceso no autorizado: No puedes gestionar eventos de otros operadores');
+    if (user?.role === "operator" && operatorId !== user.id) {
+      setError(
+        "Acceso no autorizado: No puedes gestionar eventos de otros operadores",
+      );
     }
   }, [user, operatorId]);
 
@@ -40,15 +57,15 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
   useEffect(() => {
     if (fights && fights.length > 0) {
       // Find the first fight that is not completed
-      const nextFight = fights.find(fight => 
-        fight.status !== "completed" && fight.status !== "cancelled"
+      const nextFight = fights.find(
+        (fight) => fight.status !== "completed" && fight.status !== "cancelled",
       );
       setActiveFight(nextFight || null);
     }
   }, [fights]);
 
   // If user is an operator but doesn't own this event, don't render controls
-  if (user?.role === 'operator' && operatorId !== user.id) {
+  if (user?.role === "operator" && operatorId !== user.id) {
     return (
       <div className="bg-gray-100 rounded-xl shadow-sm border p-4">
         <div className="text-center text-gray-500 py-6">
@@ -61,8 +78,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const getActiveFight = (): Fight | undefined => {
     if (fights && fights.length > 0) {
-      return fights.find(fight => 
-        fight.status !== "completed" && fight.status !== "cancelled"
+      return fights.find(
+        (fight) => fight.status !== "completed" && fight.status !== "cancelled",
       );
     }
     return undefined;
@@ -70,14 +87,17 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const handlePauseStream = async () => {
     if (!eventId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await eventsAPI.pauseStream(eventId);
       if (response.success) {
-        onStatusChange("intermission", "Stream pausado - próximo combate listo...");
+        onStatusChange(
+          "intermission",
+          "Stream pausado - próximo combate listo...",
+        );
       } else {
         throw new Error(response.error || "Error al pausar el stream");
       }
@@ -90,10 +110,10 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const handleResumeStream = async () => {
     if (!eventId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await eventsAPI.resumeStream(eventId);
       if (response.success) {
@@ -110,15 +130,18 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const handleStartBetting = async (fightId: string) => {
     if (!fightId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Update fight status to betting
       const response = await fightsAPI.updateFightStatus(fightId, "betting");
       if (response.success) {
-        onStatusChange("betting", `Ventana de apuestas abierta para el combate #${getActiveFight()?.number || 'N/A'}`);
+        onStatusChange(
+          "betting",
+          `Ventana de apuestas abierta para el combate #${getActiveFight()?.number || "N/A"}`,
+        );
       } else {
         throw new Error(response.error || "Error al abrir apuestas");
       }
@@ -131,15 +154,18 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const handleStartFight = async (fightId: string) => {
     if (!fightId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Update fight status to live
       const response = await fightsAPI.updateFightStatus(fightId, "live");
       if (response.success) {
-        onStatusChange("live", `Combate #${getActiveFight()?.number || 'N/A'} iniciado - apuestas cerradas`);
+        onStatusChange(
+          "live",
+          `Combate #${getActiveFight()?.number || "N/A"} iniciado - apuestas cerradas`,
+        );
       } else {
         throw new Error(response.error || "Error al iniciar combate");
       }
@@ -152,10 +178,10 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
   const handleCompleteEvent = async () => {
     if (!eventId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await eventsAPI.updateEventStatus(eventId, "completed");
       if (response.success) {
@@ -259,7 +285,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
   };
 
   const statusConfig = getEventStatusConfig(currentStatus);
-  const hasActiveFight = activeFight && ["upcoming", "betting", "live"].includes(activeFight.status);
+  const hasActiveFight =
+    activeFight && ["upcoming", "betting", "live"].includes(activeFight.status);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border p-4">
@@ -268,7 +295,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
           <RotateCcw className="w-4 h-4 text-blue-600" />
           Control de Evento
         </h3>
-        
+
         <span
           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
         >
@@ -346,7 +373,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
       {/* Fight listing */}
       <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Próximos Combates</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">
+          Próximos Combates
+        </h4>
         <div className="space-y-2 max-h-40 overflow-y-auto">
           {fights && fights.length > 0 ? (
             fights.map((fight) => {
@@ -355,12 +384,16 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
                 <div
                   key={fight.id}
                   className={`flex items-center justify-between p-2 rounded-lg ${
-                    fight.id === activeFight?.id ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
+                    fight.id === activeFight?.id
+                      ? "bg-blue-50 border border-blue-200"
+                      : "bg-gray-50"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">#{fight.number}</span>
-                    <span className="text-sm">{fight.redCorner} vs {fight.blueCorner}</span>
+                    <span className="text-sm">
+                      {fight.redCorner} vs {fight.blueCorner}
+                    </span>
                   </div>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${fightStatus.color}`}

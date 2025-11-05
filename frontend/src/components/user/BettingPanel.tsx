@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets } from "../../hooks/useApi";
-import { useFightSSE, SSEEventType } from "../../hooks/useSSE";  // Use SSE for general updates instead of WebSocket
+import { useFightSSE, SSEEventType } from "../../hooks/useSSE"; // Use SSE for general updates instead of WebSocket
 import { useWebSocketContext } from "../../contexts/WebSocketContext"; // Keep WebSocket minimal for PAGO/DOY proposals only
 import { Plus, Zap, DollarSign, Users, Trophy, TrendingUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
@@ -23,7 +23,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const [currentMode, setCurrentMode] = useState(mode);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { bets, fetchAvailableBets } = useBets();
-  
+
   // Use SSE for general events like new bets and betting window changes
   const { bettingWindow, subscribe, status: sseStatus } = useFightSSE(fightId);
   const { socket, addListener } = useWebSocketContext(); // Keep WebSocket minimal for PAGO/DOY only
@@ -57,7 +57,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         if (event.metadata?.fightId === fightId) {
           handleNewBet();
         }
-      })
+      }),
     ];
 
     let cleanupBetMatched = () => {};
@@ -70,7 +70,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     }
 
     return () => {
-      unsubscribers.forEach(unsubs => unsubs());
+      unsubscribers.forEach((unsubs) => unsubs());
       cleanupBetMatched();
     };
   }, [sseStatus, subscribe, fightId, handleNewBet, onBetPlaced]);
@@ -79,17 +79,17 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   useEffect(() => {
     // Only subscribe to proposal events via WebSocket (bidirectional required)
     // New bets and matches handled by SSE (one-way updates)
-    
+
     const cleanupPagoProposal = addListener("pago_proposal", () => {
       console.log("PAGO proposal received, showing notification");
       // Handle PAGO proposal
     });
-    
+
     const cleanupDoyProposal = addListener("doy_proposal", () => {
       console.log("DOY proposal received, showing notification");
       // Handle DOY proposal
     });
-    
+
     return () => {
       cleanupPagoProposal();
       cleanupDoyProposal();
@@ -176,9 +176,9 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
                   onClick={() => {
                     // Use the WebSocket context to accept the bet
                     if (socket) {
-                      socket.emit('accept_pago_bet', { betId: bet.id });
+                      socket.emit("accept_pago_bet", { betId: bet.id });
                     }
-                    
+
                     // Update UI state after successful acceptance
                     onBetPlaced?.();
                   }}
