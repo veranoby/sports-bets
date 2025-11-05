@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets } from "../../hooks/useApi";
-import { useWebSocketRoom } from "../../hooks/useWebSocket";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import { useFightSSE, SSEEventType } from "../../hooks/useSSE";  // Use SSE for general updates instead of WebSocket
+import { useWebSocketContext } from "../../contexts/WebSocketContext"; // Keep WebSocket minimal for PAGO/DOY proposals only
 import { Plus, Zap, DollarSign, Users, Trophy, TrendingUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
@@ -23,8 +23,10 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   const [currentMode, setCurrentMode] = useState(mode);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { bets, fetchAvailableBets } = useBets();
-  const { isConnected } = useWebSocketRoom(fightId);
-  const { addListener } = useWebSocketContext();
+  
+  // Use SSE for general events like new bets and betting window changes
+  const { bettingWindow, subscribe, status: sseStatus } = useFightSSE(fightId);
+  const { socket, addListener } = useWebSocketContext(); // Keep WebSocket minimal for PAGO/DOY only
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
 
   // Referencia estable para fetchAvailableBets - TODOS los hooks deben ir antes del return condicional
@@ -36,7 +38,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   // Handlers memoizados
   const handleNewBet = useCallback(() => {
     fetchAvailableBetsRef.current(fightId);
-  }, [fightId]);
+  }, [fightId, fetchAvailableBetsRef]);
 
   const handleBetMatched = useCallback(() => {
     onBetPlaced?.();
@@ -46,33 +48,53 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     fetchAvailableBetsRef.current(fightId);
   }, [fightId]);
 
-  // Listeners (solo depende de isConnected)
+  // Subscribe to SSE events for fight/betting updates (minimize WebSocket usage to PAGO/DOY only)
   useEffect(() => {
-    if (!isConnected) return;
+    if (sseStatus !== "connected") return;
 
-    const cleanupNewBet = addListener("new_bet", handleNewBet);
-    const cleanupWindowClosed = addListener(
-      "betting_window_closed",
-      handleBettingWindowClosed,
-    );
+    const unsubscribers = [
+      subscribe(SSEEventType.NEW_BET, (event) => {
+        if (event.metadata?.fightId === fightId) {
+          handleNewBet();
+        }
+      })
+    ];
+
     let cleanupBetMatched = () => {};
     if (onBetPlaced) {
-      cleanupBetMatched = addListener("bet_matched", handleBetMatched);
+      cleanupBetMatched = subscribe(SSEEventType.BET_MATCHED, (event) => {
+        if (event.metadata?.fightId === fightId) {
+          onBetPlaced();
+        }
+      });
     }
 
     return () => {
-      cleanupNewBet();
-      cleanupWindowClosed();
+      unsubscribers.forEach(unsubs => unsubs());
       cleanupBetMatched();
     };
-  }, [
-    isConnected,
-    addListener,
-    handleNewBet,
-    handleBettingWindowClosed,
-    handleBetMatched,
-    onBetPlaced,
-  ]);
+  }, [sseStatus, subscribe, fightId, handleNewBet, onBetPlaced]);
+
+  // Keep minimal WebSocket for PAGO/DOY proposals only (bidirectional)
+  useEffect(() => {
+    // Only subscribe to proposal events via WebSocket (bidirectional required)
+    // New bets and matches handled by SSE (one-way updates)
+    
+    const cleanupPagoProposal = addListener("pago_proposal", () => {
+      console.log("PAGO proposal received, showing notification");
+      // Handle PAGO proposal
+    });
+    
+    const cleanupDoyProposal = addListener("doy_proposal", () => {
+      console.log("DOY proposal received, showing notification");
+      // Handle DOY proposal
+    });
+    
+    return () => {
+      cleanupPagoProposal();
+      cleanupDoyProposal();
+    };
+  }, [addListener]);
 
   // Return condicional DESPUÉS de todos los hooks
   if (!isBettingEnabled) return null;
@@ -152,8 +174,13 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
                 <button
                   className="bg-gradient-to-r from-[#cd6263] to-[#cd6263]/90 hover:from-[#cd6263]/90 hover:to-[#cd6263] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
                   onClick={() => {
-                    // Aquí iría la lógica para aceptar la apuesta
-                    console.log("Aceptar apuesta:", bet.id);
+                    // Use the WebSocket context to accept the bet
+                    if (socket) {
+                      socket.emit('accept_pago_bet', { betId: bet.id });
+                    }
+                    
+                    // Update UI state after successful acceptance
+                    onBetPlaced?.();
                   }}
                 >
                   Aceptar

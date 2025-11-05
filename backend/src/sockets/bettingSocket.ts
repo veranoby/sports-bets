@@ -1,6 +1,9 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { logger } from '../config/logger';
+import { Bet } from '../models/Bet';
+import { Fight } from '../models/Fight';
+import sequelize from '../config/database';
 
 interface BettingSocketData {
   userId?: string;
@@ -124,8 +127,15 @@ export const setupBettingSocket = (io: Server) => {
       timeoutMs?: number;
     }) => {
       try {
+        // Check if betting window is open for this fight
+        const fight = await Fight.findByPk(data.fightId);
+        if (!fight || fight.status !== 'betting') {
+          return socket.emit('bet_error', { message: 'Betting window is closed for this fight' });
+        }
+
         const betId = `pago_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const timeout = data.timeoutMs || 30000; // Default 30 seconds
+        const MAX_TIMEOUT = 180000; // 3 minutes in milliseconds
+        const timeout = Math.min(data.timeoutMs || MAX_TIMEOUT, MAX_TIMEOUT);
         
         const pendingBet: PendingBet = {
           betId,
@@ -196,8 +206,22 @@ export const setupBettingSocket = (io: Server) => {
           return;
         }
 
+        // Check if betting window is open for this fight
+        const fight = await Fight.findByPk(pendingBet.fightId);
+        if (!fight || fight.status !== 'betting') {
+          socket.emit('bet_error', { message: 'Betting window is closed for this fight' });
+          return;
+        }
+
         if (pendingBet.userId === userId) {
           socket.emit('bet_error', { message: 'Cannot accept your own PAGO bet' });
+          return;
+        }
+
+        // Remove from pending (this acts as a lock to prevent multiple accepts)
+        if (!pendingBets.delete(data.betId)) {
+          // Bet was already removed by another accept, user loses
+          socket.emit('bet_error', { message: 'Bet no longer available' });
           return;
         }
 
@@ -206,19 +230,63 @@ export const setupBettingSocket = (io: Server) => {
           clearTimeout(pendingBet.timeout);
         }
 
-        // Remove from pending
-        pendingBets.delete(data.betId);
+        // Persist matched bets to database with transaction
+        let pagoBetId: string;
+        let doyBetId: string;
+        try {
+          const result = await sequelize.transaction(async (t) => {
+            // Create PAGO bet (proposer)
+            const pagoBet = await Bet.create({
+              fightId: pendingBet.fightId,
+              userId: pendingBet.userId,
+              side: pendingBet.details.side,
+              amount: pendingBet.amount,
+              potentialWin: pendingBet.amount * 2, // Simplified calculation
+              status: 'active',
+              betType: 'doy',
+              proposalStatus: 'accepted',
+              terms: {
+                ratio: pendingBet.details.ratio || 1,
+                isOffer: true,
+                pagoAmount: pendingBet.amount,
+                proposedBy: pendingBet.userId
+              }
+            }, { transaction: t });
 
-        // Create matched bet (this would integrate with your betting system)
-        const matchedBet = {
-          betId: data.betId,
-          pagoUserId: pendingBet.userId,
-          doyUserId: userId!,
-          fightId: pendingBet.fightId,
-          amount: pendingBet.amount,
-          details: pendingBet.details,
-          matchedAt: new Date()
-        };
+            // Create DOY bet (acceptor)
+            const doyBet = await Bet.create({
+              fightId: pendingBet.fightId,
+              userId: userId!,
+              side: pendingBet.details.side === 'red' ? 'blue' : 'red', // Opposite side
+              amount: pendingBet.amount,
+              potentialWin: pendingBet.amount * 2,
+              status: 'active',
+              betType: 'doy',
+              proposalStatus: 'accepted',
+              matchedWith: pagoBet.id,
+              terms: {
+                ratio: pendingBet.details.ratio || 1,
+                isOffer: false,
+                doyAmount: pendingBet.amount,
+                proposedBy: pendingBet.userId
+              }
+            }, { transaction: t });
+
+            // Link bets bidirectionally
+            await pagoBet.update({ matchedWith: doyBet.id }, { transaction: t });
+
+            return { pagoBetId: pagoBet.id, doyBetId: doyBet.id };
+          });
+
+          pagoBetId = result.pagoBetId;
+          doyBetId = result.doyBetId;
+
+          logger.info(`PAGO/DOY match persisted: PAGO=${pagoBetId}, DOY=${doyBetId}, fight=${pendingBet.fightId}`);
+        } catch (dbError) {
+          logger.error('Failed to persist matched bets:', dbError);
+          socket.emit('bet_error', { message: 'Failed to save bet match' });
+          return;
+        }
 
         // Notify both users about successful match
         io.of('/betting').to(`user:${pendingBet.userId}`).emit('pago_bet_accepted', {

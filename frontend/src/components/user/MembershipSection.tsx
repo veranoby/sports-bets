@@ -466,13 +466,11 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
               Plan Actual
             </label>
             <p className="text-lg font-semibold text-gray-800">
-              {subscription?.type === "daily"
+              {subscription?.plan === "daily" || subscription?.type === "daily" || subscription?.membership_type === "daily"
                 ? "24 Horas"
-                : subscription?.type === "monthly"
+                : subscription?.plan === "monthly" || subscription?.type === "monthly" || subscription?.membership_type === "monthly"
                   ? "Mensual"
-                  : subscription?.plan ||
-                    subscription?.membership_type ||
-                    "Ninguno"}
+                  : subscription?.plan || subscription?.type || subscription?.membership_type || "Ninguno"}
             </p>
           </div>
           <div>
