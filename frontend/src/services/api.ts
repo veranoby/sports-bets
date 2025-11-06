@@ -171,6 +171,12 @@ export const userAPI = {
       profileInfo: data.profileInfo,
     });
   },
+  updateProfileInfo: async (
+    userId: string,
+    profileInfo: Record<string, any>,
+  ) => {
+    return apiCall<User>("put", `/users/${userId}/profile-info`, profileInfo);
+  },
 };
 
 // Wrap the axios client to return ApiResponse format
@@ -237,6 +243,12 @@ export const eventsAPI = {
   },
   assignOperator: async (eventId: string, operatorId: string) => {
     return apiCall("put", `/events/${eventId}/operator`, { operatorId });
+  },
+  pauseStream: async (eventId: string) => {
+    return apiCall("post", `/events/${eventId}/stream/pause`);
+  },
+  resumeStream: async (eventId: string) => {
+    return apiCall("post", `/events/${eventId}/stream/resume`);
   },
   generateStreamKey: async (eventId: string) => {
     return apiCall("post", `/events/${eventId}/stream-key`);

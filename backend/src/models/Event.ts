@@ -26,7 +26,7 @@ export class Event extends Model<
   declare scheduledDate: Date;
   declare endDate: CreationOptional<Date>;
   declare status: CreationOptional<
-    "scheduled" | "in-progress" | "completed" | "cancelled"
+    "scheduled" | "in-progress" | "intermission" | "completed" | "cancelled"
   >;
   declare operatorId: CreationOptional<ForeignKey<User["id"]>>;
   declare streamKey: CreationOptional<string>;
@@ -64,6 +64,10 @@ export class Event extends Model<
 
   isCompleted(): boolean {
     return this.status === "completed";
+  }
+
+  isIntermission(): boolean {
+    return this.status === "intermission";
   }
 
   generateStreamKey(): string {
@@ -146,6 +150,7 @@ Event.init(
       type: DataTypes.ENUM(
         "scheduled",
         "in-progress",
+        "intermission",
         "completed",
         "cancelled"
       ),

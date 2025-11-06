@@ -42,7 +42,7 @@ interface Fight {
 interface Bet {
   id: string;
   amount: number;
-  odds: number;
+  odds?: number;  // Optional to match BetData from API
   choice: string;
   createdBy: string;
   createdAt: string;
@@ -59,6 +59,14 @@ interface EventData {
     id: string;
     name: string;
     location: string;
+    profileInfo?: {
+      venueName?: string;
+      venueLocation?: string;
+      venueDescription?: string;
+      venueEmail?: string;
+      venueWebsite?: string;
+      images?: string[];
+    };
   };
   streamUrl?: string;
   currentViewers?: number;
@@ -192,13 +200,15 @@ const LiveEvent = () => {
       setError(null);
 
       // Fetch evento específico por ID
-      const eventData = await fetchEventById(eventId);
-      setCurrentEvent(eventData);
+      const response = await fetchEventById(eventId);
+      if (response) {
+        setCurrentEvent(response as unknown as EventData);
+      }
 
       // Fetch relacionados
       await Promise.all([
-        fetchFights({ eventId }),
-        fetchAvailableBets({ eventId }),
+        fetchFights(eventId),
+        fetchAvailableBets(eventId),
       ]);
     } catch (err: unknown) {
       const errorMessage =
@@ -237,7 +247,7 @@ const LiveEvent = () => {
       (data: Bet & { eventId: string }) => {
         console.log("💰 Nueva apuesta:", data);
         if (data.eventId === eventId) {
-          fetchAvailableBets({ eventId });
+          fetchAvailableBets(eventId);
         }
       },
       [eventId, fetchAvailableBets],
@@ -268,7 +278,7 @@ const LiveEvent = () => {
       try {
         await acceptBet(betId);
         // Refresh bets después de aceptar
-        await fetchAvailableBets({ eventId });
+        await fetchAvailableBets(eventId);
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error ? err.message : "Error aceptando apuesta";

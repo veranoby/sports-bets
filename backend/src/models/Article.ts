@@ -2,7 +2,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/database";
 import { User } from "./User";
-import { Venue } from "./Venue";
 
 interface ArticleAttributes {
   id: string;
@@ -45,7 +44,7 @@ export class Article
 
   // Asociaciones
   public readonly author?: User;
-  public readonly venue?: Venue;
+  public readonly venue?: User;
 
   public toJSON(options?: { attributes?: string[] }) {
     const data = this.get(); // Get raw data from model instance
@@ -68,7 +67,7 @@ export class Article
       result.author_name = this.author.username; // Assuming username is always available
     }
     if (this.venue) {
-      result.venue_name = this.venue.name; // Assuming name is always available
+      result.venue_name = this.venue.profileInfo?.venueName || this.venue.username;
     }
 
     // ⚡ KEEP BOTH: Add featured_image_url but keep featured_image (frontend uses it)

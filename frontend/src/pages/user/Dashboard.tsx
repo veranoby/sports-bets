@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
   Calendar,
   Activity,
@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import { eventsAPI } from "../../services/api";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
@@ -41,14 +42,43 @@ const Dashboard: React.FC = () => {
   } = useEvents();
 
   // Fetch today's events and upcoming events using new API parameters
-  const { data: todayEventsData, loading: todayEventsLoading } = useEvents({
-    dateRange: "today",
-  });
-  const { data: upcomingEventsData, loading: upcomingEventsLoading } =
-    useEvents({ category: "upcoming" });
+  const [todayEvents, setTodayEvents] = useState<EventData[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventData[]>([]);
+  const [todayEventsLoading, setTodayEventsLoading] = useState(false);
+  const [upcomingEventsLoading, setUpcomingEventsLoading] = useState(false);
 
-  const todayEvents = todayEventsData?.events || [];
-  const upcomingEvents = upcomingEventsData?.events || [];
+  useEffect(() => {
+    const loadTodayEvents = async () => {
+      setTodayEventsLoading(true);
+      try {
+        const response = await eventsAPI.getEvents({ dateRange: "today" });
+        if (response.success && response.data) {
+          setTodayEvents(response.data.events || []);
+        }
+      } catch (error) {
+        console.error("Error loading today's events:", error);
+      } finally {
+        setTodayEventsLoading(false);
+      }
+    };
+
+    const loadUpcomingEvents = async () => {
+      setUpcomingEventsLoading(true);
+      try {
+        const response = await eventsAPI.getEvents({ category: "upcoming" });
+        if (response.success && response.data) {
+          setUpcomingEvents(response.data.events || []);
+        }
+      } catch (error) {
+        console.error("Error loading upcoming events:", error);
+      } finally {
+        setUpcomingEventsLoading(false);
+      }
+    };
+
+    loadTodayEvents();
+    loadUpcomingEvents();
+  }, []);
 
   // ✅ LISTENERS ESPECÍFICOS DE EVENTOS
   useWebSocketListener(

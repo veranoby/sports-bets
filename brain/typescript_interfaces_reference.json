@@ -1,7 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "2.3",
+    "version": "2.5",
+    "last_updated": "2025-11-04",
+    "changelog": "Bug fixes: Added SSEEventType enum, BettingPanel subscription pattern, Bet interface with PAGO/DOY fields",
     "note": "Verified against backend database models and production deployment"
   },
 
@@ -17,6 +19,103 @@
         "bettingStartTime": "betting_start_time (database)"
       },
       "critical_note": "VERIFIED against backend/src/models/Fight.ts - properties match database schema"
+    },
+    "Bet": {
+      "file": "/backend/src/models/Bet.ts",
+      "purpose": "Betting system with support for standard bets and PAGO/DOY matched proposals",
+      "required_properties": ["id", "fightId", "userId", "side", "amount", "potentialWin", "status", "betType"],
+      "optional_properties": ["matchedWith", "proposalStatus", "terms", "createdAt", "updatedAt"],
+      "side_enum": ["red", "blue"],
+      "status_enum": ["pending", "active", "won", "lost", "cancelled", "refunded"],
+      "betType_enum": ["standard", "doy"],
+      "proposalStatus_enum": ["pending", "accepted", "rejected", "expired"],
+      "pago_doy_specific_fields": {
+        "🔴_CRITICAL_2025_11_04": "PAGO/DOY matched bets now persist to database with transaction safety",
+        "matchedWith": {
+          "type": "string | null",
+          "description": "ID of matched bet (bidirectional link between PAGO and DOY bets)",
+          "usage": "PAGO bet.matchedWith = DOY bet.id, DOY bet.matchedWith = PAGO bet.id"
+        },
+        "proposalStatus": {
+          "type": "'pending' | 'accepted' | 'rejected' | 'expired' | null",
+          "description": "Status of PAGO/DOY proposal lifecycle",
+          "workflow": "pending (created) → accepted (matched) OR expired (timeout) OR rejected (declined)"
+        },
+        "terms": {
+          "type": "object | null",
+          "description": "PAGO/DOY proposal terms and metadata",
+          "structure": {
+            "ratio": "number (betting odds ratio)",
+            "isOffer": "boolean (true for PAGO, false for DOY)",
+            "pagoAmount": "number (PAGO bet amount)",
+            "doyAmount": "number (DOY bet amount)",
+            "proposedBy": "string (userId who created PAGO proposal)"
+          }
+        }
+      },
+      "database_persistence": {
+        "transaction_pattern": "Matched bets created atomically with Sequelize transaction",
+        "implementation": "backend/src/sockets/bettingSocket.ts:215-271",
+        "pago_bet": {
+          "betType": "'doy'",
+          "proposalStatus": "'accepted'",
+          "terms.isOffer": true,
+          "matchedWith": "DOY bet ID (linked after DOY creation)"
+        },
+        "doy_bet": {
+          "betType": "'doy'",
+          "proposalStatus": "'accepted'",
+          "terms.isOffer": false,
+          "matchedWith": "PAGO bet ID (linked during creation)"
+        },
+        "rollback_behavior": "Transaction rollback on any error, both bets or none"
+      },
+      "common_errors": [
+        "Missing matchedWith link in one direction",
+        "Inconsistent proposalStatus between matched bets",
+        "Transaction failure without rollback (fixed 2025-11-04)"
+      ]
+    },
+    "SSEEventType": {
+      "file": "/frontend/src/hooks/useSSE.ts",
+      "type": "enum",
+      "purpose": "Type-safe event names for Server-Sent Events subscription system",
+      "values": {
+        "SYSTEM_STATUS": "System-wide status updates",
+        "FIGHT_STATUS_UPDATE": "Fight status transitions (upcoming → betting → live → completed)",
+        "NEW_BET": "New bet created and available for matching",
+        "BET_MATCHED": "PAGO/DOY bet successfully matched between users",
+        "BET_CANCELLED": "Bet cancelled by user or system",
+        "BET_SETTLED": "Fight completed, bet result determined",
+        "PAGO_PROPOSAL": "PAGO bet proposal created (3-minute timeout)",
+        "DOY_PROPOSAL": "DOY acceptance of PAGO proposal",
+        "BETTING_WINDOW_OPENED": "Fight entered betting status",
+        "BETTING_WINDOW_CLOSED": "Fight exited betting status (no new bets)",
+        "WALLET_UPDATE": "User wallet balance changed"
+      },
+      "🔴_CRITICAL_FIX_2025_11_04": {
+        "issue": "BettingPanel used string literals instead of enum for subscribe()",
+        "fix_location": "frontend/src/components/user/BettingPanel.tsx:56-65",
+        "wrong_pattern": "subscribe('NEW_BET', callback) // String literal - BROKEN",
+        "correct_pattern": "subscribe(SSEEventType.NEW_BET, callback) // Enum - CORRECT",
+        "validation": "TypeScript compilation ZERO errors after fix"
+      },
+      "usage_pattern": {
+        "import": "import { useFightSSE, SSEEventType } from '../../hooks/useSSE'",
+        "subscription": "const unsubscribe = subscribe(SSEEventType.NEW_BET, (event) => { handleNewBet(event); })",
+        "cleanup": "useEffect(() => { const cleanup = subscribe(...); return () => cleanup(); }, [deps])",
+        "type_safety": "TypeScript enforces enum usage, prevents typos in event names"
+      },
+      "component_examples": {
+        "BettingPanel": {
+          "file": "frontend/src/components/user/BettingPanel.tsx",
+          "subscriptions": [
+            "SSEEventType.NEW_BET - Refresh available bets list",
+            "SSEEventType.BET_MATCHED - Trigger onBetPlaced callback"
+          ],
+          "line_references": "Lines 56, 65 (fixed 2025-11-04)"
+        }
+      }
     },
     "User": {
       "file": "/frontend/src/types/index.ts",
@@ -309,11 +408,11 @@
         "Image counter showing used/max images"
       ],
       "usage_examples": [
-        "VenueEntityForm.tsx: Manages venue images gallery",
-        "GalleraEntityForm.tsx: Manages gallera images gallery",
+        "UnifiedEntityForm.tsx: Manages venue/gallera images gallery (REPLACES VenueEntityForm + GalleraEntityForm) - UPDATED 2025-11-04",
         "CreateUserModal.tsx: Role-based image upload (venue maxImages=2, gallera maxImages=3) - ADDED 2025-10-31",
         "EditVenueGalleraModal.tsx: Entity Info tab image management - ADDED 2025-10-31",
-        "Supports ARRAY(string) database fields"
+        "Supports ARRAY(string) database fields",
+        "🔴 DEPRECATED: VenueEntityForm.tsx.deprecated, GalleraEntityForm.tsx.deprecated (replaced by UnifiedEntityForm 2025-11-04)"
       ],
       "validation": {
         "file_type": "file.type.startsWith('image/')",
@@ -322,6 +421,54 @@
       },
       "api_integration": "Uses uploadsAPI.uploadImage(file) for server upload",
       "styling": "TailwindCSS with Lucide React icons (Camera, X, Loader)"
+    },
+    "UnifiedEntityForm": {
+      "file": "/frontend/src/components/forms/UnifiedEntityForm.tsx",
+      "purpose": "🔴 FASE 5: Unified form component for venue/gallera profile management, replaces VenueEntityForm + GalleraEntityForm (75% code reduction)",
+      "interface": "UnifiedEntityFormProps",
+      "required_properties": {
+        "entityType": "'venue' | 'gallera' - Determines which fields to render",
+        "userId": "string - ID of user whose profileInfo will be updated",
+        "onSuccess": "(updatedUser: User) => void - Callback after successful save",
+        "onCancel": "() => void - Callback when user cancels"
+      },
+      "optional_properties": {
+        "initialData": "Record<string, any> - Pre-populate form with user.profileInfo data"
+      },
+      "architecture": {
+        "consolidation_pattern": "Single component with conditional field rendering based on entityType",
+        "api_call": "usersAPI.updateProfileInfo(userId, profileInfoUpdate)",
+        "replaces": "Deprecated venuesAPI.update() and gallerasAPI.update() calls",
+        "code_metrics": {
+          "old_approach": "VenueEntityForm (248 lines) + GalleraEntityForm (363 lines) = 611 lines",
+          "new_approach": "UnifiedEntityForm (321 lines) = 75% code reduction",
+          "shared_logic": "Business name, location, description, email, website, images (common fields)",
+          "entity_specific": "galleraSpecialties, galleraActiveRoosters (only for gallera)"
+        }
+      },
+      "field_mapping": {
+        "venue": ["venueName (businessName)", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "images (max 2)"],
+        "gallera": ["galleraName (businessName)", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters", "images (max 3)"]
+      },
+      "usage_example": "<UnifiedEntityForm entityType=\"venue\" userId={user.id} initialData={user.profileInfo} onSuccess={handleSave} onCancel={handleCancel} />",
+      "integration": {
+        "parent_component": "Profile.tsx (lines 261-267)",
+        "usage_context": "When venue/gallera user edits business information",
+        "data_flow": "user.profileInfo → form fields → usersAPI.updateProfileInfo() → refreshUser()"
+      },
+      "migration_guide": {
+        "old_pattern": {
+          "component": "<VenueEntityForm venue={venueData} userId={user.id} onSave={handleSave} onCancel={handleCancel} />",
+          "data_source": "venueData from GET /venues API (now deprecated)",
+          "api_call": "venuesAPI.update(venueId, data)"
+        },
+        "new_pattern": {
+          "component": "<UnifiedEntityForm entityType=\"venue\" userId={user.id} initialData={user.profileInfo} onSuccess={handleSave} onCancel={handleCancel} />",
+          "data_source": "user.profileInfo (direct access, no separate API call)",
+          "api_call": "usersAPI.updateProfileInfo(userId, data)"
+        }
+      },
+      "added_date": "2025-11-04 (FASE 5 consolidation)"
     }
   },
 

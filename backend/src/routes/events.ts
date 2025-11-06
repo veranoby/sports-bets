@@ -248,8 +248,8 @@ router.post(
       throw errors.notFound("Venue (User with role='venue') not found");
     }
 
-    if (req.user!.role === "venue" && venue.ownerId !== req.user!.id) {
-      throw errors.forbidden("You can only create events for your own venues");
+    if (req.user!.role === "venue" && venue.id !== req.user!.id) {
+      throw errors.forbidden("You can only create events for your own venue");
     }
 
     if (operatorId) {

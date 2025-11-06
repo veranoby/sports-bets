@@ -356,20 +356,15 @@ router.patch(
         throw errors.badRequest("Event must be in progress to manage fights");
       }
 
-      // Validate status transition
-      const currentStatus = fight.status;
-      const validTransitions = {
-        "upcoming": ["betting"],
-        "betting": ["live"],
-        "live": ["completed"],
-        "completed": [] // No transitions from completed
-      };
-
-      if (!validTransitions[currentStatus]?.includes(status)) {
+      // Validate status transition using Fight model method
+      if (!fight.canTransitionTo(status)) {
         throw errors.badRequest(
-          `Invalid transition from ${currentStatus} to ${status}`
+          `Invalid transition from ${fight.status} to ${status}`
         );
       }
+
+      // Save current status for response
+      const currentStatus = fight.status;
 
       // Handle specific status logic
       switch (status) {
@@ -444,11 +439,11 @@ router.patch(
       // Broadcast via SSE
       const sseService = req.app.get("sseService");
       if (sseService) {
-        const eventType = status === "betting" ? "BETTING_OPENED" :
-                         status === "live" ? "BETTING_CLOSED" :
-                         status === "completed" ? "FIGHT_COMPLETED" : "FIGHT_STATUS_CHANGED";
+        const eventType = status === "betting" ? "BETTING_WINDOW_OPENED" :
+                         status === "live" ? "BETTING_WINDOW_CLOSED" :
+                         status === "completed" ? "FIGHT_COMPLETED" : "FIGHT_STATUS_UPDATE";
 
-        sseService.broadcastToSystem(eventType.toLowerCase(), {
+        sseService.broadcastToSystem(eventType, {
           fightId: fight.id,
           eventId: fight.eventId,
           fightNumber: fight.number,

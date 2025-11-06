@@ -2,7 +2,6 @@
 // Define asociaciones únicas evitando duplicados con modelos individuales
 
 import { User } from "./User";
-import { Venue } from "./Venue";
 import { Event } from "./Event";
 import { Fight } from "./Fight";
 import { Bet } from "./Bet";
@@ -13,7 +12,6 @@ import { connectDatabase } from "../config/database";
 import Notification from "./Notification";
 import { Article } from "./Article";
 import { SystemSetting } from './SystemSetting';
-import { Gallera } from "./Gallera";
 import { EventConnection } from "./EventConnection";
 import { MembershipChangeRequest } from "./MembershipChangeRequest";
 import { ActiveSession } from "./ActiveSession";
@@ -57,15 +55,15 @@ Transaction.belongsTo(Wallet, {
 //   as: "owner",
 // });
 
-// User -> Galleras (One-to-Many)
-User.hasMany(Gallera, {
-  foreignKey: "ownerId",
-  as: "galleras",
-});
-Gallera.belongsTo(User, {
-  foreignKey: "ownerId",
-  as: "owner",
-});
+// User -> Galleras (One-to-Many) - DEPRECATED: Gallera model consolidated into User.profileInfo
+// User.hasMany(Gallera, {
+//   foreignKey: "ownerId",
+//   as: "galleras",
+// });
+// Gallera.belongsTo(User, {
+//   foreignKey: "ownerId",
+//   as: "owner",
+// });
 
 // User -> Notifications (One-to-Many)
 User.hasMany(Notification, {
@@ -213,7 +211,6 @@ console.log("✅ Asociaciones configuradas correctamente");
 
 export {
   User,
-  Venue,
   Event,
   Fight,
   Bet,
@@ -223,7 +220,6 @@ export {
   Notification,
   Article,
   SystemSetting,
-  Gallera,
   EventConnection,
   MembershipChangeRequest,
   ActiveSession,
@@ -242,7 +238,6 @@ export const checkAssociations = (): void => {
   try {
     const associations = {
       User: Object.keys(User.associations),
-      Venue: Object.keys(Venue.associations),
       Event: Object.keys(Event.associations),
       Fight: Object.keys(Fight.associations),
       Bet: Object.keys(Bet.associations),
@@ -282,7 +277,6 @@ export const ModelUtils = {
 
 export default {
   User,
-  Venue,
   Event,
   Fight,
   Bet,
@@ -292,7 +286,6 @@ export default {
   Notification,
   Article,
   SystemSetting,
-  Gallera,
   EventConnection,
   MembershipChangeRequest,
   ActiveSession,

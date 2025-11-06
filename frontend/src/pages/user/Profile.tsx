@@ -10,13 +10,10 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import UserProfileForm from "../../components/forms/UserProfileForm";
-import VenueEntityForm from "../../components/forms/VenueEntityForm";
-import GalleraEntityForm from "../../components/forms/GalleraEntityForm";
+import UnifiedEntityForm from "../../components/forms/UnifiedEntityForm";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
 import MembershipSection from "../../components/user/MembershipSection";
 import BusinessInfoSection from "../../components/user/BusinessInfoSection";
-import { apiClient } from "../../services/api";
-import type { Venue, Gallera } from "../../types";
 
 const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -24,37 +21,6 @@ const Profile: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingBusiness, setIsEditingBusiness] = useState(false);
-  const [venueData, setVenueData] = useState<Venue | null>(null);
-  const [galleraData, setGalleraData] = useState<Gallera | null>(null);
-
-  useEffect(() => {
-    const fetchBusinessData = async () => {
-      if (!user) return;
-
-      try {
-        // ⚡ Optimized: Use dedicated endpoint instead of full list queries
-        const response = await apiClient.get(
-          `/users/${user.id}/business-entity`,
-        );
-
-        if (
-          (response.data as any)?.data?.type === "venue" &&
-          (response.data as any)?.data?.entity
-        ) {
-          setVenueData((response.data as any).data.entity);
-        } else if (
-          (response.data as any)?.data?.type === "gallera" &&
-          (response.data as any)?.data?.entity
-        ) {
-          setGalleraData((response.data as any).data.entity);
-        }
-      } catch (error) {
-        console.error("Error fetching business data:", error);
-      }
-    };
-
-    fetchBusinessData();
-  }, [user]);
 
   const handleSaveSuccess = useCallback(async () => {
     await refreshUser();
@@ -66,16 +32,12 @@ const Profile: React.FC = () => {
   }, []);
 
   const handleBusinessSave = useCallback(
-    async (savedData: Venue | Gallera) => {
-      // Update local state with saved business data
-      if (user?.role === "venue") {
-        setVenueData(savedData as Venue);
-      } else if (user?.role === "gallera") {
-        setGalleraData(savedData as Gallera);
-      }
+    async (updatedUser: any) => {
+      // Refresh user context with updated profileInfo
+      await refreshUser();
       setIsEditingBusiness(false);
     },
-    [user?.role],
+    [refreshUser],
   );
 
   const handleBusinessCancel = useCallback(() => {
@@ -258,27 +220,18 @@ const Profile: React.FC = () => {
             {!isEditingBusiness ? (
               <BusinessInfoSection
                 type={user.role}
-                data={user.role === "venue" ? venueData : galleraData}
+                data={user.profileInfo}
                 onEdit={() => setIsEditingBusiness(true)}
               />
             ) : (
               <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-                {user.role === "venue" && (
-                  <VenueEntityForm
-                    venue={venueData || undefined}
-                    userId={user.id}
-                    onSave={handleBusinessSave}
-                    onCancel={handleBusinessCancel}
-                  />
-                )}
-                {user.role === "gallera" && (
-                  <GalleraEntityForm
-                    gallera={galleraData || undefined}
-                    userId={user.id}
-                    onSave={handleBusinessSave}
-                    onCancel={handleBusinessCancel}
-                  />
-                )}
+                <UnifiedEntityForm
+                  entityType={user.role as "venue" | "gallera"}
+                  userId={user.id}
+                  initialData={user.profileInfo || {}}
+                  onSuccess={handleBusinessSave}
+                  onCancel={handleBusinessCancel}
+                />
               </div>
             )}
           </>

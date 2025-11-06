@@ -1,272 +1,309 @@
 {
-  "task_id": "CODEBASE_CLEANUP_ANALYSIS_2025_11_03",
-  "task_type": "ARCHITECTURAL_AUDIT",
-  "complexity": "HIGH (7/10)",
-  "executor": "QWEN 2.5-Coder 32B Instruct",
-  "estimated_duration": "25-35 minutes",
-  "priority": "P1_HIGH - Pre-deployment optimization",
-
-  "objective": "Analyze entire codebase to categorize files into: NECESSARY, DEPRECATED (for .expired), and MERGE_CANDIDATES. Focus on import graphs, lazy loading, and component dependency chains.",
-
-  "context": {
-    "current_status": "FASE 5 complete, Events migrated, registration fixed",
-    "deployment_timeline": "Very near future (MVP launch imminent)",
-    "architecture": "Frontend: React+TS+Tailwind, Backend: Node+Express+Sequelize+PostgreSQL",
-    "key_constraint": "ONLY REPORT findings - DO NOT modify files, DO NOT add .expired extensions"
+  "session_metadata": {
+    "session_id": "QWEN_SESSION_2025_11_04_B",
+    "date": "2025-11-04",
+    "executor": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
+    "coordinator": "Claude Sonnet 4.5",
+    "session_type": "FRESH_START",
+    "context_note": "Previous session closed to prevent context loss. This is a clean slate with all reference files specified.",
+    "estimated_duration": "30-40 minutes MAX",
+    "checkpoint_interval": "Every 15 minutes"
   },
-
-  "analysis_strategy": {
-    "phase_1_import_graph": {
-      "description": "Build complete dependency graph to identify orphaned files",
-      "method": "grep -r 'import.*from' to map all imports, cross-reference with file existence",
-      "targets": [
-        "frontend/src/components/**/*.tsx - All component imports",
-        "frontend/src/pages/**/*.tsx - All page imports",
-        "frontend/src/hooks/**/*.ts - All hook imports",
-        "frontend/src/services/**/*.ts - All service imports",
-        "backend/src/routes/**/*.ts - All route registrations"
-      ],
-      "output": "List files WITH imports vs files WITHOUT imports (orphaned)"
+  "=4_CRITICAL_PROTOCOLS_READ_FIRST": {
+    "1_model_declaration": "CRITICAL MANDATORY: First message must be: 'Model: qwen3-coder-plus-2025-09-23. Task type: Backend + Frontend Implementation. Complexity: HIGH'",
+    "2_task_echo_back_verification": {
+      "rule": "=4 MANDATORY: After reading this prompt, ECHO BACK the tasks you will execute",
+      "format": "I will execute:\n- TASK_SESSION_6_A_INFRINGEMENT: [description]\n- TASK_SESSION_6_B_BETTING_VALIDATION: [description]\n- TASK_SESSION_6_C_OPERATOR_RESTRICTIONS: [description]\nConfirm: Y/N?",
+      "purpose": "Prevent task disambiguation errors (learned 2025-11-04)"
     },
-
-    "phase_2_lazy_loading": {
-      "description": "Detect React.lazy and dynamic import patterns",
-      "method": "grep -r 'React.lazy\\|import(' to find code-split components",
-      "critical": "Lazy-loaded files may appear orphaned but are NOT - preserve them",
-      "output": "List of dynamically loaded files (MUST preserve)"
+    "3_mcp_activation_mandatory": {
+      "backend_work": "ACTIVATE: --seq --sequential BEFORE any backend modifications",
+      "frontend_work": "ACTIVATE: --c7 --context7 BEFORE any React/TypeScript work",
+      "declaration_required": "Output activation statement: 'Activating --seq --sequential for backend analysis'",
+      "incident_reference": "2025-10-30: PostgreSQL error occurred without Context7. MCPs are MANDATORY for quality."
     },
-
-    "phase_3_backend_routes": {
-      "description": "Verify route registration in backend/src/index.ts or app.ts",
-      "method": "Read route index file, grep for 'app.use' or 'router.use', match against route files",
-      "targets": [
-        "backend/src/routes/*.ts - All route files",
-        "backend/src/index.ts - Route registrations"
-      ],
-      "output": "Registered routes vs orphaned route files"
+    "4_reporting_protocol": {
+      "rule": "=4 MANDATORY: Before considering session complete, update /home/veranoby/sports-bets/brain/backlog.json",
+      "location": "Add new entry in backlog.json starting at line ~1600",
+      "format_required": "recent_achievements_2025_11_04_qwen_session_6_completion",
+      "verification": "Run: git diff brain/backlog.json to confirm update",
+      "incident_reference": "2025-11-04: QWEN reported to user but skipped brain/backlog.json update"
     },
-
-    "phase_4_component_chains": {
-      "description": "Map component hierarchies to understand dependencies",
-      "method": "For each page, trace imported components recursively",
-      "example": "Events.tsx ’ CreateFightModal ’ fightsAPI ’ backend/routes/fights.ts",
-      "critical": "Components deep in chains still NECESSARY if chain is active",
-      "output": "Component dependency tree with depth levels"
+    "5_session_checkpoints": {
+      "every_15_minutes": "Commit progress with '[CHECKPOINT]' tag",
+      "if_exceeds_30_min": "STOP and write handoff note in brain/qwen_handoff.json",
+      "purpose": "Prevent context loss in long sessions"
     },
-
-    "phase_5_duplication_detection": {
-      "description": "Identify duplicate/similar components for merge consideration",
-      "method": "Compare file sizes, naming patterns, and code structure",
-      "patterns_to_check": [
-        "CreateX + EditX modal pairs (e.g., CreateUserModal vs EditUserModal)",
-        "EntityForm variants (VenueEntityForm vs GalleraEntityForm)",
-        "PaymentForm duplicates (payments/ vs subscriptions/)",
-        "Modal wrappers with identical boilerplate",
-        ".optimized.tsx or .backup.tsx suffixes"
-      ],
-      "output": "File pairs/groups with similarity scores"
+    "6_simulate_confirm_protocol": {
+      "step_1_simulate": "Before modifying files: Describe EXACTLY what you'll change (files, imports, dependencies)",
+      "step_2_confirm": "Verify against codebase: Do files exist? Are imports available? Will this break anything?",
+      "step_3_document": "Tag commit with [SIMULATED] ï¿½ [CONFIRMED] ï¿½ [MODIFIED]",
+      "if_simulation_fails": "REPORT issue, do NOT attempt fix. Message: '[SIMULATION FAILED] Cannot [task]: Reason: [why] / Recommendation: [solution]'"
     }
   },
-
-  "categorization_criteria": {
-    "NECESSARY": {
-      "definition": "Files actively used in import chains or registered routes",
-      "examples": [
-        "AuthContext.tsx - Core authentication",
-        "api.ts - Central API service",
-        "All pages in active routes",
-        "Components imported by active pages",
-        "Registered backend routes in index.ts"
-      ],
-      "verification": "Has imports pointing to it OR is route-registered OR is entry point"
-    },
-
-    "DEPRECATED": {
-      "definition": "Orphaned files with NO imports and NO route registration",
-      "examples": [
-        "backend/src/routes/ads.ts - NOT imported in index.ts",
-        "backend/src/routes/enhancedEvents.ts - NOT imported",
-        "frontend/src/components/user/CreateBetModal.optimized.tsx - Duplicate suffix"
-      ],
-      "verification": "grep shows ZERO imports + NOT in lazy loading + NOT registered",
-      "action": "Candidates for .expired extension"
-    },
-
-    "MERGE_CANDIDATES": {
-      "definition": "Files with 50%+ code overlap or duplicate responsibilities",
-      "subcategories": {
-        "HIGH_PRIORITY": "70%+ overlap, immediate merge recommended",
-        "MEDIUM_PRIORITY": "50-70% overlap, merge after analysis",
-        "ABSTRACTION_OPPORTUNITY": "Shared patterns across 3+ files, extract to shared component/hook"
-      },
-      "examples": [
-        "PaymentForm.tsx (payments/) + PaymentForm.tsx (subscriptions/) - DUPLICATE",
-        "UserModal.tsx + EditUserModal.tsx - UserModal already handles both create/edit",
-        "VenueEntityForm + GalleraEntityForm - Both use profileInfo, can abstract"
-      ],
-      "verification": "Code comparison, shared prop interfaces, similar state management"
-    }
-  },
-
-  "execution_steps": [
+  "mandatory_reads_at_start": [
     {
-      "step": "STEP_1_FRONTEND_COMPONENTS",
-      "description": "Analyze all components for import usage",
-      "actions": [
-        "List all files: find frontend/src/components -name '*.tsx' -o -name '*.ts'",
-        "For each component: grep -r 'import.*ComponentName' frontend/src/",
-        "Identify orphans: components with ZERO import matches",
-        "Check for lazy loading: grep -r 'React.lazy.*ComponentName' frontend/src/",
-        "Build component chains: Map page ’ components ’ sub-components"
-      ],
-      "output": "components_analysis.json with categories: necessary, orphaned, lazy_loaded"
+      "file": "/home/veranoby/sports-bets/brain/multi_ai_coordination_strategy.json",
+      "purpose": "Understand AI coordination protocols, new lessons learned (task disambiguation, reporting, checkpoints)",
+      "focus_sections": [
+        "task_disambiguation_protocol_2025_11_04",
+        "reporting_location_protocol_2025_11_04",
+        "session_context_loss_prevention_2025_11_04",
+        "ai_responsibilities.qwen"
+      ]
     },
-
     {
-      "step": "STEP_2_FRONTEND_PAGES",
-      "description": "Verify all pages are in active routes",
-      "actions": [
-        "List all pages: find frontend/src/pages -name '*.tsx'",
-        "Read router config: frontend/src/App.tsx or routing file",
-        "Match pages to route definitions",
-        "Identify unrouted pages (candidates for deprecation)"
-      ],
-      "output": "pages_analysis.json with route mappings"
+      "file": "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+      "purpose": "API patterns, FASE 5 consolidation architecture",
+      "focus": "PUT /users/:userId/profile-info endpoint, User.profileInfo structure"
     },
-
     {
-      "step": "STEP_3_HOOKS_SERVICES",
-      "description": "Analyze hook and service usage",
-      "actions": [
-        "List hooks: find frontend/src/hooks -name '*.ts' -o -name '*.tsx'",
-        "List services: find frontend/src/services -name '*.ts'",
-        "For each: grep -r 'import.*{HookName}' frontend/src/",
-        "Count import references",
-        "Identify unused (0 references)"
-      ],
-      "output": "hooks_services_analysis.json with usage counts"
+      "file": "/home/veranoby/sports-bets/brain/typescript_interfaces_reference.json",
+      "purpose": "TypeScript interfaces, component patterns",
+      "focus": "User interface with profileInfo, SSEEventType enum"
     },
-
     {
-      "step": "STEP_4_BACKEND_ROUTES",
-      "description": "Verify backend route registration",
-      "checkpoint": " CHECKPOINT 1: Frontend analysis complete",
-      "actions": [
-        "List route files: find backend/src/routes -name '*.ts'",
-        "Read backend/src/index.ts",
-        "grep 'app.use\\|router.use' to find registrations",
-        "Match route files to registrations",
-        "Identify unregistered routes (candidates for deprecation)"
-      ],
-      "output": "backend_routes_analysis.json with registration status"
-    },
-
-    {
-      "step": "STEP_5_DUPLICATION_ANALYSIS",
-      "description": "Detect merge candidates",
-      "actions": [
-        "Find modal pairs: grep -l 'CreateUserModal\\|EditUserModal' frontend/src/",
-        "Find entity forms: ls frontend/src/components/forms/*EntityForm.tsx",
-        "Find payment forms: find frontend/src -path '*/PaymentForm.tsx'",
-        "Compare file sizes: wc -l for similarity estimation",
-        "Check for .optimized, .backup, .old suffixes: find -name '*.tsx.optimized'"
-      ],
-      "output": "merge_candidates.json with similarity scores and merge strategies"
-    },
-
-    {
-      "step": "STEP_6_DEPENDENCY_CHAINS",
-      "description": "Build complete dependency graph",
-      "actions": [
-        "For each page: Extract all imports recursively",
-        "Build tree: Page ’ Component L1 ’ Component L2 ’ Services ’ Backend",
-        "Mark chain depth for each file",
-        "Identify isolated files (no chains leading to them)"
-      ],
-      "output": "dependency_graph.json with chain depths"
-    },
-
-    {
-      "step": "STEP_7_CONSOLIDATE_REPORT",
-      "description": "Generate final categorized report",
-      "checkpoint": " CHECKPOINT 2: All analysis complete",
-      "actions": [
-        "Merge all analysis JSON outputs",
-        "Categorize each file: NECESSARY | DEPRECATED | MERGE_CANDIDATE",
-        "Add confidence scores (HIGH/MEDIUM/LOW)",
-        "Generate summary statistics",
-        "Update brain/backlog.json with findings"
-      ],
-      "output": "Final report in brain/backlog.json under 'codebase_cleanup_analysis_2025_11_03'"
+      "file": "/home/veranoby/sports-bets/brain/backlog.json",
+      "purpose": "Recent work, Claude's bug fixes, current MVP state",
+      "focus": "recent_achievements_2025_11_04_mvp_tasks_1_2_completion (lines ~961-1077)"
     }
   ],
-
-  "report_format": {
-    "structure": "JSON in brain/backlog.json",
-    "categories": {
-      "necessary_files": {
-        "description": "Files actively used, MUST preserve",
-        "fields": ["file_path", "import_count", "used_by", "chain_depth"]
+  "context_from_previous_session": {
+    "what_qwen_completed": [
+      "DONE: PAGOProposalModal.tsx - PAGO bet creation UI",
+      "DONE: DOYProposalModal.tsx - DOY bet acceptance UI",
+      "DONE: ProposalNotification.tsx - Toast notifications",
+      "DONE: EventWorkflowControls.tsx - Stream pause/resume",
+      "DONE: bettingSocket.ts - WebSocket PAGO/DOY backend (WITH BUG)",
+      "DONE: Fight state machine - upcomingï¿½bettingï¿½liveï¿½completed",
+      "DONE: useFightSSE.ts - SSE integration hook (WITH BUG)"
+    ],
+    "what_claude_fixed_critical_bugs": [
+      "DONE: bettingSocket.ts:213 - Added DB persistence for matched bets with transactions",
+      "DONE: fights.ts:461 - Fixed undefined currentStatus variable",
+      "DONE: BettingPanel.tsx:56-65 - Fixed subscribe() to use SSEEventType enum"
+    ],
+    "what_remains_incomplete": [
+      "L INFRINGEMENT fixes: Membership display, operator restrictions, premium content gates",
+      "L Betting window validation in WebSocket (prevent bets when window closed)",
+      "L 3-minute timeout for PAGO proposals (currently 30 seconds)",
+      "L Race condition protection in bet matching",
+      "L Operator restrictions in EventWorkflowControls"
+    ]
+  },
+  "tasks_to_execute": {
+    "TASK_SESSION_6_A_INFRINGEMENT_FIXES": {
+      "priority": "P0_CRITICAL",
+      "estimated_time": "15-20 minutes",
+      "description": "Complete INFRINGEMENT_REVIEW fixes that were missed in previous session",
+      "subtask_a1_membership_display_consistency": {
+        "file": "frontend/src/components/user/MembershipSection.tsx",
+        "issue": "Membership section shows different data than header",
+        "fix": [
+          "Verify subscription.plan field mapping",
+          "Ensure consistent use of subscription.type vs subscription.plan",
+          "Test: User with premium subscription should see 'Premium' in both header and section"
+        ],
+        "validation": "npx tsc --noEmit (ZERO errors required)"
       },
-      "deprecated_files": {
-        "description": "Candidates for .expired extension",
-        "fields": ["file_path", "reason", "last_import_reference", "confidence"],
-        "confidence_levels": "HIGH (0 imports) | MEDIUM (1-2 old imports) | LOW (uncertain)"
+      "subtask_a2_operator_restrictions": {
+        "file": "frontend/src/components/admin/EventWorkflowControls.tsx",
+        "issue": "No role checks prevent operators from accessing other operators' events",
+        "fix": [
+          "Add role check: if (user.role === 'operator' && event.operatorId !== user.id) return null;",
+          "Prevent operators from viewing/modifying events not assigned to them",
+          "Test: Operator 1 cannot see Operator 2's event controls"
+        ],
+        "validation": "Component renders null for unauthorized operators"
       },
-      "merge_candidates": {
-        "description": "Files to consolidate",
-        "subcategories": ["high_priority", "medium_priority", "abstraction_opportunity"],
-        "fields": ["files", "overlap_score", "merge_strategy", "estimated_loc_saved"]
+      "subtask_a3_premium_content_gates": {
+        "files": [
+          "frontend/src/pages/user/ArticleDetail.tsx",
+          "frontend/src/pages/user/Articles.tsx"
+        ],
+        "issue": "Premium content accessible without active subscription",
+        "fix": [
+          "Add membership check before rendering premium content",
+          "Show paywall UI for non-subscribers",
+          "Test: User without subscription sees paywall, subscribed user sees full content"
+        ],
+        "validation": "npm run build succeeds"
       }
     },
-    "summary_stats": {
-      "total_files_analyzed": "number",
-      "necessary": "number",
-      "deprecated": "number",
-      "merge_candidates": "number",
-      "estimated_cleanup": "LOC to remove + files to deprecate"
+    "TASK_SESSION_6_B_BETTING_WINDOW_VALIDATION": {
+      "priority": "P0_CRITICAL",
+      "estimated_time": "10-15 minutes",
+      "description": "Add betting window validation to prevent bets when window closed",
+      "subtask_b1_websocket_validation": {
+        "file": "backend/src/sockets/bettingSocket.ts",
+        "issue": "WebSocket accepts PAGO/DOY bets even when betting window is closed",
+        "fix": [
+          "In 'create_pago_bet' handler (~line 120), add:",
+          "const fight = await Fight.findByPk(data.fightId);",
+          "if (fight?.status !== 'betting') {",
+          "  return socket.emit('bet_error', { message: 'Betting window is closed' });",
+          "}",
+          "Test: Bet creation fails with error when fight.status !== 'betting'"
+        ],
+        "validation": "npx tsc --noEmit (backend)"
+      },
+      "subtask_b2_timeout_correction": {
+        "file": "backend/src/sockets/bettingSocket.ts",
+        "issue": "PAGO timeout = 30 seconds, spec requires 180 seconds (3 minutes)",
+        "fix": [
+          "Find line: const timeout = data.timeoutMs || 30000",
+          "Change to: const MAX_TIMEOUT = 180000; // 3 minutes",
+          "const timeout = Math.min(data.timeoutMs || MAX_TIMEOUT, MAX_TIMEOUT);",
+          "Test: PAGO bet expires after 3 minutes, not 30 seconds"
+        ],
+        "validation": "Verify timeout logic in code"
+      },
+      "subtask_b3_race_condition_protection": {
+        "file": "backend/src/sockets/bettingSocket.ts",
+        "issue": "Two users can simultaneously accept same PAGO bet (no locking)",
+        "fix": [
+          "In 'accept_doy_bet' handler (~line 187), add transaction with pessimistic lock:",
+          "const pendingBet = pendingBets.get(data.betId);",
+          "if (!pendingBet) {",
+          "  return socket.emit('bet_error', { message: 'Bet no longer available' });",
+          "}",
+          "Add in-memory lock check before DB transaction",
+          "Test: Second user trying to accept gets 'Bet no longer available' error"
+        ],
+        "validation": "npx tsc --noEmit (backend)"
+      }
+    },
+    "TASK_SESSION_6_C_UI_INTEGRATION_FIXES": {
+      "priority": "P1_HIGH",
+      "estimated_time": "10 minutes",
+      "description": "Fix incomplete UI integrations from previous session",
+      "subtask_c1_betting_panel_refresh": {
+        "file": "frontend/src/components/user/BettingPanel.tsx",
+        "issue": "fetchAvailableBetsRef.current(fightId) is no-op, bets don't refresh",
+        "fix": [
+          "Verify fetchAvailableBets is properly connected to API",
+          "Add loading state during fetch",
+          "Test: New bet appears in list after SSE event received"
+        ],
+        "validation": "Component updates when NEW_BET event received"
+      },
+      "subtask_c2_proposal_acceptance_handler": {
+        "file": "frontend/src/components/user/BettingPanel.tsx",
+        "issue": "Proposal accept button logs to console, doesn't call API",
+        "fix": [
+          "Connect accept handler to backend API call",
+          "Update UI state after successful acceptance",
+          "Show error message if API call fails",
+          "Test: Clicking accept button sends API request and updates state"
+        ],
+        "validation": "npm run build succeeds"
+      }
     }
   },
-
-  "critical_validations": {
-    "before_categorizing_as_deprecated": [
-      " Verify ZERO imports: grep -r 'import.*FileName' returns nothing",
-      " Verify NOT lazy loaded: grep -r 'React.lazy.*FileName' returns nothing",
-      " Verify NOT in route registration (backend only)",
-      " Check git history: File hasn't been modified in recent commits (git log --oneline -5 -- file)"
+  "forbidden_files_do_not_modify": [
+    "backend/src/routes/auth.ts",
+    "backend/src/routes/users.ts",
+    "backend/src/models/User.ts",
+    "frontend/src/contexts/AuthContext.tsx",
+    "frontend/src/pages/user/Profile.tsx",
+    "backend/src/services/sseService.ts",
+    "brain/multi_ai_coordination_strategy.json",
+    "brain/api_endpoints_reference.json",
+    "brain/typescript_interfaces_reference.json",
+    "frontend/src/types/index.ts",
+    "backend/src/config/database.ts",
+    "backend/src/routes/fights.ts",
+    "frontend/src/components/user/BettingPanel.tsx"
+  ],
+  "files_to_modify": {
+    "backend": [
+      "backend/src/sockets/bettingSocket.ts"
     ],
-    "before_suggesting_merge": [
-      " Both files >100 LOC (small files don't justify merge complexity)",
-      " Shared prop interfaces or similar state management",
-      " At least 50% structural similarity",
-      " Both actively used (not merging deprecated files)"
+    "frontend": [
+      "frontend/src/components/user/MembershipSection.tsx",
+      "frontend/src/components/admin/EventWorkflowControls.tsx",
+      "frontend/src/pages/user/ArticleDetail.tsx",
+      "frontend/src/pages/user/Articles.tsx"
     ]
   },
-
-  "constraints": {
-    "DO_NOT_MODIFY": [
-      "L NO modificar archivos - SOLO reportar",
-      "L NO agregar extensión .expired - Claude lo hará después",
-      "L NO borrar código - SOLO análisis",
-      "L NO crear nuevos archivos excepto actualizar brain/backlog.json"
+  "validation_gates": {
+    "after_each_file_modification": [
+      "npx tsc --noEmit (appropriate directory)",
+      "git diff --name-only (verify ONLY approved files changed)"
     ],
-    "ACCURACY_REQUIREMENTS": [
-      " Confidence scores MUST be justified with grep evidence",
-      " Merge candidates MUST show specific overlap examples",
-      " Dependency chains MUST be complete (not partial)",
-      " All categorizations MUST be verifiable"
+    "before_commit": [
+      "npm run build (frontend) - must succeed",
+      "npx tsc --noEmit (backend) - ZERO errors",
+      "git diff brain/backlog.json - must show new entry"
+    ],
+    "final_checkpoint": [
+      "All tasks from TASK_SESSION_6_A/B/C completed",
+      "brain/backlog.json updated with structured report",
+      "No files outside [files_to_modify] were changed",
+      "TypeScript compilation passes (0 errors)",
+      "Build process succeeds"
     ]
   },
-
-  "output_location": "brain/backlog.json under key 'codebase_cleanup_analysis_2025_11_03'",
-
-  "success_criteria": [
-    " All frontend components categorized (NECESSARY | DEPRECATED | MERGE)",
-    " All backend routes verified for registration status",
-    " Dependency chains mapped with depth levels",
-    " Merge candidates identified with overlap scores >50%",
-    " Confidence scores provided for all DEPRECATED categorizations",
-    " Summary statistics calculated",
-    " brain/backlog.json updated with complete findings"
-  ]
+  "success_criteria": {
+    "TASK_SESSION_6_A": [
+      "Membership display consistent across components",
+      "Operator restrictions prevent unauthorized access",
+      "Premium content properly gated by subscription status"
+    ],
+    "TASK_SESSION_6_B": [
+      "Betting window validation prevents out-of-window bets",
+      "PAGO timeout = 180 seconds (3 minutes)",
+      "Race condition protection prevents double-acceptance"
+    ],
+    "TASK_SESSION_6_C": [
+      "BettingPanel refreshes on NEW_BET events",
+      "Proposal acceptance connects to API"
+    ]
+  },
+  "reporting_template_for_backlog_json": {
+    "structure": "recent_achievements_2025_11_04_qwen_session_6_completion",
+    "required_fields": {
+      "executor": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
+      "date": "2025-11-04",
+      "task": "Complete INFRINGEMENT fixes + Betting window validation + UI integration",
+      "status": "DONE: COMPLETED or ï¿½ PARTIAL with blockers listed",
+      "files_modified": "Array of absolute file paths",
+      "implementation_details": "What was implemented for each subtask",
+      "validation_status": {
+        "typescript_compilation": "DONE: ZERO errors or L X errors",
+        "build_process": "DONE: SUCCESS or L FAILED",
+        "scope_adherence": "DONE: Only approved files or L Scope violations"
+      },
+      "issues_encountered": "Array of blockers or problems",
+      "recommendations": "Array of follow-up tasks or improvements"
+    }
+  },
+  "emergency_protocols": {
+    "if_typescript_fails": "STOP immediately, do NOT commit, report error details to user",
+    "if_build_fails": "Rollback changes: git checkout -- [files], investigate, fix, retry",
+    "if_simulation_reveals_problems": "STOP, report [SIMULATION FAILED] with reason and recommendation",
+    "if_uncertain_about_approach": "ASK user for clarification, do NOT assume or guess",
+    "if_exceeding_30_minutes": "Create brain/qwen_handoff.json with current progress, let user decide to continue or close session"
+  },
+  "reference_patterns_for_implementation": {
+    "operator_restriction_pattern": {
+      "example_file": "backend/src/routes/users.ts:565-569",
+      "pattern": "if (req.user!.role === 'operator') { if (targetUser.role in ['admin', 'operator']) { throw errors.forbidden('...'); } }"
+    },
+    "subscription_check_pattern": {
+      "example_file": "frontend/src/components/user/MembershipSection.tsx:469-475",
+      "pattern": "if (subscription?.status === 'active' && subscription?.plan !== 'free') { /* show premium content */ }"
+    },
+    "websocket_validation_pattern": {
+      "example_file": "backend/src/sockets/bettingSocket.ts:120",
+      "pattern": "socket.on('create_pago_bet', async (data) => { const fight = await Fight.findByPk(data.fightId); if (fight?.status !== 'betting') { return socket.emit('error', ...); } }"
+    }
+  },
+  "helpful_commands": {
+    "find_specific_pattern": "grep -r 'pattern' backend/src/ frontend/src/",
+    "check_imports": "grep -r 'import.*Bet' backend/src/",
+    "verify_no_any_types": "grep -r ': any' frontend/src/ backend/src/",
+    "check_typescript_specific_file": "npx tsc --noEmit path/to/file.ts"
+  },
+  "final_message_to_qwen": "Remember: This is a FRESH session. Read ALL mandatory files at start. ECHO BACK tasks before executing. ACTIVATE MCPs before coding. UPDATE brain/backlog.json before finishing. CHECKPOINT every 15 minutes. Your work will be validated by Claude, so quality is critical. If uncertain, ASK rather than assume. Good luck!"
 }

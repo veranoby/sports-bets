@@ -129,7 +129,9 @@
       "Bash(/home/veranoby/sports-bets/qwen-prompt.json)",
       "Bash(wc:*)",
       "Bash(for route in ads enhancedEvents streaming)",
-      "Bash(do echo \"=== $route ===\")"
+      "Bash(do echo \"=== $route ===\")",
+      "Bash(python3:*)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

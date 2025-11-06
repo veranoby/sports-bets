@@ -3,7 +3,7 @@
 
 import { config } from "dotenv";
 import { connectDatabase } from "./config/database";
-import { User, Wallet, Venue } from "./models";
+import { User, Wallet } from "./models";
 import { logger } from "./config/logger";
 
 config();
@@ -167,7 +167,9 @@ async function createUniqueTestUsers(existingUsers: any[]) {
         frozenAmount: 0,
       });
 
-      // Crear gallera de ejemplo para el venue owner
+      // DEPRECATED: Venue model consolidated into User.profileInfo
+      // Venue data should now be added to venueUser.profileInfo
+      /*
       await Venue.create({
         name: "Gallera El Ejemplo",
         location: "Ciudad de Prueba, País Demo",
@@ -182,6 +184,7 @@ async function createUniqueTestUsers(existingUsers: any[]) {
         isVerified: true,
         images: [],
       });
+      */
 
       logger.info(
         `✅ Venue owner created: ${venueUsername} (${venueEmail}) / Venue123`

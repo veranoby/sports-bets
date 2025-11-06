@@ -2,7 +2,7 @@ import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import { User, Wallet, Venue, Gallera } from "../models";
+import { User, Wallet } from "../models";
 import { Subscription } from "../models/Subscription";
 import { errors, asyncHandler } from "../middleware/errorHandler";
 import { authenticate } from "../middleware/auth";
@@ -128,7 +128,9 @@ router.post(
         { transaction: t }
       );
 
-      // ✅ AUTO-CREATE venue/gallera entity if role requires it
+      // DEPRECATED: Venue/Gallera models consolidated into User.profileInfo
+      // Venue/gallera data now stored in user.profileInfo field
+      /*
       if (role === "venue") {
         await Venue.create(
           {
@@ -157,6 +159,7 @@ router.post(
           { transaction: t }
         );
       }
+      */
 
       // Enviar email de verificación
       await emailService.sendVerificationEmail(email, verificationToken);

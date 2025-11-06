@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { User, Venue, Gallera, Subscription } from "../models";
+import { User, Subscription } from "../models";
 import { body, param, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis";
@@ -426,6 +426,178 @@ router.put(
   })
 );
 
+// PUT /api/users/:userId/profile-info - Update profile info for any user (admin/operator only)
+router.put(
+  "/:userId/profile-info",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    param("userId").isUUID().withMessage("Invalid user ID required"),
+    body("venueName")
+      .optional()
+      .isString()
+      .isLength({ min: 3, max: 100 })
+      .withMessage("Venue name must be between 3 and 100 characters")
+      .trim()
+      .escape(),
+    body("venueLocation")
+      .optional()
+      .isString()
+      .isLength({ max: 200 })
+      .withMessage("Venue location must be less than 200 characters")
+      .trim()
+      .escape(),
+    body("venueDescription")
+      .optional()
+      .isString()
+      .isLength({ min: 10, max: 1000 })
+      .withMessage("Venue description must be between 10 and 1000 characters")
+      .trim(),
+    body("venueEmail")
+      .optional()
+      .isEmail()
+      .withMessage("Valid email required")
+      .normalizeEmail(),
+    body("venueWebsite")
+      .optional()
+      .isURL()
+      .withMessage("Valid URL required")
+      .trim(),
+    body("galleraName")
+      .optional()
+      .isString()
+      .isLength({ min: 3, max: 100 })
+      .withMessage("Gallera name must be between 3 and 100 characters")
+      .trim()
+      .escape(),
+    body("galleraLocation")
+      .optional()
+      .isString()
+      .isLength({ max: 200 })
+      .withMessage("Gallera location must be less than 200 characters")
+      .trim()
+      .escape(),
+    body("galleraDescription")
+      .optional()
+      .isString()
+      .isLength({ min: 10, max: 1000 })
+      .withMessage("Gallera description must be between 10 and 1000 characters")
+      .trim(),
+    body("galleraEmail")
+      .optional()
+      .isEmail()
+      .withMessage("Valid email required")
+      .normalizeEmail(),
+    body("galleraWebsite")
+      .optional()
+      .isURL()
+      .withMessage("Valid URL required")
+      .trim(),
+    body("galleraSpecialties")
+      .optional()
+      .isArray()
+      .withMessage("Specialties must be an array"),
+    body("galleraSpecialties.*")
+      .optional()
+      .isString()
+      .withMessage("Each specialty must be a string"),
+    body("galleraActiveRoosters")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Active roosters must be a positive number"),
+    body("businessName")
+      .optional({ nullable: true, checkFalsy: true })
+      .isLength({ min: 2, max: 100 })
+      .withMessage("Business name must be between 2 and 100 characters")
+      .trim()
+      .escape(),
+    body("location")
+      .optional()
+      .isString()
+      .isLength({ max: 200 })
+      .withMessage("Location must be less than 200 characters")
+      .trim()
+      .escape(),
+    body("description")
+      .optional()
+      .isString()
+      .isLength({ min: 10, max: 1000 })
+      .withMessage("Description must be between 10 and 1000 characters")
+      .trim(),
+    body("establishedDate")
+      .optional()
+      .isISO8601()
+      .withMessage("Valid ISO date required"),
+    body("certified")
+      .optional()
+      .isBoolean()
+      .withMessage("Certified must be a boolean"),
+    body("imageUrl")
+      .optional()
+      .isURL()
+      .withMessage("Valid URL required")
+      .trim(),
+    body("images")
+      .optional()
+      .isArray()
+      .withMessage("Images must be an array"),
+    body("images.*")
+      .optional()
+      .isURL()
+      .withMessage("Each image must be a valid URL")
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { userId } = req.params;
+    const profileInfoUpdate = req.body;
+
+    // Authorization check: Admin can update any user, operator can only update non-admin/operator users
+    if (req.user!.role === "operator") {
+      const targetUser = await User.findByPk(userId);
+      if (!targetUser || ["admin", "operator"].includes(targetUser.role)) {
+        throw errors.forbidden("Operators can only update venue/gallera/user roles");
+      }
+    }
+
+    // Find user
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw errors.notFound("User not found");
+    }
+
+    // Merge new profileInfo with existing
+    const updatedProfileInfo = {
+      ...user.profileInfo,
+      ...profileInfoUpdate
+    };
+
+    // Update user
+    await user.update({ profileInfo: updatedProfileInfo });
+
+    // ⚡ CRITICAL: Invalidate cache
+    await invalidatePattern(`user:${userId}:*`);
+
+    // ✅ FASE 5: Venue/Gallera models consolidated into User.profileInfo
+    // All business entity data now stored directly in profileInfo field
+
+    res.json({
+      success: true,
+      message: "Profile info updated successfully",
+      data: { user: await user.toPublicJSON() }
+    });
+  })
+);
+
 // POST /api/users - Crear usuario (admin/operator)
 router.post(
   "/",
@@ -649,40 +821,35 @@ router.get(
       }
 
       // Check if user is venue or gallera
+      // UPDATED: Venue/Gallera data now in user.profileInfo
       if (user.role === "venue") {
-        // Try to find venue by ownerId first
-        let venue = await Venue.findOne({ where: { ownerId: userId } });
-
-        // If not found by ownerId, try to find by email or name from profileInfo
-        if (!venue && (user.profileInfo as any)?.venueName) {
-          venue = await Venue.findOne({
-            where: { name: (user.profileInfo as any).venueName }
-          });
-        }
-
         return {
           success: true,
           data: {
             type: "venue",
-            entity: venue || null,
+            entity: {
+              id: user.id,
+              ownerId: user.id,
+              name: user.profileInfo?.venueName || null,
+              location: user.profileInfo?.venueLocation || null,
+              description: user.profileInfo?.venueDescription || null,
+              ...user.profileInfo
+            },
           },
         };
       } else if (user.role === "gallera") {
-        // Try to find gallera by ownerId first
-        let gallera = await Gallera.findOne({ where: { ownerId: userId } });
-
-        // If not found by ownerId, try to find by name from profileInfo
-        if (!gallera && (user.profileInfo as any)?.galleraName) {
-          gallera = await Gallera.findOne({
-            where: { name: (user.profileInfo as any).galleraName }
-          });
-        }
-
         return {
           success: true,
           data: {
             type: "gallera",
-            entity: gallera || null,
+            entity: {
+              id: user.id,
+              ownerId: user.id,
+              name: user.profileInfo?.galleraName || null,
+              location: user.profileInfo?.galleraLocation || null,
+              description: user.profileInfo?.galleraDescription || null,
+              ...user.profileInfo
+            },
           },
         };
       } else {

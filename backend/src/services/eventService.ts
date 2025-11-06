@@ -1,5 +1,4 @@
 import { Event } from '../models/Event';
-import { Venue } from '../models/Venue';
 import { User } from '../models/User';
 import { Fight } from '../models/Fight';
 import { Bet } from '../models/Bet';
@@ -10,7 +9,7 @@ import notificationService from './notificationService';
 export class EventService {
   // Generate improved stream key with venue name, date, and event ID
   static generateStreamKey(event: Event): string {
-    const venueName = event.venue ? event.venue.name.replace(/\s+/g, '_').toLowerCase() : 'unknown';
+    const venueName = event.venue ? (event.venue.profileInfo?.venueName || event.venue.username).replace(/\s+/g, '_').toLowerCase() : 'unknown';
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const eventId = event.id.substring(0, 8); // First 8 chars of event ID
     return `${venueName}_${date}_${eventId}`;
@@ -33,7 +32,7 @@ export class EventService {
     const event = await Event.findByPk(eventId, {
       include: [
         { model: Fight, as: 'fights' },
-        { model: Venue, as: 'venue' },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
         { model: User, as: 'operator', attributes: ['id', 'username'] }
       ]
     });
@@ -130,7 +129,7 @@ export class EventService {
   static async getAllEvents(filters?: any) {
     return Event.findAll({
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
         { model: User, as: 'operator', attributes: ['id', 'username'] },
         { model: User, as: 'creator', attributes: ['id', 'username'] },
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'] }
@@ -145,7 +144,7 @@ export class EventService {
   static async getEventById(eventId: string) {
     return Event.findByPk(eventId, {
       include: [
-        { model: Venue, as: 'venue' },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
         { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },
         { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },
         { 
@@ -164,7 +163,7 @@ export class EventService {
       offset,
       limit,
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
         { model: User, as: 'operator', attributes: ['id', 'username'] },
         { model: User, as: 'creator', attributes: ['id', 'username'] }
       ],
@@ -183,7 +182,7 @@ export class EventService {
         }
       },
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name', 'location'] }
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] }
       ],
       order: [['scheduledDate', 'ASC']],
       limit
@@ -195,10 +194,10 @@ export class EventService {
     return Event.findAll({
       where: { status: 'in-progress' },
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name'] },
-        { 
-          model: Fight, 
-          as: 'fights', 
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
+        {
+          model: Fight,
+          as: 'fights',
           where: { status: 'live' },
           required: false
         }
@@ -218,7 +217,7 @@ export class EventService {
     return Event.findAll({
       where: { operatorId: operatorId },
       include: [
-        { model: Venue, as: 'venue', attributes: ['id', 'name'] },
+        { model: User, as: 'venue', attributes: ['id', 'username', 'profileInfo'] },
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status'] }
       ],
       order: [['scheduledDate', 'DESC']]

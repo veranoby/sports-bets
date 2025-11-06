@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 // Hooks y contextos
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import { eventsAPI } from "../../services/api";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
@@ -150,16 +151,32 @@ const EventsPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
   // Fetch events based on filter
-  const {
-    data: filteredEventsData,
-    loading: filteredLoading,
-    error: filteredError,
-  } = useEvents({
-    category: filter !== "all" ? filter : undefined,
-    limit: 20,
-  });
+  const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
+  const [filteredLoading, setFilteredLoading] = useState(false);
+  const [filteredError, setFilteredError] = useState<string>("");
 
-  const filteredEvents = filteredEventsData?.events || [];
+  useEffect(() => {
+    const loadFilteredEvents = async () => {
+      setFilteredLoading(true);
+      try {
+        const params = {
+          category: filter !== "all" ? filter : undefined,
+          limit: 20,
+        };
+        const response = await eventsAPI.getEvents(params);
+        if (response.success && response.data) {
+          setFilteredEvents(response.data.events || []);
+        }
+      } catch (error) {
+        console.error("Error loading filtered events:", error);
+        setFilteredError(error instanceof Error ? error.message : "Error loading events");
+      } finally {
+        setFilteredLoading(false);
+      }
+    };
+
+    loadFilteredEvents();
+  }, [filter]);
 
   // ✅ Referencia estable para fetchEvents
   const fetchEventsRef = useRef(fetchEvents);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { authenticate, authorize } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
 import { requireFeature } from "../middleware/featureFlags";
@@ -628,6 +628,167 @@ router.get(
       console.error('OBS config error:', error);
       throw errors.internal(`Failed to get OBS configuration: ${error.message}`);
     }
+  })
+);
+
+// POST /api/streaming/pause - Pause event stream during intermissions
+router.post(
+  "/pause",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    body("eventId").isUUID().withMessage("Valid event ID required")
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: validationErrors.array()
+      });
+    }
+
+    const { eventId } = req.body;
+    const operatorId = req.user!.id;
+
+    // Find event
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      throw errors.notFound("Event not found");
+    }
+
+    // Check authorization
+    if (req.user!.role !== "admin" && event.operatorId !== operatorId) {
+      throw errors.forbidden("You are not assigned to this event");
+    }
+
+    // Verify event is in progress
+    if (event.status !== "in-progress") {
+      return res.status(400).json({
+        success: false,
+        message: "Can only pause streams that are in-progress"
+      });
+    }
+
+    // Find active stream for event
+    const stream = await rtmpService.getActiveStream(eventId);
+    if (!stream) {
+      throw errors.notFound("No active stream found for this event");
+    }
+
+    // Pause the stream
+    const pauseResult = await rtmpService.pauseStream(stream.streamId);
+
+    // Update event status to intermission
+    await event.update({ status: "intermission" });
+
+    // Broadcast via SSE
+    sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
+      type: "STREAM_PAUSED",
+      eventId,
+      message: "Intermisión - Próximamente...",
+      timestamp: new Date()
+    });
+
+    res.json({
+      success: true,
+      data: {
+        message: pauseResult.message,
+        bandwidth_saved: pauseResult.bandwidth_saved,
+        eventStatus: "intermission"
+      }
+    });
+  })
+);
+
+// POST /api/streaming/resume - Resume event stream after intermission
+router.post(
+  "/resume",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    body("eventId").isUUID().withMessage("Valid event ID required")
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: validationErrors.array()
+      });
+    }
+
+    const { eventId } = req.body;
+    const operatorId = req.user!.id;
+
+    // Find event
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      throw errors.notFound("Event not found");
+    }
+
+    // Check authorization
+    if (req.user!.role !== "admin" && event.operatorId !== operatorId) {
+      throw errors.forbidden("You are not assigned to this event");
+    }
+
+    // Verify event is in intermission
+    if (event.status !== "intermission") {
+      return res.status(400).json({
+        success: false,
+        message: "Can only resume streams that are in intermission"
+      });
+    }
+
+    // Find active stream for event
+    const stream = await rtmpService.getActiveStream(eventId);
+    if (!stream) {
+      throw errors.notFound("No active stream found for this event");
+    }
+
+    // Resume the stream
+    const resumeResult = await rtmpService.resumeStream(stream.streamId);
+
+    // Update event status back to in-progress
+    await event.update({ status: "in-progress" });
+
+    // Broadcast via SSE
+    sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
+      type: "STREAM_RESUMED",
+      eventId,
+      message: "Stream en vivo",
+      timestamp: new Date()
+    });
+
+    res.json({
+      success: true,
+      data: {
+        message: resumeResult.message,
+        resume_time: resumeResult.resume_time,
+        eventStatus: "in-progress"
+      }
+    });
+  })
+);
+
+// GET /api/streaming/intermission-status/:eventId - Get intermission status for an event
+router.get(
+  "/intermission-status/:eventId",
+  authenticate,
+  [
+    param("eventId").isUUID().withMessage("Invalid event ID")
+  ],
+  asyncHandler(async (req, res) => {
+    const { eventId } = req.params;
+
+    const status = await rtmpService.getIntermissionStatus(eventId);
+
+    res.json({
+      success: true,
+      data: status
+    });
   })
 );
 

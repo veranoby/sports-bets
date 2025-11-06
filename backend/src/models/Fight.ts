@@ -76,6 +76,18 @@ export class Fight extends Model<
   toPublicJSON() {
     return this.toJSON();
   }
+
+  canTransitionTo(newStatus: "upcoming" | "betting" | "live" | "completed" | "cancelled"): boolean {
+    const validTransitions = {
+      "upcoming": ["betting", "cancelled"],
+      "betting": ["live", "cancelled"],
+      "live": ["completed", "cancelled"],
+      "completed": [] as string[],
+      "cancelled": [] as string[]
+    };
+    
+    return validTransitions[this.status]?.includes(newStatus) ?? false;
+  }
 }
 
 // Inicialización del modelo

@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
-    "version": "1.0",
-    "last_updated": "2025-10-31 - Image upload UI + Admin UX consistency",
+    "version": "1.2",
+    "last_updated": "2025-11-04 - Bug fixes: Added PAGO/DOY WebSocket bet persistence, fight status transition fix, SSE event type documentation",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {
@@ -94,11 +94,12 @@
         "error_response": "400 BadRequest with 'Maximum X images allowed for [type]' message"
       },
       "special_features": {
-        "data_synchronization": "Automatically syncs venue/gallera profile data to dedicated tables",
-        "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "venueImages"],
-        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters", "galleraImages"],
+        "data_storage": "🔴 FASE 5 CONSOLIDATED: All venue/gallera data stored DIRECTLY in User.profileInfo JSONB field. NO sync to dedicated tables (tables eliminated 2025-11-04)",
+        "venue_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "images"],
+        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters", "images"],
         "display_logic": "venue/gallera names replace username in headers and profile display",
-        "image_upload": "Supports profileImage field for avatar upload, venueImages (max 2), galleraImages (max 3)"
+        "image_upload": "Supports imageUrl field for avatar upload, images array (max 2 for venues, max 3 for galleras)",
+        "access_pattern": "Direct access: user.profileInfo.venueName (NOT venue.owner.profileInfo.venueName)"
       }
     },
     "list_users": {
@@ -193,6 +194,39 @@
         "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
       ]
     },
+    "update_profile_info": {
+      "method": "PUT",
+      "path": "/users/:userId/profile-info",
+      "body": {
+        "description": "Partial update of User.profileInfo JSONB field",
+        "venue_example": "{ venueName: string, venueLocation: string, venueDescription: string, venueEmail: string, venueWebsite: string, images: string[] }",
+        "gallera_example": "{ galleraName: string, galleraLocation: string, galleraDescription: string, galleraEmail: string, galleraWebsite: string, galleraSpecialties: string[], galleraActiveRoosters: number, images: string[] }"
+      },
+      "auth_required": true,
+      "roles": "admin, operator (for any user) OR authenticated user (for own profile only)",
+      "authorization": {
+        "admin_operator": "Can update any user's profileInfo",
+        "regular_user": "Can only update own profileInfo (req.user.id === userId)",
+        "validation": "backend/src/routes/users.ts:565-570"
+      },
+      "response": {
+        "success": true,
+        "data": {"user": "User object with updated profileInfo"}
+      },
+      "features": {
+        "merge_behavior": "Merges provided fields with existing profileInfo (does not replace entire object)",
+        "cache_invalidation": "Automatically invalidates Redis cache for user:${userId}:* pattern",
+        "no_sync": "🔴 FASE 5: Does NOT sync to Venue/Gallera tables (tables eliminated 2025-11-04)"
+      },
+      "implementation": "backend/src/routes/users.ts:558-597",
+      "frontend_usage": {
+        "component": "UnifiedEntityForm.tsx",
+        "api_method": "usersAPI.updateProfileInfo(userId, profileInfo)",
+        "replaces": "Deprecated venuesAPI.update() and gallerasAPI.update() calls"
+      },
+      "added_date": "2025-11-04 (FASE 5 consolidation)",
+      "note": "This endpoint consolidates venue/gallera profile updates into unified User.profileInfo architecture"
+    },
     "approve_user": {
       "method": "PUT",
       "path": "/users/:id/approve",
@@ -253,7 +287,7 @@
       "method": "PUT",
       "path": "/venues/:id",
       "auth_required": true,
-      "body": {"profileInfo": {venueName: "string", venueLocation: "string", venueDescription: "string", venueEmail: "string", venueWebsite: "string"}, "images": "string[] (optional)"},
+      "body": {"profileInfo": {"venueName": "string", "venueLocation": "string", "venueDescription": "string", "venueEmail": "string", "venueWebsite": "string"}, "images": "string[] (optional)"},
       "note": "🔴 CHANGED 2025-10-30: Updates User.profileInfo (venue fields), not venue table",
       "images_support": {
         "field_name": "images",
@@ -308,7 +342,7 @@
       "method": "PUT",
       "path": "/galleras/:id",
       "auth_required": true,
-      "body": {"profileInfo": {galleraName: "string", galleraLocation: "string", galleraDescription: "string", galleraEmail: "string", galleraWebsite: "string", galleraSpecialties: "object", galleraActiveRoosters: "number"}, "images": "string[] (optional)"},
+      "body": {"profileInfo": {"galleraName": "string", "galleraLocation": "string", "galleraDescription": "string", "galleraEmail": "string", "galleraWebsite": "string", "galleraSpecialties": "object", "galleraActiveRoosters": "number"}, "images": "string[] (optional)"},
       "note": "🔴 CHANGED 2025-10-30: Updates User.profileInfo (gallera fields), not gallera table",
       "images_support": {
         "field_name": "images",
@@ -529,6 +563,170 @@
       "path": "/bets/compatible",
       "query_params": ["fightId", "side", "minAmount", "maxAmount"],
       "auth_required": true
+    }
+  },
+
+  "websocket_betting_endpoints": {
+    "CRITICAL_NOTE_2025_11_04": "PAGO/DOY bet matching now includes DB persistence with transaction safety",
+    "protocol": "WebSocket (bidirectional, minimal usage for proposals only)",
+    "connection": "ws://localhost:3001 (authenticated via JWT)",
+    "pago_doy_bet_matching": {
+      "description": "Peer-to-peer bet proposal and acceptance system",
+      "events": {
+        "create_pago_bet": {
+          "direction": "client → server",
+          "payload": {
+            "fightId": "string (UUID)",
+            "side": "'red' | 'blue'",
+            "amount": "number",
+            "timeoutMs": "number (max 180000 = 3 minutes)",
+            "details": {
+              "ratio": "number (optional)",
+              "additionalTerms": "object (optional)"
+            }
+          },
+          "server_response": "pago_bet_created event with betId",
+          "timeout": "180 seconds (3 minutes) - proposal expires if not accepted",
+          "validation": "Requires fight.status === 'betting'"
+        },
+        "accept_doy_bet": {
+          "direction": "client → server",
+          "payload": {
+            "betId": "string (pending bet ID)",
+            "fightId": "string (UUID)"
+          },
+          "server_response": "bet_matched event",
+          "race_condition_protection": "In-memory lock prevents double-acceptance",
+          "db_persistence": {
+            "🔴_CRITICAL_FIX_2025_11_04": "Matched bets now persisted to database with transaction safety",
+            "implementation": "backend/src/sockets/bettingSocket.ts:215-271",
+            "transaction_pattern": "Sequelize transaction with bidirectional bet linking",
+            "pago_bet_creation": {
+              "model": "Bet.create()",
+              "fields": {
+                "fightId": "string",
+                "userId": "string (proposer)",
+                "side": "'red' | 'blue'",
+                "amount": "number",
+                "potentialWin": "number (amount * 2)",
+                "status": "'active'",
+                "betType": "'doy'",
+                "proposalStatus": "'accepted'",
+                "terms": {
+                  "ratio": "number",
+                  "isOffer": true,
+                  "pagoAmount": "number",
+                  "proposedBy": "string (userId)"
+                }
+              }
+            },
+            "doy_bet_creation": {
+              "model": "Bet.create()",
+              "fields": {
+                "fightId": "string",
+                "userId": "string (acceptor)",
+                "side": "'red' | 'blue' (opposite of PAGO)",
+                "amount": "number",
+                "potentialWin": "number (amount * 2)",
+                "status": "'active'",
+                "betType": "'doy'",
+                "proposalStatus": "'accepted'",
+                "matchedWith": "string (PAGO bet ID)",
+                "terms": {
+                  "ratio": "number",
+                  "isOffer": false,
+                  "doyAmount": "number",
+                  "proposedBy": "string (PAGO userId)"
+                }
+              }
+            },
+            "bidirectional_linking": "pagoBet.matchedWith = doyBet.id (updated in transaction)",
+            "atomicity": "Both bets created or none (transaction rollback on error)",
+            "error_handling": "Transaction failures emit 'bet_error' event to client"
+          }
+        },
+        "pago_bet_created": {
+          "direction": "server → client",
+          "payload": {
+            "betId": "string",
+            "fightId": "string",
+            "userId": "string",
+            "amount": "number",
+            "side": "'red' | 'blue'",
+            "timeoutAt": "number (timestamp)"
+          }
+        },
+        "bet_matched": {
+          "direction": "server → all clients watching fight",
+          "payload": {
+            "pagoBetId": "string",
+            "doyBetId": "string",
+            "fightId": "string",
+            "pagoUserId": "string",
+            "doyUserId": "string"
+          },
+          "sse_broadcast": "Triggers SSE BET_MATCHED event for UI refresh"
+        },
+        "bet_error": {
+          "direction": "server → client",
+          "payload": {
+            "message": "string (error description)"
+          },
+          "common_errors": [
+            "Betting window is closed (fight.status !== 'betting')",
+            "Bet no longer available (already accepted)",
+            "Insufficient wallet balance",
+            "Transaction failed (database error)"
+          ]
+        }
+      },
+      "persistence_guarantees": {
+        "data_loss_prevention": "Matched bets survive server restart",
+        "audit_trail": "All bets recorded with timestamps and user IDs",
+        "settlement_integrity": "Bet records available for fight result processing",
+        "wallet_operations": "Bet amounts deducted and recorded for later settlement"
+      }
+    }
+  },
+
+  "fight_status_endpoints": {
+    "update_fight_status": {
+      "method": "PATCH",
+      "path": "/fights/:id/status",
+      "body": {
+        "status": "'upcoming' | 'betting' | 'live' | 'completed'"
+      },
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": {
+          "fight": "Fight object",
+          "event": "Event object",
+          "statusTransition": "string (e.g., 'upcoming → betting')"
+        }
+      },
+      "🔴_CRITICAL_FIX_2025_11_04": {
+        "issue": "Response referenced undefined variable currentStatus",
+        "fix_location": "backend/src/routes/fights.ts:367",
+        "fix_applied": "const currentStatus = fight.status; // Save before status change",
+        "validation": "TypeScript compilation ZERO errors"
+      },
+      "state_machine_validation": {
+        "allowed_transitions": {
+          "upcoming": ["betting"],
+          "betting": ["live"],
+          "live": ["completed"],
+          "completed": []
+        },
+        "validation": "Transition validation enforced before database update",
+        "error_response": "400 BadRequest if invalid transition attempted"
+      },
+      "sse_broadcast": {
+        "event_type": "FIGHT_STATUS_UPDATE",
+        "recipients": "All users connected to event SSE stream",
+        "payload": "Updated fight object with new status"
+      }
     }
   },
 

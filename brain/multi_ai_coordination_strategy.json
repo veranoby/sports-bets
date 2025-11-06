@@ -88,10 +88,10 @@
     },
     "qwen": {
       "primary": "Backend API modifications (20-30 min sessions only)",
-      "recommended_model": "QWEN2.5-Coder 32B Instruct (NOT smaller variants)",
-      "model_verification": "If using smaller QWEN → limit to single-file edits only",
+      "recommended_model": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
+      "model_verification": "Latest QWEN 3 model with enhanced coding capabilities",
       "mandatory": [
-        "Declare model at session start: 'Model: qwen2.5-coder-32b-instruct'",
+        "Declare model at session start: 'Model: qwen3-coder-plus-2025-09-23'",
         "ACTIVATE: --seq --sequential BEFORE backend work",
         "SIMULATE + CONFIRM protocol for all changes",
         "npm install BEFORE using new libraries",
@@ -373,10 +373,73 @@
     ]
   },
 
+  "task_disambiguation_protocol_2025_11_04": {
+    "incident": "QWEN executed different tasks than assigned: PAGO/DOY UI instead of INFRINGEMENT fixes, causing scope mismatch",
+    "root_cause_analysis": {
+      "ambiguous_task_identifiers": "Task numbers (TASK_3, TASK_4) conflicted with other project task numbers",
+      "implicit_prioritization": "AI reinterpreted priorities without explicit confirmation",
+      "missing_verification_checkpoint": "No 'echo back assigned tasks' step at session start"
+    },
+    "generalized_prevention_strategies": [
+      "🔴 MANDATORY: AI must ECHO BACK task assignments at session start",
+      "Use unique task identifiers: Include date/session ID (e.g., TASK_2025_11_04_A, TASK_SESSION_6_ITEM_1)",
+      "Explicit task titles in addition to numbers (e.g., TASK_3_INFRINGEMENT_FIXES not just TASK_3)",
+      "Verification checkpoint format: 'I will execute: [TASK_ID]: [DESCRIPTION]. Confirm Y/N?'",
+      "If AI detects conflicting priorities → STOP and ask user which takes precedence"
+    ],
+    "applicability": "All AI sessions (QWEN, Gemini, Claude) when receiving multi-task assignments"
+  },
+
+  "reporting_location_protocol_2025_11_04": {
+    "incident": "QWEN reported completion to user via text, did not update brain/backlog.json as required",
+    "root_cause_analysis": {
+      "implicit_instructions": "Prompt said 'report completion' but didn't specify WHERE",
+      "competing_priorities": "AI prioritized quick user feedback over structured documentation",
+      "missing_completion_checklist": "No explicit final step to update brain files"
+    },
+    "generalized_prevention_strategies": [
+      "🔴 MANDATORY: Specify EXACT file path for reporting (e.g., 'Update /home/user/project/brain/backlog.json line 450')",
+      "Completion checklist in prompt: 'BEFORE considering task complete: 1) Update backlog.json 2) Commit changes 3) Report to user'",
+      "Report format specification: Provide JSON structure or template AI must follow",
+      "Verification command: Include 'git diff brain/backlog.json' to confirm update happened",
+      "If uncertain WHERE to report → ASK user explicitly, do NOT assume"
+    ],
+    "enforcement": {
+      "prompt_template": "📝 REPORTING PROTOCOL: After completing all tasks, you MUST update [EXACT_FILE_PATH] with structured report following [TEMPLATE]. Verify with git diff before final commit.",
+      "user_validation": "User should check brain/ files after AI session to confirm documentation updated"
+    },
+    "applicability": "All AI sessions requiring documentation updates (QWEN, Gemini work sessions)"
+  },
+
+  "session_context_loss_prevention_2025_11_04": {
+    "observation": "Long QWEN sessions may lose context, causing incomplete implementations or missed requirements",
+    "prevention_strategies": [
+      "Session length limits: QWEN max 30-40 minutes or ~15K tokens output",
+      "Checkpoint saves: Every 15 minutes, AI commits progress with '[CHECKPOINT]' tag",
+      "Context refresh protocol: If session exceeds 30 min → User closes session, AI writes handoff note, new session starts fresh",
+      "Reference file reminders: Every 5 tasks, AI re-reads critical reference files (types, API docs, etc.)",
+      "Memory externalization: AI writes 'working_state.json' in brain/ with current progress for session resume"
+    ],
+    "handoff_note_format": {
+      "completed": "List of finished tasks with file paths",
+      "in_progress": "Current task with specific line numbers being edited",
+      "next_steps": "Remaining tasks in priority order",
+      "blockers": "Any issues encountered requiring attention",
+      "reference_files": "Which files new session should read first"
+    },
+    "applicability": "All AI sessions, especially QWEN (primary executor with longer sessions)"
+  },
+
   "next_sessions": {
     "protocol_enforcement": "All AIs must follow mandatory_reads_at_start, exit_infinite_loops_protocol, AND model_awareness_protocol",
     "model_verification": "CRITICAL: All AIs must declare model in first message. User should interrupt if missing.",
     "coordination_strategy": "Sonnet coordinates, delegates to QWEN (PRIMARY EXECUTOR: backend+frontend) / Gemini (secondary) / Haiku (simple tasks only)",
-    "prompt_files_location": "Read [ai]-prompt.json from PROJECT ROOT (not brain/) for task-specific instructions"
+    "prompt_files_location": "Read [ai]-prompt.json from PROJECT ROOT (not brain/) for task-specific instructions",
+    "new_mandatory_protocols_2025_11_04": [
+      "Task echo-back verification at session start",
+      "Exact file path for reporting specified in prompts",
+      "Completion checklist with brain/ update as mandatory step",
+      "Session length monitoring with checkpoint commits every 15 min"
+    ]
   }
 }

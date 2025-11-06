@@ -5,7 +5,6 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { sanitizeArticleContent } from "../middleware/sanitization";
 import { Article } from "../models/Article";
 import { User } from "../models/User";
-import { Venue } from "../models/Venue";
 import { body, query, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis"; // ⚡ OPTIMIZATION: Redis caching
@@ -39,7 +38,7 @@ function serializeArticle(article: any, attributes?: string[]) {
     result.author_name = article.author.username;
   }
   if (article.venue && !result.venue_name) {
-    result.venue_name = article.venue.name;
+    result.venue_name = article.venue.profileInfo?.venueName || article.venue.username;
   }
   // ⚡ KEEP BOTH: featured_image (for frontend) and featured_image_url (for consistency)
   if (result.featured_image && !result.featured_image_url) {
@@ -202,9 +201,9 @@ router.get(
             ]
           },
           includeVenueBool && {
-            model: Venue,
+            model: User,
             as: "venue",
-            attributes: ["id", "name"],
+            attributes: ["id", "username", "profileInfo"],
             separate: false,
           },
         ].filter(Boolean),
@@ -278,9 +277,9 @@ router.get(
             separate: false,
           },
           {
-            model: Venue,
+            model: User,
             as: "venue",
-            attributes: ["id", "name"],
+            attributes: ["id", "username", "profileInfo"],
             separate: false,
           },
         ],
@@ -333,9 +332,9 @@ router.get(
             ]
           },
           {
-            model: Venue,
+            model: User,
             as: "venue",
-            attributes: ["id", "name"],
+            attributes: ["id", "username", "profileInfo"],
             separate: false,
           },
         ],

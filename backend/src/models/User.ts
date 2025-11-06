@@ -26,6 +26,33 @@ interface UserProfile {
   address?: string;
   identificationNumber?: string;
   verificationLevel: "none" | "basic" | "full" | "pending";
+
+  // Venue-specific fields (when role='venue')
+  venueName?: string;
+  venueLocation?: string;
+  venueDescription?: string;
+  venueEmail?: string;
+  venueWebsite?: string;
+
+  // Gallera-specific fields (when role='gallera')
+  galleraName?: string;
+  galleraLocation?: string;
+  galleraDescription?: string;
+  galleraEmail?: string;
+  galleraWebsite?: string;
+  galleraSpecialties?: string[];
+  galleraActiveRoosters?: number;
+
+  // Extended fields
+  businessName?: string;
+  location?: string;
+  description?: string;
+  establishedDate?: Date;
+  certified?: boolean;
+  rating?: number;
+  premiumLevel?: string;
+  specialties?: string[];
+  imageUrl?: string;
 }
 
 // Definición del modelo User
@@ -292,3 +319,4 @@ User.init(
 // NO DEFINIR ASOCIACIONES AQUÍ - SE DEFINEN EN models/index.ts
 
 export default User;
+export type { UserProfile };

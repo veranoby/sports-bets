@@ -91,7 +91,9 @@ export interface User {
   };
   // API response data
   events?: EventData[];
+  /** @deprecated FASE 5: Venue data moved to User.profileInfo for users with role='venue' */
   venues?: Venue[];
+  /** @deprecated FASE 5: Gallera data moved to User.profileInfo for users with role='gallera' */
   galleras?: Gallera[];
   user?: {
     profileInfo?: {
@@ -126,6 +128,21 @@ export interface UserSubscription {
 // Type alias for form data compatibility
 export type SubscriptionData = UserSubscription;
 
+/**
+ * @deprecated FASE 5 Consolidation (2025-11-04): Venue data now stored in User.profileInfo
+ *
+ * Migration Guide:
+ * - Old: venue.name → New: user.profileInfo.venueName
+ * - Old: venue.location → New: user.profileInfo.venueLocation
+ * - Old: venue.description → New: user.profileInfo.venueDescription
+ * - Old: venue.contactInfo.email → New: user.profileInfo.venueEmail
+ * - Old: venue.contactInfo.website → New: user.profileInfo.venueWebsite
+ * - Old: venue.images → New: user.profileInfo.images
+ *
+ * API Migration:
+ * - Old: venuesAPI.getAll() → New: usersAPI.getAll({ role: 'venue' })
+ * - Old: venuesAPI.update(id, data) → New: usersAPI.updateProfileInfo(userId, data)
+ */
 export interface Venue {
   id: string;
   name: string;
@@ -152,6 +169,23 @@ export interface Venue {
   updatedAt: string;
 }
 
+/**
+ * @deprecated FASE 5 Consolidation (2025-11-04): Gallera data now stored in User.profileInfo
+ *
+ * Migration Guide:
+ * - Old: gallera.name → New: user.profileInfo.galleraName
+ * - Old: gallera.location → New: user.profileInfo.galleraLocation
+ * - Old: gallera.description → New: user.profileInfo.galleraDescription
+ * - Old: gallera.contactInfo.email → New: user.profileInfo.galleraEmail
+ * - Old: gallera.contactInfo.website → New: user.profileInfo.galleraWebsite
+ * - Old: gallera.specialties → New: user.profileInfo.galleraSpecialties
+ * - Old: gallera.activeRoosters → New: user.profileInfo.galleraActiveRoosters
+ * - Old: gallera.images → New: user.profileInfo.images
+ *
+ * API Migration:
+ * - Old: gallerasAPI.getAll() → New: usersAPI.getAll({ role: 'gallera' })
+ * - Old: gallerasAPI.update(id, data) → New: usersAPI.updateProfileInfo(userId, data)
+ */
 export interface Gallera {
   id: string;
   name: string;
@@ -206,6 +240,14 @@ export interface EventData {
     id: string;
     name: string;
     location?: string;
+    profileInfo?: {
+      venueName?: string;
+      venueLocation?: string;
+      venueDescription?: string;
+      venueEmail?: string;
+      venueWebsite?: string;
+      images?: string[];
+    };
   };
   liveStream?: {
     url?: string;
