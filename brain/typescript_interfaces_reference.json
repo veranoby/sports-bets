@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "2.5",
-    "last_updated": "2025-11-04",
-    "changelog": "Bug fixes: Added SSEEventType enum, BettingPanel subscription pattern, Bet interface with PAGO/DOY fields",
+    "version": "2.6",
+    "last_updated": "2025-11-05",
+    "changelog": "FASE 5 consolidation: Added EventData.venue.profileInfo structure to support consolidated User.profileInfo architecture",
     "note": "Verified against backend database models and production deployment"
   },
 
@@ -269,7 +269,16 @@
         "status": "upcoming | live | completed | cancelled | betting | in-progress | scheduled"
       },
       "required_properties": ["id", "name", "status", "venue", "createdAt", "updatedAt", "venueId"],
-      "recently_added": ["streamKey", "currentViewers", "activeBets", "completedFights", "totalFights", "totalPrizePool", "streamStatus", "fights"]
+      "recently_added": ["streamKey", "currentViewers", "activeBets", "completedFights", "totalFights", "totalPrizePool", "streamStatus", "fights"],
+      "venue_structure": {
+        "🔴_FASE_5_2025_11_05": "venue object now includes optional profileInfo field for consolidated architecture",
+        "required_fields": ["id", "name"],
+        "optional_fields": ["location", "profileInfo"],
+        "profileInfo_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "images"],
+        "access_pattern": "event.venue?.profileInfo?.venueName || event.venue?.name || 'Venue TBD'",
+        "backend_response": "Venue data comes from User.profileInfo (single source of truth post-FASE 5 consolidation)",
+        "note": "profileInfo field added 2025-11-05 to support FASE 5 consolidated architecture where venues exist as User records with role='venue'"
+      }
     },
     "Venue": {
       "file": "/frontend/src/types/index.ts",
