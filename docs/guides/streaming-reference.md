@@ -313,6 +313,47 @@ Procedimiento técnico para pausas de intermedio entre peleas o por razones téc
 
 ---
 
+## ⚙️ MÁQUINA DE ESTADOS DE PELEAS
+
+### Especificación Técnica de Transiciones Válidas
+
+El sistema implementa un modelo de estados para las peleas con transiciones bien definidas y validaciones en cada cambio de estado. 
+
+**Transiciones Válidas Permitidas**:
+- `upcoming` → `betting` (cuando se abre la ventana de apuestas)
+- `betting` → `live` (cuando comienza la pelea)
+- `live` → `completed` (cuando termina la pelea y se registran resultados)
+- `live` → `cancelled` (en caso de cancelación durante pelea)
+
+**Transiciones INVÁLIDAS**:
+- `upcoming` → `live` (debe pasar por `betting`)
+- `betting` → `completed` (debe pasar por `live`)
+- `completed` → `live` (no se puede reanudar pelea completada)
+
+**Implementación Técnica**: 
+- Validación en backend/src/routes/fights.ts:694-730
+- Cada transición incluye validación de reglas de negocio (tiempo, usuarios conectados, apuestas activas)
+
+---
+
+## 🔄 FLUJO DE INTERMEDIOS (Admin/Operador)
+
+Procedimiento técnico para pausas de intermedio entre peleas o por razones técnicas. El flujo de intermedios ocurre únicamente a nivel de OBS y NO requiere intervención del sistema backend ni llamadas a API.
+
+### Detalles Técnicos de Implementación:
+- **Nivel de operación**: Nivel OBS - No hay llamadas a API necesarias
+- **Continuidad del stream**: El stream RTMP se mantiene activo (puerto 1935)
+- **Comportamiento SSE**: No cambia la emisión de eventos SSE durante intermedios
+- **Experiencia del usuario**: Continúa sin interrupción, solo cambia la escena
+
+**Procedimiento recomendado**:
+1. En OBS Studio, cambia a una escena de "Intermedio" o "Pausa"
+2. NO detengas la transmisión RTMP
+3. Mantén el evento en el estado actual (no cambies estados de pelea)
+4. Al finalizar el intermedio, cambia de vuelta a la escena principal
+
+---
+
 ## 📡 REFERENCIA DE API: Operaciones de Peleas
 
 Documentación completa de la API HTTP para operaciones de peleas con especificaciones técnicas detalladas.
@@ -344,6 +385,41 @@ Documentación completa de la API HTTP para operaciones de peleas con especifica
 - **Response Structure**: `{ success: boolean, data: Fight object, message?: string }`
 - **SSE Broadcasts Triggered**: `event: "fight_completed", data: { fightId, result, timestamp, payoutsProcessed }`
 - **Side Effects**: Liquida todas las apuestas asociadas a la pelea, distribuye ganancias, actualiza balances
+
+---
+
+## 📋 TABLA DE REFERENCIA RÁPIDA
+
+| Operator Action | Previous Status | New Status | API Endpoint | SSE Event Triggered |
+|-----------------|----------------|------------|--------------|----------------------|
+| Open Bets | upcoming | betting | PATCH /api/fights/:id/status | betting_window_opened |
+| Start Fight | betting | live | PATCH /api/fights/:id/status | fight_started |
+| Record Result | live | live | PATCH /api/fights/:id | fight_result_recorded |
+| Complete Fight | live | completed | PATCH /api/fights/:id/status | fight_completed |
+
+---
+
+## 🚨 ERRORES COMUNES Y SOLUCIONES
+
+### Error 1: "Cannot transition to 'live' - invalid state"
+- **Cause**: Fight is not in 'betting' state or already in 'live'/'completed' state
+- **Solution**: Verify fight is in 'betting' state before attempting to start
+- **Verification**: Ensure bets were opened before attempting to start fight
+
+### Error 2: "Betting window closed"
+- **Cause**: User attempts to bet when fight is not in 'betting' state
+- **Solution**: Verify fight is in 'betting' state before accepting bets
+- **Verification**: Ensure fight has been opened for betting before users attempt to bet
+
+### Error 3: "Cannot complete fight without result"
+- **Cause**: Attempting to complete fight without registering a result first
+- **Solution**: Register result (winner/loser) before completing fight
+- **Verification**: Ensure 'result' property is set before changing status to 'completed'
+
+### Error 4: "Fight not found"
+- **Cause**: fightId in request is invalid or doesn't exist
+- **Solution**: Validate fightId exists and belongs to correct event
+- **Verification**: Ensure fight is associated with the correct event
 
 ---
 

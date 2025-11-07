@@ -92,10 +92,6 @@ User.hasMany(Event, {
   foreignKey: "venueId",
   as: "venueEvents",
 });
-Event.belongsTo(User, {
-  foreignKey: "venueId",
-  as: "venue",
-});
 // 2. Operator events
 User.hasMany(Event, {
   foreignKey: "operatorId",

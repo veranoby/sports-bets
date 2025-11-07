@@ -301,7 +301,7 @@ export const streamingAPI = {
 // Add missing APIs and aliases for components
 export const betsAPI = {
   getMyBets: async () => {
-    return apiCall("get", "/bets/my-bets");
+    return apiCall("get", "/bets");
   },
   create: async (data: Partial<Bet>) => {
     return apiCall("post", "/bets", data);

@@ -1,95 +1,283 @@
 {
-  "metadata": {
-    "purpose": "Gemini 2.0 Flash Thinking task coordination prompts",
-    "updated": "2025-10-31",
-    "coordinator": "Claude Sonnet 4.5",
-    "session_duration": "20-30 minutes recommended",
-    "mandatory_mcps": ["--c7", "--context7"],
-    "optional_mcps": ["--play", "--playwright"]
-  },
+  "task": "GEMINI - Frontend Label Renaming: Gallera’Criadero, Venue’Gallera",
+  "date": "2025-11-07",
+  "priority": "HIGH",
+  "estimated_time": "2-3 hours",
+  "danger_level": "=4 EXTREME CAUTION REQUIRED - Frontend-only changes, NO backend modifications",
 
-  "current_task": {
-    "status": "pending",
-    "priority": "MEDIUM",
-    "task_name": "Add image upload UI to CreateUserModal and EditVenueGalleraModal",
-    "estimated_time": "30 minutes",
-    "mcps_required": ["--c7", "--context7"],
-    "description": "Extend user creation/editing modals with image upload fields for venue/gallera business entities",
-
-    "context": {
-      "recent_work": "Fixes applied to backend POST /users and EditVenueGalleraModal (commit 1250dcb)",
-      "user_creation_workflow": "Admin can create venue/gallera users with business fields in CreateUserModal",
-      "current_limitation": "Image upload fields missing in CreateUserModal and EditVenueGalleraModal",
-      "backend_validation": "Backend validates max images: galleras=3, venues=2 (users.ts:295-310)",
-      "existing_component": "ImageGalleryUpload.tsx already exists (maxImages configurable)"
-    },
-
-    "requirements": {
-      "createusermodal_changes": [
-        "Add conditional image upload field for role='venue' (max 2 images)",
-        "Add conditional image upload field for role='gallera' (max 3 images)",
-        "Use existing ImageGalleryUpload component",
-        "Store images in formData.profileInfo.images array",
-        "Validate client-side before submission"
-      ],
-      "editvenueegalleramodal_changes": [
-        "Add image upload field in Entity Info tab",
-        "Use ImageGalleryUpload with maxImages based on role (venue=2, gallera=3)",
-        "Handle existing images display + new uploads",
-        "Update profileInfo.images on save"
-      ],
-      "typescript_requirements": [
-        "No 'any' types - strict mode enforced",
-        "Extend CreateUserData interface if needed",
-        "Update ProfileData interface if needed"
-      ],
-      "validation_requirements": [
-        "Client-side validation: max images per role",
-        "Show clear error if user exceeds limit",
-        "Handle upload progress/errors gracefully"
-      ]
-    },
-
-    "files_to_modify": [
-      "frontend/src/components/admin/CreateUserModal.tsx",
-      "frontend/src/components/admin/EditVenueGalleraModal.tsx"
+  "CRITICAL_SAFETY_RULES": {
+    "ABSOLUTELY_FORBIDDEN": [
+      "L DO NOT touch ANY backend files (backend/src/**)",
+      "L DO NOT modify API endpoints or routes",
+      "L DO NOT change TypeScript interfaces in frontend/src/types/",
+      "L DO NOT alter API calls (usersAPI, eventsAPI, etc.)",
+      "L DO NOT modify database models or migrations",
+      "L DO NOT change role enum values ('venue', 'gallera')",
+      "L DO NOT create new .md files or documentation",
+      "L DO NOT run any database migrations",
+      "L DO NOT modify package.json or install packages"
     ],
 
-    "files_to_reference": [
-      "frontend/src/components/shared/ImageGalleryUpload.tsx (existing component)",
-      "backend/src/routes/users.ts (lines 295-310 for validation logic)"
+    "ALLOWED_CHANGES_ONLY": [
+      " Change UI labels and display text ONLY",
+      " Rename frontend component files (Galleras.tsx ’ Criaderos.tsx)",
+      " Update navigation labels and breadcrumbs",
+      " Create translation utility (roleTranslations.ts)",
+      " Modify user-facing strings (buttons, titles, placeholders)",
+      " Update route paths for better UX (/galleras ’ /criaderos)"
     ],
 
-    "success_criteria": [
-      "npx tsc --noEmit shows ZERO errors",
-      "npm run build succeeds",
-      "Image upload fields render conditionally based on role",
-      "Client-side validation matches backend limits",
-      "No 'any' types introduced"
-    ],
-
-    "testing_steps": [
-      "Create venue user with 2 images â†’ verify saves correctly",
-      "Create gallera user with 3 images â†’ verify saves correctly",
-      "Try uploading 4 images for gallera â†’ verify client-side error",
-      "Edit existing venue/gallera â†’ verify existing images display + can add/remove"
+    "VALIDATION_GATES": [
+      " npm run build must succeed with ZERO errors",
+      " Backend API calls must remain unchanged",
+      " TypeScript compilation must pass",
+      " No breaking changes to data flow"
     ]
   },
 
-  "completed_tasks": [],
+  "CONTEXT": {
+    "business_reason": "Users are confused by current terminology. They request: Galleras (breeding farms) ’ Criaderos, Venues (event arenas) ’ Galleras",
+    "technical_approach": "Frontend-only label changes. Backend keeps 'venue' and 'gallera' for API/DB consistency.",
+    "why_not_backend": "Changing backend requires: DB migrations, API changes, 769+ code references, 2-3 days work, high risk",
+    "strategy": "Create translation layer in frontend, change ONLY user-facing text"
+  },
 
-  "template_for_new_tasks": {
-    "status": "pending | in_progress | completed",
-    "priority": "HIGH | MEDIUM | LOW",
-    "task_name": "Brief description",
-    "estimated_time": "X minutes",
-    "mcps_required": ["--c7"],
-    "description": "Detailed task description",
-    "context": {},
-    "requirements": {},
-    "files_to_modify": [],
-    "files_to_reference": [],
-    "success_criteria": [],
-    "testing_steps": []
+  "STEP_1_CREATE_TRANSLATION_UTILITY": {
+    "description": "Create centralized translation utility for role/entity labels",
+    "priority": "CRITICAL - Do this FIRST",
+
+    "file_to_create": "frontend/src/utils/roleTranslations.ts",
+    "content": "export const ROLE_LABELS: Record<string, string> = {\n  gallera: 'Criadero',\n  venue: 'Gallera',\n  admin: 'Administrador',\n  operator: 'Operador',\n  user: 'Usuario'\n};\n\nexport const ENTITY_LABELS: Record<string, string> = {\n  gallera: 'Criadero',\n  galleras: 'Criaderos',\n  venue: 'Gallera',\n  venues: 'Galleras'\n};\n\nexport function getRoleLabel(role: string): string {\n  return ROLE_LABELS[role] || role;\n}\n\nexport function getEntityLabel(entity: string): string {\n  return ENTITY_LABELS[entity] || entity;\n}",
+
+    "validation": [
+      " File created at frontend/src/utils/roleTranslations.ts",
+      " Exports ROLE_LABELS and ENTITY_LABELS constants",
+      " Provides getRoleLabel() and getEntityLabel() helper functions"
+    ]
+  },
+
+  "STEP_2_UPDATE_ADMIN_COMPONENTS": {
+    "description": "Update admin pages to use new labels via translation utility",
+    "files_to_modify": [
+      {
+        "file": "frontend/src/pages/admin/Galleras.tsx",
+        "NEW_NAME": "frontend/src/pages/admin/Criaderos.tsx",
+        "changes": [
+          "Rename file from Galleras.tsx to Criaderos.tsx",
+          "Import: import { ENTITY_LABELS } from '../../utils/roleTranslations'",
+          "Replace 'Galleras' title ’ {ENTITY_LABELS.galleras}",
+          "Replace 'Gallera' buttons ’ {ENTITY_LABELS.gallera}",
+          "Replace hardcoded 'gallera' strings with translation function",
+          "DO NOT change: API calls, role filters (keep role='gallera')"
+        ],
+        "example": "L WRONG: usersAPI.getAll({ role: 'criadero' })\n CORRECT: usersAPI.getAll({ role: 'gallera' }) // API unchanged, only display text changes"
+      },
+      {
+        "file": "frontend/src/pages/admin/Venues.tsx",
+        "NEW_NAME": "frontend/src/pages/admin/Galleras.tsx",
+        "changes": [
+          "Rename file from Venues.tsx to Galleras.tsx",
+          "Import translation utility",
+          "Replace 'Venues' title ’ {ENTITY_LABELS.venues}",
+          "Replace 'Venue' buttons ’ {ENTITY_LABELS.venue}",
+          "DO NOT change: API calls, role filters (keep role='venue')"
+        ]
+      },
+      {
+        "file": "frontend/src/components/admin/CreateUserModal.tsx",
+        "changes": [
+          "Import: import { ROLE_LABELS } from '../../utils/roleTranslations'",
+          "Replace role option labels: 'Gallera' ’ {ROLE_LABELS.gallera}",
+          "Replace role option labels: 'Venue' ’ {ROLE_LABELS.venue}",
+          "Replace conditional field labels (businessName, galleraName, venueName)",
+          "DO NOT change: role enum values in <option value=\"gallera\">",
+          "DO NOT change: role checks (user.role === 'gallera')"
+        ],
+        "critical_example": "L WRONG: <option value=\"criadero\">Criadero</option>\n CORRECT: <option value=\"gallera\">{ROLE_LABELS.gallera}</option>"
+      },
+      {
+        "file": "frontend/src/pages/admin/Administrators.tsx",
+        "changes": [
+          "Import translation utility",
+          "Replace role display in table columns",
+          "Replace role filter labels",
+          "DO NOT change: role filter values (keep 'venue', 'gallera')"
+        ]
+      }
+    ]
+  },
+
+  "STEP_3_UPDATE_USER_PAGES": {
+    "description": "Update user-facing pages with new terminology",
+    "files_to_modify": [
+      {
+        "file": "frontend/src/pages/user/GalleraDetailPage.tsx",
+        "NEW_NAME": "frontend/src/pages/user/CriaderoDetailPage.tsx",
+        "changes": [
+          "Rename file to CriaderoDetailPage.tsx",
+          "Update page title and breadcrumbs",
+          "Replace 'Gallera' labels ’ 'Criadero'",
+          "DO NOT change: API endpoint calls or data fetching"
+        ]
+      },
+      {
+        "file": "frontend/src/pages/user/VenueDetailPage.tsx",
+        "NEW_NAME": "frontend/src/pages/user/GalleraDetailPage.tsx",
+        "changes": [
+          "Rename file to GalleraDetailPage.tsx",
+          "Update page title and breadcrumbs",
+          "Replace 'Venue' labels ’ 'Gallera'",
+          "DO NOT change: API endpoint calls"
+        ]
+      },
+      {
+        "file": "frontend/src/pages/user/Galleras.tsx",
+        "NEW_NAME": "frontend/src/pages/user/Criaderos.tsx",
+        "changes": [
+          "Rename file to Criaderos.tsx",
+          "Update page title and navigation",
+          "Import and use translation utility",
+          "DO NOT change: API calls or role filters"
+        ]
+      }
+    ]
+  },
+
+  "STEP_4_UPDATE_NAVIGATION": {
+    "description": "Update navigation menus, sidebars, and routing",
+    "files_to_modify": [
+      {
+        "file": "frontend/src/App.tsx (or routing config)",
+        "changes": [
+          "Update route paths: /admin/galleras ’ /admin/criaderos",
+          "Update route paths: /admin/venues ’ /admin/galleras",
+          "Update route paths: /galleras ’ /criaderos",
+          "Update route component imports (match renamed files)",
+          "Update navigation labels in sidebar/menu"
+        ],
+        "example": "L WRONG: <Route path=\"/admin/criaderos\" element={<Criaderos role=\"criadero\" />} />\n CORRECT: <Route path=\"/admin/criaderos\" element={<Criaderos role=\"gallera\" />} />"
+      },
+      {
+        "file": "Sidebar or Navigation component",
+        "changes": [
+          "Update menu item labels: 'Galleras' ’ 'Criaderos'",
+          "Update menu item labels: 'Venues' ’ 'Galleras'",
+          "Update icons if needed",
+          "DO NOT change: route paths (they should match App.tsx)"
+        ]
+      }
+    ]
+  },
+
+  "STEP_5_UPDATE_FORMS": {
+    "description": "Update form labels, placeholders, and validation messages",
+    "files_to_modify": [
+      "frontend/src/components/forms/VenueEntityForm.tsx",
+      "frontend/src/components/forms/GalleraEntityForm.tsx",
+      "frontend/src/components/user/BusinessInfoSection.tsx"
+    ],
+    "changes": [
+      "Import translation utility",
+      "Replace hardcoded labels with translated versions",
+      "Update placeholders: 'Nombre de la Gallera' ’ 'Nombre del Criadero'",
+      "Update placeholders: 'Nombre del Venue' ’ 'Nombre de la Gallera'",
+      "Update validation error messages",
+      "DO NOT change: field names (venueName, galleraName stay the same)"
+    ]
+  },
+
+  "STEP_6_SEARCH_AND_REPLACE": {
+    "description": "Global search for remaining hardcoded strings",
+    "pattern_searches": [
+      {
+        "search": "\"Gallera\" (as display text, not in code logic)",
+        "replace_with": "Use ENTITY_LABELS.gallera or 'Criadero'",
+        "files": "All .tsx files in frontend/src/components and frontend/src/pages"
+      },
+      {
+        "search": "\"Venue\" (as display text, not in code logic)",
+        "replace_with": "Use ENTITY_LABELS.venue or 'Gallera'",
+        "files": "All .tsx files"
+      },
+      {
+        "search": "'gallera' in UI strings (not in logic)",
+        "replace_with": "'criadero' for display ONLY",
+        "exclude": "API calls, role checks, type definitions"
+      }
+    ],
+
+    "CRITICAL_WARNINGS": [
+      "L DO NOT replace role enum values: user.role === 'gallera' MUST stay",
+      "L DO NOT replace API call parameters: { role: 'gallera' } MUST stay",
+      "L DO NOT replace profileInfo field names: profileInfo.galleraName MUST stay",
+      " ONLY replace user-visible text and UI labels"
+    ]
+  },
+
+  "VALIDATION_CHECKLIST": {
+    "before_reporting": [
+      " Run: npm run build (must succeed with ZERO errors)",
+      " Check: No TypeScript errors in modified files",
+      " Verify: All renamed files properly imported in routes",
+      " Verify: API calls use original role values ('venue', 'gallera')",
+      " Verify: No changes to backend files",
+      " Verify: No changes to frontend/src/types/ interfaces",
+      " Verify: Translation utility properly exported and imported",
+      " Test: Navigate to /admin/criaderos and /admin/galleras",
+      " Test: Create user modal shows 'Criadero' and 'Gallera' options"
+    ]
+  },
+
+  "REPORTING_REQUIREMENTS": {
+    "format": "Update brain/backlog.json with achievement record",
+    "record_name": "recent_achievements_2025_11_07_frontend_terminology_update",
+    "required_sections": [
+      "summary: Brief description of terminology changes",
+      "strategy: Frontend-only label changes, backend unchanged",
+      "files_modified: Complete list with before/after names",
+      "translation_utility: Confirm roleTranslations.ts created",
+      "api_compatibility: Confirm API calls unchanged",
+      "validation_results: npm run build status, TypeScript errors",
+      "testing_performed: Manual testing of renamed routes",
+      "backend_untouched: Explicit confirmation NO backend changes",
+      "brain_files_to_update: List any brain docs needing terminology updates"
+    ],
+
+    "report_location": "Append to brain/backlog.json at end of file",
+    "git_commit_message": "frontend: Update terminology - Gallera’Criadero, Venue’Gallera (UI labels only)\n\n> Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Gemini <noreply@google.com>"
+  },
+
+  "QUALITY_GATES": {
+    "must_pass": [
+      " npm run build completes successfully",
+      " ZERO TypeScript compilation errors",
+      " All renamed files properly imported",
+      " API calls maintain original role values",
+      " Backend files completely untouched",
+      " brain/backlog.json updated with report"
+    ],
+
+    "if_quality_gate_fails": [
+      "1. STOP immediately",
+      "2. Report which gate failed and why",
+      "3. DO NOT proceed with git commit",
+      "4. Request guidance from user"
+    ]
+  },
+
+  "ESTIMATED_IMPACT": {
+    "files_created": 1,
+    "files_renamed": "~8-10 files",
+    "files_modified": "~25-30 files",
+    "lines_changed": "~200-300 lines",
+    "risk_level": "LOW (frontend-only, no API changes)",
+    "rollback_strategy": "Git revert commit (all changes in single commit)"
+  },
+
+  "SUCCESS_CRITERIA": {
+    "user_experience": "Users see 'Criadero' for breeding farms, 'Gallera' for event venues",
+    "technical_integrity": "Backend API and database unchanged, no breaking changes",
+    "code_quality": "Clean translation layer, consistent naming, TypeScript compliant",
+    "documentation": "brain/backlog.json updated, changes clearly documented"
   }
 }
