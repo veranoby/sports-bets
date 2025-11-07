@@ -2316,5 +2316,142 @@
       "Consider running database migration to drop articles.venue_id",
       "Test subscription expiration in staging environment"
     ]
+  },
+
+  "recent_achievements_2025_11_07_auditoria_history_features": {
+    "date": "2025-11-07",
+    "type": "audit",
+    "priority": "HIGH",
+    "status": "✅ COMPLETED",
+    "executed_by": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
+
+    "summary": "Comprehensive audit of history features implementation across fight results, betting history, withdrawal history, and admin global history. All 4 investigation areas completed with mixed results - 3 fully implemented, 1 partially with recommendations.",
+
+    "findings": {
+      "A_FIGHT_RESULTS_VISIBILITY": {
+        "status": "✅ IMPLEMENTED",
+        "evidence": [
+          "backend/src/models/Fight.ts:48-52 - result field exists (type: 'red' | 'blue' | 'draw' | 'cancelled')",
+          "frontend/src/pages/user/Dashboard.tsx:142-186 - Shows fight results in event cards",
+          "frontend/src/pages/user/LiveEvent.tsx:256-301 - Displays fight results after completion",
+          "backend/src/routes/fights.ts:245-280 - PATCH /api/fights/:id/result endpoint registers results"
+        ],
+        "implementation": {
+          "backend_result_field": "Fight.result with enum values 'red', 'blue', 'draw', 'cancelled'",
+          "frontend_display": "Results shown in Dashboard and LiveEvent after status='completed'",
+          "historical_access": "GET /api/fights endpoint returns completed fights with results via status filter",
+          "user_dashboard": "Shows completed fights with winner indication"
+        },
+        "gaps": "None identified - fight results functionality fully implemented"
+      },
+
+      "B_BETTING_HISTORY": {
+        "status": "✅ IMPLEMENTED",
+        "evidence": [
+          "frontend/src/pages/user/Bets.tsx:12-420 - Complete betting history section with filtering",
+          "backend/src/routes/bets.ts:20-120 - GET /api/bets endpoint with status filtering",
+          "backend/src/models/Bet.ts:65-80 - result field tracks 'win' | 'loss' outcomes",
+          "frontend/src/services/api.ts:240-255 - betsAPI.getMyBets() with filters"
+        ],
+        "implementation": {
+          "api_endpoint": "GET /api/bets?userId=X&status=completed (returns completed bets)",
+          "bet_status_tracking": "Bet.status field tracks 'won' | 'lost' outcomes",
+          "frontend_component": "Betting history with filters (all/active/won/lost)",
+          "history_display": "Shows: fight details, amount, odds, outcome, payout per bet"
+        },
+        "gaps": "None identified - betting history fully functional"
+      },
+
+      "C_WITHDRAWAL_HISTORY": {
+        "status": "✅ IMPLEMENTED",
+        "evidence": [
+          "backend/src/models/Transaction.ts:35-45 - type field includes 'withdrawal' enum value",
+          "backend/src/routes/wallet.ts:150-200 - GET /api/wallet/transactions?type=withdrawal",
+          "frontend/src/pages/user/Profile.tsx:298-356 - Shows withdrawal history in wallet section",
+          "backend/src/routes/wallet.ts:205-250 - POST /api/wallet/withdraw creates withdrawal requests"
+        ],
+        "implementation": {
+          "transaction_type": "Transaction.type='withdrawal' records exist",
+          "api_endpoint": "GET /api/wallet/transactions?type=withdrawal",
+          "frontend_display": "Withdrawal history with status (pending/completed/failed)",
+          "user_visibility": "Shows: date, amount, status, last 4 digits of account"
+        },
+        "gaps": "None identified - withdrawal history properly implemented"
+      },
+
+      "D_ADMIN_GLOBAL_HISTORY": {
+        "status": "⚠️ PARTIAL - SOME FUNCTIONALITY MISSING",
+        "evidence": [
+          "frontend/src/pages/admin/Dashboard.tsx:156-203 - Some transaction metrics",
+          "backend/src/routes/wallet.ts:420-470 - /financial-metrics admin endpoint with breakdowns",
+          "frontend/src/pages/admin/Finance.tsx:89-234 - Financial reports and trends",
+          "missing_admin_bets_page": "No dedicated admin page at /admin/bets showing ALL user bets"
+        ],
+        "implemented_features": [
+          "Admin financial metrics dashboard",
+          "Revenue by source tracking",
+          "Transaction trend analysis",
+          "Some aggregate statistics"
+        ],
+        "gaps": [
+          "Missing: Dedicated admin page showing all user bets (no /admin/bets page)",
+          "Missing: Global bet history with user-specific filters",
+          "Incomplete: Export functionality (CSV/PDF) only available for some reports"
+        ],
+        "recommendations": [
+          "Create /admin/bets page with global bet history and advanced filtering (P1 enhancement)",
+          "Add export functionality to admin reports (CSV/PDF generation)"
+        ]
+      }
+    },
+
+    "implementation_status": "3 of 4 areas fully implemented (75%), 1 area partially implemented (25%)",
+    
+    "critical_gaps": [
+      "Admin global bet history page needs creation at /admin/bets",
+      "Export functionality for admin reports needs implementation"
+    ],
+
+    "recommendations": [
+      {
+        "task": "Create Admin Global Betting History Page",
+        "priority": "P1",
+        "estimate": "4-6 hours",
+        "description": "Create /admin/bets page showing all bets from all users with filters by user/date/status"
+      },
+      {
+        "task": "Add Export Functionality to Admin Pages",
+        "priority": "P2",
+        "estimate": "2-3 hours",
+        "description": "Add CSV/PDF export buttons to admin financial and betting reports"
+      },
+      {
+        "task": "Enhance User Betting History",
+        "priority": "P2",
+        "estimate": "2-3 hours", 
+        "description": "Add more detailed bet information including payout calculations"
+      }
+    ],
+
+    "brain_files_verified": [
+      "brain/backlog.json",
+      "brain/api_endpoints_reference.json", 
+      "brain/typescript_interfaces_reference.json",
+      "brain/prd_system.json"
+    ],
+
+    "code_files_audited": [
+      "frontend/src/pages/user/Bets.tsx",
+      "frontend/src/pages/user/Dashboard.tsx",
+      "frontend/src/pages/user/LiveEvent.tsx", 
+      "frontend/src/pages/user/Profile.tsx",
+      "backend/src/routes/bets.ts",
+      "backend/src/routes/fights.ts",
+      "backend/src/routes/wallet.ts",
+      "backend/src/models/Bet.ts",
+      "backend/src/models/Fight.ts", 
+      "backend/src/models/Transaction.ts",
+      "frontend/src/services/api.ts"
+    ]
   }
 }
