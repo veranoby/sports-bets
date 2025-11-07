@@ -108,7 +108,6 @@ router.get(
   [
     // Accept empty strings as "not provided" with checkFalsy to avoid 500s from UI sending ''
     query("search").optional({ checkFalsy: true }).isString(),
-    query("venueId").optional({ checkFalsy: true }).isUUID(),
     query("status").optional({ checkFalsy: true }).isIn(["published", "pending", "draft", "archived"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 1000 }).toInt(),
@@ -135,9 +134,8 @@ router.get(
 
     const {
       search,
-      venueId,
-      status: rawStatus = "published",
       author_id,
+      status: rawStatus = "published",
       includeAuthor = true,
       includeVenue = true,
     } = req.query as any;
@@ -154,7 +152,7 @@ router.get(
     const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
 
     // ⚡ CRITICAL OPTIMIZATION: Generate cache key for query results
-    const cacheKey = `articles_list_${status}_${limit}_${offset}_${search || 'none'}_${venueId || 'none'}_${author_id || 'none'}_${includeAuthorBool}_${includeVenueBool}`;
+    const cacheKey = `articles_list_${status}_${limit}_${offset}_${search || 'none'}_${author_id || 'none'}_${includeAuthorBool}_${includeVenueBool}`;
 
     const whereClause: any = { status };
 
@@ -163,10 +161,6 @@ router.get(
         { title: { [Op.iLike]: `%${search}%` } },
         { excerpt: { [Op.iLike]: `%${search}%` } },
       ];
-    }
-
-    if (venueId) {
-      whereClause.venue_id = venueId;
     }
 
     if (author_id) {
@@ -199,12 +193,6 @@ router.get(
                 required: false,
               }
             ]
-          },
-          includeVenueBool && {
-            model: User,
-            as: "venue",
-            attributes: ["id", "username", "profileInfo"],
-            separate: false,
           },
         ].filter(Boolean),
         order: [
@@ -276,12 +264,6 @@ router.get(
             attributes: ["id", "username"],
             separate: false,
           },
-          {
-            model: User,
-            as: "venue",
-            attributes: ["id", "username", "profileInfo"],
-            separate: false,
-          },
         ],
         order: [["published_at", "DESC"]],
         limit: parseInt(limit),
@@ -331,12 +313,6 @@ router.get(
               }
             ]
           },
-          {
-            model: User,
-            as: "venue",
-            attributes: ["id", "username", "profileInfo"],
-            separate: false,
-          },
         ],
       });
     }, 300); // ⚡ 5 minute cache for individual articles
@@ -369,7 +345,6 @@ router.post(
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
     body("excerpt").isString().isLength({ min: 10, max: 500 }),
-    body("venue_id").optional().isUUID(),
     body("featured_image").optional().isURL(),
     body("featured_image_url").optional().isURL(),
   ],
@@ -398,7 +373,6 @@ router.post(
       content,
       excerpt,
       author_id: req.user!.id,
-      venue_id,
       featured_image: featuredImage,
       status: articleStatus,
       published_at: publishedAt,
