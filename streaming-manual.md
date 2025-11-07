@@ -362,6 +362,117 @@ La página `/admin/streaming` es una herramienta de monitoreo y control general 
 ### Nota: 
 La mayoría de las operaciones de streaming se realizan directamente desde la página de cada evento, pero esta página proporciona una visión general del sistema para administradores y operadores.
 
+## Gestión de Pausas de Transmisión (Intermedios)
+
+Durante un evento de peleas de gallos, es común tener periodos de intermedio entre peleas o por razones técnicas. Estas pausas deben manejarse correctamente para brindar una experiencia profesional a los espectadores.
+
+### Cómo Manejar Pausas de Transmisión
+
+**⚠️ IMPORTANTE**: Las pausas de transmisión se manejan EN OBS, NO en la plataforma web.
+
+1. **Durante el intermedio**:
+   - NO detengas la transmisión en OBS Studio
+   - Cambia a una escena "Intermedio" o "Pausa" con contenido informativo
+   - El stream sigue activo (RTMP sigue conectado)
+   - Los usuarios continúan conectados al canal
+
+2. **No cambiar estados de peleas**:
+   - NO cambies el estado de las peleas durante la pausa
+   - Mantén el estado actual de la pelea en "completed" o "upcoming"
+   - La próxima pelea se mantendrá en "upcoming" hasta que esté lista
+
+3. **Reanudar el evento**:
+   - Al finalizar la pausa, cambia nuevamente a la escena principal
+   - Asegúrate que el audio esté correctamente configurado
+   - El stream continua sin interrupción para los usuarios
+
+### Beneficios
+- Los espectadores no pierden la conexión al stream
+- No hay interrupciones en la experiencia de visualización
+- Mantenimiento de viewers durante los descansos
+- Profesionalismo en la transmisión del evento
+
+---
+
+## Ciclo de Vida Completo de una Pelea
+
+Una pelea de gallos sigue un ciclo de vida estructurado que se traduce en operaciones de estado específicas. El sistema implementa un modelo de máquina de estados con transiciones válidas.
+
+### Las 4 Fases del Ciclo de Vida
+
+**Fase 1: Abrir Ventana de Apuestas (upcoming → betting)**
+- **Acción de operador**: "Abrir Apuestas"
+- **API Endpoint**: `PATCH /api/fights/:id/status`
+- **Payload**: `{ status: "betting" }`
+- **Resultado**: 
+  - Estado cambia de `upcoming` a `betting`
+  - SSE Evento emitido: `BETTING_WINDOW_OPENED`
+  - Usuarios pueden hacer apuestas PAGO/DOY
+  - Temporizador de 3 minutos para aceptar PAGO comienza
+
+**Fase 2: Iniciar Pelea (betting → live)**
+- **Acción de operador**: "Iniciar Pelea"
+- **API Endpoint**: `PATCH /api/fights/:id/status`
+- **Payload**: `{ status: "live" }`
+- **Resultado**:
+  - Estado cambia de `betting` a `live`
+  - Ventana de apuestas se cierra automáticamente
+  - SSE Evento emitido: `FIGHT_STARTED`
+  - No se aceptan más apuestas para esta pelea
+  - La pelea comienza en vivo
+
+**Fase 3: Registrar Resultado (durante estado 'live')**
+- **Acción de operador**: "Registrar Resultado"
+- **API Endpoint**: `PATCH /api/fights/:id`
+- **Payload**: `{ result: "red"|"blue"|"draw", status: "live" }`
+- **Resultado**:
+  - Se registra el ganador/perdedor de la pelea
+  - Estado sigue en `live` (no cambia aún)
+  - SSE Evento emitido: `FIGHT_RESULT_RECORDED`
+  - Las apuestas esperan a que se complete la pelea
+
+**Fase 4: Cerrar Pelea (live → completed)**
+- **Acción de operador**: "Completar Pelea"
+- **API Endpoint**: `PATCH /api/fights/:id/status`
+- **Payload**: `{ status: "completed" }`
+- **Resultado**:
+  - Estado cambia de `live` a `completed`
+  - SSE Evento emitido: `FIGHT_COMPLETED`
+  - Sistema liquida apuestas automáticamente
+  - Ganadores reciben pagos, perdedores pierden su apuesta
+
+---
+
+## Tabla de Referencia Rápida
+
+| Acción Operador | Status Anterior | Status Nuevo | API Endpoint | SSE Evento Triggered |
+|-----------------|----------------|--------------|--------------|----------------------|
+| Abrir Apuestas | upcoming | betting | PATCH /api/fights/:id/status | BETTING_WINDOW_OPENED |
+| Iniciar Pelea | betting | live | PATCH /api/fights/:id/status | FIGHT_STARTED |
+| Registrar Resultado | live | live | PATCH /api/fights/:id | FIGHT_RESULT_RECORDED |
+| Completar Pelea | live | completed | PATCH /api/fights/:id/status | FIGHT_COMPLETED |
+
+---
+
+## Errores Comunes y Soluciones
+
+### Error 1: "Invalid status transition" (Transición de estado inválida)
+- **Causa**: Intentar cambiar a un estado que no es válido desde el estado actual
+- **Solución**: Verificar el estado actual de la pelea antes de intentar la transición
+- **Ejemplo**: No puedes pasar de `upcoming` directamente a `live` - debes pasar por `betting`
+
+### Error 2: "Betting window closed" (Ventana de apuestas cerrada)
+- **Causa**: El usuario intenta apostar cuando la pelea no está en estado `betting`
+- **Solución**: Verificar que el estado de la pelea sea `betting` antes de aceptar apuestas
+- **Ejemplo**: Asegurarse de que la pelea esté en estado `betting` no `live` o `completed`
+
+### Error 3: "Stream not found" (Stream no encontrado)
+- **Causa**: El eventId en la solicitud no coincide con un stream activo
+- **Solución**: Validar que el eventId exista y corresponda a un evento activo
+- **Ejemplo**: Verificar que el evento asociado con la pelea esté activo y en progreso
+
+---
+
 ## Contacto de Soporte
 
 Si tienes problemas que no puedes resolver con este manual, puedes contactar al soporte técnico:

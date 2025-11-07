@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "2.6",
-    "last_updated": "2025-11-05",
-    "changelog": "FASE 5 consolidation: Added EventData.venue.profileInfo structure to support consolidated User.profileInfo architecture",
+    "version": "2.7",
+    "last_updated": "2025-11-07",
+    "changelog": "FASE 5 completion: Removed Article.venue_id field per PRD:205 - Articles now use ONLY author_id for ownership",
     "note": "Verified against backend database models and production deployment"
   },
 
@@ -310,7 +310,8 @@
     "Article": {
       "file": "/frontend/src/types/article.ts",
       "required_properties": ["id", "title", "slug", "content", "status", "created_at"],
-      "optional_properties": ["excerpt", "featured_image", "published_at", "author", "venue", "venue_id"],
+      "optional_properties": ["excerpt", "featured_image", "published_at", "author"],
+      "FASE_5_NOTE": "venue_id REMOVED (2025-11-07) per PRD:205 - Articles use ONLY author_id",
       "backend_auto_generated": ["slug"],
       "slug_generation": {
         "source": "Generated from title field",
@@ -318,11 +319,12 @@
         "uniqueness": "Enforced by backend with automatic numbering (e.g., title-1, title-2)",
         "frontend_note": "NEVER send slug in POST/PUT requests - backend auto-generates"
       },
-      "deprecated_fields": ["summary", "featured_image_url"],
+      "deprecated_fields": ["summary", "featured_image_url", "venue", "venue_id"],
       "api_mapping": {
         "POST /articles": {
           "required": ["title", "content", "excerpt"],
-          "optional": ["featured_image", "venue_id"],
+          "optional": ["featured_image"],
+          "REMOVED_2025_11_07": "venue_id field no longer accepted",
           "CRITICAL_WARNING": "Frontend MUST send 'excerpt' NOT 'summary', and 'featured_image' NOT 'featured_image_url'"
         }
       },

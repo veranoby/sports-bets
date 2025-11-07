@@ -10,7 +10,8 @@ interface ArticleAttributes {
   content: string;
   excerpt: string;
   author_id: string;
-  venue_id?: string;
+  // venue_id REMOVED per PRD:205 - FASE 5 consolidation (2025-11-04)
+  // Articles are authored by users (admin/venue/gallera), not venue-specific
   category: "news" | "analysis" | "tutorial" | "announcement";
   status: "draft" | "pending" | "published" | "archived";
   featured_image?: string;
@@ -33,7 +34,7 @@ export class Article
   public content!: string;
   public excerpt!: string;
   public author_id!: string;
-  public venue_id?: string;
+  // venue_id REMOVED per PRD:205 - FASE 5 consolidation (2025-11-04)
   public category!: "news" | "analysis" | "tutorial" | "announcement";
   public featured_image?: string;
   public status!: "draft" | "pending" | "published" | "archived";
@@ -44,7 +45,7 @@ export class Article
 
   // Asociaciones
   public readonly author?: User;
-  public readonly venue?: User;
+  // venue association REMOVED per PRD:205 - use author instead
 
   public toJSON(options?: { attributes?: string[] }) {
     const data = this.get(); // Get raw data from model instance
@@ -66,9 +67,7 @@ export class Article
     if (this.author) {
       result.author_name = this.author.username; // Assuming username is always available
     }
-    if (this.venue) {
-      result.venue_name = this.venue.profileInfo?.venueName || this.venue.username;
-    }
+    // venue association REMOVED per PRD:205 - FASE 5 consolidation
 
     // ⚡ KEEP BOTH: Add featured_image_url but keep featured_image (frontend uses it)
     if (result.featured_image) {
@@ -115,11 +114,8 @@ Article.init(
       allowNull: false,
       field: "author_id",
     },
-    venue_id: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      field: "venue_id",
-    },
+    // venue_id REMOVED per PRD:205 - FASE 5 consolidation (2025-11-04)
+    // Migration needed: ALTER TABLE articles DROP COLUMN venue_id;
     category: {
       type: DataTypes.ENUM("news", "analysis", "tutorial", "announcement"),
       allowNull: false,

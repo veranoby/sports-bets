@@ -272,4 +272,79 @@ iptables -A INPUT -p tcp --dport 1935 -j DROP
 
 ---
 
+## ⚙️ MÁQUINA DE ESTADOS DE PELEAS
+
+### Especificación Técnica de Transiciones Válidas
+
+El sistema implementa un modelo de estados para las peleas con transiciones bien definidas y validaciones en cada cambio de estado. 
+
+**Transiciones Válidas Permitidas**:
+- `upcoming` → `betting` (cuando se abre la ventana de apuestas)
+- `betting` → `live` (cuando comienza la pelea)
+- `live` → `completed` (cuando termina la pelea y se registran resultados)
+- `live` → `cancelled` (en caso de cancelación durante pelea)
+
+**Transiciones INVÁLIDAS**:
+- `upcoming` → `live` (debe pasar por `betting`)
+- `betting` → `completed` (debe pasar por `live`)
+- `completed` → `live` (no se puede reanudar pelea completada)
+
+**Implementación Técnica**: 
+- Validación en backend/src/routes/fights.ts:694-730
+- Cada transición incluye validación de reglas de negocio (tiempo, usuarios conectados, apuestas activas)
+
+---
+
+## 🔄 FLUJO DE INTERMEDIOS (Admin/Operador)
+
+Procedimiento técnico para pausas de intermedio entre peleas o por razones técnicas. El flujo de intermedios ocurre únicamente a nivel de OBS y NO requiere intervención del sistema backend ni llamadas a API.
+
+### Detalles Técnicos de Implementación:
+- **Nivel de operación**: Nivel OBS - No hay llamadas a API necesarias
+- **Continuidad del stream**: El stream RTMP se mantiene activo (puerto 1935)
+- **Comportamiento SSE**: No cambia la emisión de eventos SSE durante intermedios
+- **Experiencia del usuario**: Continúa sin interrupción, solo cambia la escena
+
+**Procedimiento recomendado**:
+1. En OBS Studio, cambia a una escena de "Intermedio" o "Pausa"
+2. NO detengas la transmisión RTMP
+3. Mantén el evento en el estado actual (no cambies estados de pelea)
+4. Al finalizar el intermedio, cambia de vuelta a la escena principal
+
+---
+
+## 📡 REFERENCIA DE API: Operaciones de Peleas
+
+Documentación completa de la API HTTP para operaciones de peleas con especificaciones técnicas detalladas.
+
+### PATCH /api/fights/:id/status - Abrir Ventana de Apuestas
+- **HTTP Method**: PATCH
+- **Request Payload**: `{ status: "betting" }`
+- **Response Structure**: `{ success: boolean, data: Fight object, message?: string }`
+- **SSE Broadcasts Triggered**: `event: "betting_window_opened", data: { fightId, timestamp, fighters }`
+- **Side Effects**: Inicia temporizador de 3 minutos para aceptar PAGO bets
+
+### PATCH /api/fights/:id/status - Iniciar Pelea
+- **HTTP Method**: PATCH
+- **Request Payload**: `{ status: "live" }`
+- **Response Structure**: `{ success: boolean, data: Fight object, message?: string }`
+- **SSE Broadcasts Triggered**: `event: "fight_started", data: { fightId, timestamp, durationSeconds }`
+- **Side Effects**: Cierra automáticamente la ventana de apuestas, todas las apuestas PAGO/DOY pendientes expiran
+
+### PATCH /api/fights/:id - Registrar Resultado (durante estado 'live')
+- **HTTP Method**: PATCH
+- **Request Payload**: `{ result: "red"|"blue"|"draw", notes?: string }`
+- **Response Structure**: `{ success: boolean, data: Fight object, message?: string }`
+- **SSE Broadcasts Triggered**: `event: "fight_result_recorded", data: { fightId, result, timestamp }`
+- **Side Effects**: Marca el resultado para procesamiento de apuestas pendientes
+
+### PATCH /api/fights/:id/status - Completar Pelea
+- **HTTP Method**: PATCH
+- **Request Payload**: `{ status: "completed" }`
+- **Response Structure**: `{ success: boolean, data: Fight object, message?: string }`
+- **SSE Broadcasts Triggered**: `event: "fight_completed", data: { fightId, result, timestamp, payoutsProcessed }`
+- **Side Effects**: Liquida todas las apuestas asociadas a la pelea, distribuye ganancias, actualiza balances
+
+---
+
 **✅ Esta guía está verificada contra la implementación actual y es segura para uso en producción.**

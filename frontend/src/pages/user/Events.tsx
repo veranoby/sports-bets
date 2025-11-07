@@ -169,7 +169,9 @@ const EventsPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error loading filtered events:", error);
-        setFilteredError(error instanceof Error ? error.message : "Error loading events");
+        setFilteredError(
+          error instanceof Error ? error.message : "Error loading events",
+        );
       } finally {
         setFilteredLoading(false);
       }

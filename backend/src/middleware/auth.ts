@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { User } from '../models/User';
+import { Subscription } from '../models/Subscription';
 import { errors } from './errorHandler';
 import { SessionService } from '../services/sessionService';
 
@@ -30,6 +31,41 @@ declare global {
       user?: User;
       queryFilter?: any;
     }
+  }
+}
+
+/**
+ * ⚡ CRITICAL: Subscription expiration check (PRD:149-153)
+ *
+ * Automatically expires subscriptions on each authenticated request if:
+ * - subscription.expiresAt < current_time
+ * - subscription.status === 'active'
+ *
+ * Changes subscription to 'expired' and invalidates user cache.
+ * This ensures immediate access control update.
+ */
+async function checkAndExpireSubscription(userId: string): Promise<void> {
+  try {
+    const subscription = await Subscription.findOne({
+      where: { userId, status: 'active' },
+      order: [['createdAt', 'DESC']]
+    });
+
+    if (subscription && subscription.isExpired()) {
+      console.log(`⏰ Expiring subscription for user ${userId}`);
+
+      // Mark subscription as expired
+      await subscription.markAsExpired();
+
+      // Invalidate user cache to force re-fetch on next request
+      userCache.delete(userId);
+
+      console.log(`✅ Subscription expired and cache invalidated for user ${userId}`);
+    }
+  } catch (error) {
+    console.error('Error checking subscription expiration:', error);
+    // Don't throw - allow request to continue
+    // Subscription check is important but shouldn't block authentication
   }
 }
 
@@ -87,6 +123,10 @@ export const authenticate = async (
     if (!user || !user.isActive) {
       throw errors.unauthorized('Invalid token or user inactive');
     }
+
+    // ⚡ CRITICAL: Check subscription expiration (PRD:149-153)
+    // Auto-expire subscriptions on each authenticated request
+    await checkAndExpireSubscription(user.id);
 
     // ⚠️ Check if user account is approved (except for admins/operators who are auto-approved)
     if (["venue", "gallera"].includes(user.role) && !user.approved) {

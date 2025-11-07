@@ -102,7 +102,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                 <p className="mt-2 text-xs text-blue-500">Subiendo imagen...</p>
               )}
               <p className="mt-2 text-xs text-gray-500">
-                Formatos: JPG, PNG, WEBP. Máximo 5MB.
+                Formatos: JPG, PNG, WEBP. Tamaño recomendado: 1200 x 630 píxeles. Máximo 5MB.
               </p>
               {(formData.featured_image || imagePreview) && (
                 <button

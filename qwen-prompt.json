@@ -1,309 +1,291 @@
 {
-  "session_metadata": {
-    "session_id": "QWEN_SESSION_2025_11_04_B",
-    "date": "2025-11-04",
-    "executor": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
-    "coordinator": "Claude Sonnet 4.5",
-    "session_type": "FRESH_START",
-    "context_note": "Previous session closed to prevent context loss. This is a clean slate with all reference files specified.",
-    "estimated_duration": "30-40 minutes MAX",
-    "checkpoint_interval": "Every 15 minutes"
+  "task": "QWEN - Streaming Documentation & History Features Audit",
+  "date": "2025-11-07",
+  "priority": "HIGH",
+  "estimated_time": "2-3 hours",
+  "context": {
+    "previous_audits": [
+      " Auditoría 1: Backend Homologation (95% compliance, 3 issues found)",
+      " Auditoría 2: Streaming Documentation Gaps (7 sections created)"
+    ],
+    "your_tasks": [
+      "Task A: Add streaming documentation sections to files",
+      "Task B: Auditoría 3 - History Features implementation check"
+    ]
   },
-  "=4_CRITICAL_PROTOCOLS_READ_FIRST": {
-    "1_model_declaration": "CRITICAL MANDATORY: First message must be: 'Model: qwen3-coder-plus-2025-09-23. Task type: Backend + Frontend Implementation. Complexity: HIGH'",
-    "2_task_echo_back_verification": {
-      "rule": "=4 MANDATORY: After reading this prompt, ECHO BACK the tasks you will execute",
-      "format": "I will execute:\n- TASK_SESSION_6_A_INFRINGEMENT: [description]\n- TASK_SESSION_6_B_BETTING_VALIDATION: [description]\n- TASK_SESSION_6_C_OPERATOR_RESTRICTIONS: [description]\nConfirm: Y/N?",
-      "purpose": "Prevent task disambiguation errors (learned 2025-11-04)"
-    },
-    "3_mcp_activation_mandatory": {
-      "backend_work": "ACTIVATE: --seq --sequential BEFORE any backend modifications",
-      "frontend_work": "ACTIVATE: --c7 --context7 BEFORE any React/TypeScript work",
-      "declaration_required": "Output activation statement: 'Activating --seq --sequential for backend analysis'",
-      "incident_reference": "2025-10-30: PostgreSQL error occurred without Context7. MCPs are MANDATORY for quality."
-    },
-    "4_reporting_protocol": {
-      "rule": "=4 MANDATORY: Before considering session complete, update /home/veranoby/sports-bets/brain/backlog.json",
-      "location": "Add new entry in backlog.json starting at line ~1600",
-      "format_required": "recent_achievements_2025_11_04_qwen_session_6_completion",
-      "verification": "Run: git diff brain/backlog.json to confirm update",
-      "incident_reference": "2025-11-04: QWEN reported to user but skipped brain/backlog.json update"
-    },
-    "5_session_checkpoints": {
-      "every_15_minutes": "Commit progress with '[CHECKPOINT]' tag",
-      "if_exceeds_30_min": "STOP and write handoff note in brain/qwen_handoff.json",
-      "purpose": "Prevent context loss in long sessions"
-    },
-    "6_simulate_confirm_protocol": {
-      "step_1_simulate": "Before modifying files: Describe EXACTLY what you'll change (files, imports, dependencies)",
-      "step_2_confirm": "Verify against codebase: Do files exist? Are imports available? Will this break anything?",
-      "step_3_document": "Tag commit with [SIMULATED] ï¿½ [CONFIRMED] ï¿½ [MODIFIED]",
-      "if_simulation_fails": "REPORT issue, do NOT attempt fix. Message: '[SIMULATION FAILED] Cannot [task]: Reason: [why] / Recommendation: [solution]'"
-    }
-  },
-  "mandatory_reads_at_start": [
-    {
-      "file": "/home/veranoby/sports-bets/brain/multi_ai_coordination_strategy.json",
-      "purpose": "Understand AI coordination protocols, new lessons learned (task disambiguation, reporting, checkpoints)",
-      "focus_sections": [
-        "task_disambiguation_protocol_2025_11_04",
-        "reporting_location_protocol_2025_11_04",
-        "session_context_loss_prevention_2025_11_04",
-        "ai_responsibilities.qwen"
+
+  "TASK_A_ADD_STREAMING_DOCS": {
+    "description": "Add 7 documented sections to streaming guides (Spanish & English)",
+    "priority": "CRITICAL",
+    "files_to_modify": [
+      "streaming-manual.md (4 sections)",
+      "docs/guides/streaming-reference.md (3 sections)"
+    ],
+
+    "STEP_1_SPANISH_GUIDE": {
+      "file": "streaming-manual.md",
+      "location": "Add after existing content, before final section",
+      "sections_to_add": [
+        {
+          "section_name": "## Gestión de Pausas de Transmisión (Intermedios)",
+          "content_source": "brain/backlog.json lines 2125-2145",
+          "placement": "After 'Gestión de Peleas' section",
+          "key_points": [
+            "Pausas se manejan EN OBS, NO en la plataforma",
+            "Cambiar escena a 'Intermedio' sin parar stream",
+            "NO cambiar status de peleas durante pausa",
+            "Usuarios siguen conectados al stream"
+          ]
+        },
+        {
+          "section_name": "## Ciclo de Vida Completo de una Pelea",
+          "content_source": "brain/backlog.json lines 2147-2165",
+          "placement": "After 'Gestión de Pausas'",
+          "key_points": [
+            "4 fases: APERTURA ’ INICIO ’ RESULTADO ’ CIERRE",
+            "Cada fase tiene endpoint específico y SSE broadcast",
+            "Status transitions: upcoming ’ betting ’ live ’ completed"
+          ]
+        },
+        {
+          "section_name": "## Tabla de Referencia Rápida",
+          "content_source": "brain/backlog.json lines 2167-2179",
+          "placement": "After 'Ciclo de Vida'",
+          "format": "Table with 4 columns: Acción | Status | Endpoint | SSE Event"
+        },
+        {
+          "section_name": "## Errores Comunes y Soluciones",
+          "content_source": "brain/backlog.json lines 2181-2193",
+          "placement": "Before final section",
+          "key_points": [
+            "Error: 'Invalid status transition' ’ Verificar estado actual",
+            "Error: 'Betting window closed' ’ Revisar fight.status",
+            "Error: 'Stream not found' ’ Validar eventId"
+          ]
+        }
       ]
     },
-    {
-      "file": "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
-      "purpose": "API patterns, FASE 5 consolidation architecture",
-      "focus": "PUT /users/:userId/profile-info endpoint, User.profileInfo structure"
+
+    "STEP_2_ENGLISH_GUIDE": {
+      "file": "docs/guides/streaming-reference.md",
+      "location": "Add to appropriate sections (integrate with existing content)",
+      "sections_to_add": [
+        {
+          "section_name": "### Fight Status State Machine",
+          "content_source": "brain/backlog.json lines 2157-2164",
+          "placement": "In 'Operator Workflows' section",
+          "technical_spec": "Valid transitions: upcoming ’ betting ’ live ’ completed"
+        },
+        {
+          "section_name": "### Intermission Workflow",
+          "content_source": "brain/backlog.json lines 2166-2172",
+          "placement": "After 'Fight Management' subsection",
+          "clarification": "OBS-level only, no API calls required"
+        },
+        {
+          "section_name": "## API Reference: Fight Operations",
+          "content_source": "brain/backlog.json lines 2174-2188",
+          "placement": "New section after 'Monitoring & Analytics'",
+          "format": "HTTP method, endpoint, request body, response, SSE event"
+        }
+      ]
     },
-    {
-      "file": "/home/veranoby/sports-bets/brain/typescript_interfaces_reference.json",
-      "purpose": "TypeScript interfaces, component patterns",
-      "focus": "User interface with profileInfo, SSEEventType enum"
-    },
-    {
-      "file": "/home/veranoby/sports-bets/brain/backlog.json",
-      "purpose": "Recent work, Claude's bug fixes, current MVP state",
-      "focus": "recent_achievements_2025_11_04_mvp_tasks_1_2_completion (lines ~961-1077)"
-    }
-  ],
-  "context_from_previous_session": {
-    "what_qwen_completed": [
-      "DONE: PAGOProposalModal.tsx - PAGO bet creation UI",
-      "DONE: DOYProposalModal.tsx - DOY bet acceptance UI",
-      "DONE: ProposalNotification.tsx - Toast notifications",
-      "DONE: EventWorkflowControls.tsx - Stream pause/resume",
-      "DONE: bettingSocket.ts - WebSocket PAGO/DOY backend (WITH BUG)",
-      "DONE: Fight state machine - upcomingï¿½bettingï¿½liveï¿½completed",
-      "DONE: useFightSSE.ts - SSE integration hook (WITH BUG)"
-    ],
-    "what_claude_fixed_critical_bugs": [
-      "DONE: bettingSocket.ts:213 - Added DB persistence for matched bets with transactions",
-      "DONE: fights.ts:461 - Fixed undefined currentStatus variable",
-      "DONE: BettingPanel.tsx:56-65 - Fixed subscribe() to use SSEEventType enum"
-    ],
-    "what_remains_incomplete": [
-      "L INFRINGEMENT fixes: Membership display, operator restrictions, premium content gates",
-      "L Betting window validation in WebSocket (prevent bets when window closed)",
-      "L 3-minute timeout for PAGO proposals (currently 30 seconds)",
-      "L Race condition protection in bet matching",
-      "L Operator restrictions in EventWorkflowControls"
+
+    "VALIDATION_REQUIREMENTS": [
+      " All 7 sections added to correct files",
+      " Markdown formatting correct (headers, tables, code blocks)",
+      " Content matches brain/backlog.json specifications",
+      " No existing content overwritten or removed",
+      " Sections integrated logically with existing structure"
     ]
   },
-  "tasks_to_execute": {
-    "TASK_SESSION_6_A_INFRINGEMENT_FIXES": {
-      "priority": "P0_CRITICAL",
-      "estimated_time": "15-20 minutes",
-      "description": "Complete INFRINGEMENT_REVIEW fixes that were missed in previous session",
-      "subtask_a1_membership_display_consistency": {
-        "file": "frontend/src/components/user/MembershipSection.tsx",
-        "issue": "Membership section shows different data than header",
-        "fix": [
-          "Verify subscription.plan field mapping",
-          "Ensure consistent use of subscription.type vs subscription.plan",
-          "Test: User with premium subscription should see 'Premium' in both header and section"
+
+  "TASK_B_AUDITORIA_3_HISTORY": {
+    "description": "Audit implementation of fight results, betting history, withdrawal history visibility",
+    "priority": "HIGH",
+    "scope": "Frontend & Backend components for data display and history management",
+
+    "INVESTIGATION_AREAS": {
+      "A_FIGHT_RESULTS_VISIBILITY": {
+        "question": "Can users see completed fight results?",
+        "files_to_check": [
+          "frontend/src/pages/user/Dashboard.tsx (EventData display)",
+          "frontend/src/pages/user/LiveEvent.tsx (Fight results)",
+          "backend/src/routes/fights.ts (GET /fights/:id endpoint)",
+          "backend/src/models/Fight.ts (result field)"
         ],
-        "validation": "npx tsc --noEmit (ZERO errors required)"
+        "expected_implementation": [
+          "Fight.result field exists ('red' | 'blue' | 'draw' | 'cancelled')",
+          "Frontend displays fight.result after status='completed'",
+          "Historical fights accessible via API",
+          "Result shown in user dashboard or event history"
+        ],
+        "report_format": {
+          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
+          "evidence": "File:line references showing implementation",
+          "gaps": "Missing features or incomplete implementation",
+          "recommendation": "Actions needed if gaps found"
+        }
       },
-      "subtask_a2_operator_restrictions": {
-        "file": "frontend/src/components/admin/EventWorkflowControls.tsx",
-        "issue": "No role checks prevent operators from accessing other operators' events",
-        "fix": [
-          "Add role check: if (user.role === 'operator' && event.operatorId !== user.id) return null;",
-          "Prevent operators from viewing/modifying events not assigned to them",
-          "Test: Operator 1 cannot see Operator 2's event controls"
+
+      "B_BETTING_HISTORY": {
+        "question": "Can users see their betting history with win/loss records?",
+        "files_to_check": [
+          "frontend/src/pages/user/Dashboard.tsx (betting history section)",
+          "frontend/src/pages/user/Profile.tsx (user history)",
+          "backend/src/routes/bets.ts (GET /bets endpoint with filters)",
+          "backend/src/models/Bet.ts (status: won/lost/cancelled)"
         ],
-        "validation": "Component renders null for unauthorized operators"
+        "expected_implementation": [
+          "GET /api/bets?userId=X&status=completed endpoint exists",
+          "Bet.status field tracks 'won' | 'lost' outcomes",
+          "Frontend component displays user's bet history",
+          "History shows: fight, amount, odds, outcome, payout"
+        ],
+        "report_format": {
+          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
+          "evidence": "API endpoints and frontend components",
+          "gaps": "Missing pagination, filters, or display components",
+          "recommendation": "Implementation plan if needed"
+        }
       },
-      "subtask_a3_premium_content_gates": {
-        "files": [
-          "frontend/src/pages/user/ArticleDetail.tsx",
-          "frontend/src/pages/user/Articles.tsx"
+
+      "C_WITHDRAWAL_HISTORY": {
+        "question": "Can users see their wallet withdrawal request history?",
+        "files_to_check": [
+          "frontend/src/pages/user/Profile.tsx (wallet section)",
+          "backend/src/routes/wallet.ts (GET /wallet/transactions)",
+          "backend/src/models/Transaction.ts (type: 'withdrawal')"
         ],
-        "issue": "Premium content accessible without active subscription",
-        "fix": [
-          "Add membership check before rendering premium content",
-          "Show paywall UI for non-subscribers",
-          "Test: User without subscription sees paywall, subscribed user sees full content"
+        "expected_implementation": [
+          "Transaction.type='withdrawal' records exist",
+          "GET /api/wallet/transactions?type=withdrawal endpoint",
+          "Frontend displays withdrawal history with status",
+          "User sees: date, amount, status (pending/completed/failed)"
         ],
-        "validation": "npm run build succeeds"
+        "report_format": {
+          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
+          "evidence": "Database model and API endpoints",
+          "gaps": "Missing UI components or filtering",
+          "recommendation": "Priority level and implementation steps"
+        }
+      },
+
+      "D_ADMIN_GLOBAL_HISTORY": {
+        "question": "Can admin see equivalent history data for ALL users?",
+        "files_to_check": [
+          "frontend/src/pages/admin/Dashboard.tsx (admin overview)",
+          "frontend/src/pages/admin/Bets.tsx or Reports.tsx",
+          "backend/src/routes/bets.ts (admin endpoints)",
+          "backend/src/routes/wallet.ts (admin transaction endpoints)"
+        ],
+        "expected_implementation": [
+          "Admin endpoints without userId filter (returns all data)",
+          "Frontend admin components with filters (user, date, status)",
+          "Pagination for large datasets",
+          "Export functionality (CSV/PDF) optional"
+        ],
+        "report_format": {
+          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
+          "evidence": "Admin routes and components",
+          "gaps": "Missing admin views or filtering capabilities",
+          "recommendation": "Admin dashboard enhancements needed"
+        }
       }
     },
-    "TASK_SESSION_6_B_BETTING_WINDOW_VALIDATION": {
-      "priority": "P0_CRITICAL",
-      "estimated_time": "10-15 minutes",
-      "description": "Add betting window validation to prevent bets when window closed",
-      "subtask_b1_websocket_validation": {
-        "file": "backend/src/sockets/bettingSocket.ts",
-        "issue": "WebSocket accepts PAGO/DOY bets even when betting window is closed",
-        "fix": [
-          "In 'create_pago_bet' handler (~line 120), add:",
-          "const fight = await Fight.findByPk(data.fightId);",
-          "if (fight?.status !== 'betting') {",
-          "  return socket.emit('bet_error', { message: 'Betting window is closed' });",
-          "}",
-          "Test: Bet creation fails with error when fight.status !== 'betting'"
-        ],
-        "validation": "npx tsc --noEmit (backend)"
-      },
-      "subtask_b2_timeout_correction": {
-        "file": "backend/src/sockets/bettingSocket.ts",
-        "issue": "PAGO timeout = 30 seconds, spec requires 180 seconds (3 minutes)",
-        "fix": [
-          "Find line: const timeout = data.timeoutMs || 30000",
-          "Change to: const MAX_TIMEOUT = 180000; // 3 minutes",
-          "const timeout = Math.min(data.timeoutMs || MAX_TIMEOUT, MAX_TIMEOUT);",
-          "Test: PAGO bet expires after 3 minutes, not 30 seconds"
-        ],
-        "validation": "Verify timeout logic in code"
-      },
-      "subtask_b3_race_condition_protection": {
-        "file": "backend/src/sockets/bettingSocket.ts",
-        "issue": "Two users can simultaneously accept same PAGO bet (no locking)",
-        "fix": [
-          "In 'accept_doy_bet' handler (~line 187), add transaction with pessimistic lock:",
-          "const pendingBet = pendingBets.get(data.betId);",
-          "if (!pendingBet) {",
-          "  return socket.emit('bet_error', { message: 'Bet no longer available' });",
-          "}",
-          "Add in-memory lock check before DB transaction",
-          "Test: Second user trying to accept gets 'Bet no longer available' error"
-        ],
-        "validation": "npx tsc --noEmit (backend)"
-      }
-    },
-    "TASK_SESSION_6_C_UI_INTEGRATION_FIXES": {
-      "priority": "P1_HIGH",
-      "estimated_time": "10 minutes",
-      "description": "Fix incomplete UI integrations from previous session",
-      "subtask_c1_betting_panel_refresh": {
-        "file": "frontend/src/components/user/BettingPanel.tsx",
-        "issue": "fetchAvailableBetsRef.current(fightId) is no-op, bets don't refresh",
-        "fix": [
-          "Verify fetchAvailableBets is properly connected to API",
-          "Add loading state during fetch",
-          "Test: New bet appears in list after SSE event received"
-        ],
-        "validation": "Component updates when NEW_BET event received"
-      },
-      "subtask_c2_proposal_acceptance_handler": {
-        "file": "frontend/src/components/user/BettingPanel.tsx",
-        "issue": "Proposal accept button logs to console, doesn't call API",
-        "fix": [
-          "Connect accept handler to backend API call",
-          "Update UI state after successful acceptance",
-          "Show error message if API call fails",
-          "Test: Clicking accept button sends API request and updates state"
-        ],
-        "validation": "npm run build succeeds"
-      }
+
+    "REPORT_STRUCTURE": {
+      "format": "Update brain/backlog.json with new achievement record",
+      "record_name": "recent_achievements_2025_11_07_auditoria_history_features",
+      "sections_required": [
+        "summary: Overall assessment (1-2 sentences)",
+        "findings: Detailed results for A, B, C, D investigations",
+        "implementation_status: Percentage complete (X/4 areas implemented)",
+        "critical_gaps: Missing features that block user workflows",
+        "recommendations: Prioritized action items with time estimates",
+        "brain_files_verified: List of brain files checked",
+        "code_files_audited: List of frontend/backend files reviewed"
+      ]
     }
   },
-  "forbidden_files_do_not_modify": [
-    "backend/src/routes/auth.ts",
-    "backend/src/routes/users.ts",
-    "backend/src/models/User.ts",
-    "frontend/src/contexts/AuthContext.tsx",
-    "frontend/src/pages/user/Profile.tsx",
-    "backend/src/services/sseService.ts",
-    "brain/multi_ai_coordination_strategy.json",
-    "brain/api_endpoints_reference.json",
-    "brain/typescript_interfaces_reference.json",
-    "frontend/src/types/index.ts",
-    "backend/src/config/database.ts",
-    "backend/src/routes/fights.ts",
-    "frontend/src/components/user/BettingPanel.tsx"
-  ],
-  "files_to_modify": {
+
+  "EXECUTION_INSTRUCTIONS": {
+    "order": [
+      "1. Complete TASK_A first (add streaming docs to files)",
+      "2. Then proceed with TASK_B (history features audit)",
+      "3. Update brain/backlog.json with Auditoría 3 report"
+    ],
+
+    "TASK_A_STEPS": [
+      "Step 1: Read brain/backlog.json lines 2057-2212 to get full content",
+      "Step 2: Read streaming-manual.md to understand existing structure",
+      "Step 3: Add 4 Spanish sections at appropriate locations",
+      "Step 4: Read docs/guides/streaming-reference.md",
+      "Step 5: Add 3 English sections at appropriate locations",
+      "Step 6: Verify all 7 sections added correctly"
+    ],
+
+    "TASK_B_STEPS": [
+      "Step 1: Read investigation files for Area A (Fight Results)",
+      "Step 2: Document findings in structured format",
+      "Step 3: Repeat for Areas B, C, D",
+      "Step 4: Synthesize overall assessment",
+      "Step 5: Create recommendations with priorities",
+      "Step 6: Write comprehensive report to brain/backlog.json"
+    ],
+
+    "QUALITY_GATES": [
+      " No existing content removed or overwritten",
+      " Markdown formatting validated",
+      " All 4 investigation areas completed (A, B, C, D)",
+      " Evidence provided for all findings (file:line references)",
+      " brain/backlog.json updated with Auditoría 3 report"
+    ]
+  },
+
+  "SAFETY_PROTOCOLS": {
+    "FORBIDDEN": [
+      "L Do NOT touch authentication files (auth.ts, User.ts)",
+      "L Do NOT modify database models without explicit permission",
+      "L Do NOT create new .md files (add to existing files only)",
+      "L Do NOT attempt debugging - report issues only"
+    ],
+
+    "REQUIRED": [
+      " Use Read tool before Edit tool (verify content first)",
+      " Backup key sections before modifications",
+      " Test markdown formatting locally if possible",
+      " Report any blocking issues immediately"
+    ]
+  },
+
+  "SUCCESS_CRITERIA": {
+    "TASK_A": "All 7 sections added to streaming guides correctly",
+    "TASK_B": "Comprehensive audit report in brain/backlog.json",
+    "OVERALL": "Both tasks completed within 2-3 hours with quality gates passed"
+  },
+
+  "REFERENCE_FILES": {
+    "brain_system": [
+      "brain/backlog.json (audit reports and documentation content)",
+      "brain/api_endpoints_reference.json (API specs)",
+      "brain/typescript_interfaces_reference.json (type definitions)",
+      "brain/prd_system.json (business requirements)"
+    ],
+    "streaming_docs": [
+      "streaming-manual.md (Spanish operator guide)",
+      "docs/guides/streaming-reference.md (English technical reference)"
+    ],
     "backend": [
-      "backend/src/sockets/bettingSocket.ts"
+      "backend/src/routes/fights.ts",
+      "backend/src/routes/bets.ts",
+      "backend/src/routes/wallet.ts",
+      "backend/src/models/*.ts"
     ],
     "frontend": [
-      "frontend/src/components/user/MembershipSection.tsx",
-      "frontend/src/components/admin/EventWorkflowControls.tsx",
-      "frontend/src/pages/user/ArticleDetail.tsx",
-      "frontend/src/pages/user/Articles.tsx"
+      "frontend/src/pages/user/Dashboard.tsx",
+      "frontend/src/pages/user/Profile.tsx",
+      "frontend/src/pages/admin/*.tsx"
     ]
-  },
-  "validation_gates": {
-    "after_each_file_modification": [
-      "npx tsc --noEmit (appropriate directory)",
-      "git diff --name-only (verify ONLY approved files changed)"
-    ],
-    "before_commit": [
-      "npm run build (frontend) - must succeed",
-      "npx tsc --noEmit (backend) - ZERO errors",
-      "git diff brain/backlog.json - must show new entry"
-    ],
-    "final_checkpoint": [
-      "All tasks from TASK_SESSION_6_A/B/C completed",
-      "brain/backlog.json updated with structured report",
-      "No files outside [files_to_modify] were changed",
-      "TypeScript compilation passes (0 errors)",
-      "Build process succeeds"
-    ]
-  },
-  "success_criteria": {
-    "TASK_SESSION_6_A": [
-      "Membership display consistent across components",
-      "Operator restrictions prevent unauthorized access",
-      "Premium content properly gated by subscription status"
-    ],
-    "TASK_SESSION_6_B": [
-      "Betting window validation prevents out-of-window bets",
-      "PAGO timeout = 180 seconds (3 minutes)",
-      "Race condition protection prevents double-acceptance"
-    ],
-    "TASK_SESSION_6_C": [
-      "BettingPanel refreshes on NEW_BET events",
-      "Proposal acceptance connects to API"
-    ]
-  },
-  "reporting_template_for_backlog_json": {
-    "structure": "recent_achievements_2025_11_04_qwen_session_6_completion",
-    "required_fields": {
-      "executor": "QWEN 3-Coder Plus (qwen3-coder-plus-2025-09-23)",
-      "date": "2025-11-04",
-      "task": "Complete INFRINGEMENT fixes + Betting window validation + UI integration",
-      "status": "DONE: COMPLETED or ï¿½ PARTIAL with blockers listed",
-      "files_modified": "Array of absolute file paths",
-      "implementation_details": "What was implemented for each subtask",
-      "validation_status": {
-        "typescript_compilation": "DONE: ZERO errors or L X errors",
-        "build_process": "DONE: SUCCESS or L FAILED",
-        "scope_adherence": "DONE: Only approved files or L Scope violations"
-      },
-      "issues_encountered": "Array of blockers or problems",
-      "recommendations": "Array of follow-up tasks or improvements"
-    }
-  },
-  "emergency_protocols": {
-    "if_typescript_fails": "STOP immediately, do NOT commit, report error details to user",
-    "if_build_fails": "Rollback changes: git checkout -- [files], investigate, fix, retry",
-    "if_simulation_reveals_problems": "STOP, report [SIMULATION FAILED] with reason and recommendation",
-    "if_uncertain_about_approach": "ASK user for clarification, do NOT assume or guess",
-    "if_exceeding_30_minutes": "Create brain/qwen_handoff.json with current progress, let user decide to continue or close session"
-  },
-  "reference_patterns_for_implementation": {
-    "operator_restriction_pattern": {
-      "example_file": "backend/src/routes/users.ts:565-569",
-      "pattern": "if (req.user!.role === 'operator') { if (targetUser.role in ['admin', 'operator']) { throw errors.forbidden('...'); } }"
-    },
-    "subscription_check_pattern": {
-      "example_file": "frontend/src/components/user/MembershipSection.tsx:469-475",
-      "pattern": "if (subscription?.status === 'active' && subscription?.plan !== 'free') { /* show premium content */ }"
-    },
-    "websocket_validation_pattern": {
-      "example_file": "backend/src/sockets/bettingSocket.ts:120",
-      "pattern": "socket.on('create_pago_bet', async (data) => { const fight = await Fight.findByPk(data.fightId); if (fight?.status !== 'betting') { return socket.emit('error', ...); } }"
-    }
-  },
-  "helpful_commands": {
-    "find_specific_pattern": "grep -r 'pattern' backend/src/ frontend/src/",
-    "check_imports": "grep -r 'import.*Bet' backend/src/",
-    "verify_no_any_types": "grep -r ': any' frontend/src/ backend/src/",
-    "check_typescript_specific_file": "npx tsc --noEmit path/to/file.ts"
-  },
-  "final_message_to_qwen": "Remember: This is a FRESH session. Read ALL mandatory files at start. ECHO BACK tasks before executing. ACTIVATE MCPs before coding. UPDATE brain/backlog.json before finishing. CHECKPOINT every 15 minutes. Your work will be validated by Claude, so quality is critical. If uncertain, ASK rather than assume. Good luck!"
+  }
 }

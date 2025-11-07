@@ -42,7 +42,7 @@ interface Fight {
 interface Bet {
   id: string;
   amount: number;
-  odds?: number;  // Optional to match BetData from API
+  odds?: number; // Optional to match BetData from API
   choice: string;
   createdBy: string;
   createdAt: string;
@@ -206,10 +206,7 @@ const LiveEvent = () => {
       }
 
       // Fetch relacionados
-      await Promise.all([
-        fetchFights(eventId),
-        fetchAvailableBets(eventId),
-      ]);
+      await Promise.all([fetchFights(eventId), fetchAvailableBets(eventId)]);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error cargando evento";

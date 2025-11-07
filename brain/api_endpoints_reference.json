@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
-    "version": "1.2",
-    "last_updated": "2025-11-04 - Bug fixes: Added PAGO/DOY WebSocket bet persistence, fight status transition fix, SSE event type documentation",
+    "version": "1.3",
+    "last_updated": "2025-11-07 - FASE 5 completion: Removed Article.venue_id, updated GET /articles query params (venueId → authorId per PRD:205)",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {
@@ -366,7 +366,8 @@
     "list_articles": {
       "method": "GET",
       "path": "/articles",
-      "query_params": ["search", "venueId", "status", "limit", "offset"],
+      "query_params": ["search", "authorId", "status", "limit", "offset"],
+      "REMOVED_2025_11_07": "venueId replaced with authorId per PRD:205 FASE 5 consolidation",
       "auth_required": false,
       "middleware": "optionalAuth"
     },
