@@ -298,11 +298,19 @@ router.post(
   })
 );
 
-// POST /api/auth/logout - Logout (principalmente para limpiar token del cliente)
+// POST /api/auth/logout - Logout with session invalidation
 router.post(
   "/logout",
   authenticate,
   asyncHandler(async (req, res) => {
+    // Extract token from Authorization header
+    const token = req.headers.authorization?.replace("Bearer ", "");
+
+    if (token) {
+      // Invalidate the session to prevent token reuse
+      await SessionService.invalidateSession(token);
+    }
+
     logger.info(`User logged out: ${req.user!.username}`);
 
     res.json({

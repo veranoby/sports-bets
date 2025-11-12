@@ -10,8 +10,81 @@ import { requireBetting, enforceBetLimits, injectCommissionSettings } from "../m
 
 const router = Router();
 
-// Apply betting feature gate to all routes
+// 🔐 ADMIN ENDPOINT: Get all bets (must be BEFORE role restriction middleware)
+router.get(
+  "/all",
+  authenticate,
+  authorize("admin", "operator"),
+  asyncHandler(async (req, res) => {
+    const { userId, status, fightId, eventId, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+
+    // Build query filters
+    const where: any = {};
+    if (userId) where.userId = userId;
+    if (status) where.status = status;
+    if (fightId) where.fightId = fightId;
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt[Op.gte] = new Date(dateFrom as string);
+      if (dateTo) where.createdAt[Op.lte] = new Date(dateTo as string);
+    }
+
+    // Query with pagination and includes
+    const { rows: bets, count: total } = await Bet.findAndCountAll({
+      where,
+      include: [
+        {
+          model: Fight,
+          as: "fight",
+          include: [
+            {
+              model: Event,
+              as: "event",
+              where: eventId ? { id: eventId } : {},
+              attributes: ['id', 'title', 'status', 'scheduledDate'],
+            },
+          ],
+          attributes: ['id', 'number', 'status', 'redCorner', 'blueCorner', 'eventId'],
+        },
+        {
+          model: User,
+          as: "user",
+          attributes: ['id', 'username', 'email', 'role'],
+        },
+      ],
+      limit: Number(limit),
+      offset: Number(offset),
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json({
+      success: true,
+      data: {
+        bets,
+        total,
+        page: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        offset: Number(offset),
+      },
+    });
+  })
+);
+
+// Apply betting feature gate to all routes below (excludes admin endpoint above)
 router.use(requireBetting);
+
+// 🔒 ROLE RESTRICTION: Only 'user' and 'gallera' roles can access betting
+router.use((req, res, next) => {
+  if (!['user', 'gallera'].includes(req.user?.role || '')) {
+    return res.status(403).json({
+      success: false,
+      error: 'Betting access denied',
+      message: 'Your role cannot place bets'
+    });
+  }
+  next();
+});
 
 // GET /api/bets - Listar apuestas del usuario
 router.get(

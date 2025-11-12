@@ -174,7 +174,7 @@ const AdminVenuesPage: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner text="Cargando venues..." />;
+    return <LoadingSpinner text="Cargando galleras..." />;
   }
 
   return (
@@ -183,10 +183,10 @@ const AdminVenuesPage: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Gestión de Venues
+            Gestión de Galleras
           </h1>
           <p className="text-gray-600">
-            {combinedData.length} venues registradas
+            {combinedData.length} galleras registradas
           </p>
         </div>
         <button
@@ -194,7 +194,7 @@ const AdminVenuesPage: React.FC = () => {
           className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Crear Venue
+          Crear Gallera
         </button>
       </div>
 
@@ -209,7 +209,7 @@ const AdminVenuesPage: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Buscar por usuario, email o nombre de la venue..."
+              placeholder="Buscar por usuario, email o nombre de la gallera..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -315,9 +315,9 @@ const AdminVenuesPage: React.FC = () => {
         {filteredData.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold">No se encontraron venues</h3>
+            <h3 className="text-lg font-semibold">No se encontraron galleras</h3>
             <p className="text-sm">
-              No hay venues que coincidan con la búsqueda.
+              No hay galleras que coincidan con la búsqueda.
             </p>
           </div>
         )}

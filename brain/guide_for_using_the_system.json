@@ -1,0 +1,111 @@
+{
+  "introduction": {
+    "purpose": "Esta guía establece los principios operativos para interactuar con el sistema BRAIN 2.0, asegurando consistencia, eficiencia y alineación estratégica.",
+    "audience": "Todas las IAs (Claude, Gemini, Qwen) y stakeholders humanos que interactúan con el sistema de conocimiento."
+  },
+  "query_strategies": {
+    "principle": "Consultar siempre desde la Fuente Única de Verdad (SSOT) más específica.",
+    "workflow": [
+      {
+        "step": 1,
+        "action": "Identificar la naturaleza de la consulta.",
+        "examples": [
+          "¿Es sobre 'por qué' (estrategia)?",
+          "¿Es sobre 'qué' (requisitos)?",
+          "¿Es sobre 'cómo' (diseño técnico)?",
+          "¿Es sobre 'quién' (UI/UX)?",
+          "¿Es sobre 'cuándo/cuánto' (progreso)?",
+          "¿Es sobre 'dónde' (índice maestro)?"
+        ]
+      },
+      {
+        "step": 2,
+        "action": "Navegar al archivo SSOT apropiado usando `brain_index.json` como punto de partida.",
+        "ssot_map": {
+          "estrategia": "objectives_memory_index.json",
+          "requisitos_de_producto": "prd_system.json",
+          "diseño_tecnico": "sdd_system.json",
+          "diseño_de_interfaz": "UI_UX.json",
+          "plan_de_componentes": "ui_ux_blueprint.json",
+          "progreso_y_tareas": "backlog.json, monthly_report.json",
+          "prioridades": "priorities_memory_index.json"
+        }
+      },
+      {
+        "step": 3,
+        "action": "Extraer la información y verificar las referencias cruzadas en la sección `boundaries_and_cross_references` para obtener un contexto completo."
+      }
+    ]
+  },
+  "decision_framework": {
+    "principle": "Las decisiones deben preservar la integridad de la SSOT y alinearse con los objetivos estratégicos.",
+    "matrix": [
+      {
+        "decision_type": "Cambio de Requisito de Producto",
+        "primary_file": "prd_system.json",
+        "impact_analysis_required": [
+          "sdd_system.json (impacto técnico)",
+          "UI_UX.json (impacto en diseño)",
+          "backlog.json (impacto en tareas existentes)"
+        ],
+        "approval_process": "Stakeholder (veranoby) debe aprobar el cambio en `prd_system.json` antes de que se propague a otros archivos."
+      },
+      {
+        "decision_type": "Cambio de Arquitectura Técnica",
+        "primary_file": "sdd_system.json",
+        "impact_analysis_required": [
+          "prd_system.json (¿sigue cumpliendo el requisito?)",
+          "backlog.json (nuevas tareas de refactorización)"
+        ],
+        "approval_process": "El arquitecto líder (Claude) aprueba el cambio. El stakeholder debe ser notificado si hay impacto en el timeline."
+      }
+    ]
+  },
+  "update_procedures": {
+    "principle": "Nunca actualizar un archivo de forma aislada. Siempre seguir el rastro de referencias.",
+    "workflow": [
+      {
+        "step": 1,
+        "action": "Identificar el archivo SSOT primario para la actualización."
+      },
+      {
+        "step": 2,
+        "action": "Realizar el cambio en el archivo primario, actualizando su `metadata.version` y `metadata.changes`."
+      },
+      {
+        "step": 3,
+        "action": "Consultar la sección `boundaries_and_cross_references` del archivo modificado para identificar archivos dependientes."
+      },
+      {
+        "step": 4,
+        "action": "Navegar a los archivos dependientes y realizar las actualizaciones de conciliación necesarias."
+      },
+      {
+        "step": 5,
+        "action": "Crear/actualizar tareas en `backlog.json` para reflejar el trabajo realizado o por hacer."
+      }
+    ]
+  },
+  "strategic_advice_examples": [
+    {
+      "scenario": "El stakeholder pregunta: '¿Deberíamos añadir una función de chat en vivo?'",
+      "thought_process": [
+        "1. Consultar `prd_system.json` para los requisitos del MVP. El chat no está en el `mvp_scope`.",
+        "2. Consultar `sdd_system.json` sobre la arquitectura en tiempo real. La estrategia es 'WebSocket Mínimo' y explícitamente excluye el chat.",
+        "3. Consultar `priorities_memory_index.json` para ver las prioridades actuales. El foco está en la estabilidad del rendimiento y el sistema de apuestas.",
+        "4. Consultar `backlog.json` para ver la carga de trabajo actual. El equipo está al máximo de capacidad."
+      ],
+      "recommendation": "'No en este momento. Añadir chat contradice nuestra estrategia de arquitectura minimalista en tiempo real, desviaría recursos de las prioridades P0 como el rendimiento de la base de datos, y representa una expansión del alcance del MVP. Se puede registrar en el backlog para consideración post-lanzamiento.'"
+    }
+  ],
+  "system_health_and_maintenance_principles": {
+    "ssot_integrity": "Cada archivo debe ser la única fuente de verdad para su dominio definido. La duplicación de información debe ser evitada y en su lugar se deben usar referencias.",
+    "cross_referencing": "Cualquier nueva adición debe considerar sus dependencias. Si un nuevo componente de UI es añadido a `ui_ux_blueprint.json`, debe hacer referencia al requisito en `prd_system.json` que lo justifica.",
+    "regular_review": "El `backlog.json` y `monthly_report.json` deben ser revisados semanalmente para asegurar que el progreso está alineado con `priorities_memory_index.json` y `objectives_memory_index.json`.",
+    "cleanliness": "La información obsoleta en el `backlog.json` (tareas completadas hace más de un ciclo) debe ser archivada. Las `cross_references_to_migrate` deben ser eliminadas una vez que la migración y la fase de conciliación (Paso 3) estén completas."
+  },
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT sobre cómo usar, mantener y tomar decisiones dentro del sistema BRAIN 2.0.",
+    "references": "Este documento gobierna el uso de todos los demás archivos en el directorio `brain2/`."
+  }
+}

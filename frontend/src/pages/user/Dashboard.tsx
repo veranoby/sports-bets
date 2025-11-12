@@ -15,6 +15,7 @@ import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { eventsAPI } from "../../services/api";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
+import type { EventData } from "../../types";
 
 // Componentes compartidos
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -51,9 +52,9 @@ const Dashboard: React.FC = () => {
     const loadTodayEvents = async () => {
       setTodayEventsLoading(true);
       try {
-        const response = await eventsAPI.getEvents({ dateRange: "today" });
+        const response = await eventsAPI.getAll({ dateRange: "today" });
         if (response.success && response.data) {
-          setTodayEvents(response.data.events || []);
+          setTodayEvents((response.data as { events?: any[] }).events || []);
         }
       } catch (error) {
         console.error("Error loading today's events:", error);
@@ -65,9 +66,9 @@ const Dashboard: React.FC = () => {
     const loadUpcomingEvents = async () => {
       setUpcomingEventsLoading(true);
       try {
-        const response = await eventsAPI.getEvents({ category: "upcoming" });
+        const response = await eventsAPI.getAll({ category: "upcoming" });
         if (response.success && response.data) {
-          setUpcomingEvents(response.data.events || []);
+          setUpcomingEvents((response.data as { events?: any[] }).events || []);
         }
       } catch (error) {
         console.error("Error loading upcoming events:", error);
@@ -105,7 +106,7 @@ const Dashboard: React.FC = () => {
   // ✅ Datos computados simplificados (solo eventos)
   const { liveEvents } = useMemo(() => {
     const liveEvents =
-      allEvents?.filter((e) => e.status === "in-progress") || [];
+      (allEvents as EventData[] | undefined)?.filter((e) => e.status === "in-progress") || [];
     return { liveEvents };
   }, [allEvents]);
 
@@ -232,27 +233,30 @@ const Dashboard: React.FC = () => {
 
             {todayEvents.length > 0 ? (
               <div className="space-y-3">
-                {todayEvents.map((event) => (
+                {todayEvents.map((event) => {
+                  const typedEvent = event as EventData;
+                  return (
                   <div
-                    key={event.id}
-                    onClick={() => navigate(`/live-event/${event.id}`)}
+                    key={typedEvent.id}
+                    onClick={() => navigate(`/live-event/${typedEvent.id}`)}
                     className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
                   >
                     <div>
                       <h3 className="font-medium text-theme-primary">
-                        {event.name}
+                        {typedEvent.name}
                       </h3>
                       <p className="text-sm text-theme-light">
-                        {event.venue?.name}
+                        {typedEvent.venue?.name}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-theme-primary">
-                        {formatTime(new Date(event.scheduledDate))}
+                        {formatTime(new Date(typedEvent.scheduledDate))}
                       </p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-4 text-theme-light">
@@ -280,23 +284,25 @@ const Dashboard: React.FC = () => {
 
             {upcomingEvents.length > 0 ? (
               <div className="space-y-3">
-                {upcomingEvents.slice(0, 6).map((event) => (
+                {upcomingEvents.slice(0, 6).map((event) => {
+                  const typedEvent = event as EventData;
+                  return (
                   <div
-                    key={event.id}
-                    onClick={() => navigate(`/event/${event.id}`)}
+                    key={typedEvent.id}
+                    onClick={() => navigate(`/event/${typedEvent.id}`)}
                     className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
                   >
                     <div>
                       <h3 className="font-medium text-theme-primary">
-                        {event.name}
+                        {typedEvent.name}
                       </h3>
                       <p className="text-sm text-theme-light">
-                        {event.venue?.name}
+                        {typedEvent.venue?.name}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-theme-primary">
-                        {new Date(event.scheduledDate).toLocaleDateString(
+                        {new Date(typedEvent.scheduledDate).toLocaleDateString(
                           "es-ES",
                           {
                             day: "2-digit",
@@ -305,7 +311,7 @@ const Dashboard: React.FC = () => {
                         )}
                       </p>
                       <p className="text-xs text-theme-light">
-                        {new Date(event.scheduledDate).toLocaleTimeString(
+                        {new Date(typedEvent.scheduledDate).toLocaleTimeString(
                           "es-ES",
                           {
                             hour: "2-digit",
@@ -315,7 +321,8 @@ const Dashboard: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-4 text-theme-light">

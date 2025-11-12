@@ -27,8 +27,9 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = useState<SubscriptionFormData>({
-    planType:
-      (subscription?.type === "free" ? "daily" : subscription?.type) || "daily",
+    planType: (subscription && typeof subscription.plan !== 'undefined' 
+      ? (subscription.plan === "free" || subscription.plan === "basic" ? "daily" : "monthly")
+      : "daily") as "daily" | "monthly", // Explicit cast to satisfy TypeScript
     status: "cancelled" as const,
     action: "none",
   });

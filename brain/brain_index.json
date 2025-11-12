@@ -1,0 +1,84 @@
+{
+  "file_purposes": {
+    "brain_index.json": {
+      "purpose": "Meta-cerebro y mapa de navegación del sistema BRAIN v2.0.",
+      "use_case": "Consultar para entender la estructura del sistema, el propósito de cada archivo y cómo interactúan.",
+      "update_frequency": "Baja. Solo se actualiza si la arquitectura del sistema BRAIN cambia."
+    },
+    "priorities_memory_index.json": {
+      "purpose": "Jerarquía estratégica y asignación de recursos.",
+      "use_case": "Definir y consultar las prioridades de desarrollo (P0-P3) y el roadmap de implementación.",
+      "update_frequency": "Media. Se actualiza al inicio de cada sprint o cuando cambian las prioridades de negocio."
+    },
+    "backlog.json": {
+      "purpose": "Gestión táctica de desarrollo y reportes de trabajo de IA.",
+      "use_case": "Consultar para ver el estado granular de las tareas y los reportes de sesiones de IA.",
+      "update_frequency": "Alta. Se actualiza después de cada sesión de trabajo de una IA."
+    },
+    "monthly_report.json": {
+      "purpose": "Métricas de progreso y reporting financiero.",
+      "use_case": "Generar y consultar reportes mensuales sobre KPIs, progreso de hitos y presupuesto.",
+      "update_frequency": "Mensual."
+    },
+    "objectives_memory_index.json": {
+      "purpose": "Objetivos estratégicos y métricas de éxito.",
+      "use_case": "Definir los OKRs del trimestre y las métricas clave para medir el éxito del proyecto.",
+      "update_frequency": "Baja. Se actualiza trimestralmente o anualmente."
+    },
+    "prd_system.json": {
+      "purpose": "Requisitos del producto y contexto de negocio.",
+      "use_case": "Entender el 'qué' y el 'porqué' del producto, incluyendo stakeholders, problemas a resolver y lógica de negocio.",
+      "update_frequency": "Media. Se actualiza cuando se definen nuevas funcionalidades o cambia la estrategia de producto."
+    },
+    "sdd_system.json": {
+      "purpose": "Diseño del sistema y arquitectura técnica.",
+      "use_case": "Entender el 'cómo' técnico del producto, incluyendo arquitectura, decisiones de diseño y flujos de automatización.",
+      "update_frequency": "Media. Se actualiza cuando se toman decisiones de arquitectura importantes."
+    },
+    "UI_UX.json": {
+      "purpose": "Decisiones de diseño y filosofía de experiencia de usuario.",
+      "use_case": "Definir los principios de diseño, las interfaces basadas en roles y los flujos de usuario.",
+      "update_frequency": "Media. Se actualiza durante las fases de diseño de nuevas funcionalidades."
+    },
+    "guide_for_using_the_system.json": {
+      "purpose": "Manual operativo del sistema BRAIN.",
+      "use_case": "Aprender a consultar, actualizar y mantener el sistema BRAIN de forma efectiva.",
+      "update_frequency": "Baja. Se actualiza cuando se mejoran los procedimientos del sistema."
+    },
+    "ui_ux_blueprint.json": {
+      "purpose": "Blueprint técnico-visual de diseño.",
+      "use_case": "Consultar las especificaciones detalladas de la librería de componentes, flujos y roadmap de UI/UX.",
+      "update_frequency": "Alta. Se actualiza a medida que el sistema de diseño evoluciona."
+    },
+    "multi_ai_coordination_strategy.json": {
+      "purpose": "La 'Constitución' que gobierna la interacción de todas las IAs con el proyecto.",
+      "use_case": "Lectura OBLIGATORIA para cualquier IA al inicio de una sesión para entender roles, reglas y protocolos.",
+      "update_frequency": "Baja. Se actualiza solo si cambian los protocolos de gobernanza de IA."
+    },
+    "api_endpoints_reference.json": {
+      "purpose": "Artefacto técnico. Documentación de referencia de los endpoints de la API.",
+      "use_case": "Consultar para entender la firma, payload y respuesta de cada endpoint. NO se migra, solo se referencia.",
+      "update_frequency": "N/A (gestionado externamente)."
+    },
+    "typescript_interfaces_reference.json": {
+      "purpose": "Artefacto técnico. Documentación de referencia de las interfaces de TypeScript.",
+      "use_case": "Consultar para entender las estructuras de datos del proyecto. NO se migra, solo se referencia.",
+      "update_frequency": "N/A (gestionado externamente)."
+    }
+  },
+  "query_patterns": {
+    "decision_tecnica": "Para decisiones de arquitectura, consulta `sdd_system.json` y `prd_system.json` para alinear con los requisitos.",
+    "decision_producto": "Para decisiones de producto, consulta `prd_system.json`, `UI_UX.json` y `priorities_memory_index.json`.",
+    "planificacion_sprint": "Para planificar un sprint, consulta `backlog.json` para tareas existentes y `priorities_memory_index.json` para la estrategia general.",
+    "onboarding_ia": "Para iniciar una sesión de IA, es OBLIGATORIO leer `multi_ai_coordination_strategy.json` primero."
+  },
+  "update_scenarios": {
+    "nueva_funcionalidad": "Actualizar `prd_system.json`, `sdd_system.json`, `UI_UX.json` y `backlog.json`.",
+    "cambio_prioridad": "Actualizar `priorities_memory_index.json` y reordenar `backlog.json`.",
+    "fin_sesion_ia": "Añadir un reporte de trabajo a `backlog.json`."
+  },
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para el propósito, uso y frecuencia de actualización de cada archivo del sistema BRAIN.",
+    "references": "Este archivo define metadatos sobre otros archivos y no contiene datos del proyecto en sí. Referencia los artefactos técnicos `api_endpoints_reference.json` y `typescript_interfaces_reference.json` sin contener sus datos."
+  }
+}

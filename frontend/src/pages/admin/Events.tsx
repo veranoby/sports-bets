@@ -46,7 +46,7 @@ import { eventsAPI, fightsAPI, betsAPI } from "../../config/api";
 // Hooks
 import { useAuth } from "../../contexts/AuthContext";
 import useMultiSSE from "../../hooks/useMultiSSE";
-import type { Event, Fight, EventDetailData } from "../../types";
+import type { Event, Fight } from "../../types";
 
 const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ const AdminEventsPage: React.FC = () => {
 
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [eventDetailData, setEventDetailData] =
-    useState<EventDetailData | null>(null);
+    useState<{ event: Event; fights: Fight[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
@@ -159,6 +159,7 @@ const AdminEventsPage: React.FC = () => {
           setEventDetailData((prev) => ({
             ...prev,
             event: { ...prev.event, streamStatus: status },
+            fights: prev.fights || [] // Preserve existing fights
           }));
         }
       }
@@ -241,6 +242,7 @@ const AdminEventsPage: React.FC = () => {
           setEventDetailData({
             ...eventDetailData,
             event: { ...eventDetailData.event, ...response.data },
+            fights: eventDetailData.fights || [] // Preserve existing fights
           });
         }
       }
@@ -266,7 +268,11 @@ const AdminEventsPage: React.FC = () => {
   const handleEventUpdated = (updatedEvent: Event) => {
     setEvents(events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)));
     if (eventDetailData && eventDetailData.event.id === updatedEvent.id) {
-      setEventDetailData({ ...eventDetailData, event: updatedEvent });
+      setEventDetailData({ 
+        ...eventDetailData, 
+        event: updatedEvent,
+        fights: eventDetailData.fights || [] // Preserve existing fights
+      });
     }
     setIsEditEventModalOpen(false);
   };
@@ -529,7 +535,7 @@ const AdminEventsPage: React.FC = () => {
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
                           <span>
-                            {event.operator?.username || "Sin asignar"}
+                            {typeof event.operator === 'object' && event.operator?.username ? event.operator.username : typeof event.operator === 'string' ? event.operator : "Sin asignar"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -827,11 +833,23 @@ const AdminEventsPage: React.FC = () => {
                       <div className="space-y-6">
                         {/* Event Workflow Controls - NEW */}
                         <EventWorkflowControls
-                          event={eventDetailData.event}
-                          onEventUpdate={(updatedEvent) => {
+                          eventId={eventDetailData.event.id}
+                          operatorId={eventDetailData.event.operatorId || user?.id || ''}
+                          currentStatus={
+                            eventDetailData.event.status === 'upcoming' ? 'scheduled' :
+                            eventDetailData.event.status === 'live' ? 'in-progress' :
+                            eventDetailData.event.status
+                          }
+                          onStatusChange={(newStatus, message) => {
+                            // Update local state after status change
+                            const updatedEvent = {
+                              ...eventDetailData.event,
+                              status: newStatus as "scheduled" | "cancelled" | "upcoming" | "live" | "completed" | "betting" | "in-progress"
+                            };
                             setEventDetailData({
                               ...eventDetailData,
                               event: updatedEvent,
+                              fights: eventDetailData.fights || [] // Preserve existing fights
                             });
                             setEvents(
                               events.map((e) =>
@@ -839,6 +857,8 @@ const AdminEventsPage: React.FC = () => {
                               ),
                             );
                           }}
+                          currentEvent={eventDetailData.event}
+                          fights={eventDetailData.event.fights || []}
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -878,8 +898,11 @@ const AdminEventsPage: React.FC = () => {
                                   Operador Asignado
                                 </label>
                                 <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.operator?.username ||
-                                    "Sin asignar"}
+                                  {typeof eventDetailData.event.operator === "object" && eventDetailData.event.operator?.username
+                                    ? eventDetailData.event.operator.username
+                                    : typeof eventDetailData.event.operator === "string"
+                                      ? eventDetailData.event.operator
+                                      : "Sin asignar"}
                                 </p>
                               </div>
                             </div>
@@ -913,7 +936,7 @@ const AdminEventsPage: React.FC = () => {
                                   Total Apuestas
                                 </label>
                                 <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.totalBets}
+                                  {eventDetailData.event.activeBets || 0}
                                 </p>
                               </div>
                               <div>
@@ -922,7 +945,7 @@ const AdminEventsPage: React.FC = () => {
                                 </label>
                                 <p className="text-sm text-gray-900">
                                   $
-                                  {eventDetailData.event.totalPrizePool.toLocaleString()}
+                                  {(eventDetailData.event.totalPrizePool || 0).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -954,13 +977,13 @@ const AdminEventsPage: React.FC = () => {
                                 </div>
                               </div>
 
-                              {eventDetailData.event.streamUrl && (
+                              {eventDetailData.event.liveStream?.url && (
                                 <div>
                                   <label className="block text-sm font-medium text-gray-500">
                                     URL del Stream
                                   </label>
                                   <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
-                                    {eventDetailData.event.streamUrl}
+                                    {eventDetailData.event.liveStream.url}
                                   </p>
                                 </div>
                               )}
@@ -1110,13 +1133,13 @@ const AdminEventsPage: React.FC = () => {
                           <Card
                             variant="stat"
                             title="Usuarios Conectados"
-                            value={eventDetailData.event.totalBets} // Assuming totalBets can represent connected users for now
+                            value={eventDetailData.event.currentViewers || 0} // Using currentViewers for connected users metric
                             color="blue"
                           />
                           <Card
                             variant="stat"
                             title="Apuestas Activas"
-                            value={eventDetailData.event.totalBets} // Assuming totalBets can represent active bets for now
+                            value={eventDetailData.event.activeBets || 0} // Using activeBets for active bets metric
                             color="yellow"
                           />
                           <Card

@@ -181,10 +181,10 @@ const AdminGallerasPage: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Gestión de Galleras
+            Gestión de Criaderos
           </h1>
           <p className="text-gray-600">
-            {combinedData.length} galleras registradas
+            {combinedData.length} criaderos registrados
           </p>
         </div>
         <button
@@ -192,7 +192,7 @@ const AdminGallerasPage: React.FC = () => {
           className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Crear Gallera
+          Crear Criadero
         </button>
       </div>
 
@@ -207,7 +207,7 @@ const AdminGallerasPage: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Buscar por usuario, email o nombre de la gallera..."
+              placeholder="Buscar por usuario, email o nombre del criadero..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -322,10 +322,10 @@ const AdminGallerasPage: React.FC = () => {
           <div className="text-center py-12 text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2" />
             <h3 className="text-lg font-semibold">
-              No se encontraron galleras
+              No se encontraron criaderos
             </h3>
             <p className="text-sm">
-              No hay galleras que coincidan con la búsqueda.
+              No hay criaderos que coincidan con la búsqueda.
             </p>
           </div>
         )}

@@ -21,10 +21,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "ui-vendor": ["lucide-react", "tailwindcss"],
-          admin: ["./src/pages/admin/*"],
-          operator: ["./src/pages/operator/*"],
-          venue: ["./src/pages/venue/*"],
+          "ui-vendor": ["lucide-react"],
         },
       },
     },

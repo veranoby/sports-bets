@@ -42,7 +42,7 @@ const GalleraDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) {
-      setError("No se proporcionó un ID de institución.");
+      setError("No se proporcionó un ID de criadero.");
       setLoading(false);
       return;
     }
@@ -53,7 +53,7 @@ const GalleraDetailPage: React.FC = () => {
         const galleraResponse = await usersAPI.getById(id);
         if (!galleraResponse.success) {
           throw new Error(
-            galleraResponse.error || "Error al cargar institución",
+            galleraResponse.error || "Error al cargar criadero",
           );
         }
         const galleraData = galleraResponse.data as any;
@@ -77,7 +77,7 @@ const GalleraDetailPage: React.FC = () => {
         }
       } catch (err) {
         console.error("Error fetching gallera data:", err);
-        setError("No se pudo cargar la institución. Inténtalo de nuevo.");
+        setError("No se pudo cargar el criadero. Inténtalo de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -117,7 +117,7 @@ const GalleraDetailPage: React.FC = () => {
   if (loading)
     return (
       <div className="page-background">
-        <LoadingSpinner text="Cargando institución..." className="mt-20" />
+        <LoadingSpinner text="Cargando criadero..." className="mt-20" />
       </div>
     );
 
@@ -131,7 +131,7 @@ const GalleraDetailPage: React.FC = () => {
               onClick={() => navigate("/galleras")}
               className="btn-primary"
             >
-              Volver a Instituciones
+              Volver a Criaderos
             </button>
           </div>
         </Card>
@@ -142,15 +142,15 @@ const GalleraDetailPage: React.FC = () => {
     return (
       <div className="page-background p-4">
         <EmptyState
-          title="Institución no encontrada"
-          description="La institución que buscas no existe o ha sido eliminada."
+          title="Criadero no encontrado"
+          description="El criadero que buscas no existe o ha sido eliminada."
           icon={<Shield className="w-12 h-12" />}
           action={
             <button
               onClick={() => navigate("/galleras")}
               className="btn-primary"
             >
-              Volver a Instituciones
+              Volver a Criaderos
             </button>
           }
         />
@@ -169,7 +169,7 @@ const GalleraDetailPage: React.FC = () => {
   const description =
     gallera.profileInfo?.galleraDescription ||
     gallera.profileInfo?.description ||
-    "Institución criadora profesional";
+    "Criadero profesional";
   const establishedDate = gallera.createdAt;
   const isCertified =
     gallera.profileInfo?.verificationLevel === "full" || false;
@@ -192,7 +192,7 @@ const GalleraDetailPage: React.FC = () => {
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors btn-primary !rounded-l-none btn-primary !rounded-l-none"
         >
           <ChevronLeft className="w-4 h-4" />
-          Volver a Instituciones
+          Volver a Criaderos
         </button>
 
         {/* Gallera Header */}
@@ -265,7 +265,7 @@ const GalleraDetailPage: React.FC = () => {
             gallera.profileInfo.images.length > 0 && (
               <ImageCarouselViewer
                 images={gallera.profileInfo.images}
-                title="Galería de la Institución"
+                title="Galería del Criadero"
               />
             )}
         </div>
@@ -325,7 +325,7 @@ const GalleraDetailPage: React.FC = () => {
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
-            Artículos y Conocimientos
+            Artículos del Criadero
           </h2>
 
           {publishedArticles.length > 0 ? (
@@ -374,7 +374,7 @@ const GalleraDetailPage: React.FC = () => {
         {/* Institution Information */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4">
-            Información de la Institución
+            Información del Criadero
           </h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">

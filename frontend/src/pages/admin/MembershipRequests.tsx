@@ -41,8 +41,8 @@ interface MembershipRequest {
       phoneNumber?: string;
     };
     subscription?: {
-      status?: string;
-      type?: string;
+      status?: "active" | "cancelled" | "expired" | "pending";
+      type?: "daily" | "monthly";
       manual_expires_at?: string;
     };
   };

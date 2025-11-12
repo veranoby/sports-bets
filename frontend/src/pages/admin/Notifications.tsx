@@ -328,7 +328,7 @@ const Notifications: React.FC = () => {
         <div className="overflow-hidden">
           {filteredNotifications.length === 0 ? (
             <EmptyState
-              icon={() => <Bell className="w-12 h-12 text-gray-400" />}
+              icon={<Bell className="w-12 h-12 text-gray-400" />}
               title="No hay notificaciones"
               description="No se encontraron notificaciones que coincidan con los filtros."
             />
@@ -526,7 +526,7 @@ const CreateNotificationForm: React.FC<{
     const notificationData = {
       title: formData.title,
       message: formData.message,
-      type: formData.type,
+      type: formData.type as "bet" | "general" | "event" | "system",
       userId: formData.userId || undefined,
       scheduledFor: formData.scheduledFor || undefined,
     };

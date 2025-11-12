@@ -62,9 +62,11 @@ const AdminOperatorsPage: React.FC = () => {
 
   // Filtrar operadores por término de búsqueda
   const filteredOperators = operators.filter(
-    (op) =>
-      op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      op.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    (op) => op && 
+      op.username && 
+      (typeof op.username === 'string') && 
+      (op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      op.email.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   if (loading) return <LoadingSpinner text="Cargando operadores..." />;
@@ -117,20 +119,12 @@ const AdminOperatorsPage: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {typeof operator.username === "string"
-                          ? operator.username.charAt(0).toUpperCase()
-                          : typeof operator === "object" && operator.username
-                            ? operator.username.charAt(0).toUpperCase()
-                            : "U"}
+                        {operator.username?.charAt(0)?.toUpperCase() || "U"}
                       </span>
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        {typeof operator.username === "string"
-                          ? operator.username
-                          : typeof operator === "object" && operator.username
-                            ? operator.username
-                            : "Unknown Operator"}
+                        {operator.username || "Unknown Operator"}
                       </h3>
                       <p className="text-sm text-gray-500">{operator.email}</p>
                     </div>

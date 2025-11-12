@@ -1,177 +1,164 @@
 {
-  "metadata": {
-    "purpose": "System design and technical architecture for GalloBets platform - PRODUCTION READY",
-    "updated": "2025-09-28",
-    "version": "3.0",
-    "status": "✅ PRODUCTION DEPLOYMENT READY",
-    "launch_timeline": "24-hour production launch approved",
-    "cross_references": ["prd_system.json", "backlog.json", "multi_ai_coordination_strategy.json", "multi_ai_decision_matrix.json"]
-  },
-  
   "technical_architecture": {
     "database_layer": {
       "primary_database": {
         "type": "PostgreSQL",
         "hosting": "Neon.tech",
         "version": "PostgreSQL 17.5",
-        "rationale": "Managed PostgreSQL with excellent performance and scaling",
-        "connection_management": "Sequelize ORM with optimized pooling",
+        "rationale": "Managed PostgreSQL con excelente rendimiento y escalabilidad.",
+        "connection_management": "Sequelize ORM con pooling optimizado.",
         "production_status": {
-          "query_performance": "✅ OPTIMIZED - <500ms target achieved",
-          "connection_pool": "✅ CONFIGURED - 20 max, 5 min connections",
-          "connection_errors": "✅ RESOLVED - No ETIMEDOUT in production",
-          "environment": "✅ PRODUCTION - JWT secrets and env configured"
+          "query_performance": "✅ OPTIMIZADO - Objetivo <500ms logrado.",
+          "connection_pool": "✅ CONFIGURADO - 20 max, 5 min conexiones.",
+          "connection_errors": "✅ RESUELTO - No hay ETIMEDOUT en producción.",
+          "environment": "✅ PRODUCCIÓN - Secretos JWT y env configurados."
         }
       },
       "performance_optimizations": {
         "P0_critical": [
-          "Index optimization for slow queries",
-          "Connection pool configuration tuning",
-          "Query caching for hot data",
-          "Lazy loading implementation"
+          "Optimización de índices para consultas lentas",
+          "Ajuste de configuración del pool de conexiones",
+          "Caching de consultas para datos calientes",
+          "Implementación de carga perezosa"
         ],
         "success_metrics": [
-          "95% queries <500ms",
-          "Zero ETIMEDOUT in production",
-          "Stable connection pool"
+          "95% de consultas <500ms",
+          "Cero ETIMEDOUT en producción",
+          "Pool de conexiones estable"
         ]
       }
     },
-    
     "backend_architecture": {
       "framework": "Node.js + Express + TypeScript",
       "orm": "Sequelize",
-      "authentication": "JWT with role-based access control",
+      "authentication": "JWT con control de acceso basado en roles",
       "real_time_architecture": {
-        "strategy": "Hybrid SSE + Minimal WebSocket",
-        "status": "✅ IMPLEMENTED - Production-ready SSE service with 8 admin channels",
+        "strategy": "Híbrido SSE + WebSocket Mínimo",
+        "status": "✅ IMPLEMENTADO - Servicio SSE listo para producción con 8 canales de administración.",
         "sse_usage": [
-          "Admin real-time updates (IMPLEMENTED)",
-          "System monitoring (IMPLEMENTED)",
-          "Bet updates and notifications (IMPLEMENTED)",
-          "Fight status changes (IMPLEMENTED)",
-          "Event subscriptions (IMPLEMENTED)"
+          "Actualizaciones en tiempo real de administración (IMPLEMENTADO)",
+          "Monitoreo del sistema (IMPLEMENTADO)",
+          "Actualizaciones de apuestas y notificaciones (IMPLEMENTADO)",
+          "Cambios de estado de peleas (IMPLEMENTADO)",
+          "Suscripciones a eventos (IMPLEMENTADO)"
         ],
         "websocket_usage": [
-          "PAGO/DOY proposals ONLY",
-          "3-minute timeout bidirectional",
-          "No wallet operations",
-          "No dynamic suggestions"
+          "SOLO para propuestas PAGO/DOY",
+          "Bidireccional con timeout de 3 minutos",
+          "No operaciones de billetera",
+          "No sugerencias dinámicas"
         ],
-        "rationale": "SSE simplicity for most real-time needs, WebSocket only where bidirectional required"
+        "rationale": "Simplicidad de SSE para la mayoría de las necesidades en tiempo real, WebSocket solo donde se requiere bidireccionalidad."
       },
-      "api_design": "RESTful with SSE supplements"
+      "api_design": "RESTful con suplementos SSE"
     },
-    
     "frontend_architecture": {
       "framework": "React + TypeScript",
       "state_management": "React Context + hooks",
-      "routing": "React Router with role-based protection",
+      "routing": "React Router con protección basada en roles",
       "styling": "Tailwind CSS",
       "build_system": "Vite",
       "real_time_integration": {
-        "useSSE_hook": "Custom hook with reconnection logic",
-        "event_source": "Automatic retry with exponential backoff",
-        "websocket_minimal": "Only for PAGO/DOY proposals"
+        "useSSE_hook": "Hook personalizado con lógica de reconexión",
+        "event_source": "Reintento automático con retroceso exponencial",
+        "websocket_minimal": "Solo para propuestas PAGO/DOY"
       }
     },
-    
     "streaming_infrastructure": {
-      "protocol": "RTMP input + HLS output",
-      "integration": "OBS Studio + Stream keys",
-      "mvp_solution": "VPS with Nginx-RTMP (25-50 viewers)",
-      "growth_solution": "Red5 Cloud or Wowza",
-      "monitoring": "Real-time bitrate and viewer analytics"
+      "protocol": "Entrada RTMP + Salida HLS",
+      "integration": "OBS Studio + Claves de streaming",
+      "mvp_solution": "VPS con Nginx-RTMP (25-50 espectadores)",
+      "growth_solution": "Red5 Cloud o Wowza",
+      "monitoring": "Análisis de bitrate y espectadores en tiempo real"
     }
   },
-  
   "database_architecture": {
     "core_entities": {
       "users": {
-        "purpose": "Authentication and role management",
+        "purpose": "Autenticación y gestión de roles",
         "roles": ["admin", "operator", "venue", "gallera", "user"],
         "hierarchy": "admin > operator > venue/gallera > user",
         "critical_fields": ["id", "username", "email", "role", "walletBalance"]
       },
       "events": {
-        "purpose": "Cockfighting events with streaming",
+        "purpose": "Eventos de peleas de gallos con streaming",
         "key_fields": ["id", "title", "venueId", "operatorId", "streamKey", "status"],
-        "operator_assignment": "Operators manage assigned events only"
+        "operator_assignment": "Los operadores gestionan solo los eventos asignados."
       },
       "fights": {
-        "purpose": "Individual fights with temporal betting windows",
+        "purpose": "Peleas individuales con ventanas de apuestas temporales",
         "key_fields": ["id", "eventId", "status", "bettingStartsAt", "bettingEndsAt"],
         "temporal_flow": "upcoming → betting → live → completed",
-        "critical_logic": "Betting ONLY during status='betting'"
+        "critical_logic": "Apuestas SOLO durante status='betting'"
       },
       "bets": {
-        "purpose": "P2P betting system",
+        "purpose": "Sistema de apuestas P2P",
         "types": ["PAGO", "DOY"],
         "statuses": ["pending", "matched", "won", "lost", "cancelled"],
-        "pago_doy_logic": "Proposals via minimal WebSocket with 3-min timeout"
+        "pago_doy_logic": "Propuestas vía WebSocket mínimo con timeout de 3 minutos."
       },
       "subscriptions": {
-        "purpose": "Payment and access control",
+        "purpose": "Pago y control de acceso",
         "payment_provider": "Kushki",
         "types": ["daily", "weekly", "monthly"],
-        "validation": "Required for stream access",
+        "validation": "Requerido para acceso a streaming",
         "user_request_flow": {
           "frontend_components": [
-            "/frontend/src/pages/user/Profile.tsx - Shows current status + request button",
-            "/frontend/src/components/user/MembershipSection.tsx - Handles request creation",
-            "/frontend/src/services/api.ts - membershipRequestsAPI for CRUD operations"
+            "/frontend/src/pages/user/Profile.tsx - Muestra estado actual + botón de solicitud",
+            "/frontend/src/components/user/MembershipSection.tsx - Maneja la creación de solicitudes",
+            "/frontend/src/services/api.ts - membershipRequestsAPI para operaciones CRUD"
           ],
           "backend_endpoints": [
-            "POST /api/membership-requests - Create new request",
-            "GET /api/membership-requests/my-requests - Get user's requests", 
-            "GET /api/membership-requests/pending - Get all pending requests (admin only)"
+            "POST /api/membership-requests - Crear nueva solicitud",
+            "GET /api/membership-requests/my-requests - Obtener solicitudes del usuario",
+            "GET /api/membership-requests/pending - Obtener todas las solicitudes pendientes (solo admin)"
           ],
-          "access_logic": "Users with active subscription can access premium content",
+          "access_logic": "Los usuarios con suscripción activa pueden acceder a contenido premium.",
           "request_validation": [
-            "User must have phone number in profile",
-            "User cannot have another pending request",
-            "User must be on free tier to request upgrade"
+            "El usuario debe tener un número de teléfono registrado en el perfil",
+            "Solo se permite una solicitud pendiente por usuario a la vez",
+            "No se puede solicitar si el usuario ya tiene una suscripción activa (debe esperar la expiración)",
+            "No se puede solicitar el nivel 'gratis' (asignado automáticamente al expirar/cancelar)"
           ]
         },
         "admin_management": {
           "frontend_components": [
-            "/frontend/src/pages/admin/MembershipRequests.tsx - Admin request dashboard",
-            "/frontend/src/components/admin/SubscriptionTabs.tsx - Direct subscription assignment",
+            "/frontend/src/pages/admin/MembershipRequests.tsx - Dashboard de solicitudes de administración",
+            "/frontend/src/components/admin/SubscriptionTabs.tsx - Asignación directa de suscripciones",
             "/frontend/src/services/api.ts - membershipRequestsAPI.adminComplete/Reject"
           ],
           "backend_endpoints": [
-            "PATCH /api/membership-requests/:id/complete - Approve request",
-            "PATCH /api/membership-requests/:id/reject - Reject request with reason",
-            "PUT /api/subscriptions/admin/:userId/membership - Direct assignment"
+            "PATCH /api/membership-requests/:id/complete - Aprobar solicitud",
+            "PATCH /api/membership-requests/:id/reject - Rechazar solicitud con razón",
+            "PUT /api/subscriptions/admin/:userId/membership - Asignación directa"
           ],
           "admin_controls": [
-            "Approve/reject user requests",
-            "Directly assign subscriptions to any user",
-            "View all pending requests with user details",
-            "Immediate effect on user access permissions"
+            "Aprobar/rechazar solicitudes de usuario",
+            "Asignar suscripciones directamente a cualquier usuario",
+            "Ver todas las solicitudes pendientes con detalles del usuario",
+            "Efecto inmediato en los permisos de acceso del usuario"
           ]
         },
         "expiration_handling": {
           "actual_implementation": [
-            "backend/src/routes/subscriptions.ts - Query-time validation with expiresAt > now",
-            "Sequelize where clauses filter expired subscriptions (Op.gt)",
-            "NO middleware validation in auth.ts",
-            "NO background cron job service"
+            "backend/src/routes/subscriptions.ts - Validación en tiempo de consulta con expiresAt > now",
+            "Cláusulas `where` de Sequelize filtran suscripciones expiradas (Op.gt)",
+            "NO validación de middleware en auth.ts",
+            "NO servicio cron de fondo"
           ],
           "validation_locations": [
-            "subscriptions.ts:76-78 - Active subscription check",
-            "subscriptions.ts:221,288 - List active subscriptions filter"
+            "subscriptions.ts:76-78 - Verificación de suscripción activa",
+            "subscriptions.ts:221,288 - Filtro de lista de suscripciones activas"
           ],
           "user_experience": [
-            "Expiration detected on next subscription query",
-            "User retains access until profile/subscription endpoint called",
-            "Frontend checks GET /users/profile for subscription status",
-            "NO real-time automatic expiration"
+            "Expiración detectada en la siguiente consulta de suscripción",
+            "El usuario mantiene el acceso hasta la próxima actualización del perfil/endpoint de suscripción",
+            "El frontend verifica GET /users/profile para el estado de la suscripción",
+            "NO expiración automática en tiempo real"
           ]
         }
       }
     },
-    
     "performance_critical_indexes": [
       "users.role + users.is_active",
       "events.status + events.operatorId",
@@ -179,278 +166,158 @@
       "bets.status + bets.fightId",
       "subscriptions.userId + subscriptions.status"
     ],
-
     "query_patterns_corrected": {
-      "note": "✅ CORRECTED 2025-10-18: Fixed query inversion for role-based data fetching",
+      "note": "✅ CORREGIDO 2025-10-18: Inversión de consulta corregida para la obtención de datos basada en roles.",
       "venue_listing": {
-        "incorrect_pattern": "Venue.findAndCountAll() → LEFT JOIN users (venues table as primary source)",
-        "corrected_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (users table as source of truth)",
+        "incorrect_pattern": "Venue.findAndCountAll() → LEFT JOIN users (tabla de venues como fuente primaria)",
+        "corrected_pattern": "User.findAndCountAll({role:'venue', isActive:true}) → LEFT JOIN venues (tabla de usuarios como fuente de verdad)",
         "file": "backend/src/routes/venues.ts:46-130",
-        "impact": "All venue users now visible including those without extended venues records"
+        "impact": "Todos los usuarios de venues ahora visibles, incluidos aquellos sin registros extendidos de venues."
       },
       "gallera_listing": {
-        "incorrect_pattern": "Gallera.findAndCountAll() → LEFT JOIN users (galleras table as primary source)",
-        "corrected_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (users table as source of truth)",
+        "incorrect_pattern": "Gallera.findAndCountAll() → LEFT JOIN users (tabla de galleras como fuente primaria)",
+        "corrected_pattern": "User.findAndCountAll({role:'gallera', isActive:true}) → LEFT JOIN galleras (tabla de usuarios como fuente de verdad)",
         "file": "backend/src/routes/galleras.ts:24-107",
-        "impact": "All gallera users now visible including those without extended galleras records"
+        "impact": "Todos los usuarios de galleras ahora visibles, incluidos aquellos sin registros extendidos de galleras."
       },
-      "design_principle": "Query from users table (source of truth for roles) → LEFT JOIN detail tables (extended info). Never invert."
+      "design_principle": "Consultar desde la tabla de usuarios (fuente de verdad para roles) → LEFT JOIN tablas de detalle (información extendida). Nunca invertir."
     }
   },
-  
   "application_components": {
     "admin_environment": {
-      "status": "85% complete",
-      "architecture": "Shared environment with role-based restrictions",
+      "status": "85% completo",
+      "architecture": "Entorno compartido con restricciones basadas en roles",
       "components": {
-        "SystemMonitoring": "SSE real-time system stats",
-        "UserManagement": "Full CRUD for all roles",
-        "EventManagement": "Complete event lifecycle",
-        "SubscriptionMonitoring": "Payment and access tracking"
+        "SystemMonitoring": "Estadísticas del sistema en tiempo real SSE",
+        "UserManagement": "CRUD completo para todos los roles",
+        "EventManagement": "Ciclo de vida completo del evento",
+        "SubscriptionMonitoring": "Seguimiento de pagos y acceso"
       }
     },
-    
     "operator_dashboard": {
-      "status": "In development",
-      "architecture": "Limited admin interface",
+      "status": "En desarrollo",
+      "architecture": "Interfaz de administración limitada",
       "restrictions": [
-        "Cannot create/modify admin or operator users",
-        "Can only manage assigned events",
-        "Limited to venue/gallera/user creation",
-        "No financial access"
+        "No puede crear/modificar usuarios administradores u operadores",
+        "Solo puede gestionar eventos asignados",
+        "Limitado a la creación de venues/galleras/usuarios",
+        "Sin acceso financiero"
       ],
       "components": {
-        "OperatorDashboard": "Main interface",
-        "EventManagement": "For assigned events only",
-        "StreamingControls": "Start/stop/monitor streams",
-        "FightControl": "Manage fight status transitions"
+        "OperatorDashboard": "Interfaz principal",
+        "EventManagement": "Solo para eventos asignados",
+        "StreamingControls": "Iniciar/detener/monitorear transmisiones",
+        "FightControl": "Gestionar transiciones de estado de peleas"
       }
     },
-    
     "betting_system": {
-      "status": "Architecture defined",
+      "status": "Arquitectura definida",
       "components": {
-        "CurrentBettingPanel": "Active fight betting interface",
-        "BetCard": "Individual bet display/interaction",
-        "FightStatusIndicator": "Real-time status with countdown",
-        "PAGODOYModal": "Proposal creation with timeout"
+        "CurrentBettingPanel": "Interfaz de apuestas de peleas activas",
+        "BetCard": "Visualización/interacción de apuestas individuales",
+        "FightStatusIndicator": "Estado en tiempo real con cuenta regresiva",
+        "PAGODOYModal": "Creación de propuestas con timeout"
       },
-      "real_time": "SSE for updates, WebSocket for proposals only"
+      "real_time": "SSE para actualizaciones, WebSocket para propuestas solo"
     },
-    
     "streaming_system": {
-      "status": "70% complete",
+      "status": "70% completo",
       "implemented": [
-        "RTMP server configuration",
-        "Stream key generation",
-        "Basic OBS integration"
+        "Configuración del servidor RTMP",
+        "Generación de claves de streaming",
+        "Integración básica de OBS"
       ],
       "pending": [
-        "End-to-end testing",
-        "Viewer authentication",
-        "Performance optimization",
-        "Analytics dashboard"
+        "Pruebas de extremo a extremo",
+        "Autenticación de espectadores",
+        "Optimización del rendimiento",
+        "Dashboard de análisis"
       ]
     }
   },
-  
-  "critical_business_logic": {
+  "automation_workflows": {
     "fight_temporal_transitions": {
-      "rule": "Strict progression: upcoming → betting → live → completed",
-      "validation": "Cannot skip states or go backwards",
-      "enforcement": "Backend validation + UI restrictions"
+      "rule": "Progresión estricta: upcoming → betting → live → completed",
+      "validation": "No se pueden omitir estados ni retroceder",
+      "enforcement": "Validación backend + restricciones de UI"
     },
-    
     "betting_windows": {
-      "rule": "Bets ONLY accepted during status='betting'",
-      "opening": "Operator manually opens window",
-      "closing": "Automatic or manual close before live",
-      "validation": "Server-side temporal validation"
+      "rule": "Apuestas SOLO aceptadas durante status='betting'",
+      "opening": "El operador abre la ventana manualmente",
+      "closing": "Cierre automático o manual antes de la transmisión en vivo",
+      "validation": "Validación temporal en el lado del servidor"
     },
-    
     "pago_doy_proposals": {
-      "mechanism": "WebSocket bidirectional communication",
-      "timeout": "3 minutes for acceptance",
-      "scope": "MINIMAL - only for proposals",
-      "restriction": "No wallet operations via WebSocket"
+      "mechanism": "Comunicación bidireccional WebSocket",
+      "timeout": "3 minutos para la aceptación",
+      "scope": "MÍNIMO - solo para propuestas",
+      "restriction": "No operaciones de billetera vía WebSocket"
     },
-    
     "operator_hierarchy": {
-      "principle": "Operators cannot manage peers or superiors",
-      "implementation": "Role-based UI hiding + backend validation",
-      "event_assignment": "Operators see only assigned events"
+      "principle": "Los operadores no pueden gestionar a sus pares o superiores",
+      "implementation": "Ocultamiento de UI basado en roles + validación backend",
+      "event_assignment": "Los operadores ven solo los eventos asignados"
     }
   },
-  
-  "development_timeline": {
+  "development_phases": {
     "week_1_critical": {
       "days_1_2": {
-        "focus": "SSE architecture implementation",
+        "focus": "Implementación de la arquitectura SSE",
         "owner": "Claude",
-        "status": "✅ COMPLETED ahead of schedule",
-        "deliverables": ["✅ SSE service", "✅ Event types (25+)", "✅ Admin real-time (8 channels)"]
+        "status": "✅ COMPLETADO antes de lo previsto",
+        "deliverables": ["✅ Servicio SSE", "✅ Tipos de eventos (25+)", "✅ Admin en tiempo real (8 canales)"]
       },
       "days_3_4": {
-        "focus": "Frontend SSE integration",
+        "focus": "Integración de frontend SSE",
         "owner": "Gemini",
-        "status": "🔄 READY to start - Complete handoff prepared",
-        "deliverables": ["useSSE hook", "Real-time components", "System monitoring"],
-        "preparation": "gemini-prompt.json ready with complete SSE documentation"
+        "status": "🔄 LISTO para empezar - Handoff completo preparado",
+        "deliverables": ["Hook useSSE", "Componentes en tiempo real", "Monitoreo del sistema"],
+        "preparation": "gemini-prompt.json listo con documentación completa de SSE"
       },
       "days_5_6": {
-        "focus": "Betting windows system",
+        "focus": "Sistema de ventanas de apuestas",
         "owner": "Claude + Gemini",
-        "deliverables": ["Temporal logic", "CurrentBettingPanel", "Fight controls"]
+        "deliverables": ["Lógica temporal", "CurrentBettingPanel", "Controles de peleas"]
       },
       "day_7": {
-        "focus": "Operator dashboard",
+        "focus": "Dashboard de operador",
         "owner": "Gemini",
-        "deliverables": ["Complete operator interface", "Permission enforcement"]
+        "deliverables": ["Interfaz completa del operador", "Aplicación de permisos"]
       }
     },
-    
     "week_2_optimization": {
       "days_8_10": {
-        "focus": "Database performance",
-        "owner": "Claude ONLY",
-        "deliverables": ["Query optimization", "Connection pool fix", "<500ms queries"],
-        "critical": "QWEN absolutely forbidden"
+        "focus": "Rendimiento de la base de datos",
+        "owner": "Claude SOLAMENTE",
+        "deliverables": ["Optimización de consultas", "Corrección del pool de conexiones", "<500ms en consultas"],
+        "critical": "QWEN absolutamente prohibido"
       },
       "days_11_12": {
-        "focus": "Integration testing",
+        "focus": "Pruebas de integración",
         "owner": "Claude + Gemini",
-        "deliverables": ["End-to-end validation", "Bug fixes", "Performance tuning"]
+        "deliverables": ["Validación de extremo a extremo", "Corrección de errores", "Ajuste de rendimiento"]
       },
       "days_13_14": {
-        "focus": "Polish and documentation",
-        "owner": "Gemini + limited QWEN",
-        "deliverables": ["UI improvements", "TypeScript cleanup", "Documentation"]
+        "focus": "Pulido y documentación",
+        "owner": "Gemini + QWEN limitado",
+        "deliverables": ["Mejoras de UI/UX", "Limpieza de TypeScript", "Documentación"]
       },
       "day_15": {
-        "focus": "Deployment",
+        "focus": "Despliegue",
         "owner": "Claude",
-        "deliverables": ["Production deployment", "Monitoring setup", "Launch validation"]
+        "deliverables": ["Despliegue en producción", "Configuración de monitoreo", "Validación de lanzamiento"]
       }
     }
   },
-  
-  "performance_requirements": {
-    "database": {
-      "query_response": "<500ms for 95% of queries",
-      "connection_stability": "Zero ETIMEDOUT errors",
-      "pool_efficiency": "80% utilization without exhaustion"
-    },
-    
-    "real_time": {
-      "sse_latency": "<1 second for updates",
-      "websocket_timeout": "3 minutes for proposals",
-      "reconnection": "Automatic with exponential backoff"
-    },
-    
-    "streaming": {
-      "concurrent_viewers": "25+ MVP, 100+ Year 1",
-      "uptime": "99.5% during events",
-      "quality": "Adaptive bitrate support"
-    },
-    
-    "api": {
-      "response_time": "<200ms average",
-      "error_rate": "<0.1%",
-      "availability": "99.9%"
+  "cross_references_to_migrate": [
+    {
+      "informacion": "Necesidades de UI/UX para componentes de aplicación y flujos de trabajo.",
+      "ubicacion_original": "brain/sdd_system.json (secciones de application_components, critical_business_logic)",
+      "destino_recomendado": "UI_UX.json"
     }
-  },
-  
-  "security_architecture": {
-    "authentication": {
-      "method": "JWT with role claims",
-      "expiry": "7 days with refresh",
-      "storage": "httpOnly cookies + localStorage"
-    },
-    
-    "authorization": {
-      "hierarchy": "admin > operator > venue/gallera > user",
-      "enforcement": "Frontend + Backend validation",
-      "operator_limits": "Event-based restrictions"
-    },
-    
-    "payment_security": {
-      "provider": "Kushki (PCI compliant)",
-      "storage": "No card data stored",
-      "audit": "Complete transaction logs"
-    }
-  },
-  
-  "technical_debt": {
-    "critical_p0": [
-      {
-        "issue": "Database performance (1-3s queries)",
-        "impact": "User experience degradation",
-        "solution": "Index optimization + connection pooling",
-        "owner": "Claude",
-        "timeline": "Days 8-10"
-      },
-      {
-        "issue": "TypeScript warnings (RESOLVED)",
-        "impact": "Type safety fully restored",
-        "solution": "✅ COMPLETED - ESLint warnings: 370+ → 7 (98% reduction)",
-        "owner": "Gemini + Claude validation",
-        "timeline": "✅ COMPLETED Days 1-2 (ahead of schedule)"
-      }
-    ],
-    
-    "deferred_p1": [
-      {
-        "issue": "Advanced analytics dashboard",
-        "timeline": "Post-MVP"
-      },
-      {
-        "issue": "Mobile app development",
-        "timeline": "Post-MVP Phase 2"
-      }
-    ]
-  },
-  
-  "ai_coordination": {
-    "claude_ownership": [
-      "Database performance (Days 8-10)",
-      "✅ SSE/WebSocket architecture (COMPLETED)",
-      "Betting logic design",
-      "Integration validation",
-      "Deployment"
-    ],
-    
-    "gemini_ownership": [
-      "React components",
-      "✅ TypeScript interfaces (major cleanup completed)",
-      "UI/UX implementation",
-      "🔄 SSE hook integration (NEXT - ready to start)",
-      "Responsive design"
-    ],
-    
-    "qwen_restrictions": [
-      "NO database work",
-      "NO authentication changes",
-      "NO business logic",
-      "✅ TypeScript cleanup (SUCCESSFULLY COMPLETED with Claude validation)",
-      "ONLY new isolated components (future use)"
-    ]
-  },
-  
-  "success_metrics": {
-    "mvp_delivery": "September 21, 2025 (15 days) - 95% confidence (increased from 85%)",
-    "core_features": [
-      "✅ SSE real-time working (IMPLEMENTED)",
-      "Betting windows functional",
-      "Operator dashboard complete",
-      "Database performance <500ms",
-      "Zero authentication issues",
-      "✅ TypeScript build stability (ACHIEVED)"
-    ],
-    "business_validation": [
-      "First event streamed successfully",
-      "Subscription payments working",
-      "Betting system accepting wagers",
-      "Operator managing events"
-    ]
+  ],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para las decisiones técnicas, la infraestructura y el diseño del sistema.",
+    "references": "Se alinea con los requisitos de `prd_system.json` y las necesidades de `UI_UX.json`."
   }
 }

@@ -53,9 +53,9 @@ const UserModal: React.FC<UserModalProps> = ({
         case "operator":
           return "Crear Nuevo Operador";
         case "venue":
-          return "Crear Nueva Venue";
+          return "Crear Nueva Gallera";
         case "gallera":
-          return "Crear Nuevo Usuario Gallera";
+          return "Crear Nuevo Criadero";
         case "user":
           return "Crear Nuevo Usuario";
       }
@@ -239,12 +239,12 @@ const UserModal: React.FC<UserModalProps> = ({
                 <>
                   <hr />
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Información del Local
+                    Información de la Gallera
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="venueName" className={labelStyle}>
-                        Nombre del Local
+                        Nombre de la Gallera
                       </label>
                       <input
                         type="text"
@@ -285,7 +285,7 @@ const UserModal: React.FC<UserModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="venueEmail" className={labelStyle}>
-                        Email del Local
+                        Email de la Gallera
                       </label>
                       <input
                         type="email"
@@ -317,7 +317,7 @@ const UserModal: React.FC<UserModalProps> = ({
                       images={formData.profileInfo.images || []}
                       onImagesChange={handleImagesChange}
                       maxImages={2}
-                      label="Imágenes del Local"
+                      label="Imágenes de la Gallera"
                     />
                   </div>
                 </>
@@ -328,12 +328,12 @@ const UserModal: React.FC<UserModalProps> = ({
                 <>
                   <hr />
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Información de la Gallera
+                    Información del Criadero
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="galleraName" className={labelStyle}>
-                        Nombre de la Gallera
+                        Nombre del Criadero
                       </label>
                       <input
                         type="text"
@@ -374,7 +374,7 @@ const UserModal: React.FC<UserModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="galleraEmail" className={labelStyle}>
-                        Email de la Gallera
+                        Email del Criadero
                       </label>
                       <input
                         type="email"
@@ -446,7 +446,7 @@ const UserModal: React.FC<UserModalProps> = ({
                       images={formData.profileInfo.images || []}
                       onImagesChange={handleImagesChange}
                       maxImages={3}
-                      label="Imágenes de la Gallera"
+                      label="Imágenes del Criadero"
                     />
                   </div>
                 </>
@@ -507,9 +507,9 @@ const UserModal: React.FC<UserModalProps> = ({
                       {role === "operator"
                         ? "Operador"
                         : role === "venue"
-                          ? "Venue"
+                          ? "Gallera"
                           : role === "gallera"
-                            ? "Gallera"
+                            ? "Criadero"
                             : "Usuario"}
                     </>
                   )}

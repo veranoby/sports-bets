@@ -5,7 +5,7 @@ export interface ArticleFormData {
   content: string;
   excerpt: string;
   featured_image: string;
-  status: "draft" | "pending" | "published";
+  status: "draft" | "pending" | "published" | "archived";
 }
 
 export interface ArticleFormErrors {

@@ -1,390 +1,123 @@
 {
-  "metadata": {
-    "purpose": "Product requirements and business context for GalloBets platform",
-    "updated": "2025-10-30",
-    "version": "2.1",
-    "changes": "Added data_model_clarifications section for events-venues and articles-authors relationships",
-    "cross_references": ["sdd_system.json", "multi_ai_coordination_strategy.json", "backlog.json"]
-  },
-  
   "business_context": {
     "company": "GalloBets",
-    "product": "Professional cockfighting streaming platform with P2P betting",
-    "mission": "First professional streaming + betting platform for galleras",
-    "timeline": "15-day MVP sprint (September 7-21, 2025)",
+    "product": "Plataforma de streaming profesional de peleas de gallos con apuestas P2P.",
+    "mission": "Primera plataforma profesional de streaming + apuestas para galleras.",
+    "timeline": "Sprint MVP de 15 días (7-21 de septiembre de 2025)",
     "revenue_model": [
-      "Subscription-based streaming access",
-      "Transaction fees on P2P betting (Post-MVP)",
-      "Premium features for galleras/venues"
+      "Acceso a streaming basado en suscripción",
+      "Tarifas de transacción en apuestas P2P (Post-MVP)",
+      "Funciones premium para galleras/venues"
     ]
   },
-  
   "stakeholders": {
     "primary_stakeholder": {
-      "role": "Solo founder/developer (veranoby)",
+      "role": "Fundador/desarrollador único (veranoby)",
       "priorities": [
-        "15-day MVP delivery",
-        "Database performance resolution",
-        "Revenue generation activation",
-        "Betting system implementation"
-      ],
-      "success_metrics": [
-        "Platform launched by September 21",
-        "First paying subscribers active",
-        "Betting system functional",
-        "Operator dashboard working"
+        "Entrega del MVP en 15 días",
+        "Resolución del rendimiento de la base de datos",
+        "Activación de la generación de ingresos",
+        "Implementación del sistema de apuestas"
       ]
     },
-    
     "user_segments": {
       "admins": {
-        "capabilities": "Full system control, all permissions",
-        "needs": "Real-time monitoring, user management, analytics",
-        "interface": "Complete admin dashboard with SSE updates"
+        "capabilities": "Control total del sistema, todos los permisos",
+        "needs": "Monitoreo en tiempo real, gestión de usuarios, análisis"
       },
       "operators": {
-        "capabilities": "Limited admin tools, event management",
-        "restrictions": "Cannot modify admin/operator users",
-        "needs": "Streamlined event management, streaming controls",
-        "interface": "Restricted admin environment"
+        "capabilities": "Herramientas de administración limitadas, gestión de eventos",
+        "restrictions": "No pueden modificar usuarios administradores/operadores",
+        "needs": "Gestión de eventos simplificada, controles de streaming"
       },
       "venues_galleras": {
-        "capabilities": "Event creation, profile management, betting",
-        "needs": "Easy streaming setup, revenue tracking",
-        "revenue_share": "Percentage of subscriptions from their events"
+        "capabilities": "Creación de eventos, gestión de perfiles, apuestas",
+        "needs": "Configuración sencilla de streaming, seguimiento de ingresos"
       },
       "users": {
-        "capabilities": "View streams, place bets, manage wallet",
-        "needs": "Quality streams, easy betting, fair system",
-        "payment_methods": "Kushki for subscriptions and wallet"
+        "capabilities": "Ver transmisiones, realizar apuestas, gestionar billetera",
+        "needs": "Transmisiones de calidad, apuestas fáciles, sistema justo"
       }
     }
   },
-  
-  "core_features": {
+  "pain_points_prioritized": [
+    {
+      "pain_point": "Rendimiento de la base de datos (consultas de 1-3+ segundos)",
+      "priority": "P0_CRITICAL",
+      "impact": "Degradación de la experiencia del usuario, bloqueador para el lanzamiento.",
+      "source_file": "brain/prd_system.json (risk_mitigation)"
+    },
+    {
+      "pain_point": "Complejidad de integración de sistemas en tiempo real (SSE + WebSocket)",
+      "priority": "P1",
+      "impact": "Riesgo de errores, fugas de memoria y mantenimiento costoso.",
+      "source_file": "brain/prd_system.json (risk_mitigation)"
+    }
+  ],
+  "core_product_requirements": {
     "streaming_system": {
       "priority": "P0",
-      "status": "70% complete",
-      "components": {
-        "rtmp_ingestion": "OBS Studio → RTMP server",
-        "stream_delivery": "HLS output for viewers",
-        "access_control": "Subscription validation",
-        "monitoring": "Real-time viewer analytics"
-      },
-      "success_metrics": [
-        "99.5% uptime during events",
-        "<3 second latency",
-        "Support 25+ concurrent viewers (MVP)",
-        "Support 100+ concurrent viewers (Year 1)"
+      "requirements": [
+        "Ingesta de video vía RTMP desde OBS Studio.",
+        "Entrega de video a espectadores vía HLS.",
+        "Control de acceso basado en estado de suscripción del usuario."
       ]
     },
-    
     "betting_system": {
       "priority": "P0",
-      "status": "Architecture defined",
-      "core_concepts": {
-        "p2p_model": "Users bet against each other, not the house",
-        "bet_types": ["PAGO (bet on winner)", "DOY (bet on time/rounds)"],
-        "temporal_windows": "Bets ONLY during 'betting' status",
-        "pago_doy_proposals": "Counter-proposals with 3-min timeout"
-      },
-      "technical_architecture": {
-        "real_time_updates": "SSE for bet list updates",
-        "proposal_system": "WebSocket MINIMAL for PAGO/DOY only",
-        "wallet_operations": "Manual refresh, no WebSocket",
-        "fight_transitions": "upcoming → betting → live → completed"
-      },
-      "business_rules": [
-        "Betting window closes when fight goes live",
-        "No bets accepted during live fight",
-        "PAGO proposals timeout after 3 minutes",
-        "Platform takes % commission on winnings"
+      "requirements": [
+        "Modelo de apuestas P2P (usuario contra usuario).",
+        "Ventanas de apuestas temporales estrictas (solo se puede apostar en estado 'betting').",
+        "Sistema de propuestas PAGO/DOY con timeout de 3 minutos vía WebSocket."
       ]
     },
-    
     "subscription_system": {
       "priority": "P0",
-      "status": "Implemented",
-      "payment_provider": "Kushki",
-      "tiers": {
-        "24-hour": "$5",
-        "monthly": "$10",
-        "free": "$0 (default when expired/cancelled)"
-      },
-      "features": [
-        "24-hour pass for daily access",
-        "Monthly subscription with optional auto-renewal",
-        "Free tier reverts automatically on expiration",
-        "Multiple payment methods via Kushki",
-        "Access validation for streams"
-      ],
-      "user_subscription_flow": {
-        "status_restrictions": "Only users with free (no) subscription can request upgrade",
-        "request_process": [
-          "User visits /profile → clicks 'Solicitar subscripción'",
-          "Modal opens allowing selection of 24-hour or monthly plan",
-          "User can optionally attach payment proof",
-          "Request created with status='pending'",
-          "User sees request in profile history"
-        ],
-        "access_logic": "While request is pending, user stays on free tier with visual indicator of pending request"
-      },
-      "admin_subscription_management": {
-        "admin_approval": [
-          "Admin visits /admin/membership-requests → sees pending requests",
-          "Admin can approve (grant subscription) or reject (with reason)",
-          "Upon approval, user's subscription status updates immediately",
-          "User gets immediate access to premium content"
-        ],
-        "direct_assignment": [
-          "Admin can set any user's subscription directly via /admin/users",
-          "No request needed - direct assignment option available",
-          "Use for manual processing or special arrangements",
-          "Changes take effect immediately for user"
-        ]
-      },
-      "expiration_logic": {
-        "automatic_processing": [
-          "Server checks subscription validity on each authenticated request",
-          "If expiresAt < current_time, subscription automatically changes to 'free'",
-          "User immediately loses access to premium content",
-          "Frontend components update access controls automatically",
-          "Cache is invalidated to reflect new status immediately"
-        ]
-      }
-    },
-    
-    "real_time_architecture": {
-      "priority": "P0",
-      "status": "In development",
-      "strategy": "Hybrid SSE + Minimal WebSocket",
-      "sse_usage": [
-        "Admin dashboard real-time updates",
-        "System monitoring and alerts",
-        "Betting list updates",
-        "Fight status changes",
-        "Operator notifications"
-      ],
-      "websocket_usage": [
-        "PAGO/DOY proposals ONLY",
-        "3-minute bidirectional timeout",
-        "No wallet operations",
-        "No dynamic suggestions",
-        "No chat functionality"
-      ],
-      "rationale": [
-        "SSE simpler for one-way updates",
-        "WebSocket only where bidirectional required",
-        "Reduces complexity and memory leaks",
-        "Easier debugging and maintenance"
+      "requirements": [
+        "Tiers: 24-horas ($5), mensual ($10), y gratis (por defecto/expirado).",
+        "Flujo de solicitud de suscripción iniciado por el usuario con aprobación de admin.",
+        "Expiración automática de suscripciones y revocación de acceso."
       ]
+    },
+    "user_workflows": {
+      "event_creation": "Los Admins/Operadores pueden crear eventos y asignarlos a un 'venue' específico.",
+      "betting": "Los usuarios pueden ver peleas, esperar la ventana de apuestas, y crear/aceptar apuestas P2P.",
+      "operator": "Los operadores solo pueden gestionar los eventos que les son asignados y no pueden modificar otros admins/operadores."
+    },
+    "data_model_clarifications": {
+      "events_and_venues": "Los eventos ocurren EN venues. `events.venue_id` apunta a un `user` con `role='venue'`.",
+      "articles_and_authors": "Los artículos son escritos POR usuarios. `articles.author_id` apunta al creador. El campo `articles.venue_id` está obsoleto."
     }
   },
-  
-  "data_model_clarifications": {
-    "events_and_venues": {
-      "definition": "Events are organized AT venues (cockfighting stadiums/arenas). events.venue_id points to the user account of the venue owner.",
-      "creation_flow": [
-        "ADMIN or OPERATOR create events",
-        "Event is assigned to a VENUE (a user with role='venue')",
-        "Venue represents the physical location where the event occurs",
-        "Users see event location to know where event will be held"
-      ],
-      "business_rule": "ONLY users with role='venue' can host events. Galleras (breeding farms) and regular users cannot host events.",
-      "schema": "events.venue_id → users.id (where users.role = 'venue')"
-    },
-
-    "articles_and_authors": {
-      "definition": "Articles are created and published BY users (admin, venues, galleras). Articles belong to their author, not to a specific venue.",
-      "creation_flow": [
-        "ADMIN, VENUE, or GALLERA users can create articles",
-        "Article.author_id points to the user who created it",
-        "No venue-specific articles - articles are user-authored content"
-      ],
-      "business_rule": "Regular users cannot create articles. Only ADMIN, VENUE, and GALLERA roles have publishing capability.",
-      "deprecated_field": "articles.venue_id - SHOULD BE REMOVED. Use articles.author_id only.",
-      "schema": "articles.author_id → users.id (for all user types who can create articles)"
-    }
-  },
-
-  "user_workflows": {
-    "event_creation_workflow": {
-      "actors": ["Admin", "Operator"],
-      "venue_assignment": "Event is assigned to a specific venue (user with role='venue')",
-      "steps": [
-        "Admin/Operator creates event with date/time",
-        "Assign venue (the physical location where event will occur)",
-        "Assign operator (if admin creating)",
-        "Generate stream key",
-        "Configure OBS with stream key",
-        "Create fights within event"
-      ]
-    },
-    
-    "betting_workflow": {
-      "actors": ["User"],
-      "steps": [
-        "View upcoming fight",
-        "Wait for betting window to open",
-        "Create bet or accept existing",
-        "PAGO/DOY proposal if desired",
-        "Window closes when fight goes live",
-        "Watch fight outcome",
-        "Winnings distributed automatically"
-      ]
-    },
-    
-    "operator_workflow": {
-      "actors": ["Operator"],
-      "steps": [
-        "Access assigned events only",
-        "Manage fight transitions",
-        "Open/close betting windows",
-        "Monitor streaming status",
-        "Cannot modify admin users"
-      ]
-    }
-  },
-  
-  "business_validation": {
+  "business_metrics": {
     "revenue_targets": {
-      "month_1": {
-        "subscribers": "25+",
-        "revenue": "$500+",
-        "events_per_week": "1-2"
-      },
-      "month_3": {
-        "subscribers": "100+",
-        "revenue": "$2000+",
-        "events_per_week": "5-7",
-        "betting_volume": "$10,000+"
-      },
-      "year_1": {
-        "subscribers": "1000+",
-        "revenue": "$20,000/month",
-        "betting_commission": "$5,000/month"
-      }
+      "month_1": { "subscribers": "25+", "revenue": "$500+" }
     },
-    
-    "success_metrics": {
-      "user_acquisition": [
-        "25 subscribers in first month",
-        "70% renewal rate",
-        "15+ minute average session"
-      ],
-      "platform_quality": [
-        "99.5% uptime during events",
-        "<500ms database queries",
-        "<1s SSE latency",
-        "Zero authentication issues"
-      ],
-      "business_operations": [
-        "Operators managing 80% of events",
-        "90% successful payment processing",
-        "95% user satisfaction rate"
-      ]
-    }
-  },
-  
-  "technical_requirements": {
-    "performance": {
-      "database_queries": "<500ms for 95% of queries",
-      "api_response": "<200ms average",
-      "sse_latency": "<1 second",
-      "page_load": "<2 seconds",
-      "stream_latency": "<3 seconds"
-    },
-    
-    "scalability": {
-      "concurrent_users": "25+ (MVP), 100+ (Month 3), 1000+ (Year 1)",
-      "concurrent_streams": "1 (MVP), 3+ (Month 3), 10+ (Year 1)",
-      "database_connections": "Optimized pool management",
-      "real_time_connections": "SSE + minimal WebSocket"
-    },
-    
-    "security": {
-      "authentication": "JWT with role-based claims",
-      "payment_security": "Kushki PCI compliance",
-      "stream_access": "Subscription validation",
-      "betting_integrity": "Temporal window enforcement"
-    }
-  },
-  
-  "risk_mitigation": {
-    "technical_risks": {
-      "database_performance": {
-        "current_state": "1-3+ second queries",
-        "mitigation": "Day 8-10 dedicated optimization",
-        "owner": "Claude"
-      },
-      "qwen_destruction": {
-        "evidence": "Broke Profile.tsx and auth",
-        "mitigation": "FORBIDDEN files list, git backups",
-        "owner": "All AIs aware"
-      },
-      "integration_complexity": {
-        "concern": "SSE + WebSocket coordination",
-        "mitigation": "Clear separation of concerns",
-        "owner": "Claude architecture"
-      }
-    },
-    
-    "business_risks": {
-      "user_adoption": {
-        "concern": "New platform in traditional market",
-        "mitigation": "Partner with established galleras",
-        "strategy": "Quality + reliability differentiation"
-      },
-      "regulatory": {
-        "concern": "Gambling regulations",
-        "mitigation": "P2P model, not house betting",
-        "compliance": "Age verification, geo-restrictions"
-      }
-    }
-  },
-  
-  "mvp_scope": {
-    "included": [
-      "User authentication and roles",
-      "SSE real-time for admin",
-      "Minimal WebSocket for PAGO/DOY",
-      "Fight temporal betting windows",
-      "Operator dashboard with restrictions",
-      "RTMP streaming integration",
-      "Kushki payment processing",
-      "Basic betting system"
-    ],
-    
-    "excluded_post_mvp": [
-      "Advanced analytics",
-      "Mobile applications",
-      "Multiple language support",
-      "Advanced betting features",
-      "Social features",
-      "Detailed reporting"
+    "platform_quality": [
+      "99.5% de tiempo de actividad durante los eventos",
+      "<500ms en consultas de base de datos",
+      "<1s de latencia SSE"
     ]
   },
-  
-  "success_criteria": {
-    "mvp_launch": [
-      "System deployed by September 21",
-      "All P0 features functional",
-      "Database queries <500ms",
-      "First event streamed successfully"
-    ],
-    
-    "week_1_post_launch": [
-      "10+ active subscribers",
-      "Zero critical bugs",
-      "Successful betting on fights",
-      "Operator managing events"
-    ],
-    
-    "month_1_validation": [
-      "25+ paying subscribers",
-      "5+ events completed",
-      "$500+ revenue generated",
-      "Platform stability proven"
+  "timeline_constraints": {
+    "mvp_deadline": "21 de septiembre de 2025",
+    "mvp_scope_included": [
+      "Autenticación y roles",
+      "Streaming RTMP/HLS",
+      "Sistema de apuestas P2P básico",
+      "Sistema de suscripción",
+      "Dashboard de operador"
     ]
+  },
+  "cross_references_to_migrate": [
+    {
+      "informacion": "Detalles técnicos de la arquitectura (ej. estrategia SSE/WebSocket, ORM, etc.).",
+      "ubicacion_original": "brain/prd_system.json (core_features.technical_architecture)",
+      "destino_recomendado": "sdd_system.json"
+    }
+  ],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para los requisitos del producto, stakeholders y lógica de negocio.",
+    "references": "Las decisiones de solución técnica detalladas se definen en `sdd_system.json`. Los objetivos de alto nivel se definen en `objectives_memory_index.json`."
   }
 }

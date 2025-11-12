@@ -41,7 +41,7 @@ const VenueDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) {
-      setError("No se proporcionó un ID de venue.");
+      setError("No se proporcionó un ID de gallera.");
       setLoading(false);
       return;
     }
@@ -51,7 +51,7 @@ const VenueDetailPage: React.FC = () => {
         setLoading(true);
         const venueResponse = await usersAPI.getById(id);
         if (!venueResponse.success) {
-          throw new Error(venueResponse.error || "Error al cargar venue");
+          throw new Error(venueResponse.error || "Error al cargar gallera");
         }
         const venueData = venueResponse.data as any;
         setVenue(venueData);
@@ -77,7 +77,7 @@ const VenueDetailPage: React.FC = () => {
         }
       } catch (err) {
         console.error("Error fetching venue data:", err);
-        setError("No se pudo cargar el local. Inténtalo de nuevo.");
+        setError("No se pudo cargar la gallera. Inténtalo de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -89,7 +89,7 @@ const VenueDetailPage: React.FC = () => {
   if (loading)
     return (
       <div className="page-background">
-        <LoadingSpinner text="Cargando local..." className="mt-20" />
+        <LoadingSpinner text="Cargando gallera..." className="mt-20" />
       </div>
     );
 
@@ -100,7 +100,7 @@ const VenueDetailPage: React.FC = () => {
           <div className="text-center">
             <p className="text-red-400 mb-4">{error}</p>
             <button onClick={() => navigate("/venues")} className="btn-primary">
-              Volver a Locales
+              Volver a Galleras
             </button>
           </div>
         </Card>
@@ -111,12 +111,12 @@ const VenueDetailPage: React.FC = () => {
     return (
       <div className="page-background p-4">
         <EmptyState
-          title="Local no encontrado"
-          description="El local que buscas no existe o ha sido eliminado."
+          title="Gallera no encontrada"
+          description="La gallera que buscas no existe o ha sido eliminada."
           icon={<Building className="w-12 h-12" />}
           action={
             <button onClick={() => navigate("/venues")} className="btn-primary">
-              Volver a Locales
+              Volver a Galleras
             </button>
           }
         />
@@ -135,7 +135,7 @@ const VenueDetailPage: React.FC = () => {
   const description =
     venue.profileInfo?.venueDescription ||
     venue.profileInfo?.description ||
-    "Local para eventos de gallos";
+    "Gallera para eventos de gallos";
   const establishedDate = venue.createdAt;
   const isVerified = venue.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
@@ -153,7 +153,7 @@ const VenueDetailPage: React.FC = () => {
           className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors btn-primary !rounded-l-none"
         >
           <ChevronLeft className="w-4 h-4" />
-          Volver a Locales
+          Volver a Galleras
         </button>
 
         {/* Venue Header */}
@@ -189,7 +189,7 @@ const VenueDetailPage: React.FC = () => {
           {venue.profileInfo?.images && venue.profileInfo.images.length > 0 && (
             <ImageCarouselViewer
               images={venue.profileInfo.images}
-              title="Galería del Local"
+              title="Galería de la Gallera"
             />
           )}
         </div>
@@ -251,7 +251,7 @@ const VenueDetailPage: React.FC = () => {
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
-            Artículos del Local
+            Artículos de la Gallera
           </h2>
 
           {publishedArticles.length > 0 ? (
@@ -300,7 +300,7 @@ const VenueDetailPage: React.FC = () => {
         {/* Venue Status Information */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4">
-            Estado del Local
+            Estado de la Gallera
           </h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">

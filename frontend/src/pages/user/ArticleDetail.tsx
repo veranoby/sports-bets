@@ -121,7 +121,7 @@ const ArticleDetail: React.FC = () => {
                 Etiquetas
               </h3>
               <div className="flex flex-wrap gap-2">
-                {article.tags.map((tag, index) => (
+                {(typeof article.tags === 'string' ? [article.tags] : article.tags || []).map((tag, index) => (
                   <span
                     key={index}
                     className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 cursor-pointer"

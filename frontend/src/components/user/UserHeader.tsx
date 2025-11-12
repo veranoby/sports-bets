@@ -118,6 +118,13 @@ const UserHeader = memo(() => {
     return pathToTitle[location.pathname] || "Dashboard";
   }, [location.pathname]);
 
+  const translateRole = (role: string) =>
+    role === "venue"
+      ? "Gallera"
+      : role === "gallera"
+        ? "Criadero"
+        : role.charAt(0).toUpperCase() + role.slice(1);
+
   // Handlers
   const handleLogout = useCallback(async () => {
     try {
@@ -198,7 +205,7 @@ const UserHeader = memo(() => {
             className="text-xs px-3 py-1.5 bg-[#f0f9ff] rounded-full text-[#2a325c] flex items-center gap-1.5 cursor-pointer hover:bg-[#8ba3bc7e]/30 transition-all duration-200 border border-[#bdd5ef75]"
           >
             <span className="font-medium uppercase tracking-wide">
-              {user.role}
+              {translateRole(user.role)}
             </span>
             {isPremium && (
               <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1">

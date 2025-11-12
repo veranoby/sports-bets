@@ -1,0 +1,12 @@
+{
+  "milestone_tracking": [],
+  "kpi_tracking": [],
+  "stakeholder_feedback": [],
+  "budget_tracking": [],
+  "cross_references_to_migrate": [],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para los datos consolidados de progreso mensual y KPIs financieros.",
+    "references": "Las metas contra las que se mide el progreso se definen en `objectives_memory_index.json`."
+  },
+  "nota_migracion": "Este archivo se creó con una estructura vacía ya que no se encontraron fuentes de datos directas en el sistema BRAIN antiguo para poblarlo."
+}

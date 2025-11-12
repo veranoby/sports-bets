@@ -32,6 +32,7 @@ type ProfileData = {
     phoneNumber: string;
     address: string;
     identificationNumber: string;
+    images?: string[];
   };
   is_active: boolean;
 };

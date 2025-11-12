@@ -60,7 +60,7 @@ const SubscriptionBadge: React.FC<SubscriptionBadgeProps> = ({
     }
   };
 
-  const planDisplay = getPlanDisplay(subscription.type);
+  const planDisplay = getPlanDisplay(subscription.plan);
   const statusColor = getStatusColor(subscription.status);
 
   // Verificar si la suscripción está expirada

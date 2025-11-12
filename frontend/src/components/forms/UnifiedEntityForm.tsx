@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { userAPI } from "../../services/api";
-import { ImageGalleryUpload } from "../shared/ImageGalleryUpload";
+import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import {
@@ -116,7 +116,23 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
       );
 
       if (response.success) {
-        onSuccess(response.data.user);
+        // The API might return a partial user object, so get the complete user
+        const fullUserResponse = await userAPI.getById(userId);
+        if (fullUserResponse.success && fullUserResponse.data) {
+          const userData = fullUserResponse.data as User;
+          onSuccess(userData);
+        } else {
+          // Fallback to what was returned, but this might not satisfy the type requirement
+          console.warn("Warning: Could not fetch complete user data after profile update");
+          // If the direct user data access fails, try getting user again
+          const fallbackUserResponse = await userAPI.getById(userId);
+          if (fallbackUserResponse.success && fallbackUserResponse.data) {
+            const userData = fallbackUserResponse.data as User;
+            onSuccess(userData);
+          } else {
+            throw new Error("Could not retrieve updated user information");
+          }
+        }
       } else {
         throw new Error(response.error || "Error al actualizar la información");
       }
@@ -132,8 +148,8 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900">
           {entityType === "venue"
-            ? "Información del Local"
-            : "Información de la Gallera"}
+            ? "Información de la Gallera"
+            : "Información del Criadero"}
         </h2>
         <button
           onClick={onCancel}
@@ -151,8 +167,8 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {entityType === "venue"
-              ? "Nombre del Local"
-              : "Nombre de la Gallera"}
+              ? "Nombre de la Gallera"
+              : "Nombre del Criadero"}
           </label>
           <div className="relative">
             <Building className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
@@ -164,8 +180,8 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder={
                 entityType === "venue"
-                  ? "Nombre del local de eventos"
-                  : "Nombre de la gallera"
+                  ? "Nombre de la gallera de eventos"
+                  : "Nombre del criadero"
               }
               required
             />
@@ -204,8 +220,8 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder={
               entityType === "venue"
-                ? "Descripción del local de eventos y servicios ofrecidos"
-                : "Descripción de la gallera y especialidades"
+                ? "Descripción de la gallera de eventos y servicios ofrecidos"
+                : "Descripción del criadero y especialidades"
             }
           />
         </div>
@@ -267,7 +283,7 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
                     }))
                   }
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Especialidades de la gallera (separadas por comas)"
+                  placeholder="Especialidades del criadero (separadas por comas)"
                 />
               </div>
             </div>
@@ -311,7 +327,7 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
             images={formData.images || []}
             onImagesChange={handleImageChange}
             maxImages={entityType === "gallera" ? 3 : 2} // Galleras: max 3 images, Venues: max 2 images
-            label={`Galería de Imágenes ${entityType === "gallera" ? "de Gallera" : "de Local"}`}
+            label={`Galería de Imágenes ${entityType === "gallera" ? "del Criadero" : "de la Gallera"}`}
           />
         </div>
 

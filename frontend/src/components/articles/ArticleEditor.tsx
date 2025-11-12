@@ -14,6 +14,7 @@ interface ArticleEditorProps {
   formErrors: ArticleFormErrors;
   onChange: (field: keyof ArticleFormData, value: string | boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onSaveDraft?: (e: React.FormEvent) => void;  // Optional property for saving drafts
   submitting: boolean;
   isEditing: boolean;
 }
@@ -26,6 +27,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   formErrors,
   onChange,
   onSubmit,
+  onSaveDraft,
   submitting,
   isEditing,
 }) => {
@@ -213,6 +215,16 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             >
               Cancelar
             </button>
+            {onSaveDraft && (
+              <button
+                type="button"
+                onClick={onSaveDraft}
+                className="btn-outline"
+                disabled={submitting}
+              >
+                Guardar Borrador
+              </button>
+            )}
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting
                 ? "Guardando..."

@@ -131,7 +131,9 @@
       "Bash(for route in ads enhancedEvents streaming)",
       "Bash(do echo \"=== $route ===\")",
       "Bash(python3:*)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjI3MzYwOTAsImV4cCI6MTc2MzM0MDg5MH0.xEVRcfvXMHnAwP18sMPxRImdLJhzDz_umh9n9JdpNxk\")",
+      "Bash(echo \"SuperClaude Configuration Check:\n1. Flags permanentes: --task-manage --token-efficient\n2. MCPs activados: --seq --sequential (para análisis multi-paso)\n3. Modo: Director (Claude Sonnet 4.5)\n4. Execution mode: standard\n5. Protocols activos: DIRECTOR_PLANNING_PROTOCOL enforcement\n\")"
     ],
     "deny": [],
     "ask": []

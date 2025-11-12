@@ -20,6 +20,7 @@ import { useParams, useNavigate } from "react-router-dom";
 // ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
 import { useEvents, useFights, useBets } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
@@ -179,11 +180,12 @@ const LiveEvent = () => {
 
   const { fights, fetchFights } = useFights();
   const { bets, fetchAvailableBets, acceptBet } = useBets();
+  const { isBettingEnabled } = useFeatureFlags();
 
   // Estados locales
   const [currentEvent, setCurrentEvent] = useState<EventData | null>(null);
   const [activeTab, setActiveTab] = useState<"available" | "my_bets" | "info">(
-    "available",
+    "info",
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +208,7 @@ const LiveEvent = () => {
       }
 
       // Fetch relacionados
-      await Promise.all([fetchFights(eventId), fetchAvailableBets(eventId)]);
+      await Promise.all([fetchFights({ eventId })]);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error cargando evento";
@@ -322,7 +324,7 @@ const LiveEvent = () => {
   }
 
   // ✅ Data para las tabs
-  const availableBets = bets?.filter((bet) => bet.status === "active") || [];
+  const availableBets = (bets?.filter((bet) => bet.status === "active") || []) as Bet[];
   const myBets =
     bets?.filter((bet) => bet.createdBy === "current-user-id") || [];
   const currentFight = fights?.find((fight) => fight.status === "live");
@@ -485,12 +487,14 @@ const LiveEvent = () => {
         <div className="mx-4 mb-4">
           <div className="flex bg-[#1a1f37]/30 rounded-lg p-1">
             {[
-              {
-                key: "available",
-                label: "Disponibles",
-                count: availableBets.length,
-              },
-              { key: "my_bets", label: "Mis Apuestas", count: myBets.length },
+              ...(isBettingEnabled ? [
+                {
+                  key: "available",
+                  label: "Disponibles",
+                  count: availableBets.length,
+                },
+                { key: "my_bets", label: "Mis Apuestas", count: myBets.length },
+              ] : []),
               { key: "info", label: "Info", count: null },
             ].map((tab) => (
               <button
@@ -515,14 +519,14 @@ const LiveEvent = () => {
 
         {/* ✅ Tab Content */}
         <div className="mx-4">
-          {activeTab === "available" && (
+          {isBettingEnabled && activeTab === "available" && (
             <BettingPanel
               availableBets={availableBets}
               onAcceptBet={handleAcceptBet}
             />
           )}
 
-          {activeTab === "my_bets" && (
+          {isBettingEnabled && activeTab === "my_bets" && (
             <div className="space-y-3">
               <h3 className="font-semibold text-theme-primary">Mis Apuestas</h3>
               {myBets.length === 0 ? (

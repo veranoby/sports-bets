@@ -1,0 +1,92 @@
+{
+  "strategic_objectives": [
+    {
+      "objective_id": "MVP_LAUNCH",
+      "description": "Lanzar el MVP de la plataforma GalloBets funcional y estable.",
+      "source_file": "brain/prd_system.json"
+    },
+    {
+      "objective_id": "USER_ADOPTION",
+      "description": "Lograr la adopción inicial de usuarios y la validación del modelo de negocio de suscripción.",
+      "source_file": "brain/prd_system.json"
+    },
+    {
+      "objective_id": "CORE_FUNCTIONALITY",
+      "description": "Asegurar que las funcionalidades críticas (apuestas, streaming) sean operativas y confiables.",
+      "source_file": "brain/prd_system.json"
+    }
+  ],
+  "success_metrics_tracking": [
+    {
+      "metric_id": "METRIC_MVP_DEADLINE",
+      "objective_id": "MVP_LAUNCH",
+      "metric_name": "Fecha de Lanzamiento del MVP",
+      "measurement": "Fecha de despliegue en producción.",
+      "baseline": "N/A",
+      "target": "2025-09-21",
+      "status": "EN RIESGO"
+    },
+    {
+      "metric_id": "METRIC_SUBSCRIBERS_M1",
+      "objective_id": "USER_ADOPTION",
+      "metric_name": "Primeros Suscriptores Pagos (Mes 1)",
+      "measurement": "COUNT(users WHERE subscription_status = 'active')",
+      "baseline": "0",
+      "target": "25+",
+      "status": "PENDIENTE"
+    },
+    {
+      "metric_id": "METRIC_BETS_FUNCTIONAL",
+      "objective_id": "CORE_FUNCTIONALITY",
+      "metric_name": "Sistema de Apuestas Funcional",
+      "measurement": "Tasa de éxito de creación y liquidación de apuestas.",
+      "baseline": "N/A",
+      "target": "99.5% de éxito",
+      "status": "PENDIENTE"
+    },
+    {
+      "metric_id": "METRIC_OPERATOR_DASHBOARD",
+      "objective_id": "CORE_FUNCTIONALITY",
+      "metric_name": "Dashboard de Operador Funcional",
+      "measurement": "Tasa de finalización de tareas de gestión de eventos por parte de operadores.",
+      "baseline": "N/A",
+      "target": "95% de éxito",
+      "status": "PENDIENTE"
+    }
+  ],
+  "quarterly_milestones": [
+    {
+      "quarter": "Q3 2025",
+      "milestone": "Lanzamiento del MVP",
+      "deliverables": [
+        "Arquitectura SSE implementada.",
+        "Integración de frontend con SSE.",
+        "Sistema de ventanas de apuestas.",
+        "Dashboard de operador."
+      ],
+      "source_file": "brain/sdd_system.json"
+    },
+    {
+      "quarter": "Q4 2025",
+      "milestone": "Optimización y Crecimiento",
+      "deliverables": [
+        "Resolución completa del rendimiento de la base de datos.",
+        "Pruebas de integración completas.",
+        "Pulido de UI/UX y documentación.",
+        "Despliegue y monitoreo en producción."
+      ],
+      "source_file": "brain/sdd_system.json"
+    }
+  ],
+  "cross_references_to_migrate": [
+    {
+      "informacion": "Perfiles de stakeholders y sus prioridades.",
+      "ubicacion_original": "brain/prd_system.json",
+      "destino_recomendado": "prd_system.json"
+    }
+  ],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para la definición de objetivos de alto nivel y sus métricas de éxito.",
+    "references": "El progreso mensual contra estos objetivos se mide y reporta en `monthly_report.json`."
+  }
+}

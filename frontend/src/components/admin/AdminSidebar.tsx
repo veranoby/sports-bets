@@ -58,13 +58,13 @@ const AdminSidebar: React.FC = () => {
     {
       path: "/admin/venues",
       icon: Building2,
-      label: "Venues",
+      label: "Galleras",
       roles: ["admin"],
     },
     {
       path: "/admin/galleras",
       icon: Building2,
-      label: "Galleras",
+      label: "Criaderos",
       roles: ["admin"],
     },
     {

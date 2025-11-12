@@ -89,14 +89,22 @@ const UserBets: React.FC = () => {
 
   // Update betsRef when bets change - properly cast BetData to Bet
   useEffect(() => {
-    betsRef.current = bets.map((bet) => ({
-      ...bet,
-      potentialWin: (bet as any).potentialWin || 0,
-      userId: (bet as any).userId || "",
-      updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-      result: (bet.result as "win" | "loss") || undefined,
-      status: bet.status as any, // Allow flexible status
-    }));
+    betsRef.current = bets.map((bet) => {
+      return {
+        ...bet,
+        id: bet.id,
+        amount: bet.amount,
+        status: bet.status as any, // Allow flexible status
+        fightId: bet.fightId,
+        side: bet.side,
+        potentialWin: (bet as any).potentialWin || 0,
+        userId: bet.userId || "",
+        updatedAt: (bet as any).updatedAt || new Date().toISOString(),
+        result: bet.result as "win" | "loss" || undefined,
+        choice: bet.choice || "",
+        createdAt: bet.createdAt || new Date().toISOString(), // Ensure required field is included
+      };
+    });
   }, [bets]);
 
   // ✅ LISTENERS ESPECÍFICOS DE PROPUESTAS P2P
@@ -376,7 +384,7 @@ const UserBets: React.FC = () => {
         {activeTab === "history" && (
           <div className="space-y-4">
             {bets
-              .filter((bet) => bet.status === "settled")
+              .filter((bet) => bet.status === "won" || bet.status === "lost")
               .map((bet) => (
                 <BetCard
                   key={bet.id}

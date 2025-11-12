@@ -109,7 +109,7 @@ const GalleraCard = React.memo(
             <div className="flex items-center gap-1">
               {getPremiumIcon(gallera.premiumLevel)}
               <span className="text-xs font-medium text-green-600">
-                Institución
+                Criadero
               </span>
               {gallera.isCertified && (
                 <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
@@ -285,11 +285,11 @@ const GallerasPage: React.FC = () => {
                 user.profileInfo?.galleraName ||
                 user.profileInfo?.businessName ||
                 user.username ||
-                "Gallera";
+                "Criadero";
               const description =
                 user.profileInfo?.galleraDescription ||
                 user.profileInfo?.description ||
-                "Institución criadora profesional";
+                "Criadero profesional";
               const location =
                 user.profileInfo?.galleraLocation ||
                 user.profileInfo?.location ||
@@ -327,12 +327,12 @@ const GallerasPage: React.FC = () => {
         setGalleras(galleraProfiles);
       } else {
         setError(
-          "Error al cargar las instituciones. Inténtalo de nuevo más tarde.",
+          "Error al cargar los criaderos. Inténtalo de nuevo más tarde.",
         );
       }
     } catch (err) {
       setError(
-        "Error al cargar las instituciones. Inténtalo de nuevo más tarde.",
+        "Error al cargar los criaderos. Inténtalo de nuevo más tarde.",
       );
       console.error("Error loading galleras:", err);
     } finally {
@@ -360,7 +360,7 @@ const GallerasPage: React.FC = () => {
   if (loading) {
     return (
       <div className="page-background">
-        <LoadingSpinner text="Cargando instituciones..." className="mt-20" />
+        <LoadingSpinner text="Cargando criaderos..." className="mt-20" />
       </div>
     );
   }
@@ -371,7 +371,7 @@ const GallerasPage: React.FC = () => {
     if (!gallera)
       return (
         <EmptyState
-          title="Institución no encontrada"
+          title="Criadero no encontrado"
           icon={<Shield className="w-12 h-12" />}
         />
       );
@@ -384,7 +384,7 @@ const GallerasPage: React.FC = () => {
             className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary mb-4 transition-colors btn-primary"
           >
             <ChevronRight className="w-4 h-4 rotate-180" />
-            Volver a Instituciones
+            Volver a Criaderos
           </button>
 
           {/* === UNIFIED DETAIL VIEW START === */}
@@ -490,7 +490,7 @@ const GallerasPage: React.FC = () => {
                 ) : (
                   <EmptyState
                     title="Sin Imágenes"
-                    description="El dueño de la gallera aún no ha subido imágenes a la galería."
+                    description="El dueño del criadero aún no ha subido imágenes a la galería."
                     icon={<Shield className="w-10 h-10" />}
                   />
                 )}
@@ -506,7 +506,7 @@ const GallerasPage: React.FC = () => {
                 </h2>
                 <EmptyState
                   title="Próximamente"
-                  description="Los artículos y contenidos de esta institución aparecerán aquí."
+                  description="Los artículos y contenidos de este criadero aparecerán aquí."
                   icon={<Shield className="w-10 h-10" />}
                 />
               </div>
@@ -526,27 +526,26 @@ const GallerasPage: React.FC = () => {
         <div className="space-y-4">
           {/* Title and Stat Chips */}
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-              <Shield className="w-6 h-6 text-green-600" />
-              Instituciones Criadoras
-              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="font-bold text-gray-100">Total:</span>
-                <span className="font-bold text-white">{galleras.length}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="font-bold text-gray-100">Certificadas:</span>
-                <span className="font-bold text-white">
-                  {galleras.filter((g) => g.isCertified).length}
-                </span>
-              </div>
-            </h1>
-          </div>
+                          <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
+                            <Shield className="w-6 h-6 text-green-600" />
+                            Criaderos
+                            <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                              <span className="font-bold text-gray-100">Total:</span>
+                              <span className="font-bold text-white">{galleras.length}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                              <span className="font-bold text-gray-100">Certificados:</span>
+                              <span className="font-bold text-white">
+                                {galleras.filter((g) => g.isCertified).length}
+                              </span>
+                            </div>
+                          </h1>          </div>
 
           {/* Search and Filters */}
           <div className="flex flex-col md:flex-row gap-4 card-background p-4">
             <div className="flex-1">
               <SearchInput
-                placeholder="Buscar instituciones criadoras..."
+                placeholder="Buscar criaderos..."
                 onSearch={(value) => setSearchTerm(value)}
                 value={searchTerm}
                 showClearButton
@@ -561,9 +560,9 @@ const GallerasPage: React.FC = () => {
                 onChange={(e) => setPremiumFilter(e.target.value)}
                 className="border border-[#596c9536]/30 rounded-lg px-3 py-2 text-sm text-theme-primary focus:outline-none focus:border-blue-400 transition-colors"
               >
-                <option value="all">Todas las instituciones</option>
+                <option value="all">Todos los criaderos</option>
                 <option value="premium">Nivel Premium</option>
-                <option value="certified">Certificadas</option>
+                <option value="certified">Certificados</option>
                 <option value="standard">Estándar</option>
               </select>
             </div>
@@ -585,11 +584,11 @@ const GallerasPage: React.FC = () => {
           </Card>
         ) : !filteredGalleras.length ? (
           <EmptyState
-            title="No se encontraron instituciones"
+            title="No se encontraron criaderos"
             description={
               searchTerm
-                ? "No hay instituciones que coincidan con tu búsqueda"
-                : "No hay instituciones criadoras registradas en este momento"
+                ? "No hay criaderos que coincidan con tu búsqueda"
+                : "No hay criaderos registrados en este momento"
             }
             icon={<Shield className="w-12 h-12" />}
             action={

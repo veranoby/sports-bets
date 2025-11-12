@@ -163,9 +163,9 @@ const EventsPage: React.FC = () => {
           category: filter !== "all" ? filter : undefined,
           limit: 20,
         };
-        const response = await eventsAPI.getEvents(params);
+        const response = await eventsAPI.getAll(params);
         if (response.success && response.data) {
-          setFilteredEvents(response.data.events || []);
+          setFilteredEvents((response.data as { events?: any[] }).events || []);
         }
       } catch (error) {
         console.error("Error loading filtered events:", error);
@@ -363,8 +363,8 @@ const EventsPage: React.FC = () => {
                         </p>
                         <p className="text-xs text-theme-light">
                           {
-                            events.find((e) => e.status === "in-progress")
-                              ?.venue?.profileInfo?.venueName
+                            (events.find((e: any) => e.status === "in-progress")
+                              ?.venue as any)?.profileInfo?.venueName
                           }
                         </p>
                       </div>

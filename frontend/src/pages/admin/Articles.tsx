@@ -30,7 +30,7 @@ import StatusChip from "../../components/shared/StatusChip";
 import ArticleEditorForm from "../../components/admin/ArticleEditorForm";
 
 // APIs
-import { articlesAPI, venuesAPI } from "../../services/api";
+import { articlesAPI, userAPI } from "../../services/api";
 
 interface Article {
   id: string;
@@ -104,8 +104,8 @@ const AdminArticlesPage: React.FC = () => {
       includeAuthor: true,
       includeVenue: true,
     });
-    const venuesRes = await venuesAPI.getAll({
-      status: "active",
+    const venuesRes = await userAPI.getAll({
+      role: "venue",
       limit: 100,
     });
 
@@ -155,8 +155,8 @@ const AdminArticlesPage: React.FC = () => {
         includeAuthor: true,
         includeVenue: true,
       });
-      const venuesRes = await venuesAPI.getAll({
-        status: "active",
+      const venuesRes = await userAPI.getAll({
+        role: "venue",
         limit: 100,
       });
 

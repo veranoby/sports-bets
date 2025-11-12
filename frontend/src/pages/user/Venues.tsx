@@ -74,7 +74,7 @@ const VenueCard = React.memo(
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Building className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-medium text-blue-600">Local</span>
+              <span className="text-xs font-medium text-blue-600">Gallera</span>
               {venue.isVerified && (
                 <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
               )}
@@ -212,7 +212,7 @@ const VenuesPage: React.FC = () => {
                   description:
                     user.profileInfo?.venueDescription ||
                     user.profileInfo?.description ||
-                    "Local para eventos de gallos",
+                    "Gallera para eventos de gallos",
                   location:
                     user.profileInfo?.venueLocation ||
                     user.profileInfo?.location ||
@@ -237,11 +237,11 @@ const VenuesPage: React.FC = () => {
           setVenues(venueProfiles);
         } else {
           setError(
-            "Error al cargar los locales. Inténtalo de nuevo más tarde.",
+            "Error al cargar las galleras. Inténtalo de nuevo más tarde.",
           );
         }
       } catch (err) {
-        setError("Error al cargar los locales. Inténtalo de nuevo más tarde.");
+        setError("Error al cargar las galleras. Inténtalo de nuevo más tarde.");
         console.error("Error loading venues:", err);
       } finally {
         setLoading(false);
@@ -269,7 +269,7 @@ const VenuesPage: React.FC = () => {
   if (loading) {
     return (
       <div className="page-background">
-        <LoadingSpinner text="Cargando locales..." className="mt-20" />
+        <LoadingSpinner text="Cargando galleras..." className="mt-20" />
       </div>
     );
   }
@@ -280,7 +280,7 @@ const VenuesPage: React.FC = () => {
     if (!venue)
       return (
         <EmptyState
-          title="Local no encontrado"
+          title="Gallera no encontrada"
           icon={<Users className="w-12 h-12" />}
         />
       );
@@ -293,7 +293,7 @@ const VenuesPage: React.FC = () => {
             className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary mb-4 transition-colors"
           >
             <ChevronRight className="w-4 h-4 rotate-180" />
-            Volver a Locales
+            Volver a Galleras
           </button>
 
           {/* === UNIFIED DETAIL VIEW START === */}
@@ -429,7 +429,7 @@ const VenuesPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
               <Building className="w-6 h-6 text-blue-600" />
-              Locales de Eventos
+              Galleras de Eventos
               <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
                 <span className="font-bold text-gray-100">Total:</span>
                 <span className="font-bold text-white">{venues.length}</span>
@@ -447,7 +447,7 @@ const VenuesPage: React.FC = () => {
           <div className="card-background p-4 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <SearchInput
-                placeholder="Buscar locales por nombre o ubicación..."
+                placeholder="Buscar galleras por nombre o ubicación..."
                 onSearch={(value) => setSearch(value)}
                 value={search}
                 showClearButton
@@ -471,7 +471,7 @@ const VenuesPage: React.FC = () => {
                 }}
                 className="border border-[#596c9536]/30 rounded-lg px-3 py-2 text-sm text-theme-primary focus:outline-none focus:border-blue-400 transition-colors"
               >
-                <option value="all">Todos los locales</option>
+                <option value="all">Todas las galleras</option>
                 <option value="active">Con contenido</option>
                 <option value="inactive">Sin contenido</option>
               </select>
@@ -494,11 +494,11 @@ const VenuesPage: React.FC = () => {
           </Card>
         ) : !filteredVenues.length ? (
           <EmptyState
-            title="No se encontraron locales"
+            title="No se encontraron galleras"
             description={
               search
-                ? "No hay locales que coincidan con tu búsqueda"
-                : "No hay locales registrados en este momento"
+                ? "No hay galleras que coincidan con tu búsqueda"
+                : "No hay galleras registradas en este momento"
             }
             icon={<Building className="w-12 h-12" />}
             action={

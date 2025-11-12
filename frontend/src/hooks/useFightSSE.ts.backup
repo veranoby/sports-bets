@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSSE } from "./useSSE";
-import type { EventSourcePolyfill } from "event-source-polyfill";
+import useSSE from "./useSSE";
 
 interface FightSSEData {
   fightId?: string;
@@ -14,6 +13,9 @@ interface FightSSEData {
 }
 
 interface UseFightSSEReturn {
+  bettingWindow: boolean;
+  subscribe: (eventType: SSEEventType, handler: (data: any) => void) => () => void;
+  status: "connected" | "connecting" | "disconnected" | "error";
   fightStatus: string | null;
   availableBets: any[];
   eventListeners: {
@@ -44,44 +46,44 @@ const useFightSSE = (
   }, [eventListeners]);
 
   // Initialize SSE connection for fight-related events
-  const { lastEvent } = useSSE(
-    fightId ? `/api/sse/fights/${fightId}` : null,
-    {
-      heartbeat: true,
-      reconnect: true,
-      reconnectInterval: 5000,
-      maxRetries: 5,
-    },
-    (status) => setSseStatus(status as UseFightSSEReturn["sseStatus"]),
+  const { lastEvent, status } = useSSE(
+    fightId ? `/api/sse/fights/${fightId}` : null
   );
+  
+  useEffect(() => {
+    if (status) {
+      setSseStatus(status as UseFightSSEReturn["sseStatus"]);
+    }
+  }, [status]);
 
   useEffect(() => {
     if (lastEvent && fightId) {
       const { type, data } = lastEvent;
 
       // Update fight status if event is related to this fight
-      if (data.fightId === fightId) {
+      // Assuming data has the proper structure with fightId
+      if (data && typeof data === 'object' && 'fightId' in data && (data as any).fightId === fightId) {
         switch (type) {
           case "BETTING_WINDOW_OPENED":
             setFightStatus("betting");
-            listenersRef.current.onBettingOpened?.(data);
+            listenersRef.current.onBettingOpened?.(data as FightSSEData);
             break;
 
           case "BETTING_WINDOW_CLOSED":
             setFightStatus("live");
-            listenersRef.current.onBettingClosed?.(data);
+            listenersRef.current.onBettingClosed?.(data as FightSSEData);
             break;
 
           case "FIGHT_COMPLETED":
             setFightStatus("completed");
-            listenersRef.current.onFightCompleted?.(data);
+            listenersRef.current.onFightCompleted?.(data as FightSSEData);
             break;
 
           case "NEW_BET":
-            listenersRef.current.onNewBet?.(data);
+            listenersRef.current.onNewBet?.(data as FightSSEData);
             // Refresh bets when new bet is created
             setTimeout(() => {
-              listenersRef.current.onNewBet?.(data);
+              listenersRef.current.onNewBet?.(data as FightSSEData);
             }, 500);
             break;
 
@@ -98,12 +100,12 @@ const useFightSSE = (
   }, [fightId]);
 
   return {
-    fightStatus,
-    availableBets,
-    eventListeners,
-    sseStatus,
-    error,
-    refreshBets,
+    fightStatus: fightStatus,
+    availableBets: availableBets,
+    eventListeners: eventListeners,
+    sseStatus: sseStatus,
+    error: error,
+    refreshBets: refreshBets,
   };
 };
 

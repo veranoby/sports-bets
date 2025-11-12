@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-          role: selectedRole,
+          ...(selectedRole !== "user" ? { role: selectedRole } : {}),
         });
       }
       navigate("/");

@@ -1,0 +1,81 @@
+{
+  "development_priority_stack": [
+    {
+      "priority": "P0_CRITICAL",
+      "task_description": "Solucionar Gaps de E2E Frontend y Estabilidad",
+      "rationale": "La validación E2E falló en todas las capas, bloqueando la validación manual y la preparación para producción. La aplicación no es testeable ni estable en su estado actual.",
+      "impact": "Bloqueador total para el lanzamiento. Sin esto, no se puede verificar que el producto funcione.",
+      "source_file": "brain/backlog.json (e2e_frontend_validation_2025_11_10)"
+    },
+    {
+      "priority": "P0",
+      "task_description": "Resolver páginas de Admin rotas (Finance, Monitoring)",
+      "rationale": "Las páginas de administración críticas para la operación y monitoreo del negocio no están funcionales, arrojando errores 404 y spam en la consola.",
+      "impact": "Impide la gestión y monitoreo post-lanzamiento.",
+      "source_file": "brain/backlog.json (broken_pages_scan_implementation_2025_11_11)"
+    },
+    {
+      "priority": "P1",
+      "task_description": "Implementar página de historial global de apuestas para Admin",
+      "rationale": "La auditoría de funcionalidades de historial reveló que no existe una vista para que el admin supervise todas las apuestas, lo cual es un requisito de negocio para la operación.",
+      "impact": "Baja visibilidad operativa y de negocio sobre la actividad de apuestas.",
+      "source_file": "brain/backlog.json (recent_achievements_2025_11_07_auditoria_history_features)"
+    },
+    {
+      "priority": "P2",
+      "task_description": "Añadir funcionalidad de exportación a reportes de Admin",
+      "rationale": "Los reportes financieros y de apuestas carecen de capacidad de exportación (CSV/PDF), limitando su utilidad para análisis externo.",
+      "impact": "Dificulta el análisis de negocio y la contabilidad.",
+      "source_file": "brain/backlog.json (recent_achievements_2025_11_07_auditoria_history_features)"
+    }
+  ],
+  "decision_maker_priorities": [
+    {
+      "stakeholder": "Solo founder/developer (veranoby)",
+      "concerns": [
+        "Entrega del MVP en el plazo de 15 días.",
+        "Resolución del rendimiento de la base de datos (CRÍTICO).",
+        "Activación de la generación de ingresos (suscripciones).",
+        "Funcionalidad completa del sistema de apuestas."
+      ],
+      "source_file": "brain/prd_system.json"
+    }
+  ],
+  "implementation_roadmap": {
+    "mvp_sprint_15_dias": [
+      { "week": 1, "focus": "Implementación del núcleo (SSE, Frontend, Ventanas de Apuestas, Dashboard Operador)", "status": "Mayormente completado, con gaps de integración." },
+      { "week": 2, "focus": "Optimización y Estabilización (Rendimiento BD, Pruebas, Pulido, Despliegue)", "status": "En progreso, rendimiento de BD resuelto, pero bloqueado por estabilidad de frontend." }
+    ]
+  },
+  "success_gates": [
+    {
+      "phase": "Pre-Lanzamiento",
+      "gate": "Validación E2E del Frontend exitosa.",
+      "criteria": "Las 5 capas de la simulación E2E deben pasar al menos en un 80% para poder realizar la validación manual.",
+      "status": "BLOQUEADO"
+    },
+    {
+      "phase": "Lanzamiento MVP",
+      "gate": "Despliegue en producción.",
+      "criteria": "El sistema debe estar desplegado y funcional para el 21 de Septiembre.",
+      "status": "EN RIESGO"
+    },
+    {
+      "phase": "Post-Lanzamiento (Mes 1)",
+      "gate": "Validación de negocio.",
+      "criteria": "Alcanzar 25+ suscriptores y $500+ en ingresos.",
+      "status": "PENDIENTE"
+    }
+  ],
+  "cross_references_to_migrate": [
+    {
+      "informacion": "Métricas de éxito del negocio (25+ suscriptores, $500+ ingresos en Mes 1).",
+      "ubicacion_original": "brain/prd_system.json",
+      "destino_recomendado": "objectives_memory_index.json"
+    }
+  ],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para la lista priorizada de tareas y objetivos (P0-P3).",
+    "references": "El progreso detallado de las tareas se reporta en `backlog.json`. Las métricas de éxito se definen en `objectives_memory_index.json`."
+  }
+}

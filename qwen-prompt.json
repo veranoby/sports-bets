@@ -1,291 +1,241 @@
 {
-  "task": "QWEN - Streaming Documentation & History Features Audit",
-  "date": "2025-11-07",
-  "priority": "HIGH",
-  "estimated_time": "2-3 hours",
-  "context": {
-    "previous_audits": [
-      " Auditoría 1: Backend Homologation (95% compliance, 3 issues found)",
-      " Auditoría 2: Streaming Documentation Gaps (7 sections created)"
-    ],
-    "your_tasks": [
-      "Task A: Add streaming documentation sections to files",
-      "Task B: Auditoría 3 - History Features implementation check"
-    ]
+  "session_metadata": {
+    "model": "qwen-3-coder-plus",
+    "assigned_role": "executor",
+    "session_date": "2025-11-11",
+    "session_type": "bug_fixes_and_polish",
+    "execution_mode": "standard",
+    "deadline": "1 day before production launch",
+    "estimated_duration": "6 hours (Day 2)",
+    "prerequisite": "Claude Day 1 completed - Manual validation done, bugs documented in backlog.json"
   },
 
-  "TASK_A_ADD_STREAMING_DOCS": {
-    "description": "Add 7 documented sections to streaming guides (Spanish & English)",
-    "priority": "CRITICAL",
-    "files_to_modify": [
-      "streaming-manual.md (4 sections)",
-      "docs/guides/streaming-reference.md (3 sections)"
-    ],
+  "CRITICAL_CONTEXT": {
+    "situation": "Platform launches TOMORROW. Claude completed Day 1: runtime errors fixed, manual validation done. You have list of P1/P2 bugs to fix.",
+    "your_input": "Read Claude's validation report in brain/backlog.json â†’ entry: claude_production_validation_day1_2025_11_10 â†’ field: bugs_found_for_qwen",
+    "your_output": "All P1/P2 bugs fixed, final polish complete, platform ready for launch",
+    "strategic_focus": "Fix ONLY bugs from Claude's list. Do NOT add features. Do NOT refactor unnecessarily."
+  },
 
-    "STEP_1_SPANISH_GUIDE": {
-      "file": "streaming-manual.md",
-      "location": "Add after existing content, before final section",
-      "sections_to_add": [
-        {
-          "section_name": "## Gestión de Pausas de Transmisión (Intermedios)",
-          "content_source": "brain/backlog.json lines 2125-2145",
-          "placement": "After 'Gestión de Peleas' section",
-          "key_points": [
-            "Pausas se manejan EN OBS, NO en la plataforma",
-            "Cambiar escena a 'Intermedio' sin parar stream",
-            "NO cambiar status de peleas durante pausa",
-            "Usuarios siguen conectados al stream"
-          ]
-        },
-        {
-          "section_name": "## Ciclo de Vida Completo de una Pelea",
-          "content_source": "brain/backlog.json lines 2147-2165",
-          "placement": "After 'Gestión de Pausas'",
-          "key_points": [
-            "4 fases: APERTURA ’ INICIO ’ RESULTADO ’ CIERRE",
-            "Cada fase tiene endpoint específico y SSE broadcast",
-            "Status transitions: upcoming ’ betting ’ live ’ completed"
-          ]
-        },
-        {
-          "section_name": "## Tabla de Referencia Rápida",
-          "content_source": "brain/backlog.json lines 2167-2179",
-          "placement": "After 'Ciclo de Vida'",
-          "format": "Table with 4 columns: Acción | Status | Endpoint | SSE Event"
-        },
-        {
-          "section_name": "## Errores Comunes y Soluciones",
-          "content_source": "brain/backlog.json lines 2181-2193",
-          "placement": "Before final section",
-          "key_points": [
-            "Error: 'Invalid status transition' ’ Verificar estado actual",
-            "Error: 'Betting window closed' ’ Revisar fight.status",
-            "Error: 'Stream not found' ’ Validar eventId"
-          ]
-        }
+  "MANDATORY_SESSION_START_PROTOCOL": {
+    "step_1_declare_role": {
+      "CRITICAL": "FIRST message MUST be: Model: qwen-3-coder-plus | Role: executor | Mode: standard | Task: Day 2 Bug Fixes - Fix P1/P2 bugs from Claude's manual validation + final polish",
+      "purpose": "Confirm you understand assignment",
+      "source": "brain/multi_ai_coordination_strategy.json lines 102-124"
+    },
+    "step_2_read_coordination_strategy": {
+      "CRITICAL": "Read brain/multi_ai_coordination_strategy.json lines 420-522 (4 critical protocols)",
+      "purpose": "Understand reporting, evidence, session management requirements"
+    },
+    "step_3_read_claude_results": {
+      "CRITICAL": "Read brain/backlog.json â†’ find entry 'claude_production_validation_day1_2025_11_10' â†’ read 'bugs_found_for_qwen' array",
+      "purpose": "Get exact list of bugs to fix with reproduction steps and evidence"
+    }
+  },
+
+  "task_objectives": {
+    "phase_1_fix_p1_p2_bugs_from_claude": {
+      "priority": "P1_IMPORTANT",
+      "estimated_time": "5 hours",
+      "description": "Fix non-blocking but important bugs discovered during Claude's manual validation",
+
+      "input_source": {
+        "file": "brain/backlog.json",
+        "entry": "claude_production_validation_day1_2025_11_10",
+        "field": "bugs_found_for_qwen",
+        "format": "Array of bug objects: {bug_id, description, severity, location, reproduction, evidence}"
+      },
+
+      "execution_pattern_per_bug": [
+        "Step 1: Read bug details (bug_id, description, location, reproduction steps)",
+        "Step 2: Read affected file to understand context and current implementation",
+        "Step 3: Reproduce bug locally (follow reproduction steps exactly)",
+        "Step 4: Apply fix (use defensive programming, avoid breaking existing functionality)",
+        "Step 5: Test fix locally (npm run dev, navigate to affected page, verify fix works)",
+        "Step 6: Verify no console errors introduced by your fix",
+        "Step 7: Document fix in your evidence log with before/after evidence"
+      ],
+
+      "allowed_file_types": {
+        "frontend_components": "frontend/src/components/**/*.tsx (UI component fixes)",
+        "frontend_pages": "frontend/src/pages/**/*.tsx (page logic fixes)",
+        "frontend_services": "frontend/src/services/*.ts (API call fixes)",
+        "frontend_types": "frontend/src/types/*.ts (TypeScript interface updates)",
+        "backend_routes": "backend/src/routes/*.ts (API endpoint fixes)",
+        "backend_services": "backend/src/services/*.ts (service logic fixes)"
+      },
+
+      "FORBIDDEN_files": {
+        "DO_NOT_TOUCH": [
+          "backend/src/middleware/auth.ts (unless explicitly in bug list)",
+          "backend/src/models/User.ts (unless explicitly in bug list)",
+          "Any core authentication/authorization files"
+        ],
+        "reason": "Authentication is production-critical and already working. Breaking auth = production disaster.",
+        "action_if_auth_bug_found": "If bug list includes auth-related issues, fix ONLY what's specified. Do NOT refactor auth system."
+      },
+
+      "success_criteria": [
+        "All P1/P2 bugs from Claude's list addressed",
+        "npm run dev succeeds in both frontend and backend (zero compilation errors)",
+        "Affected pages load correctly in browser when tested locally",
+        "No new TypeScript errors introduced (npx tsc --noEmit = 0 errors)",
+        "No new runtime errors in browser console",
+        "Evidence documented for each fix"
       ]
     },
 
-    "STEP_2_ENGLISH_GUIDE": {
-      "file": "docs/guides/streaming-reference.md",
-      "location": "Add to appropriate sections (integrate with existing content)",
-      "sections_to_add": [
+    "phase_2_final_polish_and_validation": {
+      "priority": "P1_IMPORTANT",
+      "estimated_time": "1 hour",
+      "description": "Final checks to ensure platform ready for launch tomorrow",
+
+      "polish_tasks": [
         {
-          "section_name": "### Fight Status State Machine",
-          "content_source": "brain/backlog.json lines 2157-2164",
-          "placement": "In 'Operator Workflows' section",
-          "technical_spec": "Valid transitions: upcoming ’ betting ’ live ’ completed"
+          "task": "TypeScript compilation check",
+          "command": "cd frontend && npx tsc --noEmit",
+          "success": "0 errors",
+          "action_if_fail": "Fix all TypeScript errors before considering done"
         },
         {
-          "section_name": "### Intermission Workflow",
-          "content_source": "brain/backlog.json lines 2166-2172",
-          "placement": "After 'Fight Management' subsection",
-          "clarification": "OBS-level only, no API calls required"
+          "task": "Backend compilation check",
+          "command": "cd backend && npx tsc --noEmit",
+          "success": "0 errors",
+          "action_if_fail": "Fix all backend TypeScript errors"
         },
         {
-          "section_name": "## API Reference: Fight Operations",
-          "content_source": "brain/backlog.json lines 2174-2188",
-          "placement": "New section after 'Monitoring & Analytics'",
-          "format": "HTTP method, endpoint, request body, response, SSE event"
+          "task": "Frontend dev server starts",
+          "command": "cd frontend && timeout 10s npm run dev",
+          "success": "Vite server starts without errors",
+          "action_if_fail": "Fix build configuration issues"
+        },
+        {
+          "task": "Backend dev server starts",
+          "command": "cd backend && timeout 10s npm run dev",
+          "success": "Express server starts, connects to database",
+          "action_if_fail": "Fix database connection or server startup issues"
+        },
+        {
+          "task": "Quick smoke test - eventos page",
+          "steps": [
+            "Start both servers (backend + frontend)",
+            "Navigate to http://localhost:5173/login",
+            "Login with test credentials",
+            "Navigate to /eventos",
+            "Verify page loads without JavaScript errors in console"
+          ],
+          "success": "Eventos page loads, no console errors",
+          "action_if_fail": "Document issue, add to report as NEW_BUG with P0 severity"
+        },
+        {
+          "task": "Quick smoke test - admin dashboard",
+          "steps": [
+            "Login as admin",
+            "Navigate to /admin/events",
+            "Verify page loads without JavaScript errors"
+          ],
+          "success": "Admin events page loads, no console errors",
+          "action_if_fail": "Document issue, add to report as NEW_BUG with P0 severity"
         }
-      ]
-    },
+      ],
 
-    "VALIDATION_REQUIREMENTS": [
-      " All 7 sections added to correct files",
-      " Markdown formatting correct (headers, tables, code blocks)",
-      " Content matches brain/backlog.json specifications",
-      " No existing content overwritten or removed",
-      " Sections integrated logically with existing structure"
-    ]
-  },
-
-  "TASK_B_AUDITORIA_3_HISTORY": {
-    "description": "Audit implementation of fight results, betting history, withdrawal history visibility",
-    "priority": "HIGH",
-    "scope": "Frontend & Backend components for data display and history management",
-
-    "INVESTIGATION_AREAS": {
-      "A_FIGHT_RESULTS_VISIBILITY": {
-        "question": "Can users see completed fight results?",
-        "files_to_check": [
-          "frontend/src/pages/user/Dashboard.tsx (EventData display)",
-          "frontend/src/pages/user/LiveEvent.tsx (Fight results)",
-          "backend/src/routes/fights.ts (GET /fights/:id endpoint)",
-          "backend/src/models/Fight.ts (result field)"
-        ],
-        "expected_implementation": [
-          "Fight.result field exists ('red' | 'blue' | 'draw' | 'cancelled')",
-          "Frontend displays fight.result after status='completed'",
-          "Historical fights accessible via API",
-          "Result shown in user dashboard or event history"
-        ],
-        "report_format": {
-          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
-          "evidence": "File:line references showing implementation",
-          "gaps": "Missing features or incomplete implementation",
-          "recommendation": "Actions needed if gaps found"
-        }
-      },
-
-      "B_BETTING_HISTORY": {
-        "question": "Can users see their betting history with win/loss records?",
-        "files_to_check": [
-          "frontend/src/pages/user/Dashboard.tsx (betting history section)",
-          "frontend/src/pages/user/Profile.tsx (user history)",
-          "backend/src/routes/bets.ts (GET /bets endpoint with filters)",
-          "backend/src/models/Bet.ts (status: won/lost/cancelled)"
-        ],
-        "expected_implementation": [
-          "GET /api/bets?userId=X&status=completed endpoint exists",
-          "Bet.status field tracks 'won' | 'lost' outcomes",
-          "Frontend component displays user's bet history",
-          "History shows: fight, amount, odds, outcome, payout"
-        ],
-        "report_format": {
-          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
-          "evidence": "API endpoints and frontend components",
-          "gaps": "Missing pagination, filters, or display components",
-          "recommendation": "Implementation plan if needed"
-        }
-      },
-
-      "C_WITHDRAWAL_HISTORY": {
-        "question": "Can users see their wallet withdrawal request history?",
-        "files_to_check": [
-          "frontend/src/pages/user/Profile.tsx (wallet section)",
-          "backend/src/routes/wallet.ts (GET /wallet/transactions)",
-          "backend/src/models/Transaction.ts (type: 'withdrawal')"
-        ],
-        "expected_implementation": [
-          "Transaction.type='withdrawal' records exist",
-          "GET /api/wallet/transactions?type=withdrawal endpoint",
-          "Frontend displays withdrawal history with status",
-          "User sees: date, amount, status (pending/completed/failed)"
-        ],
-        "report_format": {
-          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
-          "evidence": "Database model and API endpoints",
-          "gaps": "Missing UI components or filtering",
-          "recommendation": "Priority level and implementation steps"
-        }
-      },
-
-      "D_ADMIN_GLOBAL_HISTORY": {
-        "question": "Can admin see equivalent history data for ALL users?",
-        "files_to_check": [
-          "frontend/src/pages/admin/Dashboard.tsx (admin overview)",
-          "frontend/src/pages/admin/Bets.tsx or Reports.tsx",
-          "backend/src/routes/bets.ts (admin endpoints)",
-          "backend/src/routes/wallet.ts (admin transaction endpoints)"
-        ],
-        "expected_implementation": [
-          "Admin endpoints without userId filter (returns all data)",
-          "Frontend admin components with filters (user, date, status)",
-          "Pagination for large datasets",
-          "Export functionality (CSV/PDF) optional"
-        ],
-        "report_format": {
-          "status": " IMPLEMENTED |   PARTIAL | =4 MISSING",
-          "evidence": "Admin routes and components",
-          "gaps": "Missing admin views or filtering capabilities",
-          "recommendation": "Admin dashboard enhancements needed"
-        }
-      }
-    },
-
-    "REPORT_STRUCTURE": {
-      "format": "Update brain/backlog.json with new achievement record",
-      "record_name": "recent_achievements_2025_11_07_auditoria_history_features",
-      "sections_required": [
-        "summary: Overall assessment (1-2 sentences)",
-        "findings: Detailed results for A, B, C, D investigations",
-        "implementation_status: Percentage complete (X/4 areas implemented)",
-        "critical_gaps: Missing features that block user workflows",
-        "recommendations: Prioritized action items with time estimates",
-        "brain_files_verified: List of brain files checked",
-        "code_files_audited: List of frontend/backend files reviewed"
+      "success_criteria": [
+        "Both frontend and backend compile without errors",
+        "Both servers start successfully",
+        "Quick smoke tests pass (eventos + admin pages load)",
+        "No new P0 bugs discovered during smoke tests"
       ]
     }
   },
 
-  "EXECUTION_INSTRUCTIONS": {
-    "order": [
-      "1. Complete TASK_A first (add streaming docs to files)",
-      "2. Then proceed with TASK_B (history features audit)",
-      "3. Update brain/backlog.json with Auditoría 3 report"
-    ],
+  "reporting_protocol": {
+    "where": "EXACT PATH: /home/veranoby/sports-bets/brain/backlog.json",
+    "entry_name": "qwen_day2_bug_fixes_2025_11_11",
+    "mandatory_fields": {
+      "executor": "QWEN 3-Coder Plus",
+      "date": "2025-11-11",
+      "task": "Day 2 Bug Fixes - P1/P2 bugs from Claude manual validation + final polish",
+      "status": "COMPLETED or IN_PROGRESS or BLOCKED",
+      "prerequisite_status": "Claude Day 1 validation completed, bugs list received",
+      "verification_evidence": {
+        "bugs_received_from_claude": "Count of bugs in input list",
+        "bugs_fixed": "Count of bugs successfully fixed",
+        "bugs_remaining": "Count of bugs NOT fixed (if any)",
+        "typescript_errors_before": "Count before fixes",
+        "typescript_errors_after": "Count after fixes (should be 0)",
+        "console_errors_smoke_test": "Count of JavaScript errors during final smoke tests",
+        "servers_start_successfully": "YES or NO",
+        "new_bugs_discovered": "Count of NEW bugs found during smoke tests (should be 0)"
+      },
+      "detailed_results": {
+        "bug_fixes": [
+          {
+            "bug_id": "Bug identifier from Claude's list",
+            "description": "What was broken",
+            "location": "File and line number",
+            "fix_applied": "What change was made",
+            "test_evidence": "How fix was verified (screenshot, console log, etc.)",
+            "status": "FIXED or SKIPPED (with reason)"
+          }
+        ],
+        "new_bugs_if_any": [
+          {
+            "bug_id": "NEW_BUG_001",
+            "description": "What is broken",
+            "severity": "P0 or P1 or P2",
+            "location": "File affected",
+            "reproduction": "Steps to reproduce",
+            "evidence": "Console log or screenshot"
+          }
+        ]
+      },
+      "deployment_readiness": "READY or BLOCKED",
+      "blockers_if_blocked": "List of issues preventing launch tomorrow"
+    },
+    "enforcement": "BEFORE reporting: 1) Update backlog.json 2) git add brain/backlog.json 3) git diff --cached to verify 4) THEN report to user"
+  },
 
-    "TASK_A_STEPS": [
-      "Step 1: Read brain/backlog.json lines 2057-2212 to get full content",
-      "Step 2: Read streaming-manual.md to understand existing structure",
-      "Step 3: Add 4 Spanish sections at appropriate locations",
-      "Step 4: Read docs/guides/streaming-reference.md",
-      "Step 5: Add 3 English sections at appropriate locations",
-      "Step 6: Verify all 7 sections added correctly"
-    ],
-
-    "TASK_B_STEPS": [
-      "Step 1: Read investigation files for Area A (Fight Results)",
-      "Step 2: Document findings in structured format",
-      "Step 3: Repeat for Areas B, C, D",
-      "Step 4: Synthesize overall assessment",
-      "Step 5: Create recommendations with priorities",
-      "Step 6: Write comprehensive report to brain/backlog.json"
-    ],
-
-    "QUALITY_GATES": [
-      " No existing content removed or overwritten",
-      " Markdown formatting validated",
-      " All 4 investigation areas completed (A, B, C, D)",
-      " Evidence provided for all findings (file:line references)",
-      " brain/backlog.json updated with Auditoría 3 report"
+  "validation_gates": {
+    "before_considering_complete": [
+      "All P1/P2 bugs from Claude addressed (or documented why not fixed)",
+      "npx tsc --noEmit = 0 errors in both frontend and backend",
+      "npm run dev succeeds in both frontend and backend",
+      "Quick smoke tests pass (eventos + admin pages load)",
+      "No NEW P0 bugs discovered",
+      "Brain/backlog.json updated with structured report",
+      "git add brain/backlog.json (staged)"
     ]
   },
 
-  "SAFETY_PROTOCOLS": {
-    "FORBIDDEN": [
-      "L Do NOT touch authentication files (auth.ts, User.ts)",
-      "L Do NOT modify database models without explicit permission",
-      "L Do NOT create new .md files (add to existing files only)",
-      "L Do NOT attempt debugging - report issues only"
+  "session_management": {
+    "hard_time_limit": "6 hours maximum",
+    "checkpoint_frequency": "Every 90 minutes or after major milestone",
+    "context_refresh_triggers": [
+      "If you start repeating questions about same bug",
+      "If you edit same file 3+ times without success",
+      "If you're unsure what bug to work on next"
     ],
-
-    "REQUIRED": [
-      " Use Read tool before Edit tool (verify content first)",
-      " Backup key sections before modifications",
-      " Test markdown formatting locally if possible",
-      " Report any blocking issues immediately"
-    ]
+    "context_refresh_action": "Re-read this prompt (qwen-prompt.json) + brain/backlog.json entry for Claude's bugs list",
+    "handoff_to_director": "If blocked >30 minutes on ANY bug: Document blocker in backlog.json, SKIP that bug, move to next bug. Report all skipped bugs at end."
   },
 
-  "SUCCESS_CRITERIA": {
-    "TASK_A": "All 7 sections added to streaming guides correctly",
-    "TASK_B": "Comprehensive audit report in brain/backlog.json",
-    "OVERALL": "Both tasks completed within 2-3 hours with quality gates passed"
+  "critical_protocols_from_strategy": {
+    "source": "brain/multi_ai_coordination_strategy.json",
+    "applied_protocols": {
+      "task_disambiguation": "Lines 102-124 - Echo back task at session start",
+      "reporting_location": "Lines 143-163 - Exact file path specified above",
+      "evidence_based_validation": "Lines 502-530 - Report actual results, provide evidence for each fix",
+      "debugging_methodology": "Lines 136-143 - Reproduce bug first, then apply targeted fix"
+    }
   },
 
-  "REFERENCE_FILES": {
-    "brain_system": [
-      "brain/backlog.json (audit reports and documentation content)",
-      "brain/api_endpoints_reference.json (API specs)",
-      "brain/typescript_interfaces_reference.json (type definitions)",
-      "brain/prd_system.json (business requirements)"
-    ],
-    "streaming_docs": [
-      "streaming-manual.md (Spanish operator guide)",
-      "docs/guides/streaming-reference.md (English technical reference)"
-    ],
-    "backend": [
-      "backend/src/routes/fights.ts",
-      "backend/src/routes/bets.ts",
-      "backend/src/routes/wallet.ts",
-      "backend/src/models/*.ts"
-    ],
-    "frontend": [
-      "frontend/src/pages/user/Dashboard.tsx",
-      "frontend/src/pages/user/Profile.tsx",
-      "frontend/src/pages/admin/*.tsx"
+  "success_criteria_day2": {
+    "must_achieve": [
+      "P1/P2 bugs FIXED - user experience polished",
+      "TypeScript clean - zero compilation errors",
+      "Servers start - both backend and frontend run successfully",
+      "Smoke tests pass - core pages load without crashes",
+      "Deployment ready - platform ready for tomorrow's launch"
     ]
   }
 }

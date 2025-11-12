@@ -363,7 +363,7 @@ const ArticleManagement: React.FC = () => {
       excerpt: article.summary || "",
       content: article.content,
       featured_image: article.featured_image || "",
-      status: article.status as "draft" | "pending" | "published",
+      status: article.status as "draft" | "pending" | "published" | "archived",
     });
     setEditingArticle(article);
     setShowEditModal(true);

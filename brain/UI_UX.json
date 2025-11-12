@@ -1,120 +1,114 @@
 {
-  "metadata": {
-    "purpose": "Design decisions and UX strategy for admin/operator interfaces",
-    "updated": "2025-08-31",
-    "version": "1.0",
-    "cross_references": ["prd_system.json", "priorities_memory_index.json"]
-  },
   "design_philosophy": {
     "core_principles": [
-      "Function over form - prioritize operational efficiency",
-      "Minimize cognitive load for operators managing events",
-      "Clear visual hierarchy for role-based access",
-      "Responsive design for desktop/tablet use (mobile secondary)"
+      "Función sobre forma - priorizar la eficiencia operativa",
+      "Minimizar la carga cognitiva para los operadores que gestionan eventos",
+      "Clara jerarquía visual para el acceso basado en roles",
+      "Diseño responsivo para uso en escritorio/tableta (móvil secundario)"
     ],
     "user_adoption_strategy": {
-      "admin_users": "Power user interface with comprehensive controls",
-      "operators": "Simplified interface focused on daily tasks",
-      "end_users": "Streamlined subscription and viewing experience"
+      "admin_users": "Interfaz de usuario avanzada con controles completos",
+      "operators": "Interfaz simplificada centrada en tareas diarias",
+      "end_users": "Experiencia de suscripción y visualización optimizada"
     },
     "resistance_mitigation": {
-      "technical_resistance": "Progressive disclosure - advanced features hidden until needed",
-      "operational_resistance": "Familiar patterns from existing admin tools",
-      "change_resistance": "Clear benefits communication and training materials"
+      "technical_resistance": "Divulgación progresiva - funciones avanzadas ocultas hasta que sean necesarias",
+      "operational_resistance": "Patrones familiares de herramientas de administración existentes",
+      "change_resistance": "Comunicación clara de beneficios y materiales de capacitación"
     }
   },
   "role_based_interfaces": {
     "admin_dashboard": {
-      "design_approach": "Comprehensive control center with information density",
+      "design_approach": "Centro de control integral con densidad de información",
       "layout_strategy": {
-        "navigation": "Sidebar with grouped sections (Users, Events, System, Analytics)",
-        "content_area": "Tabbed interface for detailed management",
-        "monitoring": "Always-visible system status indicators"
+        "navigation": "Barra lateral con secciones agrupadas (Usuarios, Eventos, Sistema, Análisis)",
+        "content_area": "Interfaz con pestañas para una gestión detallada",
+        "monitoring": "Indicadores de estado del sistema siempre visibles"
       },
       "key_components": [
         {
           "component": "SystemMonitoring",
-          "purpose": "Real-time platform health",
+          "purpose": "Salud de la plataforma en tiempo real",
           "design_requirements": [
-            "Color-coded status indicators (green/yellow/red)",
-            "Key metrics prominently displayed",
-            "Error log with filtering capabilities",
-            "Performance graphs with time-range selection"
+            "Indicadores de estado codificados por colores (verde/amarillo/rojo)",
+            "Métricas clave mostradas de forma destacada",
+            "Registro de errores con capacidades de filtrado",
+            "Gráficos de rendimiento con selección de rango de tiempo"
           ]
         },
         {
-          "component": "UserManagement", 
-          "purpose": "Manage all user roles and permissions",
+          "component": "UserManagement",
+          "purpose": "Gestionar todos los roles y permisos de usuario",
           "design_requirements": [
-            "Tabbed interface by role type",
-            "Bulk operations with confirmation dialogs",
-            "Advanced filtering and search",
-            "Role-specific action buttons"
+            "Interfaz con pestañas por tipo de rol",
+            "Operaciones masivas con diálogos de confirmación",
+            "Filtrado y búsqueda avanzados",
+            "Botones de acción específicos del rol"
           ]
         },
         {
           "component": "EventOversight",
-          "purpose": "Monitor and control all events",
+          "purpose": "Monitorear y controlar todos los eventos",
           "design_requirements": [
-            "Calendar view and list view toggle",
-            "Real-time streaming status indicators",
-            "Quick action controls (start/stop streams)",
-            "Event analytics with drill-down capability"
+            "Vista de calendario y alternancia de vista de lista",
+            "Indicadores de estado de streaming en tiempo real",
+            "Controles de acción rápida (iniciar/detener transmisiones)",
+            "Análisis de eventos con capacidad de desglose"
           ]
         }
       ],
       "information_architecture": {
         "primary_navigation": ["Dashboard", "Events", "Users", "Analytics", "System"],
-        "secondary_navigation": "Contextual tabs within each primary section",
-        "breadcrumb_strategy": "Show current location in deep hierarchies"
+        "secondary_navigation": "Pestañas contextuales dentro de cada sección principal",
+        "breadcrumb_strategy": "Mostrar la ubicación actual en jerarquías profundas"
       }
     },
     "operator_dashboard": {
-      "design_approach": "Task-focused interface with guided workflows",
+      "design_approach": "Interfaz centrada en tareas con flujos de trabajo guiados",
       "layout_strategy": {
-        "navigation": "Simplified sidebar with operator-relevant sections only",
-        "content_area": "Wizard-style flows for complex tasks",
-        "constraints": "Visual indicators for permission boundaries"
+        "navigation": "Barra lateral simplificada con solo las secciones relevantes para el operador",
+        "content_area": "Flujos estilo asistente para tareas complejas",
+        "constraints": "Indicadores visuales para límites de permisos"
       },
       "key_components": [
         {
           "component": "MyEvents",
-          "purpose": "Manage events within operator scope",
+          "purpose": "Gestionar eventos dentro del alcance del operador",
           "design_requirements": [
-            "Event creation wizard with validation",
-            "Status dashboard for active events",
-            "Streaming controls prominently featured",
-            "Clear success/error feedback"
+            "Asistente de creación de eventos con validación",
+            "Dashboard de estado para eventos activos",
+            "Controles de streaming destacados",
+            "Retroalimentación clara de éxito/error"
           ]
         },
         {
           "component": "StreamingControls",
-          "purpose": "Direct event streaming management", 
+          "purpose": "Gestión directa de streaming de eventos",
           "design_requirements": [
-            "Large, clear start/stop buttons",
-            "Real-time viewer count display",
-            "Stream health indicators",
-            "OBS integration instructions"
+            "Botones grandes y claros de iniciar/detener",
+            "Visualización del recuento de espectadores en tiempo real",
+            "Indicadores de salud de la transmisión",
+            "Instrucciones de integración de OBS"
           ]
         },
         {
           "component": "LimitedUserManagement",
-          "purpose": "Manage users within operator authority",
+          "purpose": "Gestionar usuarios dentro de la autoridad del operador",
           "design_requirements": [
-            "Clear scope indicators (which users they can manage)",
-            "Simplified user actions (activate/deactivate, basic info)",
-            "Permission boundaries clearly communicated",
-            "No access to admin/operator user types"
+            "Indicadores de alcance claros (qué usuarios pueden gestionar)",
+            "Acciones de usuario simplificadas (activar/desactivar, información básica)",
+            "Límites de permisos claramente comunicados",
+            "Sin acceso a tipos de usuario administrador/operador"
           ]
         }
       ],
       "permission_visualization": {
-        "approach": "Progressive disclosure with clear boundaries",
+        "approach": "Divulgación progresiva con límites claros",
         "strategies": [
-          "Grayed-out sections for restricted areas",
-          "Tooltip explanations for permission limits",
-          "Role badge clearly visible in header",
-          "Context-appropriate action availability"
+          "Secciones atenuadas para áreas restringidas",
+          "Explicaciones de tooltips para límites de permisos",
+          "Insignia de rol claramente visible en el encabezado",
+          "Disponibilidad de acciones apropiadas al contexto"
         ]
       }
     }
@@ -122,145 +116,108 @@
   "user_experience_flows": {
     "operator_event_creation": {
       "flow_steps": [
-        "Dashboard → Create Event button",
-        "Event details form with validation",
-        "Venue/gallera assignment",
-        "Streaming configuration",
-        "Review and confirmation",
-        "Event created with streaming ready"
+        "Dashboard → Botón Crear Evento",
+        "Formulario de detalles del evento con validación",
+        "Asignación de venue/gallera",
+        "Configuración de streaming",
+        "Revisión y confirmación",
+        "Evento creado con streaming listo"
       ],
       "pain_point_elimination": [
-        "Pre-filled common values",
-        "Validation prevents submission errors",
-        "Clear progress indicators",
-        "Easy correction of mistakes"
+        "Valores comunes pre-rellenados",
+        "La validación evita errores de envío",
+        "Indicadores de progreso claros",
+        "Fácil corrección de errores"
       ],
-      "success_criteria": "Event creation in <5 minutes for experienced operator"
+      "success_criteria": "Creación de eventos en <5 minutos para operador experimentado"
     },
     "admin_system_monitoring": {
       "flow_steps": [
-        "Login → Auto-redirect to dashboard if issues",
-        "System status immediate visibility",
-        "Drill-down to specific issue details",
-        "Action buttons for common responses",
-        "Issue resolution tracking"
+        "Inicio de sesión → Redirección automática al dashboard si hay problemas",
+        "Visibilidad inmediata del estado del sistema",
+        "Desglose a detalles específicos del problema",
+        "Botones de acción para respuestas comunes",
+        "Seguimiento de resolución de problemas"
       ],
       "pain_point_elimination": [
-        "No need to navigate to find critical issues",
-        "Context-aware action recommendations",
-        "Historical issue tracking for patterns"
+        "No es necesario navegar para encontrar problemas críticos",
+        "Recomendaciones de acción conscientes del contexto",
+        "Seguimiento histórico de problemas para patrones"
       ],
-      "success_criteria": "Critical issues identified and addressed within 2 minutes"
+      "success_criteria": "Problemas críticos identificados y abordados en 2 minutos"
     },
     "streaming_workflow": {
       "flow_steps": [
-        "Event scheduled → Streaming preparation",
-        "Stream key generation → OBS configuration",
-        "Stream test → Go live confirmation",
-        "Live monitoring → Stream management",
-        "Event end → Analytics review"
+        "Evento programado → Preparación de streaming",
+        "Generación de clave de streaming → Configuración de OBS",
+        "Prueba de streaming → Confirmación de inicio en vivo",
+        "Monitoreo en vivo → Gestión de streaming",
+        "Fin del evento → Revisión de análisis"
       ],
       "pain_point_elimination": [
-        "Automated stream key generation",
-        "OBS configuration instructions embedded",
-        "One-click stream controls",
-        "Real-time performance feedback"
+        "Generación automática de clave de streaming",
+        "Instrucciones de configuración de OBS incrustadas",
+        "Controles de streaming con un solo clic",
+        "Retroalimentación de rendimiento en tiempo real"
       ],
-      "success_criteria": "Stream goes live within 30 seconds of operator action"
+      "success_criteria": "La transmisión se inicia en vivo en 30 segundos desde la acción del operador"
     }
   },
   "accessibility_requirements": {
-    "wcag_compliance": "AA level minimum",
+    "wcag_compliance": "Nivel AA mínimo",
     "key_requirements": [
-      "Color contrast ratios meet WCAG AA standards",
-      "Keyboard navigation for all interactive elements",
-      "Screen reader compatibility with semantic HTML",
-      "Focus indicators clearly visible",
-      "Error messages associated with form fields"
+      "Las relaciones de contraste de color cumplen con los estándares WCAG AA",
+      "Navegación por teclado para todos los elementos interactivos",
+      "Compatibilidad con lectores de pantalla con HTML semántico",
+      "Indicadores de enfoque claramente visibles",
+      "Mensajes de error asociados con campos de formulario"
     ],
     "responsive_design": {
-      "primary_targets": "Desktop (1920x1080), Tablet (1024x768)",
-      "secondary_targets": "Large desktop (2560x1440)",
-      "mobile_approach": "Basic functionality only (full feature set requires desktop/tablet)"
+      "primary_targets": "Escritorio (1920x1080), Tableta (1024x768)",
+      "secondary_targets": "Escritorio grande (2560x1440)",
+      "mobile_approach": "Solo funcionalidad básica (el conjunto completo de funciones requiere escritorio/tableta)"
     }
   },
   "design_tokens": {
     "color_palette": {
-      "primary": "#DC2626 (red-600) - Brand/action color",
-      "secondary": "#059669 (emerald-600) - Success/positive states",
-      "accent": "#D97706 (amber-600) - Warning/attention states",
-      "neutral": "#374151 (gray-700) - Text and borders",
-      "background": "#F9FAFB (gray-50) - Page background",
-      "surface": "#FFFFFF - Cards and panels"
+      "primary": "#DC2626 (red-600) - Color de marca/acción",
+      "secondary": "#059669 (emerald-600) - Estados de éxito/positivos",
+      "accent": "#D97706 (amber-600) - Estados de advertencia/atención",
+      "neutral": "#374151 (gray-700) - Texto y bordes",
+      "background": "#F9FAFB (gray-50) - Fondo de página",
+      "surface": "#FFFFFF - Tarjetas y paneles"
     },
     "typography": {
-      "font_family": "Inter (system fallback: sans-serif)",
+      "font_family": "Inter (fallback del sistema: sans-serif)",
       "scale": {
-        "h1": "2xl (24px) - Page titles",
-        "h2": "xl (20px) - Section headers",
-        "h3": "lg (18px) - Component titles",
-        "body": "sm (14px) - Default text",
-        "caption": "xs (12px) - Meta information"
+        "h1": "2xl (24px) - Títulos de página",
+        "h2": "xl (20px) - Encabezados de sección",
+        "h3": "lg (18px) - Títulos de componentes",
+        "body": "sm (14px) - Texto predeterminado",
+        "caption": "xs (12px) - Meta información"
       },
       "weights": "400 (normal), 500 (medium), 600 (semibold)"
     },
     "spacing": {
-      "component_padding": "4 (16px) - Internal component spacing",
-      "section_margin": "6 (24px) - Between major sections",
-      "element_gap": "2 (8px) - Between related elements"
+      "component_padding": "4 (16px) - Espaciado interno de componentes",
+      "section_margin": "6 (24px) - Entre secciones principales",
+      "element_gap": "2 (8px) - Entre elementos relacionados"
     },
     "borders": {
-      "radius": "md (6px) - Cards and buttons",
-      "width": "1px - Default borders",
-      "color": "gray-200 - Default border color"
+      "radius": "md (6px) - Tarjetas y botones",
+      "width": "1px - Bordes predeterminados",
+      "color": "gray-200 - Color de borde predeterminado"
     }
   },
-  "component_library": {
-    "form_controls": {
-      "text_inputs": "Consistent styling with validation states",
-      "buttons": "Primary/secondary/danger variants with loading states",
-      "selects": "Searchable dropdowns for large datasets",
-      "checkboxes_radios": "Custom styled for brand consistency"
-    },
-    "data_display": {
-      "tables": "Sortable columns, pagination, row selection",
-      "cards": "Consistent spacing and shadow elevation",
-      "status_indicators": "Color-coded with text labels",
-      "charts": "Consistent color palette and typography"
-    },
-    "navigation": {
-      "sidebar": "Collapsible with role-based section filtering",
-      "breadcrumbs": "Clickable navigation trail",
-      "tabs": "Consistent active/inactive states"
-    },
-    "feedback": {
-      "alerts": "Color-coded with appropriate icons",
-      "loading_states": "Skeleton screens for better perceived performance",
-      "empty_states": "Helpful messaging with clear next actions"
+  "cross_references_to_migrate": [
+    {
+      "informacion": "Librería de componentes, consideraciones de rendimiento y estrategia de pruebas de UI/UX.",
+      "ubicacion_original": "brain/UI_UX.json (secciones de component_library, performance_considerations, testing_strategy)",
+      "destino_recomendado": "ui_ux_blueprint.json"
     }
-  },
-  "performance_considerations": {
-    "loading_optimization": {
-      "critical_path": "Dashboard loads within 2 seconds",
-      "progressive_enhancement": "Basic functionality available while additional features load",
-      "skeleton_screens": "Show content structure while data loads"
-    },
-    "interaction_responsiveness": {
-      "button_feedback": "Immediate visual feedback (<100ms)",
-      "form_validation": "Real-time validation for better UX",
-      "data_updates": "Optimistic updates with error handling"
-    }
-  },
-  "testing_strategy": {
-    "usability_testing": {
-      "target_users": "Actual galleros and potential operators",
-      "test_scenarios": "Complete event creation and management workflows",
-      "success_metrics": "Task completion rate >90%, average task time <target"
-    },
-    "accessibility_testing": {
-      "automated": "axe-core integration in development",
-      "manual": "Keyboard navigation and screen reader testing",
-      "validation": "WCAG compliance verification"
-    }
+  ],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para las decisiones de diseño de interfaz y experiencia de usuario.",
+    "references": "Las especificaciones detalladas de componentes, flujos y roadmap de UI/UX se encuentran en `ui_ux_blueprint.json`."
   }
 }

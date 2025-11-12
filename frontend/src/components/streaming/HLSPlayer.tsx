@@ -55,7 +55,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
               setError(
                 "Error loading stream. It may be offline or unavailable.",
               );
-              if (onError) onError(data);
+              if (onError) onError(new Error(`${data.type} - ${data.details}`));
             }
           });
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -72,7 +72,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
             const errorMessage = "Native HLS playback error.";
             console.error(errorMessage);
             setError("Error loading stream.");
-            if (onError) onError(errorMessage);
+            if (onError) onError(new Error(errorMessage));
           });
         } else {
           throw new Error("HLS is not supported on this browser.");
@@ -80,7 +80,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
       } catch (e: any) {
         console.error("Player initialization error:", e);
         setError("Could not initialize video player.");
-        if (onError) onError(e);
+        if (onError) onError(e instanceof Error ? e : new Error(String(e)));
         setIsLoading(false);
       }
     };

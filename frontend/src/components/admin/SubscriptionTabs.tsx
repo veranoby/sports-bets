@@ -2,7 +2,7 @@
 // Componente para gestionar suscripciones con radio buttons
 
 import React, { useState, useEffect } from "react";
-import { adminAPI } from "../../config/api";
+import { adminAPI } from "../../services/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import { CreditCard, Crown, User, Clock } from "lucide-react";

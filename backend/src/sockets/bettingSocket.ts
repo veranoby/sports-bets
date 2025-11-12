@@ -127,6 +127,14 @@ export const setupBettingSocket = (io: Server) => {
       timeoutMs?: number;
     }) => {
       try {
+        // Check if user has permission to bet (only 'user' and 'gallera' roles)
+        if (!['user', 'gallera'].includes(socket.data.role)) {
+          return socket.emit('bet_error', { 
+            message: 'Your role cannot place bets',
+            code: 'ROLE_FORBIDDEN'
+          });
+        }
+
         // Check if betting window is open for this fight
         const fight = await Fight.findByPk(data.fightId);
         if (!fight || fight.status !== 'betting') {
@@ -199,6 +207,15 @@ export const setupBettingSocket = (io: Server) => {
       acceptingUserId: string;
     }) => {
       try {
+        // Check if user has permission to bet (only 'user' and 'gallera' roles)
+        if (!['user', 'gallera'].includes(socket.data.role)) {
+          socket.emit('bet_error', { 
+            message: 'Your role cannot place bets',
+            code: 'ROLE_FORBIDDEN'
+          });
+          return;
+        }
+
         const pendingBet = pendingBets.get(data.betId);
         
         if (!pendingBet) {

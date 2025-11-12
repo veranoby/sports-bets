@@ -1,0 +1,73 @@
+{
+  "component_library": {
+    "form_controls": {
+      "text_inputs": "Consistent styling with validation states",
+      "buttons": "Primary/secondary/danger variants with loading states",
+      "selects": "Searchable dropdowns for large datasets",
+      "checkboxes_radios": "Custom styled for brand consistency"
+    },
+    "data_display": {
+      "tables": "Sortable columns, pagination, row selection",
+      "cards": "Consistent spacing and shadow elevation",
+      "status_indicators": "Color-coded with text labels",
+      "charts": "Consistent color palette and typography"
+    },
+    "navigation": {
+      "sidebar": "Collapsible with role-based section filtering",
+      "breadcrumbs": "Clickable navigation trail",
+      "tabs": "Consistent active/inactive states"
+    },
+    "feedback": {
+      "alerts": "Color-coded with appropriate icons",
+      "loading_states": "Skeleton screens for better perceived performance",
+      "empty_states": "Helpful messaging with clear next actions"
+    }
+  },
+  "interaction_patterns": {
+    "form_submission": "Validación en tiempo real, retroalimentación clara de éxito/error, prevención de envíos duplicados.",
+    "data_filtering_sorting": "Controles de filtro y ordenación persistentes, actualización instantánea de resultados.",
+    "real_time_updates": "Uso de SSE para actualizaciones pasivas, WebSocket para interacciones bidireccionales específicas (ej. PAGO/DOY).",
+    "error_handling": "Mensajes de error contextuales y accionables, registro de errores para depuración."
+  },
+  "design_system_roadmap": {
+    "phase_1_mvp": [
+      "Implementación de componentes básicos (botones, inputs, tablas).",
+      "Definición de tokens de diseño (colores, tipografía, espaciado).",
+      "Creación de guías de estilo para el uso de componentes."
+    ],
+    "phase_2_post_mvp": [
+      "Expansión de la librería de componentes (gráficos, modales complejos).",
+      "Desarrollo de patrones de interacción avanzados.",
+      "Integración con herramientas de diseño (ej. Figma) para un flujo de trabajo unificado."
+    ]
+  },
+  "performance_considerations": {
+    "loading_optimization": {
+      "critical_path": "Dashboard loads within 2 seconds",
+      "progressive_enhancement": "Basic functionality available while additional features load",
+      "skeleton_screens": "Show content structure while data loads"
+    },
+    "interaction_responsiveness": {
+      "button_feedback": "Immediate visual feedback (<100ms)",
+      "form_validation": "Real-time validation for better UX",
+      "data_updates": "Optimistic updates with error handling"
+    }
+  },
+  "testing_strategy": {
+    "usability_testing": {
+      "target_users": "Actual galleros and potential operators",
+      "test_scenarios": "Complete event creation and management workflows",
+      "success_metrics": "Task completion rate >90%, average task time <target"
+    },
+    "accessibility_testing": {
+      "automated": "axe-core integration in development",
+      "manual": "Keyboard navigation and screen reader testing",
+      "validation": "WCAG compliance verification"
+    }
+  },
+  "cross_references_to_migrate": [],
+  "boundaries_and_cross_references": {
+    "ssot_declaration": "Este archivo es la SSOT para las especificaciones detalladas de componentes, patrones de interacción y el roadmap del sistema de diseño.",
+    "references": "Las necesidades de UI/UX de alto nivel y la filosofía de diseño se definen en `UI_UX.json`."
+  }
+}

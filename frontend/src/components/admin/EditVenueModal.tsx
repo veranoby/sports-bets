@@ -1,10 +1,11 @@
 // frontend/src/components/admin/EditVenueModal.tsx
 import React, { useState, useEffect } from "react";
-import { venuesAPI } from "../../services/api";
+import { userAPI } from "../../services/api";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import type { Venue } from "../../types";
 
+/*
 interface EditVenueModalProps {
   venue: Venue;
   onClose: () => void;
@@ -51,7 +52,7 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({
     setError(null);
 
     try {
-      const response = await venuesAPI.update(venue.id, formData);
+      const response = await userAPI.update(venue.id, formData);
       if (response.success && response.data) {
         onVenueUpdated(response.data as Venue);
       } else {
@@ -197,3 +198,4 @@ const EditVenueModal: React.FC<EditVenueModalProps> = ({
 };
 
 export default EditVenueModal;
+*/

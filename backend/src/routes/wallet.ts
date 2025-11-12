@@ -13,6 +13,18 @@ const router = Router();
 // Apply wallet feature gate to all routes
 router.use(requireWallets);
 
+// 🔒 ROLE RESTRICTION: Only 'user' and 'gallera' roles can access wallet
+router.use((req, res, next) => {
+  if (!['user', 'gallera'].includes(req.user?.role || '')) {
+    return res.status(403).json({
+      success: false,
+      error: 'Wallet access denied',
+      message: 'Your role does not have wallet privileges'
+    });
+  }
+  next();
+});
+
 // ⚡ ULTRA OPTIMIZED: Wallet GET with aggressive caching and error recovery
 router.get(
   "/",

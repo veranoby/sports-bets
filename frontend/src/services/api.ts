@@ -258,13 +258,15 @@ export const eventsAPI = {
   },
 };
 
-// Add systemAPI for monitoring
+// Monitoring API - remapped to existing /monitoring endpoints
 export const systemAPI = {
   getAlerts: async () => {
-    return apiCall("get", "/system/alerts");
+    // Map to existing performance endpoint (includes alerts in poolStats)
+    return apiCall("get", "/monitoring/performance");
   },
   getLiveStats: async () => {
-    return apiCall("get", "/system/stats");
+    // Map to existing performance endpoint
+    return apiCall("get", "/monitoring/performance");
   },
 };
 
@@ -329,6 +331,17 @@ export const betsAPI = {
   getPendingProposals: async () => {
     return apiCall("get", "/bets/pending-proposals");
   },
+  // Admin-specific function to get all bets (not just user's bets)
+  getAllAdmin: async (params?: {
+    userId?: string;
+    status?: string;
+    fightId?: string;
+    eventId?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    return apiCall("get", "/bets/all", params);
+  }
 };
 
 export const articlesAPI = {
@@ -344,7 +357,7 @@ export const articlesAPI = {
     excerpt: string;
     featured_image?: string;
     venue_id?: string;
-    status?: "draft" | "pending" | "published";
+    status?: "draft" | "pending" | "published" | "archived";
   }) => {
     return apiCall("post", "/articles", data);
   },
@@ -394,6 +407,16 @@ export const walletAPI = {
       `/wallet/withdrawal-requests/${requestId}/process`,
       data,
     );
+  },
+  // Admin financial endpoints
+  getFinancialMetrics: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/financial-metrics", params);
+  },
+  getRevenueBySource: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/revenue-by-source", params);
+  },
+  getRevenueTrends: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/wallet/revenue-trends", params);
   },
 };
 

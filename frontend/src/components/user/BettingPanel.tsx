@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets } from "../../hooks/useApi";
-import { useFightSSE, SSEEventType } from "../../hooks/useSSE"; // Use SSE for general updates instead of WebSocket
+import { useFightSSE, SSEEventType } from "../../hooks/useSSE"; // Use fight-specific SSE hook
 import { useWebSocketContext } from "../../contexts/WebSocketContext"; // Keep WebSocket minimal for PAGO/DOY proposals only
 import { Plus, Zap, DollarSign, Users, Trophy, TrendingUp } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
@@ -26,7 +26,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
 
   // Use SSE for general events like new bets and betting window changes
   const { bettingWindow, subscribe, status: sseStatus } = useFightSSE(fightId);
-  const { socket, addListener } = useWebSocketContext(); // Keep WebSocket minimal for PAGO/DOY only
+  const { addListener, emit } = useWebSocketContext(); // Keep WebSocket minimal for PAGO/DOY only
   const { isBettingEnabled } = useFeatureFlags(); // Added feature flag check
 
   // Referencia estable para fetchAvailableBets - TODOS los hooks deben ir antes del return condicional
@@ -175,9 +175,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
                   className="bg-gradient-to-r from-[#cd6263] to-[#cd6263]/90 hover:from-[#cd6263]/90 hover:to-[#cd6263] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
                   onClick={() => {
                     // Use the WebSocket context to accept the bet
-                    if (socket) {
-                      socket.emit("accept_pago_bet", { betId: bet.id });
-                    }
+                    emit("accept_pago_bet", { betId: bet.id });
 
                     // Update UI state after successful acceptance
                     onBetPlaced?.();
