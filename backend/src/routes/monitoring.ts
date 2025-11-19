@@ -246,6 +246,146 @@ router.get('/intervals', (req, res) => {
 });
 
 /**
+ * GET /api/system/alerts
+ * Consolidates all system alerts from database health, memory, and connections
+ */
+router.get(
+  "/alerts",
+  authenticate,
+  authorize("admin", "operator"),
+  asyncHandler(async (req, res) => {
+    const poolStats = getPoolStats();
+    const safetyMetrics = SafetyLimits.getHealthMetrics();
+    const alerts: any[] = [];
+
+    // Database connection pool alerts
+    if (poolStats.using > 8) {
+      alerts.push({
+        id: `alert_${Date.now()}_db_conn`,
+        level: "warning",
+        service: "Database Connections",
+        message: `High connection pool utilization: ${poolStats.using}/10 active`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    if (poolStats.queue > 0) {
+      alerts.push({
+        id: `alert_${Date.now()}_db_queue`,
+        level: "critical",
+        service: "Database Queue",
+        message: `Connection queue detected: ${poolStats.queue} waiting requests`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    if (poolStats.status !== 'active') {
+      alerts.push({
+        id: `alert_${Date.now()}_db_status`,
+        level: "critical",
+        service: "Database",
+        message: `Connection pool status degraded: ${poolStats.status}`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    // Memory alerts
+    if (safetyMetrics.memory.currentMB > 380) {
+      alerts.push({
+        id: `alert_${Date.now()}_memory`,
+        level: "critical",
+        service: "Memory",
+        message: `Critical memory threshold: ${safetyMetrics.memory.currentMB}MB (95% of limit)`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    } else if (safetyMetrics.memory.currentMB > 300) {
+      alerts.push({
+        id: `alert_${Date.now()}_memory_warn`,
+        level: "warning",
+        service: "Memory",
+        message: `High memory usage: ${safetyMetrics.memory.currentMB}MB (75% of limit)`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    // Interval tracking alerts
+    if (safetyMetrics.intervals.activeCount > 50) {
+      alerts.push({
+        id: `alert_${Date.now()}_intervals`,
+        level: "warning",
+        service: "Intervals",
+        message: `High number of active intervals: ${safetyMetrics.intervals.activeCount} (potential memory leak)`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    // If no alerts, add info message
+    if (alerts.length === 0) {
+      alerts.push({
+        id: `alert_${Date.now()}_ok`,
+        level: "info",
+        service: "System",
+        message: "All systems operational",
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+
+    res.json({
+      success: true,
+      data: alerts
+    });
+  })
+);
+
+/**
+ * GET /api/system/stats
+ * Live system statistics for monitoring dashboard
+ */
+router.get(
+  "/stats",
+  authenticate,
+  authorize("admin", "operator"),
+  asyncHandler(async (req, res) => {
+    const poolStats = getPoolStats();
+    const safetyMetrics = SafetyLimits.getHealthMetrics();
+
+    const stats = {
+      timestamp: new Date().toISOString(),
+      activeUsers: 0, // This would come from EventConnection tracking
+      liveEvents: 0, // This would come from Events with status='live'
+      activeBets: 0, // This would come from Bets with status='active'
+      connectionCount: poolStats.using,
+      requestsPerMinute: 0, // Track in performance middleware if needed
+      errorRate: 0, // Track in error middleware if needed
+      memory: {
+        currentMB: safetyMetrics.memory.currentMB,
+        limitMB: safetyMetrics.memory.limitMB,
+        percentUsed: Math.round((safetyMetrics.memory.currentMB / safetyMetrics.memory.limitMB) * 100)
+      },
+      database: {
+        activeConnections: poolStats.using,
+        availableConnections: poolStats.free,
+        queuedRequests: poolStats.queue,
+        totalConnections: poolStats.total,
+        status: poolStats.status
+      }
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  })
+);
+
+/**
  * POST /api/monitoring/webhook/railway
  * Railway webhook endpoint for alerts
  */

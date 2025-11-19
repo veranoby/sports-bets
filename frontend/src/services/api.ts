@@ -258,15 +258,15 @@ export const eventsAPI = {
   },
 };
 
-// Monitoring API - remapped to existing /monitoring endpoints
+// Monitoring API - System alerts and live statistics
 export const systemAPI = {
   getAlerts: async () => {
-    // Map to existing performance endpoint (includes alerts in poolStats)
-    return apiCall("get", "/monitoring/performance");
+    // Get consolidated alerts from database, memory, and connection pool
+    return apiCall("get", "/monitoring/alerts");
   },
   getLiveStats: async () => {
-    // Map to existing performance endpoint
-    return apiCall("get", "/monitoring/performance");
+    // Get live system statistics (connections, memory, etc.)
+    return apiCall("get", "/monitoring/stats");
   },
 };
 
@@ -341,7 +341,7 @@ export const betsAPI = {
     offset?: number;
   }) => {
     return apiCall("get", "/bets/all", params);
-  }
+  },
 };
 
 export const articlesAPI = {
