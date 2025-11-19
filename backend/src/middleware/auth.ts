@@ -77,16 +77,12 @@ export const authenticate = async (
 ): Promise<void> => {
   try {
     const token = extractToken(req);
-    
+
     if (!token) {
       throw errors.unauthorized('No token provided');
     }
 
-    console.log('Token received:', token);
-    console.log('JWT Secret:', process.env.JWT_SECRET);
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    console.log('Decoded token:', decoded);
 
     // ⚡ SECURITY: Validate active session (concurrent login prevention)
     const activeSession = await SessionService.validateSession(token);
@@ -101,7 +97,6 @@ export const authenticate = async (
     const cached = userCache.get(decoded.userId);
     if (cached && now < cached.expires) {
       user = cached.user;
-      console.log('🧠 User cache hit for userId:', decoded.userId);
     } else {
       // Fetch from database only if not cached or expired
       const fetchedUser = await User.findByPk(decoded.userId);
@@ -117,7 +112,6 @@ export const authenticate = async (
       });
 
       user = fetchedUser;
-      console.log('🔍 Database fetch for userId:', decoded.userId);
     }
 
     if (!user || !user.isActive) {
@@ -174,6 +168,12 @@ const extractToken = (req: Request): string | null => {
     return authHeader.substring(7);
   }
 
+  // Check for token in query parameters (for SSE connections)
+  // SSE cannot send custom headers, so token is passed as ?token=...
+  if (req.query && req.query.token && typeof req.query.token === 'string') {
+    return req.query.token;
+  }
+
   // También buscar en cookies si es necesario
   if (req.cookies && req.cookies.token) {
     return req.cookies.token;
@@ -201,7 +201,6 @@ export const optionalAuth = async (
       const cached = userCache.get(decoded.userId);
       if (cached && now < cached.expires) {
         user = cached.user;
-        console.log('🧠 User cache hit for optional auth, userId:', decoded.userId);
       } else {
         // Fetch from database only if not cached or expired
         const fetchedUser = await User.findByPk(decoded.userId);
@@ -213,7 +212,6 @@ export const optionalAuth = async (
             expires: now + USER_CACHE_DURATION
           });
           user = fetchedUser;
-          console.log('🔍 Database fetch for optional auth, userId:', decoded.userId);
         }
       }
 

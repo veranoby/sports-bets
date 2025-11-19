@@ -229,7 +229,8 @@ class SettingsService {
       }
 
       const value = await this.getSetting(featureKey);
-      const enabled = Boolean(value);
+      // ⚡ FIX: Default to true if setting doesn't exist (feature enabled by default)
+      const enabled = value === null || value === undefined ? true : Boolean(value);
 
       // ⚡ OPTIMIZATION: Cache feature flags in memory for ultra-fast access
       this.featureCache.set(featureKey, {
@@ -239,8 +240,8 @@ class SettingsService {
 
       return enabled;
     } catch (error) {
-      console.warn(`⚠️ Feature check failed for '${featureKey}', defaulting to false`);
-      return false;
+      console.warn(`⚠️ Feature check failed for '${featureKey}', defaulting to true`);
+      return true;
     }
   }
 

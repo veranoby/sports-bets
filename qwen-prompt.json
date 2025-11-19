@@ -1,241 +1,218 @@
 {
-  "session_metadata": {
-    "model": "qwen-3-coder-plus",
-    "assigned_role": "executor",
-    "session_date": "2025-11-11",
-    "session_type": "bug_fixes_and_polish",
-    "execution_mode": "standard",
-    "deadline": "1 day before production launch",
-    "estimated_duration": "6 hours (Day 2)",
-    "prerequisite": "Claude Day 1 completed - Manual validation done, bugs documented in backlog.json"
+  "🎯_START_HERE": {
+    "task": "Unify /admin/monitoring + /admin/streaming into ONE page that doesn't crash the platform",
+    "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+    "mode": "standard (full validation required)",
+    "time_estimate": "4-5 hours",
+    "priority": "CRITICAL - Platform crashes without this"
   },
 
-  "CRITICAL_CONTEXT": {
-    "situation": "Platform launches TOMORROW. Claude completed Day 1: runtime errors fixed, manual validation done. You have list of P1/P2 bugs to fix.",
-    "your_input": "Read Claude's validation report in brain/backlog.json → entry: claude_production_validation_day1_2025_11_10 → field: bugs_found_for_qwen",
-    "your_output": "All P1/P2 bugs fixed, final polish complete, platform ready for launch",
-    "strategic_focus": "Fix ONLY bugs from Claude's list. Do NOT add features. Do NOT refactor unnecessarily."
+  "📋_WHAT_HAS_ALREADY_BEEN_DONE": {
+    "director_completed": [
+      "✅ Database indices created: idx_subscriptions_user_created, idx_membership_requests_status_requested",
+      "✅ Code optimizations: settingsService.ts (features enabled by default), membership-requests.ts (batch queries), User.ts (no redundant queries)",
+      "✅ Sidebar updated: Label now says 'Streaming & Monitoreo' (single entry point)",
+      "✅ Database verified: Migrations executed in Neon Tech, metadata.payment structure confirmed"
+    ],
+    "qwen_responsibility": "ONLY: Backend SSE endpoint + Frontend unified page + App.tsx routing"
   },
 
-  "MANDATORY_SESSION_START_PROTOCOL": {
-    "step_1_declare_role": {
-      "CRITICAL": "FIRST message MUST be: Model: qwen-3-coder-plus | Role: executor | Mode: standard | Task: Day 2 Bug Fixes - Fix P1/P2 bugs from Claude's manual validation + final polish",
-      "purpose": "Confirm you understand assignment",
-      "source": "brain/multi_ai_coordination_strategy.json lines 102-124"
+  "🔴_THE_PROBLEM_IN_30_SECONDS": {
+    "current_state": {
+      "monitoring_page": "Polls /api/monitoring/alerts + /api/monitoring/stats every 5 seconds",
+      "result": "24 queries/min × 687ms each = backend saturates, SSE connections collapse, console spams sw.js 404 errors",
+      "user_impact": "Page crashes browser, platform becomes unusable"
     },
-    "step_2_read_coordination_strategy": {
-      "CRITICAL": "Read brain/multi_ai_coordination_strategy.json lines 420-522 (4 critical protocols)",
-      "purpose": "Understand reporting, evidence, session management requirements"
-    },
-    "step_3_read_claude_results": {
-      "CRITICAL": "Read brain/backlog.json → find entry 'claude_production_validation_day1_2025_11_10' → read 'bugs_found_for_qwen' array",
-      "purpose": "Get exact list of bugs to fix with reproduction steps and evidence"
+    "desired_state": {
+      "unified_page": "Single /admin/streaming page (simplified metrics only)",
+      "architecture": "SSE endpoint pushes minimal stats every 2 seconds (1 connection, not 24 queries)",
+      "layout": "Left: Stream player + controls | Right: Live metrics only (connectionCount + activeBets)",
+      "result": "No polling, no crashes, stable streaming experience, lean metrics"
     }
   },
 
-  "task_objectives": {
-    "phase_1_fix_p1_p2_bugs_from_claude": {
-      "priority": "P1_IMPORTANT",
-      "estimated_time": "5 hours",
-      "description": "Fix non-blocking but important bugs discovered during Claude's manual validation",
-
-      "input_source": {
-        "file": "brain/backlog.json",
-        "entry": "claude_production_validation_day1_2025_11_10",
-        "field": "bugs_found_for_qwen",
-        "format": "Array of bug objects: {bug_id, description, severity, location, reproduction, evidence}"
-      },
-
-      "execution_pattern_per_bug": [
-        "Step 1: Read bug details (bug_id, description, location, reproduction steps)",
-        "Step 2: Read affected file to understand context and current implementation",
-        "Step 3: Reproduce bug locally (follow reproduction steps exactly)",
-        "Step 4: Apply fix (use defensive programming, avoid breaking existing functionality)",
-        "Step 5: Test fix locally (npm run dev, navigate to affected page, verify fix works)",
-        "Step 6: Verify no console errors introduced by your fix",
-        "Step 7: Document fix in your evidence log with before/after evidence"
-      ],
-
-      "allowed_file_types": {
-        "frontend_components": "frontend/src/components/**/*.tsx (UI component fixes)",
-        "frontend_pages": "frontend/src/pages/**/*.tsx (page logic fixes)",
-        "frontend_services": "frontend/src/services/*.ts (API call fixes)",
-        "frontend_types": "frontend/src/types/*.ts (TypeScript interface updates)",
-        "backend_routes": "backend/src/routes/*.ts (API endpoint fixes)",
-        "backend_services": "backend/src/services/*.ts (service logic fixes)"
-      },
-
-      "FORBIDDEN_files": {
-        "DO_NOT_TOUCH": [
-          "backend/src/middleware/auth.ts (unless explicitly in bug list)",
-          "backend/src/models/User.ts (unless explicitly in bug list)",
-          "Any core authentication/authorization files"
-        ],
-        "reason": "Authentication is production-critical and already working. Breaking auth = production disaster.",
-        "action_if_auth_bug_found": "If bug list includes auth-related issues, fix ONLY what's specified. Do NOT refactor auth system."
-      },
-
-      "success_criteria": [
-        "All P1/P2 bugs from Claude's list addressed",
-        "npm run dev succeeds in both frontend and backend (zero compilation errors)",
-        "Affected pages load correctly in browser when tested locally",
-        "No new TypeScript errors introduced (npx tsc --noEmit = 0 errors)",
-        "No new runtime errors in browser console",
-        "Evidence documented for each fix"
-      ]
-    },
-
-    "phase_2_final_polish_and_validation": {
-      "priority": "P1_IMPORTANT",
-      "estimated_time": "1 hour",
-      "description": "Final checks to ensure platform ready for launch tomorrow",
-
-      "polish_tasks": [
-        {
-          "task": "TypeScript compilation check",
-          "command": "cd frontend && npx tsc --noEmit",
-          "success": "0 errors",
-          "action_if_fail": "Fix all TypeScript errors before considering done"
-        },
-        {
-          "task": "Backend compilation check",
-          "command": "cd backend && npx tsc --noEmit",
-          "success": "0 errors",
-          "action_if_fail": "Fix all backend TypeScript errors"
-        },
-        {
-          "task": "Frontend dev server starts",
-          "command": "cd frontend && timeout 10s npm run dev",
-          "success": "Vite server starts without errors",
-          "action_if_fail": "Fix build configuration issues"
-        },
-        {
-          "task": "Backend dev server starts",
-          "command": "cd backend && timeout 10s npm run dev",
-          "success": "Express server starts, connects to database",
-          "action_if_fail": "Fix database connection or server startup issues"
-        },
-        {
-          "task": "Quick smoke test - eventos page",
-          "steps": [
-            "Start both servers (backend + frontend)",
-            "Navigate to http://localhost:5173/login",
-            "Login with test credentials",
-            "Navigate to /eventos",
-            "Verify page loads without JavaScript errors in console"
-          ],
-          "success": "Eventos page loads, no console errors",
-          "action_if_fail": "Document issue, add to report as NEW_BUG with P0 severity"
-        },
-        {
-          "task": "Quick smoke test - admin dashboard",
-          "steps": [
-            "Login as admin",
-            "Navigate to /admin/events",
-            "Verify page loads without JavaScript errors"
-          ],
-          "success": "Admin events page loads, no console errors",
-          "action_if_fail": "Document issue, add to report as NEW_BUG with P0 severity"
-        }
-      ],
-
-      "success_criteria": [
-        "Both frontend and backend compile without errors",
-        "Both servers start successfully",
-        "Quick smoke tests pass (eventos + admin pages load)",
-        "No new P0 bugs discovered during smoke tests"
-      ]
-    }
-  },
-
-  "reporting_protocol": {
-    "where": "EXACT PATH: /home/veranoby/sports-bets/brain/backlog.json",
-    "entry_name": "qwen_day2_bug_fixes_2025_11_11",
-    "mandatory_fields": {
-      "executor": "QWEN 3-Coder Plus",
-      "date": "2025-11-11",
-      "task": "Day 2 Bug Fixes - P1/P2 bugs from Claude manual validation + final polish",
-      "status": "COMPLETED or IN_PROGRESS or BLOCKED",
-      "prerequisite_status": "Claude Day 1 validation completed, bugs list received",
-      "verification_evidence": {
-        "bugs_received_from_claude": "Count of bugs in input list",
-        "bugs_fixed": "Count of bugs successfully fixed",
-        "bugs_remaining": "Count of bugs NOT fixed (if any)",
-        "typescript_errors_before": "Count before fixes",
-        "typescript_errors_after": "Count after fixes (should be 0)",
-        "console_errors_smoke_test": "Count of JavaScript errors during final smoke tests",
-        "servers_start_successfully": "YES or NO",
-        "new_bugs_discovered": "Count of NEW bugs found during smoke tests (should be 0)"
-      },
-      "detailed_results": {
-        "bug_fixes": [
-          {
-            "bug_id": "Bug identifier from Claude's list",
-            "description": "What was broken",
-            "location": "File and line number",
-            "fix_applied": "What change was made",
-            "test_evidence": "How fix was verified (screenshot, console log, etc.)",
-            "status": "FIXED or SKIPPED (with reason)"
-          }
-        ],
-        "new_bugs_if_any": [
-          {
-            "bug_id": "NEW_BUG_001",
-            "description": "What is broken",
-            "severity": "P0 or P1 or P2",
-            "location": "File affected",
-            "reproduction": "Steps to reproduce",
-            "evidence": "Console log or screenshot"
-          }
-        ]
-      },
-      "deployment_readiness": "READY or BLOCKED",
-      "blockers_if_blocked": "List of issues preventing launch tomorrow"
-    },
-    "enforcement": "BEFORE reporting: 1) Update backlog.json 2) git add brain/backlog.json 3) git diff --cached to verify 4) THEN report to user"
-  },
-
-  "validation_gates": {
-    "before_considering_complete": [
-      "All P1/P2 bugs from Claude addressed (or documented why not fixed)",
-      "npx tsc --noEmit = 0 errors in both frontend and backend",
-      "npm run dev succeeds in both frontend and backend",
-      "Quick smoke tests pass (eventos + admin pages load)",
-      "No NEW P0 bugs discovered",
-      "Brain/backlog.json updated with structured report",
-      "git add brain/backlog.json (staged)"
+  "✅_ACCEPTANCE_CRITERIA": {
+    "backend_must_deliver": [
+      "New endpoint: GET /api/sse/streaming?token=<jwt> (Server-Sent Events)",
+      "Response structure: {connectionCount: number, activeBets: number, streamStatus: {...}}",
+      "Push frequency: Every 2 seconds (throttled, no rapid updates)",
+      "Authentication: Support token from query param (for EventSource compatibility)",
+      "Connection stability: Maintain for 5+ minutes without spurious disconnects",
+      "Logging: Backend logs show 1 SSE connection, NOT 24 queries/min"
+    ],
+    "frontend_must_deliver": [
+      "New page: frontend/src/pages/admin/OptimizedStreamingMonitor.tsx",
+      "New hook: frontend/src/hooks/useSSEConnection.ts (manages EventSource + reconnect)",
+      "Layout: Left 70% (stream), Right 30% (connectionCount + activeBets metrics)",
+      "Update: frontend/src/App.tsx (add route to new page)",
+      "Behavior: Stream plays without interruption, metrics update in real-time",
+      "Console: ZERO errors (especially no sw.js 404 spam)"
+    ],
+    "testing_before_delivery": [
+      "npm run build (backend): Must pass TypeScript",
+      "npm run build (frontend): Must pass TypeScript",
+      "Browser: Load /admin/streaming, verify page works (don't break existing /admin/streaming if it's used elsewhere)",
+      "Browser DevTools: Check Network tab - should show 1 EventSource connection, not 24 GET requests",
+      "Browser Console: Zero errors related to monitoring or SSE"
     ]
   },
 
-  "session_management": {
-    "hard_time_limit": "6 hours maximum",
-    "checkpoint_frequency": "Every 90 minutes or after major milestone",
-    "context_refresh_triggers": [
-      "If you start repeating questions about same bug",
-      "If you edit same file 3+ times without success",
-      "If you're unsure what bug to work on next"
-    ],
-    "context_refresh_action": "Re-read this prompt (qwen-prompt.json) + brain/backlog.json entry for Claude's bugs list",
-    "handoff_to_director": "If blocked >30 minutes on ANY bug: Document blocker in backlog.json, SKIP that bug, move to next bug. Report all skipped bugs at end."
-  },
+  "🏗️_IMPLEMENTATION_PHASES": {
+    "phase_1_backend_sse_endpoint": {
+      "file": "backend/src/routes/streaming.ts (NEW) or extend monitoring.ts",
+      "task": "Create /sse/streaming endpoint (SIMPLIFIED - metrics only, NO alerts)",
+      "specification": {
+        "endpoint": "GET /api/sse/streaming?token=<jwt>",
+        "method": "Server-Sent Events (SSE)",
+        "data_pushed": {
+          "connectionCount": "Number of users currently connected to streaming",
+          "activeBets": "Number of active bets (important business metric)",
+          "streamStatus": "Optional: {isLive: boolean}"
+        },
+        "note": "REMOVED: alerts (no utility), liveEvents (only 2 max), activeUsers (same as connectionCount), requestsPerMinute (unclear utility)"
+      },
+      "pseudocode": [
+        "app.get('/sse/streaming', authenticate via query token, (req, res) => {",
+        "  res.setHeader('Content-Type', 'text/event-stream');",
+        "  res.setHeader('Cache-Control', 'no-cache');",
+        "  res.setHeader('Access-Control-Allow-Origin', '*');",
+        "  ",
+        "  const interval = setInterval(async () => {",
+        "    const data = {",
+        "      connectionCount: await getConnectionCount(),",
+        "      activeBets: await getActiveBetsCount(),",
+        "      streamStatus: {isLive: await checkIfStreaming()}",
+        "    };",
+        "    res.write(`data: ${JSON.stringify(data)}\\n\\n`);",
+        "  }, 2000);",
+        "  ",
+        "  req.on('close', () => clearInterval(interval));",
+        "});"
+      ],
+      "estimated_time": "30 minutes (simpler than before)"
+    },
 
-  "critical_protocols_from_strategy": {
-    "source": "brain/multi_ai_coordination_strategy.json",
-    "applied_protocols": {
-      "task_disambiguation": "Lines 102-124 - Echo back task at session start",
-      "reporting_location": "Lines 143-163 - Exact file path specified above",
-      "evidence_based_validation": "Lines 502-530 - Report actual results, provide evidence for each fix",
-      "debugging_methodology": "Lines 136-143 - Reproduce bug first, then apply targeted fix"
+    "phase_2_frontend_hook": {
+      "file": "frontend/src/hooks/useSSEConnection.ts (NEW)",
+      "task": "Create hook for SSE connection management",
+      "specification": {
+        "behavior": "Opens EventSource to /api/sse/streaming?token=jwt",
+        "handles": "Auto-reconnect with exponential backoff if connection drops",
+        "returns": {alerts, stats, streamStatus, error, isConnected}",
+        "cleanup": "Close EventSource on component unmount"
+      },
+      "pseudocode": [
+        "export function useSSEConnection() {",
+        "  const [data, setData] = useState({alerts: [], stats: null});",
+        "  const [isConnected, setIsConnected] = useState(false);",
+        "  const [error, setError] = useState(null);",
+        "  ",
+        "  useEffect(() => {",
+        "    const token = localStorage.getItem('token');",
+        "    const eventSource = new EventSource(`/api/sse/streaming?token=${token}`);",
+        "    ",
+        "    eventSource.onmessage = (e) => setData(JSON.parse(e.data));",
+        "    eventSource.onopen = () => setIsConnected(true);",
+        "    eventSource.onerror = () => {",
+        "      setIsConnected(false);",
+        "      eventSource.close();",
+        "      // Reconnect logic here",
+        "    };",
+        "    ",
+        "    return () => eventSource.close();",
+        "  }, []);",
+        "  ",
+        "  return {alerts: data.alerts, stats: data.stats, isConnected, error};",
+        "}"
+      ],
+      "estimated_time": "30 minutes"
+    },
+
+    "phase_3_frontend_unified_page": {
+      "file": "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (NEW)",
+      "task": "Create unified streaming page (SIMPLIFIED - metrics only)",
+      "layout": {
+        "top": "Event selector + stream status indicator (green=live, red=offline)",
+        "left": "70% - HLSPlayer + stream controls (play/stop/info)",
+        "right": "30% - Live metrics card: {connectionCount, activeBets}"
+      },
+      "implementation": [
+        "Import useSSEConnection hook",
+        "Import HLSPlayer component (from existing Streaming.tsx)",
+        "Layout: 2-column grid (70/30 split)",
+        "Use hook data: {connectionCount, activeBets, isConnected} → render real-time",
+        "Simple card showing 2 metrics (no alerts, no complex dashboard)",
+        "Error handling: Show connection status, auto-reconnect UI"
+      ],
+      "estimated_time": "45 minutes (much simpler without alerts)"
+    },
+
+    "phase_4_routing": {
+      "file": "frontend/src/App.tsx",
+      "task": "Add route to unified page",
+      "change": "Add route: <Route path='/admin/streaming' element={<OptimizedStreamingMonitor />} />",
+      "estimated_time": "10 minutes"
     }
   },
 
-  "success_criteria_day2": {
-    "must_achieve": [
-      "P1/P2 bugs FIXED - user experience polished",
-      "TypeScript clean - zero compilation errors",
-      "Servers start - both backend and frontend run successfully",
-      "Smoke tests pass - core pages load without crashes",
-      "Deployment ready - platform ready for tomorrow's launch"
+  "⚠️_CRITICAL_REQUIREMENTS": {
+    "do": [
+      "✅ Use existing getAlerts() and getStats() functions (reuse, don't rewrite)",
+      "✅ Implement proper error handling (connection loss, server errors)",
+      "✅ Log all SSE events to console (for debugging)",
+      "✅ Test that stream playback is NOT interrupted when monitoring updates",
+      "✅ Verify single EventSource connection in Network tab"
+    ],
+    "dont": [
+      "❌ Don't reimplement monitoring logic - reuse existing backend functions",
+      "❌ Don't use polling in the frontend hook - EventSource ONLY",
+      "❌ Don't create new migration files (all DB work is done)",
+      "❌ Don't break existing pages - this is an addition, not a replacement"
+    ]
+  },
+
+  "📊_VERIFICATION_CHECKLIST": {
+    "after_phase_1_backend": [
+      "Run: npm run build → TypeScript must pass",
+      "Check: Backend logs when connecting to /sse/streaming → should see connection established",
+      "Test: curl 'localhost:3001/api/sse/streaming?token=<jwt>' → should receive data: {...} events every 2 seconds"
+    ],
+    "after_phase_2_3_frontend": [
+      "Run: npm run build → TypeScript must pass",
+      "Load: Browser to /admin/streaming → page loads in <2 seconds",
+      "Check: DevTools Network → 1 EventSource connection (streaming), NOT 24 GET requests",
+      "Check: DevTools Console → ZERO errors",
+      "Test: Play a stream on left, verify metrics (connectionCount, activeBets) update in real-time"
+    ],
+    "final_before_delivery": [
+      "npm run build (both backend and frontend) → both pass",
+      "Browser: /admin/streaming page fully functional",
+      "Browser: Stream plays + monitoring updates simultaneously",
+      "Console: Zero errors (especially no sw.js 404 spam)"
+    ]
+  },
+
+  "📝_REPORTING_TO_DIRECTOR": {
+    "format": "Text response in Claude chat (NO separate files)",
+    "sections": [
+      "1. Analysis: How you get connectionCount and activeBets (new simpler approach)",
+      "2. Changes made: Files created/modified, line numbers, logic explained",
+      "3. Performance verified: Screenshots or logs showing 1 SSE connection (not 24 queries), simple data structure",
+      "4. Testing results: What passed, what failed, console output (clean or errors)",
+      "5. Edge cases handled: Reconnect logic, error scenarios, stream stability"
+    ]
+  },
+
+  "🔗_REFERENCE_FILES": {
+    "existing_implementations": [
+      "HLSPlayer: frontend/src/components/streaming/HLSPlayer.tsx (use as-is)",
+      "Streaming page: frontend/src/pages/admin/Streaming.tsx (reference for layout)",
+      "EventConnection model: backend/src/models/EventConnection.ts (reference for connectionCount)",
+      "Bet model: backend/src/models/Bet.ts (reference for activeBets)"
+    ],
+    "brain_files": [
+      "brain/backlog.json - Task definition (includes what monitoring had)",
+      "brain/multi_ai_coordination_strategy.json - Coordination protocols"
     ]
   }
 }

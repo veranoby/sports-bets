@@ -83,7 +83,7 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   }
 
   public canRetry(): boolean {
-    return this.retryCount < this.maxRetries;
+    return this.getRetryCount() < this.getMaxRetries();
   }
 
   public hasFeature(feature: string): boolean {
@@ -91,22 +91,26 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
   }
 
   public async markAsExpired(): Promise<void> {
+    this.setNextBillingDate(null);
     await this.update({
       status: 'expired',
       autoRenew: false,
-      nextBillingDate: null
+      metadata: this.metadata
     });
   }
 
   public async incrementRetryCount(): Promise<void> {
+    const currentCount = this.getRetryCount();
+    this.setRetryCount(currentCount + 1);
     await this.update({
-      retryCount: this.retryCount + 1
+      metadata: this.metadata
     });
   }
 
   public async resetRetryCount(): Promise<void> {
+    this.setRetryCount(0);
     await this.update({
-      retryCount: 0
+      metadata: this.metadata
     });
   }
 
@@ -116,6 +120,216 @@ export class Subscription extends Model<SubscriptionAttributes, SubscriptionCrea
       style: 'currency',
       currency: this.currency
     }).format(amount);
+  }
+
+  // ============================================================
+  // METADATA ACCESSORS - Transparent access to metadata.payment
+  // These getters/setters provide backward compatibility
+  // Original columns are preserved in DB, but data lives in metadata
+  // ============================================================
+
+  /**
+   * Get next billing date from metadata.payment or fallback to column
+   */
+  public getNextBillingDate(): Date | null {
+    // Try metadata.payment first (migrated data)
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (payment?.nextBillingDate) {
+        return new Date(payment.nextBillingDate);
+      }
+    }
+    // Fallback to direct column (pre-migration)
+    return this.nextBillingDate ? new Date(this.nextBillingDate) : null;
+  }
+
+  /**
+   * Set next billing date in metadata.payment
+   */
+  public setNextBillingDate(date: Date | null): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.nextBillingDate = date ? date.toISOString() : null;
+    }
+  }
+
+  /**
+   * Get cancelled date from metadata.payment or fallback to column
+   */
+  public getCancelledAt(): Date | null {
+    // Try metadata.payment first
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (payment?.cancelledAt) {
+        return new Date(payment.cancelledAt);
+      }
+    }
+    // Fallback to direct column
+    return this.cancelledAt ? new Date(this.cancelledAt) : null;
+  }
+
+  /**
+   * Set cancelled date in metadata.payment
+   */
+  public setCancelledAt(date: Date | null): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.cancelledAt = date ? date.toISOString() : null;
+    }
+  }
+
+  /**
+   * Get cancel reason from metadata.payment or fallback to column
+   */
+  public getCancelReason(): string | null {
+    // Try metadata.payment first
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (payment?.cancelReason) {
+        return payment.cancelReason;
+      }
+    }
+    // Fallback to direct column
+    return this.cancelReason || null;
+  }
+
+  /**
+   * Set cancel reason in metadata.payment
+   */
+  public setCancelReason(reason: string | null): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.cancelReason = reason;
+    }
+  }
+
+  /**
+   * Get retry count from metadata.payment or fallback to column
+   */
+  public getRetryCount(): number {
+    // Try metadata.payment first
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (typeof payment?.retryCount === 'number') {
+        return payment.retryCount;
+      }
+    }
+    // Fallback to direct column
+    return this.retryCount || 0;
+  }
+
+  /**
+   * Set retry count in metadata.payment
+   */
+  public setRetryCount(count: number): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.retryCount = count;
+    }
+  }
+
+  /**
+   * Get max retries from metadata.payment or fallback to column
+   */
+  public getMaxRetries(): number {
+    // Try metadata.payment first
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (typeof payment?.maxRetries === 'number') {
+        return payment.maxRetries;
+      }
+    }
+    // Fallback to direct column
+    return this.maxRetries || 3;
+  }
+
+  /**
+   * Set max retries in metadata.payment
+   */
+  public setMaxRetries(count: number): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.maxRetries = count;
+    }
+  }
+
+  /**
+   * Get Kushki subscription ID from metadata.payment or fallback to column
+   */
+  public getKushkiSubscriptionId(): string | null {
+    // Try metadata.payment first
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (payment?.kushkiSubscriptionId) {
+        return payment.kushkiSubscriptionId;
+      }
+    }
+    // Fallback to direct column
+    return this.kushkiSubscriptionId || null;
+  }
+
+  /**
+   * Set Kushki subscription ID in metadata.payment
+   */
+  public setKushkiSubscriptionId(id: string | null): void {
+    if (!this.metadata) this.metadata = {};
+    if (typeof this.metadata === 'object' && !Array.isArray(this.metadata)) {
+      if (!((this.metadata as any).payment)) {
+        (this.metadata as any).payment = {};
+      }
+      (this.metadata as any).payment.kushkiSubscriptionId = id;
+    }
+  }
+
+  /**
+   * Get admin data from metadata.admin
+   */
+  public getAdminMetadata(): { assignedByAdminId?: string; assignedUsername?: string } | null {
+    if (this.metadata && typeof this.metadata === 'object') {
+      const admin = (this.metadata as any).admin;
+      if (admin) {
+        return {
+          assignedByAdminId: admin.assignedByAdminId,
+          assignedUsername: admin.assignedUsername
+        };
+      }
+    }
+    // Fallback to direct columns
+    if (this.assigned_by_admin_id || this.assigned_username) {
+      return {
+        assignedByAdminId: this.assigned_by_admin_id,
+        assignedUsername: this.assigned_username
+      };
+    }
+    return null;
+  }
+
+  /**
+   * Get payment metadata
+   */
+  public getPaymentMetadata(): Record<string, any> | null {
+    if (this.metadata && typeof this.metadata === 'object') {
+      const payment = (this.metadata as any).payment;
+      if (payment) {
+        return payment;
+      }
+    }
+    return null;
   }
 
   // Static methods

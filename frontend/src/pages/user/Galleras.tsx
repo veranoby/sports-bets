@@ -331,9 +331,7 @@ const GallerasPage: React.FC = () => {
         );
       }
     } catch (err) {
-      setError(
-        "Error al cargar los criaderos. Inténtalo de nuevo más tarde.",
-      );
+      setError("Error al cargar los criaderos. Inténtalo de nuevo más tarde.");
       console.error("Error loading galleras:", err);
     } finally {
       setLoading(false);
@@ -526,20 +524,21 @@ const GallerasPage: React.FC = () => {
         <div className="space-y-4">
           {/* Title and Stat Chips */}
           <div className="flex justify-between items-center">
-                          <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-                            <Shield className="w-6 h-6 text-green-600" />
-                            Criaderos
-                            <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                              <span className="font-bold text-gray-100">Total:</span>
-                              <span className="font-bold text-white">{galleras.length}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
-                              <span className="font-bold text-gray-100">Certificados:</span>
-                              <span className="font-bold text-white">
-                                {galleras.filter((g) => g.isCertified).length}
-                              </span>
-                            </div>
-                          </h1>          </div>
+            <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
+              <Shield className="w-6 h-6 text-green-600" />
+              Criaderos
+              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="font-bold text-gray-100">Total:</span>
+                <span className="font-bold text-white">{galleras.length}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="font-bold text-gray-100">Certificados:</span>
+                <span className="font-bold text-white">
+                  {galleras.filter((g) => g.isCertified).length}
+                </span>
+              </div>
+            </h1>{" "}
+          </div>
 
           {/* Search and Filters */}
           <div className="flex flex-col md:flex-row gap-4 card-background p-4">

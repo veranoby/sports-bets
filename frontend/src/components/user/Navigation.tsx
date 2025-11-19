@@ -85,7 +85,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
     ];
 
     // Only add wallet and betting items for user and gallera roles
-    if (isWalletEnabled && ['user', 'gallera'].includes(role)) {
+    if (isWalletEnabled && ["user", "gallera"].includes(role)) {
       // Conditionally add wallet item
       commonItems.push({
         id: "wallet",
@@ -95,7 +95,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         gradient: "from-yellow-500 to-yellow-600",
       });
     }
-    if (isBettingEnabled && ['user', 'gallera'].includes(role)) {
+    if (isBettingEnabled && ["user", "gallera"].includes(role)) {
       // Conditionally add bets item
       commonItems.push({
         id: "bets",
@@ -113,7 +113,9 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
       }
       case "venue":
         // Venue users cannot access wallet/betting functionality
-        return commonItems.filter(item => !['wallet', 'bets'].includes(item.id));
+        return commonItems.filter(
+          (item) => !["wallet", "bets"].includes(item.id),
+        );
       case "gallera":
         // Gallera users have full access to all items
         return commonItems;

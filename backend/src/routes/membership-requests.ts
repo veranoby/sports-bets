@@ -198,7 +198,7 @@ router.get(
                 attributes: ['id', 'status', 'type', 'manual_expires_at'],
                 limit: 1,
                 order: [['created_at', 'DESC']],
-                separate: false,
+                separate: true,
               },
             ],
           },

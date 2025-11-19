@@ -10,10 +10,9 @@ import {
   Building2,
   Radio,
   BarChart3,
-  HelpCircle,
+  Monitor,
   LogOut,
   Shield,
-  Monitor,
   CreditCard,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -80,15 +79,9 @@ const AdminSidebar: React.FC = () => {
       roles: ["admin"],
     },
     {
-      path: "/admin/monitoring",
-      icon: Monitor,
-      label: "Monitoreo",
-      roles: ["admin", "operator"],
-    },
-    {
       path: "/admin/streaming",
       icon: Radio,
-      label: "Streaming",
+      label: "Streaming & Monitoreo",
       roles: ["admin", "operator"],
     },
     {
@@ -101,12 +94,6 @@ const AdminSidebar: React.FC = () => {
       path: "/admin/membership-requests",
       icon: CreditCard,
       label: "Suscripciones",
-      roles: ["admin"],
-    },
-    {
-      path: "/admin/support",
-      icon: HelpCircle,
-      label: "Soporte",
       roles: ["admin"],
     },
     {

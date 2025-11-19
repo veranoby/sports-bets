@@ -59,6 +59,9 @@ const AdminMembershipRequests = lazy(
 );
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 const AdminStreaming = lazy(() => import("./pages/admin/Streaming"));
+const OptimizedStreamingMonitor = lazy(
+  () => import("./pages/admin/OptimizedStreamingMonitor")
+);
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
 // Operators use admin environment with role-based restrictions
@@ -281,13 +284,11 @@ const AppContent: React.FC = () => {
             }
           />
 
-          {/* Monitoreo */}
+          {/* Monitoreo - redirect to unified streaming page */}
           <Route
             path="/admin/monitoring"
             element={
-              <Suspense fallback={<LoadingSpinner fullPage />}>
-                <AdminMonitoring />
-              </Suspense>
+              <Navigate to="/admin/streaming" replace />
             }
           />
 
@@ -301,12 +302,12 @@ const AppContent: React.FC = () => {
             }
           />
 
-          {/* Streaming */}
+          {/* Streaming & Monitoreo - unified page */}
           <Route
             path="/admin/streaming"
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
-                <AdminStreaming />
+                <OptimizedStreamingMonitor />
               </Suspense>
             }
           />

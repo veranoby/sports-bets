@@ -1484,7 +1484,7 @@
   "data_type": "jsonb",
   "character_maximum_length": null,
   "is_nullable": "YES",
-  "column_default": "'{\"verificationLevel\": \"none\"}'::jsonb",
+  "column_default": "'{\"businessEntities\": {}, \"verificationLevel\": \"none\"}'::jsonb",
   "ordinal_position": 7
 }, {
   "table_name": "users",

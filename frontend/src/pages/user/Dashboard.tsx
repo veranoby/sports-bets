@@ -106,7 +106,9 @@ const Dashboard: React.FC = () => {
   // ✅ Datos computados simplificados (solo eventos)
   const { liveEvents } = useMemo(() => {
     const liveEvents =
-      (allEvents as EventData[] | undefined)?.filter((e) => e.status === "in-progress") || [];
+      (allEvents as EventData[] | undefined)?.filter(
+        (e) => e.status === "in-progress",
+      ) || [];
     return { liveEvents };
   }, [allEvents]);
 
@@ -236,25 +238,25 @@ const Dashboard: React.FC = () => {
                 {todayEvents.map((event) => {
                   const typedEvent = event as EventData;
                   return (
-                  <div
-                    key={typedEvent.id}
-                    onClick={() => navigate(`/live-event/${typedEvent.id}`)}
-                    className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-theme-primary">
-                        {typedEvent.name}
-                      </h3>
-                      <p className="text-sm text-theme-light">
-                        {typedEvent.venue?.name}
-                      </p>
+                    <div
+                      key={typedEvent.id}
+                      onClick={() => navigate(`/live-event/${typedEvent.id}`)}
+                      className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
+                    >
+                      <div>
+                        <h3 className="font-medium text-theme-primary">
+                          {typedEvent.name}
+                        </h3>
+                        <p className="text-sm text-theme-light">
+                          {typedEvent.venue?.name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-theme-primary">
+                          {formatTime(new Date(typedEvent.scheduledDate))}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-theme-primary">
-                        {formatTime(new Date(typedEvent.scheduledDate))}
-                      </p>
-                    </div>
-                  </div>
                   );
                 })}
               </div>
@@ -287,40 +289,38 @@ const Dashboard: React.FC = () => {
                 {upcomingEvents.slice(0, 6).map((event) => {
                   const typedEvent = event as EventData;
                   return (
-                  <div
-                    key={typedEvent.id}
-                    onClick={() => navigate(`/event/${typedEvent.id}`)}
-                    className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-theme-primary">
-                        {typedEvent.name}
-                      </h3>
-                      <p className="text-sm text-theme-light">
-                        {typedEvent.venue?.name}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-theme-primary">
-                        {new Date(typedEvent.scheduledDate).toLocaleDateString(
-                          "es-ES",
-                          {
+                    <div
+                      key={typedEvent.id}
+                      onClick={() => navigate(`/event/${typedEvent.id}`)}
+                      className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
+                    >
+                      <div>
+                        <h3 className="font-medium text-theme-primary">
+                          {typedEvent.name}
+                        </h3>
+                        <p className="text-sm text-theme-light">
+                          {typedEvent.venue?.name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-theme-primary">
+                          {new Date(
+                            typedEvent.scheduledDate,
+                          ).toLocaleDateString("es-ES", {
                             day: "2-digit",
                             month: "short",
-                          },
-                        )}
-                      </p>
-                      <p className="text-xs text-theme-light">
-                        {new Date(typedEvent.scheduledDate).toLocaleTimeString(
-                          "es-ES",
-                          {
+                          })}
+                        </p>
+                        <p className="text-xs text-theme-light">
+                          {new Date(
+                            typedEvent.scheduledDate,
+                          ).toLocaleTimeString("es-ES", {
                             hour: "2-digit",
                             minute: "2-digit",
-                          },
-                        )}
-                      </p>
+                          })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>

@@ -324,7 +324,8 @@ const LiveEvent = () => {
   }
 
   // ✅ Data para las tabs
-  const availableBets = (bets?.filter((bet) => bet.status === "active") || []) as Bet[];
+  const availableBets = (bets?.filter((bet) => bet.status === "active") ||
+    []) as Bet[];
   const myBets =
     bets?.filter((bet) => bet.createdBy === "current-user-id") || [];
   const currentFight = fights?.find((fight) => fight.status === "live");
@@ -487,14 +488,20 @@ const LiveEvent = () => {
         <div className="mx-4 mb-4">
           <div className="flex bg-[#1a1f37]/30 rounded-lg p-1">
             {[
-              ...(isBettingEnabled ? [
-                {
-                  key: "available",
-                  label: "Disponibles",
-                  count: availableBets.length,
-                },
-                { key: "my_bets", label: "Mis Apuestas", count: myBets.length },
-              ] : []),
+              ...(isBettingEnabled
+                ? [
+                    {
+                      key: "available",
+                      label: "Disponibles",
+                      count: availableBets.length,
+                    },
+                    {
+                      key: "my_bets",
+                      label: "Mis Apuestas",
+                      count: myBets.length,
+                    },
+                  ]
+                : []),
               { key: "info", label: "Info", count: null },
             ].map((tab) => (
               <button

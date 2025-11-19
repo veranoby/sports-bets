@@ -14,7 +14,7 @@ interface ArticleEditorProps {
   formErrors: ArticleFormErrors;
   onChange: (field: keyof ArticleFormData, value: string | boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
-  onSaveDraft?: (e: React.FormEvent) => void;  // Optional property for saving drafts
+  onSaveDraft?: (e: React.FormEvent) => void; // Optional property for saving drafts
   submitting: boolean;
   isEditing: boolean;
 }

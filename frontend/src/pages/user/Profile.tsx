@@ -220,23 +220,46 @@ const Profile: React.FC = () => {
             {!isEditingBusiness ? (
               <BusinessInfoSection
                 type={user.role}
-                data={{
-                  ...user.profileInfo,
-                  name: user.role === 'venue' ? user.profileInfo?.venueName : user.profileInfo?.galleraName,
-                  location: user.role === 'venue' ? user.profileInfo?.venueLocation : user.profileInfo?.galleraLocation,
-                  description: user.role === 'venue' ? user.profileInfo?.venueDescription : user.profileInfo?.galleraDescription,
-                  status: user.profileInfo?.verificationLevel || 'pending',
-                  certified: user.profileInfo?.certified || false,
-                  specialties: user.role === 'gallera' ? user.profileInfo?.galleraSpecialties : undefined,
-                  activeRoosters: user.role === 'gallera' ? user.profileInfo?.galleraActiveRoosters : undefined,
-                  images: user.profileInfo?.images || [],
-                  contactInfo: {
-                    email: user.role === 'venue' ? user.profileInfo?.venueEmail : user.profileInfo?.galleraEmail,
-                    phone: user.profileInfo?.phoneNumber,
-                    website: user.role === 'venue' ? user.profileInfo?.venueWebsite : user.profileInfo?.galleraWebsite,
-                    address: user.profileInfo?.address,
-                  }
-                } as any}  // Temporary type assertion - needs better type mapping
+                data={
+                  {
+                    ...user.profileInfo,
+                    name:
+                      user.role === "venue"
+                        ? user.profileInfo?.venueName
+                        : user.profileInfo?.galleraName,
+                    location:
+                      user.role === "venue"
+                        ? user.profileInfo?.venueLocation
+                        : user.profileInfo?.galleraLocation,
+                    description:
+                      user.role === "venue"
+                        ? user.profileInfo?.venueDescription
+                        : user.profileInfo?.galleraDescription,
+                    status: user.profileInfo?.verificationLevel || "pending",
+                    certified: user.profileInfo?.certified || false,
+                    specialties:
+                      user.role === "gallera"
+                        ? user.profileInfo?.galleraSpecialties
+                        : undefined,
+                    activeRoosters:
+                      user.role === "gallera"
+                        ? user.profileInfo?.galleraActiveRoosters
+                        : undefined,
+                    images: user.profileInfo?.images || [],
+                    contactInfo: {
+                      email:
+                        user.role === "venue"
+                          ? user.profileInfo?.venueEmail
+                          : user.profileInfo?.galleraEmail,
+                      phone: user.profileInfo?.phoneNumber,
+                      website:
+                        user.role === "venue"
+                          ? user.profileInfo?.venueWebsite
+                          : user.profileInfo?.galleraWebsite,
+                      address: user.profileInfo?.address,
+                    },
+                  } as any
+                } // Temporary type assertion - needs better type mapping
                 onEdit={() => setIsEditingBusiness(true)}
               />
             ) : (

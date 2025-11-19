@@ -123,7 +123,9 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
           onSuccess(userData);
         } else {
           // Fallback to what was returned, but this might not satisfy the type requirement
-          console.warn("Warning: Could not fetch complete user data after profile update");
+          console.warn(
+            "Warning: Could not fetch complete user data after profile update",
+          );
           // If the direct user data access fails, try getting user again
           const fallbackUserResponse = await userAPI.getById(userId);
           if (fallbackUserResponse.success && fallbackUserResponse.data) {

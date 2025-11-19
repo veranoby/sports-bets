@@ -1,164 +1,290 @@
 [{
   "schemaname": "public",
+  "tablename": "SequelizeMeta",
+  "attname": "name",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "created_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.8566604
+  "correlation": -0.4642857
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "device_fingerprint",
-  "n_distinct": 2,
+  "n_distinct": -0.14285715,
   "common_values_sample": "{124d5a6b011c7921a7f03b3a1bb581c86d532ab7cd0dd6e1ea9e94c8376f63b7}",
-  "correlation": 0.85365856
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "expires_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.8566604
+  "correlation": -0.4642857
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "id",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.26322702
+  "correlation": 0.10714286
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "ip_address",
-  "n_distinct": 1,
+  "n_distinct": -0.14285715,
   "common_values_sample": "{::1}",
   "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "is_active",
-  "n_distinct": 2,
-  "common_values_sample": "{f,t}",
-  "correlation": 0.90694183
+  "n_distinct": -0.2857143,
+  "common_values_sample": "{f}",
+  "correlation": 0.25
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "last_activity",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.8542214
+  "correlation": -0.4642857
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "session_token",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.3966229
+  "correlation": -0.4642857
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "updated_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.8566604
+  "correlation": -0.4642857
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "user_agent",
-  "n_distinct": 2,
+  "n_distinct": -0.14285715,
   "common_values_sample": "{\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"}",
-  "correlation": 0.85365856
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "user_id",
-  "n_distinct": 4,
-  "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde,d447f8ed-1e4c-42de-b919-868d58fcbe08,1401acf5-20d6-414a-b3c1-e8963b9cb1a6,a7ffac00-7458-4395-a104-84988e62eba9}",
-  "correlation": 0.46022514
+  "n_distinct": -0.14285715,
+  "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_business_entities",
+  "attname": "expr",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "checksum",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "created_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "description",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -1
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "executed_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "updated_at",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "attname": "version",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "category",
+  "n_distinct": -0.375,
+  "common_values_sample": "{features,business}",
+  "correlation": 0.2857143
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "created_at",
+  "n_distinct": -0.25,
+  "common_values_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "correlation": 0.9285714
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "description",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.5952381
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "id",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": 0.1904762
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "is_public",
+  "n_distinct": -0.25,
+  "common_values_sample": "{t,f}",
+  "correlation": 0.16666667
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "key",
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -0.16666667
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "type",
+  "n_distinct": -0.25,
+  "common_values_sample": "{boolean,number}",
+  "correlation": 0.35714287
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "updated_at",
+  "n_distinct": -0.5,
+  "common_values_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "updated_by",
+  "n_distinct": -0.125,
+  "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
+  "correlation": 1
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "attname": "value",
+  "n_distinct": -0.625,
+  "common_values_sample": "{false,true}",
+  "correlation": 0.21428572
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "approved",
-  "n_distinct": 1,
-  "common_values_sample": "{t}",
-  "correlation": 1
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "created_at",
-  "n_distinct": -0.6363636,
-  "common_values_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
-  "correlation": 0.36363637
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.37272727
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email_verified",
-  "n_distinct": 1,
-  "common_values_sample": "{f}",
-  "correlation": 1
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "id",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.46363637
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "is_active",
-  "n_distinct": 1,
-  "common_values_sample": "{t}",
-  "correlation": 1
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "last_login",
-  "n_distinct": -0.5454545,
+  "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.14285715
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "password_hash",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "profile_info",
-  "n_distinct": -0.6363636,
-  "common_values_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
-  "correlation": 0.19090909
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "role",
-  "n_distinct": -0.45454547,
-  "common_values_sample": "{user,venue,operator}",
-  "correlation": 0.58181816
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "updated_at",
-  "n_distinct": 1,
-  "common_values_sample": "{\"2025-10-30 16:00:15.939746+00\"}",
-  "correlation": 1
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "username",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.24545455
+  "correlation": null
 }, {
   "schemaname": "public",
   "tablename": "users",

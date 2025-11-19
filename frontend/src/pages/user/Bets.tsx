@@ -100,7 +100,7 @@ const UserBets: React.FC = () => {
         potentialWin: (bet as any).potentialWin || 0,
         userId: bet.userId || "",
         updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-        result: bet.result as "win" | "loss" || undefined,
+        result: (bet.result as "win" | "loss") || undefined,
         choice: bet.choice || "",
         createdAt: bet.createdAt || new Date().toISOString(), // Ensure required field is included
       };

@@ -315,7 +315,9 @@ const AdminVenuesPage: React.FC = () => {
         {filteredData.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold">No se encontraron galleras</h3>
+            <h3 className="text-lg font-semibold">
+              No se encontraron galleras
+            </h3>
             <p className="text-sm">
               No hay galleras que coincidan con la búsqueda.
             </p>

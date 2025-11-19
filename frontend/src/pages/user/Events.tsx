@@ -363,8 +363,11 @@ const EventsPage: React.FC = () => {
                         </p>
                         <p className="text-xs text-theme-light">
                           {
-                            (events.find((e: any) => e.status === "in-progress")
-                              ?.venue as any)?.profileInfo?.venueName
+                            (
+                              events.find(
+                                (e: any) => e.status === "in-progress",
+                              )?.venue as any
+                            )?.profileInfo?.venueName
                           }
                         </p>
                       </div>

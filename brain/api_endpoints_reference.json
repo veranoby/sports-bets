@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
-    "version": "1.5",
-    "last_updated": "2025-11-11 - Added GET /bets/all (admin), 3 wallet financial endpoints, remapped systemAPI. Streaming pause/resume confirmed implemented.",
+    "version": "1.6",
+    "last_updated": "2025-11-19 - Added GET /api/sse/streaming?token=<jwt> (SSE endpoint for unified streaming monitoring). Consolidated from polling-based monitoring to push-based SSE architecture.",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {
@@ -37,7 +37,8 @@
     "backend_url": "http://localhost:3001",
     "api_prefix": "/api",
     "authentication": "Bearer token in Authorization header",
-    "content_type": "application/json"
+    "content_type": "application/json",
+    "🔴_SSE_AUTHENTICATION_NOTE_2025_11_19": "EventSource API (used for SSE connections) CANNOT send custom headers. Token must be passed via query parameter (?token=...) instead of Authorization header. Updated extractToken() middleware to check req.query.token for SSE compatibility."
   },
 
   "authentication_endpoints": {
@@ -1302,6 +1303,40 @@
     }
   },
 
+  "streaming_sse_endpoints": {
+    "🔴_UNIFIED_STREAMING_MONITORING_2025_11_19": "SSE endpoint for real-time monitoring of streaming metrics (consolidated from polling-based /monitoring endpoints)",
+    "get_streaming_metrics": {
+      "method": "GET",
+      "path": "/sse/streaming",
+      "auth_required": true,
+      "authentication": "⚠️ SPECIAL: Token must be passed via QUERY PARAMETER (?token=jwt) because EventSource API cannot send custom headers",
+      "protocol": "Server-Sent Events (SSE) - connection persists and server pushes updates",
+      "push_interval": "2 seconds (throttled to reduce backend load)",
+      "response_structure": {
+        "connectionCount": "number - Active users connected to streaming (from EventConnection table)",
+        "activeBets": "number - Active bets awaiting settlement (from Bet table, status='active')",
+        "streamStatus": {
+          "isLive": "boolean - Whether stream is currently broadcasting"
+        }
+      },
+      "backend_implementation": "backend/src/routes/streaming.ts (NEW) or extend monitoring.ts",
+      "example_curl": "curl 'http://localhost:3001/api/sse/streaming?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+      "frontend_usage": {
+        "hook": "frontend/src/hooks/useSSEConnection.ts",
+        "component": "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx",
+        "event_source_usage": "const eventSource = new EventSource(`/api/sse/streaming?token=${token}`);",
+        "event_handling": "eventSource.onmessage = (e) => setData(JSON.parse(e.data));"
+      },
+      "performance_benefit": "✅ 1 persistent SSE connection + push-based updates = 98.4% reduction vs polling (48 requests/min → 30 events/min)",
+      "error_handling": {
+        "401_unauthorized": "Invalid or expired token",
+        "connection_drop": "Hook implements auto-reconnect with exponential backoff",
+        "server_error": "Hook logs error and attempts reconnection after backoff delay"
+      },
+      "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)"
+    }
+  },
+
   "frontend_api_client_patterns": {
     "import_pattern": "import { venuesAPI, gallerasAPI, userAPI } from '../../services/api'",
     "correct_usage": {
@@ -1313,7 +1348,8 @@
       "venues": "response.data.venues",
       "galleras": "response.data.galleras",
       "users": "response.data.users"
-    }
+    },
+    "sse_pattern": "🔴 SPECIAL: SSE connections pass token via query parameter: new EventSource(`/api/sse/streaming?token=${localStorage.getItem('token')}`)"
   },
 
   "testing_endpoints": {

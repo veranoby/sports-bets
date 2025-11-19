@@ -2,8 +2,6 @@
 // Componente para gestionar suscripciones con radio buttons
 
 import React, { useState, useEffect } from "react";
-import { adminAPI } from "../../services/api";
-import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import { CreditCard, Crown, User, Clock } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -41,7 +39,6 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
   const [selectedType, setSelectedType] = useState<string>("free");
   const [assignedUsername, setAssignedUsername] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Auto-fill assigned username with current admin user
   useEffect(() => {
@@ -49,6 +46,23 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
       setAssignedUsername(user.username);
     }
   }, [user]);
+
+  // Auto-save to parent state when selection changes
+  useEffect(() => {
+    // Only save if we have required data
+    if (selectedType === "free" || (selectedType !== "free" && assignedUsername.trim())) {
+      setError(null);
+      onSave({
+        membership_type: selectedType,
+        assigned_username: assignedUsername.trim(),
+        type: selectedType,
+        status: selectedType === "free" ? "active" : "pending",
+        expiresAt: selectedType === "free" ? null : undefined,
+        manual_expires_at: selectedType === "free" ? null : undefined,
+        features: selectedType === "free" ? [] : undefined,
+      });
+    }
+  }, [selectedType, assignedUsername, onSave]);
 
   // Opciones de suscripción freemium
   const membershipOptions = [
@@ -76,46 +90,6 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
         "Acceso ilimitado por 30 días - Todos los beneficios premium",
     },
   ];
-
-  const handleMembershipUpdate = async () => {
-    if (selectedType !== "free" && !assignedUsername.trim()) {
-      setError("Se requiere asignar un nombre de usuario responsable");
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const response = await adminAPI.updateUserMembership(userId, {
-        membership_type: selectedType,
-        assigned_username: assignedUsername.trim(),
-      });
-
-      if (response.success) {
-        // Success - pass data to parent
-        if (onSave) {
-          onSave({
-            membership_type: selectedType,
-            assigned_username: assignedUsername.trim(),
-            status: selectedType === "free" ? "active" : "pending",
-            expiresAt: selectedType === "free" ? null : undefined,
-            manual_expires_at: selectedType === "free" ? null : undefined,
-            features: selectedType === "free" ? [] : undefined,
-          });
-        }
-        onCancel();
-      } else {
-        throw new Error(response.error || "Error al actualizar suscripción");
-      }
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "Error al actualizar suscripción";
-      setError(errorMsg);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -223,35 +197,6 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
               </p>
             </div>
           )}
-        </div>
-
-        {/* Botones de acción */}
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="button"
-            onClick={handleMembershipUpdate}
-            disabled={isSaving}
-            className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <LoadingSpinner size="sm" />
-                {mode === "create" ? "Creando..." : "Actualizando..."}
-              </>
-            ) : mode === "create" ? (
-              "Crear Usuario"
-            ) : (
-              "Actualizar Suscripción"
-            )}
-          </button>
         </div>
 
         {error && <ErrorMessage error={error} />}

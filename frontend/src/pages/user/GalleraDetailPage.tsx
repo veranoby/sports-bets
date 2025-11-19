@@ -52,9 +52,7 @@ const GalleraDetailPage: React.FC = () => {
         setLoading(true);
         const galleraResponse = await usersAPI.getById(id);
         if (!galleraResponse.success) {
-          throw new Error(
-            galleraResponse.error || "Error al cargar criadero",
-          );
+          throw new Error(galleraResponse.error || "Error al cargar criadero");
         }
         const galleraData = galleraResponse.data as any;
         setGallera(galleraData);

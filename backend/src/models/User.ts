@@ -98,12 +98,25 @@ export class User extends Model<
   // Método para obtener datos públicos del usuario incluyendo suscripción
   async toPublicJSON() {
     const { passwordHash, verificationToken, ...publicData } = this.toJSON();
-    
-    // Include current subscription if available
+
+    // Include current subscription - use pre-loaded subscription if available
     try {
-      (publicData as any).subscription = await this.getCurrentSubscription();
+      // If subscriptions were already loaded (from include: subscriptionInclude), use them
+      if ((this as any).subscriptions && Array.isArray((this as any).subscriptions) && (this as any).subscriptions.length > 0) {
+        const latestSubscription = (this as any).subscriptions[0]; // Already ordered by createdAt DESC
+        (publicData as any).subscription = {
+          type: latestSubscription.type || 'daily',
+          status: latestSubscription.status,
+          expiresAt: latestSubscription.expiresAt ?? null,
+          features: latestSubscription.features || [],
+          remainingDays: this.calculateRemainingDays(latestSubscription.expiresAt),
+        };
+      } else {
+        // Fallback: fetch from database if not pre-loaded
+        (publicData as any).subscription = await this.getCurrentSubscription();
+      }
     } catch (err) {
-      console.warn('Failed to get current subscription for user:', this.id, err);
+      console.warn('Failed to get subscription for user:', this.id, err);
       // Fallback to free subscription if error occurs
       (publicData as any).subscription = {
         type: 'free',
@@ -113,8 +126,17 @@ export class User extends Model<
         remainingDays: 0,
       };
     }
-    
+
     return publicData;
+  }
+
+  private calculateRemainingDays(expiresAt: Date | null): number {
+    if (!expiresAt) return 0;
+    const now = new Date();
+    const expireDate = new Date(expiresAt);
+    const diffMs = expireDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
   }
 
   // Método para verificar si el usuario puede realizar determinadas acciones
@@ -205,7 +227,7 @@ User.init(
       unique: true,
       validate: {
         len: [3, 50],
-        isAlphanumeric: true,
+        is: /^[a-zA-Z0-9_]+$/, // Allow letters, numbers, and underscores (matches middleware validation)
       },
     },
     email: {

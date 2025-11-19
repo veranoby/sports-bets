@@ -1299,7 +1299,7 @@
   "column_name": "profile_info",
   "data_type": "jsonb",
   "is_nullable": "YES",
-  "column_default": "'{\"verificationLevel\": \"none\"}'::jsonb"
+  "column_default": "'{\"businessEntities\": {}, \"verificationLevel\": \"none\"}'::jsonb"
 }, {
   "table_schema": "public",
   "table_name": "users",

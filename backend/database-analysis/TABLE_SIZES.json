@@ -1,19 +1,19 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "336 kB",
+  "total_size": "352 kB",
   "table_size": "8192 bytes",
-  "indexes_size": "328 kB",
-  "index_to_table_ratio_percentage": 4100.00,
-  "total_bytes": 344064
+  "indexes_size": "344 kB",
+  "index_to_table_ratio_percentage": 4300.00,
+  "total_bytes": 360448
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
-  "total_size": "200 kB",
-  "table_size": "0 bytes",
-  "indexes_size": "200 kB",
-  "index_to_table_ratio_percentage": null,
-  "total_bytes": 204800
+  "total_size": "344 kB",
+  "table_size": "32 kB",
+  "indexes_size": "312 kB",
+  "index_to_table_ratio_percentage": 975.00,
+  "total_bytes": 352256
 }, {
   "schemaname": "public",
   "tablename": "articles",
@@ -33,11 +33,19 @@
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
-  "total_size": "176 kB",
+  "total_size": "192 kB",
   "table_size": "8192 bytes",
-  "indexes_size": "168 kB",
-  "index_to_table_ratio_percentage": 2100.00,
-  "total_bytes": 180224
+  "indexes_size": "184 kB",
+  "index_to_table_ratio_percentage": 2300.00,
+  "total_bytes": 196608
+}, {
+  "schemaname": "public",
+  "tablename": "fights",
+  "total_size": "136 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "128 kB",
+  "index_to_table_ratio_percentage": 1600.00,
+  "total_bytes": 139264
 }, {
   "schemaname": "public",
   "tablename": "bets",
@@ -48,7 +56,23 @@
   "total_bytes": 131072
 }, {
   "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "total_size": "104 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "96 kB",
+  "index_to_table_ratio_percentage": 1200.00,
+  "total_bytes": 106496
+}, {
+  "schemaname": "public",
   "tablename": "payment_transactions",
+  "total_size": "96 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "96 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 98304
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
   "total_size": "96 kB",
   "table_size": "0 bytes",
   "indexes_size": "96 kB",
@@ -64,35 +88,11 @@
   "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "transactions",
-  "total_size": "96 kB",
-  "table_size": "0 bytes",
-  "indexes_size": "96 kB",
-  "index_to_table_ratio_percentage": null,
-  "total_bytes": 98304
-}, {
-  "schemaname": "public",
-  "tablename": "membership_change_requests",
-  "total_size": "96 kB",
-  "table_size": "8192 bytes",
-  "indexes_size": "88 kB",
-  "index_to_table_ratio_percentage": 1100.00,
-  "total_bytes": 98304
-}, {
-  "schemaname": "public",
   "tablename": "wallets",
   "total_size": "72 kB",
   "table_size": "8192 bytes",
   "indexes_size": "64 kB",
   "index_to_table_ratio_percentage": 800.00,
-  "total_bytes": 73728
-}, {
-  "schemaname": "public",
-  "tablename": "fights",
-  "total_size": "72 kB",
-  "table_size": "0 bytes",
-  "indexes_size": "72 kB",
-  "index_to_table_ratio_percentage": null,
   "total_bytes": 73728
 }, {
   "schemaname": "public",

@@ -65,8 +65,10 @@ const AdminEventsPage: React.FC = () => {
   );
 
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [eventDetailData, setEventDetailData] =
-    useState<{ event: Event; fights: Fight[] } | null>(null);
+  const [eventDetailData, setEventDetailData] = useState<{
+    event: Event;
+    fights: Fight[];
+  } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
@@ -159,7 +161,7 @@ const AdminEventsPage: React.FC = () => {
           setEventDetailData((prev) => ({
             ...prev,
             event: { ...prev.event, streamStatus: status },
-            fights: prev.fights || [] // Preserve existing fights
+            fights: prev.fights || [], // Preserve existing fights
           }));
         }
       }
@@ -242,7 +244,7 @@ const AdminEventsPage: React.FC = () => {
           setEventDetailData({
             ...eventDetailData,
             event: { ...eventDetailData.event, ...response.data },
-            fights: eventDetailData.fights || [] // Preserve existing fights
+            fights: eventDetailData.fights || [], // Preserve existing fights
           });
         }
       }
@@ -268,10 +270,10 @@ const AdminEventsPage: React.FC = () => {
   const handleEventUpdated = (updatedEvent: Event) => {
     setEvents(events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)));
     if (eventDetailData && eventDetailData.event.id === updatedEvent.id) {
-      setEventDetailData({ 
-        ...eventDetailData, 
+      setEventDetailData({
+        ...eventDetailData,
         event: updatedEvent,
-        fights: eventDetailData.fights || [] // Preserve existing fights
+        fights: eventDetailData.fights || [], // Preserve existing fights
       });
     }
     setIsEditEventModalOpen(false);
@@ -535,7 +537,12 @@ const AdminEventsPage: React.FC = () => {
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
                           <span>
-                            {typeof event.operator === 'object' && event.operator?.username ? event.operator.username : typeof event.operator === 'string' ? event.operator : "Sin asignar"}
+                            {typeof event.operator === "object" &&
+                            event.operator?.username
+                              ? event.operator.username
+                              : typeof event.operator === "string"
+                                ? event.operator
+                                : "Sin asignar"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -834,22 +841,33 @@ const AdminEventsPage: React.FC = () => {
                         {/* Event Workflow Controls - NEW */}
                         <EventWorkflowControls
                           eventId={eventDetailData.event.id}
-                          operatorId={eventDetailData.event.operatorId || user?.id || ''}
+                          operatorId={
+                            eventDetailData.event.operatorId || user?.id || ""
+                          }
                           currentStatus={
-                            eventDetailData.event.status === 'upcoming' ? 'scheduled' :
-                            eventDetailData.event.status === 'live' ? 'in-progress' :
-                            eventDetailData.event.status
+                            eventDetailData.event.status === "upcoming"
+                              ? "scheduled"
+                              : eventDetailData.event.status === "live"
+                                ? "in-progress"
+                                : eventDetailData.event.status
                           }
                           onStatusChange={(newStatus, message) => {
                             // Update local state after status change
                             const updatedEvent = {
                               ...eventDetailData.event,
-                              status: newStatus as "scheduled" | "cancelled" | "upcoming" | "live" | "completed" | "betting" | "in-progress"
+                              status: newStatus as
+                                | "scheduled"
+                                | "cancelled"
+                                | "upcoming"
+                                | "live"
+                                | "completed"
+                                | "betting"
+                                | "in-progress",
                             };
                             setEventDetailData({
                               ...eventDetailData,
                               event: updatedEvent,
-                              fights: eventDetailData.fights || [] // Preserve existing fights
+                              fights: eventDetailData.fights || [], // Preserve existing fights
                             });
                             setEvents(
                               events.map((e) =>
@@ -898,9 +916,12 @@ const AdminEventsPage: React.FC = () => {
                                   Operador Asignado
                                 </label>
                                 <p className="text-sm text-gray-900">
-                                  {typeof eventDetailData.event.operator === "object" && eventDetailData.event.operator?.username
+                                  {typeof eventDetailData.event.operator ===
+                                    "object" &&
+                                  eventDetailData.event.operator?.username
                                     ? eventDetailData.event.operator.username
-                                    : typeof eventDetailData.event.operator === "string"
+                                    : typeof eventDetailData.event.operator ===
+                                        "string"
                                       ? eventDetailData.event.operator
                                       : "Sin asignar"}
                                 </p>
@@ -945,7 +966,9 @@ const AdminEventsPage: React.FC = () => {
                                 </label>
                                 <p className="text-sm text-gray-900">
                                   $
-                                  {(eventDetailData.event.totalPrizePool || 0).toLocaleString()}
+                                  {(
+                                    eventDetailData.event.totalPrizePool || 0
+                                  ).toLocaleString()}
                                 </p>
                               </div>
                             </div>

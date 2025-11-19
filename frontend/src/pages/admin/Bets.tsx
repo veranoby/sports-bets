@@ -7,7 +7,15 @@ import { betsAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
-import { Search, Filter, Calendar, DollarSign, User as UserIcon, TrendingUp, Download } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Calendar,
+  DollarSign,
+  User as UserIcon,
+  TrendingUp,
+  Download,
+} from "lucide-react";
 
 // Import Bet interface type
 import type { Bet, User as UserType, Event, Fight } from "../../types";
@@ -37,7 +45,10 @@ const AdminBetsPage: React.FC = () => {
 
   // Verify admin access
   useEffect(() => {
-    if (!currentUser || (currentUser.role !== "admin" && currentUser.role !== "operator")) {
+    if (
+      !currentUser ||
+      (currentUser.role !== "admin" && currentUser.role !== "operator")
+    ) {
       navigate("/dashboard");
     }
   }, [currentUser, navigate]);
@@ -57,9 +68,15 @@ const AdminBetsPage: React.FC = () => {
       const response = await betsAPI.getAllAdmin(params);
 
       if (response.success && response.data) {
-        const responseData = response.data as { bets?: Bet[], total?: number, totalPages?: number, page?: number, offset?: number };
+        const responseData = response.data as {
+          bets?: Bet[];
+          total?: number;
+          totalPages?: number;
+          page?: number;
+          offset?: number;
+        };
         setBets(responseData.bets || []);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           total: responseData.total || 0,
           totalPages: responseData.totalPages || 1,
@@ -77,11 +94,11 @@ const AdminBetsPage: React.FC = () => {
 
   // Handle filter changes
   const handleFilterChange = (field: keyof BetFilter, value: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to page 1 when filters change
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to page 1 when filters change
   };
 
   useEffect(() => {
@@ -91,19 +108,26 @@ const AdminBetsPage: React.FC = () => {
   // Pagination handlers
   const goToPage = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
-      setPagination(prev => ({ ...prev, page }));
+      setPagination((prev) => ({ ...prev, page }));
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active": return "bg-yellow-100 text-yellow-800";
-      case "won": return "bg-green-100 text-green-800";
-      case "lost": return "bg-red-100 text-red-800";
-      case "cancelled": return "bg-gray-100 text-gray-800";
-      case "refunded": return "bg-blue-100 text-blue-800";
-      case "pending": return "bg-orange-100 text-orange-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "active":
+        return "bg-yellow-100 text-yellow-800";
+      case "won":
+        return "bg-green-100 text-green-800";
+      case "lost":
+        return "bg-red-100 text-red-800";
+      case "cancelled":
+        return "bg-gray-100 text-gray-800";
+      case "refunded":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -111,14 +135,19 @@ const AdminBetsPage: React.FC = () => {
   const stats = {
     totalBets: bets.length,
     totalAmount: bets.reduce((sum, bet) => sum + bet.amount, 0),
-    completedBets: bets.filter(b => ["won", "lost"].includes(b.status)).length,
-    activeBets: bets.filter(b => ["pending", "active"].includes(b.status)).length,
-    pendingBets: bets.filter(b => b.status === "pending").length,
-    wonBets: bets.filter(b => b.status === "won").length,
-    lostBets: bets.filter(b => b.status === "lost").length,
+    completedBets: bets.filter((b) => ["won", "lost"].includes(b.status))
+      .length,
+    activeBets: bets.filter((b) => ["pending", "active"].includes(b.status))
+      .length,
+    pendingBets: bets.filter((b) => b.status === "pending").length,
+    wonBets: bets.filter((b) => b.status === "won").length,
+    lostBets: bets.filter((b) => b.status === "lost").length,
   };
 
-  if (!currentUser || (currentUser.role !== "admin" && currentUser.role !== "operator")) {
+  if (
+    !currentUser ||
+    (currentUser.role !== "admin" && currentUser.role !== "operator")
+  ) {
     return null; // Will redirect via useEffect
   }
 
@@ -138,7 +167,9 @@ const AdminBetsPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Historial de Apuestas</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Historial de Apuestas
+          </h1>
           <p className="text-gray-600 mt-1">
             Supervisión global de todas las apuestas realizadas por usuarios
           </p>
@@ -158,16 +189,20 @@ const AdminBetsPage: React.FC = () => {
               { key: "status" as const, header: "Estado" },
               { key: "createdAt" as const, header: "Fecha Creación" },
             ];
-            
+
             // Process data to extract proper values for CSV export
-            const processedBets = bets.map(bet => ({
+            const processedBets = bets.map((bet) => ({
               ...bet,
               user: bet.userId || "Usuario Desconocido",
               fight: `${bet.fightId || "N/A"}`,
               createdAt: new Date(bet.createdAt).toLocaleString("es-ES"),
             }));
-            
-            exportToCSV(processedBets, `apuestas_${new Date().toISOString().slice(0, 10)}.csv`, columns);
+
+            exportToCSV(
+              processedBets,
+              `apuestas_${new Date().toISOString().slice(0, 10)}.csv`,
+              columns,
+            );
           }}
         >
           <Download className="w-4 h-4" />
@@ -206,7 +241,7 @@ const AdminBetsPage: React.FC = () => {
           <div className="ml-4">
             <p className="text-sm text-gray-500">Usuarios Activos</p>
             <p className="text-xl font-semibold text-gray-900">
-              {[...new Set(bets.map(b => b.userId))].length}
+              {[...new Set(bets.map((b) => b.userId))].length}
             </p>
           </div>
         </div>
@@ -217,7 +252,13 @@ const AdminBetsPage: React.FC = () => {
           <div className="ml-4">
             <p className="text-sm text-gray-500">Hoy</p>
             <p className="text-xl font-semibold text-gray-900">
-              {bets.filter(b => new Date(b.createdAt).toDateString() === new Date().toDateString()).length}
+              {
+                bets.filter(
+                  (b) =>
+                    new Date(b.createdAt).toDateString() ===
+                    new Date().toDateString(),
+                ).length
+              }
             </p>
           </div>
         </div>
@@ -327,9 +368,7 @@ const AdminBetsPage: React.FC = () => {
                       <div className="text-sm font-medium text-gray-900">
                         {bet.userId || "Usuario desconocido"}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {"N/A"}
-                      </div>
+                      <div className="text-sm text-gray-500">{"N/A"}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
@@ -345,11 +384,13 @@ const AdminBetsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        bet.side === "red" 
-                          ? "bg-red-100 text-red-800" 
-                          : "bg-blue-100 text-blue-800"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          bet.side === "red"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
                         {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                       </span>
                       <div className="text-sm text-gray-500 mt-1">
@@ -370,7 +411,10 @@ const AdminBetsPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
                     No se encontraron apuestas con los filtros seleccionados
                   </td>
                 </tr>
@@ -401,11 +445,19 @@ const AdminBetsPage: React.FC = () => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Mostrando <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> a{' '}
+                  Mostrando{" "}
                   <span className="font-medium">
-                    {Math.min(pagination.page * pagination.limit, pagination.total)}
-                  </span>{' '}
-                  de <span className="font-medium">{pagination.total}</span> resultados
+                    {(pagination.page - 1) * pagination.limit + 1}
+                  </span>{" "}
+                  a{" "}
+                  <span className="font-medium">
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total,
+                    )}
+                  </span>{" "}
+                  de <span className="font-medium">{pagination.total}</span>{" "}
+                  resultados
                 </p>
               </div>
               <div>
@@ -420,41 +472,48 @@ const AdminBetsPage: React.FC = () => {
                   >
                     <span>Anterior</span>
                   </button>
-                  
+
                   {/* Pagination numbers */}
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (pagination.totalPages <= 5) {
-                      // If total pages <= 5, show all pages
-                      pageNum = i + 1;
-                    } else if (pagination.page <= 3) {
-                      // If current page is near the beginning, show 1-5
-                      pageNum = i + 1;
-                    } else if (pagination.page >= pagination.totalPages - 2) {
-                      // If current page is near the end, show last 5
-                      pageNum = pagination.totalPages - 4 + i;
-                    } else {
-                      // Otherwise, show current page centered
-                      pageNum = pagination.page - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => goToPage(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          pagination.page === pageNum
-                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                  
+                  {Array.from(
+                    { length: Math.min(5, pagination.totalPages) },
+                    (_, i) => {
+                      let pageNum;
+                      if (pagination.totalPages <= 5) {
+                        // If total pages <= 5, show all pages
+                        pageNum = i + 1;
+                      } else if (pagination.page <= 3) {
+                        // If current page is near the beginning, show 1-5
+                        pageNum = i + 1;
+                      } else if (pagination.page >= pagination.totalPages - 2) {
+                        // If current page is near the end, show last 5
+                        pageNum = pagination.totalPages - 4 + i;
+                      } else {
+                        // Otherwise, show current page centered
+                        pageNum = pagination.page - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => goToPage(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            pagination.page === pageNum
+                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    },
+                  )}
+
                   <button
-                    onClick={() => goToPage(Math.min(pagination.totalPages, pagination.page + 1))}
+                    onClick={() =>
+                      goToPage(
+                        Math.min(pagination.totalPages, pagination.page + 1),
+                      )
+                    }
                     disabled={pagination.page >= pagination.totalPages}
                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                   >

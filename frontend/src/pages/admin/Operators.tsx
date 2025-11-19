@@ -62,11 +62,12 @@ const AdminOperatorsPage: React.FC = () => {
 
   // Filtrar operadores por término de búsqueda
   const filteredOperators = operators.filter(
-    (op) => op && 
-      op.username && 
-      (typeof op.username === 'string') && 
+    (op) =>
+      op &&
+      op.username &&
+      typeof op.username === "string" &&
       (op.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      op.email.toLowerCase().includes(searchTerm.toLowerCase())),
+        op.email.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   if (loading) return <LoadingSpinner text="Cargando operadores..." />;

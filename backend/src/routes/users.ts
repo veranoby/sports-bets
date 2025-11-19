@@ -78,11 +78,23 @@ router.get(
     }
 
     // SUBSCRIPTION FILTERING LOGIC:
-    let subscriptionInclude = [];
+    // ✅ ALWAYS include subscriptions (LEFT JOIN) to show current subscription in list
+    let subscriptionInclude: any[] = [{
+      model: Subscription,
+      as: "subscriptions", // Must specify alias as defined in User.hasMany(Subscription, { as: "subscriptions" })
+      attributes: ['type', 'status', 'expiresAt', 'manual_expires_at', 'createdAt'],
+      required: false, // LEFT JOIN - include users with or without subscriptions
+      separate: true, // Fetch separately to get latest subscription only
+      order: [['createdAt', 'DESC']],
+      limit: 1, // Get only the most recent subscription
+    }];
+
+    // Apply subscription type filters ONLY if specified
     if (subscriptionType === 'free') {
       // Find users WITH NO active subscription OR with status='free'
       subscriptionInclude = [{
         model: Subscription,
+        as: "subscriptions",
         attributes: ['type', 'status', 'expiresAt'],
         required: false, // LEFT JOIN to include users without subscriptions
         where: {
@@ -113,6 +125,7 @@ router.get(
     } else if (subscriptionType === 'monthly') {
       subscriptionInclude = [{
         model: Subscription,
+        as: "subscriptions",
         attributes: ['type', 'status', 'expiresAt'],
         required: true, // INNER JOIN - only users WITH matching subscription
         where: {
@@ -124,6 +137,7 @@ router.get(
     } else if (subscriptionType === 'daily') {
       subscriptionInclude = [{
         model: Subscription,
+        as: "subscriptions",
         attributes: ['type', 'status', 'expiresAt'],
         required: true, // INNER JOIN - only users WITH matching subscription
         where: {

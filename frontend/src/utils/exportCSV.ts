@@ -10,10 +10,10 @@ export interface CSVColumn<T> {
   header: string;
 }
 
-export const exportToCSV = <T,>(
+export const exportToCSV = <T>(
   data: T[],
   filename: string,
-  columns: CSVColumn<T>[]
+  columns: CSVColumn<T>[],
 ): void => {
   if (!data || data.length === 0) {
     console.warn("No data to export");
@@ -21,41 +21,43 @@ export const exportToCSV = <T,>(
   }
 
   // Create header row
-  const headers = columns.map(col => `"${col.header}"`).join(",");
+  const headers = columns.map((col) => `"${col.header}"`).join(",");
 
   // Create data rows
-  const csvRows = data.map(row => {
-    return columns.map(col => {
-      const cellValue = row[col.key];
-      let value;
+  const csvRows = data.map((row) => {
+    return columns
+      .map((col) => {
+        const cellValue = row[col.key];
+        let value;
 
-      // Properly format values for CSV
-      if (cellValue === null || cellValue === undefined) {
-        value = '';
-      } else if (typeof cellValue === 'object') {
-        value = JSON.stringify(cellValue);
-      } else if (typeof cellValue === 'string') {
-        // Escape quotes and wrap in quotes if contains commas, quotes, or newlines
-        value = `"${cellValue.replace(/"/g, '""')}"`;
-      } else {
-        value = String(cellValue);
-      }
+        // Properly format values for CSV
+        if (cellValue === null || cellValue === undefined) {
+          value = "";
+        } else if (typeof cellValue === "object") {
+          value = JSON.stringify(cellValue);
+        } else if (typeof cellValue === "string") {
+          // Escape quotes and wrap in quotes if contains commas, quotes, or newlines
+          value = `"${cellValue.replace(/"/g, '""')}"`;
+        } else {
+          value = String(cellValue);
+        }
 
-      return value;
-    }).join(",");
+        return value;
+      })
+      .join(",");
   });
 
   // Combine all rows
-  const csvContent = [headers, ...csvRows].join('\n');
+  const csvContent = [headers, ...csvRows].join("\n");
 
   // Create blob and download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
 
   document.body.appendChild(link);
   link.click();

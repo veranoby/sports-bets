@@ -58,14 +58,23 @@ const apiCall = async <T>(
   } catch (error) {
     console.error(`Error at ${endpoint}:`, error);
     const err = error as AxiosError<unknown>;
+
+    // Extract detailed error message from backend response
+    const backendResponse = err.response?.data as any;
+    console.error('Backend response:', backendResponse);
+
     const apiError: ApiError = {
       name: "ApiError",
       message:
-        (err.response?.data as { message?: string })?.message ||
+        backendResponse?.message ||
+        backendResponse?.error ||
         err.message ||
         "An error occurred",
       status: err.response?.status,
     };
+
+    console.error('Extracted error message:', apiError.message);
+
     return {
       success: false,
       data: null as T,
@@ -134,6 +143,7 @@ export const userAPI = {
     email: string;
     password: string;
     role: string;
+    profileInfo?: Record<string, any>;
   }) => {
     return apiCall("post", "/users", data);
   },

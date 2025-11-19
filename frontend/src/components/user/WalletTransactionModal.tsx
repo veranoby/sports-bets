@@ -8,7 +8,6 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import Modal from "../shared/Modal";
 
-
 type PaymentMethod = "card" | "transfer";
 type TransactionMode = "deposit" | "withdraw";
 type DepositStep = "amount" | "payment" | "success";

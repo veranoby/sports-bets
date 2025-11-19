@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useUserForm } from "../../hooks/useUserForm";
 import { useUserSubscription } from "../../hooks/useUserSubscription";
 import { useToast } from "../../hooks/useToast";
@@ -64,15 +64,60 @@ const UserModal: React.FC<UserModalProps> = ({
     }
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [pendingSubscription, setPendingSubscription] = useState<{
+    membership_type: string;
+    assigned_username: string;
+  } | null>(null);
+
+  // Memoize onSave to prevent infinite re-renders in SubscriptionTabs
+  const handleSubscriptionSave = useCallback((subscriptionData: any) => {
+    // Always save to pending subscription state
+    // This will be applied when the user clicks the main "Crear/Actualizar" button
+    setPendingSubscription({
+      membership_type: subscriptionData.membership_type || subscriptionData.type || "free",
+      assigned_username: subscriptionData.assigned_username || "",
+    });
+  }, []);
+
+  const onSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
       const response = await handleSubmit();
       if (response.success) {
-        onSuccess(response.data as User);
+        const createdOrUpdatedUser = response.data as User;
+
+        // Handle subscription logic after user creation/update
+        if (pendingSubscription && createdOrUpdatedUser?.id) {
+          try {
+            const { adminAPI } = await import("../../services/api");
+
+            // Check if subscription needs to be updated
+            const currentType = user?.subscription?.plan === "basic" ? "24-hour" :
+                               user?.subscription?.plan === "premium" ? "monthly" : "free";
+            const newType = pendingSubscription.membership_type;
+
+            // Only update if different from current subscription
+            if (mode === "create" || currentType !== newType) {
+              await adminAPI.updateUserMembership(createdOrUpdatedUser.id, pendingSubscription);
+              const action = mode === "create" ? "creados" : "actualizados";
+              addToast(`Usuario y suscripción ${action} exitosamente`, "success");
+            } else {
+              addToast("Usuario actualizado (suscripción sin cambios)", "success");
+            }
+          } catch (subError) {
+            const action = mode === "create" ? "creado" : "actualizado";
+            addToast(`Usuario ${action}, pero error al asignar suscripción`, "warning");
+          }
+        } else if (!pendingSubscription) {
+          // No subscription changes
+          const action = mode === "create" ? "creado" : "actualizado";
+          addToast(`Usuario ${action} exitosamente`, "success");
+        }
+
+        onSuccess(createdOrUpdatedUser);
         onClose();
       }
     } catch (err) {
@@ -481,40 +526,6 @@ const UserModal: React.FC<UserModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  disabled={isLoading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-400 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {mode === "create" ? "Creando..." : "Actualizando..."}
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      {mode === "create" ? "Crear" : "Actualizar"}{" "}
-                      {role === "operator"
-                        ? "Operador"
-                        : role === "venue"
-                          ? "Gallera"
-                          : role === "gallera"
-                            ? "Criadero"
-                            : "Usuario"}
-                    </>
-                  )}
-                </button>
-              </div>
             </form>
           ) : (
             // Subscription tab
@@ -522,29 +533,49 @@ const UserModal: React.FC<UserModalProps> = ({
               mode={mode}
               userId={user?.id || ""}
               subscription={subscription || user?.subscription}
-              onSave={(subscriptionData) => {
-                // Update the parent with the new subscription info
-                if (user) {
-                  onSuccess({
-                    ...user,
-                    subscription: {
-                      id: subscriptionData.id || "",
-                      plan:
-                        subscriptionData.type === "daily"
-                          ? "basic"
-                          : subscriptionData.type === "monthly"
-                            ? "premium"
-                            : "free",
-                      status: subscriptionData.status || "active",
-                      expiresAt: subscriptionData.expiresAt || null,
-                      features: subscriptionData.features || [],
-                    } as import("../../types").UserSubscription,
-                  });
-                }
-              }}
+              onSave={handleSubscriptionSave}
               onCancel={onClose}
             />
           )}
+        </div>
+
+        {/* Footer unificado - siempre visible */}
+        <div className="border-t p-6 bg-gray-50">
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={onSubmit}
+              className="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-400 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {mode === "create" ? "Creando..." : "Actualizando..."}
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  {mode === "create" ? "Crear" : "Actualizar"}{" "}
+                  {role === "operator"
+                    ? "Operador"
+                    : role === "venue"
+                      ? "Gallera"
+                      : role === "gallera"
+                        ? "Criadero"
+                        : "Usuario"}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

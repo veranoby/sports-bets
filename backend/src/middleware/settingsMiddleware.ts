@@ -117,7 +117,6 @@ export const checkMaintenanceMode = async (req: Request, res: Response, next: Ne
 
     if (cachedMaintenanceMode !== null && now < maintenanceModeCacheExpires) {
       isMaintenanceMode = cachedMaintenanceMode;
-      console.log('🧠 Memory cache hit for key: maintenance_mode');
     } else {
       // Only fetch from database/cache if memory cache is expired
       isMaintenanceMode = await settingsService.isMaintenanceMode();
@@ -125,7 +124,6 @@ export const checkMaintenanceMode = async (req: Request, res: Response, next: Ne
       // ⚡ CRITICAL: Cache in memory for 2 minutes to avoid repeated DB calls
       cachedMaintenanceMode = isMaintenanceMode;
       maintenanceModeCacheExpires = now + MAINTENANCE_MODE_CACHE_DURATION;
-      console.log('🔍 Database fetch for key: maintenance_mode');
     }
 
     if (isMaintenanceMode) {

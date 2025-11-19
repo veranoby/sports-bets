@@ -1,7 +1,7 @@
 [{
   "schemaname": "public",
   "tablename": "notifications",
-  "total_reads": 480,
+  "total_reads": 485,
   "total_writes": 0,
   "read_to_write_ratio": 999999,
   "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
@@ -10,7 +10,7 @@
 }, {
   "schemaname": "public",
   "tablename": "event_connections",
-  "total_reads": 9,
+  "total_reads": 10,
   "total_writes": 0,
   "read_to_write_ratio": 999999,
   "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
@@ -18,17 +18,17 @@
   "total_size": "40 kB"
 }, {
   "schemaname": "public",
-  "tablename": "fights",
-  "total_reads": 604,
+  "tablename": "bets",
+  "total_reads": 54,
   "total_writes": 0,
   "read_to_write_ratio": 999999,
   "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
   "current_rows": 0,
-  "total_size": "72 kB"
+  "total_size": "128 kB"
 }, {
   "schemaname": "public",
   "tablename": "transactions",
-  "total_reads": 561,
+  "total_reads": 564,
   "total_writes": 0,
   "read_to_write_ratio": 999999,
   "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
@@ -37,7 +37,7 @@
 }, {
   "schemaname": "public",
   "tablename": "payment_transactions",
-  "total_reads": 27,
+  "total_reads": 33,
   "total_writes": 0,
   "read_to_write_ratio": 999999,
   "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
@@ -45,85 +45,94 @@
   "total_size": "96 kB"
 }, {
   "schemaname": "public",
-  "tablename": "bets",
-  "total_reads": 46,
-  "total_writes": 0,
-  "read_to_write_ratio": 999999,
-  "cache_recommendation": "READ_ONLY_PERFECT_FOR_CACHE",
+  "tablename": "events",
+  "total_reads": 2246,
+  "total_writes": 6,
+  "read_to_write_ratio": 374.33,
+  "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
   "current_rows": 0,
-  "total_size": "128 kB"
+  "total_size": "192 kB"
 }, {
   "schemaname": "public",
-  "tablename": "events",
-  "total_reads": 2176,
-  "total_writes": 3,
-  "read_to_write_ratio": 725.33,
+  "tablename": "fights",
+  "total_reads": 607,
+  "total_writes": 2,
+  "read_to_write_ratio": 303.50,
+  "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
+  "current_rows": 0,
+  "total_size": "136 kB"
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "total_reads": 5423,
+  "total_writes": 21,
+  "read_to_write_ratio": 258.24,
   "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
   "current_rows": 0,
   "total_size": "192 kB"
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
-  "total_reads": 2401,
-  "total_writes": 8,
-  "read_to_write_ratio": 300.13,
+  "total_reads": 3045,
+  "total_writes": 12,
+  "read_to_write_ratio": 253.75,
   "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
-  "current_rows": 0,
-  "total_size": "176 kB"
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "total_reads": 5376,
-  "total_writes": 21,
-  "read_to_write_ratio": 256.00,
-  "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
-  "current_rows": 0,
+  "current_rows": 1,
   "total_size": "192 kB"
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
-  "total_reads": 5926,
+  "total_reads": 6081,
   "total_writes": 24,
-  "read_to_write_ratio": 246.92,
+  "read_to_write_ratio": 253.38,
   "cache_recommendation": "EXCELLENT_CACHE_CANDIDATE",
   "current_rows": 8,
   "total_size": "96 kB"
 }, {
   "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "total_reads": 607,
+  "total_writes": 11,
+  "read_to_write_ratio": 55.18,
+  "cache_recommendation": "GOOD_CACHE_CANDIDATE",
+  "current_rows": 0,
+  "total_size": "104 kB"
+}, {
+  "schemaname": "public",
   "tablename": "wallets",
-  "total_reads": 1392,
-  "total_writes": 21,
-  "read_to_write_ratio": 66.29,
+  "total_reads": 1397,
+  "total_writes": 30,
+  "read_to_write_ratio": 46.57,
   "cache_recommendation": "GOOD_CACHE_CANDIDATE",
   "current_rows": 0,
   "total_size": "72 kB"
 }, {
   "schemaname": "public",
-  "tablename": "membership_change_requests",
-  "total_reads": 537,
-  "total_writes": 11,
-  "read_to_write_ratio": 48.82,
-  "cache_recommendation": "GOOD_CACHE_CANDIDATE",
-  "current_rows": 0,
-  "total_size": "96 kB"
-}, {
-  "schemaname": "public",
   "tablename": "users",
-  "total_reads": 13943,
-  "total_writes": 1073,
-  "read_to_write_ratio": 12.99,
+  "total_reads": 14557,
+  "total_writes": 1100,
+  "read_to_write_ratio": 13.23,
   "cache_recommendation": "GOOD_CACHE_CANDIDATE",
-  "current_rows": 1,
-  "total_size": "336 kB"
+  "current_rows": 3,
+  "total_size": "352 kB"
 }, {
   "schemaname": "public",
   "tablename": "schema_migrations",
-  "total_reads": 35,
-  "total_writes": 4,
-  "read_to_write_ratio": 8.75,
+  "total_reads": 42,
+  "total_writes": 6,
+  "read_to_write_ratio": 7.00,
   "cache_recommendation": "POOR_CACHE_CANDIDATE",
-  "current_rows": 2,
+  "current_rows": 4,
   "total_size": "24 kB"
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "total_reads": 9424,
+  "total_writes": 2468,
+  "read_to_write_ratio": 3.82,
+  "cache_recommendation": "POOR_CACHE_CANDIDATE",
+  "current_rows": 7,
+  "total_size": "344 kB"
 }, {
   "schemaname": "public",
   "tablename": "SequelizeMeta",
@@ -133,13 +142,4 @@
   "cache_recommendation": "POOR_CACHE_CANDIDATE",
   "current_rows": 5,
   "total_size": "24 kB"
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "total_reads": 2706,
-  "total_writes": 1026,
-  "read_to_write_ratio": 2.64,
-  "cache_recommendation": "POOR_CACHE_CANDIDATE",
-  "current_rows": 0,
-  "total_size": "200 kB"
 }]

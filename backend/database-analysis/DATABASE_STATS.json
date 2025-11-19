@@ -1,19 +1,29 @@
 [{
   "schemaname": "public",
+  "tablename": "SequelizeMeta",
+  "column_name": "name",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 49,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{20250918153000-add-performance-indexes.js,20250929000000-add-articles-performance-indexes.js,20251002000000-add-performance-indexes.js,20251005000000-create-membership-change-requests.js,20251005000001-add-payment-proof-to-membership-requests.js}"
+}, {
+  "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "created_at",
   "n_distinct": -1,
-  "correlation": 0.8566604,
+  "correlation": -0.4642857,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-10-14 16:39:30.837+00\",\"2025-10-14 16:41:22.693+00\",\"2025-10-14 16:55:16.711+00\",\"2025-10-14 17:05:58.485+00\",\"2025-10-14 17:07:53.479+00\",\"2025-10-14 22:04:29.732+00\",\"2025-10-14 22:22:15.725+00\",\"2025-10-14 22:24:31.578+00\",\"2025-10-14 22:42:31.5+00\",\"2025-10-15 02:03:16.565+00\",\"2025-10-15 02:10:22.23+00\",\"2025-10-15 02:50:39.722+00\",\"2025-10-15 02:51:09.211+00\",\"2025-10-15 02:53:26.112+00\",\"2025-10-15 13:47:42.035+00\",\"2025-10-15 19:05:30.68+00\",\"2025-10-15 20:19:58.984+00\",\"2025-10-16 02:00:18.18+00\",\"2025-10-16 12:00:58.642+00\",\"2025-10-16 15:45:46.997+00\",\"2025-10-16 21:00:12.878+00\",\"2025-10-16 21:09:41.298+00\",\"2025-10-16 22:50:49.132+00\",\"2025-10-17 01:22:20.05+00\",\"2025-10-17 21:52:19.155+00\",\"2025-10-17 22:56:54.582+00\",\"2025-10-18 00:27:36.935+00\",\"2025-10-18 00:27:55.523+00\",\"2025-10-18 00:44:55.996+00\",\"2025-10-18 10:39:03.665+00\",\"2025-10-18 23:40:49.962+00\",\"2025-10-18 23:45:33.812+00\",\"2025-10-20 15:43:32.393+00\",\"2025-10-20 16:00:04.305+00\",\"2025-10-20 16:34:08.358+00\",\"2025-10-20 18:12:30.943+00\",\"2025-10-29 15:00:58.506+00\",\"2025-10-29 15:03:46.852+00\",\"2025-10-29 16:01:02.288+00\",\"2025-10-29 16:02:01.989+00\"}"
+  "histogram_sample": "{\"2025-11-19 11:57:22.673+00\",\"2025-11-19 12:13:21.039+00\",\"2025-11-19 12:28:22.699+00\",\"2025-11-19 12:43:45.885+00\",\"2025-11-19 13:13:48.358+00\",\"2025-11-19 13:59:11.168+00\",\"2025-11-19 16:59:23.566+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "device_fingerprint",
-  "n_distinct": 2,
-  "correlation": 0.85365856,
+  "n_distinct": -0.14285715,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 65,
   "most_common_vals_sample": "{124d5a6b011c7921a7f03b3a1bb581c86d532ab7cd0dd6e1ea9e94c8376f63b7}",
@@ -23,26 +33,26 @@
   "tablename": "active_sessions",
   "column_name": "expires_at",
   "n_distinct": -1,
-  "correlation": 0.8566604,
+  "correlation": -0.4642857,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-10-21 16:39:30.836+00\",\"2025-10-21 16:41:22.693+00\",\"2025-10-21 16:55:16.711+00\",\"2025-10-21 17:05:58.484+00\",\"2025-10-21 17:07:53.478+00\",\"2025-10-21 22:04:29.732+00\",\"2025-10-21 22:22:15.725+00\",\"2025-10-21 22:24:31.577+00\",\"2025-10-21 22:42:31.5+00\",\"2025-10-22 02:03:16.565+00\",\"2025-10-22 02:10:22.23+00\",\"2025-10-22 02:50:39.722+00\",\"2025-10-22 02:51:09.211+00\",\"2025-10-22 02:53:26.112+00\",\"2025-10-22 13:47:42.034+00\",\"2025-10-22 19:05:30.679+00\",\"2025-10-22 20:19:58.984+00\",\"2025-10-23 02:00:18.18+00\",\"2025-10-23 12:00:58.642+00\",\"2025-10-23 15:45:46.997+00\",\"2025-10-23 21:00:12.878+00\",\"2025-10-23 21:09:41.298+00\",\"2025-10-23 22:50:49.132+00\",\"2025-10-24 01:22:20.05+00\",\"2025-10-24 21:52:19.155+00\",\"2025-10-24 22:56:54.581+00\",\"2025-10-25 00:27:36.935+00\",\"2025-10-25 00:27:55.523+00\",\"2025-10-25 00:44:55.996+00\",\"2025-10-25 10:39:03.665+00\",\"2025-10-25 23:40:49.962+00\",\"2025-10-25 23:45:33.811+00\",\"2025-10-27 15:43:32.393+00\",\"2025-10-27 16:00:04.305+00\",\"2025-10-27 16:34:08.358+00\",\"2025-10-27 18:12:30.942+00\",\"2025-11-05 15:00:58.506+00\",\"2025-11-05 15:03:46.852+00\",\"2025-11-05 16:01:02.288+00\",\"2025-11-05 16:02:01.988+00\"}"
+  "histogram_sample": "{\"2025-11-26 11:57:22.673+00\",\"2025-11-26 12:13:21.039+00\",\"2025-11-26 12:28:22.698+00\",\"2025-11-26 12:43:45.885+00\",\"2025-11-26 13:13:48.358+00\",\"2025-11-26 13:59:11.168+00\",\"2025-11-26 16:59:23.565+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "id",
   "n_distinct": -1,
-  "correlation": -0.26322702,
+  "correlation": 0.10714286,
   "null_frac": 0,
   "avg_width": 16,
   "most_common_vals_sample": null,
-  "histogram_sample": "{061144e3-a09e-41b5-b5cc-a4e2621f629c,0ff3863d-a245-43cd-bddb-755c756c3fd4,16dd2627-6222-425a-943c-a9495c8419db,28e59528-e52d-4be7-9d93-690d9ebdfdb0,29212c64-cda1-452b-abfa-b3c8bfc6d7f2,2976c5fb-ed66-48e4-9675-237006817769,2c674a15-c472-4dc1-a2ef-b24cfdc95167,2eb1aade-8e84-4dbd-8924-87726d3f9579,4318ffe7-f9e0-4540-8a05-5fbdb788869b,4ff8be6b-f20f-4a73-86fc-3bb35803b3c1,532a4aa2-131e-439a-8945-fe70d31cfcfa,53edb62c-09ae-434c-8f0c-e9f41617a92e,59864b84-63a0-4428-9e7a-29556549587f,5c30dec4-21d7-4ace-9646-48026b88b179,6673dafc-faa0-4494-bfc9-47f951ec7f66,68897b32-3b79-4608-8674-47b3b68f3c35,7881470e-72c0-4f6f-98f1-036fb5c47ee8,7ea1a21f-0a11-4cba-9616-5ab29a3b0eea,7fccf62e-53d2-4721-b4b7-fe0bd19fdf07,8061afe0-3daa-4d5c-b8bc-1a5364ec0ec5,85bc220f-9091-4df8-b44a-e02bff86b645,86d22111-58e4-4e36-9f33-e02100fdb489,92aaa1fd-a9de-409b-a12b-103f914b9487,98751b3c-4811-46aa-90b5-3ebab56aa42f,9c562a60-fc9a-45ac-83d7-73c1849742fe,b8baf87d-3c0b-4d7a-b793-a4db1a820e57,bfdf4c6e-029c-436a-a382-098b8e983375,c3567d9c-f93f-42b7-aa02-dbd35a2b1795,cb27a2ec-07b5-4fdb-9647-ff103cf86c56,ce14241f-6857-41e7-8fcd-c9a49d7f14e4,d0e05a2e-97d6-438c-8542-63faa123cf42,d48103ad-1da6-400a-a2fb-62874225a151,d937c4c9-526f-40c3-9b8f-01b2a54b7cce,e7401612-884b-4216-be9c-348ffad1ef11,eca01eb4-5c66-4854-9ae2-c665425a7dd8,f238c398-c36e-4121-bbd0-e3ea4227b911,f5dc36f3-bf21-4c11-97e8-3e33d27dc240,fcef83d5-5fae-4a0e-9d80-5827dc76bdf7,ff4686d6-466b-4644-b536-ecf34dfe1d8c,ffc72e46-83d6-4e6b-a92b-8cde6c36c977}"
+  "histogram_sample": "{5aa1792c-b789-43ce-8e43-34a90a29933e,6f8f55fd-df05-46ce-b277-9e5d06c0cf7a,8da5825d-9654-428c-a418-9bb23f676889,a584d014-c7f9-4368-8100-6d3bc7cb9f34,a9e66674-cd97-44fe-ab83-2467f75c2962,c64c3391-aa1f-4658-887f-e08bd23a8575,dc7bd90c-0109-401b-8300-95c29a1c3be3}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "ip_address",
-  "n_distinct": 1,
+  "n_distinct": -0.14285715,
   "correlation": 1,
   "null_frac": 0,
   "avg_width": 4,
@@ -52,182 +62,352 @@
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "is_active",
-  "n_distinct": 2,
-  "correlation": 0.90694183,
-  "null_frac": 0,
-  "avg_width": 1,
-  "most_common_vals_sample": "{f,t}",
-  "histogram_sample": null
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "column_name": "last_activity",
-  "n_distinct": -1,
-  "correlation": 0.8542214,
-  "null_frac": 0,
-  "avg_width": 8,
-  "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-10-14 16:39:30.837+00\",\"2025-10-14 16:54:38.194+00\",\"2025-10-14 16:59:09.831+00\",\"2025-10-14 17:18:51.253+00\",\"2025-10-14 22:04:54.514+00\",\"2025-10-14 22:22:15.725+00\",\"2025-10-14 22:24:05.772+00\",\"2025-10-15 02:02:39.385+00\",\"2025-10-15 02:09:52.436+00\",\"2025-10-15 02:10:43.622+00\",\"2025-10-15 02:47:31.198+00\",\"2025-10-15 02:53:04.884+00\",\"2025-10-15 13:17:51.348+00\",\"2025-10-15 19:04:50.386+00\",\"2025-10-15 20:17:47.913+00\",\"2025-10-15 23:27:41.88+00\",\"2025-10-16 01:59:54.724+00\",\"2025-10-16 15:45:30.495+00\",\"2025-10-16 18:45:58.821+00\",\"2025-10-16 20:59:57.772+00\",\"2025-10-16 21:01:02.954+00\",\"2025-10-16 22:47:30.573+00\",\"2025-10-16 22:51:05.64+00\",\"2025-10-17 19:51:10.569+00\",\"2025-10-17 21:52:57.761+00\",\"2025-10-18 00:27:02.835+00\",\"2025-10-18 00:27:38.47+00\",\"2025-10-18 00:27:57.106+00\",\"2025-10-18 00:45:05.11+00\",\"2025-10-18 23:40:32.04+00\",\"2025-10-20 13:37:45.125+00\",\"2025-10-20 15:59:49.012+00\",\"2025-10-20 16:29:49.297+00\",\"2025-10-20 17:39:45.586+00\",\"2025-10-20 17:39:51.737+00\",\"2025-10-20 18:12:37.672+00\",\"2025-10-29 15:02:51.863+00\",\"2025-10-29 15:56:30.365+00\",\"2025-10-29 16:01:09.764+00\",\"2025-10-29 16:03:17.456+00\"}"
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "column_name": "session_token",
-  "n_distinct": -1,
-  "correlation": 0.3966229,
-  "null_frac": 0,
-  "avg_width": 196,
-  "most_common_vals_sample": null,
-  "histogram_sample": "{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNDAxYWNmNS0yMGQ2LTQxNGEtYjNjMS1lODk2M2I5Y2IxYTYiLCJpYXQiOjE3NjA0NTk5NzAsImV4cCI6MTc2MTA2NDc3MH0.WkyvFYqaVD5wtJZeHzZAgieIAa-aAkxn1YGx25uqO9g,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNDAxYWNmNS0yMGQ2LTQxNGEtYjNjMS1lODk2M2I5Y2IxYTYiLCJpYXQiOjE3NjA0NjAwODIsImV4cCI6MTc2MTA2NDg4Mn0.en_lpYcWi1zxCwcFXkZ_-euEl1pqn7dXMRVc45pFfdw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNDAxYWNmNS0yMGQ2LTQxNGEtYjNjMS1lODk2M2I5Y2IxYTYiLCJpYXQiOjE3NjA1MzYwNjEsImV4cCI6MTc2MTE0MDg2MX0.4hl-iZYAla52yxwJTfcxK3uJfWLmEOhacwupOAceoM8,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNDAxYWNmNS0yMGQ2LTQxNGEtYjNjMS1lODk2M2I5Y2IxYTYiLCJpYXQiOjE3NjA1NTUxMzAsImV4cCI6MTc2MTE1OTkzMH0.FwejUsnFBJ3tYvnWN1e4FheGn2qi9-50T24xDSnJpx0,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA0NjE2NzMsImV4cCI6MTc2MTA2NjQ3M30.fD1qp4LSRnChRmZtSDakPt-GSxa7A-Iv5f5ei3fs2zo,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA0ODA2NzEsImV4cCI6MTc2MTA4NTQ3MX0.3OZYoDq939UIcHqP_0RYW0aLC8KTBrjElNriPOm8yd4,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA0OTM3OTUsImV4cCI6MTc2MTA5ODU5NX0.IxUbZgTWifJZfhp96QCYwgcrd_WcDIzxEHxOg8yz1hE,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA0OTY2MzgsImV4cCI6MTc2MTEwMTQzOH0.B9xyJDMddDlOn_ppb9LyyyAwwK12bmuy_ig_2JHGkkA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2MTYwNTgsImV4cCI6MTc2MTIyMDg1OH0.XR2IjZudrdwHnmjaq6k-lr8ETvzMJYZT_IOWS5Pg_os,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2Mjk1NDUsImV4cCI6MTc2MTIzNDM0NX0.5PV0Baq6oUiRVN8ryaGVM7L7qEm7wWmZGBSrUCTp-Fo,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2NDg0MTIsImV4cCI6MTc2MTI1MzIxMn0.3Z8yDJhO4JaeC0Evhs5PrrU7jN30TRt9ZUsl2p1boMc,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2NDg5ODAsImV4cCI6MTc2MTI1Mzc4MH0.oniBodV1QpBfqmtUc9oTMY-GrCkRCIKAYaHQ0qFWKz8,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2NTUwNDcsImV4cCI6MTc2MTI1OTg0N30.-1JCYkd-R24ZvuMIzU3YltQNFfVSC2chbaysEv6Tr34,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA2NjQxMzksImV4cCI6MTc2MTI2ODkzOX0.IIuoXnH6S7Ebne4r_5SDXGaBwd3frwmjWeA5In9RZPY,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3Mzc5MzgsImV4cCI6MTc2MTM0MjczOH0.hL_nhBSab7ffUpNbdM30AFm4IjKm5lXzpWAiEX9amvg,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3NDE4MTQsImV4cCI6MTc2MTM0NjYxNH0.VVU3AZuftbPuuoTeCfZJ1823MC0fYMz36IfGn3ywjYg,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3NDcyNTYsImV4cCI6MTc2MTM1MjA1Nn0.dFiSLGnJyERCUgOm4qjyRofx5hz-On3yMadxRlZEX_Y,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3NDcyNzUsImV4cCI6MTc2MTM1MjA3NX0.pwDHGz9XiPTmVIPMu--FF3erOAxNvAhCr1DdamFdo0E,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3NDgyOTUsImV4cCI6MTc2MTM1MzA5NX0.HNNN6qXZhhJzM12twaVWP4k7NbU08Sviw49IywWfVkw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA3ODM5NDMsImV4cCI6MTc2MTM4ODc0M30._ruarJywQuZNH2VoAoslBa9c0FMh4Isq3GrWbjTi3H4,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA4MzA4NDksImV4cCI6MTc2MTQzNTY0OX0.i0ggu087Xnd3egPD6q5W5E3BJR-7XDzkCqhJd8GGahw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjA5NzUwMTIsImV4cCI6MTc2MTU3OTgxMn0.AfOcXJ_dRVCOk3UjjLC3ePYg3upckS4wOFrNAv9s2SQ,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2ZmYWMwMC03NDU4LTQzOTUtYTEwNC04NDk4OGU2MmViYTkiLCJpYXQiOjE3NjA5NzYwMDMsImV4cCI6MTc2MTU4MDgwM30.7WSiHcrQfpGXDf1RXhIwCcTIUtOQwwEaU0LaQqh3J5A,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2ZmYWMwMC03NDU4LTQzOTUtYTEwNC04NDk4OGU2MmViYTkiLCJpYXQiOjE3NjA5NzgwNDgsImV4cCI6MTc2MTU4Mjg0OH0.9hoZjuzCPc2HKAx0B_keWUTSb6mECOByF-rrmjM8qGo,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2ZmYWMwMC03NDU4LTQzOTUtYTEwNC04NDk4OGU2MmViYTkiLCJpYXQiOjE3NjA5ODM5NTAsImV4cCI6MTc2MTU4ODc1MH0.D_vEgMgC30Ano6X-KMKKdrJsTZzLP0OKN_nOUmUv47o,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0NjA5MTYsImV4cCI6MTc2MTA2NTcxNn0.cKx2Z6QJ599dPMQotrlAcphrq4yzLCq2TZWRUmuDLgA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0NjE1NTgsImV4cCI6MTc2MTA2NjM1OH0.N8fJQrxj0UQozSj_1cMyduCKJ_r1lIkxCGXuFhm8WlE,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0Nzk0NjksImV4cCI6MTc2MTA4NDI2OX0.vBeSwOwRt48XyH9RYfA2WqrAMCPkr2mEXgouQRdBRNM,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0ODA1MzUsImV4cCI6MTc2MTA4NTMzNX0.65r3f59aJdwCkAp-7W7LWSNMT0dPgf_CyYpVEu3yT5U,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0ODE3NTAsImV4cCI6MTc2MTA4NjU1MH0.YpBTFHkx-T8cw0lfCiiyqSW4-z9F2lYMiP7SThzHRE4,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0OTQyMTksImV4cCI6MTc2MTA5OTAxOX0.M11MKzVr9RzyQ_WrA3beJyO3il6tOlHUVFrmsppuoKE,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0OTY2NjcsImV4cCI6MTc2MTEwMTQ2N30.7IEP7uHzdWQ1mMLdW_935M7xMLvfnSnLonEDPXDbVpo,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA0OTY4MDUsImV4cCI6MTc2MTEwMTYwNX0.hNH4vb3nYM6kKKnOJMlRoo4GSew60YAWjPbmvcLTUgw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA1NTk1OTgsImV4cCI6MTc2MTE2NDM5OH0.FK9Om8pcL5NuzDnmFqagTtwf9jMk0xuWWaUg9S7c0jg,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA1ODAwMTcsImV4cCI6MTc2MTE4NDgxN30.Im3vwRTnmBpuNjnqvl39zSTSgZ-zLIeGnO9-hDsm2Ow,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjA4MzExMzMsImV4cCI6MTc2MTQzNTkzM30.qo8W0CU5yJdEbFTPQl1tkB3EOdqHVzCMVj0f0UvV9PE,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjE3NTAwNTgsImV4cCI6MTc2MjM1NDg1OH0.83hVQiOc13acJnuumxVB3i2sYpPiY_2Tdz81U3oJ9M4,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjE3NTAyMjYsImV4cCI6MTc2MjM1NTAyNn0.LOwv8bmAGdz7y5EFECTDgAcAJ2_E9IV8BDy5mK57bLA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjE3NTM2NjEsImV4cCI6MTc2MjM1ODQ2MX0.xp1i9GMhFWrsM1YOcyj5XwXBql1BaQhLCHexSbPPrdk,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNDQ3ZjhlZC0xZTRjLTQyZGUtYjkxOS04NjhkNThmY2JlMDgiLCJpYXQiOjE3NjE3NTM3MjEsImV4cCI6MTc2MjM1ODUyMX0.on6Aquk5F6YppmBu0MqB-IKwutugQDPKXfgsrs4Ccf4}"
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "column_name": "updated_at",
-  "n_distinct": -1,
-  "correlation": 0.8566604,
-  "null_frac": 0,
-  "avg_width": 8,
-  "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-10-14 16:39:30.988017+00\",\"2025-10-14 16:41:22.846762+00\",\"2025-10-14 16:55:16.870167+00\",\"2025-10-14 17:05:58.728462+00\",\"2025-10-14 17:07:53.724861+00\",\"2025-10-14 22:04:31.354114+00\",\"2025-10-14 22:22:17.300211+00\",\"2025-10-14 22:24:31.91206+00\",\"2025-10-14 22:42:31.822991+00\",\"2025-10-15 02:03:16.839756+00\",\"2025-10-15 02:10:22.547462+00\",\"2025-10-15 02:50:39.984253+00\",\"2025-10-15 02:51:09.606352+00\",\"2025-10-15 02:53:26.673351+00\",\"2025-10-15 13:47:42.293014+00\",\"2025-10-15 19:05:30.858867+00\",\"2025-10-15 20:19:59.251304+00\",\"2025-10-16 02:00:18.443715+00\",\"2025-10-16 12:00:58.907643+00\",\"2025-10-16 15:45:48.103604+00\",\"2025-10-16 21:00:13.129955+00\",\"2025-10-16 21:09:41.790985+00\",\"2025-10-16 22:50:50.26834+00\",\"2025-10-17 01:22:20.950127+00\",\"2025-10-17 21:52:19.518892+00\",\"2025-10-17 22:56:54.786338+00\",\"2025-10-18 00:27:37.192026+00\",\"2025-10-18 00:27:55.679939+00\",\"2025-10-18 00:44:56.263381+00\",\"2025-10-18 10:39:03.911451+00\",\"2025-10-18 23:40:50.13115+00\",\"2025-10-18 23:45:33.977052+00\",\"2025-10-20 15:43:32.548596+00\",\"2025-10-20 16:00:04.484217+00\",\"2025-10-20 16:34:08.616479+00\",\"2025-10-20 18:12:31.313529+00\",\"2025-10-29 15:00:58.968229+00\",\"2025-10-29 15:03:47.019944+00\",\"2025-10-29 16:01:02.544449+00\",\"2025-10-29 16:02:02.348341+00\"}"
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "column_name": "user_agent",
-  "n_distinct": 2,
-  "correlation": 0.85365856,
-  "null_frac": 0,
-  "avg_width": 99,
-  "most_common_vals_sample": "{\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"}",
-  "histogram_sample": null
-}, {
-  "schemaname": "public",
-  "tablename": "active_sessions",
-  "column_name": "user_id",
-  "n_distinct": 4,
-  "correlation": 0.46022514,
-  "null_frac": 0,
-  "avg_width": 16,
-  "most_common_vals_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde,d447f8ed-1e4c-42de-b919-868d58fcbe08,1401acf5-20d6-414a-b3c1-e8963b9cb1a6,a7ffac00-7458-4395-a104-84988e62eba9}",
-  "histogram_sample": null
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "column_name": "approved",
-  "n_distinct": 1,
-  "correlation": 1,
-  "null_frac": 0,
-  "avg_width": 1,
-  "most_common_vals_sample": "{t}",
-  "histogram_sample": null
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "column_name": "created_at",
-  "n_distinct": -0.6363636,
-  "correlation": 0.36363637,
-  "null_frac": 0,
-  "avg_width": 8,
-  "most_common_vals_sample": "{\"2025-08-23 00:58:31.733495+00\"}",
-  "histogram_sample": "{\"2025-08-23 11:34:29.264+00\",\"2025-09-09 21:26:26.583+00\",\"2025-09-09 21:26:27.446+00\",\"2025-09-09 21:26:28.695+00\",\"2025-09-11 14:42:35.837+00\",\"2025-09-16 14:56:19.882767+00\"}"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "column_name": "email",
-  "n_distinct": -1,
-  "correlation": -0.37272727,
-  "null_frac": 0,
-  "avg_width": 24,
-  "most_common_vals_sample": null,
-  "histogram_sample": "{admin@sportsbets.com,gallera1@sportsbets.com,newuser123@test.com,operator1@sportsbets.com,operator@sportsbets.com,prueba2@gmail.com,test_1758034579826@example.com,testuser1@sportsbets.com,testuser@sportsbets.com,venueowner1@sportsbets.com,venueowner@sportsbets.com}"
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "column_name": "email_verified",
-  "n_distinct": 1,
-  "correlation": 1,
+  "n_distinct": -0.2857143,
+  "correlation": 0.25,
   "null_frac": 0,
   "avg_width": 1,
   "most_common_vals_sample": "{f}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
-  "tablename": "users",
+  "tablename": "active_sessions",
+  "column_name": "last_activity",
+  "n_distinct": -1,
+  "correlation": -0.4642857,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-11-19 12:05:52.745+00\",\"2025-11-19 12:23:25.049+00\",\"2025-11-19 12:31:21.611+00\",\"2025-11-19 12:44:02.912+00\",\"2025-11-19 13:16:09.486+00\",\"2025-11-19 16:51:37.457+00\",\"2025-11-19 17:36:01.473+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "column_name": "session_token",
+  "n_distinct": -1,
+  "correlation": -0.4642857,
+  "null_frac": 0,
+  "avg_width": 196,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTM0NDIsImV4cCI6MTc2NDE1ODI0Mn0.trn18UUgcixbjqqJRcA0dZVNHY8SnCYJ_DwzFSFJqzI,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTQ0MDAsImV4cCI6MTc2NDE1OTIwMH0.u2Mwd7Tzt22qiR9tu6gGtTYizP3FwIqcPo0qAUtfCKA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTUzMDIsImV4cCI6MTc2NDE2MDEwMn0.zS2aXE3FSqDX9_486Bz2xd4aPS9I-NSaht-Bs6l0dks,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTYyMjUsImV4cCI6MTc2NDE2MTAyNX0.K1RMo2Z7qJ40yFwVM3LF4g2cmSy675VVR65bLEMs1dY,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTgwMjgsImV4cCI6MTc2NDE2MjgyOH0.fs_Hm1Yn7IAk4plDh71ZJ2KTpvmP6bqlPkVqd-wJDAA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NjA3NTAsImV4cCI6MTc2NDE2NTU1MH0.yPKLK0_VW60t77uMa9L6fzciBz6rLdpLC453-8aITfs,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NzE1NjMsImV4cCI6MTc2NDE3NjM2M30.7Y9nukeq-8diuZr9y5xX-xEWMfCrq2tKFPTVxyZKv5k}"
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "column_name": "updated_at",
+  "n_distinct": -1,
+  "correlation": -0.4642857,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-11-19 11:57:24.172089+00\",\"2025-11-19 12:13:21.213283+00\",\"2025-11-19 12:28:22.867514+00\",\"2025-11-19 12:43:46.053815+00\",\"2025-11-19 13:13:48.530081+00\",\"2025-11-19 13:59:11.341457+00\",\"2025-11-19 16:59:23.748559+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "column_name": "user_agent",
+  "n_distinct": -0.14285715,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 102,
+  "most_common_vals_sample": "{\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "column_name": "user_id",
+  "n_distinct": -0.14285715,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 16,
+  "most_common_vals_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_business_entities",
+  "column_name": "expr",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "checksum",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 17,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{25451e57b817ff4f,7462239c8b18d6d1}"
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "created_at",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-08-23 01:26:23.567+00\",\"2025-10-14 16:34:37.888+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "description",
+  "n_distinct": -1,
+  "correlation": -1,
+  "null_frac": 0,
+  "avg_width": 68,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"Create active_sessions table for session tracking and concurrent login prevention\",\"Verify all required tables exist and mark as migrated\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "executed_at",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-08-23 01:26:23.567+00\",\"2025-10-14 16:34:37.888+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "updated_at",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"2025-08-23 01:26:23.567+00\",\"2025-10-14 16:34:37.888+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "schema_migrations",
+  "column_name": "version",
+  "n_distinct": -1,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 18,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{2024-08-23-120001,2025-10-14-000001}"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "category",
+  "n_distinct": -0.375,
+  "correlation": 0.2857143,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": "{features,business}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "created_at",
+  "n_distinct": -0.25,
+  "correlation": 0.9285714,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "description",
+  "n_distinct": -1,
+  "correlation": -0.5952381,
+  "null_frac": 0,
+  "avg_width": 23,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{\"Enable betting system\",\"Enable push notifications\",\"Enable streaming features\",\"Enable wallet system\",\"Maximum bet amount\",\"Minimum bet amount\",\"Platform commission percentage\",\"Platform maintenance mode\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
   "column_name": "id",
   "n_distinct": -1,
-  "correlation": 0.46363637,
+  "correlation": 0.1904762,
   "null_frac": 0,
   "avg_width": 16,
   "most_common_vals_sample": null,
-  "histogram_sample": "{1401acf5-20d6-414a-b3c1-e8963b9cb1a6,286306bd-ed08-4266-81c3-0244e45ee90c,35c57434-7ef7-4f1d-b36c-c1fbe5507dde,3eb640c4-793f-4133-85ff-ba3111b46f5d,7bd8041c-feeb-4b68-aa9d-f510d316a2ca,a5b4404d-e0d2-46bd-9d23-9981d7dceef8,a7ffac00-7458-4395-a104-84988e62eba9,b006b632-5dbc-49e6-9f29-f9f559218c09,cfb2c406-606e-4cf7-95d9-fa5835c38700,d447f8ed-1e4c-42de-b919-868d58fcbe08,df5cb035-683b-4a24-a9a6-edc86fc99dbd}"
+  "histogram_sample": "{000b81d6-a832-4787-b041-9f1de17a3a4d,2f309cbd-d9aa-423c-a442-a8562bc2820c,3963edbb-e117-47ed-868b-3e692283e409,42a2f706-f1ad-4bdb-9788-f907350c89eb,5146456f-afdd-4b52-be49-61ae8a8d627f,b40e993f-0209-4352-b280-ac84b92a3675,cb451bf2-c8a0-493f-9c97-f60707d8a020,d8dd0fbc-6085-447a-9537-117a49890821}"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "is_public",
+  "n_distinct": -0.25,
+  "correlation": 0.16666667,
+  "null_frac": 0,
+  "avg_width": 1,
+  "most_common_vals_sample": "{t,f}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "key",
+  "n_distinct": -1,
+  "correlation": -0.16666667,
+  "null_frac": 0,
+  "avg_width": 17,
+  "most_common_vals_sample": null,
+  "histogram_sample": "{commission_percentage,enable_betting,enable_push_notifications,enable_streaming,enable_wallets,maintenance_mode,max_bet_amount,min_bet_amount}"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "type",
+  "n_distinct": -0.25,
+  "correlation": 0.35714287,
+  "null_frac": 0,
+  "avg_width": 7,
+  "most_common_vals_sample": "{boolean,number}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "updated_at",
+  "n_distinct": -0.5,
+  "correlation": 1,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "histogram_sample": "{\"2025-09-11 02:35:48.134+00\",\"2025-09-13 04:21:22.532+00\",\"2025-09-13 04:21:22.763+00\"}"
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "updated_by",
+  "n_distinct": -0.125,
+  "correlation": 1,
+  "null_frac": 0.75,
+  "avg_width": 16,
+  "most_common_vals_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "column_name": "value",
+  "n_distinct": -0.625,
+  "correlation": 0.21428572,
+  "null_frac": 0,
+  "avg_width": 12,
+  "most_common_vals_sample": "{false,true}",
+  "histogram_sample": "{1,5,10000}"
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "column_name": "approved",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 1,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "column_name": "created_at",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "column_name": "email",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 21,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "column_name": "email_verified",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 1,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "column_name": "id",
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
+  "avg_width": 16,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "is_active",
-  "n_distinct": 1,
-  "correlation": 1,
+  "n_distinct": -1,
+  "correlation": null,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": "{t}",
+  "most_common_vals_sample": null,
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "last_login",
-  "n_distinct": -0.5454545,
-  "correlation": 0.14285715,
-  "null_frac": 0.45454547,
+  "n_distinct": -1,
+  "correlation": null,
+  "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-08-23 11:34:42.08+00\",\"2025-10-07 15:49:20.022+00\",\"2025-10-15 19:05:30.205+00\",\"2025-10-20 15:43:31.694+00\",\"2025-10-20 18:12:29.56+00\",\"2025-10-29 16:56:34.233+00\"}"
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "password_hash",
   "n_distinct": -1,
-  "correlation": -0.4,
+  "correlation": null,
   "null_frac": 0,
-  "avg_width": 56,
+  "avg_width": 61,
   "most_common_vals_sample": null,
-  "histogram_sample": "{$2b$12$6pyglv2GL.2b/.YddGFhRexuF3vtYCv.QKbMv.8ZWX0PjVT9uW1eq,$2b$12$LTcDnLMVqexSS/6vTbInuup2wzRplHhfCYAibKD2ajMmRZp2adbSa,$2b$12$WpHOSNtqcG/Q0KYnG2FOZOtbpgRpi4L5jnu0lPdyPnPnxt/EJKmW.,$2b$12$WtiUeAfaem82uMS0x/F.LuXe0y8FW7Q2BCiUd2cdkFrT2oAq4znVS,$2b$12$YeDlXLhkadBN2b1HpnTmMecdt80nmJno0bCT9pEYYFLCRWtwjxobq,$2b$12$jZ9cvi1Jde9KV9Emt1lhfOOH.cSRiM0Gr0ukpVaoOKQKoE1vFL1D.,$2b$12$n3asGpRn4K.NP1PHzGIY0updrMVxSnQh63TXXV7UbxPKu612BgTQ.,$2b$12$ov.bTs0LOBArTvQ8AjyqkOslkk2PCsjxS7Itbtq/1T3zb0AChiYwK,$2b$12$s9Wgk5jFh36dN0rwWlZQ0.XH9/Os.Z2uxBsBOVjBdc3tU5U8U5xVC,$2b$12$wtcEO/O./exhbVFvxxJKM.XZALzHmRDthlonZlIFg1SlUTdLDttzS,testpass123}"
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "profile_info",
-  "n_distinct": -0.6363636,
-  "correlation": 0.19090909,
+  "n_distinct": -1,
+  "correlation": null,
   "null_frac": 0,
-  "avg_width": 135,
-  "most_common_vals_sample": "{\"{\\\"verificationLevel\\\": \\\"none\\\"}\"}",
-  "histogram_sample": "{\"{\\\"fullName\\\": \\\"Test Operator\\\", \\\"verificationLevel\\\": \\\"full\\\"}\",\"{\\\"fullName\\\": \\\"Test User\\\", \\\"verificationLevel\\\": \\\"basic\\\"}\",\"{\\\"fullName\\\": \\\"Venue Owner\\\", \\\"verificationLevel\\\": \\\"full\\\"}\",\"{\\\"address\\\": \\\"\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"identificationNumber\\\": \\\"0909626202\\\"}\",\"{\\\"address\\\": \\\"123 Test Street\\\", \\\"fullName\\\": \\\"Test User Full Name\\\", \\\"phoneNumber\\\": \\\"123-456-7890\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"identificationNumber\\\": \\\"TEST123456\\\"}\",\"{\\\"taxId\\\": \\\"\\\", \\\"address\\\": \\\"Sabanilla city\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"imageUrl\\\": \\\"http://localhost:3001/uploads/images/1761753791930-238562246-d447f8ed-1e4c-42de-b919-868d58fcbe08.png\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"Gallera Paparrillos\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"businessName\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"profileImage\\\": \\\"http://localhost:3001/uploads/images/1761752595481-178693521-d447f8ed-1e4c-42de-b919-868d58fcbe08.png\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"businessPhone\\\": \\\"\\\", \\\"licenseNumber\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"businessAddress\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"sabanilla\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": \\\"\\\", \\\"registrationDetails\\\": \\\"\\\", \\\"identificationNumber\\\": \\\"0909626203\\\", \\\"galleraActiveRoosters\\\": \\\"20\\\"}\"}"
+  "avg_width": 174,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "role",
-  "n_distinct": -0.45454547,
-  "correlation": 0.58181816,
+  "n_distinct": -1,
+  "correlation": null,
   "null_frac": 0,
   "avg_width": 4,
-  "most_common_vals_sample": "{user,venue,operator}",
-  "histogram_sample": "{admin,gallera}"
+  "most_common_vals_sample": null,
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "updated_at",
-  "n_distinct": 1,
-  "correlation": 1,
+  "n_distinct": -1,
+  "correlation": null,
   "null_frac": 0,
   "avg_width": 8,
-  "most_common_vals_sample": "{\"2025-10-30 16:00:15.939746+00\"}",
+  "most_common_vals_sample": null,
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "username",
   "n_distinct": -1,
-  "correlation": -0.24545455,
+  "correlation": null,
   "null_frac": 0,
   "avg_width": 11,
   "most_common_vals_sample": null,
-  "histogram_sample": "{admin_test,gallera_test,newuser123,operator,operator_test,prueba1,testuser,testuser_1758034579826,user_test,venue_test,venueowner}"
+  "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
