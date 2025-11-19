@@ -8,6 +8,81 @@
   },
 
   "core_interfaces": {
+    "AlertItem": {
+      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "purpose": "Type definition for system alert items displayed in monitoring UI",
+      "required_properties": ["id", "level", "service", "message", "timestamp", "resolved"],
+      "interface": {
+        "id": "string - unique alert identifier (format: alert_${timestamp}_${service})",
+        "level": "'critical' | 'warning' | 'info' - severity level",
+        "service": "string - alert source (Database, Memory, Intervals, System)",
+        "message": "string - human-readable alert description",
+        "timestamp": "string - ISO date when alert was created",
+        "resolved": "boolean - alert acknowledgment status"
+      },
+      "ui_color_mapping": {
+        "critical": "text-red-500 bg-red-50 border-red-200 - XCircle icon",
+        "warning": "text-yellow-500 bg-yellow-50 border-yellow-200 - AlertTriangle icon",
+        "info": "text-blue-500 bg-blue-50 border-blue-200 - CheckCircle icon"
+      },
+      "alert_sources": {
+        "Database Connections": "Triggered when pool.using > 8/10",
+        "Database Queue": "Triggered when pool.queue > 0",
+        "Database Status": "Triggered when pool.status !== 'active'",
+        "Memory Critical": "Triggered when memory > 380MB (95% of 400MB)",
+        "Memory High": "Triggered when memory > 300MB (75% of 400MB)",
+        "Intervals": "Triggered when activeCount > 50 (potential memory leak)",
+        "System": "Info alert when no other alerts exist"
+      },
+      "backend_source": "backend/src/routes/monitoring.ts:252-345",
+      "api_endpoint": "GET /api/monitoring/alerts",
+      "frontend_usage": [
+        "Monitoring.tsx:334 - alerts.filter((alert) => !alert.resolved).length",
+        "Monitoring.tsx:352-395 - Render alert list with color coding"
+      ],
+      "implementation_date": "2025-11-19 (fixed alerts.filter is not a function error)"
+    },
+    "LiveStats": {
+      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "purpose": "Type definition for live system statistics displayed in monitoring dashboard",
+      "required_properties": ["activeUsers", "liveEvents", "activeBets", "connectionCount", "requestsPerMinute", "errorRate"],
+      "interface": {
+        "activeUsers": "number - currently 0 (placeholder for EventConnection tracking)",
+        "liveEvents": "number - currently 0 (placeholder for Events with status='live')",
+        "activeBets": "number - currently 0 (placeholder for Bets with status='active')",
+        "connectionCount": "number - current database pool active connections (real)",
+        "requestsPerMinute": "number - currently 0 (placeholder)",
+        "errorRate": "number - currently 0 (placeholder)"
+      },
+      "future_integration": {
+        "activeUsers": "TODO: Integrate EventConnection.count({ disconnected_at: null })",
+        "liveEvents": "TODO: Integrate Event.count({ status: 'live' })",
+        "activeBets": "TODO: Integrate Bet.count({ status: 'active' })",
+        "requestsPerMinute": "TODO: Add tracking in performance middleware",
+        "errorRate": "TODO: Add tracking in error middleware"
+      },
+      "backend_source": "backend/src/routes/monitoring.ts:351-386",
+      "api_endpoint": "GET /api/monitoring/stats",
+      "display_format": {
+        "activeUsers": "Large metric card with Users icon (blue)",
+        "liveEvents": "Large metric card with Zap icon (red)",
+        "activeBets": "Large metric card with Activity icon (green) - admin only",
+        "connectionCount": "Large metric card with Wifi icon (purple) - admin only",
+        "requestsPerMinute": "Large metric card with Clock icon (yellow) - admin only",
+        "errorRate": "Percentage display with AlertTriangle icon (red) - admin only"
+      },
+      "admin_visibility": {
+        "all_users": ["activeUsers", "liveEvents"],
+        "admin_only": ["activeBets", "connectionCount", "requestsPerMinute", "errorRate"]
+      },
+      "frontend_usage": [
+        "Monitoring.tsx:209-299 - 6 stat cards with conditional rendering based on role",
+        "Monitoring.tsx:216-217 - activeUsers display",
+        "Monitoring.tsx:230-231 - liveEvents display",
+        "Monitoring.tsx:246-247 - activeBets display (admin only)"
+      ],
+      "implementation_date": "2025-11-19 (fixed monitoring page broken state)"
+    },
     "Fight": {
       "file": "/frontend/src/types/index.ts",
       "required_properties": ["id", "eventId", "number", "redCorner", "blueCorner", "weight", "status"],

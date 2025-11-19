@@ -1,6 +1,48 @@
 {
   "active_tasks": [
     {
+      "task_id": "FIX_MONITORING_PAGE_BROKEN",
+      "status": "COMPLETED",
+      "completion_date": "2025-11-19",
+      "complexity": "LOW",
+      "category": "BUG_FIX",
+      "priority": "HIGH",
+      "problem": {
+        "error": "TypeError: alerts.filter is not a function",
+        "location": "frontend/src/pages/admin/Monitoring.tsx:334",
+        "root_cause": "Frontend expected /api/monitoring/alerts and /api/monitoring/stats endpoints, but backend routes were at /api/alerts and /api/stats (path prefix mismatch)"
+      },
+      "solution": {
+        "approach": "Created two new endpoints to match frontend API expectations",
+        "endpoints_created": [
+          "GET /api/monitoring/alerts - Returns AlertItem[] array with system alerts",
+          "GET /api/monitoring/stats - Returns LiveStats object with system metrics"
+        ],
+        "files_modified": [
+          "backend/src/routes/monitoring.ts (added 146 lines)",
+          "frontend/src/services/api.ts (updated systemAPI mapping)"
+        ]
+      },
+      "technical_notes": {
+        "redundancy_detected": "New endpoints duplicate functionality of existing /alerts and /stats (same implementation, only path differs). Future refactor opportunity to consolidate.",
+        "monitoring_architecture": "11 total monitoring endpoints providing: health check, performance metrics, database health, cache stats, memory usage, connection counts, interval tracking, alerts, stats, webhook",
+        "alert_sources": [
+          "Database: pool utilization >8/10, connection queue, degraded status",
+          "Memory: critical >380MB (95% limit), high >300MB (75% limit)",
+          "Intervals: >50 active intervals (memory leak detection)",
+          "System: 'All operational' info when no issues"
+        ],
+        "stats_fields": {
+          "active": "connectionCount (real-time pool stats)",
+          "placeholders": "activeUsers, liveEvents, activeBets, requestsPerMinute, errorRate (TODO: integrate EventConnection, Events, Bets tables)"
+        }
+      },
+      "verification": "Monitoring page loads successfully with live alerts and stats display",
+      "impact": "HIGH - Fixed critical admin panel page that was completely broken",
+      "owner": "Claude (with Sonnet-level analysis)",
+      "git_commit": "bf89016 - fix: resolve alerts.filter TypeError in Monitoring page"
+    },
+    {
       "task_id": "E2E_FRONTEND_TESTABILITY",
       "status": "PENDING",
       "complexity": "HIGH",

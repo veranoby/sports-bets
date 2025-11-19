@@ -1066,21 +1066,218 @@
     }
   },
 
-  "system_endpoints": {
+  "monitoring_endpoints": {
+    "🔴_CRITICAL_NOTE_2025_11_19": "Complete monitoring system with 11 endpoints. Fixed Monitoring page broken alerts.filter error by creating proper /monitoring/alerts and /monitoring/stats endpoints.",
     "health_check": {
       "method": "GET",
       "path": "/health",
-      "auth_required": false
+      "auth_required": false,
+      "response": {
+        "status": "OK",
+        "timestamp": "ISO date",
+        "uptime": "number (seconds)",
+        "environment": "string",
+        "safety": "SafetyLimits metrics object"
+      },
+      "purpose": "Public health check for monitoring services (Railway, Datadog, etc)",
+      "implementation": "backend/src/routes/monitoring.ts:15-25",
+      "note": "No auth required - suitable for uptime monitoring services"
     },
     "get_alerts": {
       "method": "GET",
-      "path": "/system/alerts",
-      "auth_required": true
+      "path": "/monitoring/alerts",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": "AlertItem[] array"
+      },
+      "alert_types": [
+        "Database Connections - High pool utilization (>8/10)",
+        "Database Queue - Connection queue detected (>0)",
+        "Database Status - Pool status degraded",
+        "Memory - Critical threshold (>380MB, 95% of 400MB)",
+        "Memory - High usage (>300MB, 75% of limit)",
+        "Intervals - High interval count (>50, potential memory leak)",
+        "System - All systems operational (info level)"
+      ],
+      "implementation": "backend/src/routes/monitoring.ts:252-345",
+      "frontend_usage": "Admin Monitoring page - systemAPI.getAlerts()",
+      "frontend_component": "frontend/src/pages/admin/Monitoring.tsx:334 (alerts.filter() call)",
+      "added_date": "2025-11-19 (fixed alerts.filter TypeError)"
     },
     "get_live_stats": {
       "method": "GET",
-      "path": "/system/stats",
-      "auth_required": true
+      "path": "/monitoring/stats",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": {
+          "timestamp": "ISO date",
+          "activeUsers": "number (placeholder 0 - TODO: EventConnection)",
+          "liveEvents": "number (placeholder 0 - TODO: Events status='live')",
+          "activeBets": "number (placeholder 0 - TODO: Bets status='active')",
+          "connectionCount": "number (real DB pool connections)",
+          "requestsPerMinute": "number (placeholder 0)",
+          "errorRate": "number (placeholder 0)",
+          "memory": {
+            "currentMB": "number",
+            "limitMB": "number",
+            "percentUsed": "number"
+          },
+          "database": {
+            "activeConnections": "number",
+            "availableConnections": "number",
+            "queuedRequests": "number",
+            "totalConnections": "number",
+            "status": "string"
+          }
+        }
+      },
+      "placeholder_fields_future": {
+        "activeUsers": "TODO: SELECT COUNT(*) FROM event_connections WHERE disconnected_at IS NULL",
+        "liveEvents": "TODO: SELECT COUNT(*) FROM events WHERE status='live'",
+        "activeBets": "TODO: SELECT COUNT(*) FROM bets WHERE status='active'"
+      },
+      "implementation": "backend/src/routes/monitoring.ts:351-386",
+      "frontend_usage": "Admin Monitoring page - systemAPI.getLiveStats()",
+      "frontend_component": "frontend/src/pages/admin/Monitoring.tsx:209-299 (stats cards display)",
+      "added_date": "2025-11-19 (fixed monitoring page broken state)"
+    },
+    "performance_metrics": {
+      "method": "GET",
+      "path": "/monitoring/performance",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "cache": "30 seconds TTL",
+      "response": {
+        "timestamp": "ISO date",
+        "poolStats": {
+          "using": "number",
+          "free": "number",
+          "queue": "number",
+          "total": "number",
+          "status": "string",
+          "healthStatus": "'healthy' | 'warning'",
+          "utilizationPercentage": "number"
+        },
+        "apiMetrics": {
+          "totalRoutes": "number",
+          "slowRoutes": "number (avgTime > 200ms)",
+          "criticalRoutes": "number (avgTime > 500ms)",
+          "topSlowRoutes": "array of slow route details"
+        },
+        "cacheMetrics": {
+          "implemented": true,
+          "strategy": "multi-layer (Redis + Memory + Query deduplication)",
+          "optimizations": "array of cache optimizations"
+        },
+        "optimizations": "Per-service optimization details"
+      },
+      "implementation": "backend/src/routes/monitoring.ts:28-107",
+      "purpose": "Comprehensive performance and cache analytics for admins"
+    },
+    "database_health": {
+      "method": "GET",
+      "path": "/monitoring/database",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {
+        "timestamp": "ISO date",
+        "status": "'healthy' | 'degraded'",
+        "pool": "Pool statistics object",
+        "alerts": "array of string alerts",
+        "recommendations": "array of action recommendations"
+      },
+      "implementation": "backend/src/routes/monitoring.ts:110-151",
+      "purpose": "Detailed database connection pool health check"
+    },
+    "cache_statistics": {
+      "method": "GET",
+      "path": "/monitoring/cache",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {
+        "timestamp": "ISO date",
+        "strategy": "Multi-layer caching",
+        "layers": {
+          "redis": "Primary cache layer",
+          "memory": "Fallback + feature flags",
+          "queryDeduplication": "Prevents duplicate concurrent queries"
+        },
+        "optimizations": "TTL settings per service",
+        "benefits": "Performance improvements achieved"
+      },
+      "implementation": "backend/src/routes/monitoring.ts:154-197",
+      "purpose": "Cache strategy and performance metrics"
+    },
+    "memory_metrics": {
+      "method": "GET",
+      "path": "/monitoring/memory",
+      "auth_required": false,
+      "response": {
+        "status": "OK",
+        "timestamp": "ISO date",
+        "memory": "SafetyLimits memory metrics"
+      },
+      "purpose": "Memory usage for Railway alert integration",
+      "implementation": "backend/src/routes/monitoring.ts:203-211"
+    },
+    "connection_stats": {
+      "method": "GET",
+      "path": "/monitoring/connections",
+      "auth_required": false,
+      "response": {
+        "status": "OK",
+        "timestamp": "ISO date",
+        "connections": {
+          "active": "number",
+          "free": "number",
+          "queue": "number",
+          "max": 10,
+          "total": "number",
+          "status": "string"
+        }
+      },
+      "purpose": "Real-time database connection counts",
+      "implementation": "backend/src/routes/monitoring.ts:217-232"
+    },
+    "interval_tracking": {
+      "method": "GET",
+      "path": "/monitoring/intervals",
+      "auth_required": false,
+      "response": {
+        "status": "OK",
+        "timestamp": "ISO date",
+        "intervals": "SafetyLimits interval metrics"
+      },
+      "purpose": "Track active setInterval for memory leak detection",
+      "implementation": "backend/src/routes/monitoring.ts:238-246"
+    },
+    "railway_webhook": {
+      "method": "POST",
+      "path": "/monitoring/webhook/railway",
+      "auth_required": false,
+      "body": {
+        "alert": "object",
+        "metrics": "object"
+      },
+      "response": {
+        "status": "OK",
+        "message": "Alert received and processed",
+        "timestamp": "ISO date"
+      },
+      "purpose": "Railway platform integration for alert processing",
+      "circuit_breaker": "Activates if memory > 380MB (95% of 400MB limit)",
+      "implementation": "backend/src/routes/monitoring.ts:392-411",
+      "note": "Receives alerts from Railway monitoring service"
+    },
+    "🔴_REDUNDANCY_DETECTED": {
+      "issue": "GET /alerts and /stats endpoints exist at line 252-386, duplicating /monitoring/alerts and /monitoring/stats",
+      "path_difference_only": "/alerts vs /monitoring/alerts (same implementation)",
+      "consolidation_opportunity": "Refactor to remove duplicate code - keep /monitoring/* prefix for consistency",
+      "refactor_priority": "MEDIUM - functional but maintains code duplication"
     }
   },
 
