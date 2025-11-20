@@ -13,7 +13,11 @@ interface EventTabsProps {
   onTabChange: (tabId: string) => void;
 }
 
-const EventTabs: React.FC<EventTabsProps> = ({ tabs, activeTab, onTabChange }) => {
+const EventTabs: React.FC<EventTabsProps> = ({
+  tabs,
+  activeTab,
+  onTabChange,
+}) => {
   return (
     <div className="border-b border-gray-200">
       <div className="flex">

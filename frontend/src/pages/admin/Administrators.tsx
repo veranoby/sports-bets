@@ -255,255 +255,261 @@ const AdminAdministratorsPage: React.FC = () => {
             </div>
           </div>
         </div>
-      {/* Role Selection Dialog */}
-      {isRoleSelectModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
-                Seleccionar Tipo de Usuario
-              </h2>
-              <button
-                onClick={() => setIsRoleSelectModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-600 mb-6">
-                ¿Qué tipo de usuario desea crear?
-              </p>
-              <div className="flex flex-col gap-4">
+        {/* Role Selection Dialog */}
+        {isRoleSelectModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Seleccionar Tipo de Usuario
+                </h2>
                 <button
-                  onClick={() => {
-                    setSelectedRole("admin");
-                    setIsRoleSelectModalOpen(false);
-                    setModalState({ mode: "create", user: undefined });
-                  }}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsRoleSelectModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Shield className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-medium text-gray-900">Administrador</h3>
-                    <p className="text-sm text-gray-500">
-                      Acceso completo al sistema
-                    </p>
-                  </div>
+                  <X className="w-6 h-6" />
                 </button>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  ¿Qué tipo de usuario desea crear?
+                </p>
+                <div className="flex flex-col gap-4">
+                  <button
+                    onClick={() => {
+                      setSelectedRole("admin");
+                      setIsRoleSelectModalOpen(false);
+                      setModalState({ mode: "create", user: undefined });
+                    }}
+                    className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <Shield className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-medium text-gray-900">
+                        Administrador
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Acceso completo al sistema
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedRole("operator");
+                      setIsRoleSelectModalOpen(false);
+                      setModalState({ mode: "create", user: undefined });
+                    }}
+                    className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <User className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-medium text-gray-900">Operador</h3>
+                      <p className="text-sm text-gray-500">
+                        Gestión limitada de eventos y usuarios
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 border-t bg-gray-50 flex justify-end">
                 <button
-                  onClick={() => {
-                    setSelectedRole("operator");
-                    setIsRoleSelectModalOpen(false);
-                    setModalState({ mode: "create", user: undefined });
-                  }}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsRoleSelectModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <User className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-medium text-gray-900">Operador</h3>
-                    <p className="text-sm text-gray-500">
-                      Gestión limitada de eventos y usuarios
-                    </p>
-                  </div>
+                  Cancelar
                 </button>
               </div>
             </div>
-            <div className="p-6 border-t bg-gray-50 flex justify-end">
-              <button
-                onClick={() => setIsRoleSelectModalOpen(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+          </div>
+        )}
+
+        {/* Filters */}
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search by username, email, or name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value as any)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search by username, email, or name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="all">All Roles</option>
-              <option value="admin">Administrators</option>
-              <option value="operator">Operators</option>
-            </select>
-          </div>
-        </div>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <Shield className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
-                Administradores
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {administrators.length}
-              </p>
+                <option value="all">All Roles</option>
+                <option value="admin">Administrators</option>
+                <option value="operator">Operators</option>
+              </select>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <User className="w-6 h-6 text-blue-600" />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-red-100 rounded-lg">
+                <Shield className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Administradores
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {administrators.length}
+                </p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">Operadores</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {operators.length}
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Eye className="w-6 h-6 text-green-600" />
+          <Card className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Operadores
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {operators.length}
+                </p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">Total</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {allUsers.length}
-              </p>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Eye className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Total
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {allUsers.length}
+                </p>
+              </div>
             </div>
+          </Card>
+        </div>
+
+        {/* Users Table */}
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Suscripción
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Último Ingreso
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-4 text-center text-gray-500"
+                    >
+                      No se encontraron administradores u operadores
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold">
+                              {user.username.charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {user.username}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.email}
+                            </div>
+                            {user.profileInfo?.fullName && (
+                              <div className="text-xs text-gray-400">
+                                {user.profileInfo.fullName}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getRoleBadge(user.role)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.isActive ? "Activo" : "Inactivo"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <SubscriptionBadge subscription={user.subscription} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.lastLogin
+                          ? new Date(user.lastLogin).toLocaleDateString()
+                          : "Nunca"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                            title="Editar usuario"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Eliminar usuario"
+                            disabled={currentUser?.id === user.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>
-
-      {/* Users Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Usuario
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rol
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Suscripción
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Último Ingreso
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No se encontraron administradores u operadores
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold">
-                            {user.username.charAt(0).toUpperCase()}
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.username}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {user.email}
-                          </div>
-                          {user.profileInfo?.fullName && (
-                            <div className="text-xs text-gray-400">
-                              {user.profileInfo.fullName}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getRoleBadge(user.role)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {user.isActive ? "Activo" : "Inactivo"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <SubscriptionBadge subscription={user.subscription} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastLogin
-                        ? new Date(user.lastLogin).toLocaleDateString()
-                        : "Nunca"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                          title="Editar usuario"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                          title="Eliminar usuario"
-                          disabled={currentUser?.id === user.id}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
 
       {/* User Modal (Unified Create/Edit) */}
       {modalState.mode && (

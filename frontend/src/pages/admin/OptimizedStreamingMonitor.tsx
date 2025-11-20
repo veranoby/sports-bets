@@ -41,7 +41,7 @@ const OptimizedStreamingMonitor: React.FC = () => {
     handlePauseStream: handlePauseStreamAPI,
     handleResumeStream: handleResumeStreamAPI,
     isLoading,
-    error: streamError
+    error: streamError,
   } = useStreamControl();
 
   // Load real events from the API
@@ -160,7 +160,9 @@ const OptimizedStreamingMonitor: React.FC = () => {
   const handleStartStream = async () => {
     try {
       // First generate or get the stream key for this event
-      const streamKeyResponse = await streamingAPI.generateStreamKey({ eventId: selectedEvent });
+      const streamKeyResponse = await streamingAPI.generateStreamKey({
+        eventId: selectedEvent,
+      });
       if (streamKeyResponse.success && streamKeyResponse.data) {
         setStreamKey(streamKeyResponse.data.streamKey);
         setRtmpUrl(streamKeyResponse.data.rtmpUrl);
@@ -174,7 +176,10 @@ const OptimizedStreamingMonitor: React.FC = () => {
         console.log("RTMP URL:", streamKeyResponse.data.rtmpUrl);
         console.log("Stream Key:", streamKeyResponse.data.streamKey);
       } else {
-        console.error("Failed to generate stream key:", streamKeyResponse.error);
+        console.error(
+          "Failed to generate stream key:",
+          streamKeyResponse.error,
+        );
       }
     } catch (error) {
       console.error("Error starting stream:", error);

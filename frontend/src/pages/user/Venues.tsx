@@ -207,7 +207,8 @@ const VenuesPage: React.FC = () => {
                   name: venue.name || "Gallera sin nombre",
                   description: venue.description || "Información no disponible",
                   location: venue.location || "Ubicación no especificada",
-                  imageUrl: venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
+                  imageUrl:
+                    venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
                   ownerImage: venue.owner?.profileInfo?.profileImage,
                   galleryImages: venue.images || [],
                   articlesCount: articles.success
@@ -215,7 +216,8 @@ const VenuesPage: React.FC = () => {
                     : 0,
                   establishedDate: venue.createdAt,
                   isVerified:
-                    venue.owner?.profileInfo?.verificationLevel === "full" || false,
+                    venue.owner?.profileInfo?.verificationLevel === "full" ||
+                    false,
                   rating: venue.owner?.profileInfo?.rating || 0,
                   activeEvents: 0,
                 };

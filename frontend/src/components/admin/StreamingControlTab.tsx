@@ -33,7 +33,12 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
 
   // Use the SSE connection hook for metrics and status updates
-  const { data, isConnected, error: sseError, reconnect } = useSSEConnection({
+  const {
+    data,
+    isConnected,
+    error: sseError,
+    reconnect,
+  } = useSSEConnection({
     endpoint: `/api/sse/streaming?token=${localStorage.getItem("token")}`,
   });
 
@@ -43,7 +48,7 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
     handlePauseStream: onPauseStream,
     handleResumeStream: onResumeStream,
     isLoading,
-    error
+    error,
   } = useStreamControl();
 
   // Get stream URL when an event is selected
@@ -225,12 +230,7 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
         {/* Stream Player - 70% width */}
         <div className="lg:col-span-7 bg-black rounded-lg shadow-lg overflow-hidden">
           {streamUrl ? (
-            <HLSPlayer
-              streamUrl={streamUrl}
-              autoplay
-              controls
-              muted={false}
-            />
+            <HLSPlayer streamUrl={streamUrl} autoplay controls muted={false} />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 p-12 text-center">
               <div>

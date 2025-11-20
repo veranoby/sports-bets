@@ -65,9 +65,7 @@ const AdminEventsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get("status") || "",
   );
-  const [dateFilter, setDateFilter] = useState(
-    searchParams.get("date") || "",
-  );
+  const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "");
 
   const [eventDetailData, setEventDetailData] = useState<{
     event: Event;
@@ -464,7 +462,8 @@ const AdminEventsPage: React.FC = () => {
                 </div>
 
                 <p className="text-gray-600">
-                  {eventDetailData.event.venue?.name} • {eventDetailData.event.operator?.username || 'Sin operador'}
+                  {eventDetailData.event.venue?.name} •{" "}
+                  {eventDetailData.event.operator?.username || "Sin operador"}
                 </p>
               </div>
 
@@ -497,73 +496,99 @@ const AdminEventsPage: React.FC = () => {
           <div className="flex gap-6">
             {/* Sidebar - Always visible */}
             <div className="w-80 bg-white rounded-lg shadow p-4 h-fit sticky top-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Información del Evento</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">
+                Información del Evento
+              </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Estado del Stream</label>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Estado del Stream
+                  </label>
                   <div className="flex items-center gap-2">
-                    <StreamStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                    <StreamStatusBadge
+                      status={eventDetailData.event.streamStatus || "offline"}
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Espectadores</label>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Espectadores
+                  </label>
                   <p className="text-lg font-bold text-gray-900">
                     {eventDetailData.event.currentViewers || 0}
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Próxima Pelea</label>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Próxima Pelea
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {eventDetailData.event.fights && eventDetailData.event.fights.length > 0
+                    {eventDetailData.event.fights &&
+                    eventDetailData.event.fights.length > 0
                       ? eventDetailData.event.fights[0].name
                       : "No programada"}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-gray-200">
-                  <h4 className="font-medium text-gray-900 mb-2">Acciones Rápidas</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    Acciones Rápidas
+                  </h4>
                   <div className="space-y-2">
                     {/* Quick Action: Pause/Resume Stream */}
                     <button
                       onClick={async () => {
                         // Toggle stream pause state
-                        if (eventDetailData?.event.streamStatus === 'connected' && !isStreamPaused) {
-                          const response = await streamingAPI.pauseStream(eventIdFromParams);
+                        if (
+                          eventDetailData?.event.streamStatus === "connected" &&
+                          !isStreamPaused
+                        ) {
+                          const response =
+                            await streamingAPI.pauseStream(eventIdFromParams);
                           if (response.success) {
                             setIsStreamPaused(true);
                             // Update event status in parent state
-                            setEventDetailData(prev => prev ? {
-                              ...prev,
-                              event: {
-                                ...prev.event,
-                                streamStatus: 'paused'
-                              },
-                              fights: prev.fights || [] // Preserve fights
-                            } : null);
+                            setEventDetailData((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    event: {
+                                      ...prev.event,
+                                      streamStatus: "paused",
+                                    },
+                                    fights: prev.fights || [], // Preserve fights
+                                  }
+                                : null,
+                            );
                           }
                         } else if (isStreamPaused) {
-                          const response = await streamingAPI.resumeStream(eventIdFromParams);
+                          const response =
+                            await streamingAPI.resumeStream(eventIdFromParams);
                           if (response.success) {
                             setIsStreamPaused(false);
                             // Update event status in parent state
-                            setEventDetailData(prev => prev ? {
-                              ...prev,
-                              event: {
-                                ...prev.event,
-                                streamStatus: 'connected'
-                              },
-                              fights: prev.fights || [] // Preserve fights
-                            } : null);
+                            setEventDetailData((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    event: {
+                                      ...prev.event,
+                                      streamStatus: "connected",
+                                    },
+                                    fights: prev.fights || [], // Preserve fights
+                                  }
+                                : null,
+                            );
                           }
                         }
                       }}
                       disabled={operationInProgress !== null}
                       className="w-full px-3 py-2 bg-blue-400 text-white rounded text-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isStreamPaused ? 'Reanudar Stream' : 'Pausar Stream'}
+                      {isStreamPaused ? "Reanudar Stream" : "Pausar Stream"}
                     </button>
                     <button
                       onClick={() => setActiveTab("fights")}
@@ -624,9 +649,11 @@ const AdminEventsPage: React.FC = () => {
                               fights,
                               event: {
                                 ...eventDetailData.event,
-                                completedFights: fights.filter((f: Fight) => f.status === 'completed').length,
+                                completedFights: fights.filter(
+                                  (f: Fight) => f.status === "completed",
+                                ).length,
                                 totalFights: fights.length,
-                              }
+                              },
                             });
                           }
                         }}
@@ -635,7 +662,7 @@ const AdminEventsPage: React.FC = () => {
                             setEventDetailData({
                               ...eventDetailData,
                               event,
-                              fights: eventDetailData.fights || []
+                              fights: eventDetailData.fights || [],
                             });
                           }
                         }}
@@ -1022,7 +1049,6 @@ const AdminEventsPage: React.FC = () => {
             )}
           </div>
         </Card>
-
 
         {/* Modal de Edición de Evento */}
         {isEditEventModalOpen && eventDetailData && (

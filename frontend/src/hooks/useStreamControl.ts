@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { streamingAPI } from '../services/api';
+import { useState, useCallback } from "react";
+import { streamingAPI } from "../services/api";
 
 interface UseStreamControlReturn {
   handleStartStream: (eventId: string) => Promise<void>;
@@ -15,96 +15,111 @@ export const useStreamControl = (): UseStreamControlReturn => {
     start: false,
     stop: false,
     pause: false,
-    resume: false
+    resume: false,
   });
   const [error, setError] = useState<string | null>(null);
 
-  const updateLoadingState = useCallback((operation: keyof typeof loadingStates, value: boolean) => {
-    setLoadingStates(prev => ({
-      ...prev,
-      [operation]: value
-    }));
-  }, []);
+  const updateLoadingState = useCallback(
+    (operation: keyof typeof loadingStates, value: boolean) => {
+      setLoadingStates((prev) => ({
+        ...prev,
+        [operation]: value,
+      }));
+    },
+    [],
+  );
 
   const getIsLoading = useCallback((): boolean => {
-    return Object.values(loadingStates).some(value => value === true);
+    return Object.values(loadingStates).some((value) => value === true);
   }, [loadingStates]);
 
-  const handleStartStream = useCallback(async (eventId: string) => {
-    if (loadingStates.start) return;
+  const handleStartStream = useCallback(
+    async (eventId: string) => {
+      if (loadingStates.start) return;
 
-    try {
-      updateLoadingState('start', true);
-      setError(null);
+      try {
+        updateLoadingState("start", true);
+        setError(null);
 
-      const response = await streamingAPI.startStream(eventId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to start stream');
+        const response = await streamingAPI.startStream(eventId);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to start stream");
+        }
+      } catch (err) {
+        console.error("Error starting stream:", err);
+        setError(err instanceof Error ? err.message : "Error starting stream");
+      } finally {
+        updateLoadingState("start", false);
       }
-    } catch (err) {
-      console.error('Error starting stream:', err);
-      setError(err instanceof Error ? err.message : 'Error starting stream');
-    } finally {
-      updateLoadingState('start', false);
-    }
-  }, [loadingStates.start, updateLoadingState]);
+    },
+    [loadingStates.start, updateLoadingState],
+  );
 
-  const handleStopStream = useCallback(async (eventId: string) => {
-    if (loadingStates.stop) return;
+  const handleStopStream = useCallback(
+    async (eventId: string) => {
+      if (loadingStates.stop) return;
 
-    try {
-      updateLoadingState('stop', true);
-      setError(null);
+      try {
+        updateLoadingState("stop", true);
+        setError(null);
 
-      const response = await streamingAPI.stopStream(eventId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to stop stream');
+        const response = await streamingAPI.stopStream(eventId);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to stop stream");
+        }
+      } catch (err) {
+        console.error("Error stopping stream:", err);
+        setError(err instanceof Error ? err.message : "Error stopping stream");
+      } finally {
+        updateLoadingState("stop", false);
       }
-    } catch (err) {
-      console.error('Error stopping stream:', err);
-      setError(err instanceof Error ? err.message : 'Error stopping stream');
-    } finally {
-      updateLoadingState('stop', false);
-    }
-  }, [loadingStates.stop, updateLoadingState]);
+    },
+    [loadingStates.stop, updateLoadingState],
+  );
 
-  const handlePauseStream = useCallback(async (eventId: string) => {
-    if (loadingStates.pause) return;
+  const handlePauseStream = useCallback(
+    async (eventId: string) => {
+      if (loadingStates.pause) return;
 
-    try {
-      updateLoadingState('pause', true);
-      setError(null);
+      try {
+        updateLoadingState("pause", true);
+        setError(null);
 
-      const response = await streamingAPI.pauseStream(eventId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to pause stream');
+        const response = await streamingAPI.pauseStream(eventId);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to pause stream");
+        }
+      } catch (err) {
+        console.error("Error pausing stream:", err);
+        setError(err instanceof Error ? err.message : "Error pausing stream");
+      } finally {
+        updateLoadingState("pause", false);
       }
-    } catch (err) {
-      console.error('Error pausing stream:', err);
-      setError(err instanceof Error ? err.message : 'Error pausing stream');
-    } finally {
-      updateLoadingState('pause', false);
-    }
-  }, [loadingStates.pause, updateLoadingState]);
+    },
+    [loadingStates.pause, updateLoadingState],
+  );
 
-  const handleResumeStream = useCallback(async (eventId: string) => {
-    if (loadingStates.resume) return;
+  const handleResumeStream = useCallback(
+    async (eventId: string) => {
+      if (loadingStates.resume) return;
 
-    try {
-      updateLoadingState('resume', true);
-      setError(null);
+      try {
+        updateLoadingState("resume", true);
+        setError(null);
 
-      const response = await streamingAPI.resumeStream(eventId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to resume stream');
+        const response = await streamingAPI.resumeStream(eventId);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to resume stream");
+        }
+      } catch (err) {
+        console.error("Error resuming stream:", err);
+        setError(err instanceof Error ? err.message : "Error resuming stream");
+      } finally {
+        updateLoadingState("resume", false);
       }
-    } catch (err) {
-      console.error('Error resuming stream:', err);
-      setError(err instanceof Error ? err.message : 'Error resuming stream');
-    } finally {
-      updateLoadingState('resume', false);
-    }
-  }, [loadingStates.resume, updateLoadingState]);
+    },
+    [loadingStates.resume, updateLoadingState],
+  );
 
   return {
     handleStartStream,

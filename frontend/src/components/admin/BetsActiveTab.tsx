@@ -11,7 +11,10 @@ interface BetsActiveTabProps {
   eventDetailData: any;
 }
 
-const BetsActiveTab: React.FC<BetsActiveTabProps> = ({ eventId, eventDetailData }) => {
+const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
+  eventId,
+  eventDetailData,
+}) => {
   const [activeBets, setActiveBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,24 +23,26 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({ eventId, eventDetailData 
   useEffect(() => {
     const fetchActiveBets = async () => {
       if (!eventId) return;
-      
+
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await betsAPI.getAll({
           eventId,
           status: ["active", "pending"].join(","), // Only active/pending bets
-          limit: 100 // Limit to 100 bets for performance during live event
+          limit: 100, // Limit to 100 bets for performance during live event
         });
-        
+
         if (response.success && response.data) {
           setActiveBets(response.data.bets || []);
         } else {
           setError(response.error || "Error loading active bets");
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error loading active bets");
+        setError(
+          err instanceof Error ? err.message : "Error loading active bets",
+        );
         console.error("Error fetching active bets:", err);
       } finally {
         setLoading(false);
@@ -48,9 +53,12 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({ eventId, eventDetailData 
   }, [eventId]);
 
   // Calculate statistics
-  const totalActiveAmount = activeBets.reduce((sum, bet) => sum + (bet.amount || 0), 0);
+  const totalActiveAmount = activeBets.reduce(
+    (sum, bet) => sum + (bet.amount || 0),
+    0,
+  );
   const totalActiveBets = activeBets.length;
-  const uniqueUsers = new Set(activeBets.map(bet => bet.userId)).size;
+  const uniqueUsers = new Set(activeBets.map((bet) => bet.userId)).size;
 
   if (loading) {
     return <LoadingSpinner text="Cargando apuestas activas..." />;
@@ -133,32 +141,35 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({ eventId, eventDetailData 
                   {activeBets.map((bet) => (
                     <tr key={bet.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {bet.id?.substring(0, 8) || 'N/A'}
+                        {bet.id?.substring(0, 8) || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {bet.userId?.substring(0, 8) || 'N/A'}
+                        {bet.userId?.substring(0, 8) || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${bet.amount?.toLocaleString() || '0'}
+                        ${bet.amount?.toLocaleString() || "0"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {bet.selectedSide || 'N/A'}
+                        {bet.selectedSide || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          bet.status === 'active' || bet.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : bet.status === 'won'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}>
-                          {bet.status?.charAt(0).toUpperCase() + bet.status?.slice(1) || 'N/A'}
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            bet.status === "active" || bet.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : bet.status === "won"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {bet.status?.charAt(0).toUpperCase() +
+                            bet.status?.slice(1) || "N/A"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {bet.createdAt
                           ? new Date(bet.createdAt).toLocaleTimeString()
-                          : 'N/A'}
+                          : "N/A"}
                       </td>
                     </tr>
                   ))}

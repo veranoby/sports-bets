@@ -5,8 +5,15 @@ export interface EventDetailData {
   id: string;
   name: string;
   location: string;
-  status: 'pending' | 'live' | 'completed' | 'paused' | 'scheduled' | 'betting' | 'intermission';
-  streamStatus: 'connected' | 'disconnected' | 'offline' | 'paused';
+  status:
+    | "pending"
+    | "live"
+    | "completed"
+    | "paused"
+    | "scheduled"
+    | "betting"
+    | "intermission";
+  streamStatus: "connected" | "disconnected" | "offline" | "paused";
   createdAt: string;
   venue: {
     id: string;
@@ -25,7 +32,7 @@ export interface EventDetailData {
 }
 
 export interface StreamStatus {
-  status: 'connected' | 'disconnected' | 'offline' | 'paused';
+  status: "connected" | "disconnected" | "offline" | "paused";
   viewers: number;
   bitrate: number;
   connectedAt?: string;

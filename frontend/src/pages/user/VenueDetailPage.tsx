@@ -144,7 +144,8 @@ const VenueDetailPage: React.FC = () => {
 
   // Additional info
   const establishedDate = venue.createdAt;
-  const isVerified = venue.owner?.profileInfo?.verificationLevel === "full" || false;
+  const isVerified =
+    venue.owner?.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
   const rating = 0; // This would need to come from ratings API
 
@@ -203,7 +204,11 @@ const VenueDetailPage: React.FC = () => {
             {/* Fundada */}
             <div className="bg-slate-400/30 border border-slate-400 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
               <Calendar className="w-3.5 h-3.5 text-slate-600" />
-              <span>{establishedDate ? new Date(establishedDate).getFullYear() : "N/A"}</span>
+              <span>
+                {establishedDate
+                  ? new Date(establishedDate).getFullYear()
+                  : "N/A"}
+              </span>
             </div>
           </div>
         </div>
@@ -215,13 +220,20 @@ const VenueDetailPage: React.FC = () => {
 
         {/* Representative Info Card */}
         <div className="card-background p-6 md:p-8 mb-6">
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">Propietario/Representante</p>
-          <p className="text-2xl font-bold text-theme-primary mb-4">{representativeName}</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">
+            Propietario/Representante
+          </p>
+          <p className="text-2xl font-bold text-theme-primary mb-4">
+            {representativeName}
+          </p>
           <div className="space-y-3">
             {representativeEmail !== "No especificado" && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">📧</span>
-                <a href={`mailto:${representativeEmail}`} className="text-theme-light hover:text-theme-primary transition-colors">
+                <a
+                  href={`mailto:${representativeEmail}`}
+                  className="text-theme-light hover:text-theme-primary transition-colors"
+                >
                   {representativeEmail}
                 </a>
               </div>
@@ -235,7 +247,12 @@ const VenueDetailPage: React.FC = () => {
             {website && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">🌐</span>
-                <a href={website} target="_blank" rel="noopener noreferrer" className="text-theme-light hover:text-theme-primary transition-colors truncate">
+                <a
+                  href={website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-theme-light hover:text-theme-primary transition-colors truncate"
+                >
                   {website}
                 </a>
               </div>

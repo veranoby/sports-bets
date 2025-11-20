@@ -183,7 +183,9 @@ const GalleraDetailPage: React.FC = () => {
   const activeRoosters = gallera.owner?.profileInfo?.galleraActiveRoosters || 0;
 
   // Specialties from owner.profileInfo
-  const specialties = Array.isArray(gallera.owner?.profileInfo?.galleraSpecialties)
+  const specialties = Array.isArray(
+    gallera.owner?.profileInfo?.galleraSpecialties,
+  )
     ? gallera.owner.profileInfo.galleraSpecialties
     : gallera.owner?.profileInfo?.galleraSpecialties || [];
 
@@ -252,7 +254,11 @@ const GalleraDetailPage: React.FC = () => {
             {/* Fundada */}
             <div className="bg-slate-400/30 border border-slate-400 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
               <Calendar className="w-3.5 h-3.5 text-slate-600" />
-              <span>{establishedDate ? new Date(establishedDate).getFullYear() : "N/A"}</span>
+              <span>
+                {establishedDate
+                  ? new Date(establishedDate).getFullYear()
+                  : "N/A"}
+              </span>
             </div>
           </div>
         </div>
@@ -265,7 +271,9 @@ const GalleraDetailPage: React.FC = () => {
         {/* Specialties */}
         {specialties.length > 0 && (
           <div className="card-background p-6 md:p-8 mb-6">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">Especialidades</p>
+            <p className="text-sm text-gray-400 mb-3 font-semibold">
+              Especialidades
+            </p>
             <div className="flex flex-wrap gap-2">
               {specialties.map((specialty, index) => (
                 <span
@@ -281,13 +289,20 @@ const GalleraDetailPage: React.FC = () => {
 
         {/* Representative Info Card - OVER images and articles */}
         <div className="card-background p-6 md:p-8 mb-6">
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">Propietario/Representante</p>
-          <p className="text-2xl font-bold text-theme-primary mb-4">{representativeName}</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">
+            Propietario/Representante
+          </p>
+          <p className="text-2xl font-bold text-theme-primary mb-4">
+            {representativeName}
+          </p>
           <div className="space-y-3">
             {representativeEmail !== "No especificado" && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">📧</span>
-                <a href={`mailto:${representativeEmail}`} className="text-theme-light hover:text-theme-primary transition-colors">
+                <a
+                  href={`mailto:${representativeEmail}`}
+                  className="text-theme-light hover:text-theme-primary transition-colors"
+                >
                   {representativeEmail}
                 </a>
               </div>
@@ -301,7 +316,12 @@ const GalleraDetailPage: React.FC = () => {
             {website && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">🌐</span>
-                <a href={website} target="_blank" rel="noopener noreferrer" className="text-theme-light hover:text-theme-primary transition-colors truncate">
+                <a
+                  href={website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-theme-light hover:text-theme-primary transition-colors truncate"
+                >
                   {website}
                 </a>
               </div>
@@ -312,10 +332,7 @@ const GalleraDetailPage: React.FC = () => {
         {/* Image Carousel - BEFORE articles */}
         {images && images.length > 0 && (
           <div className="mb-6">
-            <ImageCarouselViewer
-              images={images}
-              title="Galería del Criadero"
-            />
+            <ImageCarouselViewer images={images} title="Galería del Criadero" />
           </div>
         )}
 

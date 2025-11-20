@@ -22,7 +22,9 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   onEventUpdate,
 }) => {
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  );
 
   const handleFightCreated = (newFight: Fight) => {
     if (eventDetailData) {
@@ -34,14 +36,16 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   const handleFightUpdate = (updatedFight: Fight) => {
     if (eventDetailData) {
       const updatedFights = (eventDetailData.fights || []).map((f: Fight) =>
-        f.id === updatedFight.id ? updatedFight : f
+        f.id === updatedFight.id ? updatedFight : f,
       );
       onFightsUpdate(updatedFights);
-      
+
       // Update event stats
       const updatedEvent = {
         ...eventDetailData.event,
-        completedFights: updatedFights.filter((f: Fight) => f.status === 'completed').length,
+        completedFights: updatedFights.filter(
+          (f: Fight) => f.status === "completed",
+        ).length,
         totalFights: updatedFights.length,
       };
       onEventUpdate(updatedEvent);
@@ -62,7 +66,7 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
         default:
           break;
       }
-      
+
       if (response && response.success) {
         // Update event data if needed
         onEventUpdate({ ...eventDetailData.event });
@@ -87,11 +91,13 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                 Estado del Stream
               </label>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${
-                  eventDetailData?.event?.streamStatus === "connected" 
-                    ? "bg-red-100 text-red-800 animate-pulse" 
-                    : "bg-gray-100 text-gray-800"
-                }`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${
+                    eventDetailData?.event?.streamStatus === "connected"
+                      ? "bg-red-100 text-red-800 animate-pulse"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   <div className="w-2 h-2 rounded-full mr-1 bg-current"></div>
                   {eventDetailData?.event?.streamStatus === "connected"
                     ? "Conectado"
@@ -158,7 +164,7 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-900">
           Gestión de Peleas ({eventDetailData?.fights?.length || 0})

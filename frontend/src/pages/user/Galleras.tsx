@@ -283,7 +283,9 @@ const GallerasPage: React.FC = () => {
               // Extract specialties from transformed response (via owner.profileInfo)
               let specialties: string[] = [];
               if (gallera.owner?.profileInfo?.galleraSpecialties) {
-                specialties = Array.isArray(gallera.owner.profileInfo.galleraSpecialties)
+                specialties = Array.isArray(
+                  gallera.owner.profileInfo.galleraSpecialties,
+                )
                   ? gallera.owner.profileInfo.galleraSpecialties
                   : [gallera.owner.profileInfo.galleraSpecialties];
               }
@@ -293,13 +295,16 @@ const GallerasPage: React.FC = () => {
                 name: gallera.name || "Criadero sin nombre",
                 description: gallera.description || "Información no disponible",
                 location: gallera.location || "Ubicación no especificada",
-                imageUrl: gallera.images?.[0] || gallera.owner?.profileInfo?.profileImage,
+                imageUrl:
+                  gallera.images?.[0] ||
+                  gallera.owner?.profileInfo?.profileImage,
                 ownerImage: gallera.owner?.profileInfo?.profileImage,
                 galleryImages: gallera.images || [],
                 articlesCount: articleCount,
                 establishedDate: gallera.createdAt,
                 isCertified:
-                  gallera.owner?.profileInfo?.verificationLevel === "full" || false,
+                  gallera.owner?.profileInfo?.verificationLevel === "full" ||
+                  false,
                 rating: gallera.owner?.profileInfo?.rating || 0,
                 specialties: specialties,
                 premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
