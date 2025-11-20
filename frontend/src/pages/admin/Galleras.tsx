@@ -295,11 +295,15 @@ const AdminGallerasPage: React.FC = () => {
                     </div>
                     <div className="text-xs text-gray-500">
                       <span className="font-medium">Membresía expira:</span>{" "}
-                      {user.subscription?.manual_expires_at
+                      {user.subscription?.expiresAt
                         ? new Date(
-                            user.subscription.manual_expires_at,
+                            user.subscription.expiresAt,
                           ).toLocaleDateString("es-ES")
-                        : "Gratuita"}
+                        : user.subscription?.manual_expires_at
+                          ? new Date(
+                              user.subscription.manual_expires_at,
+                            ).toLocaleDateString("es-ES")
+                          : "Gratuita"}
                     </div>
                   </div>
                 </div>

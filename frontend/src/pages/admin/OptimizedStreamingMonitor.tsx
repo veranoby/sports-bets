@@ -39,30 +39,34 @@ const OptimizedStreamingMonitor: React.FC = () => {
     const loadEvents = async () => {
       try {
         const response = await eventsAPI.getAll({
-          status: ['scheduled', 'betting', 'live', 'intermission'].join(',') // Get events that are not completed
+          status: ["scheduled", "betting", "live", "intermission"].join(","), // Get events that are not completed
         });
 
         if (response.success && Array.isArray(response.data)) {
           // Transform the response to match our StreamingEvent interface
-          const transformedEvents: StreamingEvent[] = response.data.map((event: any) => ({
-            id: event.id,
-            name: event.title || event.name,
-            status: event.status,
-            scheduledTime: event.scheduledAt || event.createdAt,
-            currentViewers: event.currentViewers || 0, // This might come from a different source
-          }));
+          const transformedEvents: StreamingEvent[] = response.data.map(
+            (event: any) => ({
+              id: event.id,
+              name: event.title || event.name,
+              status: event.status,
+              scheduledTime: event.scheduledAt || event.createdAt,
+              currentViewers: event.currentViewers || 0, // This might come from a different source
+            }),
+          );
 
           setEvents(transformedEvents);
 
           // Default to first live event if available, otherwise first event
-          const firstLiveEvent = transformedEvents.find((event: StreamingEvent) => event.status === 'live');
+          const firstLiveEvent = transformedEvents.find(
+            (event: StreamingEvent) => event.status === "live",
+          );
           const firstEvent = transformedEvents[0];
           setSelectedEvent(firstLiveEvent?.id || firstEvent?.id || "");
         } else {
-          console.error('Failed to load events:', response.error);
+          console.error("Failed to load events:", response.error);
         }
       } catch (error) {
-        console.error('Error loading events:', error);
+        console.error("Error loading events:", error);
         // Fallback to mock data only if API fails
         const mockEvents: StreamingEvent[] = [
           {
@@ -102,29 +106,35 @@ const OptimizedStreamingMonitor: React.FC = () => {
         try {
           // Using eventsAPI to get stream access - this follows the pattern used in the existing streaming page
           // The actual endpoint might be different, but following the pattern from the original Streaming.tsx
-          const response: any = await fetch(`${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/events/${selectedEvent}/stream-access`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json',
+          const response: any = await fetch(
+            `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/events/${selectedEvent}/stream-access`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json",
+              },
             },
-          });
+          );
 
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.data) {
               setStreamUrl(data.data.streamUrl || data.data.hlsUrl);
             } else {
-              console.error('Failed to get stream access:', data.error);
+              console.error("Failed to get stream access:", data.error);
               // Fallback to placeholder if needed
               setStreamUrl("http://localhost:8000/live/test_stream/index.m3u8");
             }
           } else {
-            console.error('Failed to fetch stream access:', response.statusText);
+            console.error(
+              "Failed to fetch stream access:",
+              response.statusText,
+            );
             // Fallback to placeholder if needed
             setStreamUrl("http://localhost:8000/live/test_stream/index.m3u8");
           }
         } catch (error) {
-          console.error('Error getting stream access:', error);
+          console.error("Error getting stream access:", error);
           // Fallback to placeholder if needed
           setStreamUrl("http://localhost:8000/live/test_stream/index.m3u8");
         }
@@ -140,14 +150,17 @@ const OptimizedStreamingMonitor: React.FC = () => {
   const handleStartStream = async () => {
     try {
       // First generate or get the stream key for this event
-      const streamKeyResponse: any = await fetch(`${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/streaming/keys/generate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+      const streamKeyResponse: any = await fetch(
+        `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/streaming/keys/generate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ eventId: selectedEvent }),
         },
-        body: JSON.stringify({ eventId: selectedEvent }),
-      });
+      );
 
       if (streamKeyResponse.ok) {
         const streamKeyData = await streamKeyResponse.json();
@@ -160,7 +173,10 @@ const OptimizedStreamingMonitor: React.FC = () => {
           if (response.success) {
             setIsStreamPlaying(true);
             setIsStreamPaused(false); // Reset paused state
-            console.log("Stream started successfully for event:", selectedEvent);
+            console.log(
+              "Stream started successfully for event:",
+              selectedEvent,
+            );
             console.log("RTMP URL:", streamKeyData.data.rtmpUrl);
             console.log("Stream Key:", streamKeyData.data.streamKey);
           } else {
@@ -170,7 +186,10 @@ const OptimizedStreamingMonitor: React.FC = () => {
           console.error("Failed to generate stream key:", streamKeyData.error);
         }
       } else {
-        console.error("Failed to fetch stream key:", streamKeyResponse.statusText);
+        console.error(
+          "Failed to fetch stream key:",
+          streamKeyResponse.statusText,
+        );
       }
     } catch (error) {
       console.error("Error starting stream:", error);
@@ -560,8 +579,17 @@ const OptimizedStreamingMonitor: React.FC = () => {
         {streamKey && rtmpUrl && (
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-amber-600"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
               <h3 className="text-md font-semibold text-gray-800">
                 Configuración OBS Studio
@@ -569,7 +597,9 @@ const OptimizedStreamingMonitor: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Server (RTMP URL)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Server (RTMP URL)
+                </label>
                 <div className="flex">
                   <input
                     type="text"
@@ -581,15 +611,28 @@ const OptimizedStreamingMonitor: React.FC = () => {
                     onClick={() => navigator.clipboard.writeText(rtmpUrl)}
                     className="px-3 py-2 bg-amber-600 text-white rounded-r-md hover:bg-amber-700 text-sm flex items-center gap-1"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
                     </svg>
                     Copiar
                   </button>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stream Key</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stream Key
+                </label>
                 <div className="flex">
                   <input
                     type="text"
@@ -601,8 +644,19 @@ const OptimizedStreamingMonitor: React.FC = () => {
                     onClick={() => navigator.clipboard.writeText(streamKey)}
                     className="px-3 py-2 bg-amber-600 text-white rounded-r-md hover:bg-amber-700 text-sm flex items-center gap-1"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
                     </svg>
                     Copiar
                   </button>
@@ -610,8 +664,9 @@ const OptimizedStreamingMonitor: React.FC = () => {
               </div>
             </div>
             <p className="mt-2 text-xs text-gray-600">
-              <strong>Instrucciones:</strong> En OBS Studio → Configuración → Transmisión →
-              Servicio: Personalizado... → Copia los valores anteriores en Servidor y Clave de Transmisión.
+              <strong>Instrucciones:</strong> En OBS Studio → Configuración →
+              Transmisión → Servicio: Personalizado... → Copia los valores
+              anteriores en Servidor y Clave de Transmisión.
             </p>
           </div>
         )}

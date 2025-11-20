@@ -111,13 +111,9 @@ const UserModal: React.FC<UserModalProps> = ({
                 pendingSubscription,
               );
               const action = mode === "create" ? "creados" : "actualizados";
-              toast.success(
-                `Usuario y suscripción ${action} exitosamente`,
-              );
+              toast.success(`Usuario y suscripción ${action} exitosamente`);
             } else {
-              toast.success(
-                "Usuario actualizado (suscripción sin cambios)",
-              );
+              toast.success("Usuario actualizado (suscripción sin cambios)");
             }
           } catch (subError) {
             const action = mode === "create" ? "creado" : "actualizado";
