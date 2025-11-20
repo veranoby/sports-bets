@@ -1,6 +1,49 @@
 {
   "active_tasks": [
     {
+      "task_id": "BACKEND_PERFORMANCE_ANALYSIS_PLAN",
+      "status": "PENDING_EXECUTOR",
+      "created_date": "2025-11-20",
+      "complexity": "HIGH",
+      "category": "PERFORMANCE_OPTIMIZATION",
+      "priority": "HIGH",
+      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "execution_mode": "standard",
+      "summary": "Comprehensive analysis of SSE/WebSocket implementation for memory leaks, overcalls, and economic impact. 4-phase analysis: static code → instrumentation planning → load test scenarios → optimization recommendations.",
+      "task_breakdown": [
+        "Phase 1 (25min): Static code analysis of SSE/WebSocket files for memory leaks, listener accumulation, connection limits",
+        "Phase 2 (20min): Instrumentation planning - metrics to track (connections, memory, events, health)",
+        "Phase 3 (15min): Design load testing scenarios (6+ realistic scenarios from baseline to edge cases)",
+        "Phase 4 (20min): Generate prioritized optimization recommendations with effort/savings estimates"
+      ],
+      "rationale": {
+        "concern_1": "Potential memory leaks in EventSource/WebSocket not closing properly",
+        "concern_2": "Event listeners may accumulate without cleanup on component unmount",
+        "concern_3": "No visible connection limits per user/IP - potential unbounded growth",
+        "concern_4": "Incomplete polling→SSE migration - some components may still polling",
+        "concern_5": "No real-time monitoring of resource usage - can't track cost impact",
+        "business_impact": "Uncontrolled resource consumption → exponential cloud costs over time"
+      },
+      "files_to_analyze": [
+        "backend/src/routes/streaming-monitoring.ts",
+        "frontend/src/hooks/useSSEConnection.ts",
+        "backend/src/contexts/WebSocketContext.tsx",
+        "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx",
+        "frontend/src/components/admin/* (identify SSE consumers)",
+        "backend/src/services/* (identify polling remnants)"
+      ],
+      "executor_prompt_location": "claude-prompt.json (root directory, Phases 1-4)",
+      "validation_gates": [
+        "Phase 1: All 4+ critical files analyzed with risk scores",
+        "Phase 2: Instrumentation plan complete with metrics, thresholds",
+        "Phase 3: 6+ load test scenarios documented",
+        "Phase 4: 5-10 optimization recommendations with effort/savings estimates",
+        "Final: Report structure follows brain/multi_ai_coordination_strategy.json AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (evidence-based, file:line references)"
+      ],
+      "risk_assessment": "LOW - Analysis only, no code changes during this phase. Recommendations prepared for Phase 4 implementation decision.",
+      "expected_output": "Comprehensive report in chat text with findings, instrumentation plan, test scenarios, and prioritized optimization roadmap"
+    },
+    {
       "task_id": "OBS_UI_AND_SUBSCRIPTION_FIX_COMPLETED",
       "status": "COMPLETED",
       "completion_date": "2025-11-19",

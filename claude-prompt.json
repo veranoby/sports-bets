@@ -1,0 +1,180 @@
+{
+  "📋_START_HERE": {
+    "session_declaration": {
+      "date": "2025-11-20",
+      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "director": "Claude (Sonnet 4.5)",
+      "execution_mode": "standard (full validation required for analysis + code recommendations)",
+      "role": "executor - backend performance analysis and optimization planning",
+      "mcp_activation_required": ["--seq", "--sequential", "--c7", "--context7", "--token-efficient"],
+      "critical_protocols": [
+        "DIRECTOR_PLANNING_PROTOCOL (read brain/multi_ai_coordination_strategy.json:79-101)",
+        "AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (bidirectional verification, absence≠existence)",
+        "ROLE_AND_MODEL_AWARENESS_PROTOCOL (executor role validation)"
+      ],
+      "reference_file": "brain/multi_ai_coordination_strategy.json"
+    },
+    "task_summary": "Comprehensive analysis of backend SSE/WebSocket implementation for memory leaks, overcalls, and economic impact. Identify optimization opportunities across 4 phases: static analysis → instrumentation → load testing → optimization plan.",
+    "priority": "HIGH - Performance/cost optimization directly impacts platform sustainability",
+    "business_impact": "Uncontrolled memory leaks, connection accumulation, and redundant processing can cause exponential cloud costs. Current migration from polling→SSE may be incomplete.",
+    "session_limits": {
+      "max_duration": "90 minutes",
+      "checkpoint_every": "20 minutes",
+      "context_refresh_trigger": "If exceeding 70 minutes, create handoff note"
+    }
+  },
+
+  "=_TASK_DEFINITION": {
+    "overall_objective": "Analyze backend SSE/WebSocket implementation for performance issues, memory leaks, overcalls, and economic impact. Produce actionable optimization plan with priorities and estimated savings.",
+    "success_criteria": [
+      "Phase 1: Static code analysis completed with risk scoring for each identified issue",
+      "Phase 2: Instrumentation points identified (no code changes yet, just plan what to monitor)",
+      "Phase 3: Load testing scenarios documented with expected vs actual metrics",
+      "Phase 4: Optimization recommendations with cost/benefit analysis",
+      "Final deliverable: Report findings in chat text with findings and optimization roadmap"
+    ],
+    "critical_focus_areas": {
+      "sse_analysis": {
+        "files": [
+          "backend/src/routes/streaming-monitoring.ts",
+          "frontend/src/hooks/useSSEConnection.ts"
+        ],
+        "concerns": [
+          "Connection lifecycle (open→close) tracking",
+          "Event listener cleanup on component unmount",
+          "Memory accumulation over time",
+          "Client connection limits (per user/IP)",
+          "Timeout mechanisms",
+          "Buffer management"
+        ]
+      },
+      "websocket_analysis": {
+        "files": [
+          "backend/src/contexts/WebSocketContext.tsx",
+          "frontend components using WebSocket"
+        ],
+        "concerns": [
+          "Connection close() implementation",
+          "Client array cleanup after disconnect",
+          "Event listener removeEventListener() calls",
+          "Closure references to large objects",
+          "Connection limits and caps"
+        ]
+      },
+      "polling_to_sse_migration": {
+        "concern": "Migration may be incomplete - some components still polling",
+        "verification_needed": "Search for fetch/axios calls that should use SSE instead"
+      },
+      "event_listener_accumulation": {
+        "concern": "useSSEConnection hook cleanup + React component lifecycle",
+        "check_for": [
+          "useEffect cleanup functions returning proper unsubscribe",
+          "EventSource.addEventListener() paired with removeEventListener()",
+          "No orphaned listeners after component unmount"
+        ]
+      },
+      "resource_monitoring": {
+        "current_state": "No visible real-time monitoring of connections, memory, CPU",
+        "needed": "Metrics for connection count, avg connection lifetime, memory growth rate"
+      }
+    }
+  },
+
+  "=_MANDATORY_PROTOCOLS": {
+    "protocol_1_task_echo_back": {
+      "requirement": "BEFORE starting analysis: Echo back exact tasks and verification approach",
+      "format": "I will analyze PHASES 1-4: Static → Instrumentation → Load Test → Optimization. Confirm Y/N?",
+      "reference": "brain/multi_ai_coordination_strategy.json:79-101"
+    },
+    "protocol_2_audit_methodology": {
+      "requirement": "Bidirectional verification - grep patterns + read files to confirm",
+      "applicability": "All code analysis, file searches, metrics gathering",
+      "reference": "brain/multi_ai_coordination_strategy.json:147-280"
+    },
+    "protocol_3_evidence_based": {
+      "requirement": "All findings must include: file:line | code snippet",
+      "applies_to": "Every memory leak risk, overcall risk, optimization"
+    }
+  },
+
+  "=_PHASE_1_STATIC_CODE_ANALYSIS": {
+    "objective": "Identify memory leak risks, overcall patterns, and inefficiencies through code inspection",
+    "estimated_time": "25 minutes",
+    "steps": [
+      "Read backend/src/routes/streaming-monitoring.ts - endpoint implementation",
+      "Read frontend/src/hooks/useSSEConnection.ts - hook lifecycle",
+      "Read backend/src/contexts/WebSocketContext.tsx - connection management",
+      "Read frontend/src/pages/admin/OptimizedStreamingMonitor.tsx - consumer",
+      "Search for addEventListener/removeEventListener pairs",
+      "Search for .close() calls on EventSource/WebSocket",
+      "Search for connection limits (max connections per user)",
+      "Document findings with file:line references"
+    ],
+    "focus_questions": [
+      "Are EventSource connections properly closed on cleanup?",
+      "Are event listeners removed when components unmount?",
+      "Are there connection limits or caps?",
+      "Is there timeout mechanism for idle connections?",
+      "Are any polling calls still active (should use SSE)?",
+      "Can connections be orphaned on network errors?"
+    ]
+  },
+
+  "=_PHASE_2_INSTRUMENTATION_PLANNING": {
+    "objective": "Design monitoring strategy - what metrics to track",
+    "estimated_time": "20 minutes",
+    "no_code_changes": "This identifies WHAT to monitor, not implementation yet",
+    "metrics_to_plan": [
+      "Active connections count (real-time)",
+      "Average connection lifetime (seconds)",
+      "Memory usage by SSE buffers",
+      "Event frequency (events/sec)",
+      "Reconnection attempts per client",
+      "Orphaned connections detection",
+      "Event listener count (should be bounded)"
+    ],
+    "output": "Instrumentation plan with metric name, where to measure, expected normal range, alert threshold"
+  },
+
+  "=_PHASE_3_LOAD_TESTING_SCENARIOS": {
+    "objective": "Document realistic test scenarios to expose memory leaks and overcalls",
+    "estimated_time": "15 minutes",
+    "no_implementation_yet": "Design tests, don't run them",
+    "scenarios_to_design": [
+      "Scenario A: Baseline (10 concurrent, 60 sec) - expect stable memory",
+      "Scenario B: Peak (500 concurrent) - measure memory per connection",
+      "Scenario C: Rapid reconnect (reconnect every 10s) - detect connection leaks",
+      "Scenario D: Long-lived (simulated 24h) - detect memory growth",
+      "Scenario E: High event volume (1000 evt/sec) - detect backpressure",
+      "Scenario F: Abrupt disconnect (100 clients drop) - measure cleanup time"
+    ]
+  },
+
+  "=_PHASE_4_OPTIMIZATION_RECOMMENDATIONS": {
+    "objective": "Synthesize Phases 1-3 into prioritized optimization plan",
+    "estimated_time": "20 minutes",
+    "per_issue_template": {
+      "issue": "description",
+      "root_cause": "why it happens",
+      "memory_impact": "LOW|MEDIUM|HIGH",
+      "effort_hours": "estimated",
+      "monthly_savings_usd": "estimated cost reduction",
+      "recommendation": "what to do",
+      "risk_level": "LOW|MEDIUM|HIGH"
+    },
+    "output": "Prioritized list of 5-10 recommendations ordered by impact/effort"
+  },
+
+  "=_FINAL_REPORT_STRUCTURE": {
+    "location": "TEXT RESPONSE IN CHAT",
+    "sections": [
+      "Executive Summary (health assessment)",
+      "Phase 1: Static Analysis Findings (issues with evidence)",
+      "Phase 2: Instrumentation Plan (metrics to track)",
+      "Phase 3: Load Test Scenarios (6+ test cases)",
+      "Phase 4: Optimization Roadmap (quick-wins → long-term)",
+      "Total Estimated Impact (cost savings if implemented)"
+    ],
+    "evidence_format": "file:line | code snippet | finding description"
+  }
+}

@@ -99,6 +99,60 @@
       "<1s de latencia SSE"
     ]
   },
+
+  "infrastructure_scaling_500_users": {
+    "current_state": {
+      "concurrent_users": "25-50",
+      "monthly_cost": "$100-300 (VPS + Postgres + CDN)",
+      "streaming_platform": "Nginx-RTMP (sufficient for current scale)"
+    },
+    "target_scale_500_concurrent_users": {
+      "monthly_cost_range": "$2,100-5,300",
+      "cost_drivers": [
+        "CDN bandwidth: ~12 TB/hour for 500 viewers × 3 Mbps = 70-80% of costs",
+        "Compute: API backend with SSE connection management = 10-15%",
+        "Database: PostgreSQL with optimized pooling = 5-10%",
+        "Monitoring: Real-time observability tools = 5%"
+      ]
+    },
+    "infrastructure_tiers": {
+      "tier_1_basic_$2100_3200_month": {
+        "compute": "Vultr/Linode 4-core 8GB RAM = $24/month",
+        "database": "Neon.tech PostgreSQL managed = $50-100/month",
+        "streaming_ingest": "Ant Media Server open-source on VPS = $24/month",
+        "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $2,000-3,000/month",
+        "monitoring": "Prometheus+Grafana self-hosted = $0-50/month",
+        "suitable_for": "MVP testing, beta phase, low-revenue environments"
+      },
+      "tier_2_production_$3400_5300_month": {
+        "compute": "Load-balanced (2× c6i.xlarge EC2) = $300-400/month",
+        "database": "Neon.tech with read replicas = $200-300/month",
+        "streaming": "Wowza Cloud professional = $400-600/month",
+        "cdn_distribution": "Bunny CDN + DDoS protection = $2,000-3,000/month",
+        "monitoring": "DataDog or New Relic = $500-1,000/month",
+        "suitable_for": "Revenue-generating production platform"
+      },
+      "tier_3_optimized_$500_800_month": {
+        "compute": "Vultr 4-core = $24/month",
+        "database": "Neon.tech = $50/month",
+        "streaming_origin": "Ant Media Server = $24/month",
+        "cdn_bandwidth": "Bunny CDN with off-peak cutoff = $400-700/month",
+        "suitable_for": "Regional galleras with scheduled events (peak hours only, no 24h streaming)"
+      }
+    },
+    "cost_optimization_strategies": [
+      "Bunny CDN is 5× cheaper than CloudFront ($0.01/GB vs $0.085/month for first 10 TB)",
+      "Off-peak streaming reduces costs by 60% if events scheduled during specific hours",
+      "Origin-shield technology reduces origin bandwidth by 30-50%",
+      "Adaptive bitrate streaming (ABR) reduces per-user bandwidth by 20-30%",
+      "Connection pooling with PgBouncer reduces database connection overhead"
+    ],
+    "critical_dependencies": [
+      "Backend Performance Analysis (BACKEND_PERFORMANCE_ANALYSIS_PLAN) MUST complete before scaling to 500 users",
+      "Memory leaks in SSE/WebSocket would cause exponential cost growth in production",
+      "Database connection pooling MUST be optimized (currently max: 20, required: 100 for 500 users)"
+    ]
+  },
   "timeline_constraints": {
     "mvp_deadline": "21 de septiembre de 2025",
     "mvp_scope_included": [

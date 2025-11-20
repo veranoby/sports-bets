@@ -15,6 +15,22 @@
       "source_file": "brain/backlog.json (broken_pages_scan_implementation_2025_11_11)"
     },
     {
+      "priority": "P1_CRITICAL_INFRASTRUCTURE",
+      "task_description": "Análisis de Backend Performance y Optimización para Escalabilidad a 500 Usuarios Concurrentes",
+      "rationale": "Análisis profundo de SSE/WebSocket para detectar memory leaks, overcalls e impacto económico. Crítico para escalar de 25 a 500 usuarios sin exponenciales en costos de cloud. Incluye 4 fases: análisis estático → instrumentación → load testing → recomendaciones.",
+      "business_impact": "Memory leaks no detectados pueden causar crecimiento exponencial de costos en infraestructura cloud. Análisis previene ~$10K-50K en costos innecesarios/mes en producción.",
+      "technical_impact": "Identificará connection limits, listener accumulation, polling remnants, y gaps en cleanup logic.",
+      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "execution_plan": "claude-prompt.json (4 fases, 90 minutos)",
+      "source_file": "brain/backlog.json (BACKEND_PERFORMANCE_ANALYSIS_PLAN)",
+      "success_criteria": [
+        "Phase 1: Static analysis with risk scores completed",
+        "Phase 2: Instrumentation plan with metrics/thresholds documented",
+        "Phase 3: 6+ load test scenarios designed",
+        "Phase 4: 5-10 optimization recommendations with effort/savings estimates"
+      ]
+    },
+    {
       "priority": "P1",
       "task_description": "Implementar página de historial global de apuestas para Admin",
       "rationale": "La auditoría de funcionalidades de historial reveló que no existe una vista para que el admin supervise todas las apuestas, lo cual es un requisito de negocio para la operación.",

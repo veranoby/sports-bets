@@ -65,11 +65,63 @@
       }
     },
     "streaming_infrastructure": {
-      "protocol": "Entrada RTMP + Salida HLS",
+      "protocol": "Entrada RTMP + Salida HLS (LL-HLS para baja latencia)",
       "integration": "OBS Studio + Claves de streaming",
-      "mvp_solution": "VPS con Nginx-RTMP (25-50 espectadores)",
-      "growth_solution": "Red5 Cloud o Wowza",
-      "monitoring": "Análisis de bitrate y espectadores en tiempo real"
+      "mvp_solution": {
+        "platform": "Nginx-RTMP en VPS",
+        "capacity": "25-50 espectadores concurrentes",
+        "cost": "$24-50/month (compute) + $50-100/month (bandwidth CDN)"
+      },
+      "scaling_to_500_users": {
+        "phase_1_basic": {
+          "platform": "Ant Media Server (open-source) o Bunny Stream",
+          "streaming_cost": "$24/month (Ant on VPS)",
+          "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $2,000-3,000/month for 500 concurrent",
+          "total_monthly": "$2,100-3,200"
+        },
+        "phase_2_production": {
+          "platform": "Wowza Streaming Engine Cloud",
+          "streaming_cost": "$400-600/month",
+          "cdn_distribution": "Bunny CDN + Origin Shield",
+          "total_monthly": "$2,400-3,600 (compute + CDN)"
+        }
+      },
+      "optimization_techniques": [
+        "Adaptive Bitrate (ABR) streaming reduces per-user bandwidth 20-30%",
+        "LL-HLS (Low-Latency HLS) maintains 1-3 second latency (vs 2-5s standard HLS)",
+        "Origin-Shield caches at CDN edge, reduces origin bandwidth 30-50%",
+        "Connection pooling and cleanup critical to prevent cost growth"
+      ],
+      "critical_monitoring": "Real-time bitrate, concurrent viewer count, origin bandwidth, CDN cache hit ratio",
+      "protocol_rationale": "HLS chosen over WebRTC because: 1) 5× cheaper, 2) CDN-native, 3) browser-universal, 4) suitable for cockfighting streaming latency requirements"
+    },
+
+    "backend_performance_at_scale": {
+      "status": "Analysis pending - see BACKEND_PERFORMANCE_ANALYSIS_PLAN in priorities_memory_index.json",
+      "critical_areas_500_users": [
+        "SSE connection lifecycle management (500 concurrent EventSource connections)",
+        "Event listener cleanup on component unmount (prevent accumulation)",
+        "WebSocket minimal usage for betting proposals (bidirectional only when needed)",
+        "Memory accumulation in buffers and closure references"
+      ],
+      "database_connection_pooling": {
+        "current": "Sequelize pool max: 20, min: 5",
+        "required_for_500_users": "max: 100, min: 20",
+        "optimization": "Implement PgBouncer connection pooling proxy",
+        "rationale": "500 concurrent users × variable query rate = 100-200 simultaneous DB queries at peak"
+      },
+      "real_time_communication_strategy": {
+        "sse_for": [
+          "Admin dashboard updates (metrics, user activity)",
+          "Streaming status notifications",
+          "Betting notifications",
+          "Fight state updates"
+        ],
+        "websocket_for": [
+          "Betting proposals (PAGO/DOY) ONLY - requires bidirectional, timeout 3min"
+        ],
+        "rationale": "SSE has lower CPU overhead (5-10% vs WebSocket), sufficient for server→client only. WebSocket only for cases requiring client→server with timeout."
+      }
     }
   },
   "database_architecture": {
