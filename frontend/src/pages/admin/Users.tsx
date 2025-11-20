@@ -294,11 +294,15 @@ const AdminUsersPage: React.FC = () => {
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {user.subscription?.manual_expires_at
+                    {user.subscription?.expiresAt
                       ? new Date(
-                          user.subscription.manual_expires_at,
+                          user.subscription.expiresAt,
                         ).toLocaleDateString()
-                      : "N/A"}
+                      : user.subscription?.manual_expires_at
+                        ? new Date(
+                            user.subscription.manual_expires_at,
+                          ).toLocaleDateString()
+                        : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(user.createdAt).toLocaleDateString()}

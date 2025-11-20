@@ -81,9 +81,16 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
           // The data should be in event.data directly since our backend sends "data: {json}"
           const parsedData: SSEStreamingData = JSON.parse(event.data);
           setData(parsedData);
-          console.log('📈 SSE: Received streaming monitoring data:', parsedData);
+          console.log(
+            "📈 SSE: Received streaming monitoring data:",
+            parsedData,
+          );
         } catch (parseError) {
-          console.error("❌ SSE: Failed to parse streaming monitoring data:", event.data, parseError);
+          console.error(
+            "❌ SSE: Failed to parse streaming monitoring data:",
+            event.data,
+            parseError,
+          );
           setError(new Error(`Failed to parse SSE data: ${parseError}`));
         }
       };
@@ -91,18 +98,22 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
       es.onerror = () => {
         if (!mountedRef.current) return;
 
-        console.warn("⚠️ SSE: Streaming monitoring connection error. Attempting to reconnect.");
+        console.warn(
+          "⚠️ SSE: Streaming monitoring connection error. Attempting to reconnect.",
+        );
         setIsConnected(false);
         eventSourceRef.current?.close();
 
         // Exponential backoff for reconnection
         const delay = Math.min(
           MAX_RECONNECT_DELAY,
-          1000 * Math.pow(2, retryCountRef.current)
+          1000 * Math.pow(2, retryCountRef.current),
         );
         retryCountRef.current++;
 
-        console.log(`🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`);
+        console.log(
+          `🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`,
+        );
         reconnectTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {
             connect();
@@ -110,7 +121,10 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
         }, delay);
       };
     } catch (e) {
-      console.error("❌ SSE: Could not create streaming monitoring EventSource:", e);
+      console.error(
+        "❌ SSE: Could not create streaming monitoring EventSource:",
+        e,
+      );
       setError(e as Error);
       setIsConnected(false);
     }

@@ -61,7 +61,7 @@ const apiCall = async <T>(
 
     // Extract detailed error message from backend response
     const backendResponse = err.response?.data as any;
-    console.error('Backend response:', backendResponse);
+    console.error("Backend response:", backendResponse);
 
     const apiError: ApiError = {
       name: "ApiError",
@@ -73,7 +73,7 @@ const apiCall = async <T>(
       status: err.response?.status,
     };
 
-    console.error('Extracted error message:', apiError.message);
+    console.error("Extracted error message:", apiError.message);
 
     return {
       success: false,
@@ -307,6 +307,12 @@ export const streamingAPI = {
     timestamp: string;
   }) => {
     return apiCall("post", "/streaming/analytics/event", data);
+  },
+  pauseStream: async (eventId: string) => {
+    return apiCall("post", `/streaming/pause`, { eventId });
+  },
+  resumeStream: async (eventId: string) => {
+    return apiCall("post", `/streaming/resume`, { eventId });
   },
 };
 

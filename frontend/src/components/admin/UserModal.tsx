@@ -26,7 +26,7 @@ const UserModal: React.FC<UserModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"profile" | "subscription">(
     "profile",
   );
@@ -74,7 +74,8 @@ const UserModal: React.FC<UserModalProps> = ({
     // Always save to pending subscription state
     // This will be applied when the user clicks the main "Crear/Actualizar" button
     setPendingSubscription({
-      membership_type: subscriptionData.membership_type || subscriptionData.type || "free",
+      membership_type:
+        subscriptionData.membership_type || subscriptionData.type || "free",
       assigned_username: subscriptionData.assigned_username || "",
     });
   }, []);
@@ -95,26 +96,39 @@ const UserModal: React.FC<UserModalProps> = ({
             const { adminAPI } = await import("../../services/api");
 
             // Check if subscription needs to be updated
-            const currentType = user?.subscription?.plan === "basic" ? "24-hour" :
-                               user?.subscription?.plan === "premium" ? "monthly" : "free";
+            const currentType =
+              user?.subscription?.plan === "basic"
+                ? "24-hour"
+                : user?.subscription?.plan === "premium"
+                  ? "monthly"
+                  : "free";
             const newType = pendingSubscription.membership_type;
 
             // Only update if different from current subscription
             if (mode === "create" || currentType !== newType) {
-              await adminAPI.updateUserMembership(createdOrUpdatedUser.id, pendingSubscription);
+              await adminAPI.updateUserMembership(
+                createdOrUpdatedUser.id,
+                pendingSubscription,
+              );
               const action = mode === "create" ? "creados" : "actualizados";
-              addToast(`Usuario y suscripción ${action} exitosamente`, "success");
+              toast.success(
+                `Usuario y suscripción ${action} exitosamente`,
+              );
             } else {
-              addToast("Usuario actualizado (suscripción sin cambios)", "success");
+              toast.success(
+                "Usuario actualizado (suscripción sin cambios)",
+              );
             }
           } catch (subError) {
             const action = mode === "create" ? "creado" : "actualizado";
-            addToast(`Usuario ${action}, pero error al asignar suscripción`, "warning");
+            toast.warning(
+              `Usuario ${action}, pero error al asignar suscripción`,
+            );
           }
         } else if (!pendingSubscription) {
           // No subscription changes
           const action = mode === "create" ? "creado" : "actualizado";
-          addToast(`Usuario ${action} exitosamente`, "success");
+          toast.success(`Usuario ${action} exitosamente`);
         }
 
         onSuccess(createdOrUpdatedUser);
@@ -525,7 +539,6 @@ const UserModal: React.FC<UserModalProps> = ({
                   </label>
                 </div>
               </div>
-
             </form>
           ) : (
             // Subscription tab

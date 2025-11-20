@@ -1,218 +1,315 @@
 {
-  "🎯_START_HERE": {
-    "task": "Unify /admin/monitoring + /admin/streaming into ONE page that doesn't crash the platform",
-    "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-    "mode": "standard (full validation required)",
-    "time_estimate": "4-5 hours",
-    "priority": "CRITICAL - Platform crashes without this"
-  },
-
-  "📋_WHAT_HAS_ALREADY_BEEN_DONE": {
-    "director_completed": [
-      "✅ Database indices created: idx_subscriptions_user_created, idx_membership_requests_status_requested",
-      "✅ Code optimizations: settingsService.ts (features enabled by default), membership-requests.ts (batch queries), User.ts (no redundant queries)",
-      "✅ Sidebar updated: Label now says 'Streaming & Monitoreo' (single entry point)",
-      "✅ Database verified: Migrations executed in Neon Tech, metadata.payment structure confirmed"
-    ],
-    "qwen_responsibility": "ONLY: Backend SSE endpoint + Frontend unified page + App.tsx routing"
-  },
-
-  "🔴_THE_PROBLEM_IN_30_SECONDS": {
-    "current_state": {
-      "monitoring_page": "Polls /api/monitoring/alerts + /api/monitoring/stats every 5 seconds",
-      "result": "24 queries/min × 687ms each = backend saturates, SSE connections collapse, console spams sw.js 404 errors",
-      "user_impact": "Page crashes browser, platform becomes unusable"
+  "<�_START_HERE": {
+    "session_declaration": {
+      "date": "2025-11-19",
+      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "director": "Claude Sonnet 4.5",
+      "execution_mode": "standard (full validation required)",
+      "role": "executor",
+      "mcp_activation_required": ["--seq", "--c7", "--token-efficient"],
+      "protocols": ["DIRECTOR_PLANNING_PROTOCOL", "SIMULATE_Y_CONFIRMAR_PROTOCOL", "AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL"],
+      "reference_file": "brain/multi_ai_coordination_strategy.json (lines 79-100, 318-342, 619-637)"
     },
-    "desired_state": {
-      "unified_page": "Single /admin/streaming page (simplified metrics only)",
-      "architecture": "SSE endpoint pushes minimal stats every 2 seconds (1 connection, not 24 queries)",
-      "layout": "Left: Stream player + controls | Right: Live metrics only (connectionCount + activeBets)",
-      "result": "No polling, no crashes, stable streaming experience, lean metrics"
+    "task_summary": "Two discrete implementation tasks: (1) Add OBS Studio configuration UI to streaming page, (2) Fix subscription display in users management page",
+    "priority": "HIGH - Both required for MVP",
+    "session_limits": {
+      "max_duration": "40 minutes",
+      "checkpoint_every": "15 minutes",
+      "context_refresh_trigger": "If exceeding 30 minutes, create handoff note"
     }
   },
 
-  "✅_ACCEPTANCE_CRITERIA": {
-    "backend_must_deliver": [
-      "New endpoint: GET /api/sse/streaming?token=<jwt> (Server-Sent Events)",
-      "Response structure: {connectionCount: number, activeBets: number, streamStatus: {...}}",
-      "Push frequency: Every 2 seconds (throttled, no rapid updates)",
-      "Authentication: Support token from query param (for EventSource compatibility)",
-      "Connection stability: Maintain for 5+ minutes without spurious disconnects",
-      "Logging: Backend logs show 1 SSE connection, NOT 24 queries/min"
-    ],
-    "frontend_must_deliver": [
-      "New page: frontend/src/pages/admin/OptimizedStreamingMonitor.tsx",
-      "New hook: frontend/src/hooks/useSSEConnection.ts (manages EventSource + reconnect)",
-      "Layout: Left 70% (stream), Right 30% (connectionCount + activeBets metrics)",
-      "Update: frontend/src/App.tsx (add route to new page)",
-      "Behavior: Stream plays without interruption, metrics update in real-time",
-      "Console: ZERO errors (especially no sw.js 404 spam)"
-    ],
-    "testing_before_delivery": [
-      "npm run build (backend): Must pass TypeScript",
-      "npm run build (frontend): Must pass TypeScript",
-      "Browser: Load /admin/streaming, verify page works (don't break existing /admin/streaming if it's used elsewhere)",
-      "Browser DevTools: Check Network tab - should show 1 EventSource connection, not 24 GET requests",
-      "Browser Console: Zero errors related to monitoring or SSE"
-    ]
+  "=�_TASK_DEFINITION": {
+    "task_1_obs_ui": {
+      "id": "STREAMING_OBS_UI_IMPLEMENTATION",
+      "status": "READY_FOR_EXECUTOR",
+      "priority": "HIGH",
+      "complexity": "LOW",
+      "rationale": "PRD requires 'Ingesta de video v�a RTMP desde OBS Studio' (prd_system.json:61). Without UI display of RTMP URL and Stream Key, operators cannot complete the streaming workflow.",
+      "acceptance_criteria": [
+        "UI Card displays after handleStartStream() executes successfully",
+        "Card shows RTMP URL with copy-to-clipboard button",
+        "Card shows Stream Key with copy-to-clipboard button",
+        "Card uses amber/warning color scheme (yellow-50 border)",
+        "Copy buttons use navigator.clipboard.writeText()",
+        "TypeScript compilation: 0 errors",
+        "Console: No runtime errors when copying"
+      ]
+    },
+    "task_2_subscription_display": {
+      "id": "SUBSCRIPTION_DISPLAY_FIX",
+      "status": "READY_FOR_EXECUTOR",
+      "priority": "HIGH",
+      "complexity": "MEDIUM",
+      "rationale": "Users with active subscriptions (e.g., 24-hour, monthly) incorrectly display as 'gratuita' in /admin/users table and edit modal. Root cause: field name mismatch between backend response and frontend consumption.",
+      "root_cause": {
+        "backend_toPublicJSON": "User.ts:110 returns 'expiresAt' (not 'manual_expires_at')",
+        "frontend_usage": "Users.tsx:297 attempts to access 'subscription?.manual_expires_at' (wrong field name)",
+        "result": "Subscription data exists but UI never displays it"
+      },
+      "acceptance_criteria": [
+        "Both User.ts and Subscription.ts toPublicJSON return consistent field names",
+        "Frontend Users.tsx accesses correct field (expiresAt)",
+        "UserModal.tsx subscription tab displays correct subscription type and expiration",
+        "Test users (user_test2 with 24-hour) display correctly as '24-hour' (not 'gratuita')",
+        "TypeScript compilation: 0 errors",
+        "Build succeeds: npm run build"
+      ]
+    }
   },
 
-  "🏗️_IMPLEMENTATION_PHASES": {
-    "phase_1_backend_sse_endpoint": {
-      "file": "backend/src/routes/streaming.ts (NEW) or extend monitoring.ts",
-      "task": "Create /sse/streaming endpoint (SIMPLIFIED - metrics only, NO alerts)",
-      "specification": {
-        "endpoint": "GET /api/sse/streaming?token=<jwt>",
-        "method": "Server-Sent Events (SSE)",
-        "data_pushed": {
-          "connectionCount": "Number of users currently connected to streaming",
-          "activeBets": "Number of active bets (important business metric)",
-          "streamStatus": "Optional: {isLive: boolean}"
+  "=4_MANDATORY_PROTOCOLS": {
+    "protocol_1_task_echo_back": {
+      "requirement": "BEFORE starting any implementation: Echo back exact tasks being executed",
+      "format": "I will execute:\\n- TASK_1: [exact description]\\n- TASK_2: [exact description]\\nConfirm Y/N?",
+      "reference": "brain/multi_ai_coordination_strategy.json:588-596"
+    },
+    "protocol_2_simulate_confirm": {
+      "requirement": "For all code changes: describe changes, verify against codebase, then execute",
+      "applicability": "Both tasks (standard mode)",
+      "steps": ["[SIMULATED]", "[CONFIRMED]", "[MODIFIED]"],
+      "reference": "brain/multi_ai_coordination_strategy.json:318-327"
+    },
+    "protocol_3_checkpoint": {
+      "requirement": "Commit after each task with [TASK_COMPLETE] tag",
+      "format": "git commit -m 'feat: [TASK_ID] description\\n[CHECKPOINT_TAG]'",
+      "reference": "brain/multi_ai_coordination_strategy.json:328-337"
+    },
+    "protocol_4_scope_validation": {
+      "requirement": "Before final commit: verify ONLY intended files modified",
+      "command": "git diff --name-only HEAD~1",
+      "reference": "brain/multi_ai_coordination_strategy.json:380-384"
+    }
+  },
+
+  "<�_PHASE_5_OBS_UI_IMPLEMENTATION": {
+    "objective": "Add OBS Studio configuration UI card to OptimizedStreamingMonitor.tsx",
+    "description": "Display RTMP URL and Stream Key with copy buttons after stream starts",
+    "estimated_time": "15 minutes",
+
+    "prerequisite_reads": [
+      "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (full file, understand structure)",
+      "frontend/src/components/shared/Card.tsx (understand Card component)"
+    ],
+
+    "implementation_steps": {
+      "step_1": {
+        "action": "Locate handleStartStream() function in OptimizedStreamingMonitor.tsx",
+        "expected_location": "Line 140-178",
+        "purpose": "Identify where to place conditional rendering of OBS UI card",
+        "simulate": "Will add conditional render: {streamKey && rtmpUrl && <Card>...</Card>}",
+        "confirm": "Function exists, streamKey and rtmpUrl state variables are assigned in this function"
+      },
+      "step_2": {
+        "action": "Create OBS configuration Card component",
+        "location": "After metrics panel closing tag (before closing main div), add new Card section",
+        "code_structure": {
+          "condition": "streamKey && rtmpUrl",
+          "styling": "bg-amber-50 border-amber-200 border",
+          "title": "<� Configuraci�n OBS Studio",
+          "content": [
+            "RTMP URL field with copy button",
+            "Stream Key field with copy button",
+            "Simple instructions (optional)"
+          ]
         },
-        "note": "REMOVED: alerts (no utility), liveEvents (only 2 max), activeUsers (same as connectionCount), requestsPerMinute (unclear utility)"
+        "simulate": "Will add Card with two input fields, each with copy button using navigator.clipboard.writeText()"
       },
-      "pseudocode": [
-        "app.get('/sse/streaming', authenticate via query token, (req, res) => {",
-        "  res.setHeader('Content-Type', 'text/event-stream');",
-        "  res.setHeader('Cache-Control', 'no-cache');",
-        "  res.setHeader('Access-Control-Allow-Origin', '*');",
-        "  ",
-        "  const interval = setInterval(async () => {",
-        "    const data = {",
-        "      connectionCount: await getConnectionCount(),",
-        "      activeBets: await getActiveBetsCount(),",
-        "      streamStatus: {isLive: await checkIfStreaming()}",
-        "    };",
-        "    res.write(`data: ${JSON.stringify(data)}\\n\\n`);",
-        "  }, 2000);",
-        "  ",
-        "  req.on('close', () => clearInterval(interval));",
-        "});"
-      ],
-      "estimated_time": "30 minutes (simpler than before)"
+      "step_3": {
+        "action": "Implement copy-to-clipboard functionality",
+        "pattern": "onClick={() => navigator.clipboard.writeText(rtmpUrl)} then show toast",
+        "fallback": "If no toast available, just copy (user can see in console)"
+      },
+      "step_4": {
+        "action": "Verify TypeScript compilation",
+        "command": "npm run build (from frontend/)",
+        "expected_result": "Build succeeds, no TypeScript errors"
+      }
     },
 
-    "phase_2_frontend_hook": {
-      "file": "frontend/src/hooks/useSSEConnection.ts (NEW)",
-      "task": "Create hook for SSE connection management",
-      "specification": {
-        "behavior": "Opens EventSource to /api/sse/streaming?token=jwt",
-        "handles": "Auto-reconnect with exponential backoff if connection drops",
-        "returns": {alerts, stats, streamStatus, error, isConnected}",
-        "cleanup": "Close EventSource on component unmount"
-      },
-      "pseudocode": [
-        "export function useSSEConnection() {",
-        "  const [data, setData] = useState({alerts: [], stats: null});",
-        "  const [isConnected, setIsConnected] = useState(false);",
-        "  const [error, setError] = useState(null);",
-        "  ",
-        "  useEffect(() => {",
-        "    const token = localStorage.getItem('token');",
-        "    const eventSource = new EventSource(`/api/sse/streaming?token=${token}`);",
-        "    ",
-        "    eventSource.onmessage = (e) => setData(JSON.parse(e.data));",
-        "    eventSource.onopen = () => setIsConnected(true);",
-        "    eventSource.onerror = () => {",
-        "      setIsConnected(false);",
-        "      eventSource.close();",
-        "      // Reconnect logic here",
-        "    };",
-        "    ",
-        "    return () => eventSource.close();",
-        "  }, []);",
-        "  ",
-        "  return {alerts: data.alerts, stats: data.stats, isConnected, error};",
-        "}"
+    "success_validation": {
+      "manual_test": [
+        "Click 'Iniciar Stream' button",
+        "Verify OBS card appears below metrics",
+        "Click copy button on RTMP URL",
+        "Click copy button on Stream Key",
+        "Browser console: no errors"
       ],
-      "estimated_time": "30 minutes"
+      "automated_validation": "npm run build passes"
     },
 
-    "phase_3_frontend_unified_page": {
-      "file": "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (NEW)",
-      "task": "Create unified streaming page (SIMPLIFIED - metrics only)",
-      "layout": {
-        "top": "Event selector + stream status indicator (green=live, red=offline)",
-        "left": "70% - HLSPlayer + stream controls (play/stop/info)",
-        "right": "30% - Live metrics card: {connectionCount, activeBets}"
+    "rollback_procedure": "git checkout frontend/src/pages/admin/OptimizedStreamingMonitor.tsx"
+  },
+
+  "<�_PHASE_6_OBS_UI_INTEGRATION_AND_ROUTING": {
+    "objective": "Verify OBS UI integrates with existing page, test end-to-end",
+    "description": "Ensure OBS card displays correctly, no console errors, proper styling",
+    "estimated_time": "10 minutes",
+
+    "integration_checklist": {
+      "app_tsx_routing": {
+        "check": "Verify /admin/streaming route exists",
+        "file": "frontend/src/App.tsx",
+        "expected": "Route path='/admin/streaming' element={<OptimizedStreamingMonitor />}"
       },
-      "implementation": [
-        "Import useSSEConnection hook",
-        "Import HLSPlayer component (from existing Streaming.tsx)",
-        "Layout: 2-column grid (70/30 split)",
-        "Use hook data: {connectionCount, activeBets, isConnected} → render real-time",
-        "Simple card showing 2 metrics (no alerts, no complex dashboard)",
-        "Error handling: Show connection status, auto-reconnect UI"
-      ],
-      "estimated_time": "45 minutes (much simpler without alerts)"
+      "sidebar_entry": {
+        "check": "Verify sidebar shows 'Streaming & Monitoreo' entry",
+        "file": "frontend/src/components/admin/AdminSidebar.tsx",
+        "expected": "Menu item points to /admin/streaming"
+      },
+      "build_validation": {
+        "command": "npm run build",
+        "expected": " built in X.XXs (no errors)"
+      }
     },
 
-    "phase_4_routing": {
-      "file": "frontend/src/App.tsx",
-      "task": "Add route to unified page",
-      "change": "Add route: <Route path='/admin/streaming' element={<OptimizedStreamingMonitor />} />",
-      "estimated_time": "10 minutes"
+    "rollback_procedure": "git reset --hard HEAD~1 (if entire task failed)"
+  },
+
+  "<�_PHASE_7_SUBSCRIPTION_DISPLAY_BACKEND_FIX": {
+    "objective": "Fix User.toPublicJSON() to return consistent subscription field names",
+    "description": "Ensure backend returns 'expiresAt' (not 'manual_expires_at') in subscription object",
+    "estimated_time": "10 minutes",
+
+    "prerequisite_reads": [
+      "backend/src/models/User.ts (toPublicJSON method, lines 99-125)",
+      "backend/src/models/Subscription.ts (toPublicJSON method, lines ~420-440)"
+    ],
+
+    "analysis_phase": {
+      "step_1": {
+        "action": "Verify exact field names in Subscription.toPublicJSON()",
+        "method": "Grep or Read Subscription.ts for 'toPublicJSON' method",
+        "document": "What fields does Subscription.toPublicJSON return? Specifically: does it return 'expiresAt' or 'manual_expires_at'?"
+      },
+      "step_2": {
+        "action": "Verify User.toPublicJSON() mapping",
+        "location": "User.ts lines 105-115",
+        "issue": "Line 110 maps latestSubscription.expiresAt (correct), but also check if any other field needs manual_expires_at"
+      },
+      "step_3": {
+        "action": "Confirm subscription field consistency",
+        "validate": "User.toPublicJSON should return: {type, status, expiresAt, features, remainingDays} - NOT manual_expires_at"
+      }
+    },
+
+    "implementation_steps": {
+      "step_1": {
+        "action": "If User.toPublicJSON is already correct, verify Subscription model",
+        "check": "Does Subscription.toPublicJSON() exist and return correct fields?",
+        "if_missing": "Add toPublicJSON() method to Subscription.ts if not present"
+      },
+      "step_2": {
+        "action": "Ensure all subscription properties returned use camelCase (not snake_case)",
+        "validate": "Type coercion: expiresAt (JS) not expires_at (SQL field)",
+        "reference": "Sequelize underscored: true auto-converts, ensure toPublicJSON converts back to camelCase"
+      },
+      "step_3": {
+        "action": "Run TypeScript compilation",
+        "command": "npm run build (from backend/)",
+        "expected_result": "0 errors"
+      }
+    },
+
+    "success_validation": {
+      "backend_endpoint_test": [
+        "Call: curl -H 'Authorization: Bearer <TOKEN>' http://localhost:3001/api/users",
+        "Verify response includes: user.subscription.expiresAt (not manual_expires_at)",
+        "Verify subscription.type shows correct value (e.g., 'daily', 'monthly', 'free')"
+      ]
+    },
+
+    "rollback_procedure": "git checkout backend/src/models/User.ts backend/src/models/Subscription.ts"
+  },
+
+  "<�_PHASE_8_SUBSCRIPTION_DISPLAY_FRONTEND_FIX": {
+    "objective": "Fix Users.tsx and UserModal.tsx to use correct field names from backend",
+    "description": "Update subscription display to use 'expiresAt' instead of 'manual_expires_at'",
+    "estimated_time": "10 minutes",
+
+    "prerequisite_reads": [
+      "frontend/src/pages/admin/Users.tsx (subscription display section, lines ~290-310)",
+      "frontend/src/components/admin/UserModal.tsx (subscription tab)",
+      "frontend/src/components/admin/SubscriptionTabs.tsx (if relevant)"
+    ],
+
+    "implementation_steps": {
+      "step_1": {
+        "action": "Find all references to subscription?.manual_expires_at in Users.tsx",
+        "method": "Search for 'manual_expires_at' in file",
+        "expected": "Found in Users.tsx ~297-299"
+      },
+      "step_2": {
+        "action": "Replace with correct field name",
+        "change_from": "user.subscription?.manual_expires_at",
+        "change_to": "user.subscription?.expiresAt",
+        "lines": "Users.tsx:297-299"
+      },
+      "step_3": {
+        "action": "Update subscription type display if needed",
+        "verify": "Does UI show subscription.type correctly? (e.g., 'daily', 'monthly', 'free')",
+        "fix_if_needed": "Map backend type names to UI display names if mismatch"
+      },
+      "step_4": {
+        "action": "Check UserModal.tsx subscription tab",
+        "file": "frontend/src/components/admin/UserModal.tsx (subscription tab)",
+        "verify": "Tab displays subscription.type and subscription.expiresAt correctly"
+      },
+      "step_5": {
+        "action": "Run TypeScript compilation",
+        "command": "npm run build (from frontend/)",
+        "expected_result": "0 errors"
+      }
+    },
+
+    "success_validation": {
+      "manual_test": [
+        "Navigate to /admin/users",
+        "Find user_test2 (has 24-hour subscription)",
+        "Verify table shows: Subscription: '24-hour' (not 'gratuita')",
+        "Verify expiration date shows correctly",
+        "Click edit button",
+        "Verify modal subscription tab shows correct type and expiration"
+      ],
+      "automated_validation": "npm run build passes"
+    },
+
+    "rollback_procedure": "git checkout frontend/src/pages/admin/Users.tsx frontend/src/components/admin/UserModal.tsx"
+  },
+
+  "_ACCEPTANCE_GATES": {
+    "before_delivery": {
+      "typescript_check": {
+        "command": "npm run build (both backend and frontend)",
+        "requirement": "0 errors, 0 warnings"
+      },
+      "scope_validation": {
+        "command": "git diff --name-only",
+        "requirement": "Only these files modified:\\n- frontend/src/pages/admin/OptimizedStreamingMonitor.tsx\\n- backend/src/models/User.ts (if needed)\\n- frontend/src/pages/admin/Users.tsx\\n- frontend/src/components/admin/UserModal.tsx (if needed)"
+      },
+      "manual_testing": {
+        "obs_ui": "OBS card appears and displays RTMP URL + Key with copy buttons",
+        "subscription": "user_test2 displays '24-hour' subscription (not 'gratuita') in Users table and UserModal"
+      }
     }
   },
 
-  "⚠️_CRITICAL_REQUIREMENTS": {
-    "do": [
-      "✅ Use existing getAlerts() and getStats() functions (reuse, don't rewrite)",
-      "✅ Implement proper error handling (connection loss, server errors)",
-      "✅ Log all SSE events to console (for debugging)",
-      "✅ Test that stream playback is NOT interrupted when monitoring updates",
-      "✅ Verify single EventSource connection in Network tab"
+  "=�_REPORTING_PROTOCOL": {
+    "requirement": "After completing all phases, report MUST include:",
+    "format": [
+      "1. Tasks completed: List each task with status ( or L)",
+      "2. Changes made: Specific files, line numbers, functions modified",
+      "3. Evidence: npm run build output (0 errors), git diff output",
+      "4. Testing: Manual test results from acceptance gates",
+      "5. Git commits: List commit hashes with [CHECKPOINT] and [TASK_COMPLETE] tags"
     ],
-    "dont": [
-      "❌ Don't reimplement monitoring logic - reuse existing backend functions",
-      "❌ Don't use polling in the frontend hook - EventSource ONLY",
-      "❌ Don't create new migration files (all DB work is done)",
-      "❌ Don't break existing pages - this is an addition, not a replacement"
-    ]
+    "location": "TEXT response in Claude chat (update brain/backlog.json as secondary)"
   },
 
-  "📊_VERIFICATION_CHECKLIST": {
-    "after_phase_1_backend": [
-      "Run: npm run build → TypeScript must pass",
-      "Check: Backend logs when connecting to /sse/streaming → should see connection established",
-      "Test: curl 'localhost:3001/api/sse/streaming?token=<jwt>' → should receive data: {...} events every 2 seconds"
-    ],
-    "after_phase_2_3_frontend": [
-      "Run: npm run build → TypeScript must pass",
-      "Load: Browser to /admin/streaming → page loads in <2 seconds",
-      "Check: DevTools Network → 1 EventSource connection (streaming), NOT 24 GET requests",
-      "Check: DevTools Console → ZERO errors",
-      "Test: Play a stream on left, verify metrics (connectionCount, activeBets) update in real-time"
-    ],
-    "final_before_delivery": [
-      "npm run build (both backend and frontend) → both pass",
-      "Browser: /admin/streaming page fully functional",
-      "Browser: Stream plays + monitoring updates simultaneously",
-      "Console: Zero errors (especially no sw.js 404 spam)"
-    ]
-  },
-
-  "📝_REPORTING_TO_DIRECTOR": {
-    "format": "Text response in Claude chat (NO separate files)",
-    "sections": [
-      "1. Analysis: How you get connectionCount and activeBets (new simpler approach)",
-      "2. Changes made: Files created/modified, line numbers, logic explained",
-      "3. Performance verified: Screenshots or logs showing 1 SSE connection (not 24 queries), simple data structure",
-      "4. Testing results: What passed, what failed, console output (clean or errors)",
-      "5. Edge cases handled: Reconnect logic, error scenarios, stream stability"
-    ]
-  },
-
-  "🔗_REFERENCE_FILES": {
-    "existing_implementations": [
-      "HLSPlayer: frontend/src/components/streaming/HLSPlayer.tsx (use as-is)",
-      "Streaming page: frontend/src/pages/admin/Streaming.tsx (reference for layout)",
-      "EventConnection model: backend/src/models/EventConnection.ts (reference for connectionCount)",
-      "Bet model: backend/src/models/Bet.ts (reference for activeBets)"
-    ],
-    "brain_files": [
-      "brain/backlog.json - Task definition (includes what monitoring had)",
-      "brain/multi_ai_coordination_strategy.json - Coordination protocols"
-    ]
+  "=_REFERENCE_FILES": {
+    "coordination_strategy": "brain/multi_ai_coordination_strategy.json",
+    "prd": "brain/prd_system.json",
+    "api_reference": "brain/api_endpoints_reference.json",
+    "streaming_manual": "streaming-manual.md"
   }
 }

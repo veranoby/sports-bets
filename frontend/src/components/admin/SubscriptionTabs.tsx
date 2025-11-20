@@ -50,12 +50,15 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
   // Auto-save to parent state when selection changes
   useEffect(() => {
     // Only save if we have required data
-    if (selectedType === "free" || (selectedType !== "free" && assignedUsername.trim())) {
+    if (
+      selectedType === "free" ||
+      (selectedType !== "free" && assignedUsername.trim())
+    ) {
       setError(null);
       onSave({
         membership_type: selectedType,
         assigned_username: assignedUsername.trim(),
-        type: selectedType,
+        type: selectedType as "free" | "daily" | "monthly",
         status: selectedType === "free" ? "active" : "pending",
         expiresAt: selectedType === "free" ? null : undefined,
         manual_expires_at: selectedType === "free" ? null : undefined,
@@ -123,11 +126,15 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
             </div>
             <div>
               <span className="text-gray-500">Expira:</span>{" "}
-              {subscription?.manual_expires_at
-                ? new Date(subscription.manual_expires_at).toLocaleDateString(
+              {subscription?.expiresAt
+                ? new Date(subscription.expiresAt).toLocaleDateString(
                     "es-ES",
                   )
-                : "N/A"}
+                : subscription?.manual_expires_at
+                  ? new Date(subscription.manual_expires_at).toLocaleDateString(
+                      "es-ES",
+                    )
+                  : "N/A"}
             </div>
           </div>
         </div>

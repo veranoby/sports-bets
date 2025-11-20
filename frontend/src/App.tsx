@@ -60,7 +60,7 @@ const AdminMembershipRequests = lazy(
 const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
 const AdminStreaming = lazy(() => import("./pages/admin/Streaming"));
 const OptimizedStreamingMonitor = lazy(
-  () => import("./pages/admin/OptimizedStreamingMonitor")
+  () => import("./pages/admin/OptimizedStreamingMonitor"),
 );
 const CreateEvent = lazy(() => import("./pages/admin/CreateEvent"));
 
@@ -287,9 +287,7 @@ const AppContent: React.FC = () => {
           {/* Monitoreo - redirect to unified streaming page */}
           <Route
             path="/admin/monitoring"
-            element={
-              <Navigate to="/admin/streaming" replace />
-            }
+            element={<Navigate to="/admin/streaming" replace />}
           />
 
           {/* Configuración */}
