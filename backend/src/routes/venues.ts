@@ -152,7 +152,7 @@ router.get(
       return {
         success: true,
         data: {
-          venues: transformedRows,
+          users: transformedRows,
           total: count,
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),

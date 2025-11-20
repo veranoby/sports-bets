@@ -49,12 +49,6 @@ const AdminSidebar: React.FC = () => {
       roles: ["admin"],
     },
     {
-      path: "/admin/operators",
-      icon: Users,
-      label: "Operadores",
-      roles: ["admin"],
-    },
-    {
       path: "/admin/venues",
       icon: Building2,
       label: "Galleras",
@@ -81,7 +75,7 @@ const AdminSidebar: React.FC = () => {
     {
       path: "/admin/streaming",
       icon: Radio,
-      label: "Streaming & Monitoreo",
+      label: "Monitoreo General",
       roles: ["admin", "operator"],
     },
     {

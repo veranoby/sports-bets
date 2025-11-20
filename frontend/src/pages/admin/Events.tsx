@@ -1,9 +1,9 @@
 // frontend/src/pages/admin/Events.tsx
 // 🎥 GESTIÓN EVENTOS ADMIN - EL CORAZÓN DEL SISTEMA ⭐⭐⭐
-// Funcionalidad crítica: Modal Gestión Evento con control completo
+// Funcionalidad crítica: Unified Event Hub con tabs y sidebar
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { NavigateOptions } from "react-router-dom";
 import {
   Calendar,
@@ -39,9 +39,13 @@ import EditEventModal from "../../components/admin/EditEventModal";
 import EventWorkflowControls from "../../components/admin/EventWorkflowControls";
 import FightStatusManager from "../../components/admin/FightStatusManager";
 import SSEErrorBoundary from "../../components/admin/SSEErrorBoundary";
+import EventTabs from "../../components/admin/EventTabs";
+import StreamingControlTab from "../../components/admin/StreamingControlTab";
+import FightsControlTab from "../../components/admin/FightsControlTab";
+import BetsActiveTab from "../../components/admin/BetsActiveTab";
 
 // APIs
-import { eventsAPI, fightsAPI, betsAPI } from "../../config/api";
+import { eventsAPI, fightsAPI, betsAPI, streamingAPI } from "../../config/api";
 
 // Hooks
 import { useAuth } from "../../contexts/AuthContext";
@@ -50,6 +54,7 @@ import type { Event, Fight } from "../../types";
 
 const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id: eventIdFromParams } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
@@ -61,16 +66,16 @@ const AdminEventsPage: React.FC = () => {
     searchParams.get("status") || "",
   );
   const [dateFilter, setDateFilter] = useState(
-    searchParams.get("date") || "today",
+    searchParams.get("date") || "",
   );
 
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [eventDetailData, setEventDetailData] = useState<{
     event: Event;
     fights: Fight[];
   } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("streaming");
+  const [isStreamPaused, setIsStreamPaused] = useState(false); // State for stream pause status
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
 
@@ -186,6 +191,13 @@ const AdminEventsPage: React.FC = () => {
     }
   }, []);
 
+  // Fetch event detail when eventIdFromParams changes
+  useEffect(() => {
+    if (eventIdFromParams) {
+      fetchEventDetail(eventIdFromParams);
+    }
+  }, [eventIdFromParams, fetchEventDetail]);
+
   const { todayEvents, filteredEvents } = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
     const todayEvts = events.filter(
@@ -240,7 +252,7 @@ const AdminEventsPage: React.FC = () => {
             e.id === eventId ? { ...e, ...response.data } : e,
           ),
         );
-        if (selectedEventId === eventId && eventDetailData) {
+        if (eventDetailData && eventDetailData.event.id === eventId) {
           setEventDetailData({
             ...eventDetailData,
             event: { ...eventDetailData.event, ...response.data },
@@ -292,9 +304,9 @@ const AdminEventsPage: React.FC = () => {
         // Refresh list
         await fetchEvents();
 
-        // If the deleted event was selected, close the modal
-        if (selectedEventId === eventId) {
-          closeEventDetail();
+        // Navigate back to events list if deleting the current event
+        if (eventIdFromParams === eventId) {
+          navigate("/admin/events");
         }
       } catch (err) {
         setError(
@@ -306,15 +318,8 @@ const AdminEventsPage: React.FC = () => {
     }
   };
 
-  const openEventDetail = (eventId: string) => {
-    setSelectedEventId(eventId);
-    fetchEventDetail(eventId);
-  };
-
   const closeEventDetail = () => {
-    setSelectedEventId(null);
-    setEventDetailData(null);
-    setActiveTab("general");
+    navigate("/admin/events");
   };
 
   const StatusBadge = ({ status }: { status: string }) => {
@@ -361,6 +366,12 @@ const AdminEventsPage: React.FC = () => {
         icon: <DollarSign className="w-3 h-3 mr-1" />,
         pulse: true,
       },
+      paused: {
+        text: "Pausado",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <Activity className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
     };
 
     const config =
@@ -398,6 +409,12 @@ const AdminEventsPage: React.FC = () => {
         icon: <XCircle className="w-3 h-3 mr-1" />,
         pulse: false,
       },
+      paused: {
+        text: "Pausado",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <Activity className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
     };
 
     const config =
@@ -413,6 +430,258 @@ const AdminEventsPage: React.FC = () => {
       </span>
     );
   };
+
+  // Render the full page interface if an event is selected
+  if (eventIdFromParams && eventDetailData) {
+    const tabs = [
+      { id: "streaming", label: "🎬 Transmisión En Vivo", icon: Video },
+      { id: "fights", label: "🥊 Peleas", icon: Target },
+      { id: "bets", label: "💵 Apuestas Activas", icon: DollarSign },
+    ];
+
+    return (
+      <SSEErrorBoundary>
+        <div className="min-h-screen bg-theme-card p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/admin/events")}
+                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Volver a Eventos
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {eventDetailData.event.name}
+                  </h1>
+                  <StatusBadge status={eventDetailData.event.status} />
+                </div>
+
+                <p className="text-gray-600">
+                  {eventDetailData.event.venue?.name} • {eventDetailData.event.operator?.username || 'Sin operador'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsEditEventModalOpen(true)}
+                  className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEventAction(eventIdFromParams, "cancel")}
+                  className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center gap-1"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Cancelar Evento
+                </button>
+                <button
+                  onClick={() => handleDeleteEvent(eventIdFromParams)}
+                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-6">
+            {/* Sidebar - Always visible */}
+            <div className="w-80 bg-white rounded-lg shadow p-4 h-fit sticky top-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Información del Evento</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Estado del Stream</label>
+                  <div className="flex items-center gap-2">
+                    <StreamStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Espectadores</label>
+                  <p className="text-lg font-bold text-gray-900">
+                    {eventDetailData.event.currentViewers || 0}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Próxima Pelea</label>
+                  <p className="text-sm text-gray-900">
+                    {eventDetailData.event.fights && eventDetailData.event.fights.length > 0
+                      ? eventDetailData.event.fights[0].name
+                      : "No programada"}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-2">Acciones Rápidas</h4>
+                  <div className="space-y-2">
+                    {/* Quick Action: Pause/Resume Stream */}
+                    <button
+                      onClick={async () => {
+                        // Toggle stream pause state
+                        if (eventDetailData?.event.streamStatus === 'connected' && !isStreamPaused) {
+                          const response = await streamingAPI.pauseStream(eventIdFromParams);
+                          if (response.success) {
+                            setIsStreamPaused(true);
+                            // Update event status in parent state
+                            setEventDetailData(prev => prev ? {
+                              ...prev,
+                              event: {
+                                ...prev.event,
+                                streamStatus: 'paused'
+                              },
+                              fights: prev.fights || [] // Preserve fights
+                            } : null);
+                          }
+                        } else if (isStreamPaused) {
+                          const response = await streamingAPI.resumeStream(eventIdFromParams);
+                          if (response.success) {
+                            setIsStreamPaused(false);
+                            // Update event status in parent state
+                            setEventDetailData(prev => prev ? {
+                              ...prev,
+                              event: {
+                                ...prev.event,
+                                streamStatus: 'connected'
+                              },
+                              fights: prev.fights || [] // Preserve fights
+                            } : null);
+                          }
+                        }
+                      }}
+                      disabled={operationInProgress !== null}
+                      className="w-full px-3 py-2 bg-blue-400 text-white rounded text-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isStreamPaused ? 'Reanudar Stream' : 'Pausar Stream'}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("fights")}
+                      className="w-full px-3 py-2 bg-green-400 text-white rounded text-sm hover:bg-green-500"
+                    >
+                      Abrir Pelea
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("fights")}
+                      className="w-full px-3 py-2 bg-purple-400 text-white rounded text-sm hover:bg-purple-500"
+                    >
+                      Completar Evento
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area with Tabs */}
+            <div className="flex-1">
+              {/* Tabs */}
+              <EventTabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+
+              {/* Tab Content */}
+              <div className="p-6 bg-white rounded-b-lg rounded-r-lg">
+                {detailLoading ? (
+                  <LoadingSpinner text="Cargando detalles del evento..." />
+                ) : eventDetailData ? (
+                  <>
+                    {activeTab === "streaming" && (
+                      <StreamingControlTab
+                        eventId={eventIdFromParams}
+                        eventDetailData={eventDetailData}
+                        onStreamStatusChange={(status) => {
+                          if (eventDetailData) {
+                            setEventDetailData({
+                              ...eventDetailData,
+                              event: { ...eventDetailData.event, ...status },
+                              fights: eventDetailData.fights || [],
+                            });
+                          }
+                        }}
+                      />
+                    )}
+
+                    {activeTab === "fights" && (
+                      <FightsControlTab
+                        eventId={eventIdFromParams}
+                        eventDetailData={eventDetailData}
+                        onFightsUpdate={(fights) => {
+                          if (eventDetailData) {
+                            setEventDetailData({
+                              ...eventDetailData,
+                              fights,
+                              event: {
+                                ...eventDetailData.event,
+                                completedFights: fights.filter((f: Fight) => f.status === 'completed').length,
+                                totalFights: fights.length,
+                              }
+                            });
+                          }
+                        }}
+                        onEventUpdate={(event) => {
+                          if (eventDetailData) {
+                            setEventDetailData({
+                              ...eventDetailData,
+                              event,
+                              fights: eventDetailData.fights || []
+                            });
+                          }
+                        }}
+                      />
+                    )}
+
+                    {activeTab === "bets" && (
+                      <BetsActiveTab
+                        eventId={eventIdFromParams}
+                        eventDetailData={eventDetailData}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <EmptyState
+                    title="Error al cargar el evento"
+                    description="No se pudieron cargar los datos del evento. Verifica la conexión e inténtalo nuevamente."
+                    icon={<XCircle className="w-12 h-12" />}
+                    action={
+                      <button
+                        onClick={() => fetchEventDetail(eventIdFromParams)}
+                        className="btn-primary"
+                      >
+                        Reintentar
+                      </button>
+                    }
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Modal de Edición de Evento */}
+          {isEditEventModalOpen && eventDetailData && (
+            <EditEventModal
+              event={eventDetailData.event}
+              onClose={() => setIsEditEventModalOpen(false)}
+              onEventUpdated={handleEventUpdated}
+            />
+          )}
+        </div>
+      </SSEErrorBoundary>
+    );
+  }
+
+  // Otherwise, render the original events list
 
   if (loading) {
     return <LoadingSpinner text="Cargando eventos..." />;
@@ -650,7 +919,7 @@ const AdminEventsPage: React.FC = () => {
                       )}
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => openEventDetail(event.id)}
+                          onClick={() => navigate(`/admin/events/${event.id}`)}
                           className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
                         >
                           <Settings className="w-4 h-4" />
@@ -726,7 +995,7 @@ const AdminEventsPage: React.FC = () => {
                     <StatusBadge status={event.status} />
                     <div className="relative group inline-block">
                       <button
-                        onClick={() => openEventDetail(event.id)}
+                        onClick={() => navigate(`/admin/events/${event.id}`)}
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
                         Ver detalle
@@ -754,478 +1023,6 @@ const AdminEventsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Modal Gestión Evento - EL CORAZÓN DEL SISTEMA */}
-        {selectedEventId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
-              {/* Header Modal */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Gestión de Evento
-                  </h2>
-                  {eventDetailData && (
-                    <p className="text-sm text-gray-600">
-                      {eventDetailData.event.name} •{" "}
-                      {eventDetailData.event.venue?.name}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsEditEventModalOpen(true)}
-                    className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Editar
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleEventAction(selectedEventId!, "cancel")
-                    }
-                    className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center gap-1"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Cancelar Evento
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEvent(selectedEventId!)}
-                    className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar
-                  </button>
-                  <button
-                    onClick={closeEventDetail}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Tabs */}
-              <div className="border-b border-gray-200">
-                <div className="flex">
-                  {[
-                    { id: "general", label: "Info General", icon: Calendar },
-                    { id: "fights", label: "Peleas ⭐", icon: Target },
-                    { id: "bets", label: "Apuestas Vivo", icon: DollarSign },
-                    { id: "problems", label: "Problemas", icon: AlertTriangle },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 ${
-                        activeTab === tab.id
-                          ? "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4" />
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Contenido Modal */}
-              <div className="p-6 overflow-y-auto max-h-[calc(95vh-180px)]">
-                {detailLoading ? (
-                  <LoadingSpinner text="Cargando gestión de evento..." />
-                ) : eventDetailData ? (
-                  <>
-                    {/* Tab Info General */}
-                    {activeTab === "general" && (
-                      <div className="space-y-6">
-                        {/* Event Workflow Controls - NEW */}
-                        <EventWorkflowControls
-                          eventId={eventDetailData.event.id}
-                          operatorId={
-                            eventDetailData.event.operatorId || user?.id || ""
-                          }
-                          currentStatus={
-                            eventDetailData.event.status === "upcoming"
-                              ? "scheduled"
-                              : eventDetailData.event.status === "live"
-                                ? "in-progress"
-                                : eventDetailData.event.status
-                          }
-                          onStatusChange={(newStatus, message) => {
-                            // Update local state after status change
-                            const updatedEvent = {
-                              ...eventDetailData.event,
-                              status: newStatus as
-                                | "scheduled"
-                                | "cancelled"
-                                | "upcoming"
-                                | "live"
-                                | "completed"
-                                | "betting"
-                                | "in-progress",
-                            };
-                            setEventDetailData({
-                              ...eventDetailData,
-                              event: updatedEvent,
-                              fights: eventDetailData.fights || [], // Preserve existing fights
-                            });
-                            setEvents(
-                              events.map((e) =>
-                                e.id === updatedEvent.id ? updatedEvent : e,
-                              ),
-                            );
-                          }}
-                          currentEvent={eventDetailData.event}
-                          fights={eventDetailData.event.fights || []}
-                        />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                              Información del Evento
-                            </h3>
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Nombre
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.name}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Venue
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.venue?.name}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Fecha Programada
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {new Date(
-                                    eventDetailData.event.scheduledDate,
-                                  ).toLocaleString()}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Operador Asignado
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {typeof eventDetailData.event.operator ===
-                                    "object" &&
-                                  eventDetailData.event.operator?.username
-                                    ? eventDetailData.event.operator.username
-                                    : typeof eventDetailData.event.operator ===
-                                        "string"
-                                      ? eventDetailData.event.operator
-                                      : "Sin asignar"}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                              Estado y Estadísticas
-                            </h3>
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Estado
-                                </label>
-                                <StatusBadge
-                                  status={eventDetailData.event.status}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Progreso Peleas
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.completedFights} /{" "}
-                                  {eventDetailData.event.totalFights}{" "}
-                                  completadas
-                                </p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Total Apuestas
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  {eventDetailData.event.activeBets || 0}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Pool de Premios
-                                </label>
-                                <p className="text-sm text-gray-900">
-                                  $
-                                  {(
-                                    eventDetailData.event.totalPrizePool || 0
-                                  ).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tab Peleas ⭐⭐⭐ - CRÍTICO */}
-                    {activeTab === "fights" && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                              Control de Streaming
-                            </h3>
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                  Estado del Stream
-                                </label>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <StreamStatusBadge
-                                    status={
-                                      eventDetailData.event.streamStatus ||
-                                      "offline"
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              {eventDetailData.event.liveStream?.url && (
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-500">
-                                    URL del Stream
-                                  </label>
-                                  <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
-                                    {eventDetailData.event.liveStream.url}
-                                  </p>
-                                </div>
-                              )}
-
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() =>
-                                    handleEventAction(
-                                      eventDetailData.event.id,
-                                      "start-stream",
-                                    )
-                                  }
-                                  disabled={
-                                    eventDetailData.event.streamStatus ===
-                                      "connected" ||
-                                    operationInProgress?.includes("stream")
-                                  }
-                                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-                                >
-                                  <Play className="w-4 h-4" />
-                                  Iniciar Stream
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleEventAction(
-                                      eventDetailData.event.id,
-                                      "stop-stream",
-                                    )
-                                  }
-                                  disabled={
-                                    eventDetailData.event.streamStatus !==
-                                      "connected" ||
-                                    operationInProgress?.includes("stream")
-                                  }
-                                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
-                                >
-                                  <Square className="w-4 h-4" />
-                                  Detener Stream
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                              Estadísticas Técnicas
-                            </h3>
-                            <div className="space-y-3">
-                              {eventDetailData.event.currentViewers !==
-                                undefined && (
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-500">
-                                    Espectadores
-                                  </label>
-                                  <p className="text-sm text-gray-900">
-                                    {eventDetailData.event.currentViewers}
-                                  </p>
-                                </div>
-                              )}
-                              {/* Bitrate and Uptime are not directly available in Event interface, assuming they would be in streamInfo */}
-                              {/* {eventDetailData.streamInfo.bitrate && (
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-500">
-                                    Bitrate
-                                  </label>
-                                  <p className="text-sm text-gray-900">
-                                    {eventDetailData.streamInfo.bitrate} kbps
-                                  </p>
-                                </div>
-                              )}
-                              {eventDetailData.streamInfo.uptime && (
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-500">
-                                    Tiempo en línea
-                                  </label>
-                                  <p className="text-sm text-gray-900">
-                                    {Math.floor(
-                                      eventDetailData.streamInfo.uptime / 60
-                                    )}{" "}
-                                    min
-                                  </p>
-                                </div>
-                              )} */}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            Gestión de Peleas ({eventDetailData.fights.length})
-                          </h3>
-                          <button
-                            onClick={() => {
-                              setIsCreateFightModalOpen(true);
-                            }}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Nueva Pelea
-                          </button>
-                        </div>
-
-                        <div className="space-y-4">
-                          {eventDetailData.fights.length === 0 ? (
-                            <EmptyState
-                              title="Sin peleas programadas"
-                              description="Este evento aún no tiene peleas asignadas. Agrega peleas para comenzar con las apuestas."
-                              icon={<Target className="w-12 h-12" />}
-                              action={
-                                <button
-                                  onClick={() => {
-                                    setIsCreateFightModalOpen(true);
-                                  }}
-                                  className="btn-primary"
-                                >
-                                  <Plus className="w-4 h-4 mr-2" />
-                                  Agregar Primera Pelea
-                                </button>
-                              }
-                            />
-                          ) : (
-                            eventDetailData.fights.map((fight) => (
-                              <FightStatusManager
-                                key={fight.id}
-                                fight={fight}
-                                eventId={eventDetailData.event.id}
-                                onFightUpdate={(updatedFight) => {
-                                  setEventDetailData({
-                                    ...eventDetailData,
-                                    fights: eventDetailData.fights.map((f) =>
-                                      f.id === updatedFight.id
-                                        ? updatedFight
-                                        : f,
-                                    ),
-                                  });
-                                }}
-                              />
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tab Apuestas en Vivo */}
-                    {activeTab === "bets" && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                          <Card
-                            variant="stat"
-                            title="Usuarios Conectados"
-                            value={eventDetailData.event.currentViewers || 0} // Using currentViewers for connected users metric
-                            color="blue"
-                          />
-                          <Card
-                            variant="stat"
-                            title="Apuestas Activas"
-                            value={eventDetailData.event.activeBets || 0} // Using activeBets for active bets metric
-                            color="yellow"
-                          />
-                          <Card
-                            variant="stat"
-                            title="Volumen Total"
-                            value={`$${eventDetailData.event.totalPrizePool.toLocaleString()}`}
-                            color="green"
-                          />
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Monitor de Apuestas
-                          </h3>
-                          <EmptyState
-                            title="Monitor de apuestas en tiempo real"
-                            description="Las apuestas aparecerán aquí cuando el evento esté activo. Esta funcionalidad está en desarrollo."
-                            icon={<BarChart3 className="w-12 h-12" />}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tab Problemas */}
-                    {activeTab === "problems" && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            Incidencias y Problemas
-                          </h3>
-                          <button className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4" />
-                            Reportar Problema
-                          </button>
-                        </div>
-
-                        <EmptyState
-                          title="Sin incidencias reportadas"
-                          description="Todo funciona correctamente. El sistema de logging de problemas está en desarrollo."
-                          icon={<CheckCircle className="w-12 h-12" />}
-                        />
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <EmptyState
-                    title="Error al cargar el evento"
-                    description="No se pudieron cargar los datos del evento. Verifica la conexión e inténtalo nuevamente."
-                    icon={<XCircle className="w-12 h-12" />}
-                    action={
-                      <button
-                        onClick={() => fetchEventDetail(selectedEventId!)}
-                        className="btn-primary"
-                      >
-                        Reintentar
-                      </button>
-                    }
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Modal de Edición de Evento */}
         {isEditEventModalOpen && eventDetailData && (

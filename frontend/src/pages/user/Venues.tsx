@@ -18,7 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../services/api";
+import { venuesAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
@@ -194,41 +194,29 @@ const VenuesPage: React.FC = () => {
     const fetchVenues = async () => {
       try {
         setLoading(true);
-        const response = await usersAPI.getAll({ role: "venue" });
+        const response = await venuesAPI.getAll();
         if (response.success) {
           const venueProfiles = await Promise.all(
             ((response.data as { users: any[] })?.users || []).map(
-              async (user: any) => {
+              async (venue: any) => {
                 const articles = await articlesAPI.getAll({
-                  author_id: user.id,
+                  author_id: venue.owner?.id || venue.id,
                 });
                 return {
-                  id: user.id,
-                  name:
-                    user.profileInfo?.venueName ||
-                    user.profileInfo?.businessName ||
-                    user.username ||
-                    "Venue",
-                  description:
-                    user.profileInfo?.venueDescription ||
-                    user.profileInfo?.description ||
-                    "Gallera para eventos de gallos",
-                  location:
-                    user.profileInfo?.venueLocation ||
-                    user.profileInfo?.location ||
-                    "Ubicación no especificada",
-                  imageUrl:
-                    user.profileInfo?.images?.[0] ||
-                    user.profileInfo?.profileImage,
-                  ownerImage: user.profileInfo?.profileImage,
-                  galleryImages: user.profileInfo?.images || [],
+                  id: venue.id,
+                  name: venue.name || "Gallera sin nombre",
+                  description: venue.description || "Información no disponible",
+                  location: venue.location || "Ubicación no especificada",
+                  imageUrl: venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
+                  ownerImage: venue.owner?.profileInfo?.profileImage,
+                  galleryImages: venue.images || [],
                   articlesCount: articles.success
                     ? (articles.data as { total: number })?.total || 0
                     : 0,
-                  establishedDate: user.createdAt,
+                  establishedDate: venue.createdAt,
                   isVerified:
-                    user.profileInfo?.verificationLevel === "full" || false,
-                  rating: 0,
+                    venue.owner?.profileInfo?.verificationLevel === "full" || false,
+                  rating: venue.owner?.profileInfo?.rating || 0,
                   activeEvents: 0,
                 };
               },

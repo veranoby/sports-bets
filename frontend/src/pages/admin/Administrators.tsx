@@ -227,30 +227,34 @@ const AdminAdministratorsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Shield className="w-6 h-6 text-red-600" />
-            Administrators & Operators
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage administrator and operator accounts
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Shield className="w-6 h-6 text-red-600" />
+                Administradores y Operadores
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Gestión de cuentas de administradores y operadores
+              </p>
+            </div>
 
-        <div className="relative">
-          <button
-            onClick={() => {
-              setIsRoleSelectModalOpen(true);
-            }}
-          >
-            <Plus className="w-4 h-4" />
-            Add Admin/Operator
-          </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsRoleSelectModalOpen(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Crear Administrador u Operador
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
       {/* Role Selection Dialog */}
       {isRoleSelectModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -352,45 +356,45 @@ const AdminAdministratorsPage: React.FC = () => {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
+            <div className="p-3 bg-red-100 rounded-lg">
               <Shield className="w-6 h-6 text-red-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
-                Administrators
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Administradores
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-3xl font-bold text-gray-900">
                 {administrators.length}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-3 bg-blue-100 rounded-lg">
               <User className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Operators</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">Operadores</p>
+              <p className="text-3xl font-bold text-gray-900">
                 {operators.length}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
+            <div className="p-3 bg-green-100 rounded-lg">
               <Eye className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">Total</p>
+              <p className="text-3xl font-bold text-gray-900">
                 {allUsers.length}
               </p>
             </div>
@@ -405,22 +409,22 @@ const AdminAdministratorsPage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  Usuario
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  Rol
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Estado
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Subscription
+                  Suscripción
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
+                  Último Ingreso
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -431,7 +435,7 @@ const AdminAdministratorsPage: React.FC = () => {
                     colSpan={6}
                     className="px-6 py-4 text-center text-gray-500"
                   >
-                    No administrators or operators found
+                    No se encontraron administradores u operadores
                   </td>
                 </tr>
               ) : (
@@ -471,21 +475,21 @@ const AdminAdministratorsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {user.lastLogin
                         ? new Date(user.lastLogin).toLocaleDateString()
-                        : "Never"}
+                        : "Nunca"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                          title="Edit user"
+                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Editar usuario"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                          title="Delete user"
+                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Eliminar usuario"
                           disabled={currentUser?.id === user.id}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -499,6 +503,7 @@ const AdminAdministratorsPage: React.FC = () => {
           </table>
         </div>
       </Card>
+    </div>
 
       {/* User Modal (Unified Create/Edit) */}
       {modalState.mode && (

@@ -531,6 +531,25 @@ export const membershipRequestsAPI = {
   },
 };
 
+// Public listing APIs for venues and galleras
+export const venuesAPI = {
+  getAll: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/venues", params);
+  },
+  getById: async (id: string) => {
+    return apiCall("get", `/venues/${id}`);
+  },
+};
+
+export const gallerasAPI = {
+  getAll: async (params?: Record<string, unknown>) => {
+    return apiCall("get", "/galleras", params);
+  },
+  getById: async (id: string) => {
+    return apiCall("get", `/galleras/${id}`);
+  },
+};
+
 // API aliases for backward compatibility
 export const usersAPI = userAPI;
 export const eventAPI = eventsAPI;

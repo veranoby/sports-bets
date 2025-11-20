@@ -500,30 +500,25 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
             </p>
           </div>
         </div>
-        {(!subscription ||
-          subscription.status !== "active" ||
-          (subscription.plan === "free" &&
-            subscription.type !== "daily" &&
-            subscription.type !== "monthly")) && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              Solicitar Cambio de Membresía
-            </button>
-            <p className="text-sm text-gray-500">
-              Nota: Todos los cambios de membresía requieren aprobación de un
-              administrador.
-            </p>
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            Solicitar Cambio de Membresía
+          </button>
+          <p className="text-sm text-gray-500">
+            Nota: Todos los cambios de membresía requieren aprobación de un
+            administrador.
+          </p>
+        </div>
+
         {subscription &&
           subscription.status === "active" &&
           (subscription.type === "daily" ||
             subscription.type === "monthly" ||
             subscription.plan !== "free") && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
                 <span className="font-medium">✓ Membresía Activa</span> - Tu
                 solicitud ha sido aprobada

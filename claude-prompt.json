@@ -1,180 +1,299 @@
 {
-  "📋_START_HERE": {
-    "session_declaration": {
-      "date": "2025-11-20",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "director": "Claude (Sonnet 4.5)",
-      "execution_mode": "standard (full validation required for analysis + code recommendations)",
-      "role": "executor - backend performance analysis and optimization planning",
-      "mcp_activation_required": ["--seq", "--sequential", "--c7", "--context7", "--token-efficient"],
-      "critical_protocols": [
-        "DIRECTOR_PLANNING_PROTOCOL (read brain/multi_ai_coordination_strategy.json:79-101)",
-        "AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (bidirectional verification, absence≠existence)",
-        "ROLE_AND_MODEL_AWARENESS_PROTOCOL (executor role validation)"
-      ],
-      "reference_file": "brain/multi_ai_coordination_strategy.json"
-    },
-    "task_summary": "Comprehensive analysis of backend SSE/WebSocket implementation for memory leaks, overcalls, and economic impact. Identify optimization opportunities across 4 phases: static analysis → instrumentation → load testing → optimization plan.",
-    "priority": "HIGH - Performance/cost optimization directly impacts platform sustainability",
-    "business_impact": "Uncontrolled memory leaks, connection accumulation, and redundant processing can cause exponential cloud costs. Current migration from polling→SSE may be incomplete.",
-    "session_limits": {
-      "max_duration": "90 minutes",
-      "checkpoint_every": "20 minutes",
-      "context_refresh_trigger": "If exceeding 70 minutes, create handoff note"
-    }
-  },
+  "🔴_MANDATORY_START_HERE": {
+    "purpose": "This prompt enforces critical protocols from brain/multi_ai_coordination_strategy.json to prevent analysis failures",
+    "executor_model": "QWEN (qwen3-coder-plus-2025-09-23)",
+    "role": "executor - backend SSE/WebSocket analysis",
+    "execution_mode": "standard (full validation + evidence required)",
+    "session_date": "2025-11-20",
 
-  "=_TASK_DEFINITION": {
-    "overall_objective": "Analyze backend SSE/WebSocket implementation for performance issues, memory leaks, overcalls, and economic impact. Produce actionable optimization plan with priorities and estimated savings.",
-    "success_criteria": [
-      "Phase 1: Static code analysis completed with risk scoring for each identified issue",
-      "Phase 2: Instrumentation points identified (no code changes yet, just plan what to monitor)",
-      "Phase 3: Load testing scenarios documented with expected vs actual metrics",
-      "Phase 4: Optimization recommendations with cost/benefit analysis",
-      "Final deliverable: Report findings in chat text with findings and optimization roadmap"
+    "step_1_read_before_working": [
+      "✅ brain/multi_ai_coordination_strategy.json (AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL: lines 147-280)",
+      "✅ brain/multi_ai_coordination_strategy.json (ROLE_AND_MODEL_AWARENESS_PROTOCOL: lines 103-126)",
+      "✅ brain/backlog.json (context on what Qwen already attempted)"
     ],
-    "critical_focus_areas": {
-      "sse_analysis": {
-        "files": [
-          "backend/src/routes/streaming-monitoring.ts",
-          "frontend/src/hooks/useSSEConnection.ts"
-        ],
-        "concerns": [
-          "Connection lifecycle (open→close) tracking",
-          "Event listener cleanup on component unmount",
-          "Memory accumulation over time",
-          "Client connection limits (per user/IP)",
-          "Timeout mechanisms",
-          "Buffer management"
-        ]
-      },
-      "websocket_analysis": {
-        "files": [
-          "backend/src/contexts/WebSocketContext.tsx",
-          "frontend components using WebSocket"
-        ],
-        "concerns": [
-          "Connection close() implementation",
-          "Client array cleanup after disconnect",
-          "Event listener removeEventListener() calls",
-          "Closure references to large objects",
-          "Connection limits and caps"
-        ]
-      },
-      "polling_to_sse_migration": {
-        "concern": "Migration may be incomplete - some components still polling",
-        "verification_needed": "Search for fetch/axios calls that should use SSE instead"
-      },
-      "event_listener_accumulation": {
-        "concern": "useSSEConnection hook cleanup + React component lifecycle",
-        "check_for": [
-          "useEffect cleanup functions returning proper unsubscribe",
-          "EventSource.addEventListener() paired with removeEventListener()",
-          "No orphaned listeners after component unmount"
-        ]
-      },
-      "resource_monitoring": {
-        "current_state": "No visible real-time monitoring of connections, memory, CPU",
-        "needed": "Metrics for connection count, avg connection lifetime, memory growth rate"
-      }
+
+    "step_2_declare_yourself": "Before starting ANY work, output: 'Model: qwen3-coder-plus-2025-09-23 | Role: executor | Mode: standard | Task: Backend SSE/WebSocket Analysis'",
+
+    "step_3_echo_back_task": {
+      "requirement": "MANDATORY - Read this completely and echo back exact tasks",
+      "format": "I will execute PHASES 1-4: [Phase 1 description] → [Phase 2] → [Phase 3] → [Phase 4]. Generate final report in TEXT in this chat. Confirm Y/N?",
+      "reference": "brain/multi_ai_coordination_strategy.json lines 79-101 (DIRECTOR_PLANNING_PROTOCOL)"
+    },
+
+    "step_4_activate_mcp": "Activate: --seq --sequential --c7 --context7 --token-efficient (required for code analysis and documentation)",
+
+    "critical_warning": "⚠️ LESSON LEARNED: Last session, backlog.json documented BOTH 'SSE/WS files created' AND 'SSE/WS files don't exist' in same document. This was CONTRADICTION. You MUST verify with actual files, not trust assumptions."
+  },
+
+  "🔴_AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL": {
+    "severity": "CRITICAL - Read brain/multi_ai_coordination_strategy.json lines 147-280 BEFORE starting work",
+    "applicability": "ALL phases of this analysis task",
+
+    "core_principle": "Absence of finding ≠ absence of existence. You must use BIDIRECTIONAL verification.",
+
+    "rule_1_bidirectional_search": {
+      "description": "For SSE/WebSocket analysis, search BOTH directions",
+      "direction_A_to_B": [
+        "Search: 'Are documented SSE endpoints actually implemented in code?'",
+        "Files: grep backend/src/routes/*.ts for 'SSE', 'streaming', 'EventSource'",
+        "Files: grep backend/src/*.ts for 'EventSource', 'sse', 'connection'",
+        "Verify: Each documented endpoint has actual function implementation"
+      ],
+      "direction_B_to_A": [
+        "Search: 'Are implemented SSE features documented in brain files?'",
+        "Files: Read actual backend code (useSSEConnection.ts, streaming-monitoring.ts, etc.)",
+        "List: Every EventSource, addEventListener, connection management code",
+        "Compare against: brain/api_endpoints_reference.json to find UNDOCUMENTED implementations"
+      ],
+      "enforcement": "REPORT BOTH DIRECTIONS explicitly. 'Found 3 issues direction A→B. Found 2 issues direction B→A. Total: 5 discrepancies.'"
+    },
+
+    "rule_2_tool_validation": {
+      "trigger_scenarios": [
+        "❌ Grep/search returns empty result → VERIFY with direct Read tool",
+        "❌ Command returns 0 matches → CONFIRM with alternative search method",
+        "❌ Expected file doesn't appear in search → Read directory with ls/Glob to confirm file exists"
+      ],
+      "protocol_when_search_fails": [
+        "Step 1: Acknowledge tool may have failed (syntax, path issue, permissions)",
+        "Step 2: Switch to direct method (Read file, Glob search, manual inspection)",
+        "Step 3: Document which tool failed and why",
+        "Step 4: Use validated method for remaining work"
+      ],
+      "example_if_you_find_nothing": "If grep shows 'No SSE files found', do NOT conclude they don't exist. Instead: (1) ls -la frontend/src/hooks/ to list what's there, (2) Read specific files mentioned in backlog.json, (3) If files DON'T exist after Read attempt, then report 'File not found'."
+    },
+
+    "rule_3_systematic_coverage": {
+      "checklist": [
+        "List ALL files mentioned in analysis scope (from task definition)",
+        "Create explicit verification checklist (not mental list)",
+        "Check off items as VERIFIED (not assumed)",
+        "Report 'verified present' AND 'verified absent' - not just missing findings"
+      ],
+      "scope_for_this_task": [
+        "□ backend/src/routes/streaming-monitoring.ts (endpoint implementation)",
+        "□ frontend/src/hooks/useSSEConnection.ts (hook lifecycle)",
+        "□ backend/src/contexts/WebSocketContext.tsx (if exists - verify first)",
+        "□ frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (consumer code)",
+        "□ Any other SSE/WS files (grep before concluding scope)"
+      ],
+      "enforcement": "For each file: Either '[FILE EXISTS: Read completed]' OR '[FILE NOT FOUND: Verified with Glob/ls]'. No assumptions."
+    },
+
+    "rule_4_direct_inspection": {
+      "trigger": "ALWAYS when: (1) Tool returns unexpected result, (2) Critical finding needs confirmation, (3) Contradiction detected",
+      "method": "Use Read tool with offset/limit to manually inspect actual code",
+      "example": "If you grep for 'EventSource' and find nothing, Read frontend/src/hooks/useSSEConnection.ts directly to check if it uses EventSource at all. Verify manually."
+    },
+
+    "rule_5_explicit_assumptions": {
+      "process": [
+        "List assumptions being made (e.g., 'Assuming all SSE files are in hooks/ directory')",
+        "Validate EACH assumption explicitly (e.g., 'Verified: grep -r shows no other SSE implementations')",
+        "Document validated assumptions in final report"
+      ],
+      "bad_example": "❌ 'SSE/WS system doesn't exist because I didn't find files'",
+      "good_example": "✅ 'Searched: grep -r \"EventSource\" backend/src → 0 results. Searched: grep -r \"EventSource\" frontend/src → 3 files. Assumption: EventSource implementation exists in frontend, not backend. VALIDATED: backend uses polling instead.'"
     }
   },
 
-  "=_MANDATORY_PROTOCOLS": {
-    "protocol_1_task_echo_back": {
-      "requirement": "BEFORE starting analysis: Echo back exact tasks and verification approach",
-      "format": "I will analyze PHASES 1-4: Static → Instrumentation → Load Test → Optimization. Confirm Y/N?",
-      "reference": "brain/multi_ai_coordination_strategy.json:79-101"
+  "🔴_VERIFICATION_WORKFLOW_BEFORE_EACH_PHASE": {
+    "checkpoint_protocol": "Before starting EACH phase, run verification commands. Do NOT assume previous session's findings.",
+
+    "verify_files_exist": {
+      "command_1": "ls -la backend/src/routes/streaming-monitoring.ts && echo 'EXISTS' || echo 'NOT_FOUND'",
+      "command_2": "ls -la frontend/src/hooks/useSSEConnection.ts && echo 'EXISTS' || echo 'NOT_FOUND'",
+      "command_3": "find backend/src -type f -name '*sse*' -o -name '*websocket*' -o -name '*stream*' | head -20",
+      "command_4": "find frontend/src -type f -name '*SSE*' -o -name '*sse*' | head -20",
+      "output": "Report actual file list, not assumptions. Format: '✅ VERIFIED: Files exist: [list] | ❌ NOT_FOUND: [list]'"
     },
-    "protocol_2_audit_methodology": {
-      "requirement": "Bidirectional verification - grep patterns + read files to confirm",
-      "applicability": "All code analysis, file searches, metrics gathering",
-      "reference": "brain/multi_ai_coordination_strategy.json:147-280"
-    },
-    "protocol_3_evidence_based": {
-      "requirement": "All findings must include: file:line | code snippet",
-      "applies_to": "Every memory leak risk, overcall risk, optimization"
+
+    "verify_previous_claims": {
+      "backlog_states": "backlog.json claims: 'UNIFIED_STREAMING_MONITORING_IMPLEMENTATION_COMPLETED' with 'frontend/src/hooks/useSSEConnection.ts' created on 2025-11-19",
+      "your_job": "Do NOT trust this. Verify: (1) Does file exist NOW? (2) Does it contain SSE logic? (3) Are the implementations in the file actual code or placeholders?",
+      "if_contradiction_found": "STOP immediately and report: 'CONTRADICTION DETECTED: backlog.json claims [X] but actual file state shows [Y]. Require clarification before proceeding.'"
     }
   },
 
   "=_PHASE_1_STATIC_CODE_ANALYSIS": {
-    "objective": "Identify memory leak risks, overcall patterns, and inefficiencies through code inspection",
+    "objective": "Identify memory leak risks, overcall patterns, inefficiencies through VERIFIED code inspection",
     "estimated_time": "25 minutes",
-    "steps": [
-      "Read backend/src/routes/streaming-monitoring.ts - endpoint implementation",
-      "Read frontend/src/hooks/useSSEConnection.ts - hook lifecycle",
-      "Read backend/src/contexts/WebSocketContext.tsx - connection management",
-      "Read frontend/src/pages/admin/OptimizedStreamingMonitor.tsx - consumer",
-      "Search for addEventListener/removeEventListener pairs",
-      "Search for .close() calls on EventSource/WebSocket",
-      "Search for connection limits (max connections per user)",
-      "Document findings with file:line references"
-    ],
-    "focus_questions": [
-      "Are EventSource connections properly closed on cleanup?",
-      "Are event listeners removed when components unmount?",
-      "Are there connection limits or caps?",
-      "Is there timeout mechanism for idle connections?",
-      "Are any polling calls still active (should use SSE)?",
-      "Can connections be orphaned on network errors?"
-    ]
+    "critical_requirement": "For EVERY finding, include: file:line | code snippet | risk assessment",
+
+    "step_1_verify_files_exist": {
+      "action": "Before reading any file, verify it actually exists",
+      "commands": [
+        "Read backend/src/routes/streaming-monitoring.ts (offset 1, limit 50) - check if file exists and has content",
+        "Read frontend/src/hooks/useSSEConnection.ts (offset 1, limit 50) - check if file exists and has content",
+        "If either file: 'No such file', STOP and report which files are MISSING"
+      ]
+    },
+
+    "step_2_read_backend_sse": {
+      "file": "backend/src/routes/streaming-monitoring.ts",
+      "focus_questions": [
+        "Does endpoint properly close EventSource connections?",
+        "Are event listeners removed on cleanup?",
+        "Are there connection limits?",
+        "Is there timeout mechanism for idle connections?",
+        "Are connections potentially orphaned on network errors?",
+        "Is memory properly freed?"
+      ],
+      "evidence_format": "For each issue found: 'backend/src/routes/streaming-monitoring.ts:LINE | code snippet | risk: HIGH/MEDIUM/LOW | reason: [why this is a problem]'"
+    },
+
+    "step_3_read_frontend_sse_hook": {
+      "file": "frontend/src/hooks/useSSEConnection.ts",
+      "focus_questions": [
+        "Does cleanup function properly remove all EventSource listeners?",
+        "Does cleanup close EventSource connection?",
+        "Are there memory leaks from closure references?",
+        "Does useEffect have proper cleanup return?",
+        "Are event listeners accumulating on re-renders?",
+        "Is EventSource properly closed on unmount?"
+      ],
+      "evidence_format": "For each issue: 'frontend/src/hooks/useSSEConnection.ts:LINE | code snippet | risk: HIGH/MEDIUM/LOW'"
+    },
+
+    "step_4_search_for_other_sse_files": {
+      "command": "find backend/src frontend/src -type f \\( -name '*.ts' -o -name '*.tsx' \\) -exec grep -l 'EventSource\\|addEventListener.*SSE\\|.on.*streaming' {} \\;",
+      "purpose": "Ensure you haven't missed any SSE implementations",
+      "document": "List ALL files with SSE-related code, not just the ones in task definition"
+    },
+
+    "step_5_search_for_polling_remnants": {
+      "concern": "Migration from polling→SSE may be incomplete",
+      "search_for": "grep -r 'setInterval\\|setTimeout.*fetch\\|polling' backend/src frontend/src | grep -i 'stream\\|event\\|connection'",
+      "purpose": "Find polling calls that should use SSE instead",
+      "document": "If found: 'Polling found in [file:line] - should use SSE instead. Estimated savings: [...]'"
+    },
+
+    "validation_checkpoint": "Before moving to Phase 2, confirm: (1) All referenced files verified to exist, (2) Each issue has file:line evidence, (3) No contradictions between findings"
   },
 
   "=_PHASE_2_INSTRUMENTATION_PLANNING": {
-    "objective": "Design monitoring strategy - what metrics to track",
+    "objective": "Design monitoring strategy (PLANNING ONLY, no code changes)",
     "estimated_time": "20 minutes",
-    "no_code_changes": "This identifies WHAT to monitor, not implementation yet",
-    "metrics_to_plan": [
-      "Active connections count (real-time)",
-      "Average connection lifetime (seconds)",
-      "Memory usage by SSE buffers",
-      "Event frequency (events/sec)",
-      "Reconnection attempts per client",
-      "Orphaned connections detection",
-      "Event listener count (should be bounded)"
-    ],
-    "output": "Instrumentation plan with metric name, where to measure, expected normal range, alert threshold"
+    "no_code_changes": "Identify WHAT to monitor, not implementation",
+
+    "step_1_define_metrics": {
+      "metrics_to_plan": [
+        "Active connections count (real-time tracking)",
+        "Average connection lifetime (seconds)",
+        "Memory usage by SSE buffers (MB)",
+        "Event frequency (events/sec)",
+        "Reconnection attempts per client",
+        "Orphaned connections detection",
+        "Event listener count (should be bounded)"
+      ],
+      "format_per_metric": {
+        "metric_name": "Active connections",
+        "where_to_measure": "backend/src/routes/streaming-monitoring.ts - global counter or WeakMap",
+        "expected_normal_range": "10-500 concurrent",
+        "alert_threshold": ">1000 concurrent (indicates leak or abuse)",
+        "unit": "count"
+      }
+    },
+
+    "step_2_identify_instrumentation_points": {
+      "backend": "Identify exact locations in code where to add counters/logging",
+      "frontend": "Identify exact locations where to track connection quality"
+    }
   },
 
   "=_PHASE_3_LOAD_TESTING_SCENARIOS": {
-    "objective": "Document realistic test scenarios to expose memory leaks and overcalls",
+    "objective": "Document realistic test scenarios (DESIGN ONLY, no implementation)",
     "estimated_time": "15 minutes",
-    "no_implementation_yet": "Design tests, don't run them",
-    "scenarios_to_design": [
-      "Scenario A: Baseline (10 concurrent, 60 sec) - expect stable memory",
-      "Scenario B: Peak (500 concurrent) - measure memory per connection",
-      "Scenario C: Rapid reconnect (reconnect every 10s) - detect connection leaks",
-      "Scenario D: Long-lived (simulated 24h) - detect memory growth",
-      "Scenario E: High event volume (1000 evt/sec) - detect backpressure",
-      "Scenario F: Abrupt disconnect (100 clients drop) - measure cleanup time"
-    ]
+    "format_per_scenario": {
+      "scenario_id": "A",
+      "name": "Baseline",
+      "parameters": "10 concurrent, 60s duration",
+      "expected_outcome": "Stable memory, <10ms latency",
+      "leaks_to_detect": "None expected - baseline reference",
+      "rationale": "Establish normal behavior reference"
+    }
   },
 
   "=_PHASE_4_OPTIMIZATION_RECOMMENDATIONS": {
     "objective": "Synthesize Phases 1-3 into prioritized optimization plan",
     "estimated_time": "20 minutes",
-    "per_issue_template": {
-      "issue": "description",
-      "root_cause": "why it happens",
-      "memory_impact": "LOW|MEDIUM|HIGH",
-      "effort_hours": "estimated",
-      "monthly_savings_usd": "estimated cost reduction",
-      "recommendation": "what to do",
-      "risk_level": "LOW|MEDIUM|HIGH"
-    },
-    "output": "Prioritized list of 5-10 recommendations ordered by impact/effort"
+    "template_per_recommendation": {
+      "issue_id": "1",
+      "title": "Issue description",
+      "file_location": "path:line",
+      "root_cause": "Why this happens",
+      "memory_impact": "HIGH|MEDIUM|LOW",
+      "effort_hours": "Estimated effort",
+      "monthly_savings_usd": "Cost reduction estimate",
+      "recommendation": "Specific action",
+      "risk_level": "LOW|MEDIUM|HIGH",
+      "evidence_reference": "Phase 1 finding #X"
+    }
   },
 
-  "=_FINAL_REPORT_STRUCTURE": {
-    "location": "TEXT RESPONSE IN CHAT",
-    "sections": [
-      "Executive Summary (health assessment)",
-      "Phase 1: Static Analysis Findings (issues with evidence)",
+  "🔴_REPORTING_PROTOCOL": {
+    "reporting_location": "TEXT response in this chat ONLY (do NOT create files)",
+    "report_structure": [
+      "Executive Summary (health assessment - 3 sentences)",
+      "Verification Methodology Used (which protocols applied)",
+      "Phase 1: Static Analysis Findings (with file:line evidence)",
       "Phase 2: Instrumentation Plan (metrics to track)",
       "Phase 3: Load Test Scenarios (6+ test cases)",
       "Phase 4: Optimization Roadmap (quick-wins → long-term)",
-      "Total Estimated Impact (cost savings if implemented)"
+      "Total Estimated Impact (cost savings if implemented)",
+      "Verification Evidence (actual command outputs used)"
     ],
-    "evidence_format": "file:line | code snippet | finding description"
+
+    "evidence_format": "file:line | code snippet | finding | risk_level",
+
+    "CRITICAL_BEFORE_REPORTING": [
+      "✅ Have you run BIDIRECTIONAL verification? (direction A→B AND direction B→A)",
+      "✅ Did you validate tool outputs (if empty, used Read directly)?",
+      "✅ Did you verify assumption about file locations?",
+      "✅ Did you check for contradictions in your findings?",
+      "✅ Is every finding backed by actual file:line evidence?",
+      "If ANY answer is 'no', STOP and re-verify before reporting"
+    ]
+  },
+
+  "🔴_SESSION_SAFETY_CHECKLIST": {
+    "checkpoint_every_20_minutes": {
+      "commit_with_tag": "git add brain/backlog.json && git commit -m '[CHECKPOINT] SSE analysis - Phase X in progress'",
+      "purpose": "Save progress in case context is lost",
+      "time_0_min": "Declare role and read protocols ✅",
+      "time_20_min": "Complete Phase 1, verify findings, checkpoint ✅",
+      "time_40_min": "Complete Phase 2, create instrumentation plan, checkpoint ✅",
+      "time_60_min": "Complete Phase 3, design test scenarios, checkpoint ✅",
+      "time_80_min": "Complete Phase 4, create recommendations, prepare report ✅"
+    },
+
+    "red_flags_STOP_AND_REPORT": [
+      "🚨 Finding 'no SSE files' but backlog.json claims they exist - STOP and verify with Read",
+      "🚨 Tool returns unexpected result - STOP and validate with different method",
+      "🚨 Contradiction between your findings - STOP and investigate root cause",
+      "🚨 Session approaching 70 min - STOP and create handoff note",
+      "🚨 Memory concerns about implementation - STOP and ask user to verify system state"
+    ],
+
+    "if_you_must_stop": {
+      "format": "[SESSION_PAUSED] REASON: [why you stopped] | PROGRESS: [what's done] | NEXT: [what remains] | BLOCKER: [if applicable]",
+      "example": "[SESSION_PAUSED] REASON: Found contradiction between backlog.json claims and actual file state | PROGRESS: Phase 1 partially completed, found 3 issues | NEXT: Verify files exist with Read tool before continuing Phase 1 | BLOCKER: Need clarification if useSSEConnection.ts actually exists"
+    }
+  },
+
+  "=_FINAL_VALIDATION_BEFORE_REPORT": {
+    "self_check_list": [
+      "✅ Task echo back was explicit and confirmed",
+      "✅ Bidirectional verification performed (A→B and B→A documented)",
+      "✅ Tool validation performed (empty results double-checked)",
+      "✅ All assumptions explicitly listed and validated",
+      "✅ Every finding has file:line evidence (no vague claims)",
+      "✅ Contradiction detection performed (checked if findings conflict)",
+      "✅ Report structure follows prescribed format",
+      "✅ Evidence includes actual command outputs (not simulated)",
+      "✅ Verification methodology is transparent"
+    ],
+
+    "if_any_item_unchecked": "DO NOT REPORT. Return to that phase and complete the verification. Better to take more time than report incomplete analysis."
   }
 }

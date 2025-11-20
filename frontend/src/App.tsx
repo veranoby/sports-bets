@@ -226,6 +226,14 @@ const AppContent: React.FC = () => {
             }
           />
           <Route
+            path="/admin/events/:id"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminEvents />
+              </Suspense>
+            }
+          />
+          <Route
             path="/admin/events/create"
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>

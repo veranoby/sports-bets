@@ -875,6 +875,67 @@
       }
     }
   },
+  "detail_page_components": {
+    "VenueDetailPage": {
+      "file": "/frontend/src/pages/user/VenueDetailPage.tsx",
+      "purpose": "Display detailed information for a single venue (public page)",
+      "api_calls": {
+        "get_venue": "venuesAPI.getById(id) - Public endpoint with optionalAuth",
+        "get_articles": "articlesAPI.getAll({ author_id: ownerId }) - Articles by venue owner"
+      },
+      "🔴_FIX_2025_11_20": "Changed from usersAPI.getById(id) (admin endpoint returning 403) to venuesAPI.getById(id) (public endpoint). Line 7 import + Line 52 API call.",
+      "🔵_UI_REFACTOR_2025_11_20": "Redesigned detail page header hierarchy: 1) Entity name (venueName) LARGE as primary (h1 text-4xl), 2) Location & description with icons, 3) Representative info card with contact details (fullName, email, phone, website), 4) Image carousel using ImageCarouselViewer component, 5) Statistics grid with 4 cards (articles, rating, events, founded year).",
+      "layout": {
+        "primary_heading": "Entity name (venueName) - text-4xl md:text-5xl - BOLD",
+        "secondary_info": "Location, description with icons",
+        "representative_section": "Card showing fullName, email, phone, website",
+        "images": "ImageCarouselViewer component with indicators and navigation",
+        "stats": "4 cards: Articles count, Rating, Active Events, Founded year"
+      },
+      "data_hierarchy": {
+        "1_primary": "name (entity name - TRANSFORMED BY BACKEND)",
+        "2_secondary": "location, description (TRANSFORMED BY BACKEND)",
+        "3_images": "images array (TRANSFORMED BY BACKEND)",
+        "4_owner": "owner.profileInfo.{fullName, phoneNumber, venueEmail, venueWebsite, verificationLevel}",
+        "5_metadata": "createdAt (established year), owner.profileInfo.verificationLevel (verified badge)"
+      },
+      "🔵_CRITICAL_2025_11_20": "Backend transforms User object to custom structure. Access pattern: data.name (NOT data.profileInfo.venueName), data.location (NOT data.profileInfo.venueLocation), data.images (NOT data.profileInfo.images), data.owner.profileInfo.fullName, data.owner.profileInfo.venueEmail, etc.",
+      "route": "GET /venues/:id"
+    },
+    "GalleraDetailPage": {
+      "file": "/frontend/src/pages/user/GalleraDetailPage.tsx",
+      "purpose": "Display detailed information for a single gallera (public page with rooster specialties)",
+      "api_calls": {
+        "get_gallera": "gallerasAPI.getById(id) - Public endpoint with optionalAuth",
+        "get_articles": "articlesAPI.getAll({ author_id: ownerId }) - Articles by gallera owner"
+      },
+      "🔴_FIX_2025_11_20": "Changed from usersAPI.getById(id) (admin endpoint returning 403) to gallerasAPI.getById(id) (public endpoint). Line 7 import + Line 53 API call.",
+      "🔵_UI_REFACTOR_2025_11_20": "Redesigned detail page header hierarchy: 1) Entity name (galleraName) LARGE as primary (h1 text-4xl), 2) Premium tier badge if exists, 3) Certified badge, 4) Location & description with icons, 5) Specialties as pills, 6) Owner/Representative info card, 7) Image carousel, 8) Statistics grid with 5 cards including rooster count.",
+      "layout": {
+        "primary_heading": "Entity name (galleraName) - text-4xl md:text-5xl - BOLD with premium badge",
+        "certified_badge": "Yellow sparkle icon if verificationLevel='full'",
+        "premium_badge": "Colored badge with icon based on premiumLevel (platinum/gold/silver/bronze)",
+        "secondary_info": "Location, description with icons",
+        "specialties": "Green pills showing galleraSpecialties array",
+        "owner_section": "Card showing fullName, email, phone, website",
+        "images": "ImageCarouselViewer component with indicators and navigation",
+        "stats": "5 cards: Articles count, Rating, Active Roosters (🐓), Premium Level, Founded year"
+      },
+      "data_hierarchy": {
+        "1_primary": "name (entity name - TRANSFORMED BY BACKEND)",
+        "2_badges": "owner.profileInfo.{verificationLevel (certified), premiumLevel (tier)}",
+        "3_secondary": "location, description (TRANSFORMED BY BACKEND)",
+        "4_specialties": "owner.profileInfo.galleraSpecialties (array, displayed as green pills)",
+        "5_owner": "owner.profileInfo.{fullName, phoneNumber, galleraEmail, galleraWebsite}",
+        "6_active_data": "owner.profileInfo.galleraActiveRoosters (shown in stats grid)",
+        "7_images": "images array (TRANSFORMED BY BACKEND)",
+        "8_metadata": "createdAt (established year), owner.profileInfo.rating"
+      },
+      "🔵_CRITICAL_2025_11_20": "Backend transforms User object to custom structure. Access pattern: data.name (NOT data.profileInfo.galleraName), data.location (NOT data.profileInfo.galleraLocation), data.images (NOT data.profileInfo.images), data.owner.profileInfo.fullName, data.owner.profileInfo.galleraEmail, data.owner.profileInfo.galleraSpecialties (array), data.owner.profileInfo.galleraActiveRoosters, data.owner.profileInfo.premiumLevel, data.owner.profileInfo.rating, etc.",
+      "route": "GET /galleras/:id"
+    }
+  },
+
   "component_types_streaming": {
     "OptimizedStreamingMonitor": {
       "file": "/frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (NEW)",

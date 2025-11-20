@@ -155,7 +155,7 @@ router.get(
       return {
         success: true,
         data: {
-          galleras: transformedRows,
+          users: transformedRows,
           total: count,
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),

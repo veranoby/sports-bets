@@ -3,7 +3,7 @@
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
     "version": "1.6",
-    "last_updated": "2025-11-19 - Added GET /api/sse/streaming?token=<jwt> (SSE endpoint for unified streaming monitoring). Consolidated from polling-based monitoring to push-based SSE architecture.",
+    "last_updated": "2025-11-20 - Added /admin/events/{id} unified hub implementation (StreamingControlTab, FightsControlTab, BetsActiveTab). Fixed data access patterns for venues/galleras detail pages. Restored membership change request button. Added event detail UI tabs structure.",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {
@@ -299,7 +299,8 @@
         "ownerSubscription": "'free'|'monthly'|'daily' - filter by venue owner's subscription",
         "combining_filters": "✅ All filters can be combined. Example: /venues?search=john&ownerApproved=true&ownerSubscription=monthly",
         "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
-      }
+      },
+      "🔴_FIX_2025_11_20": "Backend was returning {venues: [...]} instead of {users: [...]}. Fixed in backend/src/routes/venues.ts:155 to match documented response structure. Frontend depends on response.data.users."
     },
     "create_venue": {
       "method": "POST",
@@ -311,8 +312,35 @@
       "path": "/venues/:id",
       "auth_required": false,
       "middleware": "optionalAuth",
-      "response": {"success": true, "data": "user_object (role='venue') with profileInfo.venueName, venueLocation, etc"},
-      "note": "Returns User, not Venue. Venue data in User.profileInfo"
+      "response": {
+        "success": true,
+        "data": {
+          "id": "UUID",
+          "name": "string (venueName from User.profileInfo)",
+          "location": "string (venueLocation from User.profileInfo)",
+          "description": "string (venueDescription from User.profileInfo)",
+          "status": "string (active|pending|inactive - calculated from isActive & approved)",
+          "isVerified": "boolean",
+          "images": "string[] (venueImages from User.profileInfo)",
+          "createdAt": "Date",
+          "updatedAt": "Date",
+          "owner": {
+            "id": "UUID (same as User.id)",
+            "username": "string",
+            "email": "string",
+            "profileInfo": {
+              "fullName": "string (representative name)",
+              "phoneNumber": "string",
+              "venueEmail": "string (business email)",
+              "venueWebsite": "string",
+              "verificationLevel": "string",
+              "..."
+            }
+          }
+        }
+      },
+      "note": "🔴 CRITICAL 2025-11-20: Backend TRANSFORMS response to custom structure. NOT a User object directly. Data access pattern: data.name (NOT data.profileInfo.venueName), data.owner.profileInfo.venueEmail, etc.",
+      "🔴_FIX_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed VenueDetailPage.tsx:7 and line 52 to use venuesAPI.getById(id) (public endpoint with optionalAuth middleware)."
     },
     "update_venue": {
       "method": "PUT",
@@ -354,7 +382,8 @@
         "ownerSubscription": "'free'|'monthly'|'daily' - filter by gallera owner's subscription",
         "combining_filters": "✅ All filters can be combined. Example: /galleras?search=juan&ownerApproved=false&ownerSubscription=daily",
         "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
-      }
+      },
+      "🔴_FIX_2025_11_20": "Backend was returning {galleras: [...]} instead of {users: [...]}. Fixed in backend/src/routes/galleras.ts:158 to match documented response structure. Frontend depends on response.data.users."
     },
     "create_gallera": {
       "method": "POST",
@@ -366,8 +395,39 @@
       "path": "/galleras/:id",
       "auth_required": false,
       "middleware": "optionalAuth",
-      "response": {"success": true, "data": "user_object (role='gallera') with profileInfo.galleraName, galleraLocation, etc"},
-      "note": "Returns User, not Gallera. Gallera data in User.profileInfo"
+      "response": {
+        "success": true,
+        "data": {
+          "id": "UUID",
+          "name": "string (galleraName from User.profileInfo)",
+          "location": "string (galleraLocation from User.profileInfo)",
+          "description": "string (galleraDescription from User.profileInfo)",
+          "status": "string (active|pending|inactive - calculated from isActive & approved)",
+          "isVerified": "boolean",
+          "images": "string[] (galleraImages from User.profileInfo)",
+          "createdAt": "Date",
+          "updatedAt": "Date",
+          "owner": {
+            "id": "UUID (same as User.id)",
+            "username": "string",
+            "email": "string",
+            "profileInfo": {
+              "fullName": "string (representative name)",
+              "phoneNumber": "string",
+              "galleraEmail": "string (business email)",
+              "galleraWebsite": "string",
+              "galleraSpecialties": "string[] (array of specialties)",
+              "galleraActiveRoosters": "number (active roosters count)",
+              "premiumLevel": "string (platinum|gold|silver|bronze)",
+              "verificationLevel": "string",
+              "rating": "number",
+              "..."
+            }
+          }
+        }
+      },
+      "note": "🔴 CRITICAL 2025-11-20: Backend TRANSFORMS response to custom structure. NOT a User object directly. Data access pattern: data.name (NOT data.profileInfo.galleraName), data.owner.profileInfo.galleraEmail, data.owner.profileInfo.galleraSpecialties (array), data.owner.profileInfo.galleraActiveRoosters, etc.",
+      "🔴_FIX_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed GalleraDetailPage.tsx:7 and line 53 to use gallerasAPI.getById(id) (public endpoint with optionalAuth middleware)."
     },
     "update_gallera": {
       "method": "PUT",

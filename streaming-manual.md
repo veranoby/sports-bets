@@ -66,13 +66,25 @@ Formulario para crear nuevos eventos.
 
 ### Página de Streaming: `/admin/streaming`
 
-Panel de control general para streams (usado principalmente por administradores).
+Panel de control unificado para monitoreo y control de streams en tiempo real. Esta página consolida todas las herramientas de streaming que antes estaban dispersas.
 
-**Elementos:**
-- **Controles de Evento**: Selección de evento y detalles del stream
-- **Indicadores de Estado**: Visualización del estado SSE y conexión
-- **Reproductor HLS**: Vista previa del stream
-- **Métricas de Usuarios**: Contador de viewers en tiempo real
+**Elementos principales:**
+- **Selección de Evento**: Dropdown para elegir qué evento monitorear
+- **OBS Studio Configuration Card**: Muestra el RTMP URL y Stream Key con botones copy
+  - **RTMP URL**: `rtmp://YOUR-DOMAIN:1935/live` (para configurar en OBS)
+  - **Stream Key**: Identificador único del stream (aparece después de iniciar transmisión)
+  - **Copy buttons**: Copiar al portapapeles para usar en OBS Studio
+- **Reproductor HLS**: Vista previa en vivo del stream
+- **Controles de Transmisión**:
+  - **Iniciar Stream**: Activa transmisión desde OBS
+  - **Detener Stream**: Pausa transmisión (sin perder conexión)
+  - **Pausar/Reanudar**: Para intermedios entre peleas (optimización de costos)
+- **Indicadores de Estado**: SSE connection status, stream health, viewers en tiempo real
+- **Métricas en Vivo**:
+  - Contador de viewers conectados
+  - Ancho de banda utilizado
+  - Bitrate de transmisión
+  - Calidad actual (480p/720p)
 
 ## Requisitos Previos
 
@@ -159,11 +171,15 @@ curl http://YOUR-SERVER-IP:3001/api/health
 
 ## Parte 2: Preparación del Streaming (Antes de comenzar)
 
-### Paso 4: Configurar el streaming
-1. Ve a la página de "Streaming" en el panel de administración
-2. Selecciona el evento que creaste
-3. El sistema mostrará una clave de streaming (stream key)
-4. Anota esta clave, la necesitarás en OBS Studio
+### Paso 4: Obtener Stream Key y RTMP URL
+1. Ve a la página de "Streaming" en el panel de administración (`/admin/streaming`)
+2. Selecciona el evento que creaste en el dropdown
+3. Busca la tarjeta "OBS Studio Configuration" (color ámbar)
+4. Verás dos campos:
+   - **RTMP URL**: `rtmp://YOUR-DOMAIN.com:1935/live`
+   - **Stream Key**: Código único generado para tu evento
+5. Haz clic en los botones "Copy" junto a cada campo para copiar al portapapeles
+   - No necesitas anotarlos manualmente, los copias directamente
 
 ### Paso 5: Configurar OBS Studio
 1. Abre OBS Studio en tu computadora
@@ -220,16 +236,33 @@ curl http://YOUR-SERVER-IP:3001/api/health
 7. Haz clic en "OK"
 
 ### Paso 6: Configurar la calidad de video (Opcional pero recomendado)
+
+⚠️ **RECOMENDACIÓN DE GALLOBETS**: Usar **480p** en lugar de 720p para optimizar costos sin sacrificar calidad visual.
+
+**Configuración Recomendada (480p - Ahorra 50% de Ancho de Banda)**:
 1. En OBS Studio, ve a "Configuración" (Settings)
 2. Ve a la pestaña "Output" (Salida)
 3. Ajusta los siguientes valores:
-   - **Bitrate**: 2500 para 720p (si tu internet es bueno)
+   - **Bitrate**: 1500 para 480p (recomendado para GalloBets)
    - **Keyframe Interval**: 2 segundos
    - **CPU Usage Preset**: veryfast
 4. En la pestaña "Video":
    - **Base Resolution**: 1920x1080
-   - **Output Resolution**: 1280x720
+   - **Output Resolution**: 854x480 (480p)
    - **FPS**: 30
+
+**¿Por qué 480p?**
+- Suficientemente claro para ver detalles de las peleas de gallos
+- Reduce ancho de banda de 3 Mbps a 1.5 Mbps
+- CDN cuesta ~$54/mes vs $108/mes con 720p (ahorro de $54/mes)
+- Mayor accesibilidad para usuarios con conexión más lenta
+- Recomendado por PRD de GalloBets
+
+**Alternativa 720p (Si tienes ancho de banda abundante)**:
+- **Bitrate**: 2500
+- **Output Resolution**: 1280x720
+- Más detalle visual pero duplica costos de CDN
+- Solo recomendado si transmisiones son ocasionales o ancho de banda no es limitante
 
 ## Parte 3: Durante el Evento
 
@@ -364,65 +397,60 @@ La mayoría de las operaciones de streaming se realizan directamente desde la p�
 
 ## Gestión de Pausas de Transmisión (Intermedios)
 
-Durante un evento de peleas de gallos, es común tener periodos de intermedio entre peleas o por razones técnicas. Estas pausas deben manejarse correctamente para brindar una experiencia profesional a los espectadores.
+Durante un evento de peleas de gallos, es común tener períodos de intermedio entre peleas. El sistema ahora soporta pausar/reanudar transmisiones directamente desde `/admin/streaming`, lo que **reduce costos de CDN en 35-40%** (convierte 6h de streaming a ~4h efectivas).
 
-### Cómo Manejar Pausas de Transmisión
+### Método 1: Pausa en la Plataforma (RECOMENDADO - Ahorra Costos)
 
-**⚠️ IMPORTANTE**: Las pausas de transmisión se manejan EN OBS, NO en la plataforma web.
+✅ **NUEVO**: Los controles de Pausar/Reanudar están en `/admin/streaming`
 
-1. **Durante el intermedio**:
-   - NO detengas la transmisión en OBS Studio
-   - Cambia a una escena "Intermedio" o "Pausa" con contenido informativo
-   - El stream sigue activo (RTMP sigue conectado)
-   - Los usuarios continúan conectados al canal
+1. **Durante el intermedio entre peleas**:
+   - Dirígete a la página `/admin/streaming`
+   - Busca el botón **"Pausar Stream"** en los controles de transmisión
+   - Haz clic para pausar (se mostrará un timer de pausa)
+   - El stream se pausa pero los usuarios mantienen conexión
+   - OBS Studio sigue transmitiendo (no es necesario intervenir)
 
-2. **No cambiar estados de peleas**:
-   - NO cambies el estado de las peleas durante la pausa
-   - Mantén el estado actual de la pelea en "completed" o "upcoming"
-   - La próxima pelea se mantendrá en "upcoming" hasta que esté lista
+2. **Los usuarios verán**:
+   - Pantalla de "Transmisión en pausa"
+   - Temporizador de cuánto falta para reanudar
+   - Pueden continuar haciendo apuestas si está abierta la ventana
 
-3. **Reanudar el evento**:
-   - Al finalizar la pausa, cambia nuevamente a la escena principal
-   - Asegúrate que el audio esté correctamente configurado
-   - El stream continua sin interrupción para los usuarios
+3. **Para reanudar**:
+   - Haz clic en **"Reanudar Stream"** en la plataforma
+   - El stream se reactiva automáticamente
+   - Usuarios reciben notificación de reanudación (SSE event)
 
-### Beneficios
-- Los espectadores no pierden la conexión al stream
-- No hay interrupciones en la experiencia de visualización
-- Mantenimiento de viewers durante los descansos
-- Profesionalismo en la transmisión del evento
+### Método 2: Pausa en OBS (Alternativa Manual)
 
----
-
-## Gestión de Pausas de Transmisión (Intermedios)
-
-Durante un evento de peleas de gallos, es común tener periodos de intermedio entre peleas o por razones técnicas. Estas pausas deben manejarse correctamente para brindar una experiencia profesional a los espectadores.
-
-### Cómo Manejar Pausas de Transmisión
-
-**⚠️ IMPORTANTE**: Las pausas de transmisión se manejan EN OBS, NO en la plataforma web.
+Si prefieres controlar desde OBS Studio:
 
 1. **Durante el intermedio**:
-   - NO detengas la transmisión en OBS Studio
-   - Cambia a una escena "Intermedio" o "Pausa" con contenido informativo
-   - El stream sigue activo (RTMP sigue conectado)
-   - Los usuarios continúan conectados al canal
+   - NO uses el botón de "Pausar Stream" en la plataforma
+   - Cambia a una escena "Intermedio" en OBS con contenido informativo
+   - El stream continúa activo (RTMP sigue conectado)
+   - Los usuarios permanecen conectados
 
-2. **No cambiar estados de peleas**:
-   - NO cambies el estado de las peleas durante la pausa
-   - Mantén el estado actual de la pelea (no cambies estados de pelea)
-   - La próxima pelea se mantendrá en "upcoming" hasta que esté lista
+2. **Para reanudar**:
+   - Cambia nuevamente a la escena principal en OBS
+   - Asegúrate que audio esté activo
+   - Stream continúa sin interrupción
 
-3. **Reanudar el evento**:
-   - Al finalizar la pausa, cambia nuevamente a la escena principal
-   - Asegúrate que el audio esté correctamente configurado
-   - El stream continua sin interrupción para los usuarios
+### ⚠️ Importante: NO combinar ambos métodos
+- Usa SOLO pausa en plataforma O SOLO pausa en OBS
+- No mezcles ambos durante el mismo evento
+- Si usas pausa en plataforma, OBS debe mantener stream activo
 
-### Beneficios
-- Los espectadores no pierden la conexión al stream
-- No hay interrupciones en la experiencia de visualización
-- Mantenimiento de viewers durante los descansos
-- Profesionalismo en la transmisión del evento
+### Beneficios de Usar Pausa en Plataforma
+✅ Reduce costos de CDN en 35-40%
+✅ Mantiene conexión SSE activa para usuarios
+✅ Permite apuestas durante pausa
+✅ Profesional y automático
+✅ No requiere intervención en OBS
+
+### Impacto Económico
+- **Sin pausas**: 6 horas × 500 viewers × 3 Mbps = 8.1 TB/mes = ~$81 CDN
+- **Con pausas**: 4 horas efectivas = 5.4 TB/mes = ~$54 CDN
+- **Ahorros**: ~$27/mes por evento (o $324/año con eventos regulares)
 
 ---
 

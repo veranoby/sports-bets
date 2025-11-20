@@ -14,7 +14,7 @@ import {
   Crown,
   MapPin,
 } from "lucide-react";
-import { articlesAPI, usersAPI } from "../../services/api";
+import { articlesAPI, gallerasAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import SearchInput from "../../components/shared/SearchInput";
@@ -266,60 +266,43 @@ const GallerasPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Get galleras from consolidated users API
-      const gallerasData = await usersAPI.getAll({ role: "gallera" });
+      // Get galleras from public galleras API
+      const gallerasData = await gallerasAPI.getAll();
       if (gallerasData.success) {
         // Get their articles
         const galleraProfiles = await Promise.all(
           ((gallerasData.data as { users: any[] })?.users || []).map(
-            async (user: any) => {
+            async (gallera: any) => {
               const articles = await articlesAPI.getAll({
-                author_id: user.id,
+                author_id: gallera.owner?.id || gallera.id,
               });
               const articleCount = articles.success
                 ? (articles.data as any)?.total || 0
                 : 0;
 
-              // Use user profileInfo for gallera data (FASE 5 consolidation)
-              const galleraName =
-                user.profileInfo?.galleraName ||
-                user.profileInfo?.businessName ||
-                user.username ||
-                "Criadero";
-              const description =
-                user.profileInfo?.galleraDescription ||
-                user.profileInfo?.description ||
-                "Criadero profesional";
-              const location =
-                user.profileInfo?.galleraLocation ||
-                user.profileInfo?.location ||
-                "Ecuador";
-
-              // Extract specialties from user profileInfo
+              // Extract specialties from transformed response (via owner.profileInfo)
               let specialties: string[] = [];
-              if (user.profileInfo?.galleraSpecialties) {
-                specialties = Array.isArray(user.profileInfo.galleraSpecialties)
-                  ? user.profileInfo.galleraSpecialties
-                  : [user.profileInfo.galleraSpecialties];
+              if (gallera.owner?.profileInfo?.galleraSpecialties) {
+                specialties = Array.isArray(gallera.owner.profileInfo.galleraSpecialties)
+                  ? gallera.owner.profileInfo.galleraSpecialties
+                  : [gallera.owner.profileInfo.galleraSpecialties];
               }
 
               return {
-                id: user.id,
-                name: galleraName,
-                description: description,
-                location: location,
-                imageUrl:
-                  user.profileInfo?.images?.[0] ||
-                  user.profileInfo?.profileImage,
-                ownerImage: user.profileInfo?.profileImage,
-                galleryImages: user.profileInfo?.images || [],
+                id: gallera.id,
+                name: gallera.name || "Criadero sin nombre",
+                description: gallera.description || "Información no disponible",
+                location: gallera.location || "Ubicación no especificada",
+                imageUrl: gallera.images?.[0] || gallera.owner?.profileInfo?.profileImage,
+                ownerImage: gallera.owner?.profileInfo?.profileImage,
+                galleryImages: gallera.images || [],
                 articlesCount: articleCount,
-                establishedDate: user.createdAt,
+                establishedDate: gallera.createdAt,
                 isCertified:
-                  user.profileInfo?.verificationLevel === "full" || false,
-                rating: user.profileInfo?.rating || 0,
+                  gallera.owner?.profileInfo?.verificationLevel === "full" || false,
+                rating: gallera.owner?.profileInfo?.rating || 0,
                 specialties: specialties,
-                premiumLevel: user.profileInfo?.premiumLevel,
+                premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
               };
             },
           ),

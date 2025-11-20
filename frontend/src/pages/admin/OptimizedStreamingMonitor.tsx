@@ -10,11 +10,12 @@ import {
   RotateCcw,
 } from "lucide-react";
 import HLSPlayer from "../../components/streaming/HLSPlayer";
-import useSSEConnection from "../../hooks/useSSEConnection";
+import { useSSEConnection } from "../../hooks/useSSEConnection";
 import { eventsAPI, streamingAPI } from "../../services/api"; // Import the events and streaming APIs
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
+import { useStreamControl } from "../../hooks/useStreamControl";
 
 interface StreamingEvent {
   id: string;
@@ -33,6 +34,15 @@ const OptimizedStreamingMonitor: React.FC = () => {
 
   // Use the new SSE connection hook
   const { data, isConnected, error, reconnect } = useSSEConnection();
+
+  const {
+    handleStartStream: handleStartStreamAPI,
+    handleStopStream: handleStopStreamAPI,
+    handlePauseStream: handlePauseStreamAPI,
+    handleResumeStream: handleResumeStreamAPI,
+    isLoading,
+    error: streamError
+  } = useStreamControl();
 
   // Load real events from the API
   useEffect(() => {
@@ -150,46 +160,21 @@ const OptimizedStreamingMonitor: React.FC = () => {
   const handleStartStream = async () => {
     try {
       // First generate or get the stream key for this event
-      const streamKeyResponse: any = await fetch(
-        `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/streaming/keys/generate`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ eventId: selectedEvent }),
-        },
-      );
+      const streamKeyResponse = await streamingAPI.generateStreamKey({ eventId: selectedEvent });
+      if (streamKeyResponse.success && streamKeyResponse.data) {
+        setStreamKey(streamKeyResponse.data.streamKey);
+        setRtmpUrl(streamKeyResponse.data.rtmpUrl);
 
-      if (streamKeyResponse.ok) {
-        const streamKeyData = await streamKeyResponse.json();
-        if (streamKeyData.success) {
-          setStreamKey(streamKeyData.data.streamKey);
-          setRtmpUrl(streamKeyData.data.rtmpUrl);
-
-          // Now start the stream
-          const response = await streamingAPI.startStream(selectedEvent);
-          if (response.success) {
-            setIsStreamPlaying(true);
-            setIsStreamPaused(false); // Reset paused state
-            console.log(
-              "Stream started successfully for event:",
-              selectedEvent,
-            );
-            console.log("RTMP URL:", streamKeyData.data.rtmpUrl);
-            console.log("Stream Key:", streamKeyData.data.streamKey);
-          } else {
-            console.error("Failed to start stream:", response.error);
-          }
-        } else {
-          console.error("Failed to generate stream key:", streamKeyData.error);
-        }
+        // Now start the stream using the hook
+        await handleStartStreamAPI(selectedEvent);
+        // Update local state after successful API call
+        setIsStreamPlaying(true);
+        setIsStreamPaused(false); // Reset paused state
+        console.log("Stream started successfully for event:", selectedEvent);
+        console.log("RTMP URL:", streamKeyResponse.data.rtmpUrl);
+        console.log("Stream Key:", streamKeyResponse.data.streamKey);
       } else {
-        console.error(
-          "Failed to fetch stream key:",
-          streamKeyResponse.statusText,
-        );
+        console.error("Failed to generate stream key:", streamKeyResponse.error);
       }
     } catch (error) {
       console.error("Error starting stream:", error);
@@ -197,49 +182,22 @@ const OptimizedStreamingMonitor: React.FC = () => {
   };
 
   const handleStopStream = async () => {
-    try {
-      // In a real app, this would make an API call to stop the stream
-      const response = await streamingAPI.stopStream(selectedEvent);
-      if (response.success) {
-        setIsStreamPlaying(false);
-        setIsStreamPaused(false); // Reset paused state
-        console.log("Stream stopped successfully for event:", selectedEvent);
-      } else {
-        console.error("Failed to stop stream:", response.error);
-      }
-    } catch (error) {
-      console.error("Error stopping stream:", error);
-    }
+    await handleStopStreamAPI(selectedEvent);
+    // Update local state after successful API call
+    setIsStreamPlaying(false);
+    setIsStreamPaused(false); // Reset paused state
   };
 
   const handlePauseStream = async () => {
-    try {
-      // Make API call to pause the stream
-      const response = await streamingAPI.pauseStream(selectedEvent);
-      if (response.success) {
-        setIsStreamPaused(true);
-        console.log("Stream paused successfully for event:", selectedEvent);
-      } else {
-        console.error("Failed to pause stream:", response.error);
-      }
-    } catch (error) {
-      console.error("Error pausing stream:", error);
-    }
+    await handlePauseStreamAPI(selectedEvent);
+    // Update local state after successful API call
+    setIsStreamPaused(true);
   };
 
   const handleResumeStream = async () => {
-    try {
-      // Make API call to resume the stream
-      const response = await streamingAPI.resumeStream(selectedEvent);
-      if (response.success) {
-        setIsStreamPaused(false);
-        console.log("Stream resumed successfully for event:", selectedEvent);
-      } else {
-        console.error("Failed to resume stream:", response.error);
-      }
-    } catch (error) {
-      console.error("Error resuming stream:", error);
-    }
+    await handleResumeStreamAPI(selectedEvent);
+    // Update local state after successful API call
+    setIsStreamPaused(false);
   };
 
   const getStatusColor = (status: string) => {

@@ -73,17 +73,42 @@
         "cost": "$24-50/month (compute) + $50-100/month (bandwidth CDN)"
       },
       "scaling_to_500_users": {
-        "phase_1_basic": {
-          "platform": "Ant Media Server (open-source) o Bunny Stream",
-          "streaming_cost": "$24/month (Ant on VPS)",
-          "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $2,000-3,000/month for 500 concurrent",
-          "total_monthly": "$2,100-3,200"
+        "critical_correction": "⚠️ UNSUITABLE: Previous recommendations (Ant Media Community Edition $24/mo + BunnyCDN Stream Storage) are invalid for 500 concurrent users. BunnyCDN Stream Storage does NOT support RTMP live streaming (only VOD). Ant Media Community Edition has known memory leaks and no failover.",
+        "recommended_solution_wowza_cloud": {
+          "platform": "Wowza Cloud (professional managed streaming)",
+          "streaming_cost": "$1,375-1,875/month (includes RTMP ingestion + HLS generation + global CDN)",
+          "advantages": [
+            "Fully managed (no infrastructure overhead)",
+            "Professional support 24/7",
+            "Automatic failover and high availability",
+            "Real-time monitoring and alerts",
+            "Handles 500 concurrent connections reliably"
+          ],
+          "total_monthly": "$1,474-2,024/month (including API backend + database)"
         },
-        "phase_2_production": {
-          "platform": "Wowza Streaming Engine Cloud",
-          "streaming_cost": "$400-600/month",
-          "cdn_distribution": "Bunny CDN + Origin Shield",
-          "total_monthly": "$2,400-3,600 (compute + CDN)"
+        "alternative_solution_ant_media_enterprise": {
+          "platform": "Ant Media Server Enterprise (if choosing open-source with full responsibility)",
+          "requirements": "Requires MongoDB cluster + load balancer setup + operational expertise",
+          "streaming_cost": "$290-600/month (Enterprise Edition)",
+          "infrastructure_overhead": "$200-400/month (MongoDB, load balancer, clustering)",
+          "cdn_distribution": "BunnyCDN HLS at $216-348/month (480p with pause optimization)",
+          "total_monthly": "$829-1,469/month",
+          "disadvantages": [
+            "High operational complexity",
+            "Risk of misconfiguration",
+            "Manual failover handling",
+            "Requires dedicated ops knowledge"
+          ]
+        },
+        "unsuitable_solutions": {
+          "ant_media_community_edition": {
+            "reason": "Memory leaks (#5399, #5747, #5029, #6258), no failover, no support",
+            "verdict": "❌ UNSUITABLE FOR 500 CONCURRENT PRODUCTION"
+          },
+          "bunnycdn_stream_storage": {
+            "reason": "VOD only - does NOT support RTMP live streaming",
+            "verdict": "❌ UNSUITABLE FOR LIVE EVENTS"
+          }
         }
       },
       "optimization_techniques": [

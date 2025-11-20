@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usersAPI, articlesAPI } from "../../services/api";
+import { venuesAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import Card from "../../components/shared/Card";
@@ -49,7 +49,7 @@ const VenueDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const venueResponse = await usersAPI.getById(id);
+        const venueResponse = await venuesAPI.getById(id);
         if (!venueResponse.success) {
           throw new Error(venueResponse.error || "Error al cargar gallera");
         }
@@ -123,21 +123,28 @@ const VenueDetailPage: React.FC = () => {
       </div>
     );
 
-  const venueName =
-    venue.profileInfo?.venueName ||
-    venue.profileInfo?.businessName ||
-    venue.username ||
-    "Venue";
-  const location =
-    venue.profileInfo?.venueLocation ||
-    venue.profileInfo?.location ||
-    "Ubicación no especificada";
-  const description =
-    venue.profileInfo?.venueDescription ||
-    venue.profileInfo?.description ||
-    "Gallera para eventos de gallos";
+  // Entity name (business name - PRINCIPAL)
+  const entityName = venue.name || "Gallera sin nombre";
+
+  // Location & Description (transformed by backend)
+  const location = venue.location || "Ubicación no especificada";
+  const description = venue.description || "Información no disponible";
+  const images = venue.images || [];
+
+  // Owner/Representative info (from owner.profileInfo)
+  const representativeName =
+    venue.owner?.profileInfo?.fullName ||
+    venue.owner?.username ||
+    "Representante";
+  const representativeEmail =
+    venue.owner?.profileInfo?.venueEmail || "No especificado";
+  const representativePhone =
+    venue.owner?.profileInfo?.phoneNumber || "No especificado";
+  const website = venue.owner?.profileInfo?.venueWebsite || null;
+
+  // Additional info
   const establishedDate = venue.createdAt;
-  const isVerified = venue.profileInfo?.verificationLevel === "full" || false;
+  const isVerified = venue.owner?.profileInfo?.verificationLevel === "full" || false;
   const activeEvents = 0; // This would need to come from events API
   const rating = 0; // This would need to come from ratings API
 
@@ -156,98 +163,97 @@ const VenueDetailPage: React.FC = () => {
           Volver a Galleras
         </button>
 
-        {/* Venue Header */}
-        <div className="card-background p-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {venue.profileInfo?.images?.[0] ? (
-              <img
-                src={venue.profileInfo.images[0]}
-                alt={venueName}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-2 border-blue-500"
-              />
-            ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                <Building className="w-8 h-8 md:w-12 md:h-12 text-theme-light/50" />
+        {/* Venue Header - Entity Name with Info Chips */}
+        <div className="card-background p-6 md:p-8 mb-6">
+          {/* Main Entity Name */}
+          <h1 className="text-4xl md:text-5xl font-bold text-theme-primary mb-4">
+            {entityName}
+          </h1>
+
+          {/* Info Chips - Location, Rating, Events, Verificación, Fundada */}
+          <div className="flex flex-wrap gap-2">
+            {/* Ubicación */}
+            <div className="bg-blue-500/30 border border-blue-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
+              <MapPin className="w-3.5 h-3.5 text-blue-600" />
+              <span>{location}</span>
+            </div>
+
+            {/* Rating */}
+            {rating > 0 && (
+              <div className="bg-yellow-500/30 border border-yellow-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
+                <Star className="w-3.5 h-3.5 text-yellow-600" />
+                <span>{rating.toFixed(1)}</span>
               </div>
             )}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
-                  {venueName}
-                </h1>
-                {isVerified && <Sparkles className="w-5 h-5 text-yellow-400" />}
+
+            {/* Eventos */}
+            <div className="bg-red-500/30 border border-red-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
+              <Zap className="w-3.5 h-3.5 text-red-600" />
+              <span>{activeEvents || 0}</span>
+            </div>
+
+            {/* Verificación */}
+            {isVerified && (
+              <div className="bg-amber-500/30 border border-amber-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Verificado</span>
               </div>
-              <div className="flex items-center gap-2 text-theme-light mb-3">
-                <MapPin className="w-4 h-4" />
-                <span className="text-base md:text-lg">{location}</span>
-              </div>
-              <p className="text-theme-light leading-relaxed">{description}</p>
+            )}
+
+            {/* Fundada */}
+            <div className="bg-slate-400/30 border border-slate-400 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
+              <Calendar className="w-3.5 h-3.5 text-slate-600" />
+              <span>{establishedDate ? new Date(establishedDate).getFullYear() : "N/A"}</span>
             </div>
           </div>
+        </div>
 
-          {/* Image Carousel */}
-          {venue.profileInfo?.images && venue.profileInfo.images.length > 0 && (
+        {/* Description */}
+        <div className="card-background p-6 md:p-8 mb-6">
+          <p className="text-theme-light leading-relaxed">{description}</p>
+        </div>
+
+        {/* Representative Info Card */}
+        <div className="card-background p-6 md:p-8 mb-6">
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">Propietario/Representante</p>
+          <p className="text-2xl font-bold text-theme-primary mb-4">{representativeName}</p>
+          <div className="space-y-3">
+            {representativeEmail !== "No especificado" && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">📧</span>
+                <a href={`mailto:${representativeEmail}`} className="text-theme-light hover:text-theme-primary transition-colors">
+                  {representativeEmail}
+                </a>
+              </div>
+            )}
+            {representativePhone !== "No especificado" && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">📞</span>
+                <span className="text-theme-light">{representativePhone}</span>
+              </div>
+            )}
+            {website && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">🌐</span>
+                <a href={website} target="_blank" rel="noopener noreferrer" className="text-theme-light hover:text-theme-primary transition-colors truncate">
+                  {website}
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Image Carousel - BEFORE articles */}
+        {images && images.length > 0 && (
+          <div className="mb-6">
             <ImageCarouselViewer
-              images={venue.profileInfo.images}
+              images={images}
               title="Galería de la Gallera"
             />
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <BookOpen className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-blue-600 font-medium">
-                Artículos
-              </span>
-            </div>
-            <span className="text-lg font-bold text-theme-primary">
-              {publishedArticles.length}
-            </span>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Star className="w-4 h-4 text-yellow-400" />
-              <span className="text-xs text-yellow-400 font-medium">
-                Rating
-              </span>
-            </div>
-            <span className="text-lg font-bold text-theme-primary">
-              {rating > 0 ? rating.toFixed(1) : "N/A"}
-            </span>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-green-600 font-medium">
-                Eventos
-              </span>
-            </div>
-            <span className="text-lg font-bold text-theme-primary">
-              {activeEvents}
-            </span>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-purple-400" />
-              <span className="text-xs text-purple-400 font-medium">
-                Fundado
-              </span>
-            </div>
-            <span className="text-lg font-bold text-theme-primary">
-              {establishedDate
-                ? new Date(establishedDate).getFullYear()
-                : "N/A"}
-            </span>
-          </Card>
-        </div>
-
-        {/* Articles Section */}
+        {/* Articles Section - FINAL SECTION */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
@@ -291,39 +297,10 @@ const VenueDetailPage: React.FC = () => {
           ) : (
             <EmptyState
               title="Sin artículos publicados"
-              description={`${venueName} aún no ha publicado artículos.`}
+              description={`${entityName} aún no ha publicado artículos.`}
               icon={<BookOpen className="w-10 h-10" />}
             />
           )}
-        </Card>
-
-        {/* Venue Status Information */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-theme-primary mb-4">
-            Estado de la Gallera
-          </h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-theme-light">Estado de verificación:</span>
-              <span
-                className={`font-medium ${isVerified ? "text-green-600" : "text-amber-600"}`}
-              >
-                {isVerified ? "Verificado" : "En verificación"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-theme-light">Artículos en borrador:</span>
-              <span className="font-medium text-theme-primary">
-                {draftArticles.length}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-theme-light">Miembro desde:</span>
-              <span className="font-medium text-theme-primary">
-                {new Date(venue.createdAt).toLocaleDateString("es-ES")}
-              </span>
-            </div>
-          </div>
         </Card>
       </div>
     </div>
