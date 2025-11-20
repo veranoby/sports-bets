@@ -26,7 +26,7 @@ export class Event extends Model<
   declare scheduledDate: Date;
   declare endDate: CreationOptional<Date>;
   declare status: CreationOptional<
-    "scheduled" | "in-progress" | "intermission" | "completed" | "cancelled"
+    "scheduled" | "in-progress" | "intermission" | "paused" | "completed" | "cancelled"
   >;
   declare operatorId: CreationOptional<ForeignKey<User["id"]>>;
   declare streamKey: CreationOptional<string>;
@@ -68,6 +68,10 @@ export class Event extends Model<
 
   isIntermission(): boolean {
     return this.status === "intermission";
+  }
+
+  isPaused(): boolean {
+    return this.status === "paused";
   }
 
   generateStreamKey(): string {
@@ -151,6 +155,7 @@ Event.init(
         "scheduled",
         "in-progress",
         "intermission",
+        "paused",
         "completed",
         "cancelled"
       ),

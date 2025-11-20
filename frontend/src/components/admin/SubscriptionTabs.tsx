@@ -146,43 +146,45 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
             </h4>
 
             <div className="space-y-3 mb-4">
-              {membershipOptions.filter(option => option.value !== "free").map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedType === option.value
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      name="membershipType"
-                      value={option.value}
-                      checked={selectedType === option.value}
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div className="ml-3 flex items-center gap-2">
-                      {option.icon}
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {option.label}
+              {membershipOptions
+                .filter((option) => option.value !== "free")
+                .map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      selectedType === option.value
+                        ? "border-blue-600 bg-blue-50"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        name="membershipType"
+                        value={option.value}
+                        checked={selectedType === option.value}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="ml-3 flex items-center gap-2">
+                        {option.icon}
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {option.label}
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {option.description}
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-600">
-                          {option.description}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-blue-600">
-                      {option.price}
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-blue-600">
+                        {option.price}
+                      </div>
                     </div>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                ))}
             </div>
 
             {/* Campo de usuario responsable */}
@@ -207,108 +209,123 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
           </div>
         )}
         {/* Si la suscripción actual es de pago (diaria o mensual) y aún es activa, mostrar botón de cancelar */}
-        {subscription?.type && subscription.type !== "free" &&
-         subscription.status !== "cancelled" &&
-         subscription.status !== "expired" && (
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-3">
-              Administrar Suscripción
-            </h4>
-            <p className="text-sm text-gray-600 mb-3">
-              El usuario actualmente tiene una suscripción {subscription.type} activa.
-            </p>
-            <button
-              onClick={() => {
-                if (window.confirm("¿Estás seguro de que deseas cancelar esta suscripción? El usuario volverá a tener acceso gratuito.")) {
-                  setSelectedType("free");
-                  onSave({
-                    membership_type: "free",
-                    assigned_username: user?.username || "",
-                    type: "free",
-                    status: "active",
-                    expiresAt: null,
-                    features: [],
-                  });
-                }
-              }}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Cancelar Suscripción
-            </button>
-          </div>
-        )}
-        {/* Si la suscripción actual es de pago pero ya expiró o está cancelada, mostrar opción de mejorar */}
-        {subscription?.type && subscription.type !== "free" &&
-         (subscription.status === "cancelled" || subscription.status === "expired") && (
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-3">
-              Gestionar Suscripción - {subscription.status === "expired" ? "Expirada" : "Cancelada"}
-            </h4>
-            <p className="text-sm text-gray-600 mb-3">
-              La suscripción actual ha {subscription.status === "expired" ? "expirado" : "sido cancelada"}. Puedes asignar una nueva suscripción.
-            </p>
-
-            <div className="space-y-3 mb-4">
-              {membershipOptions.filter(option => option.value !== "free").map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedType === option.value
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      name="membershipType"
-                      value={option.value}
-                      checked={selectedType === option.value}
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div className="ml-3 flex items-center gap-2">
-                      {option.icon}
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {option.label}
-                        </div>
-                        <p className="text-xs text-gray-600">
-                          {option.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-blue-600">
-                      {option.price}
-                    </div>
-                  </div>
-                </label>
-              ))}
+        {subscription?.type &&
+          subscription.type !== "free" &&
+          subscription.status !== "cancelled" &&
+          subscription.status !== "expired" && (
+            <div>
+              <h4 className="text-md font-medium text-gray-900 mb-3">
+                Administrar Suscripción
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                El usuario actualmente tiene una suscripción {subscription.type}{" "}
+                activa.
+              </p>
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "¿Estás seguro de que deseas cancelar esta suscripción? El usuario volverá a tener acceso gratuito.",
+                    )
+                  ) {
+                    setSelectedType("free");
+                    onSave({
+                      membership_type: "free",
+                      assigned_username: user?.username || "",
+                      type: "free",
+                      status: "active",
+                      expiresAt: null,
+                      features: [],
+                    });
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Cancelar Suscripción
+              </button>
             </div>
+          )}
+        {/* Si la suscripción actual es de pago pero ya expiró o está cancelada, mostrar opción de mejorar */}
+        {subscription?.type &&
+          subscription.type !== "free" &&
+          (subscription.status === "cancelled" ||
+            subscription.status === "expired") && (
+            <div>
+              <h4 className="text-md font-medium text-gray-900 mb-3">
+                Gestionar Suscripción -{" "}
+                {subscription.status === "expired" ? "Expirada" : "Cancelada"}
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                La suscripción actual ha{" "}
+                {subscription.status === "expired"
+                  ? "expirado"
+                  : "sido cancelada"}
+                . Puedes asignar una nueva suscripción.
+              </p>
 
-            {/* Campo de usuario responsable */}
-            {selectedType !== "free" && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Usuario Responsable de la Asignación
-                </label>
-                <input
-                  type="text"
-                  value={assignedUsername}
-                  onChange={(e) => setAssignedUsername(e.target.value)}
-                  placeholder="Ingresa tu nombre de usuario"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Se registrará quién asignó esta suscripción para auditoría
-                </p>
+              <div className="space-y-3 mb-4">
+                {membershipOptions
+                  .filter((option) => option.value !== "free")
+                  .map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        selectedType === option.value
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="membershipType"
+                          value={option.value}
+                          checked={selectedType === option.value}
+                          onChange={(e) => setSelectedType(e.target.value)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="ml-3 flex items-center gap-2">
+                          {option.icon}
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              {option.label}
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {option.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-blue-600">
+                          {option.price}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Campo de usuario responsable */}
+              {selectedType !== "free" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Usuario Responsable de la Asignación
+                  </label>
+                  <input
+                    type="text"
+                    value={assignedUsername}
+                    onChange={(e) => setAssignedUsername(e.target.value)}
+                    placeholder="Ingresa tu nombre de usuario"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Se registrará quién asignó esta suscripción para auditoría
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
         {error && <ErrorMessage error={error} />}
       </div>

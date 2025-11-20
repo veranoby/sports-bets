@@ -1334,6 +1334,29 @@
         "server_error": "Hook logs error and attempts reconnection after backoff delay"
       },
       "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)"
+    },
+    "pause_resume_stream_optimization_2025_11_19": {
+      "description": "Streaming pause feature optimization: semantic status clarity + API consolidation",
+      "changes": [
+        {
+          "type": "Status Field Clarification",
+          "detail": "Event.status changed from 'intermission' to 'paused' for explicit pause state",
+          "rationale": "Distinguish pause state from between-fights intermission context",
+          "affected_endpoint": "POST /api/streaming/pause",
+          "response_field": "eventStatus: 'paused'",
+          "backend_changes": "backend/src/routes/streaming.ts:684-699, backend/src/models/Event.ts (status enum)",
+          "sse_broadcast": "STREAM_STATUS_UPDATE with message 'Stream pausado - Proximamente se reanuda...'"
+        },
+        {
+          "type": "API Method Consolidation",
+          "detail": "Removed duplicate pauseStream/resumeStream from eventsAPI",
+          "reason": "eventsAPI methods routed to non-existent backend endpoints",
+          "consolidation": "Single source of truth in streamingAPI",
+          "frontend_impact": "NONE - all components already use streamingAPI methods",
+          "removed_from": "frontend/src/services/api.ts eventsAPI (was lines 257-262)",
+          "consolidated_to": "frontend/src/services/api.ts streamingAPI (lines 307-312)"
+        }
+      ]
     }
   },
 

@@ -425,7 +425,7 @@ const LoginPage: React.FC = () => {
                     <strong>Gallera:</strong> gallera_test / Gallera123456
                   </p>
                   <p>
-                    <strong>Venue:</strong> venue_test / Test123456
+                    <strong>Venue:</strong> criadero_test / Criadero123456
                   </p>
                 </div>
               </div>

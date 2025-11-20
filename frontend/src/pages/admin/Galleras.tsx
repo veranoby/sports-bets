@@ -50,7 +50,7 @@ const AdminGallerasPage: React.FC = () => {
     new URLSearchParams(location.search).get("subscription") || "all",
   );
 
-  // Fetch de datos combinados
+  // Fetch de datos combinados - sin filtros
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -59,18 +59,6 @@ const AdminGallerasPage: React.FC = () => {
         limit: 1000,
         role: "gallera",
       };
-      if (galleraStatus !== "all") {
-        params.status = galleraStatus;
-      }
-      if (ownerApproved !== "all") {
-        params.ownerApproved = ownerApproved === "approved";
-      }
-      if (ownerSubscription !== "all") {
-        params.ownerSubscription = ownerSubscription;
-      }
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
 
       const res = await userAPI.getAll(params);
       if (res.success) {
@@ -89,7 +77,7 @@ const AdminGallerasPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [galleraStatus, ownerApproved, ownerSubscription, searchTerm]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -129,19 +117,61 @@ const AdminGallerasPage: React.FC = () => {
     location.search,
   ]);
 
-  // Filtrado por búsqueda
+  // Filtrado local aplicando todos los filtros
   const filteredData = useMemo(
     () =>
-      combinedData.filter(
-        ({ user }) =>
+      combinedData.filter(({ user }) => {
+        // Apply search filter
+        const matchesSearch =
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
           ((user.profileInfo as any)?.galleraName || "")
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()),
-      ),
-    [combinedData, searchTerm],
+            .includes(searchTerm.toLowerCase());
+
+        // Apply gallera status filter
+        let matchesGalleraStatus = true;
+        if (galleraStatus !== "all") {
+          if (galleraStatus === "active" || galleraStatus === "inactive") {
+            matchesGalleraStatus =
+              user.isActive === (galleraStatus === "active");
+          } else if (
+            galleraStatus === "pending" ||
+            galleraStatus === "suspended"
+          ) {
+            matchesGalleraStatus =
+              user.approved === (galleraStatus === "pending");
+          }
+        }
+
+        // Apply owner approved filter
+        let matchesOwnerApproved = true;
+        if (ownerApproved !== "all") {
+          matchesOwnerApproved =
+            user.approved === (ownerApproved === "approved");
+        }
+
+        // Apply subscription filter
+        let matchesOwnerSubscription = true;
+        if (ownerSubscription !== "all") {
+          if (user.subscription) {
+            matchesOwnerSubscription =
+              user.subscription.type === ownerSubscription;
+          } else {
+            // If no subscription object exists, treat as "free"
+            matchesOwnerSubscription = ownerSubscription === "free";
+          }
+        }
+
+        return (
+          matchesSearch &&
+          matchesGalleraStatus &&
+          matchesOwnerApproved &&
+          matchesOwnerSubscription
+        );
+      }),
+    [combinedData, searchTerm, galleraStatus, ownerApproved, ownerSubscription],
   );
 
   // Estado para unified modal
@@ -247,79 +277,112 @@ const AdminGallerasPage: React.FC = () => {
           </select>
         </div>
 
-        {/* Grid de Galleras */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(({ user }) => {
-            const profile = user.profileInfo || {};
-            const galleraName = (profile as any).galleraName || user.username;
-            const galleraLocation =
-              (profile as any).galleraLocation || "Ubicación no especificada";
-            const galleraStatus =
-              user.isActive && user.approved
-                ? "active"
-                : user.isActive && !user.approved
-                  ? "pending"
-                  : "inactive";
-
-            return (
-              <div
-                key={user.id}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {galleraName}
-                    </h3>
-                    <StatusChip status={galleraStatus} size="sm" />
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{galleraLocation}</span>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-3 mt-3">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
-                      Propietario
-                    </h4>
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {user.username}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                      <Mail className="w-4 h-4" />
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      <span className="font-medium">Membresía expira:</span>{" "}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Nombre del Criadero
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Estado
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Suscripción
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Expira
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Miembro Desde
+                </th>
+                <th scope="col" className="relative px-6 py-3">
+                  <span className="sr-only">Acciones</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredData.map(({ user }) => {
+                const profile = user.profileInfo || {};
+                const galleraName =
+                  (profile as any).galleraName || user.username;
+                return (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {galleraName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.isActive && user.approved
+                        ? "Activo"
+                        : user.isActive && !user.approved
+                          ? "Pendiente"
+                          : "Inactivo"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.subscription?.type === "free"
+                        ? "Gratuito"
+                        : user.subscription?.type === "daily"
+                          ? "24 Horas"
+                          : user.subscription?.type === "monthly"
+                            ? "Mensual"
+                            : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {user.subscription?.expiresAt
                         ? new Date(
                             user.subscription.expiresAt,
-                          ).toLocaleDateString("es-ES")
+                          ).toLocaleDateString()
                         : user.subscription?.manual_expires_at
                           ? new Date(
                               user.subscription.manual_expires_at,
-                            ).toLocaleDateString("es-ES")
-                          : "Gratuita"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex justify-end gap-3">
-                  <button
-                    onClick={() => handleEdit(user.id)}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Editar
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                            ).toLocaleDateString()
+                          : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => handleEdit(user.id)}
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Editar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {filteredData.length === 0 && !loading && (

@@ -680,14 +680,14 @@ router.post(
     // Pause the stream
     const pauseResult = await rtmpService.pauseStream(stream.streamId);
 
-    // Update event status to intermission
-    await event.update({ status: "intermission" });
+    // Update event status to paused
+    await event.update({ status: "paused" });
 
     // Broadcast via SSE
     sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
       type: "STREAM_PAUSED",
       eventId,
-      message: "Intermisión - Próximamente...",
+      message: "Stream pausado - Próximamente se reanuda...",
       timestamp: new Date()
     });
 
@@ -696,7 +696,7 @@ router.post(
       data: {
         message: pauseResult.message,
         bandwidth_saved: pauseResult.bandwidth_saved,
-        eventStatus: "intermission"
+        eventStatus: "paused"
       }
     });
   })

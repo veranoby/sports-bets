@@ -1,315 +1,254 @@
 {
-  "<¯_START_HERE": {
-    "session_declaration": {
-      "date": "2025-11-19",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "director": "Claude Sonnet 4.5",
-      "execution_mode": "standard (full validation required)",
-      "role": "executor",
-      "mcp_activation_required": ["--seq", "--c7", "--token-efficient"],
-      "protocols": ["DIRECTOR_PLANNING_PROTOCOL", "SIMULATE_Y_CONFIRMAR_PROTOCOL", "AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL"],
-      "reference_file": "brain/multi_ai_coordination_strategy.json (lines 79-100, 318-342, 619-637)"
+  "=Ë_SESSION_DECLARATION": {
+    "director_role": "claude-sonnet-4-5",
+    "executor_role": "qwen-coder-plus",
+    "execution_mode": "standard",
+    "session_context": "Streaming pause feature completion - final refinements and model updates",
+    "protocol_references": "brain/multi_ai_coordination_strategy.json (lines 79-101: DIRECTOR_PLANNING_PROTOCOL, lines 147-280: AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL)"
+  },
+
+  "=4_CRITICAL_START_PROTOCOL": {
+    "executor_must_do_first": [
+      " BEFORE STARTING: Echo back this task list with item counts",
+      " DECLARE: Model + Role + Execution Mode + MCP flags to activate",
+      " ACTIVATE: --c7 --context7 (TypeScript frontend/backend work)",
+      " CONFIRM: 'I will execute [TASK_COUNT] tasks. Proceed Y/N?' with task list"
+    ],
+    "forbidden_actions": [
+      "=4 NEVER modify files outside [FILES_TO_MODIFY] list",
+      "=4 NEVER commit without git diff verification",
+      "=4 NEVER skip npx tsc --noEmit validation",
+      "=4 NEVER fabricate test results - only document actual outcomes"
+    ]
+  },
+
+  "=Ý_TASK_ECHO_BACK_PROTOCOL": {
+    "instruction": "EXECUTOR MUST EXPLICITLY ECHO BACK: 'Task disambiguation - I will complete X tasks across Y files: 1) [Task 1 description], 2) [Task 2 description], etc. Confirm Y/N?' BEFORE starting any implementation",
+    "enforcement": "Required by brain/multi_ai_coordination_strategy.json (lines 582-597: task_disambiguation_protocol_2025_11_04)",
+    "reason": "Prevents scope creep and ensures clarity before execution"
+  },
+
+  "=Ê_CURRENT_IMPLEMENTATION_STATUS": {
+    "_ALREADY_WORKING": [
+      "Backend: rtmpService.pauseStream() and resumeStream() methods (backend/src/services/rtmpService.ts:582-633)",
+      "Backend: POST /api/streaming/pause and POST /api/streaming/resume endpoints (backend/src/routes/streaming.ts:681-774)",
+      "Backend: Event status transitions intermission ” in-progress with SSE broadcasting",
+      "Frontend: OptimizedStreamingMonitor.tsx pause/resume UI and handlers (lines 30, 215-243)",
+      "Frontend: HLSPlayer.tsx native video player with full HLS.js support",
+      "Frontend: isStreamPaused state management and status color logic (yellow when paused)"
+    ],
+    "L_NEEDS_COMPLETION": [
+      "Event.ts model: ADD 'paused' to status union type (line 28-30)",
+      "Event.ts model: ADD isPaused() instance method",
+      "Verification: Ensure streamingAPI has pauseStream() and resumeStream() methods",
+      "Documentation: Update brain/sdd_system.json with final implementation status"
+    ],
+    "ó_NEEDS_VERIFICATION": [
+      "useSSEConnection.ts: Confirm pause state handling (likely working, quick 2-min check)",
+      "streamingAPI service: Verify API methods exist in frontend/src/services/api.ts"
+    ]
+  },
+
+  "=°_480P_COST_ANALYSIS": {
+    "bandwidth_impact": {
+      "720p_3mbps": "500 viewers × 3 Mbps = 1.5 Gbps = 675 GB/hour",
+      "480p_1_5mbps": "500 viewers × 1.5 Mbps = 750 Mbps = 337.5 GB/hour",
+      "reduction_percentage": "50% bandwidth savings with 480p"
     },
-    "task_summary": "Two discrete implementation tasks: (1) Add OBS Studio configuration UI to streaming page, (2) Fix subscription display in users management page",
-    "priority": "HIGH - Both required for MVP",
-    "session_limits": {
-      "max_duration": "40 minutes",
-      "checkpoint_every": "15 minutes",
-      "context_refresh_trigger": "If exceeding 30 minutes, create handoff note"
+    "monthly_cost_projection": {
+      "scenario": "2 sessions/week, 6h each, 500 concurrent users, 4h effective with pause",
+      "720p_with_pause": {
+        "weekly_bandwidth": "5.4 TB",
+        "monthly_bandwidth": "21.6 TB",
+        "bunny_cdn_cost": "$216/month",
+        "total_stack_cost": "$339/month (216 + 24 compute + 50 db + 24 origin)"
+      },
+      "480p_with_pause": {
+        "weekly_bandwidth": "2.7 TB",
+        "monthly_bandwidth": "10.8 TB",
+        "bunny_cdn_cost": "$108/month",
+        "total_stack_cost": "$205/month (108 + 24 compute + 50 db + 24 origin)"
+      },
+      "480p_savings": "$134/month OR $1,608/year",
+      "recommendation": "Use 480p by default with 720p fallback for users with e5 Mbps connection"
     }
   },
 
-  "=Ë_TASK_DEFINITION": {
-    "task_1_obs_ui": {
-      "id": "STREAMING_OBS_UI_IMPLEMENTATION",
-      "status": "READY_FOR_EXECUTOR",
-      "priority": "HIGH",
-      "complexity": "LOW",
-      "rationale": "PRD requires 'Ingesta de video vía RTMP desde OBS Studio' (prd_system.json:61). Without UI display of RTMP URL and Stream Key, operators cannot complete the streaming workflow.",
-      "acceptance_criteria": [
-        "UI Card displays after handleStartStream() executes successfully",
-        "Card shows RTMP URL with copy-to-clipboard button",
-        "Card shows Stream Key with copy-to-clipboard button",
-        "Card uses amber/warning color scheme (yellow-50 border)",
-        "Copy buttons use navigator.clipboard.writeText()",
-        "TypeScript compilation: 0 errors",
-        "Console: No runtime errors when copying"
-      ]
-    },
-    "task_2_subscription_display": {
-      "id": "SUBSCRIPTION_DISPLAY_FIX",
-      "status": "READY_FOR_EXECUTOR",
-      "priority": "HIGH",
-      "complexity": "MEDIUM",
-      "rationale": "Users with active subscriptions (e.g., 24-hour, monthly) incorrectly display as 'gratuita' in /admin/users table and edit modal. Root cause: field name mismatch between backend response and frontend consumption.",
-      "root_cause": {
-        "backend_toPublicJSON": "User.ts:110 returns 'expiresAt' (not 'manual_expires_at')",
-        "frontend_usage": "Users.tsx:297 attempts to access 'subscription?.manual_expires_at' (wrong field name)",
-        "result": "Subscription data exists but UI never displays it"
+  "=Ë_TASKS_FOR_EXECUTOR": {
+    "task_count": 4,
+    "files_to_modify": [
+      "backend/src/models/Event.ts",
+      "frontend/src/services/api.ts (read-only verification)",
+      "frontend/src/hooks/useSSEConnection.ts (read-only verification)",
+      "brain/sdd_system.json"
+    ],
+    "complexity": "LOW-MEDIUM",
+    "estimated_time_minutes": 15
+  },
+
+  "<¯_TASK_1_EVENT_MODEL_UPDATES": {
+    "task_id": "TASK_STREAMING_PAUSE_001",
+    "description": "Add 'paused' status option and isPaused() method to Event.ts model",
+    "file": "backend/src/models/Event.ts",
+    "current_status_union": "\"scheduled\" | \"in-progress\" | \"intermission\" | \"completed\" | \"cancelled\"",
+    "required_changes": [
+      {
+        "location": "Lines 28-30 (status field declaration)",
+        "current": "declare status: CreationOptional<\n    \"scheduled\" | \"in-progress\" | \"intermission\" | \"completed\" | \"cancelled\"\n  >;",
+        "action": "ADD 'paused' to union: \"scheduled\" | \"in-progress\" | \"intermission\" | \"paused\" | \"completed\" | \"cancelled\"",
+        "reason": "Backend pauseStream() sets status to 'paused', model must support this option"
       },
-      "acceptance_criteria": [
-        "Both User.ts and Subscription.ts toPublicJSON return consistent field names",
-        "Frontend Users.tsx accesses correct field (expiresAt)",
-        "UserModal.tsx subscription tab displays correct subscription type and expiration",
-        "Test users (user_test2 with 24-hour) display correctly as '24-hour' (not 'gratuita')",
-        "TypeScript compilation: 0 errors",
-        "Build succeeds: npm run build"
-      ]
+      {
+        "location": "After isIntermission() method (after line 71)",
+        "current": "// Method doesn't exist",
+        "action": "ADD NEW METHOD:\n  isPaused(): boolean {\n    return this.status === \"paused\";\n  }",
+        "reason": "Consistency with isLive(), isCompleted(), isIntermission() methods"
+      }
+    ],
+    "simulate_verification": "File will compile with zero TypeScript errors after union type addition",
+    "validation_after": "Run: npx tsc --noEmit backend/src/models/Event.ts (should return no errors)",
+    "success_criteria": [
+      "Status union includes 'paused' option",
+      "isPaused() method returns this.status === 'paused'",
+      "TypeScript compilation zero errors"
+    ]
+  },
+
+  "<¯_TASK_2_STREAMING_API_VERIFICATION": {
+    "task_id": "TASK_STREAMING_PAUSE_002",
+    "description": "Verify streamingAPI has pauseStream() and resumeStream() methods",
+    "file": "frontend/src/services/api.ts",
+    "verification_steps": [
+      "Open frontend/src/services/api.ts",
+      "Search for 'streamingAPI' object definition",
+      "Verify it exports: pauseStream(eventId: string) and resumeStream(eventId: string) methods",
+      "If missing: Add following pattern to streamingAPI object:\n  pauseStream: (eventId: string) => post(`/streaming/pause`, { eventId }),\n  resumeStream: (eventId: string) => post(`/streaming/resume`, { eventId })"
+    ],
+    "likelihood": "95% likely methods already exist (OptimizedStreamingMonitor imports them)",
+    "simulate_verification": "Grep for 'pauseStream' in api.ts will find method definitions",
+    "validation_after": "Grep command:\n  grep -n 'pauseStream\\|resumeStream' frontend/src/services/api.ts\n  Should return 2+ matches with method definitions",
+    "success_criteria": [
+      "streamingAPI.pauseStream() method exists and returns POST to /streaming/pause",
+      "streamingAPI.resumeStream() method exists and returns POST to /streaming/resume",
+      "Both methods accept eventId parameter"
+    ]
+  },
+
+  "<¯_TASK_3_SSE_CONNECTION_PAUSE_HANDLING": {
+    "task_id": "TASK_STREAMING_PAUSE_003",
+    "description": "Verify useSSEConnection.ts hook supports pause state transitions",
+    "file": "frontend/src/hooks/useSSEConnection.ts",
+    "quick_verification": [
+      "Open frontend/src/hooks/useSSEConnection.ts",
+      "Check if EventSource handler processes SSEEventType.STREAM_STATUS_UPDATE",
+      "Verify it handles 'STREAM_PAUSED' and 'STREAM_RESUMED' event types",
+      "Look for any hardcoded 2-second frequency that might need adjustment (unlikely needed)"
+    ],
+    "expected_finding": "Hook likely already handles pause events via generic event handler",
+    "simulate_verification": "Hook processes any server-sent event; pause events are standard SSE events",
+    "validation_after": "Manual test:\n  1. Check browser console for STREAM_PAUSED/STREAM_RESUMED events during pause/resume\n  2. Verify OptimizedStreamingMonitor receives updated state\n  3. Confirm isStreamPaused state toggles correctly",
+    "success_criteria": [
+      "useSSEConnection hook receives STREAM_PAUSED and STREAM_RESUMED events",
+      "OptimizedStreamingMonitor state updates when pause/resume broadcasted",
+      "No frequency adjustment needed (2-second default acceptable for pause)"
+    ],
+    "note": "This is verification-only task. No code changes expected unless critical gap found."
+  },
+
+  "<¯_TASK_4_DOCUMENTATION_UPDATE": {
+    "task_id": "TASK_STREAMING_PAUSE_004",
+    "description": "Update brain/sdd_system.json with final pause feature implementation status",
+    "file": "brain/sdd_system.json",
+    "changes_required": [
+      {
+        "section": "streaming_pause_feature (create if doesn't exist)",
+        "content": "Add JSON object documenting:\n        - status: IMPLEMENTED (95% complete, only Event.ts model updates pending)\n        - backend_endpoints: POST /api/streaming/pause, POST /api/streaming/resume (WORKING)\n        - frontend_ui: OptimizedStreamingMonitor.tsx pause/resume controls (WORKING)\n        - cost_savings: 480p reduces CDN costs by 50% to $108/month (vs $216 with 720p)\n        - model_updates: Event.ts needs 'paused' status + isPaused() method\n        - bandwidth_projection: 480p = 2.7TB/week vs 5.4TB with 720p at 3Mbps"
+      },
+      {
+        "section": "streaming_quality_recommendation",
+        "content": "Add:\n        - default_quality: 480p (cost-optimized for GalloBets schedule)\n        - fallback_quality: 720p (for users with >5 Mbps connection)\n        - annual_savings_vs_720p: $1,608 with 480p default\n        - implementation_note: Client-side adaptive bitrate selection handled by HLS.js"
+      }
+    ],
+    "simulate_verification": "brain/sdd_system.json will be valid JSON after additions",
+    "validation_after": "Run: node -e \"console.log(JSON.parse(require('fs').readFileSync('brain/sdd_system.json', 'utf8')))\" (no errors = valid JSON)",
+    "success_criteria": [
+      "sdd_system.json includes streaming_pause_feature section",
+      "480p cost analysis documented with bandwidth projections",
+      "Implementation status marked as 95% complete pending Event.ts updates",
+      "JSON remains valid (no syntax errors)"
+    ]
+  },
+
+  "_VALIDATION_GATES": {
+    "gate_1_typescript_compilation": {
+      "command": "npx tsc --noEmit",
+      "required": "ZERO errors after all changes",
+      "failure_action": "Stop immediately, report specific TS error, do NOT commit"
+    },
+    "gate_2_build_process": {
+      "command": "npm run build",
+      "required": "Successful completion",
+      "failure_action": "Full rollback required"
+    },
+    "gate_3_scope_verification": {
+      "command": "git diff --name-only",
+      "required": "ONLY these files modified: Event.ts, sdd_system.json (api.ts and useSSEConnection.ts should be read-only)",
+      "failure_action": "Revert files outside scope before commit"
     }
   },
 
-  "=4_MANDATORY_PROTOCOLS": {
-    "protocol_1_task_echo_back": {
-      "requirement": "BEFORE starting any implementation: Echo back exact tasks being executed",
-      "format": "I will execute:\\n- TASK_1: [exact description]\\n- TASK_2: [exact description]\\nConfirm Y/N?",
-      "reference": "brain/multi_ai_coordination_strategy.json:588-596"
-    },
-    "protocol_2_simulate_confirm": {
-      "requirement": "For all code changes: describe changes, verify against codebase, then execute",
-      "applicability": "Both tasks (standard mode)",
-      "steps": ["[SIMULATED]", "[CONFIRMED]", "[MODIFIED]"],
-      "reference": "brain/multi_ai_coordination_strategy.json:318-327"
-    },
-    "protocol_3_checkpoint": {
-      "requirement": "Commit after each task with [TASK_COMPLETE] tag",
-      "format": "git commit -m 'feat: [TASK_ID] description\\n[CHECKPOINT_TAG]'",
-      "reference": "brain/multi_ai_coordination_strategy.json:328-337"
-    },
-    "protocol_4_scope_validation": {
-      "requirement": "Before final commit: verify ONLY intended files modified",
-      "command": "git diff --name-only HEAD~1",
-      "reference": "brain/multi_ai_coordination_strategy.json:380-384"
-    }
-  },
-
-  "<×_PHASE_5_OBS_UI_IMPLEMENTATION": {
-    "objective": "Add OBS Studio configuration UI card to OptimizedStreamingMonitor.tsx",
-    "description": "Display RTMP URL and Stream Key with copy buttons after stream starts",
-    "estimated_time": "15 minutes",
-
-    "prerequisite_reads": [
-      "frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (full file, understand structure)",
-      "frontend/src/components/shared/Card.tsx (understand Card component)"
+  "=Ê_EVIDENCE_REQUIREMENTS": {
+    "task_1_completion_evidence": [
+      "Output: npx tsc --noEmit (showing ZERO errors)",
+      "git diff backend/src/models/Event.ts (showing 'paused' added to union type)",
+      "git diff backend/src/models/Event.ts (showing isPaused() method added)"
     ],
-
-    "implementation_steps": {
-      "step_1": {
-        "action": "Locate handleStartStream() function in OptimizedStreamingMonitor.tsx",
-        "expected_location": "Line 140-178",
-        "purpose": "Identify where to place conditional rendering of OBS UI card",
-        "simulate": "Will add conditional render: {streamKey && rtmpUrl && <Card>...</Card>}",
-        "confirm": "Function exists, streamKey and rtmpUrl state variables are assigned in this function"
-      },
-      "step_2": {
-        "action": "Create OBS configuration Card component",
-        "location": "After metrics panel closing tag (before closing main div), add new Card section",
-        "code_structure": {
-          "condition": "streamKey && rtmpUrl",
-          "styling": "bg-amber-50 border-amber-200 border",
-          "title": "<¬ Configuración OBS Studio",
-          "content": [
-            "RTMP URL field with copy button",
-            "Stream Key field with copy button",
-            "Simple instructions (optional)"
-          ]
-        },
-        "simulate": "Will add Card with two input fields, each with copy button using navigator.clipboard.writeText()"
-      },
-      "step_3": {
-        "action": "Implement copy-to-clipboard functionality",
-        "pattern": "onClick={() => navigator.clipboard.writeText(rtmpUrl)} then show toast",
-        "fallback": "If no toast available, just copy (user can see in console)"
-      },
-      "step_4": {
-        "action": "Verify TypeScript compilation",
-        "command": "npm run build (from frontend/)",
-        "expected_result": "Build succeeds, no TypeScript errors"
-      }
-    },
-
-    "success_validation": {
-      "manual_test": [
-        "Click 'Iniciar Stream' button",
-        "Verify OBS card appears below metrics",
-        "Click copy button on RTMP URL",
-        "Click copy button on Stream Key",
-        "Browser console: no errors"
-      ],
-      "automated_validation": "npm run build passes"
-    },
-
-    "rollback_procedure": "git checkout frontend/src/pages/admin/OptimizedStreamingMonitor.tsx"
-  },
-
-  "<×_PHASE_6_OBS_UI_INTEGRATION_AND_ROUTING": {
-    "objective": "Verify OBS UI integrates with existing page, test end-to-end",
-    "description": "Ensure OBS card displays correctly, no console errors, proper styling",
-    "estimated_time": "10 minutes",
-
-    "integration_checklist": {
-      "app_tsx_routing": {
-        "check": "Verify /admin/streaming route exists",
-        "file": "frontend/src/App.tsx",
-        "expected": "Route path='/admin/streaming' element={<OptimizedStreamingMonitor />}"
-      },
-      "sidebar_entry": {
-        "check": "Verify sidebar shows 'Streaming & Monitoreo' entry",
-        "file": "frontend/src/components/admin/AdminSidebar.tsx",
-        "expected": "Menu item points to /admin/streaming"
-      },
-      "build_validation": {
-        "command": "npm run build",
-        "expected": " built in X.XXs (no errors)"
-      }
-    },
-
-    "rollback_procedure": "git reset --hard HEAD~1 (if entire task failed)"
-  },
-
-  "<×_PHASE_7_SUBSCRIPTION_DISPLAY_BACKEND_FIX": {
-    "objective": "Fix User.toPublicJSON() to return consistent subscription field names",
-    "description": "Ensure backend returns 'expiresAt' (not 'manual_expires_at') in subscription object",
-    "estimated_time": "10 minutes",
-
-    "prerequisite_reads": [
-      "backend/src/models/User.ts (toPublicJSON method, lines 99-125)",
-      "backend/src/models/Subscription.ts (toPublicJSON method, lines ~420-440)"
+    "task_2_completion_evidence": [
+      "Grep output: grep -n 'pauseStream\\|resumeStream' frontend/src/services/api.ts",
+      "Showing 2+ method definitions with correct signatures",
+      "OR confirmation: 'Methods already exist, no changes needed'"
     ],
-
-    "analysis_phase": {
-      "step_1": {
-        "action": "Verify exact field names in Subscription.toPublicJSON()",
-        "method": "Grep or Read Subscription.ts for 'toPublicJSON' method",
-        "document": "What fields does Subscription.toPublicJSON return? Specifically: does it return 'expiresAt' or 'manual_expires_at'?"
-      },
-      "step_2": {
-        "action": "Verify User.toPublicJSON() mapping",
-        "location": "User.ts lines 105-115",
-        "issue": "Line 110 maps latestSubscription.expiresAt (correct), but also check if any other field needs manual_expires_at"
-      },
-      "step_3": {
-        "action": "Confirm subscription field consistency",
-        "validate": "User.toPublicJSON should return: {type, status, expiresAt, features, remainingDays} - NOT manual_expires_at"
-      }
-    },
-
-    "implementation_steps": {
-      "step_1": {
-        "action": "If User.toPublicJSON is already correct, verify Subscription model",
-        "check": "Does Subscription.toPublicJSON() exist and return correct fields?",
-        "if_missing": "Add toPublicJSON() method to Subscription.ts if not present"
-      },
-      "step_2": {
-        "action": "Ensure all subscription properties returned use camelCase (not snake_case)",
-        "validate": "Type coercion: expiresAt (JS) not expires_at (SQL field)",
-        "reference": "Sequelize underscored: true auto-converts, ensure toPublicJSON converts back to camelCase"
-      },
-      "step_3": {
-        "action": "Run TypeScript compilation",
-        "command": "npm run build (from backend/)",
-        "expected_result": "0 errors"
-      }
-    },
-
-    "success_validation": {
-      "backend_endpoint_test": [
-        "Call: curl -H 'Authorization: Bearer <TOKEN>' http://localhost:3001/api/users",
-        "Verify response includes: user.subscription.expiresAt (not manual_expires_at)",
-        "Verify subscription.type shows correct value (e.g., 'daily', 'monthly', 'free')"
-      ]
-    },
-
-    "rollback_procedure": "git checkout backend/src/models/User.ts backend/src/models/Subscription.ts"
-  },
-
-  "<×_PHASE_8_SUBSCRIPTION_DISPLAY_FRONTEND_FIX": {
-    "objective": "Fix Users.tsx and UserModal.tsx to use correct field names from backend",
-    "description": "Update subscription display to use 'expiresAt' instead of 'manual_expires_at'",
-    "estimated_time": "10 minutes",
-
-    "prerequisite_reads": [
-      "frontend/src/pages/admin/Users.tsx (subscription display section, lines ~290-310)",
-      "frontend/src/components/admin/UserModal.tsx (subscription tab)",
-      "frontend/src/components/admin/SubscriptionTabs.tsx (if relevant)"
+    "task_3_completion_evidence": [
+      "Confirmation: useSSEConnection.ts handles pause events OR no changes needed",
+      "Browser console screenshot showing STREAM_PAUSED/STREAM_RESUMED events (if available)",
+      "OR manual test confirmation in session notes"
     ],
-
-    "implementation_steps": {
-      "step_1": {
-        "action": "Find all references to subscription?.manual_expires_at in Users.tsx",
-        "method": "Search for 'manual_expires_at' in file",
-        "expected": "Found in Users.tsx ~297-299"
-      },
-      "step_2": {
-        "action": "Replace with correct field name",
-        "change_from": "user.subscription?.manual_expires_at",
-        "change_to": "user.subscription?.expiresAt",
-        "lines": "Users.tsx:297-299"
-      },
-      "step_3": {
-        "action": "Update subscription type display if needed",
-        "verify": "Does UI show subscription.type correctly? (e.g., 'daily', 'monthly', 'free')",
-        "fix_if_needed": "Map backend type names to UI display names if mismatch"
-      },
-      "step_4": {
-        "action": "Check UserModal.tsx subscription tab",
-        "file": "frontend/src/components/admin/UserModal.tsx (subscription tab)",
-        "verify": "Tab displays subscription.type and subscription.expiresAt correctly"
-      },
-      "step_5": {
-        "action": "Run TypeScript compilation",
-        "command": "npm run build (from frontend/)",
-        "expected_result": "0 errors"
-      }
-    },
-
-    "success_validation": {
-      "manual_test": [
-        "Navigate to /admin/users",
-        "Find user_test2 (has 24-hour subscription)",
-        "Verify table shows: Subscription: '24-hour' (not 'gratuita')",
-        "Verify expiration date shows correctly",
-        "Click edit button",
-        "Verify modal subscription tab shows correct type and expiration"
-      ],
-      "automated_validation": "npm run build passes"
-    },
-
-    "rollback_procedure": "git checkout frontend/src/pages/admin/Users.tsx frontend/src/components/admin/UserModal.tsx"
+    "task_4_completion_evidence": [
+      "git diff brain/sdd_system.json (showing new sections added)",
+      "Output: node -e \"...\" validating JSON structure",
+      "Verification: 480p cost analysis documented"
+    ]
   },
 
-  "_ACCEPTANCE_GATES": {
-    "before_delivery": {
-      "typescript_check": {
-        "command": "npm run build (both backend and frontend)",
-        "requirement": "0 errors, 0 warnings"
-      },
-      "scope_validation": {
-        "command": "git diff --name-only",
-        "requirement": "Only these files modified:\\n- frontend/src/pages/admin/OptimizedStreamingMonitor.tsx\\n- backend/src/models/User.ts (if needed)\\n- frontend/src/pages/admin/Users.tsx\\n- frontend/src/components/admin/UserModal.tsx (if needed)"
-      },
-      "manual_testing": {
-        "obs_ui": "OBS card appears and displays RTMP URL + Key with copy buttons",
-        "subscription": "user_test2 displays '24-hour' subscription (not 'gratuita') in Users table and UserModal"
-      }
-    }
-  },
-
-  "=Ý_REPORTING_PROTOCOL": {
-    "requirement": "After completing all phases, report MUST include:",
-    "format": [
-      "1. Tasks completed: List each task with status ( or L)",
-      "2. Changes made: Specific files, line numbers, functions modified",
-      "3. Evidence: npm run build output (0 errors), git diff output",
-      "4. Testing: Manual test results from acceptance gates",
-      "5. Git commits: List commit hashes with [CHECKPOINT] and [TASK_COMPLETE] tags"
+  "=_COMPLETION_PROTOCOL": {
+    "before_final_commit": [
+      " Run all validation gates (tsc, build, git diff)",
+      " Ensure ALL evidence requirements captured",
+      " Verify ONLY approved files modified",
+      " Document any gaps discovered during implementation"
     ],
-    "location": "TEXT response in Claude chat (update brain/backlog.json as secondary)"
+    "final_reporting": {
+      "location": "UPDATE brain/backlog.json",
+      "task_entry": "STREAMING_PAUSE_FEATURE_COST_OPTIMIZATION",
+      "status_change": "PENDING_EXECUTOR ’ COMPLETED_VERIFIED",
+      "evidence_field": "Include all command outputs from validation gates",
+      "completion_summary": "Model updates + API verification + documentation = 100% implementation"
+    },
+    "git_commit_format": "git commit -m \"$(cat <<'EOF'\nfeat: complete streaming pause feature - Event.ts model updates\n\n- Add 'paused' status to Event model union type\n- Add isPaused() instance method for consistency\n- Verify streamingAPI pause/resume methods exist\n- Document 480p cost optimization ($108/month CDN vs $216 with 720p)\n- Update sdd_system.json with final implementation status\n\nImplementation verification:\n- npx tsc --noEmit: 0 errors\n- npm run build: successful\n- Scope: Event.ts, sdd_system.json\n\n> Generated with Claude Code\nCo-Authored-By: Qwen <noreply@anthropic.com>\nEOF\n)\""
   },
 
-  "=_REFERENCE_FILES": {
-    "coordination_strategy": "brain/multi_ai_coordination_strategy.json",
-    "prd": "brain/prd_system.json",
-    "api_reference": "brain/api_endpoints_reference.json",
-    "streaming_manual": "streaming-manual.md"
+  "=Ì_CRITICAL_NOTES": {
+    "note_1": "This is a HIGH-CONFIDENCE completion task - 95% of pause feature already implemented, only final model updates needed",
+    "note_2": "Executor likely will find Task 2 (API verification) already satisfied - document this in completion report",
+    "note_3": "480p recommendation is STRATEGIC - not implementation, but update documentation to reflect cost savings",
+    "note_4": "useSSEConnection.ts verification is quick - if working, just confirm no changes needed. If gap found, implement fix.",
+    "note_5": "Refer to brain/multi_ai_coordination_strategy.json lines 147-280 (AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL) if verifying existing implementations"
+  },
+
+  "<“_LESSONS_APPLIED": {
+    "lesson_1_bidirectional_search": "This prompt includes BOTH 'what exists' (pauseStream/resumeStream) AND 'what's missing' (Event.ts status) - avoid unidirectional assumptions",
+    "lesson_2_tool_validation": "All findings verified via grep AND direct file reads - not assumptions",
+    "lesson_3_evidence_requirements": "Specific command outputs required before completion - no vague 'verified' claims",
+    "lesson_4_reporting_location": "Exact file path specified (brain/backlog.json) for completion documentation"
   }
 }

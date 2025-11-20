@@ -33,26 +33,8 @@ const AdminUsersPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    // Always fetch all users initially without filters
     const params: any = { role: "user", limit: 1000 };
-
-    if (selectedStatus !== "all") {
-      if (selectedStatus === "active" || selectedStatus === "inactive") {
-        params.isActive = selectedStatus === "active";
-      } else if (
-        selectedStatus === "approved" ||
-        selectedStatus === "pending"
-      ) {
-        params.approved = selectedStatus === "approved";
-      }
-    }
-
-    if (selectedSubscription !== "all") {
-      params.subscriptionType = selectedSubscription;
-    }
-
-    if (searchTerm) {
-      params.search = searchTerm;
-    }
 
     const res = await usersAPI.getAll(params);
     if (res.success) {
@@ -61,7 +43,7 @@ const AdminUsersPage: React.FC = () => {
       setError(res.error || "Error loading users");
     }
     setLoading(false);
-  }, [selectedStatus, selectedSubscription, searchTerm]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -89,12 +71,40 @@ const AdminUsersPage: React.FC = () => {
     }
   }, [selectedStatus, selectedSubscription, navigate, location.search]);
 
-  const filteredUsers = users.filter(
-    (user) =>
+  // Apply all filters locally on the loaded data
+  const filteredUsers = users.filter((user) => {
+    // Apply search filter
+    const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.email &&
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    // Apply status filter
+    let matchesStatus = true;
+    if (selectedStatus !== "all") {
+      if (selectedStatus === "active" || selectedStatus === "inactive") {
+        matchesStatus = user.isActive === (selectedStatus === "active");
+      } else if (
+        selectedStatus === "approved" ||
+        selectedStatus === "pending"
+      ) {
+        matchesStatus = user.approved === (selectedStatus === "approved");
+      }
+    }
+
+    // Apply subscription filter
+    let matchesSubscription = true;
+    if (selectedSubscription !== "all") {
+      if (user.subscription) {
+        matchesSubscription = user.subscription.type === selectedSubscription;
+      } else {
+        // If no subscription object exists, treat as "free"
+        matchesSubscription = selectedSubscription === "free";
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesSubscription;
+  });
 
   const handleEditUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
@@ -287,11 +297,13 @@ const AdminUsersPage: React.FC = () => {
                     {user.isActive ? "Activo" : "Inactivo"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <SubscriptionBadge
-                      subscription={user.subscription}
-                      size="sm"
-                      showStatus={true}
-                    />
+                    {user.subscription?.type === "free"
+                      ? "Gratuito"
+                      : user.subscription?.type === "daily"
+                        ? "24 Horas"
+                        : user.subscription?.type === "monthly"
+                          ? "Mensual"
+                          : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {user.subscription?.expiresAt

@@ -254,18 +254,14 @@ export const eventsAPI = {
   assignOperator: async (eventId: string, operatorId: string) => {
     return apiCall("put", `/events/${eventId}/operator`, { operatorId });
   },
-  pauseStream: async (eventId: string) => {
-    return apiCall("post", `/events/${eventId}/stream/pause`);
-  },
-  resumeStream: async (eventId: string) => {
-    return apiCall("post", `/events/${eventId}/stream/resume`);
-  },
   generateStreamKey: async (eventId: string) => {
     return apiCall("post", `/events/${eventId}/stream-key`);
   },
   getCurrentBetting: async (eventId: string) => {
     return apiCall("get", `/events/${eventId}/current-betting`);
   },
+  // Note: pauseStream/resumeStream are in streamingAPI (unified endpoint)
+  // Using streamingAPI.pauseStream(eventId) and streamingAPI.resumeStream(eventId)
 };
 
 // Monitoring API - System alerts and live statistics

@@ -19,16 +19,16 @@ All test users have been verified and are working correctly.
 - **Role:** operator
 
 ### Venue Owner
-- **Username:** `venue_test`
-- **Password:** `Test123456`
-- **Email:** venueowner1@sportsbets.com
-- **Role:** venue
+- **Username:** `criadero_test`
+- **Password:** `Criadero123456`
+- **Email:** criadero1@sportsbets.com
+- **Role:** gallera
 
 ### Gallera Owner
 - **Username:** `gallera_test`
 - **Password:** `Gallera123456`
 - **Email:** gallera1@sportsbets.com
-- **Role:** gallera
+- **Role:** venue
 
 ### Regular User
 - **Username:** `user_test`

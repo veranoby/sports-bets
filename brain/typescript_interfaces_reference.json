@@ -341,7 +341,13 @@
       "file": "/frontend/src/types/index.ts",
       "union_types": {
         "operator": "string | { username: string }",
-        "status": "upcoming | live | completed | cancelled | betting | in-progress | scheduled"
+        "status": "upcoming | live | completed | cancelled | betting | in-progress | scheduled | paused | intermission"
+      },
+      "status_enum_optimization_2025_11_19": {
+        "added_status": "paused (NEW) - Explicit pause state for streaming bandwidth optimization",
+        "description": "When pauseStream endpoint is called, event.status changes to 'paused' (was 'intermission')",
+        "rationale": "Distinguish explicit pause from between-fights context",
+        "backend_model": "Event.ts - status union includes 'paused' alongside existing values"
       },
       "required_properties": ["id", "name", "status", "venue", "createdAt", "updatedAt", "venueId"],
       "recently_added": ["streamKey", "currentViewers", "activeBets", "completedFights", "totalFights", "totalPrizePool", "streamStatus", "fights"],
