@@ -431,9 +431,7 @@ const AdminVenuesPage: React.FC = () => {
                               Activar
                             </button>
                             <button
-                              onClick={() =>
-                                handleDelete(user.id, venueName)
-                              }
+                              onClick={() => handleDelete(user.id, venueName)}
                               className="text-red-600 hover:text-red-800 flex items-center gap-1"
                             >
                               <Trash2 className="w-4 h-4" />
