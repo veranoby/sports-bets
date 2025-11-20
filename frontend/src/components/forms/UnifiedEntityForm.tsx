@@ -116,24 +116,12 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
       );
 
       if (response.success) {
-        // The API might return a partial user object, so get the complete user
+        // Fetch complete user data after profile update
         const fullUserResponse = await userAPI.getById(userId);
         if (fullUserResponse.success && fullUserResponse.data) {
-          const userData = fullUserResponse.data as User;
-          onSuccess(userData);
+          onSuccess(fullUserResponse.data as User);
         } else {
-          // Fallback to what was returned, but this might not satisfy the type requirement
-          console.warn(
-            "Warning: Could not fetch complete user data after profile update",
-          );
-          // If the direct user data access fails, try getting user again
-          const fallbackUserResponse = await userAPI.getById(userId);
-          if (fallbackUserResponse.success && fallbackUserResponse.data) {
-            const userData = fallbackUserResponse.data as User;
-            onSuccess(userData);
-          } else {
-            throw new Error("Could not retrieve updated user information");
-          }
+          throw new Error("Could not retrieve updated user information");
         }
       } else {
         throw new Error(response.error || "Error al actualizar la información");

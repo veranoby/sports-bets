@@ -171,10 +171,10 @@ export const userAPI = {
     return apiCall("put", `/users/${id}/password`, { password: newPassword });
   },
   updateRole: async (id: string, role: User["role"]) => {
-    return apiCall<User>("put", `/users/${id}/role`, { role });
+    return apiCall<User>("put", `/users/${id}`, { role });
   },
   updateStatus: async (id: string, isActive: boolean) => {
-    return apiCall<User>("put", `/users/${id}/status`, { isActive });
+    return apiCall<User>("put", `/users/${id}`, { isActive });
   },
   updateProfile: async (data: Partial<User>) => {
     return apiCall<User>("put", "/users/profile", {
