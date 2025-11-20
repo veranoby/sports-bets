@@ -198,6 +198,43 @@ const AdminVenuesPage: React.FC = () => {
     fetchData(); // Refresh data
   };
 
+  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    const actionMessage = currentStatus ? "desactivar" : "reactivar";
+
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres ${actionMessage} esta gallera?`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await userAPI.updateStatus(userId, newStatus);
+      fetchData();
+    } catch (err) {
+      setError(`Error al ${actionMessage} la gallera`);
+    }
+  };
+
+  const handleDelete = async (userId: string, username: string) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres eliminar la gallera "${username}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await userAPI.delete(userId);
+      fetchData();
+    } catch (err) {
+      setError("Error al eliminar la gallera");
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner text="Cargando galleras..." />;
   }
@@ -372,6 +409,38 @@ const AdminVenuesPage: React.FC = () => {
                           <Edit className="w-4 h-4" />
                           Editar
                         </button>
+                        {user.isActive ? (
+                          <button
+                            onClick={() =>
+                              handleToggleStatus(user.id, user.isActive)
+                            }
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Desactivar
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleToggleStatus(user.id, user.isActive)
+                              }
+                              className="text-green-600 hover:text-green-800 flex items-center gap-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Activar
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDelete(user.id, venueName)
+                              }
+                              className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Eliminar
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
