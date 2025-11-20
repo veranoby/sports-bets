@@ -1,6 +1,44 @@
 {
   "active_tasks": [
     {
+      "task_id": "STREAMING_PAUSE_FEATURE_COST_OPTIMIZATION",
+      "status": "PENDING_ANALYSIS",
+      "created_date": "2025-11-20",
+      "complexity": "MEDIUM",
+      "category": "COST_OPTIMIZATION",
+      "priority": "HIGH",
+      "executor": "QWEN (future phase after backend performance analysis)",
+      "summary": "Implement pause/resume functionality for streaming to reduce CDN costs 35-40% (save $116/month). Pausing between fights during 2×/week, 6h sessions converts 6h to 4h effective streaming.",
+      "business_impact": "$116/month saved × 12 months = $1,392/year savings. Reduces total monthly cost from $471 to $355.",
+      "technical_changes_required": {
+        "frontend": [
+          "Add StreamPauseOverlay component with countdown timer",
+          "Reduce SSE update frequency during pause (2s → 10s)",
+          "Update video player to show pause overlay"
+        ],
+        "backend": [
+          "Add event status 'paused' to fight/event state machine",
+          "Enhance pauseStream()/resumeStream() endpoints with pause state management",
+          "Emit SSE pause notification with countdown and next fight info",
+          "Verify Ant Media Server can pause HLS generation without dropping client connections"
+        ],
+        "admin_page": [
+          "Add 'Pause Stream' button in OptimizedStreamingMonitor.tsx",
+          "Add pause reason input field (message shown to viewers)",
+          "Add auto-resume timer option (manual or automatic)",
+          "Display pause countdown in admin dashboard"
+        ]
+      },
+      "validation_gates": [
+        "✓ Ant Media Server pause/resume endpoints work correctly",
+        "✓ SSE clients remain connected during pause",
+        "✓ HLS playlist updates correctly during pause state",
+        "✓ Frontend displays pause overlay with countdown",
+        "✓ Admin can control pause/resume and set messages",
+        "✓ No bandwidth generated during pause state"
+      ]
+    },
+    {
       "task_id": "BACKEND_PERFORMANCE_ANALYSIS_PLAN",
       "status": "PENDING_EXECUTOR",
       "created_date": "2025-11-20",

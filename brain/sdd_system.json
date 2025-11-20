@@ -96,6 +96,37 @@
       "protocol_rationale": "HLS chosen over WebRTC because: 1) 5× cheaper, 2) CDN-native, 3) browser-universal, 4) suitable for cockfighting streaming latency requirements"
     },
 
+    "streaming_pause_feature": {
+      "purpose": "Cost optimization: reduce CDN bandwidth 35-40% by pausing stream between fights",
+      "business_case": "2 sessions/week × 6h = 12h actual streaming time. Pause between fights (2h/session) reduces effective streaming to 8h, saving ~$116/month in CDN costs",
+      "implementation": {
+        "frontend_changes": [
+          "Add 'StreamPauseOverlay' component showing 'Stream Paused - Next Fight in X minutes'",
+          "Add pause countdown timer (CSS animation or React Countdown component)",
+          "Reduce SSE update frequency during pause (from 2s to 10s intervals)",
+          "Video player shows pause overlay instead of black screen"
+        ],
+        "backend_changes": [
+          "Add new event status: 'paused' (between fights, no streaming)",
+          "Implement pauseStream() and resumeStream() endpoints (already exist but need pause state management)",
+          "Stop HLS segment generation when stream is paused (Ant Media Server can pause without closing connection)",
+          "Emit SSE event: {type: 'stream_paused', resumeAt: timestamp, nextFightName: '...'}"
+        ],
+        "admin_changes": [
+          "Add 'Pause Stream' button in OptimizedStreamingMonitor.tsx (next to Pause/Resume buttons)",
+          "Show pause reason/message input (e.g., 'Break between fights #3 and #4')",
+          "Display pause countdown timer in admin dashboard",
+          "Auto-resume option: checkbox for 'Auto-resume at [time]' or after '[minutes]'"
+        ]
+      },
+      "technical_details": {
+        "hls_behavior_during_pause": "Ant Media Server generates 'pause' segments in HLS playlist, video player shows last frame or pause overlay. Clients do NOT disconnect from SSE.",
+        "sse_during_pause": "Send reduced-frequency updates (10s instead of 2s). Send pause countdown event. No high-frequency metrics.",
+        "cost_calculation": "Normal HLS segment generation uses ~10-20 MB/min. Paused HLS uses ~0.5 MB/min (metadata only). Pause 2h/session × 2/week = 4h/week × 0.5 MB/min × 60 = 120 MB/week savings ≠ significant. PRIMARY savings: frontend traffic (no video chunks), CDN egress ~90% of HLS bandwidth."
+      },
+      "implementation_priority": "MEDIUM - improves costs but requires backend streaming server support. Verify Ant Media Server pauses properly without dropping clients."
+    },
+
     "backend_performance_at_scale": {
       "status": "Analysis pending - see BACKEND_PERFORMANCE_ANALYSIS_PLAN in priorities_memory_index.json",
       "critical_areas_500_users": [
@@ -115,7 +146,8 @@
           "Admin dashboard updates (metrics, user activity)",
           "Streaming status notifications",
           "Betting notifications",
-          "Fight state updates"
+          "Fight state updates",
+          "PAUSE/RESUME notifications with countdown"
         ],
         "websocket_for": [
           "Betting proposals (PAGO/DOY) ONLY - requires bidirectional, timeout 3min"

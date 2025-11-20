@@ -116,13 +116,26 @@
       ]
     },
     "infrastructure_tiers": {
-      "tier_1_basic_$2100_3200_month": {
+      "tier_0_galloBets_realworld_$355_471_month": {
+        "description": "GalloBets actual use case: 2×/week, 6h per session, 500 concurrent users, WITH pause optimization",
+        "bandwidth_calculation": "500 viewers × 3 Mbps = 1.5 Gbps → 675 GB/hour → 8.1 TB/week (without pause) → 5.4 TB/week (WITH pause between fights)",
+        "monthly_estimate": "$355-471 (without pause: $348/month | with pause: $232/month)",
+        "compute": "Vultr/Linode 4-core 8GB RAM = $24/month",
+        "database": "Neon.tech PostgreSQL managed = $75/month",
+        "streaming_ingest": "Ant Media Server open-source on VPS = $24/month",
+        "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $232-348/month (depending on pause efficiency)",
+        "monitoring": "Prometheus+Grafana self-hosted OR ELK stack = $0-50/month",
+        "total_monthly": "$355-471/month ✅ RECOMMENDED FOR GALLOBETS",
+        "suitable_for": "GalloBets MVP → production (cost-optimized for 2×/week schedule)",
+        "cost_optimization": "Pause/resume streaming between fights reduces CDN costs by 35-40% (5.4TB vs 8.1TB/week)"
+      },
+      "tier_1_basic_24h_$2100_3200_month": {
         "compute": "Vultr/Linode 4-core 8GB RAM = $24/month",
         "database": "Neon.tech PostgreSQL managed = $50-100/month",
         "streaming_ingest": "Ant Media Server open-source on VPS = $24/month",
         "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $2,000-3,000/month",
         "monitoring": "Prometheus+Grafana self-hosted = $0-50/month",
-        "suitable_for": "MVP testing, beta phase, low-revenue environments"
+        "suitable_for": "24h streaming, high-volume events (not GalloBets use case)"
       },
       "tier_2_production_$3400_5300_month": {
         "compute": "Load-balanced (2× c6i.xlarge EC2) = $300-400/month",
@@ -141,12 +154,24 @@
       }
     },
     "cost_optimization_strategies": [
-      "Bunny CDN is 5× cheaper than CloudFront ($0.01/GB vs $0.085/month for first 10 TB)",
-      "Off-peak streaming reduces costs by 60% if events scheduled during specific hours",
-      "Origin-shield technology reduces origin bandwidth by 30-50%",
-      "Adaptive bitrate streaming (ABR) reduces per-user bandwidth by 20-30%",
-      "Connection pooling with PgBouncer reduces database connection overhead"
+      "✅ PAUSE/RESUME between fights: Reduce streaming 6h→4h effective = 35-40% bandwidth savings",
+      "✅ Bunny CDN is 5× cheaper than CloudFront ($0.01/GB vs $0.085/month)",
+      "✅ Scheduled streaming (2×/week) vs 24/7 = 94% cost savings ($355/mo vs $2,100+)",
+      "✅ Off-peak cutoff: Stream only event hours, pause rest of day",
+      "✅ Adaptive bitrate streaming (ABR): Reduce per-user bandwidth 20-30%",
+      "✅ Origin-shield: Reduces origin bandwidth 30-50%",
+      "✅ Connection pooling with PgBouncer: Reduce database overhead"
     ],
+    "real_world_cost_projection_galloBets": {
+      "scenario": "2 sessions/week, 6 hours each, 500 concurrent users, WITH pause optimization",
+      "bandwidth_per_session": "675 GB/hour × 6h = 4.05 TB per session",
+      "weekly_total": "4.05 TB × 2 sessions = 8.1 TB/week (without pause)",
+      "with_pause_optimization": "4h effective streaming (2h pause between fights) = 5.4 TB/week (35% reduction)",
+      "monthly_cost_without_pause": "$348 CDN + $123 (compute+db+origin) = $471/month",
+      "monthly_cost_with_pause": "$232 CDN + $123 (compute+db+origin) = $355/month ✅ RECOMMENDED",
+      "annual_cost_with_pause": "$355 × 12 = $4,260/year",
+      "comparison_24h_streaming": "24h would cost $2,100-5,300/month = $25K-64K/year (5.8× to 15× more expensive)"
+    },
     "critical_dependencies": [
       "Backend Performance Analysis (BACKEND_PERFORMANCE_ANALYSIS_PLAN) MUST complete before scaling to 500 users",
       "Memory leaks in SSE/WebSocket would cause exponential cost growth in production",
