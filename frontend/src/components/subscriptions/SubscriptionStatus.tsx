@@ -78,32 +78,27 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const showWarning = isPremium && daysRemaining > 0 && daysRemaining <= 7;
 
   return (
-    <div className="grid  text-xs">
-      {/* Columna 1 */}
-      <div className="flex flex-col gap-1">
-        <div className="relative group">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border cursor-help ${statusClass}`}
-            title={description}
-          >
-            {icon}
-            {statusText}
-          </span>
+    <div className="inline-flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs w-fit">
+      <span
+        className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] sm:text-xs font-medium border cursor-help ${statusClass}`}
+        title={description}
+      >
+        {icon}
+        {statusText}
+      </span>
 
-          {isPremium && subscription.expiresAt && (
-            <span className="flex items-center gap-1 text-green-600">
-              <CheckCircle className="w-3 h-3" />
-              {format(new Date(subscription.expiresAt), "MMM dd")}
-            </span>
-          )}
-          {showWarning && (
-            <span className="flex items-center gap-1 text-red-500">
-              <AlertTriangle className="w-3 h-3" />
-              {daysRemaining}d restantes
-            </span>
-          )}
-        </div>
-      </div>
+      {isPremium && subscription.expiresAt && (
+        <span className="inline-flex items-center gap-1 text-green-600">
+          <CheckCircle className="w-3 h-3" />
+          {format(new Date(subscription.expiresAt), "MMM dd")}
+        </span>
+      )}
+      {showWarning && (
+        <span className="inline-flex items-center gap-1 text-red-500">
+          <AlertTriangle className="w-3 h-3" />
+          {daysRemaining}d restantes
+        </span>
+      )}
     </div>
   );
 };

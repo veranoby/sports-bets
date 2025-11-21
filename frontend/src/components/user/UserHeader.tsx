@@ -125,6 +125,18 @@ const UserHeader = memo(() => {
         ? "Criadero"
         : role.charAt(0).toUpperCase() + role.slice(1);
 
+  const RoleBadge: React.FC<{ className?: string }> = ({ className = "" }) => (
+    <span
+      onClick={() => navigate("/profile")}
+      className={`text-xs px-3 py-1.5 bg-[#f0f9ff] rounded-full text-[#2a325c] flex items-center gap-1.5 cursor-pointer hover:bg-[#8ba3bc7e]/30 transition-all duration-200 border border-[#bdd5ef75] ${className}`}
+    >
+      <span className="font-medium uppercase tracking-wide">
+        {translateRole(user.role)}
+      </span>
+      <SubscriptionStatus subscription={subscription} />
+    </span>
+  );
+
   // Handlers
   const handleLogout = useCallback(async () => {
     try {
@@ -154,71 +166,58 @@ const UserHeader = memo(() => {
 
   if (!user) return null;
 
+  const displayName =
+    user.role === "venue"
+      ? user.profileInfo?.venueName ||
+        user.profileInfo?.businessName ||
+        user.username
+      : user.role === "gallera"
+        ? user.profileInfo?.galleraName ||
+          user.profileInfo?.businessName ||
+          user.username
+        : user.username;
+
   const isLoading = walletLoading || notificationsLoading || betsLoading;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg shadow-lg text-gray-900 border-b border-gray-200">
-      <div className="px-4 h-16 flex items-center justify-between">
+      <div className="px-4 py-3 flex flex-wrap items-center gap-3 justify-between min-h-[4rem] lg:h-16 lg:py-0">
         {/* LEFT SIDE - LOGO Y TITLE */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            {/* Logo visible en móvil y desktop */}
-            <img
-              src="/src/assets/logo.png"
-              alt="Logo Galleros.Net"
-              className="h-20 w-20 object-contain"
-            />
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold">
-                Galleros<span className="text-[#cd6263]">.Net</span>
-              </h1>
-              <span className="hidden md:block text-xs text-gray-500">
-                {getPageTitle()}
-              </span>
+        <div className="flex items-center gap-3">
+          {/* Logo visible en móvil y desktop */}
+          <img
+            src="/src/assets/logo.png"
+            alt="Logo Galleros.Net"
+            className="h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain"
+          />
+          <div className="hidden md:flex flex-col">
+            <h1 className="text-xl font-bold">
+              Galleros<span className="text-[#cd6263]">.Net</span>
+            </h1>
+            <span className="text-xs text-gray-500">{getPageTitle()}</span>
+          </div>
+          <div className="flex flex-col md:hidden text-xs text-[#2a325c] leading-tight">
+            <span className="text-sm font-semibold text-[#2a325c]">
+              {displayName}
+            </span>
+            <div className="mt-1">
+              <SubscriptionStatus subscription={subscription} />
             </div>
           </div>
         </div>
 
         {/* CENTER - USER GREETING */}
-        <div className="hidden lg:flex items-center gap-4 text-gray-700">
+        <div className="hidden md:flex items-center gap-4 text-gray-700">
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-[#596c95]" />
             <span className="text-base font-medium">
               Hola,{" "}
-              <span className="text-[#2a325c]">
-                {user.role === "venue"
-                  ? user.profileInfo?.venueName ||
-                    user.profileInfo?.businessName ||
-                    user.username
-                  : user.role === "gallera"
-                    ? user.profileInfo?.galleraName ||
-                      user.profileInfo?.businessName ||
-                      user.username
-                    : user.username}
-              </span>
+              <span className="text-[#2a325c]">{displayName}</span>
             </span>
           </div>
 
           {/* Role badge with premium indicator */}
-          <span
-            onClick={() => navigate("/profile")}
-            className="text-xs px-3 py-1.5 bg-[#f0f9ff] rounded-full text-[#2a325c] flex items-center gap-1.5 cursor-pointer hover:bg-[#8ba3bc7e]/30 transition-all duration-200 border border-[#bdd5ef75]"
-          >
-            <span className="font-medium uppercase tracking-wide">
-              {translateRole(user.role)}
-            </span>
-            {/*isPremium && (
-              <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1">
-                <Crown className="w-3 h-3" />
-                {subscription?.type === "daily"
-                  ? "24 HORAS"
-                  : subscription?.type === "monthly"
-                    ? "MENSUAL"
-                    : "PREMIUM"}
-              </span>
-            )*/}
-            <SubscriptionStatus subscription={subscription} />
-          </span>
+          <RoleBadge />
 
           {/* Role-specific info chips */}
           {user.role === "user" && isBettingEnabled && (

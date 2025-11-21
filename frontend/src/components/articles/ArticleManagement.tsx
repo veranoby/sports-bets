@@ -409,39 +409,44 @@ const ArticleManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header with sophisticated styling matching Events page */}
-      <div className="card-background p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-              📰 Mis Artículos
-              <p className="text-sm text-theme-light">
-                Gestiona y crea contenido de calidad
-              </p>
-            </h1>
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Article Statistics */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-theme-light">Publicados:</span>
-              <span className="bg-green-500/20 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
-                {articlesByStatus.published.length}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-theme-light">Borradores:</span>
-              <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-medium">
-                {articlesByStatus.draft.length}
-              </span>
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-lg shadow-gray-200/60 overflow-hidden">
+        <div className="p-5 sm:p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#f5f7ff] flex items-center justify-center text-2xl">
+                📰
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-[#1e2447] leading-tight">
+                  Mis Artículos
+                </h1>
+                <p className="text-sm text-[#6b7391]">
+                  Gestiona y crea contenido de calidad para la comunidad
+                </p>
+              </div>
             </div>
             <button
               onClick={openCreateModal}
-              className="btn-primary flex items-center gap-2 transition-all duration-200 transform hover:scale-105"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2a325c] text-white px-4 py-2 text-sm font-semibold shadow-lg shadow-[#2a325c]/30 hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >
               <Plus className="w-4 h-4" />
               Nuevo Artículo
             </button>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-xs sm:text-sm">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-100 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+              Publicados: {articlesByStatus.published.length}
+            </span>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-100 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+              Borradores: {articlesByStatus.draft.length}
+            </span>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-medium">
+              <ChevronRight className="w-3.5 h-3.5" />
+              Pendientes: {articlesByStatus.pending.length}
+            </span>
           </div>
         </div>
       </div>

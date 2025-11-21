@@ -345,8 +345,9 @@ router.post(
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
     body("excerpt").isString().isLength({ min: 10, max: 500 }),
-    body("featured_image").optional().isURL(),
-    body("featured_image_url").optional().isURL(),
+    body("featured_image").optional({ checkFalsy: true }).isURL(),
+    body("featured_image_url").optional({ checkFalsy: true }).isURL(),
+    body("status").optional().isIn(["draft", "pending", "published", "archived"]),
   ],
   sanitizeArticleContent,
   asyncHandler(async (req, res) => {
@@ -355,17 +356,23 @@ router.post(
       throw new Error("Validation failed");
     }
 
-    const { title, content, excerpt, venue_id, featured_image, featured_image_url } = req.body;
+    const { title, content, excerpt, venue_id, featured_image, featured_image_url, status: requestedStatus } = req.body;
     const featuredImage = featured_image || featured_image_url;
 
-    // Galleras can only create articles in draft status
-    let articleStatus: "draft" | "pending" | "published" | "archived" =
-      "published";
-    let publishedAt = new Date();
+    // Determine article status based on role
+    let articleStatus: "draft" | "pending" | "published" | "archived" = "published";
+    let publishedAt: Date | undefined = new Date();
 
     if (req.user!.role === "gallera" || req.user!.role === "user") {
-      articleStatus = "pending";
-      publishedAt = undefined as any;
+      // Galleras/users can create drafts or pending articles
+      // If they request "draft", keep it as draft
+      // Otherwise, default to "pending" for review
+      articleStatus = (requestedStatus === "draft") ? "draft" : "pending";
+      publishedAt = undefined;
+    } else if (req.user!.role === "admin" || req.user!.role === "operator") {
+      // Admins/operators can use any status including published
+      articleStatus = requestedStatus || "published";
+      publishedAt = (articleStatus === "published") ? new Date() : undefined;
     }
 
     const article = await Article.create({
@@ -385,6 +392,87 @@ router.post(
     ]);
 
     res.status(201).json({
+      success: true,
+      data: serializeArticle(article),
+    });
+  })
+);
+
+// ⚡ OPTIMIZATION: Generic article update with cache invalidation
+router.put(
+  "/:id",
+  authenticate,
+  [
+    body("title").optional().isString().isLength({ min: 5, max: 255 }),
+    body("content").optional().isString().isLength({ min: 10 }),
+    body("excerpt").optional().isString().isLength({ min: 10, max: 500 }),
+    body("featured_image").optional({ checkFalsy: true }).isURL(),
+    body("featured_image_url").optional({ checkFalsy: true }).isURL(),
+    body("status").optional().isIn(["draft", "pending", "published", "archived"]),
+  ],
+  sanitizeArticleContent,
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new Error("Validation failed");
+    }
+
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      throw errors.notFound("Article not found");
+    }
+
+    // Check authorization: only author, admin, or operator can update
+    if (
+      req.user!.id !== article.author_id &&
+      req.user!.role !== "admin" &&
+      req.user!.role !== "operator"
+    ) {
+      throw errors.forbidden("You can only update your own articles");
+    }
+
+    const { title, content, excerpt, featured_image, featured_image_url, status } = req.body;
+
+    // Update fields if provided
+    if (title !== undefined) article.title = title;
+    if (content !== undefined) article.content = content;
+    if (excerpt !== undefined) article.excerpt = excerpt;
+    if (featured_image || featured_image_url) {
+      article.featured_image = featured_image || featured_image_url;
+    }
+
+    // Handle status updates with role-based restrictions
+    if (status !== undefined) {
+      if (req.user!.role === "gallera" || req.user!.role === "user") {
+        // Non-admins can only change between draft and pending
+        if (status !== "draft" && status !== "pending") {
+          throw errors.forbidden("You can only save as draft or submit for pending review");
+        }
+        article.status = status;
+        if (status !== "published" && status !== "archived") {
+          article.published_at = undefined;
+        }
+      } else {
+        // Admins/operators can change to any status
+        article.status = status;
+        if (status === "published" && !article.published_at) {
+          article.published_at = new Date();
+        } else if (status !== "published" && status !== "archived") {
+          article.published_at = undefined;
+        }
+      }
+    }
+
+    await article.save();
+
+    // ⚡ OPTIMIZATION: Invalidate all relevant caches
+    await Promise.all([
+      invalidatePattern('articles_list_*'),
+      invalidatePattern('articles_featured_*'),
+      invalidatePattern(`article_detail_${req.params.id}_*`)
+    ]);
+
+    res.json({
       success: true,
       data: serializeArticle(article),
     });

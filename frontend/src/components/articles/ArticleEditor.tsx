@@ -184,54 +184,40 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
           )}
         </div>
 
-        <div className="mt-6 flex justify-between items-center">
-          {/* Draft Checkbox */}
-          <div className="flex items-center">
-            <input
-              id="isDraft"
-              name="isDraft"
-              type="checkbox"
-              checked={formData.status === "draft"}
-              onChange={(e) =>
-                onChange("status", e.target.checked ? "draft" : "pending")
-              }
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="isDraft"
-              className="ml-2 block text-sm text-gray-400"
-            >
-              Guardar como Borrador
-            </label>
-          </div>
+        <div className="mt-6 space-y-3">
+          <p className="text-xs text-gray-400">
+            Guarda como borrador para continuar luego o envía directamente a
+            revisión editorial.
+          </p>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={submitting}
             >
               Cancelar
             </button>
-            {onSaveDraft && (
+            <div className="flex flex-wrap gap-3">
+              {onSaveDraft && (
+                <button
+                  type="button"
+                  onClick={onSaveDraft}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
+                >
+                  Guardar Borrador
+                </button>
+              )}
               <button
-                type="button"
-                onClick={onSaveDraft}
-                className="btn-outline"
+                type="submit"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
-                Guardar Borrador
+                {submitting ? "Guardando..." : "Enviar para Revisión"}
               </button>
-            )}
-            <button type="submit" className="btn-primary" disabled={submitting}>
-              {submitting
-                ? "Guardando..."
-                : formData.status === "draft"
-                  ? "Guardar Borrador"
-                  : "Enviar para Revisión"}
-            </button>
+            </div>
           </div>
         </div>
       </form>
