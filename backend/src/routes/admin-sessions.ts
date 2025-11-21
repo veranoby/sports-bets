@@ -9,7 +9,7 @@ const router = Router();
  * Get list of currently active users (with valid sessions)
  * Returns: { activeUserIds: string[], userSessions: Array<{userId, username, lastActivity}> }
  */
-router.get('/admin/sessions/active-users', authenticate, authorize('admin', 'operator'), async (req: Request, res: Response) => {
+router.get('/sessions/active-users', authenticate, authorize('admin', 'operator'), async (req: Request, res: Response) => {
   try {
     const { ActiveSession, User } = require('../models');
 
@@ -64,7 +64,7 @@ router.get('/admin/sessions/active-users', authenticate, authorize('admin', 'ope
  * DELETE /api/admin/sessions/:userId
  * Force logout all sessions for a specific user
  */
-router.delete('/admin/sessions/:userId', authenticate, authorize('admin', 'operator'), async (req: Request, res: Response) => {
+router.delete('/sessions/:userId', authenticate, authorize('admin', 'operator'), async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
