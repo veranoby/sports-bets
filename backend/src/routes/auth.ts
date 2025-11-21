@@ -60,9 +60,9 @@ const loginValidation = [
 // Función para generar JWT - SOLUCIONADO
 const generateToken = (userId: string): string => {
   return jwt.sign(
-    { userId }, 
+    { userId },
     process.env.JWT_SECRET!,
-    { expiresIn: '7d' } as any
+    { expiresIn: '24h' } as any // CHANGED: 7d -> 24h for better security
   );
 };
 

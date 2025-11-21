@@ -64,9 +64,29 @@ export class SessionService {
           transaction: t
         });
 
-        // ❌ REJECT login if active session exists
-        if (existingSessions.length > 0) {
-          const lastSession = existingSessions[0];
+        // 🧹 AUTO-CLEANUP: Remove stale sessions (>30 min without activity)
+        const staleThreshold = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
+        const staleSessions = existingSessions.filter(
+          s => s.lastActivity < staleThreshold
+        );
+
+        if (staleSessions.length > 0) {
+          const staleIds = staleSessions.map(s => s.id);
+          await ActiveSession.destroy({
+            where: { id: staleIds },
+            transaction: t
+          });
+          logger.info(`Auto-cleaned ${staleSessions.length} stale sessions for user ${userId}`);
+        }
+
+        // Check if there are still active sessions after cleanup
+        const activeSessions = existingSessions.filter(
+          s => s.lastActivity >= staleThreshold
+        );
+
+        // ❌ REJECT login if active session exists (not stale)
+        if (activeSessions.length > 0) {
+          const lastSession = activeSessions[0];
           const error: any = new Error('Ya existe una sesión activa para este usuario. Cierra la sesión anterior antes de iniciar una nueva.');
           error.code = 'SESSION_CONFLICT';
           error.statusCode = 409;
@@ -78,9 +98,10 @@ export class SessionService {
           throw error;
         }
 
-        // Calculate expiration date (7 days from now)
+        // Calculate expiration date (24 hours from now)
+        // CHANGED: Reduced from 7 days to 24 hours for better security
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours TTL
 
         // Create new active session (no existing sessions, safe to proceed)
         const newSession = await ActiveSession.create({
@@ -136,16 +157,20 @@ export class SessionService {
 
   /**
    * Invalidate specific session (logout)
+   * CHANGED: DELETE session instead of UPDATE to ensure immediate cleanup
    * @param sessionToken - Session token to invalidate
    */
   static async invalidateSession(sessionToken: string): Promise<void> {
     try {
-      await ActiveSession.update(
-        { isActive: false },
-        { where: { sessionToken } }
-      );
+      const deleted = await ActiveSession.destroy({
+        where: { sessionToken }
+      });
 
-      logger.info(`Invalidated session: ${sessionToken}`);
+      if (deleted > 0) {
+        logger.info(`Deleted session on logout: ${sessionToken}`);
+      } else {
+        logger.warn(`Session not found for deletion: ${sessionToken}`);
+      }
     } catch (error) {
       logger.error('Error invalidating session:', error);
       throw error;

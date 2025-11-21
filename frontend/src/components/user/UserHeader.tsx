@@ -166,7 +166,7 @@ const UserHeader = memo(() => {
             <img
               src="/src/assets/logo.png"
               alt="Logo Galleros.Net"
-              className="h-10 w-10 object-contain"
+              className="h-20 w-20 object-contain"
             />
             <div className="flex flex-col">
               <h1 className="text-xl font-bold">
@@ -270,7 +270,7 @@ const UserHeader = memo(() => {
             </button>
           )}
 
-          <SubscriptionStatus subscription={subscription} />
+       {/*    <SubscriptionStatus subscription={subscription} />
 
           {/* ACTIVE BETS */}
           {isBettingEnabled && (

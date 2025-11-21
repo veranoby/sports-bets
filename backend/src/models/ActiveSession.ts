@@ -131,10 +131,11 @@ ActiveSession.init(
     ],
     hooks: {
       beforeCreate: (session) => {
-        // Set default expiresAt if not provided (7 days from now)
+        // Set default expiresAt if not provided (24 hours from now)
+        // CHANGED: Reduced from 7 days to 24 hours for better security
         if (!session.expiresAt) {
           const expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + 7);
+          expiresAt.setHours(expiresAt.getHours() + 24);
           session.expiresAt = expiresAt;
         }
         

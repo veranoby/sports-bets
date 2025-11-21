@@ -1,6 +1,21 @@
 {
   "development_priority_stack": [
     {
+      "priority": "P0_SECURITY_COMPLETED",
+      "task_description": "✅ Concurrent Login Prevention + Membership Request Bug Fix + Session Cleanup",
+      "completion_date": "2025-11-21",
+      "rationale": "Fixed 3 critical security/revenue bugs: (1) Concurrent login vulnerability allowing credential sharing, (2) Membership acceptance bug preventing subscription upgrades, (3) Session table bloat prevention",
+      "impact": "CRITICAL - Prevents credential sharing, fixes revenue-blocking bug, improves long-term database performance",
+      "source_file": "brain/backlog.json (CONCURRENT_LOGIN_SECURITY_FIX_COMPLETED, MEMBERSHIP_ACCEPTANCE_BUG_FIX_COMPLETED, SESSION_CLEANUP_CRON_JOB_IMPLEMENTATION)",
+      "git_commits": [
+        "1b391da - feat: concurrent login prevention with session cleanup",
+        "dbdecdc - fix: TypeScript row locking syntax",
+        "244833c - feat: concurrent login rejection + membership acceptance fix",
+        "bcf6aa7 - feat: frontend handling for concurrent login rejection"
+      ],
+      "testing_recommended": "Test concurrent login rejection on 2 browsers, test membership acceptance (FREE → DAILY/MONTHLY), verify session cleanup after 6 hours"
+    },
+    {
       "priority": "P0_CRITICAL",
       "task_description": "Solucionar Gaps de E2E Frontend y Estabilidad",
       "rationale": "La validación E2E falló en todas las capas, bloqueando la validación manual y la preparación para producción. La aplicación no es testeable ni estable en su estado actual.",
@@ -31,20 +46,22 @@
       ]
     },
     {
-      "priority": "P1_CRITICAL_INFRASTRUCTURE",
-      "task_description": "Análisis de Backend Performance y Optimización para Escalabilidad a 500 Usuarios Concurrentes",
-      "rationale": "Análisis profundo de SSE/WebSocket para detectar memory leaks, overcalls e impacto económico. Crítico para escalar de 25 a 500 usuarios sin exponenciales en costos de cloud. Incluye 4 fases: análisis estático → instrumentación → load testing → recomendaciones.",
-      "business_impact": "Memory leaks no detectados pueden causar crecimiento exponencial de costos en infraestructura cloud. Análisis previene ~$10K-50K en costos innecesarios/mes en producción.",
-      "technical_impact": "Identificará connection limits, listener accumulation, polling remnants, y gaps en cleanup logic.",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "execution_plan": "claude-prompt.json (4 fases, 90 minutos)",
-      "source_file": "brain/backlog.json (BACKEND_PERFORMANCE_ANALYSIS_PLAN)",
-      "success_criteria": [
-        "Phase 1: Static analysis with risk scores completed",
-        "Phase 2: Instrumentation plan with metrics/thresholds documented",
-        "Phase 3: 6+ load test scenarios designed",
-        "Phase 4: 5-10 optimization recommendations with effort/savings estimates"
-      ]
+      "priority": "P1_PERFORMANCE_OPTIMIZATION_PLAN_READY",
+      "task_description": "✅ Backend Performance Analysis Completed + Implementation Plan Created",
+      "completion_date": "2025-11-21 (Plan), 2025-11-20 (Analysis)",
+      "rationale": "QWEN completed comprehensive 4-phase SSE/WebSocket analysis. Director (Sonnet) validated findings and created implementation roadmap with 7 optimizations ranked by ROI.",
+      "business_impact": "$40,800/year potential savings ($3,400/month). Phase 1 alone saves $2,900/month with 5-day break-even. Prevents exponential cloud costs at scale.",
+      "technical_impact": "7 optimizations identified: connection limits (ROI 500), cache TTL (ROI 167), event history (ROI 133), adaptive heartbeat (ROI 60), message batching (ROI 67), pool monitoring (ROI 37.5), compression (ROI 18.75)",
+      "implementation_plan": "qwen-optimization-plan.json",
+      "source_file": "brain/backlog.json (BACKEND_PERFORMANCE_ANALYSIS_COMPLETED)",
+      "next_steps": [
+        "1. Review and approve qwen-optimization-plan.json",
+        "2. Setup load testing environment (k6 or artillery)",
+        "3. Run baseline test (25 concurrent users)",
+        "4. Implement Phase 1 (Connection Limits + Cache TTL + Event History) - 10 hours",
+        "5. Validate with load test (100 concurrent users)"
+      ],
+      "recommended_priority": "P1_HIGH - Implement Phase 1 immediately (5-day ROI break-even)"
     },
     {
       "priority": "P1",
