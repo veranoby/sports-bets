@@ -270,7 +270,7 @@ const UserHeader = memo(() => {
             </button>
           )}
 
-       {/*    <SubscriptionStatus subscription={subscription} />
+          {/*    <SubscriptionStatus subscription={subscription} />
 
           {/* ACTIVE BETS */}
           {isBettingEnabled && (
