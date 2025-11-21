@@ -77,6 +77,12 @@ const LoginPage: React.FC = () => {
       if (error instanceof Error) {
         // Check for specific HTTP errors
         if (
+          error.message.includes("409") ||
+          error.message.toLowerCase().includes("sesión activa") ||
+          error.message.toLowerCase().includes("session_conflict")
+        ) {
+          errorMessage = "Ya existe una sesión activa con este usuario. Cierra la sesión anterior antes de iniciar una nueva.";
+        } else if (
           error.message.includes("401") ||
           error.message.toLowerCase().includes("invalid") ||
           error.message.toLowerCase().includes("unauthorized")
