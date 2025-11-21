@@ -338,6 +338,26 @@
       "Dashboard de operador"
     ]
   },
+  "technical_operations": {
+    "email_notifications": {
+      "feature": "User registration email verification + admin transactional emails",
+      "implementation": "Postfix + Dovecot (local) + nodemailer backend",
+      "setup": "3 admin accounts: admin@, support@, operator@galleros.net (no external costs)",
+      "reference": "sdd_system.json:email_configuration"
+    },
+    "push_notifications": {
+      "feature": "Real-time push alerts for betting windows, fight results, PAGO proposals",
+      "implementation": "Web Push API + VAPID keys (already in backend/src/routes/push.ts)",
+      "setup": "Generate VAPID keys once + add VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY to .env",
+      "reference": "sdd_system.json:production_deployment_and_operations (monitoring section)"
+    },
+    "deployment_and_administration": {
+      "ssh_access": "SSH key authentication (no password) - trivial setup",
+      "deployment_strategy": "git pull + deploy.sh script OR GitHub Actions (recommended)",
+      "structure": "Monorepo frontend/backend works with git pull directly",
+      "reference": "sdd_system.json:deployment_workflow_from_github"
+    }
+  },
   "cross_references_to_migrate": [
     {
       "informacion": "Detalles técnicos de la arquitectura (ej. estrategia SSE/WebSocket, ORM, etc.).",

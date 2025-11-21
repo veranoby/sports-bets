@@ -888,6 +888,20 @@
         ]
       }
     },
+    "push_notifications_configuration": {
+      "framework": "Web Push API (PWA) + web-push library",
+      "status": "✅ Already implemented (backend/src/routes/push.ts)",
+      "setup_step_1": "Generate VAPID keys: web-push generate-vapid-keys (run once)",
+      "setup_step_2": "Add to .env: VAPID_PUBLIC_KEY=xxx, VAPID_PRIVATE_KEY=yyy",
+      "setup_step_3": "Restart backend: sudo systemctl restart gallobets-backend",
+      "endpoints": [
+        "POST /api/push/subscribe - Browser registers for notifications",
+        "POST /api/push/send - Admin sends to user (types: betting_window_open, fight_result, etc)"
+      ],
+      "types_supported": ["betting_window_open", "betting_window_close", "fight_result", "pago_proposal"],
+      "storage": "Subscriptions stored in database (table: push_subscriptions)",
+      "no_installation_needed": "web-push already in package.json"
+    },
     "monitoring_and_maintenance": {
       "daily_checks": [
         "systemctl status nginx postgresql redis",
