@@ -5,7 +5,7 @@
 import crypto from 'crypto';
 import { ActiveSession } from '../models';
 import { User } from '../models';
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { logger } from '../config/logger';
 
 export class SessionService {
@@ -53,7 +53,17 @@ export class SessionService {
       // ⚡ CRITICAL FIX: Use transaction to prevent race condition on concurrent logins
       const session = await sequelize.transaction(async (t: any) => {
         // STRICT MODE: Invalidate ALL existing active sessions for this user
-        // Lock rows to prevent concurrent session creation race condition
+        // First, lock active sessions with SELECT FOR UPDATE to prevent concurrent modifications
+        await ActiveSession.findAll({
+          where: {
+            userId,
+            isActive: true
+          },
+          lock: Transaction.LOCK.UPDATE,
+          transaction: t
+        });
+
+        // Now safely invalidate them (rows are locked, no race condition possible)
         const invalidatedSessions = await ActiveSession.update(
           { isActive: false },
           {
@@ -61,9 +71,7 @@ export class SessionService {
               userId,
               isActive: true
             },
-            transaction: t,
-            // Lock to prevent race condition
-            lock: true
+            transaction: t
           }
         );
 
