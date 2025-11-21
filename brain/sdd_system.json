@@ -72,43 +72,43 @@
         "capacity": "25-50 espectadores concurrentes",
         "cost": "$24-50/month (compute) + $50-100/month (bandwidth CDN)"
       },
-      "scaling_to_500_users": {
-        "critical_correction": "⚠️ UNSUITABLE: Previous recommendations (Ant Media Community Edition $24/mo + BunnyCDN Stream Storage) are invalid for 500 concurrent users. BunnyCDN Stream Storage does NOT support RTMP live streaming (only VOD). Ant Media Community Edition has known memory leaks and no failover.",
-        "recommended_solution_wowza_cloud": {
-          "platform": "Wowza Cloud (professional managed streaming)",
-          "streaming_cost": "$1,375-1,875/month (includes RTMP ingestion + HLS generation + global CDN)",
-          "advantages": [
-            "Fully managed (no infrastructure overhead)",
-            "Professional support 24/7",
-            "Automatic failover and high availability",
-            "Real-time monitoring and alerts",
-            "Handles 500 concurrent connections reliably"
-          ],
-          "total_monthly": "$1,474-2,024/month (including API backend + database)"
-        },
-        "alternative_solution_ant_media_enterprise": {
-          "platform": "Ant Media Server Enterprise (if choosing open-source with full responsibility)",
-          "requirements": "Requires MongoDB cluster + load balancer setup + operational expertise",
-          "streaming_cost": "$290-600/month (Enterprise Edition)",
-          "infrastructure_overhead": "$200-400/month (MongoDB, load balancer, clustering)",
-          "cdn_distribution": "BunnyCDN HLS at $216-348/month (480p with pause optimization)",
-          "total_monthly": "$829-1,469/month",
-          "disadvantages": [
-            "High operational complexity",
-            "Risk of misconfiguration",
-            "Manual failover handling",
-            "Requires dedicated ops knowledge"
-          ]
-        },
-        "unsuitable_solutions": {
-          "ant_media_community_edition": {
-            "reason": "Memory leaks (#5399, #5747, #5029, #6258), no failover, no support",
-            "verdict": "❌ UNSUITABLE FOR 500 CONCURRENT PRODUCTION"
+      "selected_solution_option_b1": {
+        "description": "OPTION B.1: Nginx RTMP (self-managed) + PostgreSQL local + optional Bunny CDN",
+        "phase_1_mvp_0_to_500_concurrent": {
+          "components": {
+            "ingestion": "OBS Studio (broadcaster encodes to 480p)",
+            "streaming_server": "Nginx + RTMP module (generates HLS locally)",
+            "hls_generation": "Nginx RTMP creates manifest (.m3u8) + segments (.ts) in /var/www/hls/",
+            "hls_delivery": "HTTP from Nginx directly (no CDN yet)",
+            "playback": "Video.js with HLS.js (adaptive bitrate)",
+            "database": "PostgreSQL 17 local (self-hosted, 30 min/week maintenance)"
           },
-          "bunnycdn_stream_storage": {
-            "reason": "VOD only - does NOT support RTMP live streaming",
-            "verdict": "❌ UNSUITABLE FOR LIVE EVENTS"
-          }
+          "cost": "$155-195/month (dedicated server only)",
+          "endpoints_unchanged": [
+            "POST /api/streaming/start",
+            "POST /api/streaming/stop",
+            "POST /api/streaming/pause",
+            "POST /api/streaming/resume",
+            "GET /api/streaming/status"
+          ],
+          "config_changes_required": {
+            "backend_env": "STREAM_SERVER_URL=rtmp://nginx-server.com:1935/live | CDN_URL=http://nginx-server.com",
+            "frontend_env": "VITE_STREAM_BASE_URL=http://nginx-server.com/hls"
+          },
+          "nginx_config": "User provides custom nginx.conf with rtmp block → HLS output to /var/www/hls/"
+        },
+        "phase_2_scaling_500_to_1000_concurrent": {
+          "trigger": "When Nginx CPU >60% OR bandwidth >500 Mbps",
+          "change": "Add Bunny CDN Pull Zone (transparent cache layer)",
+          "components": {
+            "streaming_server": "Nginx RTMP (unchanged, still generates HLS locally)",
+            "hls_delivery": "Bunny CDN (caches manifest + segments, serves globally)",
+            "playback": "Video.js (now fetches from Bunny instead of Nginx)"
+          },
+          "cost_addition": "+$108-216/month (Bunny CDN)",
+          "total_monthly": "$263-411/mo",
+          "code_changes": "VITE_STREAM_BASE_URL=https://gallobets-cdn.b-cdn.net/hls/ (5 min update)",
+          "nginx_config": "No change needed (Bunny Pull Zone pulls from Nginx)"
         }
       },
       "optimization_techniques": [
@@ -198,7 +198,7 @@
     },
 
     "backend_performance_at_scale": {
-      "status": "Analysis pending - see BACKEND_PERFORMANCE_ANALYSIS_PLAN in priorities_memory_index.json",
+      "status": "Scalability analysis completed 2025-11-20",
       "critical_areas_500_users": [
         "SSE connection lifecycle management (500 concurrent EventSource connections)",
         "Event listener cleanup on component unmount (prevent accumulation)",
@@ -208,8 +208,9 @@
       "database_connection_pooling": {
         "current": "Sequelize pool max: 20, min: 5",
         "required_for_500_users": "max: 100, min: 20",
-        "optimization": "Implement PgBouncer connection pooling proxy",
-        "rationale": "500 concurrent users × variable query rate = 100-200 simultaneous DB queries at peak"
+        "required_for_1000_users": "max: 200-250, min: 50",
+        "optimization_phase_1": "Implement PgBouncer connection pooling proxy @ 800+ users",
+        "rationale": "500 concurrent users = 250-300 queries/s. 1000 users = 500-600 queries/s. Pooling proxy distributes across connection slots."
       },
       "real_time_communication_strategy": {
         "sse_for": [
@@ -223,6 +224,177 @@
           "Betting proposals (PAGO/DOY) ONLY - requires bidirectional, timeout 3min"
         ],
         "rationale": "SSE has lower CPU overhead (5-10% vs WebSocket), sufficient for server→client only. WebSocket only for cases requiring client→server with timeout."
+      }
+    },
+
+    "scalability_analysis_2025_11_20": {
+      "infrastructure_tier": {
+        "option": "B.1",
+        "streaming_server": "nginx_rtmp_local",
+        "caching": "postgresql_local",
+        "phase_2_trigger": "cpu>60% OR bandwidth>500mbps",
+        "estimated_scale": "500-1000_concurrent_users"
+      },
+      "current_server_capacity": {
+        "specification": "Vultr/Hetzner Dedicated: 8-core CPU, 32GB RAM, 500GB SSD, 10Gbps network",
+        "monthly_cost": "$155-195",
+        "optimal_capacity": "< 500 concurrent users"
+      },
+
+      "performance_at_500_users": {
+        "nginx_rtmp_hls": {
+          "bandwidth": "750 Mbps (480p bitrate)",
+          "cpu_usage": "150-200% (of 800% available)",
+          "ram_usage": "2-3GB HLS cache",
+          "disk_io": "~500 IOPS",
+          "status": "✅ COMFORTABLE - 60% margin"
+        },
+        "postgresql_local": {
+          "active_connections": "250-300 (pool max: 20 SATURATED)",
+          "queries_per_second": "250-300",
+          "ram_buffers": "8-10GB (of 32GB)",
+          "cpu_usage": "200-300% (of 800%)",
+          "disk_data": "20-30GB (of 500GB)",
+          "status": "⚠️ TIGHT - Connection pool at maximum"
+        },
+        "disk_utilization": {
+          "postgresql_data": "20-30GB",
+          "hls_cache_temp": "80-150GB (temporary, cleaned)",
+          "backups_weekly": "4-6GB",
+          "logs_os": "20-30GB",
+          "free_space": "140-230GB (28-46% available)",
+          "status": "✅ SAFE - 28%+ free space"
+        }
+      },
+
+      "performance_at_1000_users": {
+        "nginx_rtmp_hls": {
+          "bandwidth": "1.5 Gbps (480p bitrate)",
+          "cpu_usage": "300-400% (of 800% available)",
+          "ram_usage": "5-8GB HLS cache",
+          "disk_io": "~1,000 IOPS",
+          "status": "⚠️ TIGHT - 50% margin remaining"
+        },
+        "postgresql_local": {
+          "active_connections": "400-500 (pool max: 20 CRITICAL BOTTLENECK)",
+          "queries_per_second": "500-600",
+          "ram_buffers": "12-16GB (of 32GB)",
+          "cpu_usage": "400-500% (of 800%)",
+          "disk_data": "50-80GB (of 500GB)",
+          "status": "🔴 CRITICAL - 3 bottlenecks identified"
+        },
+        "disk_utilization": {
+          "postgresql_data": "50-80GB",
+          "hls_cache_temp": "150-250GB (larger cache needed)",
+          "backups_weekly": "12-15GB (multiple weeks retention)",
+          "logs_os": "20-30GB",
+          "free_space": "140-200GB (28-40% available)",
+          "status": "⚠️ WATCH - Approaching critical at +6 months"
+        },
+        "critical_issues_identified": [
+          "🔴 Connection pooling: Pool max=20 cannot handle 500+ queries/s simultaneous",
+          "🔴 Disk space: 50-80GB data + backups + cache fills 500GB SSD in 4-5 months",
+          "🔴 Single point of failure: No PostgreSQL replication, no failover"
+        ]
+      },
+
+      "upgrade_triggers": {
+        "monitoring_metrics": "Implement weekly monitoring per postgresql-local-maintenance-manual.md",
+        "trigger_1_cpu_saturation": {
+          "metric": "Nginx + PostgreSQL combined CPU",
+          "threshold": "> 70% sustained for 1 week",
+          "action": "PLAN SERVER UPGRADE (start budget planning, 2-week lead time)"
+        },
+        "trigger_2_disk_space": {
+          "metric": "Disk free space",
+          "threshold": "< 20% free (< 100GB on 500GB disk)",
+          "action": "CRITICAL - Immediate action: (A) Compress logs, (B) Move HLS to S3, OR (C) Upgrade disk"
+        },
+        "trigger_3_connection_pool_exhaustion": {
+          "metric": "Database connection pool utilization",
+          "threshold": "Pool max:20 at 100% consistently",
+          "action": "ADD PgBouncer connection pooling proxy (intermediate solution) OR UPGRADE PLAN"
+        }
+      },
+
+      "recommended_upgrade_path": {
+        "phase_1_mvp_0_to_500_users": {
+          "duration": "Months 1-4",
+          "server_spec": "Current: 8-core, 32GB RAM, 500GB SSD",
+          "cost_monthly": "$155-195 (server) + $108-216 (Bunny CDN) = $263-411/mo",
+          "infrastructure": "Nginx RTMP local + PostgreSQL local + Bunny CDN",
+          "monitoring": "Weekly checklist (postgresql-local-maintenance-manual.md)",
+          "status": "✅ READY"
+        },
+
+        "phase_2_scaling_500_to_800_users": {
+          "duration": "Months 5-6",
+          "trigger": "CPU > 70% OR disk > 80% full OR connection pool maxed",
+          "decision_point": "Monitor during Phase 1 to predict when Phase 2 is needed",
+          "options": [
+            {
+              "option": "A - Server upgrade (RECOMMENDED)",
+              "server_spec": "16-core, 64GB RAM, 2TB SSD",
+              "vendor": "Vultr/Hetzner dedicated",
+              "cost_monthly": "$400-500/mo (server) + $108-216 (CDN) = $508-716/mo",
+              "benefits": [
+                "16 cores = 2× CPU headroom for peaks",
+                "64GB RAM = PostgreSQL optimal performance",
+                "2TB SSD = 12+ months of data growth",
+                "No connection pooling complexity",
+                "No disk storage complications"
+              ],
+              "migration_effort": "2-4 hours (backup → restore → DNS switch)",
+              "downtime": "< 30 minutes (planned maintenance)"
+            },
+            {
+              "option": "B - Add PgBouncer (INTERMEDIATE)",
+              "description": "Adds connection pooling to existing server",
+              "cost_monthly": "$50-100/mo (separate VPS for pooling proxy)",
+              "benefits": [
+                "Extends current server to ~800 users",
+                "Solves connection pool bottleneck",
+                "Buys time for full server upgrade"
+              ],
+              "limitations": [
+                "Does NOT solve CPU saturation",
+                "Does NOT solve disk space problem",
+                "Still requires server upgrade @ 1000 users"
+              ]
+            },
+            {
+              "option": "C - Hybrid (REVISIT NEON.TECH)",
+              "description": "Move PostgreSQL to Neon.tech, keep Nginx local",
+              "cost_monthly": "$155-195 (server) + $50-100 (Neon.tech) + $108-216 (CDN) = $313-511/mo",
+              "benefits": [
+                "Eliminates 30 min/week maintenance",
+                "Gains 99.99% SLA + auto-failover",
+                "Scales to 1000+ without server upgrade",
+                "No disk space management"
+              ],
+              "trade_off": "$100-300/mo more expensive than local PostgreSQL"
+            }
+          ]
+        },
+
+        "phase_3_maturity_1000_plus_users": {
+          "duration": "Month 12+",
+          "recommended_infrastructure": "Upgraded server (16-core, 64GB, 2TB) + Bunny CDN",
+          "cost_monthly": "$400-500 (server) + $108-216 (CDN) = $508-716/mo",
+          "optional_advanced_scaling": [
+            "PostgreSQL replication (standby on same server for HA)",
+            "Multiple Nginx RTMP instances with load balancing",
+            "Elasticsearch for search/analytics (if needed)",
+            "Prometheus + Grafana for advanced monitoring"
+          ],
+          "path_to_production_grade": "This configuration supports 1000+ concurrent users reliably"
+        }
+      },
+
+      "decision_framework": {
+        "do_not_wait_until": "Do NOT wait until CPU hits 95% to upgrade - plan at 70% for smooth transition",
+        "do_not_ignore": "Do NOT ignore disk space - fills faster than expected with backups + cache",
+        "contingency": "If triggers hit unexpectedly: PgBouncer is quick fix (48h installation) while planning full upgrade"
       }
     }
   },

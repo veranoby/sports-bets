@@ -157,7 +157,7 @@ const LoginPage: React.FC = () => {
             <img
               src="/src/assets/logo.png"
               alt="Logo Galleros.Net"
-              className="h-12 w-12 object-contain"
+              className="h-24 w-24 object-contain"
             />
             <h1 className="text-4xl font-bold text-theme-primary">
               Galleros<span className="text-[#cd6263]">.Net</span>

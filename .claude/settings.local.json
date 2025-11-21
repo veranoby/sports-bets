@@ -137,7 +137,12 @@
       "Bash(/model)",
       "Bash(git -C /home/veranoby/sports-bets log --oneline -5)",
       "Bash(git -C /home/veranoby/sports-bets diff --name-only HEAD~1 HEAD)",
-      "Bash(git -C /home/veranoby/sports-bets show --stat HEAD)"
+      "Bash(git -C /home/veranoby/sports-bets show --stat HEAD)",
+      "Bash(mcp list-tools:*)",
+      "Bash(claude mcp list:*)",
+      "Bash(LOG_LEVEL=info npx ts-node:*)",
+      "Bash(source backend/.env)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

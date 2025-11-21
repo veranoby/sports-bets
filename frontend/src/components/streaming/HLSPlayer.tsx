@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import Hls from "hls.js";
 
 interface HLSPlayerProps {
-  streamUrl: string;
+  streamUrl?: string;
+  streamKey?: string;
   controls?: boolean;
   autoplay?: boolean;
   muted?: boolean;
@@ -11,6 +12,7 @@ interface HLSPlayerProps {
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({
   streamUrl,
+  streamKey, // Optional stream key to append to base URL
   controls = true,
   autoplay = false,
   muted = false,
@@ -20,8 +22,24 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Construct the streaming URL using environment variable
+  const constructedStreamUrl = useMemo(() => {
+    if (streamUrl) {
+      // If streamUrl is already a full URL, use it as-is
+      return streamUrl;
+    } else if (streamKey) {
+      // If streamKey is provided, construct URL using base URL from environment
+      const baseUrl =
+        import.meta.env.VITE_STREAM_BASE_URL || "http://localhost:8000/hls";
+      return `${baseUrl}/${streamKey}.m3u8`;
+    }
+    return null;
+  }, [streamUrl, streamKey]);
+
   useEffect(() => {
-    if (!streamUrl) {
+    const activeStreamUrl = constructedStreamUrl || streamUrl;
+
+    if (!activeStreamUrl) {
       setError("No stream URL provided.");
       setIsLoading(false);
       return;
@@ -33,10 +51,12 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
     let hls: Hls | null = null;
 
     const initializePlayer = () => {
+      const activeStreamUrl = constructedStreamUrl || streamUrl;
+
       try {
         if (Hls.isSupported()) {
           hls = new Hls();
-          hls.loadSource(streamUrl);
+          hls.loadSource(activeStreamUrl);
           hls.attachMedia(video);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -59,7 +79,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
             }
           });
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = streamUrl;
+          video.src = activeStreamUrl;
           video.addEventListener("loadedmetadata", () => {
             if (autoplay) {
               video.play().catch(() => {
@@ -92,7 +112,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
         hls.destroy();
       }
     };
-  }, [streamUrl, autoplay, onError]);
+  }, [constructedStreamUrl, streamUrl, autoplay, onError]);
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">

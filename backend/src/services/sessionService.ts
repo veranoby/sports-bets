@@ -40,6 +40,8 @@ export class SessionService {
     sessionToken: string,
     req: any
   ): Promise<ActiveSession> {
+    const { sequelize } = require('../config/database');
+
     try {
       const userAgent = req.get('User-Agent') || 'unknown';
       const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
@@ -48,35 +50,43 @@ export class SessionService {
         ipAddress
       );
 
-      // STRICT MODE: Invalidate ALL existing active sessions for this user
-      // This prevents concurrent logins and ensures one session per user
-      const invalidatedSessions = await ActiveSession.update(
-        { isActive: false },
-        {
-          where: {
-            userId,
-            isActive: true
+      // ⚡ CRITICAL FIX: Use transaction to prevent race condition on concurrent logins
+      const session = await sequelize.transaction(async (t: any) => {
+        // STRICT MODE: Invalidate ALL existing active sessions for this user
+        // Lock rows to prevent concurrent session creation race condition
+        const invalidatedSessions = await ActiveSession.update(
+          { isActive: false },
+          {
+            where: {
+              userId,
+              isActive: true
+            },
+            transaction: t,
+            // Lock to prevent race condition
+            lock: true
           }
+        );
+
+        if (invalidatedSessions[0] > 0) {
+          logger.info(`Invalidated ${invalidatedSessions[0]} existing sessions for user ${userId}`);
         }
-      );
 
-      if (invalidatedSessions[0] > 0) {
-        logger.info(`Invalidated ${invalidatedSessions[0]} existing sessions for user ${userId}`);
-      }
+        // Calculate expiration date (7 days from now)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
 
-      // Calculate expiration date (7 days from now)
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
+        // Create new active session (within same transaction)
+        const newSession = await ActiveSession.create({
+          userId,
+          sessionToken,
+          deviceFingerprint,
+          ipAddress,
+          userAgent,
+          expiresAt,
+          isActive: true
+        }, { transaction: t });
 
-      // Create new active session
-      const session = await ActiveSession.create({
-        userId,
-        sessionToken,
-        deviceFingerprint,
-        ipAddress,
-        userAgent,
-        expiresAt,
-        isActive: true
+        return newSession;
       });
 
       logger.info(`Created new active session for user ${userId}`);
@@ -186,23 +196,31 @@ export class SessionService {
 
   /**
    * Cleanup expired sessions (periodic maintenance)
-   * Should be run periodically via cron job or background task
-   * @returns Number of expired sessions cleaned up
+   * DELETES sessions that are expired or inactive for >30 days
+   * @returns Number of sessions deleted
    */
   static async cleanupExpiredSessions(): Promise<number> {
     try {
-      const result = await ActiveSession.update(
-        { isActive: false },
-        {
-          where: {
-            isActive: true,
-            expiresAt: { [Op.lt]: new Date() }
-          }
-        }
-      );
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      logger.info(`Cleaned up ${result[0]} expired sessions`);
-      return result[0];
+      // DELETE (not UPDATE) sessions that are:
+      // 1. Expired (expiresAt < now) OR
+      // 2. Inactive AND older than 30 days
+      const deleted = await ActiveSession.destroy({
+        where: {
+          [Op.or]: [
+            { expiresAt: { [Op.lt]: new Date() } },
+            {
+              isActive: false,
+              createdAt: { [Op.lt]: thirtyDaysAgo }
+            }
+          ]
+        }
+      });
+
+      logger.info(`Deleted ${deleted} expired/old sessions (reduces table bloat)`);
+      return deleted;
     } catch (error) {
       logger.error('Error cleaning up expired sessions:', error);
       throw error;

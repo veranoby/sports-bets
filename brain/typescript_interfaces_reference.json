@@ -1,9 +1,16 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "2.9",
-    "last_updated": "2025-11-19",
-    "changelog": "Added useSSEConnection hook, SSEStreamingData interface, UseSSEConnectionReturn type, and OptimizedStreamingMonitor component type for unified streaming monitoring.",
+    "version": "3.0",
+    "last_updated": "2025-11-20",
+    "changelog": "Added useSSEConnection hook, SSEStreamingData interface, UseSSEConnectionReturn type, OptimizedStreamingMonitor component type, and updated for unified event hub implementation (StreamingControlTab, FightsControlTab, BetsActiveTab). Added StreamingControlTabProps interface.",
+    "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
+    "required_environment_variables": {
+      "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
+      "VITE_API_URL": "API base URL",
+      "VITE_WS_URL": "WebSocket base URL"
+    },
+    "phase_2_bunny_cdn_readiness": "HLSPlayer component uses VITE_STREAM_BASE_URL environment variable (zero code changes needed for CDN switch)",
     "note": "Verified against backend database models and production deployment"
   },
 

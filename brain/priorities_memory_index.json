@@ -15,6 +15,22 @@
       "source_file": "brain/backlog.json (broken_pages_scan_implementation_2025_11_11)"
     },
     {
+      "priority": "P0_INFRASTRUCTURE_DECISION",
+      "task_description": "Implementar OPTION B.1: Nginx RTMP + PostgreSQL local + Bunny CDN (Phase 2 opcional)",
+      "rationale": "Decision crítica seleccionada (2025-11-20): Stack de streaming económico y escalable. Nginx RTMP (self-managed, $0) + PostgreSQL local ($0) + Bunny CDN on-demand. Ahorra $450 en primeros 6 meses vs Option B.2 (Neon managed).",
+      "business_impact": "$155-195/mo MVP, $263-411/mo con CDN scaling. Escalable a 1000+ concurrent. Documentado en prd_system.json (líneas 119-170) y sdd_system.json (líneas 75-112).",
+      "technical_impact": "Nginx RTMP genera HLS localmente. Video.js ya integrado. Zero logic changes, solo configuración .env. Phase 2 (CDN) requiere SOLO cambio de URL variable, sin refactor de código.",
+      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "execution_plan": "qwen-prompt.json (3 tareas, 60 minutos máximo)",
+      "source_file": "brain/backlog.json (NGINX_RTMP_CONFIG_PHASE_1_IMPLEMENTATION)",
+      "success_criteria": [
+        "Backend .env.production: STREAM_SERVER_URL → nginx-server | CDN_URL → nginx-server",
+        "Frontend .env.production: VITE_STREAM_BASE_URL → nginx-server/hls (Phase 1) con template para Phase 2 CDN",
+        "Brain files: api_endpoints_reference.json + typescript_interfaces_reference.json actualizado con metadata OPTION B.1",
+        "Validation: npx tsc --noEmit (0 errors) + npm run build (success)"
+      ]
+    },
+    {
       "priority": "P1_CRITICAL_INFRASTRUCTURE",
       "task_description": "Análisis de Backend Performance y Optimización para Escalabilidad a 500 Usuarios Concurrentes",
       "rationale": "Análisis profundo de SSE/WebSocket para detectar memory leaks, overcalls e impacto económico. Crítico para escalar de 25 a 500 usuarios sin exponenciales en costos de cloud. Incluye 4 fases: análisis estático → instrumentación → load testing → recomendaciones.",

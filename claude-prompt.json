@@ -1,299 +1,451 @@
 {
-  "🔴_MANDATORY_START_HERE": {
-    "purpose": "This prompt enforces critical protocols from brain/multi_ai_coordination_strategy.json to prevent analysis failures",
-    "executor_model": "QWEN (qwen3-coder-plus-2025-09-23)",
-    "role": "executor - backend SSE/WebSocket analysis",
-    "execution_mode": "standard (full validation + evidence required)",
-    "session_date": "2025-11-20",
-
-    "step_1_read_before_working": [
-      "✅ brain/multi_ai_coordination_strategy.json (AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL: lines 147-280)",
-      "✅ brain/multi_ai_coordination_strategy.json (ROLE_AND_MODEL_AWARENESS_PROTOCOL: lines 103-126)",
-      "✅ brain/backlog.json (context on what Qwen already attempted)"
-    ],
-
-    "step_2_declare_yourself": "Before starting ANY work, output: 'Model: qwen3-coder-plus-2025-09-23 | Role: executor | Mode: standard | Task: Backend SSE/WebSocket Analysis'",
-
-    "step_3_echo_back_task": {
-      "requirement": "MANDATORY - Read this completely and echo back exact tasks",
-      "format": "I will execute PHASES 1-4: [Phase 1 description] → [Phase 2] → [Phase 3] → [Phase 4]. Generate final report in TEXT in this chat. Confirm Y/N?",
-      "reference": "brain/multi_ai_coordination_strategy.json lines 79-101 (DIRECTOR_PLANNING_PROTOCOL)"
-    },
-
-    "step_4_activate_mcp": "Activate: --seq --sequential --c7 --context7 --token-efficient (required for code analysis and documentation)",
-
-    "critical_warning": "⚠️ LESSON LEARNED: Last session, backlog.json documented BOTH 'SSE/WS files created' AND 'SSE/WS files don't exist' in same document. This was CONTRADICTION. You MUST verify with actual files, not trust assumptions."
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-11-20",
+    "role": "executor",
+    "assigned_model": "qwen3-coder-plus-2025-09-23",
+    "target_project": "sports-bets (GalloBets - Live Streaming Sports Betting Platform)",
+    "execution_mode": "standard",
+    "session_type": "multi-task-coordination"
   },
 
-  "🔴_AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL": {
-    "severity": "CRITICAL - Read brain/multi_ai_coordination_strategy.json lines 147-280 BEFORE starting work",
-    "applicability": "ALL phases of this analysis task",
-
-    "core_principle": "Absence of finding ≠ absence of existence. You must use BIDIRECTIONAL verification.",
-
-    "rule_1_bidirectional_search": {
-      "description": "For SSE/WebSocket analysis, search BOTH directions",
-      "direction_A_to_B": [
-        "Search: 'Are documented SSE endpoints actually implemented in code?'",
-        "Files: grep backend/src/routes/*.ts for 'SSE', 'streaming', 'EventSource'",
-        "Files: grep backend/src/*.ts for 'EventSource', 'sse', 'connection'",
-        "Verify: Each documented endpoint has actual function implementation"
-      ],
-      "direction_B_to_A": [
-        "Search: 'Are implemented SSE features documented in brain files?'",
-        "Files: Read actual backend code (useSSEConnection.ts, streaming-monitoring.ts, etc.)",
-        "List: Every EventSource, addEventListener, connection management code",
-        "Compare against: brain/api_endpoints_reference.json to find UNDOCUMENTED implementations"
-      ],
-      "enforcement": "REPORT BOTH DIRECTIONS explicitly. 'Found 3 issues direction A→B. Found 2 issues direction B→A. Total: 5 discrepancies.'"
-    },
-
-    "rule_2_tool_validation": {
-      "trigger_scenarios": [
-        "❌ Grep/search returns empty result → VERIFY with direct Read tool",
-        "❌ Command returns 0 matches → CONFIRM with alternative search method",
-        "❌ Expected file doesn't appear in search → Read directory with ls/Glob to confirm file exists"
-      ],
-      "protocol_when_search_fails": [
-        "Step 1: Acknowledge tool may have failed (syntax, path issue, permissions)",
-        "Step 2: Switch to direct method (Read file, Glob search, manual inspection)",
-        "Step 3: Document which tool failed and why",
-        "Step 4: Use validated method for remaining work"
-      ],
-      "example_if_you_find_nothing": "If grep shows 'No SSE files found', do NOT conclude they don't exist. Instead: (1) ls -la frontend/src/hooks/ to list what's there, (2) Read specific files mentioned in backlog.json, (3) If files DON'T exist after Read attempt, then report 'File not found'."
-    },
-
-    "rule_3_systematic_coverage": {
-      "checklist": [
-        "List ALL files mentioned in analysis scope (from task definition)",
-        "Create explicit verification checklist (not mental list)",
-        "Check off items as VERIFIED (not assumed)",
-        "Report 'verified present' AND 'verified absent' - not just missing findings"
-      ],
-      "scope_for_this_task": [
-        "□ backend/src/routes/streaming-monitoring.ts (endpoint implementation)",
-        "□ frontend/src/hooks/useSSEConnection.ts (hook lifecycle)",
-        "□ backend/src/contexts/WebSocketContext.tsx (if exists - verify first)",
-        "□ frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (consumer code)",
-        "□ Any other SSE/WS files (grep before concluding scope)"
-      ],
-      "enforcement": "For each file: Either '[FILE EXISTS: Read completed]' OR '[FILE NOT FOUND: Verified with Glob/ls]'. No assumptions."
-    },
-
-    "rule_4_direct_inspection": {
-      "trigger": "ALWAYS when: (1) Tool returns unexpected result, (2) Critical finding needs confirmation, (3) Contradiction detected",
-      "method": "Use Read tool with offset/limit to manually inspect actual code",
-      "example": "If you grep for 'EventSource' and find nothing, Read frontend/src/hooks/useSSEConnection.ts directly to check if it uses EventSource at all. Verify manually."
-    },
-
-    "rule_5_explicit_assumptions": {
-      "process": [
-        "List assumptions being made (e.g., 'Assuming all SSE files are in hooks/ directory')",
-        "Validate EACH assumption explicitly (e.g., 'Verified: grep -r shows no other SSE implementations')",
-        "Document validated assumptions in final report"
-      ],
-      "bad_example": "❌ 'SSE/WS system doesn't exist because I didn't find files'",
-      "good_example": "✅ 'Searched: grep -r \"EventSource\" backend/src → 0 results. Searched: grep -r \"EventSource\" frontend/src → 3 files. Assumption: EventSource implementation exists in frontend, not backend. VALIDATED: backend uses polling instead.'"
-    }
-  },
-
-  "🔴_VERIFICATION_WORKFLOW_BEFORE_EACH_PHASE": {
-    "checkpoint_protocol": "Before starting EACH phase, run verification commands. Do NOT assume previous session's findings.",
-
-    "verify_files_exist": {
-      "command_1": "ls -la backend/src/routes/streaming-monitoring.ts && echo 'EXISTS' || echo 'NOT_FOUND'",
-      "command_2": "ls -la frontend/src/hooks/useSSEConnection.ts && echo 'EXISTS' || echo 'NOT_FOUND'",
-      "command_3": "find backend/src -type f -name '*sse*' -o -name '*websocket*' -o -name '*stream*' | head -20",
-      "command_4": "find frontend/src -type f -name '*SSE*' -o -name '*sse*' | head -20",
-      "output": "Report actual file list, not assumptions. Format: '✅ VERIFIED: Files exist: [list] | ❌ NOT_FOUND: [list]'"
-    },
-
-    "verify_previous_claims": {
-      "backlog_states": "backlog.json claims: 'UNIFIED_STREAMING_MONITORING_IMPLEMENTATION_COMPLETED' with 'frontend/src/hooks/useSSEConnection.ts' created on 2025-11-19",
-      "your_job": "Do NOT trust this. Verify: (1) Does file exist NOW? (2) Does it contain SSE logic? (3) Are the implementations in the file actual code or placeholders?",
-      "if_contradiction_found": "STOP immediately and report: 'CONTRADICTION DETECTED: backlog.json claims [X] but actual file state shows [Y]. Require clarification before proceeding.'"
-    }
-  },
-
-  "=_PHASE_1_STATIC_CODE_ANALYSIS": {
-    "objective": "Identify memory leak risks, overcall patterns, inefficiencies through VERIFIED code inspection",
-    "estimated_time": "25 minutes",
-    "critical_requirement": "For EVERY finding, include: file:line | code snippet | risk assessment",
-
-    "step_1_verify_files_exist": {
-      "action": "Before reading any file, verify it actually exists",
-      "commands": [
-        "Read backend/src/routes/streaming-monitoring.ts (offset 1, limit 50) - check if file exists and has content",
-        "Read frontend/src/hooks/useSSEConnection.ts (offset 1, limit 50) - check if file exists and has content",
-        "If either file: 'No such file', STOP and report which files are MISSING"
-      ]
-    },
-
-    "step_2_read_backend_sse": {
-      "file": "backend/src/routes/streaming-monitoring.ts",
-      "focus_questions": [
-        "Does endpoint properly close EventSource connections?",
-        "Are event listeners removed on cleanup?",
-        "Are there connection limits?",
-        "Is there timeout mechanism for idle connections?",
-        "Are connections potentially orphaned on network errors?",
-        "Is memory properly freed?"
-      ],
-      "evidence_format": "For each issue found: 'backend/src/routes/streaming-monitoring.ts:LINE | code snippet | risk: HIGH/MEDIUM/LOW | reason: [why this is a problem]'"
-    },
-
-    "step_3_read_frontend_sse_hook": {
-      "file": "frontend/src/hooks/useSSEConnection.ts",
-      "focus_questions": [
-        "Does cleanup function properly remove all EventSource listeners?",
-        "Does cleanup close EventSource connection?",
-        "Are there memory leaks from closure references?",
-        "Does useEffect have proper cleanup return?",
-        "Are event listeners accumulating on re-renders?",
-        "Is EventSource properly closed on unmount?"
-      ],
-      "evidence_format": "For each issue: 'frontend/src/hooks/useSSEConnection.ts:LINE | code snippet | risk: HIGH/MEDIUM/LOW'"
-    },
-
-    "step_4_search_for_other_sse_files": {
-      "command": "find backend/src frontend/src -type f \\( -name '*.ts' -o -name '*.tsx' \\) -exec grep -l 'EventSource\\|addEventListener.*SSE\\|.on.*streaming' {} \\;",
-      "purpose": "Ensure you haven't missed any SSE implementations",
-      "document": "List ALL files with SSE-related code, not just the ones in task definition"
-    },
-
-    "step_5_search_for_polling_remnants": {
-      "concern": "Migration from polling→SSE may be incomplete",
-      "search_for": "grep -r 'setInterval\\|setTimeout.*fetch\\|polling' backend/src frontend/src | grep -i 'stream\\|event\\|connection'",
-      "purpose": "Find polling calls that should use SSE instead",
-      "document": "If found: 'Polling found in [file:line] - should use SSE instead. Estimated savings: [...]'"
-    },
-
-    "validation_checkpoint": "Before moving to Phase 2, confirm: (1) All referenced files verified to exist, (2) Each issue has file:line evidence, (3) No contradictions between findings"
-  },
-
-  "=_PHASE_2_INSTRUMENTATION_PLANNING": {
-    "objective": "Design monitoring strategy (PLANNING ONLY, no code changes)",
-    "estimated_time": "20 minutes",
-    "no_code_changes": "Identify WHAT to monitor, not implementation",
-
-    "step_1_define_metrics": {
-      "metrics_to_plan": [
-        "Active connections count (real-time tracking)",
-        "Average connection lifetime (seconds)",
-        "Memory usage by SSE buffers (MB)",
-        "Event frequency (events/sec)",
-        "Reconnection attempts per client",
-        "Orphaned connections detection",
-        "Event listener count (should be bounded)"
-      ],
-      "format_per_metric": {
-        "metric_name": "Active connections",
-        "where_to_measure": "backend/src/routes/streaming-monitoring.ts - global counter or WeakMap",
-        "expected_normal_range": "10-500 concurrent",
-        "alert_threshold": ">1000 concurrent (indicates leak or abuse)",
-        "unit": "count"
-      }
-    },
-
-    "step_2_identify_instrumentation_points": {
-      "backend": "Identify exact locations in code where to add counters/logging",
-      "frontend": "Identify exact locations where to track connection quality"
-    }
-  },
-
-  "=_PHASE_3_LOAD_TESTING_SCENARIOS": {
-    "objective": "Document realistic test scenarios (DESIGN ONLY, no implementation)",
-    "estimated_time": "15 minutes",
-    "format_per_scenario": {
-      "scenario_id": "A",
-      "name": "Baseline",
-      "parameters": "10 concurrent, 60s duration",
-      "expected_outcome": "Stable memory, <10ms latency",
-      "leaks_to_detect": "None expected - baseline reference",
-      "rationale": "Establish normal behavior reference"
-    }
-  },
-
-  "=_PHASE_4_OPTIMIZATION_RECOMMENDATIONS": {
-    "objective": "Synthesize Phases 1-3 into prioritized optimization plan",
-    "estimated_time": "20 minutes",
-    "template_per_recommendation": {
-      "issue_id": "1",
-      "title": "Issue description",
-      "file_location": "path:line",
-      "root_cause": "Why this happens",
-      "memory_impact": "HIGH|MEDIUM|LOW",
-      "effort_hours": "Estimated effort",
-      "monthly_savings_usd": "Cost reduction estimate",
-      "recommendation": "Specific action",
-      "risk_level": "LOW|MEDIUM|HIGH",
-      "evidence_reference": "Phase 1 finding #X"
-    }
-  },
-
-  "🔴_REPORTING_PROTOCOL": {
-    "reporting_location": "TEXT response in this chat ONLY (do NOT create files)",
-    "report_structure": [
-      "Executive Summary (health assessment - 3 sentences)",
-      "Verification Methodology Used (which protocols applied)",
-      "Phase 1: Static Analysis Findings (with file:line evidence)",
-      "Phase 2: Instrumentation Plan (metrics to track)",
-      "Phase 3: Load Test Scenarios (6+ test cases)",
-      "Phase 4: Optimization Roadmap (quick-wins → long-term)",
-      "Total Estimated Impact (cost savings if implemented)",
-      "Verification Evidence (actual command outputs used)"
-    ],
-
-    "evidence_format": "file:line | code snippet | finding | risk_level",
-
-    "CRITICAL_BEFORE_REPORTING": [
-      "✅ Have you run BIDIRECTIONAL verification? (direction A→B AND direction B→A)",
-      "✅ Did you validate tool outputs (if empty, used Read directly)?",
-      "✅ Did you verify assumption about file locations?",
-      "✅ Did you check for contradictions in your findings?",
-      "✅ Is every finding backed by actual file:line evidence?",
-      "If ANY answer is 'no', STOP and re-verify before reporting"
+  "=4_MANDATORY_SESSION_START_PROTOCOL": {
+    "step_1_declare_role": "QWEN EXECUTOR SESSION",
+    "declaration": "Model: qwen3-coder-plus-2025-09-23 | Role: executor | Mode: standard | Task Type: Infrastructure + Analysis + Frontend Validation",
+    "required_before_work": [
+      "Echo back all three task assignments with explicit confirmation",
+      "Confirm understanding of simulation + confirmation protocol",
+      "Activate required MCPs per task type",
+      "State which task will execute first"
     ]
   },
 
-  "🔴_SESSION_SAFETY_CHECKLIST": {
-    "checkpoint_every_20_minutes": {
-      "commit_with_tag": "git add brain/backlog.json && git commit -m '[CHECKPOINT] SSE analysis - Phase X in progress'",
-      "purpose": "Save progress in case context is lost",
-      "time_0_min": "Declare role and read protocols ✅",
-      "time_20_min": "Complete Phase 1, verify findings, checkpoint ✅",
-      "time_40_min": "Complete Phase 2, create instrumentation plan, checkpoint ✅",
-      "time_60_min": "Complete Phase 3, design test scenarios, checkpoint ✅",
-      "time_80_min": "Complete Phase 4, create recommendations, prepare report ✅"
+  "three_critical_workflows": {
+    "TASK_1_NGINX_RTMP_CONFIG": {
+      "task_id": "NGINX_RTMP_CONFIG_PHASE_1_2025_11_20",
+      "priority": "P0_CRITICAL",
+      "complexity": "LOW",
+      "status": "READY_FOR_EXECUTION",
+      "estimated_effort_minutes": 30,
+      "description": "Configure environment variables for Nginx RTMP + PostgreSQL local streaming infrastructure (OPTION B.1 selected)",
+
+      "scope_definition": {
+        "files_to_modify": [
+          "/home/veranoby/sports-bets/backend/.env",
+          "/home/veranoby/sports-bets/frontend/.env",
+          "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+          "/home/veranoby/sports-bets/brain/sdd_system.json"
+        ],
+        "files_read_only": [
+          "/home/veranoby/sports-bets/brain/prd_system.json (lines 119-170)",
+          "/home/veranoby/sports-bets/brain/sdd_system.json (lines 75-112)"
+        ],
+        "no_code_changes": " ZERO logic modifications - configuration only",
+        "no_build_needed": " No npm build required - env var updates only"
+      },
+
+      "critical_protocols": {
+        "simulate_y_confirmar": {
+          "enabled": true,
+          "phase_1_simulate": "Describe EXACTLY: (1) Which env vars will be updated, (2) Current values vs new values, (3) Impact on stream workflow",
+          "phase_2_confirm": "Verify: (1) .env files exist at paths, (2) STREAM_SERVER_URL syntax valid, (3) No circular references",
+          "phase_3_document": "Mark commit message with [SIMULATED] � [CONFIRMED] � [MODIFIED]"
+        }
+      },
+
+      "step_by_step_implementation": {
+        "step_1_backend_env": {
+          "file": "/home/veranoby/sports-bets/backend/.env.production",
+          "action": "Update streaming configuration variables",
+          "changes": [
+            "STREAM_SERVER_URL=rtmp://nginx-server.com:1935/live (was: localhost or previous CDN)",
+            "CDN_URL=http://nginx-server.com (was: Bunny CDN or other)",
+            "STREAM_HEALTH_CHECK_URL=http://nginx-server.com/stat (new: Nginx stat endpoint)"
+          ],
+          "validation": "grep STREAM_SERVER_URL backend/.env.production | grep nginx-server",
+          "time_estimate_minutes": 10,
+          "reference_docs": [
+            "@brain/sdd_system.json:75-112 (RTMP streaming architecture)",
+            "@brain/prd_system.json:119-170 (OPTION B.1 infrastructure tier)"
+          ]
+        },
+
+        "step_2_frontend_env": {
+          "file": "/home/veranoby/sports-bets/frontend/.env.production",
+          "action": "Update HLS playback URL to use environment variable",
+          "changes": [
+            "VITE_STREAM_BASE_URL=http://nginx-server.com/hls (was: Bunny or previous CDN)",
+            "# Phase 2 trigger: Switch to Bunny when CPU>60% or bandwidth>500Mbps (comment for future)"
+          ],
+          "validation": "grep VITE_STREAM_BASE_URL frontend/.env.production | grep nginx-server",
+          "time_estimate_minutes": 10,
+          "reference_docs": [
+            "@brain/prd_system.json:119-170 (scaling strategy)"
+          ]
+        },
+
+        "step_3_brain_metadata": {
+          "files": [
+            "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+            "/home/veranoby/sports-bets/brain/sdd_system.json"
+          ],
+          "action": "Add OPTION B.1 infrastructure metadata for future reference",
+          "changes": [
+            "Add infrastructure_tier field: { option: 'B.1', streaming_server: 'nginx_rtmp_local', caching: 'postgresql_local', phase_2_trigger: 'cpu>60% OR bandwidth>500mbps', estimated_scale: '500-1000_concurrent_users' }",
+            "Document environment variable mappings (STREAM_SERVER_URL � RTMP ingestion point)"
+          ],
+          "validation": "Verify JSON syntax: npx jq . brain/api_endpoints_reference.json",
+          "time_estimate_minutes": 10,
+          "reference_docs": [
+            "@brain/api_endpoints_reference.json:metadata (update structure)"
+          ]
+        }
+      },
+
+      "validation_gates": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "required": "ZERO errors",
+          "skip_in_trusted_mode": false
+        },
+        "env_variable_verification": {
+          "commands": [
+            "grep 'STREAM_SERVER_URL' backend/.env.production",
+            "grep 'VITE_STREAM_BASE_URL' frontend/.env.production"
+          ],
+          "expected_output": "Both variables point to nginx-server.com (NOT localhost)"
+        },
+        "no_code_logic_changes": {
+          "verification": "git diff backend frontend should show ZERO .ts/.tsx changes (only .env modified)"
+        }
+      },
+
+      "success_criteria": [
+        " backend/.env.production contains STREAM_SERVER_URL=rtmp://nginx-server.com:1935/live",
+        " frontend/.env.production contains VITE_STREAM_BASE_URL=http://nginx-server.com/hls",
+        " brain/api_endpoints_reference.json updated with B.1 infrastructure metadata",
+        " TypeScript compilation: npx tsc --noEmit returns 0 errors",
+        " No logic code modified (only .env + brain metadata)",
+        " Commit tagged with [SIMULATED] � [CONFIRMED] � [MODIFIED]"
+      ],
+
+      "reporting_location": {
+        "where": "/home/veranoby/sports-bets/brain/backlog.json",
+        "section": "Add entry under 'completed_tasks' with structured report",
+        "structure": {
+          "task_id": "NGINX_RTMP_CONFIG_PHASE_1_2025_11_20",
+          "status": "COMPLETED",
+          "completion_timestamp": "ISO 8601 date",
+          "verification_evidence": {
+            "git_diff_stat": "Run: git diff --stat HEAD~1",
+            "env_variables": "Output of grep STREAM_SERVER_URL backend/.env.production",
+            "typescript_check": "Output of: npx tsc --noEmit (should be empty or 0 errors)",
+            "files_modified_list": ["backend/.env.production", "frontend/.env.production", "brain/api_endpoints_reference.json"]
+          },
+          "summary": "Configuration-only update for OPTION B.1 Nginx RTMP + PostgreSQL local infrastructure. No code logic changes. Ready for Phase 2 CDN migration trigger."
+        }
+      },
+
+      "risk_assessment": "=� VERY_LOW - Configuration only, no logic changes, backward compatible"
     },
 
-    "red_flags_STOP_AND_REPORT": [
-      "🚨 Finding 'no SSE files' but backlog.json claims they exist - STOP and verify with Read",
-      "🚨 Tool returns unexpected result - STOP and validate with different method",
-      "🚨 Contradiction between your findings - STOP and investigate root cause",
-      "🚨 Session approaching 70 min - STOP and create handoff note",
-      "🚨 Memory concerns about implementation - STOP and ask user to verify system state"
-    ],
+    "TASK_2_BACKEND_PERFORMANCE_ANALYSIS": {
+      "task_id": "BACKEND_PERFORMANCE_ANALYSIS_2025_11_20",
+      "priority": "P1_HIGH",
+      "complexity": "HIGH",
+      "status": "READY_FOR_EXECUTOR",
+      "estimated_effort_minutes": 80,
+      "description": "SSE/WebSocket memory leak analysis + instrumentation planning + load test scenarios + ROI-ranked recommendations",
 
-    "if_you_must_stop": {
-      "format": "[SESSION_PAUSED] REASON: [why you stopped] | PROGRESS: [what's done] | NEXT: [what remains] | BLOCKER: [if applicable]",
-      "example": "[SESSION_PAUSED] REASON: Found contradiction between backlog.json claims and actual file state | PROGRESS: Phase 1 partially completed, found 3 issues | NEXT: Verify files exist with Read tool before continuing Phase 1 | BLOCKER: Need clarification if useSSEConnection.ts actually exists"
+      "scope_definition": {
+        "analysis_scope": "Backend streaming infrastructure only (NO frontend modifications)",
+        "files_to_analyze": [
+          "/home/veranoby/sports-bets/backend/src/routes/streaming-monitoring.ts",
+          "/home/veranoby/sports-bets/backend/src/sockets/streamingSocket.ts",
+          "/home/veranoby/sports-bets/backend/src/config/redis.ts",
+          "/home/veranoby/sports-bets/backend/src/middleware/auth.ts"
+        ],
+        "output_format": "Comprehensive analysis report in chat text (NO file creation)",
+        "brain_reference": [
+          "@brain/sdd_system.json (SSE/WebSocket implementation details)",
+          "@brain/api_endpoints_reference.json (streaming endpoints documentation)"
+        ]
+      },
+
+      "critical_protocols": {
+        "audit_methodology": {
+          "bidirectional_search": " REQUIRED - Check BOTH: (A) Documented endpoints � backend implementation, (B) Backend implementation � documented endpoints",
+          "tool_validation": "If grep fails, validate with Read tool before concluding",
+          "systematic_coverage": "List ALL files in scope, check each explicitly (not sampling)",
+          "evidence_based": "Report must include file:line references for all findings"
+        }
+      },
+
+      "phase_1_static_code_analysis": {
+        "duration_minutes": 25,
+        "description": "Detect memory leak patterns in SSE/WebSocket connection lifecycle",
+        "analysis_focus": [
+          "EventSource cleanup in frontend hooks - Check for missing .close() in cleanup functions",
+          "Event listener accumulation - Search for addEventListener without removeEventListener",
+          "Connection pooling - Verify connection limits per user/IP",
+          "Polling remnants - Check if any polling loops exist (should be SSE-only)"
+        ],
+        "output_format": {
+          "per_file_format": "FILE:LINE - RISK_LEVEL - PATTERN - IMPACT",
+          "example": "backend/src/sockets/streamingSocket.ts:45 - =4 HIGH - Missing error handler on EventEmitter � Uncaught exceptions may block stream",
+          "risk_scoring": "HIGH (immediate impact) | MEDIUM (conditional impact) | LOW (minor impact)"
+        },
+        "validation_command": "grep -n 'addEventListener\\|removeEventListener\\|close()\\|disconnect' [FILES]"
+      },
+
+      "phase_2_instrumentation_planning": {
+        "duration_minutes": 20,
+        "description": "Design metrics collection for production monitoring",
+        "metrics_to_design": [
+          "Active SSE connections (count by route, by user, by IP)",
+          "Memory usage per connection (bytes allocated / number of connections)",
+          "Event emission rate (events/second)",
+          "Connection open/close rates (connections/minute)",
+          "Listener accumulation count per connection"
+        ],
+        "output_structure": {
+          "metric_name": "string",
+          "collection_point": "Which middleware/route",
+          "frequency": "Real-time vs periodic",
+          "threshold_alert": "When to alert (example: >8/10 pool connections)",
+          "implementation_location": "Specific file:line where metric would be collected"
+        },
+        "reference": "@brain/api_endpoints_reference.json:monitoring_endpoints (existing monitoring patterns)"
+      },
+
+      "phase_3_load_test_scenario_design": {
+        "duration_minutes": 15,
+        "description": "Define realistic load scenarios (k6 or Artillery format)",
+        "scenarios": [
+          {
+            "name": "Baseline - 25 concurrent users",
+            "duration_seconds": 600,
+            "ramp_up_seconds": 30,
+            "expected_behavior": "No errors, memory stable, <100ms response time"
+          },
+          {
+            "name": "Scale Target - 500 concurrent users",
+            "duration_seconds": 300,
+            "ramp_up_seconds": 60,
+            "expected_behavior": "Monitor for memory leak slope, connection pool pressure"
+          },
+          {
+            "name": "Spike - 0�500 users in 30 seconds",
+            "duration_seconds": 180,
+            "expected_behavior": "Peak memory usage, peak connection pool utilization"
+          },
+          {
+            "name": "Soak - 500 users for 2 hours",
+            "duration_seconds": 7200,
+            "expected_behavior": "Detect slow memory leaks (linear memory growth indicates leak)"
+          },
+          {
+            "name": "Reconnection Storm - All disconnect/reconnect simultaneously",
+            "expected_behavior": "Connection cleanup, event listener cleanup, no dangling connections"
+          },
+          {
+            "name": "Multi-tab simulation - Single user opens 3 connections",
+            "expected_behavior": "Account for multiple connections per user"
+          }
+        ],
+        "output_format": "k6 scenario definition with thresholds (response time, error rate, memory growth)"
+      },
+
+      "phase_4_optimization_recommendations": {
+        "duration_minutes": 20,
+        "description": "Rank optimizations by ROI (savings / effort)",
+        "analysis_approach": {
+          "for_each_issue": "Estimate: (1) Monthly cost saved if fixed, (2) Hours to implement, (3) Risk if implemented",
+          "ranking_metric": "ROI = monthly_savings / implementation_hours"
+        },
+        "output_structure": {
+          "rank": "1-10",
+          "optimization_title": "string",
+          "current_issue": "What's happening now",
+          "proposed_fix": "Technical solution",
+          "monthly_savings": "$XXX (estimated infrastructure cost reduction)",
+          "implementation_hours": "number",
+          "roi_score": "savings / hours",
+          "risk_level": "LOW | MEDIUM | HIGH",
+          "implementation_file": "backend/src/...",
+          "effort_description": "Code change complexity"
+        },
+        "reference": "@brain/prd_system.json:157-170 (cost optimization strategy)"
+      },
+
+      "reporting_location": {
+        "where": "Chat text output (NO file creation)",
+        "format": "Structured analysis report with 4 phases",
+        "then_update": "/home/veranoby/sports-bets/brain/backlog.json with summary entry"
+      },
+
+      "success_criteria": [
+        " Phase 1: All 4+ critical files analyzed with specific file:line findings",
+        " Phase 2: Instrumentation spec complete with 5+ metrics defined",
+        " Phase 3: 6+ load test scenarios documented with clear expected behavior",
+        " Phase 4: 5-10 recommendations ranked by ROI score",
+        " Evidence format: All findings reference file:line or specific command outputs",
+        " Report follows AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL"
+      ],
+
+      "risk_assessment": "=� LOW - Analysis-only, zero code modifications, recommendations queued for future decision"
+    },
+
+    "TASK_3_E2E_FRONTEND_VALIDATION": {
+      "task_id": "E2E_FRONTEND_VALIDATION_DIAGNOSIS_2025_11_20",
+      "priority": "P0_CRITICAL_BLOCKER",
+      "complexity": "HIGH",
+      "status": "BLOCKED_PENDING_DIRECTOR_ANALYSIS",
+      "estimated_effort_minutes": 240,
+      "description": "Diagnose and document broken E2E test failures + missing admin pages + console errors (DIRECTOR TASK - Qwen should NOT execute yet)",
+
+      "director_approval_required": {
+        "reason": "Unknown scope - E2E failures could require 4-8 hours. Needs director analysis first.",
+        "what_director_will_do": [
+          "Step 1: Read E2E test output from backlog.json to understand failure scope",
+          "Step 2: Verify Finance.tsx and Monitoring.tsx file existence",
+          "Step 3: Check App.tsx routing configuration",
+          "Step 4: Assess total estimated effort and create bounded sub-tasks for executor"
+        ]
+      },
+
+      "qwen_role_when_approved": {
+        "status": "AWAITING_DIRECTOR_SUB_TASKS",
+        "your_task_then": "Execute bounded fixes per director plan (fix routing, repair pages, resolve console errors)",
+        "constraint": "Operate only within [FILES_TO_MODIFY] list provided by director"
+      },
+
+      "risk_assessment": "=4 HIGH - Unknown scope, cross-cutting issues, launch blocker"
     }
   },
 
-  "=_FINAL_VALIDATION_BEFORE_REPORT": {
-    "self_check_list": [
-      "✅ Task echo back was explicit and confirmed",
-      "✅ Bidirectional verification performed (A→B and B→A documented)",
-      "✅ Tool validation performed (empty results double-checked)",
-      "✅ All assumptions explicitly listed and validated",
-      "✅ Every finding has file:line evidence (no vague claims)",
-      "✅ Contradiction detection performed (checked if findings conflict)",
-      "✅ Report structure follows prescribed format",
-      "✅ Evidence includes actual command outputs (not simulated)",
-      "✅ Verification methodology is transparent"
-    ],
+  "=4_CRITICAL_PROTOCOLS_ALL_TASKS": {
+    "brain_system_as_source_of_truth": {
+      "rule": "ALWAYS reference @brain files for current state, not assumptions",
+      "files_available": [
+        "@brain/brain_index.json - System structure",
+        "@brain/api_endpoints_reference.json - All API documentation",
+        "@brain/typescript_interfaces_reference.json - Type definitions",
+        "@brain/sdd_system.json - Technical architecture",
+        "@brain/prd_system.json - Product requirements",
+        "@brain/backlog.json - Task history and current status"
+      ]
+    },
 
-    "if_any_item_unchecked": "DO NOT REPORT. Return to that phase and complete the verification. Better to take more time than report incomplete analysis."
+    "reporting_protocol": {
+      "where_to_report": "brain/backlog.json ALWAYS (NOT separate .md files, NOT chat-only)",
+      "format": {
+        "task_id": "string (matching task definition)",
+        "status": "'COMPLETED' | 'IN_PROGRESS' | 'BLOCKED'",
+        "completion_timestamp": "ISO 8601",
+        "verification_evidence": {
+          "commands_run": "string[] of actual commands and their output",
+          "files_modified": "string[] (paths only, use git diff for details)",
+          "metrics_achieved": "object with measurable results"
+        },
+        "summary": "2-3 sentence executive summary",
+        "blockers_if_any": "If task incomplete, state exactly why"
+      }
+    },
+
+    "simulate_y_confirmar_protocol": {
+      "applies_to": "TASK_1 and TASK_2 (configuration + analysis)",
+      "step_1": "BEFORE making changes: Describe exactly what you will do (files, variables, commands)",
+      "step_2": "CONFIRM: Verify against actual files (does file exist? are imports available? any conflicts?)",
+      "step_3": "DOCUMENT: Commit message includes [SIMULATED] � [CONFIRMED] � [MODIFIED]"
+    },
+
+    "no_file_creation": {
+      "rule": "Reports go in chat text only, then update brain/backlog.json",
+      "never_create": [".md files", ".txt files", "separate documentation"],
+      "always_update": "brain/backlog.json with structured task entry"
+    },
+
+    "git_workflow": {
+      "before_work": "git status && git branch",
+      "during_work": "Commit after each task completion with [TASK_ID] tag",
+      "before_final_commit": "git diff --name-only to verify scope",
+      "commit_format": "[TASK_ID] - [SIMULATED] � [CONFIRMED] � [MODIFIED] - Brief description\n\n> Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+    }
+  },
+
+  "mcp_activation_requirements": {
+    "task_1_nginx_config": ["--no-mcp (native bash + file editing only)"],
+    "task_2_performance_analysis": ["--seq", "--sequential (for structured multi-step reasoning)", "--c7", "--context7 (for Node.js/Express patterns)"],
+    "task_3_frontend_validation": ["NOT YET - awaiting director sub-tasks"]
+  },
+
+  "reference_brain_files": {
+    "api_endpoints_reference": "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+    "typescript_interfaces": "/home/veranoby/sports-bets/brain/typescript_interfaces_reference.json",
+    "technical_architecture": "/home/veranoby/sports-bets/brain/sdd_system.json (includes scalability_analysis_2025_11_20)",
+    "product_requirements": "/home/veranoby/sports-bets/brain/prd_system.json (includes Phase 1/2/3 cost projections)",
+    "backlog_and_status": "/home/veranoby/sports-bets/brain/backlog.json",
+    "postgresql_maintenance": "/home/veranoby/sports-bets/postgresql-local-maintenance-manual.md (includes upgrade triggers)"
+  },
+
+  "scalability_framework": {
+    "analysis_date": "2025-11-20",
+    "current_server": "Vultr/Hetzner Dedicated: 8-core, 32GB RAM, 500GB SSD, 10Gbps",
+    "optimal_for": "< 500 concurrent users (MVP phase)",
+    "upgrade_triggers": {
+      "trigger_1_cpu": {
+        "metric": "Nginx + PostgreSQL combined CPU",
+        "threshold": "> 70% sustained for 1 week",
+        "action": "Plan server upgrade with 2-week lead time"
+      },
+      "trigger_2_disk": {
+        "metric": "Disk free space",
+        "threshold": "< 20% free (< 100GB on 500GB SSD)",
+        "action": "CRITICAL - Upgrade within 48h OR move HLS cache to S3"
+      },
+      "trigger_3_pool": {
+        "metric": "Database connection pool",
+        "threshold": "Pool max:20 at 100% consistently",
+        "action": "Add PgBouncer ($50-100/mo) OR plan full server upgrade"
+      }
+    },
+    "phase_1_mvp": {
+      "users": "0-500",
+      "server": "8-core, 32GB, 500GB SSD",
+      "cost": "$155-195/mo + $108-216 CDN = $263-411/mo",
+      "status": "CURRENT - ✅ READY"
+    },
+    "phase_2_scaling": {
+      "users": "500-800",
+      "trigger": "CPU >70% OR disk >80% OR pool exhausted",
+      "option_a_recommended": "Upgrade to 16-core, 64GB, 2TB = $400-500/mo",
+      "option_b_intermediate": "Add PgBouncer = +$50-100/mo (temporary fix)",
+      "option_c_alternative": "Move to Neon.tech = +$50-100/mo (eliminates maintenance)"
+    },
+    "phase_3_mature": {
+      "users": "1000+",
+      "server": "16-core, 64GB, 2TB",
+      "cost": "$400-500/mo server + $108-216 CDN = $508-716/mo",
+      "performance": "CPU 50% headroom, RAM unlimited, Disk 12+ months growth"
+    }
+  },
+
+  "execution_sequence": {
+    "recommended_order": [
+      "TASK_1_NGINX_RTMP_CONFIG (30 min - completes first, unblocks infrastructure)",
+      "TASK_2_BACKEND_PERFORMANCE_ANALYSIS (80 min - runs in parallel with task 1, analysis only)",
+      "TASK_3_E2E_FRONTEND_VALIDATION (awaiting director sub-tasks after analysis)"
+    ],
+    "parallelization": "TASK_1 and TASK_2 can run in parallel - both are independent, ready to start"
+  },
+
+  "final_deliverable": {
+    "completion_criteria": [
+      " TASK_1: 3 files updated (.env.production backend + frontend, brain metadata), typescript compiles, commit tagged [SIMULATED]�[CONFIRMED]�[MODIFIED]",
+      " TASK_2: 4-phase analysis report in chat + structured entry in brain/backlog.json with 10+ recommendations ranked by ROI",
+      " TASK_3: Director provides sub-task plan, awaiting approval"
+    ],
+    "report_location": "brain/backlog.json (NOT separate files)"
   }
 }

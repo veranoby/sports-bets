@@ -116,62 +116,110 @@
       ]
     },
     "infrastructure_tiers": {
-      "tier_0_galloBets_realworld_$1533_2063_month": {
-        "description": "GalloBets actual use case: 2×/week, 6h per session, 500 concurrent users, WITH pause optimization",
-        "bandwidth_calculation": "500 viewers × 3 Mbps = 1.5 Gbps → 675 GB/hour → 8.1 TB/week (without pause) → 5.4 TB/week (WITH pause between fights)",
-        "critical_correction": "⚠️ UNSUITABLE: Previous recommendation of Ant Media Community Edition ($24/mo) has known memory leaks (#5399, #5747, #5029, #6258), no failover (30-45 min recovery if crash), and cannot handle 500 concurrent reliably. BunnyCDN Stream Storage does NOT support RTMP live streaming (VOD only).",
-        "recommended_solution_wowza_cloud": {
-          "platform": "Wowza Cloud (professional managed streaming)",
-          "streaming_cost": "$1,375-1,875/month (for 500 concurrent with HLS/RTMP ingestion)",
-          "cdn_distribution": "Included in Wowza (global edge distribution)",
-          "monitoring": "Included in Wowza (real-time analytics)",
-          "compute": "Vultr/Linode 4-core 8GB RAM = $24/month (for API backend only)",
-          "database": "Neon.tech PostgreSQL managed = $75/month",
-          "monitoring_backend": "$0-50/month (Prometheus+Grafana for non-streaming metrics)",
-          "total_monthly": "$1,474-2,024/month ✅ RECOMMENDED FOR GALLOBETS PRODUCTION",
-          "advantages": [
-            "No infrastructure management - fully managed by Wowza",
-            "Professional 24/7 support included",
-            "Automatic failover and redundancy",
-            "Real-time monitoring and alerts",
-            "Handles concurrent connections reliably",
-            "No memory leak issues or maintenance"
-          ],
-          "suitable_for": "GalloBets production (reliable, professional, cost appropriate for 500 concurrent)"
-        },
-        "alternative_solution_ant_media_enterprise": {
-          "platform": "Ant Media Server Enterprise (if choosing open-source approach)",
-          "requirements": "Requires proper clustering setup with MongoDB and load balancer",
-          "streaming_cost": "$290-600/month (Enterprise Edition license)",
-          "infrastructure_overhead": "$200-400/month (MongoDB, load balancer, clustering complexity)",
-          "cdn_distribution": "BunnyCDN at $216-348/month (depending on resolution/pause)",
-          "compute": "Vultr/Linode 8-core 16GB RAM = $48-96/month (clustered setup requires more resources)",
-          "database": "Neon.tech PostgreSQL managed = $75/month",
-          "monitoring": "Prometheus+Grafana = $0-50/month",
-          "total_monthly": "$829-1,469/month",
-          "disadvantages": [
-            "High operational complexity (clustering, MongoDB admin)",
-            "Risk of misconfiguration causing performance issues",
-            "Enterprise Edition has cost; Community Edition unsuitable",
-            "Requires dedicated ops knowledge or hiring",
-            "Manual failover handling"
-          ],
-          "suitable_for": "NOT recommended unless team has Ant Media expertise and wants operational control"
-        },
-        "unsuitable_solutions": {
-          "ant_media_community_edition": {
-            "reason": "Memory leaks, no failover, no support - unsuitable for production",
-            "known_issues": "Issues #5399, #5747, #5029, #6258 (unresolved)",
-            "estimated_cost": "$24/month (deceptive - actually needs 8-core $96/mo to handle 500 concurrent)",
-            "verdict": "❌ DO NOT USE FOR PRODUCTION"
+      "tier_0_galloBets_OPTION_B1_payAsYouGrow": {
+        "description": "SELECTED OPTION FOR GALLOBETS: Nginx RTMP + PostgreSQL local PERMANENT + Bunny CDN phased",
+        "phases": {
+          "phase_1_mvp": {
+            "name": "MVP (Months 1-4, <500 concurrent users)",
+            "duration_notes": "Usually achievable in first quarter post-launch",
+            "architecture": "Dedicated Server + Nginx RTMP + PostgreSQL local + Video.js",
+            "components": {
+              "server": "Vultr/Hetzner Dedicated (8-core, 32GB RAM, 10Gbps, 500GB SSD)",
+              "cost": "$155-195/month",
+              "streaming_software": "Nginx + RTMP module (open source, free)",
+              "database": "PostgreSQL 17 installed locally ($0, manual maintenance 30 min/week per postgresql-local-maintenance-manual.md)",
+              "frontend": "Video.js (already integrated, HLS support)",
+              "hls_generation": "Local: Nginx RTMP generates .m3u8 + .ts files directly"
+            },
+            "total_monthly": "$155-195/mo",
+            "supports_concurrent": 500,
+            "flow": "OBS → Nginx RTMP (local HLS generation) → Video.js (direct from server)",
+            "performance_metrics": {
+              "nginx_cpu": "150-200% (comfortable, 60% margin)",
+              "postgresql_pool": "⚠️ At maximum 20 connections (monitor closely)",
+              "disk_utilization": "28-46% used (safe)",
+              "network_bandwidth": "750 Mbps 480p (comfortable)"
+            },
+            "monitoring_critical": "Start weekly monitoring via postgresql-local-maintenance-manual.md"
           },
-          "bunnycdn_stream_storage": {
-            "reason": "Does NOT support RTMP live streaming - only VOD uploads",
-            "actual_capability": "For VOD/archival only, not for live events",
-            "verdict": "❌ UNSUITABLE FOR LIVE STREAMING"
+          "phase_2_scaling": {
+            "name": "Scaling (Months 5-6, 500-800 concurrent users)",
+            "trigger_to_add_cdn": "When Nginx CPU >60% OR bandwidth >500 Mbps (Phase 1B)",
+            "trigger_for_server_upgrade": "When CPU >70% sustained OR disk >80% full OR pool exhausted (Phase 2A)",
+            "phase_2a_server_upgrade_path": {
+              "decision_point": "Monitor CPU/disk during Phase 1 to predict timing",
+              "server_upgrade": "Vultr/Hetzner Dedicated (16-core, 64GB RAM, 2TB SSD)",
+              "cost_monthly": "$400-500/mo (server) + $108-216 (CDN) = $508-716/mo",
+              "benefits": [
+                "16 cores = 2× CPU headroom, CPU reaches only 50% under load",
+                "64GB RAM = PostgreSQL unlimited performance",
+                "2TB SSD = 12+ months of data growth before filling",
+                "Eliminates connection pool bottleneck",
+                "PostgreSQL local remains PERMANENT solution"
+              ],
+              "migration_effort": "2-4 hours (backup → restore → DNS switch)",
+              "downtime": "< 30 minutes (planned maintenance window)",
+              "flow": "OBS → Nginx RTMP (upgraded server, local HLS) → Bunny CDN → Video.js"
+            },
+            "phase_2b_pgbouncer_intermediate": {
+              "description": "Optional: Add connection pooling WITHOUT full server upgrade",
+              "cost_monthly": "$50-100/mo (separate VPS for pooling proxy)",
+              "timeline": "If CPU still <70% but pool exhausted: quick PgBouncer fix (48h setup)",
+              "limitations": [
+                "Solves ONLY connection pool bottleneck",
+                "Does NOT solve CPU saturation problem",
+                "Does NOT solve disk space filling problem",
+                "Extends current server to ~800 users max, still needs upgrade @ 1000 users"
+              ],
+              "when_to_use": "Unexpected spike before planned Phase 2A upgrade"
+            },
+            "phase_2c_revisit_neon": {
+              "description": "Alternative path: Move PostgreSQL to Neon.tech (removes local database entirely)",
+              "cost_monthly": "$155-195 (server) + $50-100 (Neon.tech) + $108-216 (CDN) = $313-511/mo",
+              "trade_off": "$50-200/mo more expensive than local PostgreSQL, but:",
+              "benefits": [
+                "Eliminates 30 min/week PostgreSQL maintenance",
+                "Gains 99.99% SLA + automatic failover + auto-scaling",
+                "Scales to 1000+ users without server upgrade (Neon handles it)",
+                "No disk space management on server",
+                "Professional managed service"
+              ],
+              "decision_criteria": "If maintenance burden becomes issue OR if rapid growth beyond 800 users"
+            }
+          },
+          "phase_3_maturity": {
+            "name": "Mature Production (Month 12+, 1000+ concurrent users)",
+            "recommended_infrastructure": "Upgraded server (16-core, 64GB, 2TB) + Bunny CDN + PostgreSQL local PERMANENT",
+            "total_monthly": "$400-500 (server) + $108-216 (CDN) = $508-716/mo",
+            "performance_at_1000_users": {
+              "nginx_cpu": "300-400% (of 800%, comfortable 50% margin)",
+              "postgresql_cpu": "400-500% (of 800%, tight but OK with 16-core)",
+              "disk_utilization": "28-40% (2TB SSD provides 12+ months growth)",
+              "connections_pool": "Database pool can be tuned to 50+ (not limited at 20)"
+            },
+            "optional_advanced_features": [
+              "PostgreSQL replication (standby server for HA)",
+              "Multiple Nginx RTMP instances with load balancing",
+              "Elasticsearch for search/analytics (if needed)",
+              "Prometheus + Grafana for advanced monitoring",
+              "Kubernetes deployment (if multi-region scaling needed)"
+            ],
+            "annual_cost_at_1000_users": "$6,096-8,592/year (server + CDN)"
           }
         },
-        "cost_optimization": "Pause/resume streaming between fights reduces bandwidth by 35-40% (5.4TB vs 8.1TB/week), but applies ONLY to CDN costs (Bunny if using Ant Enterprise); Wowza pricing is fixed per concurrent user"
+        "cost_comparison": {
+          "opcion_b1_mvp_6months": "$155 × 6 = $930",
+          "option_b2_neon_6months": "$230 × 6 = $1,380",
+          "savings_b1_vs_b2": "$450 saved if you scale gradually",
+          "note": "B1 costs more at scale (B1 Phase 3 > B2), but saves significantly if you grow slowly"
+        },
+        "technology_validation": {
+          "nginx_rtmp": "✅ Open source (GitHub: arut/nginx-rtmp-module), used in Vimeo, production-ready",
+          "video_js": "✅ Already integrated, supports HLS adaptive bitrate natively",
+          "postgresql_local": "✅ Industry standard, manual maintenance 30 min/week only",
+          "bunny_cdn": "✅ Caches HLS manifests + segments correctly (99% cache hit after 1 min)",
+          "code_changes_required": "✅ Minimal: only .env URL updates, zero logic changes"
+        }
       },
       "tier_1_basic_24h_$2100_3200_month": {
         "compute": "Vultr/Linode 4-core 8GB RAM = $24/month",

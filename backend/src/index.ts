@@ -13,6 +13,7 @@ import { performanceMonitoring } from "./middleware/performanceMonitoring";
 // Import SSE and WebSocket services
 import { websocketService } from "./services/websocketService";
 import DatabaseHooks from "./services/databaseHooks";
+import SessionService from "./services/sessionService";
 
 // Importar rutas
 import authRoutes from "./routes/auth";
@@ -53,6 +54,7 @@ class Server {
   private app: express.Application;
   private httpServer: any;
   private port: string | number;
+  private sessionCleanupInterval?: NodeJS.Timeout;
 
   constructor() {
     this.app = express();
@@ -200,6 +202,27 @@ class Server {
       // Initialize WebSocket service for PAGO/DOY proposals
       websocketService.initialize(this.httpServer);
 
+      // Initialize session cleanup cron job (runs every 6 hours)
+      this.sessionCleanupInterval = setInterval(async () => {
+        try {
+          const deleted = await SessionService.cleanupExpiredSessions();
+          if (deleted > 0) {
+            logger.info(`🧹 Session cleanup: deleted ${deleted} expired/old sessions`);
+          }
+        } catch (error) {
+          logger.error('❌ Session cleanup error:', error);
+        }
+      }, 6 * 60 * 60 * 1000); // Every 6 hours
+
+      // Run cleanup immediately on startup
+      SessionService.cleanupExpiredSessions()
+        .then(deleted => {
+          if (deleted > 0) {
+            logger.info(`🧹 Initial cleanup: deleted ${deleted} expired/old sessions`);
+          }
+        })
+        .catch(err => logger.error('❌ Initial cleanup error:', err));
+
       // Iniciar el servidor HTTP
       this.httpServer.listen(this.port, () => {
         logger.info(`🚀 Server running on port ${this.port}`);
@@ -221,6 +244,12 @@ class Server {
   private setupGracefulShutdown(): void {
     const gracefulShutdown = (signal: string) => {
       logger.info(`🔄 Received ${signal}. Starting graceful shutdown...`);
+
+      // Clear session cleanup interval
+      if (this.sessionCleanupInterval) {
+        clearInterval(this.sessionCleanupInterval);
+        logger.info('✅ Session cleanup interval cleared');
+      }
 
       // Close HTTP server
       this.httpServer.close(() => {

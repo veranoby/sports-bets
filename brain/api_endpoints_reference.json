@@ -2,8 +2,16 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
-    "version": "1.6",
+    "version": "1.7",
     "last_updated": "2025-11-20 - Added /admin/events/{id} unified hub implementation (StreamingControlTab, FightsControlTab, BetsActiveTab). Fixed data access patterns for venues/galleras detail pages. Restored membership change request button. Added event detail UI tabs structure.",
+    "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
+    "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
+    "environment_variables_required": {
+      "STREAM_SERVER_URL": "rtmp://nginx-server:1935/live",
+      "CDN_URL": "http://nginx-server (Phase 1) or https://bunny-cdn (Phase 2)",
+      "STREAM_HEALTH_CHECK_URL": "http://nginx-server"
+    },
+    "phase_2_bunny_cdn": "When scaling >500 concurrent, add Bunny CDN (config-only change, no code changes needed)",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "frontend_updates_2025_10_30": {

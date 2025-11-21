@@ -8,15 +8,7 @@ import { userAPI } from "../../services/api";
 import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
-import {
-  MapPin,
-  Building,
-  Mail,
-  Globe,
-  Image,
-  Loader2,
-  X,
-} from "lucide-react";
+import { MapPin, Building, Mail, Globe, Image, Loader2, X } from "lucide-react";
 import type { User } from "../../types";
 
 interface UnifiedEntityFormProps {
