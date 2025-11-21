@@ -25,9 +25,6 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
         </div>
 
         {/* Columna 2 */}
-        <div className="flex flex-col gap-1">
-          <span className="text-gray-400">Sin suscripción</span>
-        </div>
       </div>
     );
   }
@@ -81,7 +78,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const showWarning = isPremium && daysRemaining > 0 && daysRemaining <= 7;
 
   return (
-    <div className="grid grid-cols-2 gap-2 text-xs">
+    <div className="grid  text-xs">
       {/* Columna 1 */}
       <div className="flex flex-col gap-1">
         <div className="relative group">
@@ -92,29 +89,20 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
             {icon}
             {statusText}
           </span>
-        </div>
-      </div>
 
-      {/* Columna 2 */}
-      <div className="flex flex-col gap-1">
-        {isPremium && subscription.expiresAt && (
-          <span className="flex items-center gap-1 text-green-600">
-            <CheckCircle className="w-3 h-3" />
-            {format(new Date(subscription.expiresAt), "MMM dd")}
-          </span>
-        )}
-        {showWarning && (
-          <span className="flex items-center gap-1 text-red-500">
-            <AlertTriangle className="w-3 h-3" />
-            {daysRemaining}d restantes
-          </span>
-        )}
-        {!isPremium &&
-          !isExpired &&
-          subscription.status !== "pending" &&
-          subscription.status !== "cancelled" && (
-            <span className="text-gray-400">Sin suscripción</span>
+          {isPremium && subscription.expiresAt && (
+            <span className="flex items-center gap-1 text-green-600">
+              <CheckCircle className="w-3 h-3" />
+              {format(new Date(subscription.expiresAt), "MMM dd")}
+            </span>
           )}
+          {showWarning && (
+            <span className="flex items-center gap-1 text-red-500">
+              <AlertTriangle className="w-3 h-3" />
+              {daysRemaining}d restantes
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

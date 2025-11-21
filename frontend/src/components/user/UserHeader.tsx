@@ -207,7 +207,7 @@ const UserHeader = memo(() => {
             <span className="font-medium uppercase tracking-wide">
               {translateRole(user.role)}
             </span>
-            {isPremium && (
+            {/*isPremium && (
               <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1">
                 <Crown className="w-3 h-3" />
                 {subscription?.type === "daily"
@@ -216,7 +216,8 @@ const UserHeader = memo(() => {
                     ? "MENSUAL"
                     : "PREMIUM"}
               </span>
-            )}
+            )*/}
+            <SubscriptionStatus subscription={subscription} />
           </span>
 
           {/* Role-specific info chips */}

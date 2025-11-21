@@ -10,6 +10,52 @@ import { getOrSet, invalidatePattern } from '../config/redis';
 const router = Router();
 
 /**
+ * ⚡ Helper: Create or update user subscription
+ * Consolidates subscription creation/update logic used by multiple endpoints
+ * @param userId - User ID
+ * @param type - Subscription type ('daily' | 'monthly')
+ * @param expiresAt - Expiration date
+ * @param metadata - Additional metadata to store
+ * @returns Created or updated subscription
+ */
+async function createOrUpdateUserSubscription(
+  userId: string,
+  type: 'daily' | 'monthly',
+  expiresAt: Date,
+  metadata: any = {}
+) {
+  let subscription = await Subscription.findOne({
+    where: { userId },
+    order: [['created_at', 'DESC']]
+  });
+
+  const subscriptionData = {
+    type,
+    status: 'active' as const,
+    manual_expires_at: expiresAt,
+    expiresAt,
+    paymentMethod: 'cash' as const,
+    autoRenew: false,
+    amount: 0,
+    currency: 'USD',
+    metadata
+  };
+
+  if (subscription) {
+    await subscription.update(subscriptionData);
+    console.log(`✅ Updated existing subscription for user ${userId} to ${type}`);
+  } else {
+    subscription = await Subscription.create({
+      userId,
+      ...subscriptionData
+    });
+    console.log(`✅ Created new subscription for user ${userId} with type ${type}`);
+  }
+
+  return subscription;
+}
+
+/**
  * @route   POST /api/membership-requests
  * @desc    Create a new membership change request
  * @access  Private (any authenticated user)
@@ -282,41 +328,21 @@ router.patch(
       throw errors.badRequest('Tipo de membresía solicitado no válido');
     }
 
-    // ⚡ FIX: Find user's subscription (any status) or create new one
-    let subscription = await Subscription.findOne({
-      where: { userId: user.id },
-      order: [['created_at', 'DESC']]
-    });
-
-    const newSubscriptionData = {
-      type: (request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly') as 'daily' | 'monthly',
-      status: 'active' as 'active',
-      manual_expires_at: expiresAt,
-      expiresAt: expiresAt!,
-      paymentMethod: 'cash' as 'cash',
-      autoRenew: false,
-      amount: 0,
-      currency: 'USD',
-      metadata: {
-        assignedBy: req.user!.username,
-        assignedAt: new Date().toISOString(),
-        manualAssignment: true,
-        fromRequest: request.id
-      }
+    // ⚡ Create or update subscription using shared helper function
+    const subscriptionType = (request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly') as 'daily' | 'monthly';
+    const metadata = {
+      assignedBy: req.user!.username,
+      assignedAt: new Date().toISOString(),
+      manualAssignment: true,
+      fromRequest: request.id
     };
 
-    if (subscription) {
-      // Update existing subscription (regardless of current status)
-      await subscription.update(newSubscriptionData);
-      console.log(`✅ Updated existing subscription for user ${user.id} to ${newSubscriptionData.type}`);
-    } else {
-      // Create new subscription if none exists
-      subscription = await Subscription.create({
-        userId: user.id,
-        ...newSubscriptionData
-      });
-      console.log(`✅ Created new subscription for user ${user.id} with type ${newSubscriptionData.type}`);
-    }
+    const subscription = await createOrUpdateUserSubscription(
+      user.id,
+      subscriptionType,
+      expiresAt!,
+      metadata
+    );
 
     // Update the request status to completed
     request.status = 'completed';

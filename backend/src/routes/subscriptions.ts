@@ -615,7 +615,11 @@ router.put(
 
 /**
  * PUT /api/subscriptions/admin/:userId/membership
- * Admin: Update user membership manually
+ * Admin: Update user membership manually (direct change without membership request)
+ *
+ * ⚡ NOTE: For membership requests workflow, use PATCH /api/membership-requests/:id/complete instead.
+ * This endpoint is for direct membership changes that don't go through the request approval process.
+ * Both endpoints now share the same subscription creation/update logic.
  */
 router.put(
   '/admin/:userId/membership',

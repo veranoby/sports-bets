@@ -584,7 +584,7 @@ const MembershipRequestsPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
-                    handleApprove(selectedRequest);
+                    setShowUserModal(true);
                   }}
                   disabled={processing === selectedRequest.id}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"

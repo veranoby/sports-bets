@@ -1024,6 +1024,15 @@
     "complete_request": {
       "method": "PATCH",
       "path": "/membership-requests/:id/complete",
+      "description": "Complete a membership request (approves request AND creates/updates subscription)",
+      "purpose": "Approve a user's membership change request in the workflow",
+      "what_it_does": [
+        "1. Validates request is pending",
+        "2. Creates or updates user's subscription based on requestedMembershipType",
+        "3. Marks request as completed",
+        "4. Records which admin processed it",
+        "5. Invalidates caches (admin dashboard + user profile)"
+      ],
       "body": {
         "adminNotes": "string (optional, max 500 chars)"
       },
@@ -1032,6 +1041,19 @@
       "validation": {
         "status_check": "Request must be pending",
         "processor_recorded": "processedBy userId automatically set"
+      },
+      "subscription_created": {
+        "type": "daily (for 24-hour) or monthly",
+        "status": "active",
+        "expiresAt": "24h or 30d from approval time",
+        "metadata": {
+          "fromRequest": "membership request ID",
+          "assignedBy": "admin username",
+          "manualAssignment": true
+        }
+      },
+      "alternatives": {
+        "for_direct_changes": "Use PUT /subscriptions/admin/:userId/membership for direct assignment without request"
       }
     },
     "reject_request": {
@@ -1128,10 +1150,13 @@
   },
 
   "subscription_admin_endpoints": {
-    "description": "Admin manual subscription management endpoints",
+    "description": "Admin subscription management endpoints (direct changes WITHOUT membership requests)",
+    "⚡_CONSOLIDATION_NOTE": "Both PUT /subscriptions/admin/:userId/membership and PATCH /membership-requests/:id/complete create/update subscriptions. PUT is for DIRECT changes (no request). PATCH is for REQUEST APPROVAL workflow. Both use shared subscription creation logic.",
     "admin_update_membership": {
       "method": "PUT",
       "path": "/subscriptions/admin/:userId/membership",
+      "purpose": "Direct admin membership change (without membership request approval process)",
+      "use_case": "When admin wants to manually assign membership without waiting for user request",
       "body": {
         "membership_type": "string (required: 'free'|'24-hour'|'monthly')",
         "assigned_username": "string (required, 1-100 chars)"
@@ -1157,6 +1182,9 @@
         "assignedBy": "username who assigned",
         "assignedAt": "ISO timestamp",
         "manualAssignment": true
+      },
+      "alternatives": {
+        "for_membership_requests": "Use PATCH /membership-requests/:id/complete to approve user requests instead"
       }
     }
   },

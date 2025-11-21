@@ -208,7 +208,7 @@ const RequestChangeModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-      <div className="bg-blue-50 rounded-2xl shadow-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-blue-50 rounded-2xl shadow-2xl p-8 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-900">
             Solicitar Cambio de Membresía
@@ -500,7 +500,7 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
             </p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
@@ -516,8 +516,7 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
         {subscription &&
           subscription.status === "active" &&
           (subscription.type === "daily" ||
-            subscription.type === "monthly" ||
-            subscription.plan !== "free") && (
+            subscription.type === "monthly") && (
             <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
                 <span className="font-medium">✓ Membresía Activa</span> - Tu

@@ -472,6 +472,54 @@
       "status": "AWAITING_DIRECTOR_DECISION_ON_ROUTING_STRATEGY"
     },
     {
+      "task_id": "EXPIRED_SUBSCRIPTION_AUTOMATIC_DELETION_IMPLEMENTED",
+      "status": "COMPLETED",
+      "completion_date": "2025-11-21",
+      "complexity": "MEDIUM",
+      "category": "DATABASE_OPTIMIZATION",
+      "priority": "HIGH",
+      "completed_by": "QWEN (qwen3-coder-plus-2025-09-23)",
+      "execution_mode": "standard",
+      "summary": "Implemented automatic deletion of expired subscriptions to prevent database accumulation. Changed checkAndExpireSubscription function to delete subscriptions instead of marking as expired.",
+      "changes_implemented": [
+        "✅ Backend: Modified checkAndExpireSubscription in auth.ts to delete expired subscriptions instead of marking as expired",
+        "✅ Backend: Removed creation of FREE subscription after deletion (as per requirement)",
+        "✅ Backend: Verified foreign key constraints allow safe deletion (payment_transactions.subscription_id SET NULL)",
+        "✅ Backend: Confirmed system properly handles users without subscriptions as free-tier users"
+      ],
+      "technical_implementation": {
+        "auth_middleware_change": {
+          "file": "backend/src/middleware/auth.ts",
+          "lines": "58-73",
+          "changes": [
+            "Replaced subscription.markAsExpired() call with subscription.destroy()",
+            "Removed FREE subscription creation logic after expiration",
+            "Updated logging messages to reflect deletion instead of expiration",
+            "Maintained cache invalidation to force re-fetch on next request"
+          ]
+        },
+        "system_behavior_verification": {
+          "verification": [
+            "Users without subscriptions are treated as free-tier users",
+            "getCurrentSubscription() method returns free subscription for users without active subscriptions",
+            "Foreign key constraints properly handle deletion by setting payment_transactions.subscription_id to NULL"
+          ]
+        }
+      },
+      "validation_passed": [
+        "✅ TypeScript compilation: Backend compiles with pre-existing errors unchanged",
+        "✅ Business logic: Expired subscriptions are deleted from database",
+        "✅ User experience: Users without subscriptions properly treated as free-tier",
+        "✅ Data integrity: Foreign key constraints handled deletion properly",
+        "✅ Cache behavior: User cache properly invalidated after subscription deletion"
+      ],
+      "git_commits": [
+        "d8a1431 - feat: delete expired subscriptions automatically + optimize connection management"
+      ],
+      "impact": "HIGH - Prevents accumulation of expired subscription records in database, maintains clean data model",
+      "risk_assessment": "LOW - Safe implementation with proper foreign key handling, no breaking changes to user experience"
+    },
+    {
       "task_id": "STREAMING_PAUSE_FEATURE_COST_OPTIMIZATION",
       "status": "PENDING_ANALYSIS",
       "created_date": "2025-11-20",
