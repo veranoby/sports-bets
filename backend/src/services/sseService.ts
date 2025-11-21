@@ -73,7 +73,14 @@ interface SSEEvent {
   };
 }
 
-// Connection Interface with Enhanced Metadata
+// Connection Quality Metrics Interface
+interface ConnectionQuality {
+  latency: number;
+  lastEventSent: Date;
+  eventsPerMinute: number;
+}
+
+// Connection Interface with Enhanced Metadata and Activity Tracking
 interface SSEConnection {
   id: string;
   res: Response;
@@ -82,6 +89,10 @@ interface SSEConnection {
   userRole?: string;
   connectedAt: Date;
   lastHeartbeat: Date;
+  lastActivity: Date; // Track last activity for adaptive heartbeat
+  missedHeartbeats: number; // Track missed heartbeats for auto-disconnect
+  heartbeatInterval: number; // Current heartbeat interval for this connection
+  connectionQuality: ConnectionQuality;
   isAlive: boolean;
   metadata: {
     userAgent?: string;
@@ -106,23 +117,52 @@ export enum AdminChannel {
 class GalloBetsSSEService {
   private connections: Map<string, SSEConnection> = new Map();
   private eventHistory: Map<string, SSEEvent[]> = new Map();
-  private heartbeatInterval: NodeJS.Timeout;
-  private cleanupInterval: NodeJS.Timeout;
+  private heartbeatInterval: NodeJS.Timeout | null;
+  private cleanupInterval: NodeJS.Timeout | null;
+
+  // Connection tracking for limits
+  private connectionsByIp = new Map<string, Set<string>>(); // IP -> Set of connection IDs
+  private connectionsByUser = new Map<string, Set<string>>(); // UserId -> Set of connection IDs
+
+  // Constants for connection limits (same as WebSocket)
+  private readonly MAX_CONNECTIONS_PER_IP = 3;
+  private readonly MAX_CONNECTIONS_PER_USER = 2;
+
+  // Batching buffers and timers
+  private eventBatchBuffers: Map<string, {events: SSEEvent[], timer: NodeJS.Timeout | null}> = new Map();
+
+  // Batching Configuration
+  private readonly BATCHING_ENABLED = true;
+  private readonly HIGH_LOAD_CONNECTION_THRESHOLD = 100;
+  private readonly MAX_BATCH_SIZE = 10;
+  private readonly BATCHING_WINDOW_MS = 50;
+
   private performanceMetrics = {
     totalConnections: 0,
     activeConnections: 0,
     eventsSent: 0,
     errorsEncountered: 0,
-    avgResponseTime: 0
+    avgResponseTime: 0,
+    batchedEvents: 0 // Track how many events were batched
   };
 
   // Configuration
-  private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
+  // Adaptive heartbeat intervals based on connection activity
+  private readonly ACTIVE_CONNECTION_HEARTBEAT = 15000; // 15 seconds for active connections
+  private readonly IDLE_CONNECTION_HEARTBEAT = 60000;   // 60 seconds for idle connections
+  private readonly STALE_CONNECTION_HEARTBEAT = 120000; // 120 seconds for stale connections
+  private readonly MAX_MISSED_HEARTBEATS = 3;           // Auto-close after 3 missed heartbeats
   private readonly CONNECTION_TIMEOUT = 60000; // 60 seconds
-  private readonly MAX_EVENT_HISTORY = 100;
+  private readonly MAX_EVENT_HISTORY = 100; // Max 100 events per channel
+  private readonly EVENT_HISTORY_MAX_AGE = 5 * 60 * 1000; // Max age: 5 minutes (300,000 ms)
   private readonly CLEANUP_INTERVAL = 300000; // 5 minutes
 
+  // Constants for connection limits (same as WebSocket)
+  private readonly MAX_CONNECTIONS_PER_CHANNEL = 500; // Max connections per channel
+
   constructor() {
+    this.heartbeatInterval = null;
+    this.cleanupInterval = null;
     this.startHeartbeat();
     this.startCleanup();
     logger.info('🔄 GalloBetsSSEService initialized');
@@ -140,6 +180,28 @@ class GalloBetsSSEService {
   ): string {
     const connectionId = randomUUID();
     const now = new Date();
+
+    // Extract IP from request if available
+    const ip = metadata?.ip || '';
+
+    // Check connection limits before adding new connection
+    if (ip) {
+      const ipConnections = this.connectionsByIp.get(ip) || new Set();
+      if (ipConnections.size >= this.MAX_CONNECTIONS_PER_IP) {
+        logger.warn(`IP ${ip} has reached maximum SSE connections limit (${this.MAX_CONNECTIONS_PER_IP})`);
+        res.status(429).send(`SSE: Too Many Connections - Maximum ${this.MAX_CONNECTIONS_PER_IP} connections allowed per IP address`);
+        throw new Error(`Maximum connections limit reached for IP: ${ip}`);
+      }
+    }
+
+    if (userId) {
+      const userConnections = this.connectionsByUser.get(userId) || new Set();
+      if (userConnections.size >= this.MAX_CONNECTIONS_PER_USER) {
+        logger.warn(`User ${userId} has reached maximum SSE connections limit (${this.MAX_CONNECTIONS_PER_USER})`);
+        res.status(429).send(`SSE: Too Many Connections - Maximum ${this.MAX_CONNECTIONS_PER_USER} connections allowed per user`);
+        throw new Error(`Maximum connections limit reached for user: ${userId}`);
+      }
+    }
 
     // Set SSE headers with proper configuration
     res.writeHead(200, {
@@ -159,6 +221,14 @@ class GalloBetsSSEService {
       userRole,
       connectedAt: now,
       lastHeartbeat: now,
+      lastActivity: now,
+      missedHeartbeats: 0,
+      heartbeatInterval: this.getActiveConnectionHeartbeat(userId), // Determine based on user activity
+      connectionQuality: {
+        latency: 0,
+        lastEventSent: now,
+        eventsPerMinute: 0
+      },
       isAlive: true,
       metadata: metadata || {}
     };
@@ -166,6 +236,19 @@ class GalloBetsSSEService {
     this.connections.set(connectionId, connection);
     this.performanceMetrics.totalConnections++;
     this.performanceMetrics.activeConnections++;
+
+    // Add to connection tracking maps
+    if (ip) {
+      const ipConnections = this.connectionsByIp.get(ip) || new Set();
+      ipConnections.add(connectionId);
+      this.connectionsByIp.set(ip, ipConnections);
+    }
+
+    if (userId) {
+      const userConnections = this.connectionsByUser.get(userId) || new Set();
+      userConnections.add(connectionId);
+      this.connectionsByUser.set(userId, userConnections);
+    }
 
     // Send connection established event
     this.sendConnectionEstablished(connectionId);
@@ -194,8 +277,36 @@ class GalloBetsSSEService {
         logger.warn(`⚠️ Error closing SSE connection ${connectionId}:`, error);
       }
 
+      // Clean up connection tracking maps
+      if (connection.metadata?.ip) {
+        const ipConnections = this.connectionsByIp.get(connection.metadata.ip);
+        if (ipConnections) {
+          ipConnections.delete(connectionId);
+          if (ipConnections.size === 0) {
+            this.connectionsByIp.delete(connection.metadata.ip);
+          } else {
+            this.connectionsByIp.set(connection.metadata.ip, ipConnections);
+          }
+        }
+      }
+
+      if (connection.userId) {
+        const userConnections = this.connectionsByUser.get(connection.userId);
+        if (userConnections) {
+          userConnections.delete(connectionId);
+          if (userConnections.size === 0) {
+            this.connectionsByUser.delete(connection.userId);
+          } else {
+            this.connectionsByUser.set(connection.userId, userConnections);
+          }
+        }
+      }
+
       this.connections.delete(connectionId);
       this.performanceMetrics.activeConnections = Math.max(0, this.performanceMetrics.activeConnections - 1);
+
+      // Clean up batching resources for this connection
+      this.cleanupBatchResources(connectionId);
 
       logger.info(`📡 SSE connection removed: ${connectionId} from channel ${connection.channel}`);
     }
@@ -204,11 +315,17 @@ class GalloBetsSSEService {
   /**
    * Send event to specific client
    */
+  // Enhanced sendToClient that also handles connection quality metrics
   sendToClient(connectionId: string, event: SSEEvent): boolean {
     const connection = this.connections.get(connectionId);
     if (!connection || !connection.isAlive || connection.res.destroyed) {
       this.removeConnection(connectionId);
       return false;
+    }
+
+    // Check if we should use batching based on load
+    if (this.BATCHING_ENABLED && this.shouldUseBatching()) {
+      return this.enqueueEventForBatching(connectionId, event);
     }
 
     try {
@@ -217,6 +334,11 @@ class GalloBetsSSEService {
 
       connection.res.write(sseMessage);
       connection.lastHeartbeat = new Date();
+      connection.lastActivity = new Date(); // Also update last activity
+
+      // Update connection quality metrics
+      connection.connectionQuality.lastEventSent = new Date();
+      connection.connectionQuality.latency = Date.now() - startTime;
 
       this.performanceMetrics.eventsSent++;
       this.updatePerformanceMetrics(Date.now() - startTime);
@@ -228,6 +350,116 @@ class GalloBetsSSEService {
       this.removeConnection(connectionId);
       return false;
     }
+  }
+
+  /**
+   * Check if the system is under high load and should use batching
+   */
+  private shouldUseBatching(): boolean {
+    return this.performanceMetrics.activeConnections >= this.HIGH_LOAD_CONNECTION_THRESHOLD;
+  }
+
+  /**
+   * Add event to batch buffer for specific connection
+   */
+  private enqueueEventForBatching(connectionId: string, event: SSEEvent): boolean {
+    if (!this.eventBatchBuffers.has(connectionId)) {
+      this.eventBatchBuffers.set(connectionId, {
+        events: [],
+        timer: null
+      });
+    }
+
+    const buffer = this.eventBatchBuffers.get(connectionId)!;
+    buffer.events.push(event);
+
+    // If we've reached max batch size, flush immediately
+    if (buffer.events.length >= this.MAX_BATCH_SIZE) {
+      this.flushBatch(connectionId);
+      return true;
+    }
+
+    // Set timer to flush batch after window if not already set
+    if (!buffer.timer) {
+      buffer.timer = setTimeout(() => {
+        this.flushBatch(connectionId);
+      }, this.BATCHING_WINDOW_MS);
+    }
+
+    return true;
+  }
+
+  /**
+   * Flush all events in the batch for a connection
+   */
+  private flushBatch(connectionId: string): void {
+    const buffer = this.eventBatchBuffers.get(connectionId);
+    if (!buffer) return;
+
+    if (buffer.timer) {
+      clearTimeout(buffer.timer);
+      buffer.timer = null;
+    }
+
+    if (buffer.events.length > 0) {
+      const connection = this.connections.get(connectionId);
+      if (connection && connection.isAlive && !connection.res.destroyed) {
+        try {
+          const startTime = Date.now();
+
+          // Combine events into a batch message
+          const batchEvent: SSEEvent = {
+            id: randomUUID(),
+            type: SSEEventType.HEARTBEAT, // Using HEARTBEAT type to indicate batch
+            data: {
+              batchedEvents: buffer.events,
+              batchSize: buffer.events.length,
+              timestamp: new Date()
+            },
+            timestamp: new Date(),
+            priority: 'medium',
+            channel: connection.channel
+          };
+
+          const sseMessage = this.formatSSEMessage(batchEvent);
+          connection.res.write(sseMessage);
+
+          connection.lastHeartbeat = new Date();
+          connection.lastActivity = new Date();
+
+          // Update metrics
+          this.performanceMetrics.eventsSent += buffer.events.length;
+          this.performanceMetrics.batchedEvents += buffer.events.length;
+
+          // Update connection quality metrics
+          connection.connectionQuality.lastEventSent = new Date();
+          connection.connectionQuality.latency = Date.now() - startTime;
+        } catch (error) {
+          logger.error(`❌ Failed to send batched SSE events to client ${connectionId}:`, error);
+          this.performanceMetrics.errorsEncountered++;
+          this.removeConnection(connectionId);
+        }
+      }
+
+      // Clear the buffered events
+      buffer.events = [];
+    }
+
+    // Clean up if no more events for this connection
+    if (buffer.events.length === 0) {
+      this.eventBatchBuffers.delete(connectionId);
+    }
+  }
+
+  /**
+   * Clean up batching resources when connection is removed
+   */
+  private cleanupBatchResources(connectionId: string): void {
+    const buffer = this.eventBatchBuffers.get(connectionId);
+    if (buffer && buffer.timer) {
+      clearTimeout(buffer.timer);
+    }
+    this.eventBatchBuffers.delete(connectionId);
   }
 
   /**
@@ -412,7 +644,7 @@ class GalloBetsSSEService {
         connectionId,
         message: 'SSE connection established successfully',
         serverTime: new Date(),
-        heartbeatInterval: this.HEARTBEAT_INTERVAL
+        heartbeatInterval: this.ACTIVE_CONNECTION_HEARTBEAT
       },
       timestamp: new Date(),
       priority: 'low'
@@ -467,51 +699,139 @@ class GalloBetsSSEService {
     const channelHistory = this.eventHistory.get(channel)!;
     channelHistory.push(event);
 
-    // Keep only recent events
-    if (channelHistory.length > this.MAX_EVENT_HISTORY) {
-      channelHistory.splice(0, channelHistory.length - this.MAX_EVENT_HISTORY);
+    // Clean up expired events (time-based limit)
+    const now = Date.now();
+    const cutoffTime = now - this.EVENT_HISTORY_MAX_AGE;
+    const validEvents = channelHistory.filter(item => item.timestamp.getTime() > cutoffTime);
+
+    // Apply count-based limit
+    if (validEvents.length > this.MAX_EVENT_HISTORY) {
+      // Keep only the most recent events up to the limit
+      validEvents.splice(0, validEvents.length - this.MAX_EVENT_HISTORY);
     }
+
+    // Update the history with cleaned events
+    this.eventHistory.set(channel, validEvents);
   }
 
   /**
    * Start heartbeat to detect dead connections
    */
   private startHeartbeat(): void {
+    // For adaptive heartbeat, we'll update each connection individually
+    // Instead of using a single interval, we'll manage heartbeats per connection
     this.heartbeatInterval = setInterval(() => {
       const now = new Date();
-      const heartbeatEvent: SSEEvent = {
-        id: randomUUID(),
-        type: SSEEventType.HEARTBEAT,
-        data: { serverTime: now },
-        timestamp: now,
-        priority: 'low'
-      };
 
       for (const [connectionId, connection] of this.connections.entries()) {
+        // Check if it's time to send heartbeat for this specific connection
         const timeSinceLastHeartbeat = now.getTime() - connection.lastHeartbeat.getTime();
 
-        if (timeSinceLastHeartbeat > this.CONNECTION_TIMEOUT) {
-          logger.warn(`⚠️ Connection ${connectionId} timed out, removing`);
+        // If it's time to send heartbeat based on this connection's interval
+        if (timeSinceLastHeartbeat >= connection.heartbeatInterval) {
+          const heartbeatEvent: SSEEvent = {
+            id: randomUUID(),
+            type: SSEEventType.HEARTBEAT,
+            data: {
+              serverTime: now,
+              connectionId,
+              heartbeatInterval: connection.heartbeatInterval,
+              missedHeartbeats: connection.missedHeartbeats
+            },
+            timestamp: now,
+            priority: 'low'
+          };
+
+          if (connection.isAlive) {
+            // Update heartbeat stats before sending
+            connection.lastHeartbeat = now;
+
+            if (!this.sendToClient(connectionId, heartbeatEvent)) {
+              // If sending failed, increment missed heartbeat counter
+              connection.missedHeartbeats++;
+
+              // Check if we've missed too many heartbeats
+              if (connection.missedHeartbeats >= this.MAX_MISSED_HEARTBEATS) {
+                logger.warn(`⚠️ Connection ${connectionId} missed ${connection.missedHeartbeats} heartbeats, removing`);
+                this.removeConnection(connectionId);
+              }
+            } else {
+              // Reset missed heartbeat counter if heartbeat sent successfully
+              connection.missedHeartbeats = 0;
+            }
+          }
+        }
+
+        // Check connection timeout regardless of heartbeat interval
+        const timeSinceLastActivity = now.getTime() - connection.lastActivity.getTime();
+        if (timeSinceLastActivity > this.CONNECTION_TIMEOUT) {
+          logger.warn(`⚠️ Connection ${connectionId} timed out (inactive for ${timeSinceLastActivity}ms), removing`);
           this.removeConnection(connectionId);
-        } else if (connection.isAlive) {
-          this.sendToClient(connectionId, heartbeatEvent);
         }
       }
-    }, this.HEARTBEAT_INTERVAL);
+    }, 15000); // Check all connections every 15 seconds, but send individual heartbeats based on their intervals
 
-    logger.info(`❤️ SSE Heartbeat started (${this.HEARTBEAT_INTERVAL}ms interval)`);
+    logger.info(`❤️ Adaptive SSE Heartbeat started with 15s check interval)`);
   }
 
   /**
    * Start cleanup process for old events and metrics
    */
+  /**
+   * Determine heartbeat interval based on user activity patterns
+   */
+  private getActiveConnectionHeartbeat(userId?: string): number {
+    // For now, we'll use role-based heartbeat intervals
+    // In a real implementation, this would check recent activity patterns
+
+    // Active connections (frequent events) get faster heartbeats
+    if (userId) {
+      // Could implement logic to check user's recent event subscription activity
+      // for now, we'll return based on typical admin/operator activity
+      if (['admin', 'operator'].includes(this.getUserRole(userId))) {
+        return this.ACTIVE_CONNECTION_HEARTBEAT; // Faster for active users
+      }
+    }
+
+    // Default for regular users
+    return this.IDLE_CONNECTION_HEARTBEAT;
+  }
+
+  /**
+   * Get user role for heartbeat determination
+   * In a real implementation, this would check the cache or database
+   */
+  private getUserRole(userId: string): string {
+    const cachedUser = this.getCachedUser(userId);
+    return cachedUser?.user?.role || 'user';
+  }
+
+  /**
+   * Get cached user for role determination
+   * This would connect to the auth cache system
+   */
+  private getCachedUser(userId: string): any {
+    // Placeholder - in real implementation, this would connect to userCache
+    // from middleware/auth.ts
+    return null;
+  }
+
   private startCleanup(): void {
     this.cleanupInterval = setInterval(() => {
-      // Clean up old event history
-      const cutoff = new Date(Date.now() - (24 * 60 * 60 * 1000)); // 24 hours
+      // Clean up old event history - apply both time-based and count-based limits
+      const now = new Date();
+      const cutoffTime = new Date(now.getTime() - this.EVENT_HISTORY_MAX_AGE); // 5 minutes
 
       for (const [channel, events] of this.eventHistory.entries()) {
-        const filteredEvents = events.filter(event => event.timestamp > cutoff);
+        // Apply time-based filtering
+        let filteredEvents = events.filter(event => event.timestamp > cutoffTime);
+
+        // Apply count-based filtering if needed
+        if (filteredEvents.length > this.MAX_EVENT_HISTORY) {
+          // Keep only the most recent events
+          filteredEvents = filteredEvents.slice(-this.MAX_EVENT_HISTORY);
+        }
+
         this.eventHistory.set(channel, filteredEvents);
       }
 

@@ -9,10 +9,14 @@ import { SessionService } from '../services/sessionService';
 interface CachedUser {
   user: User;
   expires: number;
+  lastAccessTime: number; // Track last access time to implement adaptive TTL
+  accessFrequency: number; // Track access frequency for adaptive TTL
 }
 
 const userCache = new Map<string, CachedUser>();
-const USER_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache for authenticated users
+const BASE_CACHE_DURATION = 1 * 60 * 1000; // 1 minute base TTL
+const MIN_CACHE_DURATION = 30 * 1000; // 30 seconds minimum TTL
+const MAX_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes maximum TTL
 
 // ⚡ OPTIMIZATION: Periodic cache cleanup to prevent memory leaks
 setInterval(() => {
@@ -52,30 +56,15 @@ async function checkAndExpireSubscription(userId: string): Promise<void> {
     });
 
     if (subscription && subscription.isExpired()) {
-      console.log(`⏰ Expiring subscription for user ${userId}`);
+      console.log(`⏰ Deleting expired subscription for user ${userId}`);
 
-      // Mark subscription as expired
-      await subscription.markAsExpired();
-
-      // ⚡ CRITICAL: Create FREE subscription to revert user automatically
-      await Subscription.create({
-        userId,
-        type: null,
-        status: 'free',
-        paymentMethod: 'card',
-        autoRenew: false,
-        amount: 0,
-        currency: 'USD',
-        expiresAt: new Date('2099-12-31'),
-        retryCount: 0,
-        maxRetries: 0,
-        features: []
-      });
+      // Delete expired subscription instead of marking as expired
+      await subscription.destroy();
 
       // Invalidate user cache to force re-fetch on next request
       userCache.delete(userId);
 
-      console.log(`✅ Subscription expired and reverted to FREE for user ${userId}`);
+      console.log(`✅ Expired subscription deleted for user ${userId}`);
     }
   } catch (error) {
     console.error('Error checking subscription expiration:', error);
@@ -112,6 +101,13 @@ export const authenticate = async (
     const cached = userCache.get(decoded.userId);
     if (cached && now < cached.expires) {
       user = cached.user;
+      // Update access frequency and time for adaptive TTL
+      cached.lastAccessTime = now;
+      cached.accessFrequency = (cached.accessFrequency || 0) + 1;
+
+      // Adjust TTL based on access pattern
+      const newTtl = calculateAdaptiveTtl(cached);
+      cached.expires = now + newTtl;
     } else {
       // Fetch from database only if not cached or expired
       const fetchedUser = await User.findByPk(decoded.userId);
@@ -120,10 +116,13 @@ export const authenticate = async (
         throw errors.unauthorized('Invalid token or user inactive');
       }
 
-      // ⚡ CRITICAL: Cache user for 2 minutes to prevent repeated DB calls
+      // ⚡ CRITICAL: Cache user with adaptive TTL based on access patterns
+      const ttl = calculateInitialTtl(fetchedUser);
       userCache.set(decoded.userId, {
         user: fetchedUser,
-        expires: now + USER_CACHE_DURATION
+        expires: now + ttl,
+        lastAccessTime: now,
+        accessFrequency: 1
       });
 
       user = fetchedUser;
@@ -216,15 +215,25 @@ export const optionalAuth = async (
       const cached = userCache.get(decoded.userId);
       if (cached && now < cached.expires) {
         user = cached.user;
+        // Update access frequency and time for adaptive TTL
+        cached.lastAccessTime = now;
+        cached.accessFrequency = (cached.accessFrequency || 0) + 1;
+
+        // Adjust TTL based on access pattern
+        const newTtl = calculateAdaptiveTtl(cached);
+        cached.expires = now + newTtl;
       } else {
         // Fetch from database only if not cached or expired
         const fetchedUser = await User.findByPk(decoded.userId);
 
         if (fetchedUser && fetchedUser.isActive) {
-          // ⚡ CRITICAL: Cache user for optional auth too
+          // ⚡ CRITICAL: Cache user with adaptive TTL for optional auth too
+          const ttl = calculateInitialTtl(fetchedUser);
           userCache.set(decoded.userId, {
             user: fetchedUser,
-            expires: now + USER_CACHE_DURATION
+            expires: now + ttl,
+            lastAccessTime: now,
+            accessFrequency: 1
           });
           user = fetchedUser;
         }
@@ -261,3 +270,34 @@ export const filterByOperatorAssignment = (
   // permitiendo acceso completo (según lo definido en 'authorize').
   next();
 };
+
+// Helper function to calculate initial TTL based on user role
+// Role-based caching: admin/operator get longer TTL (more frequent access),
+// regular users get shorter TTL (less frequent access)
+function calculateInitialTtl(user: User): number {
+  // Roles that typically access system more frequently get longer cache time
+  if (['admin', 'operator'].includes(user.role)) {
+    return MAX_CACHE_DURATION; // 5 minutes for admin/operator
+  }
+
+  // Regular users get base time
+  return BASE_CACHE_DURATION; // 1 minute for regular users
+}
+
+// Helper function to calculate adaptive TTL based on access patterns
+function calculateAdaptiveTtl(cached: CachedUser): number {
+  const accessFrequency = cached.accessFrequency || 1;
+
+  // If accessed many times recently, extend cache time
+  if (accessFrequency > 5) {
+    return MAX_CACHE_DURATION; // 5 minutes for frequently accessed users
+  }
+
+  // If accessed moderately recently, use base time
+  if (accessFrequency > 2) {
+    return BASE_CACHE_DURATION; // 1 minute for moderately accessed users
+  }
+
+  // If not accessed recently, use shorter cache time
+  return MIN_CACHE_DURATION; // 30 seconds for infrequently accessed users
+}

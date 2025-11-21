@@ -54,6 +54,14 @@ const activeViewers = new Map<string, {
   connectionId?: number;
 }>();
 
+// Add connection tracking by IP and user for limits
+const connectionsByIp = new Map<string, Set<string>>(); // IP -> Set of socket IDs
+const connectionsByUser = new Map<string, Set<string>>(); // UserId -> Set of socket IDs
+
+// Constants for connection limits
+const MAX_CONNECTIONS_PER_IP = 3;
+const MAX_CONNECTIONS_PER_USER = 2;
+
 export const setupStreamingSocket = (io: Server) => {
   // Register shutdown handler for cleanup
   SafetyLimits.registerShutdownHandler(() => {
@@ -103,7 +111,41 @@ export const setupStreamingSocket = (io: Server) => {
 
     // Track viewer join using DatabaseOptimizer
     if (userId && eventId) {
-      const connectionId = await trackConnection(eventId, userId);
+      // Check connection limits before adding new connection
+      const ip = socket.handshake.address;
+      const currentIpConnections = connectionsByIp.get(ip) || new Set();
+      const currentUserConnections = connectionsByUser.get(userId) || new Set();
+
+      // Check IP-based connection limit
+      if (currentIpConnections.size >= MAX_CONNECTIONS_PER_IP) {
+        console.warn(`IP ${ip} has reached maximum connections limit (${MAX_CONNECTIONS_PER_IP})`);
+        socket.emit('connection_error', {
+          error: 'TOO_MANY_CONNECTIONS',
+          message: `Maximum ${MAX_CONNECTIONS_PER_IP} connections allowed per IP address`
+        });
+        socket.disconnect();
+        return;
+      }
+
+      // Check user-based connection limit
+      if (currentUserConnections.size >= MAX_CONNECTIONS_PER_USER) {
+        console.warn(`User ${userId} has reached maximum connections limit (${MAX_CONNECTIONS_PER_USER})`);
+        socket.emit('connection_error', {
+          error: 'TOO_MANY_CONNECTIONS',
+          message: `Maximum ${MAX_CONNECTIONS_PER_USER} connections allowed per user`
+        });
+        socket.disconnect();
+        return;
+      }
+
+      // Add to connection tracking maps
+      currentIpConnections.add(socket.id);
+      connectionsByIp.set(ip, currentIpConnections);
+
+      currentUserConnections.add(socket.id);
+      connectionsByUser.set(userId, currentUserConnections);
+
+      // Track viewer in active viewers
       activeViewers.set(socket.id, {
         socketId: socket.id,
         userId,
@@ -111,7 +153,7 @@ export const setupStreamingSocket = (io: Server) => {
         streamId,
         joinedAt: new Date(),
         lastActivity: new Date(),
-        connectionId
+        connectionId: await trackConnection(eventId, userId)
       });
 
       // Queue analytics event for batch processing
@@ -245,6 +287,28 @@ export const setupStreamingSocket = (io: Server) => {
             });
           } catch (error) {
             console.warn('Failed to track viewer leave:', error);
+          }
+        }
+
+        // Clean up connection tracking maps
+        const ip = socket.handshake.address;
+        const ipConnections = connectionsByIp.get(ip);
+        if (ipConnections) {
+          ipConnections.delete(socket.id);
+          if (ipConnections.size === 0) {
+            connectionsByIp.delete(ip);
+          } else {
+            connectionsByIp.set(ip, ipConnections);
+          }
+        }
+
+        const userConnections = connectionsByUser.get(userId);
+        if (userConnections) {
+          userConnections.delete(socket.id);
+          if (userConnections.size === 0) {
+            connectionsByUser.delete(userId);
+          } else {
+            connectionsByUser.set(userId, userConnections);
           }
         }
 

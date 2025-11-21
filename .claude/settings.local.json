@@ -142,7 +142,8 @@
       "Bash(claude mcp list:*)",
       "Bash(LOG_LEVEL=info npx ts-node:*)",
       "Bash(source backend/.env)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(claude model sonnet)"
     ],
     "deny": [],
     "ask": []

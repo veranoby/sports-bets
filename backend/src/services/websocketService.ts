@@ -14,6 +14,10 @@ import { Server as HttpServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { logger } from '../config/logger';
+import { deflate, inflate } from 'zlib';
+import { promisify } from 'util';
+
+const deflateAsync = promisify(deflate);
 
 interface ProposalData {
   id: string;
@@ -47,6 +51,10 @@ class MinimalWebSocketService {
   private readonly PROPOSAL_TIMEOUT = 180000; // 3 minutes
   private readonly MAX_PROPOSALS_PER_USER = 5;
   private readonly CONNECTION_TIMEOUT = 300000; // 5 minutes idle timeout
+
+  // Compression Configuration
+  private readonly COMPRESSION_THRESHOLD = 1024; // Only compress messages larger than 1KB
+  private readonly USE_COMPRESSION = process.env.WEBSOCKET_COMPRESSION === 'true'; // Toggle for message compression
 
   constructor() {
     logger.info('🔌 Minimal WebSocket Service initialized (PAGO/DOY only)');
@@ -219,7 +227,7 @@ class MinimalWebSocketService {
       this.sendProposalToUser(proposedTo, proposal);
 
       // Confirm to proposer
-      socket.emit('proposal_created', {
+      this.sendCompressedMessage(socket, 'proposal_created', {
         proposalId,
         type: 'PAGO',
         expiresAt: expiresAt.toISOString(),
@@ -288,7 +296,7 @@ class MinimalWebSocketService {
       this.sendProposalToUser(proposedTo, proposal);
 
       // Confirm to proposer
-      socket.emit('proposal_created', {
+      this.sendCompressedMessage(socket, 'proposal_created', {
         proposalId,
         type: 'DOY',
         expiresAt: expiresAt.toISOString(),
@@ -299,7 +307,7 @@ class MinimalWebSocketService {
 
     } catch (error) {
       logger.error('Error handling DOY proposal:', error);
-      socket.emit('proposal_error', { message: 'Failed to create DOY proposal' });
+      this.sendCompressedMessage(socket, 'proposal_error', { message: 'Failed to create DOY proposal' });
     }
   }
 
@@ -352,7 +360,7 @@ class MinimalWebSocketService {
 
     } catch (error) {
       logger.error('Error handling proposal response:', error);
-      socket.emit('proposal_error', { message: 'Failed to process proposal response' });
+      this.sendCompressedMessage(socket, 'proposal_error', { message: 'Failed to process proposal response' });
     }
   }
 
@@ -442,7 +450,7 @@ class MinimalWebSocketService {
 
     const socket = this.io?.sockets.sockets.get(user.socketId);
     if (socket) {
-      socket.emit('proposal_received', {
+      this.sendCompressedMessage(socket, 'proposal_received', {
         proposalId: proposal.id,
         type: proposal.type,
         fightId: proposal.fightId,
@@ -504,7 +512,7 @@ class MinimalWebSocketService {
     if (proposer) {
       const proposerSocket = this.io?.sockets.sockets.get(proposer.socketId);
       if (proposerSocket) {
-        proposerSocket.emit('proposal_result', { ...resultData, role: 'proposer' });
+        this.sendCompressedMessage(proposerSocket, 'proposal_result', { ...resultData, role: 'proposer' });
       }
     }
 
@@ -512,7 +520,7 @@ class MinimalWebSocketService {
     if (target) {
       const targetSocket = this.io?.sockets.sockets.get(target.socketId);
       if (targetSocket) {
-        targetSocket.emit('proposal_result', { ...resultData, role: 'target' });
+        this.sendCompressedMessage(targetSocket, 'proposal_result', { ...resultData, role: 'target' });
       }
     }
   }
@@ -559,6 +567,53 @@ class MinimalWebSocketService {
     this.proposalTimeouts.clear();
 
     logger.info('✅ WebSocket service shutdown completed');
+  }
+
+  /**
+   * Compress message data if it exceeds threshold
+   */
+  private async compressMessage(message: any): Promise<{compressed: boolean, data: any}> {
+    if (!this.USE_COMPRESSION) {
+      return { compressed: false, data: message };
+    }
+
+    // Convert message to string to check size
+    const messageString = JSON.stringify(message);
+
+    // Only compress if message is larger than threshold
+    if (messageString.length > this.COMPRESSION_THRESHOLD) {
+      try {
+        const compressedData = await deflateAsync(messageString);
+        logger.debug(`📦 Compressed message: ${messageString.length} -> ${compressedData.length} bytes (${Math.round((compressedData.length/messageString.length)*100)}%)`);
+        return {
+          compressed: true,
+          data: compressedData.toString('base64') // Convert to base64 for transmission
+        };
+      } catch (error) {
+        logger.error(`Compression failed:`, error);
+        // Return original message if compression fails
+        return { compressed: false, data: message };
+      }
+    }
+
+    return { compressed: false, data: message };
+  }
+
+  /**
+   * Send message with optional compression
+   */
+  private async sendCompressedMessage(socket: any, event: string, message: any): Promise<void> {
+    const { compressed, data } = await this.compressMessage(message);
+
+    const messageToSend = compressed
+      ? {
+          compressed: true,
+          data: data,
+          originalSize: JSON.stringify(message).length
+        }
+      : message;
+
+    socket.emit(event, messageToSend);
   }
 }
 

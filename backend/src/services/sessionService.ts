@@ -180,24 +180,31 @@ export class SessionService {
   /**
    * Invalidate all sessions for a specific user
    * Used for forced logout or security purposes
+   * CHANGED: DELETE sessions instead of UPDATE to ensure immediate logout
    * @param userId - User ID whose sessions to invalidate
+   * @returns Success status with number of sessions invalidated
    */
-  static async invalidateAllUserSessions(userId: string): Promise<void> {
+  static async invalidateAllUserSessions(userId: string): Promise<{success: boolean, message: string, count?: number}> {
     try {
-      const result = await ActiveSession.update(
-        { isActive: false },
-        { 
-          where: { 
-            userId, 
-            isActive: true 
-          } 
+      const count = await ActiveSession.destroy({
+        where: {
+          userId,
+          isActive: true
         }
-      );
+      });
 
-      logger.info(`Invalidated all ${result[0]} sessions for user ${userId}`);
+      logger.info(`Deleted all ${count} sessions for user ${userId} (forced logout)`);
+      return {
+        success: true,
+        message: `${count} session(s) invalidated for user ${userId}`,
+        count
+      };
     } catch (error) {
       logger.error('Error invalidating all user sessions:', error);
-      throw error;
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
     }
   }
 

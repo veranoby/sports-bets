@@ -36,6 +36,7 @@ import uploadsRoutes from "./routes/uploads";
 import membershipRequestsRoutes from "./routes/membership-requests";
 import streamingRoutes from "./routes/streaming";
 import streamingMonitoringRoutes from "./routes/streaming-monitoring";
+import adminSessionsRoutes from "./routes/admin-sessions";
 
 // Cargar variables de entorno
 config();
@@ -159,6 +160,7 @@ class Server {
     this.app.use("/api/membership-requests", membershipRequestsRoutes);
     this.app.use("/api/streaming", streamingRoutes);
     this.app.use("/api/sse", streamingMonitoringRoutes);
+    this.app.use("/api/admin", adminSessionsRoutes);
 
     // Ruta para servir archivos estáticos con CORS headers
     this.app.use("/uploads", (req, res, next) => {

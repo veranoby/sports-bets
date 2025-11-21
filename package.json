@@ -5,6 +5,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "glob": "^13.0.0",
     "node-media-server": "^4.0.21",
     "pg": "^8.16.3"
   },
