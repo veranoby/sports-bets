@@ -13,8 +13,6 @@ import {
   Building,
   Mail,
   Globe,
-  List,
-  UserRound,
   Image,
   Loader2,
   X,
@@ -49,13 +47,6 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
     email: initialData?.email || initialData?.[`${entityType}Email`] || "",
     website:
       initialData?.website || initialData?.[`${entityType}Website`] || "",
-    // Entity-specific fields
-    ...(entityType === "gallera" && {
-      galleraSpecialties:
-        initialData?.galleraSpecialties || initialData?.specialties || [],
-      galleraActiveRoosters:
-        initialData?.galleraActiveRoosters || initialData?.activeRoosters || 0,
-    }),
     images: initialData?.images || [],
   });
 
@@ -101,19 +92,14 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
           [`${entityType}Email`]: formData.email,
           [`${entityType}Website`]: formData.website,
         },
-        // Entity-specific additional fields
-        ...(entityType === "gallera" && {
-          galleraSpecialties: formData.galleraSpecialties,
-          galleraActiveRoosters: formData.galleraActiveRoosters,
-        }),
         // Images
         images: formData.images,
       };
 
-      const response = await userAPI.updateProfileInfo(
-        userId,
-        profileInfoUpdate,
-      );
+      // Use correct endpoint: updateProfile for own profile, updateProfileInfo for admin editing others
+      const response = await userAPI.updateProfile({
+        profileInfo: profileInfoUpdate,
+      });
 
       if (response.success) {
         // Fetch complete user data after profile update
@@ -251,58 +237,6 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
             />
           </div>
         </div>
-
-        {/* Entity-specific fields */}
-        {entityType === "gallera" && (
-          <>
-            {/* Specialties */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Especialidades
-              </label>
-              <div className="relative">
-                <List className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="galleraSpecialties"
-                  value={formData.galleraSpecialties || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      galleraSpecialties: e.target.value,
-                    }))
-                  }
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Especialidades del criadero (separadas por comas)"
-                />
-              </div>
-            </div>
-
-            {/* Active Roosters */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gallos Activos
-              </label>
-              <div className="relative">
-                <UserRound className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
-                <input
-                  type="number"
-                  name="galleraActiveRoosters"
-                  value={formData.galleraActiveRoosters || 0}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      galleraActiveRoosters: parseInt(e.target.value) || 0,
-                    }))
-                  }
-                  min="0"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Número de gallos activos"
-                />
-              </div>
-            </div>
-          </>
-        )}
 
         {/* Image Gallery Upload */}
         <div>
