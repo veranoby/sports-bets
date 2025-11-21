@@ -5,21 +5,21 @@
     "created_by": "Claude Sonnet 4.5 (Director Mode)",
     "source_analysis": "brain/backlog.json (BACKEND_PERFORMANCE_ANALYSIS_COMPLETED, 2025-11-20)",
     "analysis_performed_by": "QWEN (qwen3-coder-plus-2025-09-23)",
-    "plan_scope": "Implementation roadmap for OPTION B.1 infrastructure (Vultr + Neon + Bunny CDN)",
-    "infrastructure": "Vultr VPS $24/mo + Neon $50/mo + Bunny CDN $108/mo = $182/mo",
-    "total_realistic_savings": "$140/month ($1,680/year) - ADJUSTED for fixed VPS pricing",
-    "original_qwen_estimate": "$3,400/month (cloud elastic pricing - NOT APPLICABLE)",
+    "plan_scope": "Implementation roadmap for OPTION B.1 infrastructure (Dedicated Server + Nginx RTMP + PostgreSQL local)",
+    "infrastructure": "Vultr/Hetzner Dedicated $155-195/mo (8-core, 32GB RAM, 10Gbps, 500GB SSD) - includes Nginx RTMP + PostgreSQL local. Scale Phase: +Bunny CDN $108/mo = $263-303/mo",
+    "total_realistic_savings": "$40/month ($480/year) in CDN bandwidth (Phase 2 only)",
+    "original_qwen_estimate": "$3,400/month (cloud elastic pricing - NOT APPLICABLE to dedicated server)",
     "total_implementation_effort": "47 hours (includes Phase 0)",
-    "average_roi_score": "90% annual ROI"
+    "average_roi_score": "N/A - Optimizations are for crash prevention and UX, not cost savings"
   },
 
   "validation_summary": {
     "analysis_quality": "EXCELLENT - Comprehensive 4-phase analysis with evidence-based findings",
     "findings_validity": "VERIFIED - All 7 recommendations have clear file:line references",
-    "savings_recalculated": "ADJUSTED for OPTION B.1 - Fixed VPS pricing changes ROI dramatically",
+    "savings_recalculated": "ADJUSTED for OPTION B.1 - Dedicated server ($155-195/mo fixed) with PostgreSQL local ($0). Optimizations are for crash prevention and UX, not cost reduction.",
     "methodology_compliance": "COMPLIANT - Follows AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL",
     "risk_assessment": "ACCURATE - Risk levels (LOW/MEDIUM) appropriately assigned",
-    "recommendation": "APPROVED - Phase 0 critical for admin UX, Phase 1 for crash prevention, Phase 2 for CDN savings"
+    "recommendation": "APPROVED - Phase 0 critical for admin UX, Phase 1 prevents crashes at scale, Phase 2 reduces CDN bandwidth costs"
   },
 
   "prioritized_implementation_phases": [
@@ -425,11 +425,13 @@
   },
 
   "economic_analysis": {
-    "total_potential_savings_monthly": "$3,400",
-    "total_potential_savings_annual": "$40,800",
-    "total_implementation_cost": "37 hours � $50/hour (estimated) = $1,850",
-    "break_even_point": "0.54 months (16 days)",
-    "roi_first_year": "2,105% ($40,800 savings / $1,850 cost)",
+    "context": "OPTION B.1 uses dedicated server ($155-195/mo fixed). Optimizations prevent crashes and improve UX, NOT reduce infrastructure costs.",
+    "qwen_original_estimate": "$3,400/mo savings (based on cloud elastic pricing - NOT APPLICABLE to dedicated server)",
+    "total_potential_savings_monthly": "$90/mo (CDN bandwidth only - Phases 2+3)",
+    "total_potential_savings_annual": "$1,080/year (CDN bandwidth reduction only)",
+    "total_implementation_cost": "47 hours x $50/hour (estimated) = $2,350",
+    "break_even_point": "26 months (CDN bandwidth savings only - NOT including crash prevention value)",
+    "roi_calculation": "Optimizations are for reliability and UX, not cost reduction. Value is in crash prevention and better user experience.",
     "cost_breakdown_by_phase": {
       "phase_0": {
         "investment": "$50 (1 hour)",
@@ -439,9 +441,9 @@
       },
       "phase_1": {
         "investment": "$500 (10 hours)",
-        "monthly_savings": "$50 (downtime prevention)",
-        "break_even": "10 months",
-        "benefit": "Prevents crashes at 500+ users"
+        "monthly_savings": "$0 (crash prevention - avoids revenue loss)",
+        "break_even": "N/A (prevents downtime)",
+        "benefit": "Prevents server crashes at 500+ concurrent users - critical for reliability"
       },
       "phase_2": {
         "investment": "$950 (19 hours)",
@@ -450,10 +452,10 @@
         "benefit": "Real bandwidth savings on Bunny CDN"
       },
       "phase_3": {
-        "investment": "$400 (8 hours)",
-        "monthly_savings": "$40 (HLS compression)",
-        "break_even": "10 months",
-        "benefit": "Bandwidth savings at scale (500+ users)"
+        "investment": "$850 (17 hours)",
+        "monthly_savings": "$40 (CDN bandwidth only)",
+        "break_even": "21 months",
+        "benefit": "HLS compression reduces Bunny CDN bandwidth at scale (500+ users with CDN active)"
       }
     },
     "recommendation": "Phase 0 IMMEDIATE (admin UX). Phase 1 RECOMMENDED (crash prevention). Phase 2-3 DEFER until Bunny CDN active + 500+ users."
