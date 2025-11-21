@@ -71,10 +71,34 @@
       },
       "note": "UPDATED 2025-10-29: Added role selection and auto-entity creation for atomic user+entity setup"
     },
+    "verify_email": {
+      "method": "GET",
+      "path": "/auth/verify/:token",
+      "auth_required": false,
+      "response": {"success": true, "message": "Email verified successfully", "data": {"user": "User object"}},
+      "purpose": "Verify user email via token sent during registration"
+    },
+    "forgot_password": {
+      "method": "POST",
+      "path": "/auth/forgot-password",
+      "body": {"email": "string"},
+      "auth_required": false,
+      "response": {"success": true, "message": "Password reset link sent to email"},
+      "purpose": "Send password reset link to user's email"
+    },
+    "reset_password": {
+      "method": "POST",
+      "path": "/auth/reset-password",
+      "body": {"token": "string", "password": "string", "confirmPassword": "string"},
+      "auth_required": false,
+      "response": {"success": true, "message": "Password reset successfully"},
+      "purpose": "Reset user password using reset token"
+    },
     "check_membership": {
       "method": "POST",
       "path": "/auth/check-membership-status",
-      "auth_required": true
+      "auth_required": true,
+      "purpose": "Verify if user has membership status"
     }
   },
 
@@ -158,24 +182,27 @@
         "Only admins can create admin/operator roles",
         "Operators can only create venue/user/gallera roles"
       ],
-      "auto_creation": {
-        "🔴_NOTE_2025_10_30": "Venue/Gallera tables ELIMINATED. No longer creates dedicated records.",
-        "profile_initialization": "If role='venue' or role='gallera', prepares empty profileInfo structure for user to fill in business details",
-        "approval_status": "Admin-created users marked as approved=true (auto-approved)",
-        "added_date": "2025-10-29"
-      },
-      "frontend_integration_2025_10_31": {
-        "component": "CreateUserModal (frontend/src/components/admin/CreateUserModal.tsx)",
-        "admin_pages": [
-          "/admin/users - Creates users with role='user'",
-          "/admin/venues - Creates users with role='venue' + venue business fields + images (max 2)",
-          "/admin/galleras - Creates users with role='gallera' + gallera business fields + images (max 3)"
+      "note": "ADDED 2025-10-31: CreateUserModal now collects complete business info + images in single workflow. All admin pages unified with modal pattern."
+    },
+    "force_logout_user": {
+      "method": "DELETE",
+      "path": "/admin/sessions/:userId",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {"success": true, "message": "User sessions invalidated successfully", "userId": "string"},
+      "purpose": "Force disconnect all sessions for a specific user (admin function)",
+      "implementation": "backend/src/routes/admin-sessions.ts",
+      "frontend_integration": {
+        "component": "Admin user management pages now include disconnect button",
+        "files": [
+          "frontend/src/pages/admin/Users.tsx",
+          "frontend/src/pages/admin/Venues.tsx",
+          "frontend/src/pages/admin/Galleras.tsx"
         ],
-        "ux_pattern": "All admin pages use CreateUserModal component for consistent UX (no navigation to separate creation pages)",
-        "image_upload": "Uses ImageGalleryUpload component for client-side image selection before user creation",
-        "validation": "Client-side enforcement of maxImages limits (venue=2, gallera=3) before API call"
+        "behavior": "Removes all active sessions for the specified user, forcing immediate logout from all devices"
       },
-      "note": "UPDATED 2025-10-31: CreateUserModal now collects complete business info + images in single workflow. All admin pages unified with modal pattern."
+      "added_date": "2025-11-20",
+      "note": "Part of connection limit optimization to allow administrators to manage active sessions"
     },
     "update_user_password": {
       "method": "PUT",
@@ -265,7 +292,7 @@
       "response": {"error": "Your role cannot place bets", "code": "ROLE_FORBIDDEN"},
       "business_reason": "Prevents venue users from participating in betting system as players",
       "added_date": "2025-11-07"
-    }
+    },
     "approve_user": {
       "method": "PUT",
       "path": "/users/:id/approve",
@@ -341,8 +368,7 @@
               "phoneNumber": "string",
               "venueEmail": "string (business email)",
               "venueWebsite": "string",
-              "verificationLevel": "string",
-              "..."
+              "verificationLevel": "string"
             }
           }
         }
@@ -428,8 +454,7 @@
               "galleraActiveRoosters": "number (active roosters count)",
               "premiumLevel": "string (platinum|gold|silver|bronze)",
               "verificationLevel": "string",
-              "rating": "number",
-              "..."
+              "rating": "number"
             }
           }
         }
@@ -492,10 +517,11 @@
         "content": "string (min 10 chars)",
         "excerpt": "string (min 10, max 500 chars)",
         "featured_image": "string (optional URL)",
-        "venue_id": "string (optional UUID)"
+        "venue_id": "string (optional UUID) - ✅ CAMPO ACTIVO en BD (articles.venue_id nullable UUID)"
       },
       "auth_required": true,
       "roles": ["admin", "gallera", "venue"],
+      "venue_id_status": "✅ CLARIFICATION 2025-11-21: Field EXISTS in database. Not removed. Used for optional venue association.",
       "CRITICAL_VALIDATION": {
         "field_names": "MUST use 'excerpt' NOT 'summary', 'featured_image' NOT 'featured_image_url'",
         "slug_generation": "✅ FIXED: Backend auto-generates URL-friendly slug from title - NEVER send slug field",
@@ -1404,17 +1430,8 @@
       "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)"
     },
     "pause_resume_stream_optimization_2025_11_19": {
-      "description": "Streaming pause feature optimization: semantic status clarity + API consolidation",
+      "description": "Streaming pause feature optimization: API consolidation",
       "changes": [
-        {
-          "type": "Status Field Clarification",
-          "detail": "Event.status changed from 'intermission' to 'paused' for explicit pause state",
-          "rationale": "Distinguish pause state from between-fights intermission context",
-          "affected_endpoint": "POST /api/streaming/pause",
-          "response_field": "eventStatus: 'paused'",
-          "backend_changes": "backend/src/routes/streaming.ts:684-699, backend/src/models/Event.ts (status enum)",
-          "sse_broadcast": "STREAM_STATUS_UPDATE with message 'Stream pausado - Proximamente se reanuda...'"
-        },
         {
           "type": "API Method Consolidation",
           "detail": "Removed duplicate pauseStream/resumeStream from eventsAPI",
@@ -1481,5 +1498,77 @@
     },
     "production_ready": true,
     "24h_launch_status": "✅ GO FOR PRODUCTION"
+  },
+
+  "notification_endpoints": {
+    "get_notifications": {
+      "method": "GET",
+      "path": "/notifications",
+      "auth_required": true,
+      "query_params": {"limit": "number (optional, default 20)", "status": "string (optional: 'unread'|'read'|'archived')"},
+      "response": {"success": true, "data": "Notification[]"}
+    },
+    "mark_as_read": {
+      "method": "PATCH",
+      "path": "/notifications/:id/read",
+      "auth_required": true,
+      "response": {"success": true, "data": "Notification object"}
+    },
+    "delete_notification": {
+      "method": "DELETE",
+      "path": "/notifications/:id",
+      "auth_required": true
+    }
+  },
+
+  "webhook_endpoints": {
+    "🔴_NOTE": "Webhooks for external integrations (Kushki payments, etc.)",
+    "payment_webhook": {
+      "method": "POST",
+      "path": "/webhooks/payment",
+      "auth_required": false,
+      "validation": "Webhook signature validation required",
+      "purpose": "Receive payment completion notifications from Kushki"
+    },
+    "external_integration": {
+      "description": "Accept external POST requests for system integrations"
+    }
+  },
+
+  "settings_endpoints": {
+    "get_system_settings": {
+      "method": "GET",
+      "path": "/settings",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {"success": true, "data": "SystemSetting[]"}
+    },
+    "update_system_settings": {
+      "method": "PUT",
+      "path": "/settings/:key",
+      "auth_required": true,
+      "roles": ["admin"],
+      "body": {"value": "JSON object"},
+      "purpose": "Update global system configuration"
+    }
+  },
+
+  "push_notification_endpoints": {
+    "🔴_NOTE": "Web Push API (VAPID keys already configured)",
+    "subscribe_push": {
+      "method": "POST",
+      "path": "/push/subscribe",
+      "auth_required": true,
+      "body": {"subscription": "PushSubscription object from service worker"},
+      "purpose": "Register device for push notifications"
+    },
+    "send_push": {
+      "method": "POST",
+      "path": "/push/send",
+      "auth_required": true,
+      "roles": ["admin"],
+      "body": {"title": "string", "message": "string", "recipients": "string[] (userIds or 'all')"},
+      "purpose": "Send push notifications to subscribed clients"
+    }
   }
 }
