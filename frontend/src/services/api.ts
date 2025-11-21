@@ -135,6 +135,12 @@ export const adminAPI = {
   ) => {
     return apiCall("put", `/subscriptions/admin/${userId}/membership`, data);
   },
+  forceLogoutUser: async (userId: string) => {
+    return apiCall("delete", `/admin/sessions/${userId}`);
+  },
+  getActiveUsers: async () => {
+    return apiCall("get", `/admin/sessions/active-users`);
+  },
 };
 
 export const userAPI = {

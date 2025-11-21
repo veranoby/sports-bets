@@ -1500,6 +1500,27 @@
     "24h_launch_status": "✅ GO FOR PRODUCTION"
   },
 
+  "admin_session_endpoints": {
+    "get_active_users": {
+      "method": "GET",
+      "path": "/admin/sessions/active-users",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {"success": true, "data": {"activeUserIds": "string[]", "userSessions": "Array<{userId, username, lastActivity, connectedAt}>", "totalActiveSessions": "number"}},
+      "purpose": "Fetch list of currently active users with valid sessions",
+      "added_date": "2025-11-21",
+      "note": "FEATURE COMPLETION: Provides real-time online status for admin dashboards (Users, Venues, Galleras)"
+    },
+    "force_logout_user": {
+      "method": "DELETE",
+      "path": "/admin/sessions/:userId",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {"success": true, "message": "User sessions invalidated successfully", "userId": "string", "count": "number"},
+      "purpose": "Force disconnect all sessions for specific user"
+    }
+  },
+
   "notification_endpoints": {
     "get_notifications": {
       "method": "GET",
