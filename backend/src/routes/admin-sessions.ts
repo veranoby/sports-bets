@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { authenticate, authorize } from '../middleware/auth';
 import { SessionService } from '../services/sessionService';
+import { ActiveSession } from '../models/ActiveSession';
+import { User } from '../models/User';
+import { Op } from 'sequelize';
 
 const router = Router();
 
@@ -11,19 +14,19 @@ const router = Router();
  */
 router.get('/sessions/active-users', authenticate, authorize('admin', 'operator'), async (req: Request, res: Response) => {
   try {
-    const { ActiveSession, User } = require('../models');
 
     // Get all active sessions that haven't expired
     const activeSessions = await ActiveSession.findAll({
       where: {
         isActive: true,
         expiresAt: {
-          [require('sequelize').Op.gt]: new Date()
+          [Op.gt]: new Date()
         }
       },
       include: [
         {
           model: User,
+          as: 'user',
           attributes: ['id', 'username'],
           required: true
         }
@@ -38,7 +41,7 @@ router.get('/sessions/active-users', authenticate, authorize('admin', 'operator'
     // Build user sessions response
     const userSessions = activeSessions.map((session: any) => ({
       userId: session.userId,
-      username: session.User?.username,
+      username: session.user?.username,
       lastActivity: session.lastActivity,
       connectedAt: session.createdAt
     }));
