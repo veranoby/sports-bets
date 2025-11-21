@@ -282,41 +282,40 @@ router.patch(
       throw errors.badRequest('Tipo de membresía solicitado no válido');
     }
 
-    // Create or update subscription based on the requested membership type
-    const [subscription, created] = await Subscription.findOrCreate({
-      where: { userId: user.id, status: 'active' },
-      defaults: {
-        userId: user.id,
-        type: request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly',
-        status: 'active',
-        manual_expires_at: expiresAt,
-        expiresAt: expiresAt!,
-        paymentMethod: 'cash', // Admin manual assignment
-        autoRenew: false,
-        amount: 0,
-        currency: 'USD',
-        metadata: {
-          assignedBy: req.user!.username,
-          assignedAt: new Date().toISOString(),
-          manualAssignment: true,
-          fromRequest: request.id
-        }
-      }
+    // ⚡ FIX: Find user's subscription (any status) or create new one
+    let subscription = await Subscription.findOne({
+      where: { userId: user.id },
+      order: [['created_at', 'DESC']]
     });
 
-    if (!created && subscription.status === 'active') {
-      // Update existing subscription if it's active
-      await subscription.update({
-        type: request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly',
-        manual_expires_at: expiresAt,
-        expiresAt: expiresAt!,
-        metadata: {
-          ...subscription.metadata,
-          lastAssignedBy: req.user!.username,
-          lastAssignedAt: new Date().toISOString(),
-          fromRequest: request.id
-        }
+    const newSubscriptionData = {
+      type: (request.requestedMembershipType === '24-hour' ? 'daily' : 'monthly') as 'daily' | 'monthly',
+      status: 'active' as 'active',
+      manual_expires_at: expiresAt,
+      expiresAt: expiresAt!,
+      paymentMethod: 'cash' as 'cash',
+      autoRenew: false,
+      amount: 0,
+      currency: 'USD',
+      metadata: {
+        assignedBy: req.user!.username,
+        assignedAt: new Date().toISOString(),
+        manualAssignment: true,
+        fromRequest: request.id
+      }
+    };
+
+    if (subscription) {
+      // Update existing subscription (regardless of current status)
+      await subscription.update(newSubscriptionData);
+      console.log(`✅ Updated existing subscription for user ${user.id} to ${newSubscriptionData.type}`);
+    } else {
+      // Create new subscription if none exists
+      subscription = await Subscription.create({
+        userId: user.id,
+        ...newSubscriptionData
       });
+      console.log(`✅ Created new subscription for user ${user.id} with type ${newSubscriptionData.type}`);
     }
 
     // Update the request status to completed

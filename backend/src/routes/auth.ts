@@ -236,7 +236,22 @@ router.post(
     const token = generateToken(user.id);
 
     // ⚡ SECURITY: Create session with concurrent login prevention
-    await SessionService.createSession(user.id, token, req);
+    try {
+      await SessionService.createSession(user.id, token, req);
+    } catch (sessionError: any) {
+      // Handle session conflict (concurrent login detected)
+      if (sessionError.code === 'SESSION_CONFLICT') {
+        console.log('❌ Login rejected: Active session exists for:', login);
+        return res.status(409).json({
+          success: false,
+          error: sessionError.message,
+          code: 'SESSION_CONFLICT',
+          existingSession: sessionError.existingSession
+        });
+      }
+      // Re-throw other errors
+      throw sessionError;
+    }
 
     console.log('✅ Login successful for:', user.username, '(', user.email, ')');
     logger.info(`User logged in: ${user.username} (${user.email})`);

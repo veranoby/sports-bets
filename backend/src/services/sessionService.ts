@@ -28,12 +28,13 @@ export class SessionService {
   }
 
   /**
-   * Create new session and invalidate old ones for the user
-   * Implements concurrent login prevention by invalidating existing sessions
+   * Create new session ONLY if no active session exists
+   * Implements concurrent login prevention by REJECTING login attempts
    * @param userId - User ID
    * @param sessionToken - JWT session token
    * @param req - Request object containing user agent and IP
    * @returns Created ActiveSession instance
+   * @throws Error if active session already exists
    */
   static async createSession(
     userId: string,
@@ -50,40 +51,38 @@ export class SessionService {
         ipAddress
       );
 
-      // ⚡ CRITICAL FIX: Use transaction to prevent race condition on concurrent logins
+      // ⚡ STRICT SECURITY: Check for existing active sessions
       const session = await sequelize.transaction(async (t: any) => {
-        // STRICT MODE: Invalidate ALL existing active sessions for this user
-        // First, lock active sessions with SELECT FOR UPDATE to prevent concurrent modifications
-        await ActiveSession.findAll({
+        // Lock and check for any active sessions
+        const existingSessions = await ActiveSession.findAll({
           where: {
             userId,
-            isActive: true
+            isActive: true,
+            expiresAt: { [Op.gt]: new Date() }
           },
           lock: Transaction.LOCK.UPDATE,
           transaction: t
         });
 
-        // Now safely invalidate them (rows are locked, no race condition possible)
-        const invalidatedSessions = await ActiveSession.update(
-          { isActive: false },
-          {
-            where: {
-              userId,
-              isActive: true
-            },
-            transaction: t
-          }
-        );
-
-        if (invalidatedSessions[0] > 0) {
-          logger.info(`Invalidated ${invalidatedSessions[0]} existing sessions for user ${userId}`);
+        // ❌ REJECT login if active session exists
+        if (existingSessions.length > 0) {
+          const lastSession = existingSessions[0];
+          const error: any = new Error('Ya existe una sesión activa para este usuario. Cierra la sesión anterior antes de iniciar una nueva.');
+          error.code = 'SESSION_CONFLICT';
+          error.statusCode = 409;
+          error.existingSession = {
+            deviceFingerprint: lastSession.deviceFingerprint,
+            ipAddress: lastSession.ipAddress,
+            lastActivity: lastSession.lastActivity
+          };
+          throw error;
         }
 
         // Calculate expiration date (7 days from now)
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
 
-        // Create new active session (within same transaction)
+        // Create new active session (no existing sessions, safe to proceed)
         const newSession = await ActiveSession.create({
           userId,
           sessionToken,
