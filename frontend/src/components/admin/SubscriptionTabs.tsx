@@ -49,21 +49,26 @@ const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
 
   // Auto-save to parent state when selection changes
   useEffect(() => {
-    // Only save if we have required data
+    // Only save if we have required data and not on initial render
     if (
       selectedType === "free" ||
       (selectedType !== "free" && assignedUsername.trim())
     ) {
       setError(null);
-      onSave({
-        membership_type: selectedType,
-        assigned_username: assignedUsername.trim(),
-        type: selectedType as "free" | "daily" | "monthly",
-        status: selectedType === "free" ? "active" : "pending",
-        expiresAt: selectedType === "free" ? null : undefined,
-        manual_expires_at: selectedType === "free" ? null : undefined,
-        features: selectedType === "free" ? [] : undefined,
-      });
+      // Use a small delay to debounce multiple rapid changes
+      const timer = setTimeout(() => {
+        onSave({
+          membership_type: selectedType,
+          assigned_username: assignedUsername.trim(),
+          type: selectedType as "free" | "daily" | "monthly",
+          status: selectedType === "free" ? "active" : "pending",
+          expiresAt: selectedType === "free" ? null : undefined,
+          manual_expires_at: selectedType === "free" ? null : undefined,
+          features: selectedType === "free" ? [] : undefined,
+        });
+      }, 300);
+
+      return () => clearTimeout(timer);
     }
   }, [selectedType, assignedUsername, onSave]);
 

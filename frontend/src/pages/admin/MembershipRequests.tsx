@@ -127,7 +127,7 @@ const MembershipRequestsPage: React.FC = () => {
 
   const handleApprove = (request: MembershipRequest) => {
     setSelectedRequest(request);
-    setShowUserModal(true);
+    setShowDetailsModal(true);
   };
 
   const handleUserSave = async (subscriptionData: any) => {
@@ -136,32 +136,17 @@ const MembershipRequestsPage: React.FC = () => {
     setProcessing(selectedRequest.id);
     setErrorMessage(null);
     try {
-      // Complete the request
+      // Complete the request (this also creates/updates the subscription)
       const completeResponse = await membershipRequestsAPI.completeRequest(
         selectedRequest.id,
       );
 
       if (completeResponse.success) {
-        // Update user membership
-        const membershipResponse = await adminAPI.updateUserMembership(
-          selectedRequest.userId,
-          {
-            membership_type: subscriptionData.membership_type,
-            assigned_username: subscriptionData.assigned_username,
-          },
-        );
-
-        if (membershipResponse.success) {
-          setSuccessMessage("Solicitud aprobada y membresía actualizada");
-          setShowUserModal(false);
-          setSelectedRequest(null);
-          fetchRequests();
-          setTimeout(() => setSuccessMessage(null), 3000);
-        } else {
-          setErrorMessage(
-            membershipResponse.error || "Error al actualizar membresía",
-          );
-        }
+        setSuccessMessage("Solicitud aprobada y membresía actualizada");
+        setShowUserModal(false);
+        setSelectedRequest(null);
+        fetchRequests();
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
         setErrorMessage(completeResponse.error || "Error al aprobar solicitud");
       }
@@ -428,6 +413,16 @@ const MembershipRequestsPage: React.FC = () => {
                       <div className="flex gap-2">
                         {request.status === "pending" && (
                           <>
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(request);
+                                setShowDetailsModal(true);
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                              title="Ver detalles de la solicitud"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleApprove(request)}
                               disabled={processing === request.id}
