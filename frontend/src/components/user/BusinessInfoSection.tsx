@@ -65,16 +65,6 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
   const title =
     type === "venue" ? "Información del Venue" : "Información de la Gallera";
 
-  const formatSpecialties = (specialties: Gallera["specialties"]) => {
-    if (!specialties) return "No especificado";
-    return (specialties.breeds || []).join(", ");
-  };
-
-  const formatFightRecord = (record: Gallera["fightRecord"]) => {
-    if (!record) return "N/A";
-    return `Victorias: ${record.wins}, Derrotas: ${record.losses}, Empates: ${record.draws}`;
-  };
-
   return (
     <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
       <div className="flex justify-between items-center mb-6">
@@ -110,26 +100,6 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
           label="Verificado"
           value={data.certified ? "Sí" : "No"}
         />
-
-        {isGallera(data) && (
-          <>
-            <DetailItem
-              icon={<Info />}
-              label="Especialidades (Razas)"
-              value={formatSpecialties(data.specialties)}
-            />
-            <DetailItem
-              icon={<Info />}
-              label="Gallos Activos"
-              value={data.activeRoosters || data.activeRoosters}
-            />
-            <DetailItem
-              icon={<Info />}
-              label="Récord de Peleas"
-              value={formatFightRecord(data.fightRecord)}
-            />
-          </>
-        )}
 
         <div className="md:col-span-2 border-t pt-6 mt-2">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">

@@ -507,18 +507,6 @@ router.put(
       .isURL()
       .withMessage("Valid URL required")
       .trim(),
-    body("galleraSpecialties")
-      .optional()
-      .isArray()
-      .withMessage("Specialties must be an array"),
-    body("galleraSpecialties.*")
-      .optional()
-      .isString()
-      .withMessage("Each specialty must be a string"),
-    body("galleraActiveRoosters")
-      .optional()
-      .isInt({ min: 0 })
-      .withMessage("Active roosters must be a positive number"),
     body("businessName")
       .optional({ nullable: true, checkFalsy: true })
       .isLength({ min: 2, max: 100 })

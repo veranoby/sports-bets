@@ -40,8 +40,6 @@ interface UserProfile {
   galleraDescription?: string;
   galleraEmail?: string;
   galleraWebsite?: string;
-  galleraSpecialties?: string[];
-  galleraActiveRoosters?: number;
 
   // Extended fields
   businessName?: string;
@@ -51,7 +49,6 @@ interface UserProfile {
   certified?: boolean;
   rating?: number;
   premiumLevel?: string;
-  specialties?: string[];
   imageUrl?: string;
 }
 

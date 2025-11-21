@@ -57,10 +57,25 @@ async function checkAndExpireSubscription(userId: string): Promise<void> {
       // Mark subscription as expired
       await subscription.markAsExpired();
 
+      // ⚡ CRITICAL: Create FREE subscription to revert user automatically
+      await Subscription.create({
+        userId,
+        type: null,
+        status: 'free',
+        paymentMethod: 'card',
+        autoRenew: false,
+        amount: 0,
+        currency: 'USD',
+        expiresAt: new Date('2099-12-31'),
+        retryCount: 0,
+        maxRetries: 0,
+        features: []
+      });
+
       // Invalidate user cache to force re-fetch on next request
       userCache.delete(userId);
 
-      console.log(`✅ Subscription expired and cache invalidated for user ${userId}`);
+      console.log(`✅ Subscription expired and reverted to FREE for user ${userId}`);
     }
   } catch (error) {
     console.error('Error checking subscription expiration:', error);

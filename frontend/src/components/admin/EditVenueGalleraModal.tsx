@@ -162,8 +162,8 @@ const EditVenueGalleraModal: React.FC<EditVenueGalleraModalProps> = ({
         images: profileData.profileInfo.images,
       };
 
-      // Update user profile with both personal and entity info
-      await usersAPI.updateProfile({
+      // Update user profile with both personal and entity info (admin endpoint)
+      await usersAPI.update(user.id, {
         profileInfo: {
           ...profileData.profileInfo,
           ...entityProfileInfoUpdate,

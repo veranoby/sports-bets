@@ -60,8 +60,6 @@ export interface User {
     galleraDescription?: string;
     galleraEmail?: string;
     galleraWebsite?: string;
-    galleraSpecialties?: string[];
-    galleraActiveRoosters?: string[];
     // Additional properties for GalleraDetailPage
     location?: string;
     description?: string;
@@ -69,7 +67,6 @@ export interface User {
     certified?: boolean;
     rating?: number;
     premiumLevel?: string;
-    specialties?: string;
     imageUrl?: string;
   };
   lastLogin?: string;

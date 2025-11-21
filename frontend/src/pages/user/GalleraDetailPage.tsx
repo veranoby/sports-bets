@@ -180,14 +180,6 @@ const GalleraDetailPage: React.FC = () => {
     gallera.owner?.profileInfo?.verificationLevel === "full" || false;
   const rating = gallera.owner?.profileInfo?.rating || 0;
   const premiumLevel = gallera.owner?.profileInfo?.premiumLevel;
-  const activeRoosters = gallera.owner?.profileInfo?.galleraActiveRoosters || 0;
-
-  // Specialties from owner.profileInfo
-  const specialties = Array.isArray(
-    gallera.owner?.profileInfo?.galleraSpecialties,
-  )
-    ? gallera.owner.profileInfo.galleraSpecialties
-    : gallera.owner?.profileInfo?.galleraSpecialties || [];
 
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");
@@ -227,12 +219,6 @@ const GalleraDetailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Gallos Activos */}
-            <div className="bg-emerald-500/30 border border-emerald-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
-              <span className="text-sm">🐓</span>
-              <span>{activeRoosters || 0}</span>
-            </div>
-
             {/* Verificación */}
             {isCertified && (
               <div className="bg-amber-500/30 border border-amber-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
@@ -267,25 +253,6 @@ const GalleraDetailPage: React.FC = () => {
         <div className="card-background p-6 md:p-8 mb-6">
           <p className="text-theme-light leading-relaxed">{description}</p>
         </div>
-
-        {/* Specialties */}
-        {specialties.length > 0 && (
-          <div className="card-background p-6 md:p-8 mb-6">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">
-              Especialidades
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {specialties.map((specialty, index) => (
-                <span
-                  key={index}
-                  className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-medium border border-green-500/50"
-                >
-                  {specialty}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Representative Info Card - OVER images and articles */}
         <div className="card-background p-6 md:p-8 mb-6">

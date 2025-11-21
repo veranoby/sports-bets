@@ -237,14 +237,6 @@ const Profile: React.FC = () => {
                         : user.profileInfo?.galleraDescription,
                     status: user.profileInfo?.verificationLevel || "pending",
                     certified: user.profileInfo?.certified || false,
-                    specialties:
-                      user.role === "gallera"
-                        ? user.profileInfo?.galleraSpecialties
-                        : undefined,
-                    activeRoosters:
-                      user.role === "gallera"
-                        ? user.profileInfo?.galleraActiveRoosters
-                        : undefined,
                     images: user.profileInfo?.images || [],
                     contactInfo: {
                       email:
