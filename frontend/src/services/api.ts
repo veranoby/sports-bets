@@ -218,6 +218,9 @@ export const authAPI = {
   login: async (credentials: { login: string; password: string }) => {
     return apiCall("post", "/auth/login", credentials);
   },
+  logout: async () => {
+    return apiCall("post", "/auth/logout");
+  },
   checkMembershipStatus: async () => {
     return apiCall("post", "/auth/check-membership-status");
   },

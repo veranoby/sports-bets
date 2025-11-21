@@ -40,7 +40,7 @@ interface AuthContextType {
     email: string;
     password: string;
   }) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -200,12 +200,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [],
   );
 
-  // 🔧 MEJORA 5: Logout optimizado
-  const logout = useCallback(() => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    isOperatingRef.current = false; // Reset estado operativo
+  // 🔧 MEJORA 5: Logout optimizado con invalidación de sesión backend
+  const logout = useCallback(async () => {
+    try {
+      // Llamar al backend para invalidar/eliminar la sesión de active_sessions
+      await authAPI.logout();
+    } catch (error) {
+      console.error("Error calling backend logout:", error);
+      // Continue with local logout even if backend fails
+    } finally {
+      // Limpiar estado local
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("token");
+      isOperatingRef.current = false;
+    }
   }, []);
 
   // 🔧 MEJORA 6: RefreshUser optimizado

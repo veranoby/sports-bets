@@ -103,8 +103,8 @@ const AdminSidebar: React.FC = () => {
     item.roles.includes(user?.role as "admin" | "operator"),
   );
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
