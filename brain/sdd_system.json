@@ -2,30 +2,15 @@
   "technical_architecture": {
     "database_layer": {
       "primary_database": {
-        "type": "PostgreSQL",
-        "hosting": "Neon.tech",
-        "version": "PostgreSQL 17.5",
-        "rationale": "Managed PostgreSQL con excelente rendimiento y escalabilidad.",
-        "connection_management": "Sequelize ORM con pooling optimizado.",
+        "type": "PostgreSQL 17",
+        "hosting": "OPTION B.1: PostgreSQL local en servidor dedicado",
+        "connection_management": "Sequelize ORM con pooling optimizado (20 max, 5 min).",
         "production_status": {
           "query_performance": "✅ OPTIMIZADO - Objetivo <500ms logrado.",
           "connection_pool": "✅ CONFIGURADO - 20 max, 5 min conexiones.",
           "connection_errors": "✅ RESUELTO - No hay ETIMEDOUT en producción.",
           "environment": "✅ PRODUCCIÓN - Secretos JWT y env configurados."
         }
-      },
-      "performance_optimizations": {
-        "P0_critical": [
-          "Optimización de índices para consultas lentas",
-          "Ajuste de configuración del pool de conexiones",
-          "Caching de consultas para datos calientes",
-          "Implementación de carga perezosa"
-        ],
-        "success_metrics": [
-          "95% de consultas <500ms",
-          "Cero ETIMEDOUT en producción",
-          "Pool de conexiones estable"
-        ]
       }
     },
     "backend_architecture": {
