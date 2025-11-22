@@ -140,7 +140,7 @@ router.get(
           description: (profile as any).galleraDescription || '',
           status: calculatedStatus,
           isVerified: false,
-          images: (profile as any).galleraImages || [],
+          images: (profile as any).images || [],
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           owner: {
@@ -200,7 +200,7 @@ router.get(
         description: (profile as any).galleraDescription || '',
         status: calculatedStatus,
         isVerified: false,
-        images: (profile as any).galleraImages || [],
+        images: (profile as any).images || [],
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         owner: {

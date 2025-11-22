@@ -130,6 +130,7 @@ const VenueDetailPage: React.FC = () => {
   const location = venue.location || "Ubicación no especificada";
   const description = venue.description || "Información no disponible";
   const images = venue.images || [];
+  const ownerProfileImage = venue.owner?.profileInfo?.imageUrl;
 
   // Owner/Representative info (from owner.profileInfo)
   const representativeName =
@@ -164,15 +165,24 @@ const VenueDetailPage: React.FC = () => {
           Volver a Galleras
         </button>
 
-        {/* Venue Header - Entity Name with Info Chips */}
+        {/* Venue Header - Entity Name with Logo and Info Chips */}
         <div className="card-background p-6 md:p-8 mb-6">
-          {/* Main Entity Name */}
-          <h1 className="text-4xl md:text-5xl font-bold text-theme-primary mb-4">
-            {entityName}
-          </h1>
+          {/* Main Entity Name with Logo */}
+          <div className="flex items-center gap-4">
+            {ownerProfileImage && (
+              <img
+                src={ownerProfileImage}
+                alt="Logo"
+                className="w-16 h-16 object-cover rounded-lg"
+              />
+            )}
+            <h1 className="text-4xl md:text-5xl font-bold text-theme-primary">
+              {entityName}
+            </h1>
+          </div>
 
           {/* Info Chips - Location, Rating, Events, Verificación, Fundada */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-4">
             {/* Ubicación */}
             <div className="bg-blue-500/30 border border-blue-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
               <MapPin className="w-3.5 h-3.5 text-blue-600" />
@@ -218,6 +228,7 @@ const VenueDetailPage: React.FC = () => {
           <p className="text-theme-light leading-relaxed">{description}</p>
         </div>
 
+
         {/* Representative Info Card */}
         <div className="card-background p-6 md:p-8 mb-6">
           <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">
@@ -260,13 +271,38 @@ const VenueDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Image Carousel - BEFORE articles */}
+        {/* Additional Images - Following BusinessInfoSection pattern with specific image display */}
         {images && images.length > 0 && (
-          <div className="mb-6">
-            <ImageCarouselViewer
-              images={images}
-              title="Galería de la Gallera"
-            />
+          <div className="card-background p-6 mb-6">
+            <h2 className="text-xl font-semibold text-theme-primary mb-4">Imágenes Adicionales</h2>
+
+            {/* Principal Image - First image as main image */}
+            {images[0] && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Imagen Principal</h3>
+                <div className="flex justify-center">
+                  <img
+                    src={images[0]}
+                    alt="Imagen Principal"
+                    className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Other Images - Remaining images */}
+            {images.slice(1).map((img, index) => (
+              <div key={index + 1} className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Otra Imagen {index + 1}</h3>
+                <div className="flex justify-center">
+                  <img
+                    src={img}
+                    alt={`Otra Imagen ${index + 1}`}
+                    className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

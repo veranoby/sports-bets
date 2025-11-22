@@ -137,7 +137,7 @@ router.get(
           description: (profile as any).venueDescription || '',
           status: calculatedStatus,
           isVerified: false,
-          images: (profile as any).venueImages || [],
+          images: (profile as any).images || [],
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           owner: {
@@ -197,7 +197,7 @@ router.get(
         description: (profile as any).venueDescription || '',
         status: calculatedStatus,
         isVerified: false,
-        images: (profile as any).venueImages || [],
+        images: (profile as any).images || [],
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         owner: {

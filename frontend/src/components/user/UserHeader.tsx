@@ -211,8 +211,7 @@ const UserHeader = memo(() => {
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-[#596c95]" />
             <span className="text-base font-medium">
-              Hola,{" "}
-              <span className="text-[#2a325c]">{displayName}</span>
+              Hola, <span className="text-[#2a325c]">{displayName}</span>
             </span>
           </div>
 
@@ -269,8 +268,6 @@ const UserHeader = memo(() => {
               </span>
             </button>
           )}
-
-          {/*    <SubscriptionStatus subscription={subscription} />
 
           {/* ACTIVE BETS */}
           {isBettingEnabled && (

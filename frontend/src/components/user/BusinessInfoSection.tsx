@@ -63,7 +63,7 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
   const isGallera = (d: any): d is Gallera => type === "gallera";
 
   const title =
-    type === "venue" ? "Información del Venue" : "Información de la Gallera";
+    type === "venue" ? "Información de la Gallera" : "Información del Criadero";
 
   return (
     <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
@@ -140,6 +140,21 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
           <div className="flex justify-center">
             <img
               src={data.images[0]}
+              alt={`${data.name}`}
+              className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {data.images && data.images[1] && (
+        <div className="border-t pt-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Otras Imagenes
+          </h3>
+          <div className="flex justify-center">
+            <img
+              src={data.images[1]}
               alt={`${data.name}`}
               className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
             />

@@ -207,7 +207,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
-                  Guardar Borrador
+                  Guardar como Borrador
                 </button>
               )}
               <button

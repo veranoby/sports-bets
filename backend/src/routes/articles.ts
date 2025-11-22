@@ -353,7 +353,13 @@ router.post(
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      throw new Error("Validation failed");
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
     }
 
     const { title, content, excerpt, venue_id, featured_image, featured_image_url, status: requestedStatus } = req.body;
@@ -414,7 +420,13 @@ router.put(
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      throw new Error("Validation failed");
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
     }
 
     const article = await Article.findByPk(req.params.id);

@@ -71,7 +71,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
       {
         id: "news",
         icon: Newspaper,
-        label: "Noticias",
+        label: "Articulos",
         path: "/news",
         gradient: "from-pink-500 to-pink-600",
       },
