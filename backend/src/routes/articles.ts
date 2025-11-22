@@ -136,7 +136,7 @@ router.get(
     const {
       search,
       author_id,
-      status: rawStatus = "published",
+      status: requestedStatus,
       includeAuthor = true,
       includeVenue = true,
     } = req.query as any;
@@ -160,12 +160,25 @@ router.get(
 
     // Build visibility filter
     if (isPrivileged) {
-      // Admin/operator: see requested status
-      whereClause.status = rawStatus;
+      // Admin/operator: see requested status (default to published if not specified)
+      whereClause.status = requestedStatus || "published";
+    } else if (requestedStatus) {
+      // Non-admin user explicitly requested a status
+      // Only allow if requesting "published"
+      if (requestedStatus === "published") {
+        whereClause.status = "published";
+      } else {
+        // Non-admin cannot request draft/pending/archived of others
+        // Show only own articles with that status + published from others
+        whereClause[Op.or] = [
+          req.user ? { author_id: req.user.id, status: requestedStatus } : null,
+          { status: "published" }
+        ].filter(Boolean);
+      }
     } else if (req.user) {
-      // Authenticated user: see own articles (any status) + published articles from others
+      // Authenticated user, no status requested: see own articles (any status) + published articles from others
       whereClause[Op.or] = [
-        { author_id: req.user.id },  // Own articles
+        { author_id: req.user.id },  // Own articles (any status)
         { status: "published" }       // Published articles from others
       ];
     } else {
@@ -173,7 +186,7 @@ router.get(
       whereClause.status = "published";
     }
 
-    const cacheKey = `${cacheKeyPrefix}_${isPrivileged ? rawStatus : (req.user ? 'own_plus_published' : 'published')}`;
+    const cacheKey = `${cacheKeyPrefix}_${isPrivileged ? (requestedStatus || 'published') : (requestedStatus || (req.user ? 'own_plus_published' : 'published'))}`;
 
     // Add search filter (combines with visibility using AND)
     if (search) {
