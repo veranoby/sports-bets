@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "3.0",
-    "last_updated": "2025-11-20",
-    "changelog": "Added useSSEConnection hook, SSEStreamingData interface, UseSSEConnectionReturn type, OptimizedStreamingMonitor component type, and updated for unified event hub implementation (StreamingControlTab, FightsControlTab, BetsActiveTab). Added StreamingControlTabProps interface.",
+    "version": "3.1",
+    "last_updated": "2025-11-22",
+    "changelog": "Added Article.status_enum_and_visibility documentation with role-based filtering logic, visibility rules by status, and backend enforcement details from ARTICLE_MANAGEMENT_BUG_FIXES_COMPLETED task.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
@@ -406,6 +406,36 @@
         "format": "URL-friendly (lowercase, hyphens, no special chars)",
         "uniqueness": "Enforced by backend with automatic numbering (e.g., title-1, title-2)",
         "frontend_note": "NEVER send slug in POST/PUT requests - backend auto-generates"
+      },
+      "status_enum_and_visibility": {
+        "last_updated": "2025-11-22",
+        "status_values": ["draft", "pending", "published", "archived"],
+        "visibility_filtering_by_role": {
+          "admin_operator": {
+            "description": "Full visibility - see requested status or default published",
+            "query": "WHERE status = [requested_status OR 'published']",
+            "example": "Admin can view draft/pending/published/archived articles by explicitly requesting them"
+          },
+          "authenticated_user": {
+            "description": "Own articles (any status) + published from others",
+            "query": "WHERE (author_id = user_id) OR (status = 'published')",
+            "example": "User sees own draft/pending articles + published articles from other users"
+          },
+          "guest_anonymous": {
+            "description": "Only published articles",
+            "query": "WHERE status = 'published'",
+            "example": "Non-authenticated users see only published articles"
+          }
+        },
+        "status_behavior": {
+          "draft": "Author-only visibility, not visible to others, can be edited anytime",
+          "pending": "Author-only visibility, awaiting admin review, visible in admin panel",
+          "published": "Public visibility to all authenticated + guests, article is live",
+          "archived": "Author + admin only, hidden from public listing"
+        },
+        "enforcement_location": "backend/src/routes/articles.ts lines 162-186 (GET /articles filtering)",
+        "frontend_impact": "Admin panel shows all statuses via ?status parameter. User dashboard shows only own+published.",
+        "created_by_task": "ARTICLE_MANAGEMENT_BUG_FIXES_COMPLETED (2025-11-22)"
       },
       "deprecated_fields": ["summary", "featured_image_url", "venue", "venue_id"],
       "api_mapping": {
