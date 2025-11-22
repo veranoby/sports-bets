@@ -34,10 +34,14 @@ const ArticleDetail: React.FC = () => {
           "Error al cargar el artículo";
 
         // Check if this is a premium content access error
-        if (errorMessage.toLowerCase().includes('forbidden') ||
-            errorMessage.includes('premium') ||
-            (err as any)?.response?.status === 403) {
-          setError("Necesitas una membresía activa para acceder a este contenido premium");
+        if (
+          errorMessage.toLowerCase().includes("forbidden") ||
+          errorMessage.includes("premium") ||
+          (err as any)?.response?.status === 403
+        ) {
+          setError(
+            "Necesitas una membresía activa para acceder a este contenido premium",
+          );
         } else {
           setError(errorMessage);
         }

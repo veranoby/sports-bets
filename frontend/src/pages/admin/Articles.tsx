@@ -112,13 +112,18 @@ const AdminArticlesPage: React.FC = () => {
     if (articlesRes.success && venuesRes.success) {
       // The API returns data in the format { success: boolean, data: { articles: [...], pagination: {...} } }
       const articleData = articlesRes.data;
-      setArticles(Array.isArray(articleData) ? articleData : (articleData as any)?.articles || []);
+      setArticles(
+        Array.isArray(articleData)
+          ? articleData
+          : (articleData as any)?.articles || [],
+      );
       setVenues((venuesRes.data as any)?.venues || []);
       // Actualizar pendientes
       setPendingArticles(
-        (Array.isArray(articleData) ? articleData : (articleData as any)?.articles || []).filter(
-          (a: Article) => a.status === "pending",
-        ) || [],
+        (Array.isArray(articleData)
+          ? articleData
+          : (articleData as any)?.articles || []
+        ).filter((a: Article) => a.status === "pending") || [],
       );
     } else {
       setError(
@@ -165,7 +170,11 @@ const AdminArticlesPage: React.FC = () => {
       if (articlesRes.success && venuesRes.success) {
         // The API returns data in the format { success: boolean, data: { articles: [...], pagination: {...} } }
         const articleData = articlesRes.data;
-        setArticles(Array.isArray(articleData) ? articleData : (articleData as any)?.articles || []);
+        setArticles(
+          Array.isArray(articleData)
+            ? articleData
+            : (articleData as any)?.articles || [],
+        );
         setVenues((venuesRes.data as any)?.venues || []);
       } else {
         setError(
