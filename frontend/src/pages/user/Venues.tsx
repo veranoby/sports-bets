@@ -207,9 +207,8 @@ const VenuesPage: React.FC = () => {
                   name: venue.name || "Gallera sin nombre",
                   description: venue.description || "Información no disponible",
                   location: venue.location || "Ubicación no especificada",
-                  imageUrl:
-                    venue.images?.[0] || venue.owner?.profileInfo?.profileImage,
-                  ownerImage: venue.owner?.profileInfo?.profileImage,
+                  imageUrl: venue.profileImage,
+                  ownerImage: venue.profileImage,
                   galleryImages: venue.images || [],
                   articlesCount: articles.success
                     ? (articles.data as { total: number })?.total || 0

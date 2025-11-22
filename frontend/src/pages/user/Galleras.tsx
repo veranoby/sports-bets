@@ -295,10 +295,8 @@ const GallerasPage: React.FC = () => {
                 name: gallera.name || "Criadero sin nombre",
                 description: gallera.description || "Información no disponible",
                 location: gallera.location || "Ubicación no especificada",
-                imageUrl:
-                  gallera.images?.[0] ||
-                  gallera.owner?.profileInfo?.profileImage,
-                ownerImage: gallera.owner?.profileInfo?.profileImage,
+                imageUrl: gallera.profileImage,
+                ownerImage: gallera.profileImage,
                 galleryImages: gallera.images || [],
                 articlesCount: articleCount,
                 establishedDate: gallera.createdAt,
