@@ -345,8 +345,22 @@ router.post(
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
     body("excerpt").isString().isLength({ min: 10, max: 500 }),
-    body("featured_image").optional({ checkFalsy: true }).isURL(),
-    body("featured_image_url").optional({ checkFalsy: true }).isURL(),
+    body("featured_image")
+      .custom((value) => {
+        // Allow empty string, null, or undefined
+        if (!value || value === '') return true;
+        // If provided, must be valid URL
+        return /^https?:\/\//.test(value);
+      })
+      .withMessage("featured_image must be a valid URL if provided"),
+    body("featured_image_url")
+      .custom((value) => {
+        // Allow empty string, null, or undefined
+        if (!value || value === '') return true;
+        // If provided, must be valid URL
+        return /^https?:\/\//.test(value);
+      })
+      .withMessage("featured_image_url must be a valid URL if provided"),
     body("status").optional().isIn(["draft", "pending", "published", "archived"]),
   ],
   sanitizeArticleContent,
@@ -412,8 +426,22 @@ router.put(
     body("title").optional().isString().isLength({ min: 5, max: 255 }),
     body("content").optional().isString().isLength({ min: 10 }),
     body("excerpt").optional().isString().isLength({ min: 10, max: 500 }),
-    body("featured_image").optional({ checkFalsy: true }).isURL(),
-    body("featured_image_url").optional({ checkFalsy: true }).isURL(),
+    body("featured_image")
+      .custom((value) => {
+        // Allow empty string, null, or undefined
+        if (!value || value === '') return true;
+        // If provided, must be valid URL
+        return /^https?:\/\//.test(value);
+      })
+      .withMessage("featured_image must be a valid URL if provided"),
+    body("featured_image_url")
+      .custom((value) => {
+        // Allow empty string, null, or undefined
+        if (!value || value === '') return true;
+        // If provided, must be valid URL
+        return /^https?:\/\//.test(value);
+      })
+      .withMessage("featured_image_url must be a valid URL if provided"),
     body("status").optional().isIn(["draft", "pending", "published", "archived"]),
   ],
   sanitizeArticleContent,
