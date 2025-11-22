@@ -264,7 +264,6 @@ const GalleraDetailPage: React.FC = () => {
           <p className="text-theme-light leading-relaxed">{description}</p>
         </div>
 
-
         {/* Representative Info Card - OVER images and articles */}
         <div className="card-background p-6 md:p-8 mb-6">
           <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">
@@ -310,12 +309,16 @@ const GalleraDetailPage: React.FC = () => {
         {/* Additional Images - Following BusinessInfoSection pattern with specific image display */}
         {images && images.length > 0 && (
           <div className="card-background p-6 mb-6">
-            <h2 className="text-xl font-semibold text-theme-primary mb-4">Imágenes Adicionales</h2>
+            <h2 className="text-xl font-semibold text-theme-primary mb-4">
+              Imágenes Adicionales
+            </h2>
 
             {/* Principal Image - First image as main image */}
             {images[0] && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Imagen Principal</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Imagen Principal
+                </h3>
                 <div className="flex justify-center">
                   <img
                     src={images[0]}
@@ -329,7 +332,9 @@ const GalleraDetailPage: React.FC = () => {
             {/* Other Images - Remaining images */}
             {images.slice(1).map((img, index) => (
               <div key={index + 1} className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Otra Imagen {index + 1}</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Otra Imagen {index + 1}
+                </h3>
                 <div className="flex justify-center">
                   <img
                     src={img}
