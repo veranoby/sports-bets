@@ -68,7 +68,9 @@ function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail
   const publicAttributes = [
     "id",
     "title",
+    "slug",
     "excerpt",
+    "content",  // ✅ Include content for detail views
     "category",
     "status",
     "published_at",
@@ -80,7 +82,6 @@ function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail
 
   const authenticatedAttributes = [
     ...publicAttributes,
-    "content",
     "tags",
     "venue_id",
     "view_count",
@@ -149,18 +150,53 @@ router.get(
     const includeVenueBool = includeVenue === 'true' || includeVenue === true;
 
     const isPrivileged = !!req.user && ["admin", "operator"].includes(req.user.role);
-    const status = isPrivileged ? rawStatus : "published"; // Solo admin/operator puede listar no publicados
 
     // ⚡ CRITICAL OPTIMIZATION: Generate cache key for query results
-    const cacheKey = `articles_list_${status}_${limit}_${offset}_${search || 'none'}_${author_id || 'none'}_${includeAuthorBool}_${includeVenueBool}`;
+    // Cache key includes user_id for proper filtering of personal articles
+    const cacheKeyPrefix = `articles_list_${limit}_${offset}_${search || 'none'}_${author_id || 'none'}_${includeAuthorBool}_${includeVenueBool}${req.user ? `_user_${req.user.id}` : ''}`;
 
-    const whereClause: any = { status };
+    // Determine which articles user can see
+    const whereClause: any = {};
 
-    if (search) {
+    // Build visibility filter
+    if (isPrivileged) {
+      // Admin/operator: see requested status
+      whereClause.status = rawStatus;
+    } else if (req.user) {
+      // Authenticated user: see own articles (any status) + published articles from others
       whereClause[Op.or] = [
-        { title: { [Op.iLike]: `%${search}%` } },
-        { excerpt: { [Op.iLike]: `%${search}%` } },
+        { author_id: req.user.id },  // Own articles
+        { status: "published" }       // Published articles from others
       ];
+    } else {
+      // Unauthenticated: only published
+      whereClause.status = "published";
+    }
+
+    const cacheKey = `${cacheKeyPrefix}_${isPrivileged ? rawStatus : (req.user ? 'own_plus_published' : 'published')}`;
+
+    // Add search filter (combines with visibility using AND)
+    if (search) {
+      if (whereClause[Op.or]) {
+        // If we already have Op.or (for auth users), wrap in Op.and
+        const visibilityFilter = whereClause[Op.or];
+        whereClause[Op.and] = [
+          { [Op.or]: visibilityFilter },
+          {
+            [Op.or]: [
+              { title: { [Op.iLike]: `%${search}%` } },
+              { excerpt: { [Op.iLike]: `%${search}%` } },
+            ]
+          }
+        ];
+        delete whereClause[Op.or];
+      } else {
+        // If only status filter, can use simple OR
+        whereClause[Op.or] = [
+          { title: { [Op.iLike]: `%${search}%` } },
+          { excerpt: { [Op.iLike]: `%${search}%` } },
+        ];
+      }
     }
 
     if (author_id) {
@@ -389,19 +425,19 @@ router.post(
       .replace(/^-+|-+$/g, '');   // Remove leading/trailing dashes
 
     // Determine article status based on role
-    let articleStatus: "draft" | "pending" | "published" | "archived" = "published";
-    let publishedAt: Date | undefined = new Date();
+    let articleStatus: "draft" | "pending" | "published" | "archived" = "draft";
+    let publishedAt: Date | undefined = undefined;
 
-    if (req.user!.role === "gallera" || req.user!.role === "user") {
-      // Galleras/users can create drafts or pending articles
-      // If they request "draft", keep it as draft
-      // Otherwise, default to "pending" for review
-      articleStatus = (requestedStatus === "draft") ? "draft" : "pending";
-      publishedAt = undefined;
-    } else if (req.user!.role === "admin" || req.user!.role === "operator") {
+    if (req.user!.role === "admin" || req.user!.role === "operator") {
       // Admins/operators can use any status including published
       articleStatus = requestedStatus || "published";
       publishedAt = (articleStatus === "published") ? new Date() : undefined;
+    } else {
+      // Regular users (venue, gallera, user): can create drafts or submit for pending review
+      // If they request "draft", keep it as draft
+      // Otherwise, default to "pending" for review (requires admin approval)
+      articleStatus = (requestedStatus === "draft") ? "draft" : "pending";
+      publishedAt = undefined;
     }
 
     const article = await Article.create({
