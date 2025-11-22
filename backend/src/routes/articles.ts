@@ -379,6 +379,15 @@ router.post(
     const { title, content, excerpt, venue_id, featured_image, featured_image_url, status: requestedStatus } = req.body;
     const featuredImage = featured_image || featured_image_url;
 
+    // Generate slug from title
+    const slug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')       // Replace spaces with dashes
+      .replace(/-+/g, '-')        // Replace multiple dashes with single dash
+      .replace(/^-+|-+$/g, '');   // Remove leading/trailing dashes
+
     // Determine article status based on role
     let articleStatus: "draft" | "pending" | "published" | "archived" = "published";
     let publishedAt: Date | undefined = new Date();
@@ -397,6 +406,7 @@ router.post(
 
     const article = await Article.create({
       title,
+      slug,
       content,
       excerpt,
       author_id: req.user!.id,
@@ -474,7 +484,17 @@ router.put(
     const { title, content, excerpt, featured_image, featured_image_url, status } = req.body;
 
     // Update fields if provided
-    if (title !== undefined) article.title = title;
+    if (title !== undefined) {
+      article.title = title;
+      // Regenerate slug if title changes
+      article.slug = title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')       // Replace spaces with dashes
+        .replace(/-+/g, '-')        // Replace multiple dashes with single dash
+        .replace(/^-+|-+$/g, '');   // Remove leading/trailing dashes
+    }
     if (content !== undefined) article.content = content;
     if (excerpt !== undefined) article.excerpt = excerpt;
     if (featured_image || featured_image_url) {
