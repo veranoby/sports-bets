@@ -86,8 +86,8 @@ const AdminArticlesPage: React.FC = () => {
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Modal crear/editar
-  const [showArticleModal] = useState(false);
-  const [editingArticle] = useState<Article | null>(null);
+  const [showArticleModal, setShowArticleModal] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
   // Modal preview
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
@@ -271,15 +271,18 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const openCreateModal = () => {
-    // Esta función se puede implementar más adelante
+    setEditingArticle(null);
+    setShowArticleModal(true);
   };
 
   const closeArticleModal = () => {
-    // Esta función se puede implementar más adelante
+    setShowArticleModal(false);
+    setEditingArticle(null);
   };
 
   const openEditModal = (article: Article) => {
-    // Esta función se puede implementar más adelante
+    setEditingArticle(article);
+    setShowArticleModal(true);
   };
 
   const handleToggleStatus = async (
