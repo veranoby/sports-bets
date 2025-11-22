@@ -351,8 +351,8 @@ router.post(
   ],
   sanitizeArticleContent,
   asyncHandler(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
       throw new Error("Validation failed");
     }
 
@@ -412,8 +412,8 @@ router.put(
   ],
   sanitizeArticleContent,
   asyncHandler(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
       throw new Error("Validation failed");
     }
 
@@ -466,74 +466,6 @@ router.put(
     await article.save();
 
     // ⚡ OPTIMIZATION: Invalidate all relevant caches
-    await Promise.all([
-      invalidatePattern('articles_list_*'),
-      invalidatePattern('articles_featured_*'),
-      invalidatePattern(`article_detail_${req.params.id}_*`)
-    ]);
-
-    res.json({
-      success: true,
-      data: serializeArticle(article),
-    });
-  })
-);
-
-// ⚡ OPTIMIZATION: Status update with cache invalidation
-router.put(
-  "/:id/status",
-  authenticate,
-  authorize("admin", "operator"),
-  [body("status").isIn(["published", "archived", "pending"])],
-  asyncHandler(async (req, res) => {
-    const { status } = req.body;
-
-    const article = await Article.findByPk(req.params.id);
-    if (!article) {
-      throw errors.notFound("Article not found");
-    }
-
-    article.status = status;
-    if (status === "published" && !article.published_at) {
-      article.published_at = new Date();
-    }
-
-    await article.save();
-
-    // ⚡ OPTIMIZATION: Invalidate all relevant caches
-    await Promise.all([
-      invalidatePattern('articles_list_*'),
-      invalidatePattern('articles_featured_*'),
-      invalidatePattern(`article_detail_${req.params.id}_*`)
-    ]);
-
-    res.json({
-      success: true,
-      data: serializeArticle(article),
-    });
-  })
-);
-
-
-// ⚡ OPTIMIZATION: Publish with cache invalidation
-router.put(
-  "/:id/publish",
-  authenticate,
-  authorize("admin"),
-  asyncHandler(async (req, res) => {
-    const article = await Article.findByPk(req.params.id);
-    if (!article) {
-      throw errors.notFound("Article not found");
-    }
-
-    article.status = "published";
-    if (!article.published_at) {
-      article.published_at = new Date();
-    }
-
-    await article.save();
-
-    // ⚡ OPTIMIZATION: Invalidate caches after publishing
     await Promise.all([
       invalidatePattern('articles_list_*'),
       invalidatePattern('articles_featured_*'),
