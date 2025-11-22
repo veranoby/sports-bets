@@ -54,7 +54,7 @@ function serializeArticle(article: any, attributes?: string[]) {
   if (article.author && article.author.subscription) {
     result.author_subscription = article.author.subscription;
     // Determine if content is premium based on author's active subscription
-    result.is_premium_content = article.author.subscription.status === 'active' && 
+    result.is_premium_content = article.author.subscription.status === 'active' &&
                                 article.author.subscription.type !== 'free';
   } else if (article.author && !result.author_subscription) {
     // Default to free content if no subscription info

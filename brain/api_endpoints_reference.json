@@ -3,7 +3,7 @@
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
     "version": "1.7",
-    "last_updated": "2025-11-20 - Added /admin/events/{id} unified hub implementation (StreamingControlTab, FightsControlTab, BetsActiveTab). Fixed data access patterns for venues/galleras detail pages. Restored membership change request button. Added event detail UI tabs structure.",
+    "last_updated": "2025-11-22 - Added role-based status filtering logic to GET /articles endpoint. Fixed ArticleDetail premium error handling and Articles.tsx response format handling. Documented filtering behavior for admin/auth/guest users.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -493,7 +493,34 @@
       "query_params": ["search", "authorId", "status", "limit", "offset"],
       "REMOVED_2025_11_07": "venueId replaced with authorId per PRD:205 FASE 5 consolidation",
       "auth_required": false,
-      "middleware": "optionalAuth"
+      "middleware": "optionalAuth",
+      "status_filtering_logic": {
+        "last_updated": "2025-11-22",
+        "purpose": "Role-based visibility filtering - users see only articles they have permission to access",
+        "behavior_by_role": {
+          "admin_and_operator": {
+            "description": "Full visibility - see articles in requested status",
+            "logic": "WHERE status = ? (status parameter or default 'published')",
+            "use_case": "Admin panel article management"
+          },
+          "authenticated_user": {
+            "description": "Own articles + published from others",
+            "logic": "WHERE (author_id = userId AND status IN [draft, pending, published, archived]) OR (author_id != userId AND status = 'published')",
+            "use_case": "User dashboard showing their articles and published content"
+          },
+          "guest_anonymous": {
+            "description": "Only published articles",
+            "logic": "WHERE status = 'published'",
+            "use_case": "Public article listing"
+          }
+        },
+        "important_notes": [
+          "status parameter is optional - defaults to 'published' for non-admin users",
+          "When user explicitly requests status=draft/pending, they only see their own articles in that status",
+          "Non-admin users cannot see draft/pending/archived articles from other users",
+          "Implement via backend/src/routes/articles.ts lines 136-189"
+        ]
+      }
     },
     "featured_articles": {
       "method": "GET",

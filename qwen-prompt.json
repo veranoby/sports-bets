@@ -1,0 +1,210 @@
+{
+  "=4_COORDINATOR_STRATEGY_COMPLIANCE": {
+    "director_ai": "Claude Haiku (planning mode) - Created this plan following DIRECTOR_PLANNING_PROTOCOL (brain/multi_ai_coordination_strategy.json lines 79-101)",
+    "executor_ai": "Qwen (implementation mode) - Execute this plan following ALL mandatory protocols",
+    "session_references": [
+      "brain/multi_ai_coordination_strategy.json lines 147-280 (AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL)",
+      "brain/multi_ai_coordination_strategy.json lines 345-385 (validation_gates)",
+      "brain/multi_ai_coordination_strategy.json lines 639-667 (evidence_based_validation_protocol)"
+    ]
+  },
+
+  "task_metadata": {
+    "task_name": "Fix ArticleDetail premium validation AND Admin Articles empty list",
+    "complexity": "HIGH",
+    "execution_mode": "standard",
+    "assigned_role": "executor",
+    "estimated_duration_minutes": 25,
+    "git_branch": "main",
+    "mcp_activation_required": ["--seq", "--sequential"],
+    "required_flags": "--seq for multi-step backend analysis"
+  },
+
+  "=4_SESSION_START_DECLARATION_REQUIRED": {
+    "must_declare": "Model: [qwen-model] | Assigned Role: executor | Task: Fix 2 article management bugs | Flags: --seq --sequential",
+    "must_echo_back_tasks": "Task 1: Investigate ArticleDetail.tsx premium validation bug. Task 2: Fix Admin /articles endpoint empty list. Confirm Y/N?",
+    "validation_after_completion": "Run: npm run build && npx tsc --noEmit && git diff --name-only"
+  },
+
+  "problems_to_solve": {
+    "problem_1_article_detail_premium": {
+      "description": "User reports: /article/:id shows 'premium content' error even though user HAS active membership",
+      "impact": "Users cannot read published articles they have access to",
+      "suspected_location": "ArticleDetail.tsx line 19-36 OR backend GET /articles/:id endpoint",
+      "investigation_checklist": [
+        " Find where premium validation happens (likely ArticleDetail.tsx or backend middleware)",
+        " Check if 403/premium error comes from frontend or backend",
+        " Verify user's subscription status is being passed to article fetching",
+        " Check if subscription expiration date is being validated correctly"
+      ]
+    },
+
+    "problem_2_admin_articles_empty": {
+      "description": "Admin visits /admin/articles but sees empty article list despite articles existing in database",
+      "impact": "Admin cannot manage articles through admin panel",
+      "suspected_location": "frontend/src/pages/admin/Articles.tsx lines 99-174 (useEffect not fetching data correctly)",
+      "investigation_checklist": [
+        " Check if articlesAPI.getAll() is being called correctly",
+        " Verify response.data structure matches what code expects (articles vs data.articles)",
+        " Check if articles are being filtered out by status logic",
+        " Verify useEffect dependencies are correct"
+      ]
+    }
+  },
+
+  "=4_AUDIT_METHODOLOGY_PROTOCOL_APPLICATION": {
+    "principle": "Bidirectional search - check BOTH frontend AND backend for each problem",
+    "problem_1_premium_validation_bidirectional_search": {
+      "direction_A_frontend_to_backend": "Search frontend/src/pages/user/ArticleDetail.tsx for: 'premium', '403', 'Forbidden', 'access'",
+      "direction_B_backend_to_frontend": "Search backend GET /articles/:id for: 'premium', 'subscription', '403', middleware validation"
+    },
+    "problem_2_admin_articles_bidirectional_search": {
+      "direction_A_frontend_to_backend": "Check admin/Articles.tsx useEffect for correct API call pattern, response handling",
+      "direction_B_backend_to_frontend": "Check GET /articles endpoint returns articles array in correct shape for admin"
+    }
+  },
+
+  "implementation_plan": {
+    "step_1_validate_assumptions": {
+      "action": "Before any code changes, verify current state",
+      "verify_1": "Run git status to see baseline (should be clean)",
+      "verify_2": "Read ArticleDetail.tsx lines 1-40 to understand current error handling",
+      "verify_3": "Read admin/Articles.tsx lines 99-174 to understand fetch logic"
+    },
+
+    "step_2_investigate_problem_1_premium_error": {
+      "action": "Find and understand premium validation error",
+      "investigate_2a": "Read: frontend/src/pages/user/ArticleDetail.tsx (full file)",
+      "investigate_2b": "Search backend for GET /articles/:id endpoint - look for premium/subscription validation",
+      "investigate_2c": "Check backend/src/routes/articles.ts for middleware that might block access",
+      "find_root_cause": "Determine: Is premium check happening in frontend OR backend?",
+      "validate_hypothesis": "Compare actual subscription status against what the code expects"
+    },
+
+    "step_3_fix_problem_1_premium_validation": {
+      "simulate": "Plan what to change based on root cause (likely remove premium check OR fix subscription validation)",
+      "fix_action": "If frontend: remove or fix premium check. If backend: fix subscription validation logic",
+      "files_to_modify_problem_1": [
+        "frontend/src/pages/user/ArticleDetail.tsx (IF premium check is in frontend)",
+        "backend/src/routes/articles.ts (IF subscription validation is broken)"
+      ]
+    },
+
+    "step_4_investigate_problem_2_admin_articles": {
+      "action": "Find why admin articles list is empty",
+      "investigate_4a": "Read: frontend/src/pages/admin/Articles.tsx lines 99-174 (useEffect and fetchData)",
+      "investigate_4b": "Check: What does articlesAPI.getAll() return? (Look at services/api.ts articlesAPI definition)",
+      "investigate_4c": "Check: Is response.data structure matching expected? (articles array or nested?)",
+      "investigate_4d": "Check: Are articles being filtered out? Look at line 130-143 filter logic",
+      "find_root_cause": "Determine: Fetch failing? Response format wrong? Articles being filtered out?"
+    },
+
+    "step_5_fix_problem_2_admin_articles": {
+      "simulate": "Plan fix based on root cause",
+      "fix_action": "Likely: Fix response.data parsing OR adjust filter logic to include all articles for admin",
+      "files_to_modify_problem_2": [
+        "frontend/src/pages/admin/Articles.tsx (fix fetch logic or filter)"
+      ]
+    },
+
+    "step_6_validation": {
+      "command_1": "npx tsc --noEmit (MUST return 0 errors - non-negotiable per coordination_strategy.json)",
+      "command_2": "npm run build (verify build succeeds)",
+      "command_3": "git diff --name-only (verify ONLY intended files modified)"
+    }
+  },
+
+  "=4_MANDATORY_COMPLETION_CHECKLIST": {
+    "before_committing": [
+      " TypeScript compilation: npx tsc --noEmit returns 0 errors",
+      " Build process: npm run build completes successfully",
+      " Scope validation: git diff --name-only shows ONLY files listed in 'files_to_modify'",
+      " Both problems investigated AND fixed"
+    ],
+    "evidence_required_in_report": [
+      "Actual command output from: npx tsc --noEmit",
+      "Actual output from: npm run build (final 5 lines showing success)",
+      "List of files modified with git diff --stat",
+      "Root cause explanation for each problem with specific line numbers",
+      "Before/after comparison (what was wrong, what changed)"
+    ]
+  },
+
+  "=4_REPORTING_PROTOCOL": {
+    "report_location": "NONE - Report completion to user in chat. Do NOT create files.",
+    "report_format": "Text message with: problem description � root cause � fix applied � validation results",
+    "success_criteria": [
+      "Problem 1: Premium validation fixed - explain root cause and fix",
+      "Problem 2: Admin articles now display in list - explain root cause and fix",
+      "All validation gates passed (TypeScript, build, scope)"
+    ]
+  },
+
+  "=4_CRITICAL_CONSTRAINTS": {
+    "constraint_1": "NEVER modify files NOT in the 'files_to_modify' lists above",
+    "constraint_2": "BEFORE committing: Run git diff --name-only and verify ONLY approved files changed",
+    "constraint_3": "TypeScript compilation MUST succeed with 0 errors",
+    "constraint_4": "If simulation reveals any issues � STOP and report, do NOT attempt fixes without analysis",
+    "constraint_5": "Use --seq flag for multi-step reasoning per coordination_strategy lines 72"
+  },
+
+  "helpful_context": {
+    "recent_backend_fixes": [
+      "Articles status/visibility fixed (GET /articles respects published filter)",
+      "Article slug auto-generation implemented",
+      "Articles content field included in detail response"
+    ],
+    "article_management_status": [
+      "Backend endpoints working",
+      "Frontend ArticleManagement component ready for testing",
+      "Admin sidebar now has Articles link",
+      "Two remaining issues: premium validation + admin list display"
+    ]
+  },
+
+  "=4_BRAIN_FILE_UPDATE_INSUMOS_FOR_DIRECTOR": {
+    "critical_note": "IMPORTANT: The director (Claude Haiku) will update brain/ files AFTER this task completes. Provide SPECIFIC evidence below so director can update files accurately without follow-up questions.",
+
+    "insumo_1_problem_1_premium_validation_evidence": {
+      "requirement": "For problem 1 (premium validation blocking access), provide:",
+      "evidence_needed": [
+        "Exact file path where premium validation check happens (e.g., ArticleDetail.tsx or articles.ts route handler)",
+        "Exact line number(s) of the validation logic",
+        "What condition is blocking access (e.g., 'if (isPremium && !hasSubscription')",
+        "Whether this is intentional or a bug",
+        "What the correct logic SHOULD be based on subscription status"
+      ],
+      "format": "Report as: 'File: [path] | Lines: [X-Y] | Current logic: [code snippet] | Issue: [explanation]'"
+    },
+
+    "insumo_2_problem_2_admin_articles_empty_evidence": {
+      "requirement": "For problem 2 (admin articles showing empty list), provide:",
+      "evidence_needed": [
+        "Exact GET /articles query being executed (SQL or Sequelize equivalent)",
+        "What status filters are being applied in the query",
+        "Whether admin user is correctly identified and status filtering bypassed for admin",
+        "Response data structure (what articlesAPI.getAll() returns to frontend)",
+        "Whether articles exist in database but are being filtered out, or fetch is failing"
+      ],
+      "format": "Report as: 'Query: [sequelize/SQL] | Filters: [status=X, author=Y] | Response shape: [articles array structure] | Root cause: [explanation]'"
+    },
+
+    "insumo_3_status_filtering_confirmation": {
+      "requirement": "Verify that backend status filtering from earlier director fixes is working correctly:",
+      "confirm": [
+        "New status=published explicit filtering logic in GET /articles is applied correctly for admin users (should see requested status or default published)",
+        "Admin users bypass normal visibility filtering and see articles they request",
+        "Regular users see own articles (any status) + published from others",
+        "Non-auth users see only published articles"
+      ],
+      "format": "Report as: 'GET /articles logic verified: Admin filtering [CORRECT/ISSUE], User filtering [CORRECT/ISSUE], Auth filtering [CORRECT/ISSUE]'"
+    },
+
+    "insumo_4_director_will_use_for_brain_updates": {
+      "brain_file_1_api_endpoints_reference": "Director will add new section documenting status filtering behavior in GET /articles endpoint with examples for each user role",
+      "brain_file_2_validation_gates": "Director will ensure this task completion evidence is recorded in validation_gates section",
+      "brain_file_3_backlog": "Director will update backlog.json with completion status and any follow-up tasks",
+      "provide_insumos_as": "Structured evidence (above format) so director can reference specific line numbers and root causes in brain file updates"
+    }
+  }
+}

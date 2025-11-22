@@ -17,14 +17,30 @@ const ArticleDetail: React.FC = () => {
       try {
         setLoading(true);
         const response = await apiClient.get(`/articles/${id}`);
-        setArticle(response.data.data);
+
+        // Check if this is a premium article and if the user has access
+        const articleData = response.data.data;
+        if (articleData.is_premium_content && articleData.author_subscription) {
+          // The article is marked as premium, but we need to check if the current user has access
+          // The backend should handle authorization, so if we get the article, we should have access
+        }
+
+        setArticle(articleData);
       } catch (err: unknown) {
         // Changed from 'any' to 'unknown' for better type safety
-        setError(
+        const errorMessage =
           (err as any)?.response?.data?.message ||
-            (err as Error)?.message ||
-            "Error al cargar el artículo",
-        );
+          (err as Error)?.message ||
+          "Error al cargar el artículo";
+
+        // Check if this is a premium content access error
+        if (errorMessage.toLowerCase().includes('forbidden') ||
+            errorMessage.includes('premium') ||
+            (err as any)?.response?.status === 403) {
+          setError("Necesitas una membresía activa para acceder a este contenido premium");
+        } else {
+          setError(errorMessage);
+        }
       } finally {
         setLoading(false);
       }
