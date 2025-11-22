@@ -340,7 +340,7 @@ router.get(
 router.post(
   "/",
   authenticate,
-  authorize("admin", "gallera", "user"),
+  authorize("admin", "gallera", "user", "venue"),
   [
     body("title").isString().isLength({ min: 5, max: 255 }),
     body("content").isString().isLength({ min: 10 }),
