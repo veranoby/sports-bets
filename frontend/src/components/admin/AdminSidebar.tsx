@@ -14,6 +14,7 @@ import {
   LogOut,
   Shield,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -64,6 +65,12 @@ const AdminSidebar: React.FC = () => {
       path: "/admin/bets",
       icon: DollarSign,
       label: "Apuestas",
+      roles: ["admin"],
+    },
+    {
+      path: "/admin/articles",
+      icon: FileText,
+      label: "Artículos/Noticias",
       roles: ["admin"],
     },
     {
