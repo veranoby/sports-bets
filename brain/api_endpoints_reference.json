@@ -588,6 +588,72 @@
       "auth_required": true,
       "roles": ["admin", "gallera", "venue"],
       "ownership": "Only admin or article owner can delete"
+    },
+    "approve_article": {
+      "method": "PATCH",
+      "path": "/articles/:id/approve",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "description": "Approve pending article and publish it",
+      "workflow": "pending → published",
+      "actions": [
+        "Sets status to 'published'",
+        "Sets published_at to current timestamp",
+        "Clears admin_rejection_message if present",
+        "Invalidates article list and detail caches"
+      ],
+      "validation": {
+        "article_must_exist": true,
+        "current_status_must_be": "pending",
+        "error_if_not_pending": "Only pending articles can be approved"
+      },
+      "response": {
+        "success": true,
+        "message": "Article approved and published successfully",
+        "data": "Article object with updated status"
+      },
+      "implementation": "backend/src/routes/articles.ts:594-632",
+      "created": "2025-11-22",
+      "task": "ARTICLE_ADMIN_WORKFLOW"
+    },
+    "reject_article": {
+      "method": "PATCH",
+      "path": "/articles/:id/reject",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "description": "Reject pending article and return to draft with admin feedback",
+      "workflow": "pending → draft (with feedback message)",
+      "body": {
+        "rejection_message": "string (required, min 10, max 500 chars)"
+      },
+      "actions": [
+        "Sets status to 'draft'",
+        "Stores admin feedback in admin_rejection_message field",
+        "Article becomes visible only to author",
+        "Author sees rejection message when editing article",
+        "Invalidates article list and detail caches"
+      ],
+      "validation": {
+        "article_must_exist": true,
+        "current_status_must_be": "pending",
+        "rejection_message_required": "10-500 characters",
+        "error_if_not_pending": "Only pending articles can be rejected",
+        "error_if_message_too_short": "Rejection message required (10-500 chars)",
+        "error_if_message_too_long": "Rejection message must be max 500 chars"
+      },
+      "response": {
+        "success": true,
+        "message": "Article rejected and returned to draft with feedback",
+        "data": "Article object with status=draft and admin_rejection_message"
+      },
+      "user_experience": {
+        "frontend_display": "frontend/src/components/articles/ArticleEditor.tsx shows rejection message in red alert box when editing draft article",
+        "message_location": "Displayed at top of article editor modal",
+        "visibility": "Only shown when status=draft AND admin_rejection_message exists"
+      },
+      "implementation": "backend/src/routes/articles.ts:634-679",
+      "created": "2025-11-22",
+      "task": "ARTICLE_ADMIN_WORKFLOW"
     }
   },
 
@@ -1645,6 +1711,119 @@
       "roles": ["admin"],
       "body": {"title": "string", "message": "string", "recipients": "string[] (userIds or 'all')"},
       "purpose": "Send push notifications to subscribed clients"
+    }
+  },
+
+  "backend_optimization_recommendations": {
+    "smart_backend_features": {
+      "description": "Advanced backend optimizations to make the API more intelligent and efficient",
+      "recommendations": [
+        {
+          "id": "1",
+          "feature": "Smart Article Status Filtering",
+          "location": "backend/src/routes/articles.ts",
+          "issue": "Currently requires separate API calls to get articles with different statuses, leading to multiple requests when admin needs to see all articles",
+          "recommendation": "Implement a special 'all' status parameter that allows admin users to retrieve articles of all statuses in a single call",
+          "implementation": "Modify the status filtering logic to recognize 'all' or '*' parameter for admin users and set appropriate WHERE clause with Op.or instead of single status",
+          "benefits": "Reduces number of API calls from multiple to single call when admin needs to see all articles",
+          "code_example": "if (isPrivileged && requestedStatus === 'all') { whereClause[Op.or] = [{ status: 'draft' }, { status: 'pending' }, { status: 'published' }, { status: 'archived' }]; }"
+        },
+        {
+          "id": "2",
+          "feature": "Enhanced Request Caching Strategy",
+          "location": "backend/src/services/cache.ts or related caching utilities",
+          "issue": "Current caching strategy is basic with fixed TTL values",
+          "recommendation": "Implement adaptive caching that adjusts TTL based on access patterns and data volatility",
+          "implementation": "Create an AdaptiveCacheService that monitors access frequency and data change patterns to dynamically adjust cache expiration times",
+          "benefits": "Improves cache hit rates, reduces database load, and provides fresher data for volatile content",
+          "benefits_detailed": {
+            "hot_data": "Frequently accessed data gets longer TTL",
+            "cold_data": "Less accessed data gets shorter TTL reducing memory usage",
+            "volatile_data": "Data that changes often gets shorter TTL automatically",
+            "stable_data": "Static data gets longer TTL reducing database load"
+          }
+        },
+        {
+          "id": "3",
+          "feature": "Intelligent Rate Limiting",
+          "location": "backend/src/middleware/rateLimiting.ts or related middleware",
+          "issue": "Current rate limiting is fixed and doesn't adapt to usage patterns",
+          "recommendation": "Implement adaptive rate limiting that adjusts limits based on user behavior and system load",
+          "implementation": "Develop a system that tracks user request patterns and adjusts limits dynamically based on account type, historical usage, and current server load",
+          "benefits": "Prevents genuine users from hitting rate limits while still stopping abusive traffic",
+          "advanced_feature": "Machine learning model could predict and prevent DDoS attacks by recognizing attack patterns early"
+        },
+        {
+          "id": "4",
+          "feature": "Predictive Prefetching",
+          "location": "backend/src/middleware/prefetching.ts or as new service",
+          "issue": "Backend only serves data that is explicitly requested",
+          "recommendation": "Add predictive prefetching to serve likely-needed related data along with requested resources",
+          "implementation": "Analyze user navigation patterns to anticipate next requests and preload relevant data",
+          "benefits": "Drastically reduces perceived latency for end users by having data ready before they request it",
+          "example_scenario": "When user accesses article list, pre-fetch first few article details based on historical click patterns"
+        },
+        {
+          "id": "5",
+          "feature": "Self-Optimizing Database Queries",
+          "location": "backend/src/services/queryOptimizer.ts or query utilities",
+          "issue": "Current queries use static query plans that don't adapt to data distribution",
+          "recommendation": "Implement query plan analysis and optimization based on actual data distribution and access patterns",
+          "implementation": "Monitor query performance and automatically suggest or implement index optimizations",
+          "benefits": "Continuously improving database performance with minimal manual intervention",
+          "advanced_feature": "Could automatically create or drop indexes based on actual usage patterns"
+        }
+      ]
+    },
+
+    "smart_backend_architecture_patterns": {
+      "event_driven_updates": {
+        "description": "Implement event-driven architecture for real-time updates and reduced polling",
+        "benefits": [
+          "Reduced server load",
+          "Real-time updates without polling",
+          "Better user experience"
+        ],
+        "implementation": "Use Redis Pub/Sub or similar for internal service communication and real-time updates"
+      },
+      "adaptive_error_handling": {
+        "description": "Implement context-aware error handling that provides more relevant information based on request context",
+        "benefits": [
+          "Better debugging information",
+          "Context-appropriate error responses",
+          "Reduced troubleshooting time"
+        ],
+        "implementation": "Enhance error middleware with context detection and adaptive response generation"
+      },
+      "predictive_resource_allocation": {
+        "description": "Pre-allocate system resources based on predicted demand patterns",
+        "benefits": [
+          "Reduced latency during peak times",
+          "More efficient resource utilization",
+          "Better handling of traffic spikes"
+        ],
+        "implementation": "Analyze historical traffic patterns to predict peak times and pre-scale resources"
+      }
+    },
+
+    "machine_learning_integrations": {
+      "anomaly_detection": {
+        "description": "Implement ML-based anomaly detection for security and performance",
+        "use_cases": [
+          "Detecting unusual API access patterns that might indicate security threats",
+          "Identifying performance anomalies before they affect users",
+          "Recognizing fraudulent account behaviors"
+        ]
+      },
+      "personalization_engine": {
+        "description": "Create intelligent personalization based on user behavior and preferences",
+        "implementation": "Analyze user interactions to serve personalized content, layouts, and features",
+        "benefits": [
+          "Higher user engagement",
+          "Better conversion rates",
+          "Improved user experience"
+        ]
+      }
     }
   }
 }

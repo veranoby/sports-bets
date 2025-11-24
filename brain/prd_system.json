@@ -1,6 +1,6 @@
 {
   "business_context": {
-    "company": "GalloBets",
+    "company": "Galleros.net",
     "product": "Plataforma de streaming profesional de peleas de gallos con apuestas P2P.",
     "mission": "Primera plataforma profesional de streaming + apuestas para galleras.",
     "timeline": "Sprint MVP de 15 días (7-21 de septiembre de 2025)",
@@ -127,7 +127,7 @@
               "server": "Vultr/Hetzner Dedicated (8-core, 32GB RAM, 10Gbps, 500GB SSD)",
               "cost": "$155-195/month",
               "streaming_software": "Nginx + RTMP module (open source, free)",
-              "database": "PostgreSQL 17 installed locally ($0, manual maintenance 30 min/week per postgresql-local-maintenance-manual.md)",
+              "database": "PostgreSQL 18 installed locally ($0, manual maintenance 30 min/week per postgresql-local-maintenance-manual.md)",
               "frontend": "Video.js (already integrated, HLS support)",
               "hls_generation": "Local: Nginx RTMP generates .m3u8 + .ts files directly"
             },

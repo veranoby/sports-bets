@@ -41,4 +41,6 @@ export interface Article {
   is_premium_content?: boolean;
   // Información de suscripción del autor al momento de publicación
   author_subscription?: UserSubscription;
+  // Mensaje de rechazo del administrador (cuando status=draft y fue rechazado)
+  admin_rejection_message?: string;
 }

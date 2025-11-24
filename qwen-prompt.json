@@ -1,210 +1,267 @@
 {
-  "=4_COORDINATOR_STRATEGY_COMPLIANCE": {
-    "director_ai": "Claude Haiku (planning mode) - Created this plan following DIRECTOR_PLANNING_PROTOCOL (brain/multi_ai_coordination_strategy.json lines 79-101)",
-    "executor_ai": "Qwen (implementation mode) - Execute this plan following ALL mandatory protocols",
-    "session_references": [
-      "brain/multi_ai_coordination_strategy.json lines 147-280 (AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL)",
-      "brain/multi_ai_coordination_strategy.json lines 345-385 (validation_gates)",
-      "brain/multi_ai_coordination_strategy.json lines 639-667 (evidence_based_validation_protocol)"
-    ]
+  "⚠️_CRITICAL_PRE_REQUISITE": {
+    "MANDATORY_READ": "brain/multi_ai_coordination_strategy.json - COMPLETE FILE, NO ASSUMPTIONS",
+    "REASON": "This file contains DIRECTOR_PLANNING_PROTOCOL, AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL, and validation gates that are NON-NEGOTIABLE",
+    "YOUR_ROLE": "Executor - Must operate under simulate-y-confirmar protocol. Simulation before execution is MANDATORY, not optional.",
+    "PROFESSIONAL_STANDARD": "Deep, systematic analysis. NO assumptions. NO delirium. Code must be production-ready."
   },
 
-  "task_metadata": {
-    "task_name": "Fix ArticleDetail premium validation AND Admin Articles empty list",
-    "complexity": "HIGH",
-    "execution_mode": "standard",
-    "assigned_role": "executor",
-    "estimated_duration_minutes": 25,
-    "git_branch": "main",
-    "mcp_activation_required": ["--seq", "--sequential"],
-    "required_flags": "--seq for multi-step backend analysis"
+  "⚡_EXECUTIVE_SUMMARY": {
+    "task": "Complete admin article management workflow at /admin/articles with proper UI, editor, and role-based entity assignment",
+    "scope": "frontend/src/pages/admin/Articles.tsx + ArticleEditorForm.tsx + related components",
+    "priority": "HIGH - Admin article CRUD must be fully functional with proper UX"
   },
 
-  "=4_SESSION_START_DECLARATION_REQUIRED": {
-    "must_declare": "Model: [qwen-model] | Assigned Role: executor | Task: Fix 2 article management bugs | Flags: --seq --sequential",
-    "must_echo_back_tasks": "Task 1: Investigate ArticleDetail.tsx premium validation bug. Task 2: Fix Admin /articles endpoint empty list. Confirm Y/N?",
-    "validation_after_completion": "Run: npm run build && npx tsc --noEmit && git diff --name-only"
-  },
-
-  "problems_to_solve": {
-    "problem_1_article_detail_premium": {
-      "description": "User reports: /article/:id shows 'premium content' error even though user HAS active membership",
-      "impact": "Users cannot read published articles they have access to",
-      "suspected_location": "ArticleDetail.tsx line 19-36 OR backend GET /articles/:id endpoint",
-      "investigation_checklist": [
-        " Find where premium validation happens (likely ArticleDetail.tsx or backend middleware)",
-        " Check if 403/premium error comes from frontend or backend",
-        " Verify user's subscription status is being passed to article fetching",
-        " Check if subscription expiration date is being validated correctly"
-      ]
-    },
-
-    "problem_2_admin_articles_empty": {
-      "description": "Admin visits /admin/articles but sees empty article list despite articles existing in database",
-      "impact": "Admin cannot manage articles through admin panel",
-      "suspected_location": "frontend/src/pages/admin/Articles.tsx lines 99-174 (useEffect not fetching data correctly)",
-      "investigation_checklist": [
-        " Check if articlesAPI.getAll() is being called correctly",
-        " Verify response.data structure matches what code expects (articles vs data.articles)",
-        " Check if articles are being filtered out by status logic",
-        " Verify useEffect dependencies are correct"
-      ]
-    }
-  },
-
-  "=4_AUDIT_METHODOLOGY_PROTOCOL_APPLICATION": {
-    "principle": "Bidirectional search - check BOTH frontend AND backend for each problem",
-    "problem_1_premium_validation_bidirectional_search": {
-      "direction_A_frontend_to_backend": "Search frontend/src/pages/user/ArticleDetail.tsx for: 'premium', '403', 'Forbidden', 'access'",
-      "direction_B_backend_to_frontend": "Search backend GET /articles/:id for: 'premium', 'subscription', '403', middleware validation"
-    },
-    "problem_2_admin_articles_bidirectional_search": {
-      "direction_A_frontend_to_backend": "Check admin/Articles.tsx useEffect for correct API call pattern, response handling",
-      "direction_B_backend_to_frontend": "Check GET /articles endpoint returns articles array in correct shape for admin"
-    }
-  },
-
-  "implementation_plan": {
-    "step_1_validate_assumptions": {
-      "action": "Before any code changes, verify current state",
-      "verify_1": "Run git status to see baseline (should be clean)",
-      "verify_2": "Read ArticleDetail.tsx lines 1-40 to understand current error handling",
-      "verify_3": "Read admin/Articles.tsx lines 99-174 to understand fetch logic"
-    },
-
-    "step_2_investigate_problem_1_premium_error": {
-      "action": "Find and understand premium validation error",
-      "investigate_2a": "Read: frontend/src/pages/user/ArticleDetail.tsx (full file)",
-      "investigate_2b": "Search backend for GET /articles/:id endpoint - look for premium/subscription validation",
-      "investigate_2c": "Check backend/src/routes/articles.ts for middleware that might block access",
-      "find_root_cause": "Determine: Is premium check happening in frontend OR backend?",
-      "validate_hypothesis": "Compare actual subscription status against what the code expects"
-    },
-
-    "step_3_fix_problem_1_premium_validation": {
-      "simulate": "Plan what to change based on root cause (likely remove premium check OR fix subscription validation)",
-      "fix_action": "If frontend: remove or fix premium check. If backend: fix subscription validation logic",
-      "files_to_modify_problem_1": [
-        "frontend/src/pages/user/ArticleDetail.tsx (IF premium check is in frontend)",
-        "backend/src/routes/articles.ts (IF subscription validation is broken)"
-      ]
-    },
-
-    "step_4_investigate_problem_2_admin_articles": {
-      "action": "Find why admin articles list is empty",
-      "investigate_4a": "Read: frontend/src/pages/admin/Articles.tsx lines 99-174 (useEffect and fetchData)",
-      "investigate_4b": "Check: What does articlesAPI.getAll() return? (Look at services/api.ts articlesAPI definition)",
-      "investigate_4c": "Check: Is response.data structure matching expected? (articles array or nested?)",
-      "investigate_4d": "Check: Are articles being filtered out? Look at line 130-143 filter logic",
-      "find_root_cause": "Determine: Fetch failing? Response format wrong? Articles being filtered out?"
-    },
-
-    "step_5_fix_problem_2_admin_articles": {
-      "simulate": "Plan fix based on root cause",
-      "fix_action": "Likely: Fix response.data parsing OR adjust filter logic to include all articles for admin",
-      "files_to_modify_problem_2": [
-        "frontend/src/pages/admin/Articles.tsx (fix fetch logic or filter)"
-      ]
-    },
-
-    "step_6_validation": {
-      "command_1": "npx tsc --noEmit (MUST return 0 errors - non-negotiable per coordination_strategy.json)",
-      "command_2": "npm run build (verify build succeeds)",
-      "command_3": "git diff --name-only (verify ONLY intended files modified)"
-    }
-  },
-
-  "=4_MANDATORY_COMPLETION_CHECKLIST": {
-    "before_committing": [
-      " TypeScript compilation: npx tsc --noEmit returns 0 errors",
-      " Build process: npm run build completes successfully",
-      " Scope validation: git diff --name-only shows ONLY files listed in 'files_to_modify'",
-      " Both problems investigated AND fixed"
-    ],
-    "evidence_required_in_report": [
-      "Actual command output from: npx tsc --noEmit",
-      "Actual output from: npm run build (final 5 lines showing success)",
-      "List of files modified with git diff --stat",
-      "Root cause explanation for each problem with specific line numbers",
-      "Before/after comparison (what was wrong, what changed)"
-    ]
-  },
-
-  "=4_REPORTING_PROTOCOL": {
-    "report_location": "NONE - Report completion to user in chat. Do NOT create files.",
-    "report_format": "Text message with: problem description � root cause � fix applied � validation results",
-    "success_criteria": [
-      "Problem 1: Premium validation fixed - explain root cause and fix",
-      "Problem 2: Admin articles now display in list - explain root cause and fix",
-      "All validation gates passed (TypeScript, build, scope)"
-    ]
-  },
-
-  "=4_CRITICAL_CONSTRAINTS": {
-    "constraint_1": "NEVER modify files NOT in the 'files_to_modify' lists above",
-    "constraint_2": "BEFORE committing: Run git diff --name-only and verify ONLY approved files changed",
-    "constraint_3": "TypeScript compilation MUST succeed with 0 errors",
-    "constraint_4": "If simulation reveals any issues � STOP and report, do NOT attempt fixes without analysis",
-    "constraint_5": "Use --seq flag for multi-step reasoning per coordination_strategy lines 72"
-  },
-
-  "helpful_context": {
-    "recent_backend_fixes": [
-      "Articles status/visibility fixed (GET /articles respects published filter)",
-      "Article slug auto-generation implemented",
-      "Articles content field included in detail response"
-    ],
-    "article_management_status": [
-      "Backend endpoints working",
-      "Frontend ArticleManagement component ready for testing",
-      "Admin sidebar now has Articles link",
-      "Two remaining issues: premium validation + admin list display"
-    ]
-  },
-
-  "=4_BRAIN_FILE_UPDATE_INSUMOS_FOR_DIRECTOR": {
-    "critical_note": "IMPORTANT: The director (Claude Haiku) will update brain/ files AFTER this task completes. Provide SPECIFIC evidence below so director can update files accurately without follow-up questions.",
-
-    "insumo_1_problem_1_premium_validation_evidence": {
-      "requirement": "For problem 1 (premium validation blocking access), provide:",
-      "evidence_needed": [
-        "Exact file path where premium validation check happens (e.g., ArticleDetail.tsx or articles.ts route handler)",
-        "Exact line number(s) of the validation logic",
-        "What condition is blocking access (e.g., 'if (isPremium && !hasSubscription')",
-        "Whether this is intentional or a bug",
-        "What the correct logic SHOULD be based on subscription status"
+  "📋_DETAILED_REQUIREMENTS": {
+    "requirement_1_article_list_display": {
+      "location": "Sección 'Gestión General' - líneas 560-730",
+      "current_state": "Shows articles in table with image preview, title, summary, author info",
+      "required_changes": [
+        "1) Add STATUS CHIP to each row (BEFORE title) showing: draft|pending|published|archived with color coding",
+        "2) Replace icon buttons with TEXT BUTTONS (no lucide icons) - buttons must say: 'Preview' 'Edit' 'Approve' 'Reject' 'Delete'",
+        "3) Approve button: calls handleApproveArticle() → PATCH /articles/:id/approve",
+        "4) Reject button: calls openRejectModal() → opens modal for rejection message",
+        "5) Delete button: existing handleDeleteArticle() functionality"
       ],
-      "format": "Report as: 'File: [path] | Lines: [X-Y] | Current logic: [code snippet] | Issue: [explanation]'"
+      "button_styling": "Use consistent button classes: px-3 py-1 text-sm font-medium rounded - no icons, text only",
+      "visual_priority": "Status → Title → Summary → Author → Date | [Preview] [Edit] [Approve] [Reject] [Delete]"
     },
 
-    "insumo_2_problem_2_admin_articles_empty_evidence": {
-      "requirement": "For problem 2 (admin articles showing empty list), provide:",
-      "evidence_needed": [
-        "Exact GET /articles query being executed (SQL or Sequelize equivalent)",
-        "What status filters are being applied in the query",
-        "Whether admin user is correctly identified and status filtering bypassed for admin",
-        "Response data structure (what articlesAPI.getAll() returns to frontend)",
-        "Whether articles exist in database but are being filtered out, or fetch is failing"
+    "requirement_2_edit_modal_with_quill_editor": {
+      "location": "Modal Crear/Editar Artículo - líneas 798-831",
+      "component": "ArticleEditorForm.tsx",
+      "current_problem": "Uses basic <textarea> for content. Should use ReactQuill like user ArticleEditor.tsx",
+      "required_implementation": [
+        "1) Replace textarea (lines 132-139 in ArticleEditorForm) with ReactQuill component",
+        "2) Import ReactQuill: import ReactQuill from 'react-quill-new';",
+        "3) Copy Quill toolbar config from frontend/src/components/articles/ArticleEditor.tsx lines 156-177",
+        "4) Must support: headers, bold, italic, links, lists, images",
+        "5) Content field must store/retrieve HTML (as it does now)"
       ],
-      "format": "Report as: 'Query: [sequelize/SQL] | Filters: [status=X, author=Y] | Response shape: [articles array structure] | Root cause: [explanation]'"
+      "reference_implementation": "frontend/src/components/articles/ArticleEditor.tsx lines 147-185"
     },
 
-    "insumo_3_status_filtering_confirmation": {
-      "requirement": "Verify that backend status filtering from earlier director fixes is working correctly:",
-      "confirm": [
-        "New status=published explicit filtering logic in GET /articles is applied correctly for admin users (should see requested status or default published)",
-        "Admin users bypass normal visibility filtering and see articles they request",
-        "Regular users see own articles (any status) + published from others",
-        "Non-auth users see only published articles"
+    "requirement_3_image_upload_in_modal": {
+      "location": "ArticleEditorForm.tsx - currently missing image upload",
+      "required_implementation": [
+        "1) Add image preview section (like ArticleEditor.tsx lines 66-124)",
+        "2) File input with: accept='image/jpeg,image/jpg,image/png,image/webp'",
+        "3) Upload button that calls uploadsAPI.uploadImage(file)",
+        "4) Image preview showing uploaded image or placeholder",
+        "5) Remove button to clear selected image",
+        "6) Display upload progress while uploading"
       ],
-      "format": "Report as: 'GET /articles logic verified: Admin filtering [CORRECT/ISSUE], User filtering [CORRECT/ISSUE], Auth filtering [CORRECT/ISSUE]'"
+      "reference": "frontend/src/components/articles/ArticleEditor.tsx lines 39-61 (handleImageChange function)"
     },
 
-    "insumo_4_director_will_use_for_brain_updates": {
-      "brain_file_1_api_endpoints_reference": "Director will add new section documenting status filtering behavior in GET /articles endpoint with examples for each user role",
-      "brain_file_2_validation_gates": "Director will ensure this task completion evidence is recorded in validation_gates section",
-      "brain_file_3_backlog": "Director will update backlog.json with completion status and any follow-up tasks",
-      "provide_insumos_as": "Structured evidence (above format) so director can reference specific line numbers and root causes in brain file updates"
+    "requirement_4_associated_entity_mandatory": {
+      "location": "ArticleEditorForm.tsx lines 177-192 (current 'venue_id' optional field)",
+      "current_state": "Optional select for venue_id. Says 'Associated Entity (Optional)' - WRONG",
+      "required_changes": [
+        "1) Change label to 'Associated Entity (REQUIRED)' - NOT optional",
+        "2) Make select field REQUIRED - validation should fail if empty",
+        "3) In CREATION mode: populate with list of all users (admins, venues, galleras)",
+        "4) In EDIT mode: show current user who created article (read-only or selectable for admin reassign)",
+        "5) Filter options to show: username (role) for clarity"
+      ],
+      "validation_logic": "Form should not submit if Associated Entity is empty"
+    },
+
+    "requirement_5_creation_vs_edit_mode_logic": {
+      "creation_mode": {
+        "trigger": "Click 'Crear Artículo' button or in general admin management section",
+        "author_field": "Must be EMPTY - admin selects via 'Associated Entity' dropdown",
+        "entity_options": "Load all users (admins, venues, galleras) from API",
+        "status_default": "draft (admin can save as draft or pending/published)",
+        "image": "Allow upload via file input"
+      },
+      "edit_mode": {
+        "trigger": "Click 'Edit' button on existing article in list",
+        "author_field": "Show original author (who created it) - consider if admin can reassign",
+        "entity_options": "Show current author, maybe allow change",
+        "status_current": "Show current status (draft|pending|published|archived)",
+        "image": "Show current image with option to change/remove"
+      }
+    },
+
+    "requirement_6_modal_actions": {
+      "location": "ArticleEditorForm.tsx - button section",
+      "required_buttons": [
+        "1) Cancel button - closes modal without saving",
+        "2) Save as Draft button - saves with status='draft'",
+        "3) Submit for Review button - saves with status='pending'",
+        "4) Publish button (admin only) - saves with status='published'",
+        "Note: Button labels/availability may differ based on article current status and user role"
+      ]
     }
+  },
+
+  "🔴_CRITICAL_INVESTIGATION_BEFORE_CODE": {
+    "investigation_1_pending_articles_empty": {
+      "issue": "pendingArticles array is empty in /admin/articles, buttons don't show",
+      "root_cause_hypothesis": [
+        "A) articlesAPI.getAll() response doesn't include status='pending' articles for admin",
+        "B) Response structure differs from expected { success, data: { articles: [...] } }",
+        "C) Filter logic at line 127-132 doesn't correctly extract pending articles",
+        "D) User is not authenticated as admin"
+      ],
+      "investigation_steps": [
+        "1) Open browser F12 → Network tab",
+        "2) Reload /admin/articles",
+        "3) Find GET /articles request → Click it",
+        "4) Check Response tab - does it contain articles with status='pending'?",
+        "5) If yes: problem is frontend filter logic. If no: problem is backend endpoint"
+      ],
+      "backend_endpoint_check": [
+        "curl -H 'Authorization: Bearer ADMIN_TOKEN' 'http://localhost:3001/api/articles?limit=1000'",
+        "Does response include pending articles? If not, backend GET /articles has issue"
+      ]
+    },
+
+    "investigation_2_current_articleeditorform_limitations": {
+      "issue": "ArticleEditorForm.tsx is too basic for admin use",
+      "current_implementation": [
+        "- No Quill editor (textarea only)",
+        "- No image upload capability",
+        "- venue_id field but confusing UX",
+        "- No role-based field handling"
+      ],
+      "compare_with": "ArticleEditor.tsx (user version) has proper image upload, Quill, good UX",
+      "action": "ArticleEditorForm must be enhanced to match or exceed user ArticleEditor functionality"
+    }
+  },
+
+  "🎯_IMPLEMENTATION_TASKS_FOR_QWEN": {
+    "PHASE_1_INVESTIGATION_AND_SIMULATION": {
+      "task_1": "Read multi_ai_coordination_strategy.json COMPLETELY - document key protocols applicable to this task",
+      "task_2": "Investigate why pendingArticles is empty - use Network tab debugging",
+      "task_3": "Analyze ArticleEditor.tsx (user version) to understand proper image upload and Quill integration",
+      "task_4": "Analyze ArticleEditorForm.tsx current implementation - identify gaps vs requirements",
+      "task_5": "Simulate the changes mentally - plan exact modifications to each file",
+      "task_6": "Document simulation findings in brief summary before coding"
+    },
+
+    "PHASE_2_CORE_IMPLEMENTATION": {
+      "task_1_fix_pending_articles_display": {
+        "status": "BLOCKING",
+        "description": "Ensure pending articles render in sección 1",
+        "investigation_required": true,
+        "simulate_before_coding": true
+      },
+
+      "task_2_update_article_list_ui": {
+        "file": "frontend/src/pages/admin/Articles.tsx",
+        "lines": "560-730 (Gestión General section)",
+        "changes": [
+          "1) Add STATUS CHIP before title for each article",
+          "2) Replace icon buttons with TEXT buttons",
+          "3) Add 'Approve' button (green) - calls handleApproveArticle()",
+          "4) Add 'Reject' button (red) - calls openRejectModal()",
+          "5) Keep existing 'Delete' functionality",
+          "6) Update button styling to be text-based, not icon-based"
+        ],
+        "simulate_before_coding": true
+      },
+
+      "task_3_enhance_articleeditorform_quill": {
+        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
+        "changes": [
+          "1) Add ReactQuill import",
+          "2) Replace <textarea> content field with <ReactQuill>",
+          "3) Copy toolbar config from ArticleEditor.tsx",
+          "4) Ensure HTML content is preserved on save/load"
+        ],
+        "reference": "ArticleEditor.tsx lines 147-185",
+        "simulate_before_coding": true
+      },
+
+      "task_4_add_image_upload": {
+        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
+        "changes": [
+          "1) Add image preview section (model from ArticleEditor.tsx)",
+          "2) Add file input for image selection",
+          "3) Implement uploadImage handler",
+          "4) Show upload progress",
+          "5) Allow image removal"
+        ],
+        "reference": "ArticleEditor.tsx lines 39-61, 66-124",
+        "simulate_before_coding": true
+      },
+
+      "task_5_fix_associated_entity_mandatory": {
+        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
+        "changes": [
+          "1) Change label from 'Optional' to 'REQUIRED'",
+          "2) Make select field required in validation",
+          "3) Load users list on component mount",
+          "4) Filter to show: username (role type) for clarity"
+        ],
+        "modes": {
+          "creation": "Empty select - user picks from list",
+          "edit": "Show current author - allow admin to reassign if needed"
+        },
+        "simulate_before_coding": true
+      },
+
+      "task_6_implement_button_actions": {
+        "buttons_to_implement": [
+          "Cancel",
+          "Save as Draft",
+          "Submit for Review (status=pending)",
+          "Publish (status=published, admin only)"
+        ],
+        "file": "ArticleEditorForm.tsx",
+        "simulate_before_coding": true
+      }
+    },
+
+    "PHASE_3_VALIDATION_AND_TESTING": {
+      "validation_checklist": [
+        "[ ] Pending articles render with status chip",
+        "[ ] All 5 action buttons visible (Preview, Edit, Approve, Reject, Delete)",
+        "[ ] Edit button opens modal with Quill editor",
+        "[ ] Image upload works in modal",
+        "[ ] Associated Entity field is required",
+        "[ ] Creation mode: select from user list",
+        "[ ] Edit mode: shows current author",
+        "[ ] Approve button: article moves to published",
+        "[ ] Reject button: opens modal, saves message, moves to draft",
+        "[ ] Delete button: removes article",
+        "[ ] No console errors",
+        "[ ] TypeScript compilation succeeds: npx tsc --noEmit",
+        "[ ] CSS buttons render properly (text, not icons)"
+      ]
+    }
+  },
+
+  "📊_SIMULATION_TEMPLATE": {
+    "before_you_code": "Document these findings",
+    "what_will_change": "List exact file changes and line numbers",
+    "what_could_break": "Identify potential issues (imports, dependencies, logic conflicts)",
+    "how_to_test": "Define manual test steps for each feature",
+    "success_indicators": "Clear pass/fail criteria"
+  },
+
+  "🔧_DEBUGGING_TOOLS_AVAILABLE": [
+    "Browser DevTools (F12) - Network, Console, Elements tabs",
+    "npm run dev - local dev server",
+    "npx ts-node - script execution",
+    "curl - API testing",
+    "VS Code debugger"
+  ],
+
+  "🚀_EXECUTION_STANDARDS": {
+    "code_quality": "Production-ready, no TODOs, no debug logs left in commits",
+    "testing": "Manual QA each feature before considering done",
+    "documentation": "Update brain files if interfaces change",
+    "professionalism": "Deep analysis, systematic implementation, comprehensive validation"
+  },
+
+  "⚠️_REMINDERS_FOR_QWEN": {
+    "1_read_coordination_file": "brain/multi_ai_coordination_strategy.json is MANDATORY. Read completely. Not optional.",
+    "2_simulate_first": "Use SIMULATE-Y-CONFIRMAR protocol from coordination file. Simulate changes before coding.",
+    "3_no_assumptions": "Debug first, understand root cause, then implement. Don't guess.",
+    "4_professional_depth": "This is admin-facing functionality. Quality and thoroughness non-negotiable.",
+    "5_validation_gates": "TypeScript must compile. Test in browser before claiming done."
   }
 }

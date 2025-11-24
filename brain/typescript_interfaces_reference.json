@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for GalloBets platform",
-    "version": "3.1",
+    "version": "3.2",
     "last_updated": "2025-11-22",
-    "changelog": "Added Article.status_enum_and_visibility documentation with role-based filtering logic, visibility rules by status, and backend enforcement details from ARTICLE_MANAGEMENT_BUG_FIXES_COMPLETED task.",
+    "changelog": "Added Article.admin_rejection_message field documentation. Updated optional_properties to include new admin_rejection_message field used in admin article workflow (approve/reject). Documents storage location, display logic, and validation rules.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
@@ -398,7 +398,16 @@
     "Article": {
       "file": "/frontend/src/types/article.ts",
       "required_properties": ["id", "title", "slug", "content", "status", "created_at"],
-      "optional_properties": ["excerpt", "featured_image", "published_at", "author"],
+      "optional_properties": ["excerpt", "featured_image", "published_at", "author", "admin_rejection_message"],
+      "admin_rejection_message": {
+        "type": "string | undefined",
+        "description": "Admin feedback message when article is rejected",
+        "when_present": "Article status = 'draft' AND was previously rejected by admin",
+        "display_location": "ArticleEditor.tsx - red alert box at top of modal",
+        "backend_field": "articles.admin_rejection_message (TEXT, nullable)",
+        "validation": "10-500 characters (enforced on reject endpoint)",
+        "created": "2025-11-22 via ARTICLE_ADMIN_WORKFLOW task"
+      },
       "FASE_5_NOTE": "venue_id REMOVED (2025-11-07) per PRD:205 - Articles use ONLY author_id",
       "backend_auto_generated": ["slug"],
       "slug_generation": {

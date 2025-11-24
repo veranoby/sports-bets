@@ -397,6 +397,12 @@ export const articlesAPI = {
   delete: async (id: string) => {
     return apiCall("delete", `/articles/${id}`);
   },
+  approve: async (id: string) => {
+    return apiCall("patch", `/articles/${id}/approve`);
+  },
+  reject: async (id: string, rejection_message: string) => {
+    return apiCall("patch", `/articles/${id}/reject`, { rejection_message });
+  },
 };
 
 export const walletAPI = {

@@ -2,7 +2,7 @@
   "technical_architecture": {
     "database_layer": {
       "primary_database": {
-        "type": "PostgreSQL 17",
+        "type": "PostgreSQL 18",
         "hosting": "OPTION B.1: PostgreSQL local en servidor dedicado",
         "connection_management": "Sequelize ORM con pooling optimizado (20 max, 5 min).",
         "production_status": {
@@ -66,7 +66,7 @@
             "hls_generation": "Nginx RTMP creates manifest (.m3u8) + segments (.ts) in /var/www/hls/",
             "hls_delivery": "HTTP from Nginx directly (no CDN yet)",
             "playback": "Video.js with HLS.js (adaptive bitrate)",
-            "database": "PostgreSQL 17 local (self-hosted, 30 min/week maintenance)"
+            "database": "PostgreSQL 18 local (self-hosted, 30 min/week maintenance)"
           },
           "cost": "$155-195/month (dedicated server only)",
           "endpoints_unchanged": [
@@ -732,21 +732,21 @@
       }
     },
     "postgresql_local_setup": {
-      "installation": "sudo pacman -S postgresql postgresql-contrib",
+      "installation": "sudo pacman -S postgresql",
       "initialization": "sudo -u postgres initdb -D /var/lib/postgres/data",
       "start_service": "sudo systemctl start postgresql",
       "enable_autostart": "sudo systemctl enable postgresql",
-      "database_creation": "sudo -u postgres createdb gallobets",
-      "user_creation": "sudo -u postgres createuser gallobets_user",
-      "password_setup": "sudo -u postgres psql -c \"ALTER ROLE gallobets_user WITH PASSWORD 'secure_password';\"",
-      "connection_string": "postgresql://gallobets_user:secure_password@localhost:5432/gallobets",
+      "database_creation": "sudo -u postgres createdb gallerosnet",
+      "user_creation": "sudo -u postgres createuser gallerosnet_user",
+      "password_setup": "sudo -u postgres psql -c \"ALTER ROLE gallerosnet_user WITH PASSWORD 'secure_password';\"",
+      "connection_string": "postgresql://gallerosnet_user:secure_password@localhost:5432/gallerosnet",
       "backup_strategy": {
-        "manual_backup": "pg_dump -U gallobets_user gallobets > /backups/backup_$(date +%Y%m%d).sql",
-        "automate_with_cron": "0 2 * * * pg_dump -U gallobets_user gallobets > /backups/backup_$(date +\\%Y\\%m\\%d).sql",
+        "manual_backup": "pg_dump -U gallerosnet_user gallerosnet > /backups/backup_$(date +%Y%m%d).sql",
+        "automate_with_cron": "0 2 * * * pg_dump -U gallerosnet_user gallerosnet > /backups/backup_$(date +\\%Y\\%m\\%d).sql",
         "retention_policy": "Keep last 30 days of daily backups"
       },
       "administration": {
-        "cli": "psql -U gallobets_user -d gallobets",
+        "cli": "psql -U gallerosnet_user -d gallerosnet",
         "gui_option_1": "pgAdmin web interface (port 5050 - local only)",
         "gui_option_2": "DBeaver (native desktop app)"
       }
@@ -876,7 +876,7 @@
         "location": "/var/www/gallobets/.env (production)",
         "source_control": "NEVER commit .env to GitHub - use GitHub Actions secrets",
         "variables_to_set": [
-          "DATABASE_URL=postgresql://gallobets_user:password@localhost:5432/gallobets",
+          "DATABASE_URL=postgresql://gallerosnet_user:password@localhost:5432/gallerosnet",
           "REDIS_URL=redis://localhost:6379",
           "JWT_SECRET=<long_random_string>",
           "STREAM_SERVER_URL=rtmp://galleros.net:1935/live",

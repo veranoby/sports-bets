@@ -592,6 +592,7 @@ const ArticleManagement: React.FC = () => {
         onSaveDraft={handleSaveDraft}
         submitting={submitting}
         isEditing={true}
+        adminRejectionMessage={editingArticle?.admin_rejection_message}
       />
 
       {/* Enhanced Preview Modal */}

@@ -16,6 +16,7 @@ interface ArticleAttributes {
   status: "draft" | "pending" | "published" | "archived";
   featured_image?: string;
   tags?: string[];
+  admin_rejection_message?: string;
   published_at?: Date;
   created_at: Date;
   updated_at: Date;
@@ -39,6 +40,7 @@ export class Article
   public featured_image?: string;
   public status!: "draft" | "pending" | "published" | "archived";
   public tags?: string[];
+  public admin_rejection_message?: string;
   public published_at?: Date;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -134,6 +136,11 @@ Article.init(
     tags: {
       type: DataTypes.JSON,
       allowNull: true,
+    },
+    admin_rejection_message: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: "admin_rejection_message",
     },
     published_at: {
       type: DataTypes.DATE,

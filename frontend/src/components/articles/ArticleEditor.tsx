@@ -17,6 +17,7 @@ interface ArticleEditorProps {
   onSaveDraft?: (e: React.FormEvent) => void; // Optional property for saving drafts
   submitting: boolean;
   isEditing: boolean;
+  adminRejectionMessage?: string; // Admin feedback when article was rejected
 }
 
 const ArticleEditor: React.FC<ArticleEditorProps> = ({
@@ -30,6 +31,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   onSaveDraft,
   submitting,
   isEditing,
+  adminRejectionMessage,
 }) => {
   const [imagePreview, setImagePreview] = useState<string | null>(
     formData.featured_image || null,
@@ -63,6 +65,36 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="4xl">
       <form onSubmit={onSubmit} className="space-y-6">
+        {/* Admin Rejection Feedback */}
+        {adminRejectionMessage && formData.status === "draft" && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-5 h-5 text-red-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-red-800 mb-1">
+                  Artículo Rechazado por el Administrador
+                </h4>
+                <p className="text-sm text-red-700">{adminRejectionMessage}</p>
+                <p className="text-xs text-red-600 mt-2 italic">
+                  Por favor, realiza las correcciones necesarias y vuelve a enviar para revisión.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header Image Upload */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-500">

@@ -95,10 +95,17 @@ const AdminArticlesPage: React.FC = () => {
   // Estados para artículos pendientes
   const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
 
+  // Modal rechazo
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectingArticleId, setRejectingArticleId] = useState<string | null>(null);
+  const [rejectionMessage, setRejectionMessage] = useState("");
+
   // Funciones auxiliares que faltan
   const fetchData = async () => {
     setLoading(true);
     setError(null);
+    // For admin, fetch ALL articles (not just published) by not applying status filter
+    // The backend will return all for admin when no status is specified
     const articlesRes = await articlesAPI.getAll({
       limit: 1000,
       includeAuthor: true,
@@ -203,18 +210,53 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const handleApproveArticle = async (articleId: string) => {
-    // Aprobar artículo
-    const result = await articlesAPI.update(articleId, { status: "published" });
-    if (result.success) {
-      fetchData(); // Refrescar lista
+    try {
+      const result = await articlesAPI.approve(articleId);
+      if (result.success) {
+        fetchData(); // Refrescar lista
+      } else {
+        setError(result.error || "Error al aprobar artículo");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handleRejectArticle = async (articleId: string) => {
-    // Rechazar artículo
-    const result = await articlesAPI.update(articleId, { status: "archived" });
-    if (result.success) {
-      fetchData(); // Refrescar lista
+  const openRejectModal = (articleId: string) => {
+    setRejectingArticleId(articleId);
+    setRejectionMessage("");
+    setShowRejectModal(true);
+  };
+
+  const closeRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectingArticleId(null);
+    setRejectionMessage("");
+  };
+
+  const handleRejectArticle = async () => {
+    if (!rejectingArticleId) return;
+
+    if (rejectionMessage.trim().length < 10) {
+      setError("El mensaje de rechazo debe tener al menos 10 caracteres");
+      return;
+    }
+
+    if (rejectionMessage.trim().length > 500) {
+      setError("El mensaje de rechazo no debe exceder 500 caracteres");
+      return;
+    }
+
+    try {
+      const result = await articlesAPI.reject(rejectingArticleId, rejectionMessage.trim());
+      if (result.success) {
+        closeRejectModal();
+        fetchData(); // Refrescar lista
+      } else {
+        setError(result.error || "Error al rechazar artículo");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
@@ -238,30 +280,44 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const handleBulkApprove = async () => {
-    // Aprobar artículos seleccionados
-    const results = await Promise.all(
-      selectedArticles.map((id) =>
-        articlesAPI.update(id, { status: "published" }),
-      ),
-    );
-    if (results.every((r) => r.success)) {
-      setSelectedArticles([]);
-      setShowBulkActions(false);
-      fetchData(); // Refrescar lista
+    try {
+      const results = await Promise.all(
+        selectedArticles.map((id) => articlesAPI.approve(id)),
+      );
+      if (results.every((r) => r.success)) {
+        setSelectedArticles([]);
+        setShowBulkActions(false);
+        fetchData(); // Refrescar lista
+      } else {
+        setError("Algunos artículos no pudieron ser aprobados");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
   const handleBulkReject = async () => {
-    // Rechazar artículos seleccionados
-    const results = await Promise.all(
-      selectedArticles.map((id) =>
-        articlesAPI.update(id, { status: "archived" }),
-      ),
-    );
-    if (results.every((r) => r.success)) {
-      setSelectedArticles([]);
-      setShowBulkActions(false);
-      fetchData(); // Refrescar lista
+    const message = window.prompt("Ingresa el mensaje de rechazo (10-500 caracteres):");
+    if (!message) return;
+
+    if (message.trim().length < 10 || message.trim().length > 500) {
+      setError("El mensaje debe tener entre 10 y 500 caracteres");
+      return;
+    }
+
+    try {
+      const results = await Promise.all(
+        selectedArticles.map((id) => articlesAPI.reject(id, message.trim())),
+      );
+      if (results.every((r) => r.success)) {
+        setSelectedArticles([]);
+        setShowBulkActions(false);
+        fetchData(); // Refrescar lista
+      } else {
+        setError("Algunos artículos no pudieron ser rechazados");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
@@ -375,9 +431,12 @@ const AdminArticlesPage: React.FC = () => {
 
                 {/* Contenido */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">
-                    {article.title}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <StatusChip status={article.status} size="sm" />
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {article.title}
+                    </h3>
+                  </div>
                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                     {article.summary}
                   </p>
@@ -402,34 +461,36 @@ const AdminArticlesPage: React.FC = () => {
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap gap-1">
                   <button
                     onClick={() => openPreview(article)}
-                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 flex items-center gap-1"
+                    className="px-3 py-1 text-sm font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    <Eye className="w-4 h-4" />
                     Preview
                   </button>
                   <button
-                    onClick={() => handleApproveArticle(article.id)}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                    onClick={() => openEditModal(article)}
+                    className="px-3 py-1 text-sm font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    <CheckCircle className="w-4 h-4" />
-                    Aprobar
+                    Edit
                   </button>
                   <button
-                    onClick={() => handleRejectArticle(article.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                    onClick={() => handleApproveArticle(article.id)}
+                    className="px-3 py-1 text-sm font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                   >
-                    <XCircle className="w-4 h-4" />
-                    Rechazar
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => openRejectModal(article.id)}
+                    className="px-3 py-1 text-sm font-medium rounded border border-red-600 text-red-700 bg-red-50 hover:bg-red-100"
+                  >
+                    Reject
                   </button>
                   <button
                     onClick={() => handleDeleteArticle(article.id)}
-                    className="px-3 py-1 bg-red-800 text-white rounded text-sm hover:bg-red-900 flex items-center gap-1"
+                    className="px-3 py-1 text-sm font-medium rounded border border-red-800 text-red-800 bg-red-50 hover:bg-red-100"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar
+                    Delete
                   </button>
                 </div>
               </div>
@@ -569,13 +630,6 @@ const AdminArticlesPage: React.FC = () => {
                 key={article.id}
                 className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
-                {/* Checkbox selección */}
-                <input
-                  type="checkbox"
-                  checked={selectedArticles.includes(article.id)}
-                  onChange={() => toggleArticleSelection(article.id)}
-                  className="w-4 h-4 text-blue-600"
-                />
 
                 {/* Imagen preview */}
                 <div className="w-16 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
@@ -638,48 +692,43 @@ const AdminArticlesPage: React.FC = () => {
                       <StatusChip status={article.status} size="sm" />
 
                       {/* Acciones */}
-                      <div className="flex gap-1">
+                      <div className="flex flex-wrap gap-1">
                         <button
                           onClick={() => openPreview(article)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
-                          title="Preview"
+                          className="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                         >
-                          <Eye className="w-4 h-4" />
+                          Preview
                         </button>
                         <button
                           onClick={() => openEditModal(article)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
-                          title="Editar"
+                          className="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                         >
-                          <Edit className="w-4 h-4" />
+                          Edit
                         </button>
                         {article.status === "published" ? (
                           <button
                             onClick={() =>
                               handleToggleStatus(article.id, article.status)
                             }
-                            className="p-1 text-red-400 hover:text-red-600"
-                            title="Archivar"
+                            className="px-2 py-1 text-xs font-medium rounded border border-red-600 text-red-700 bg-red-50 hover:bg-red-100"
                           >
-                            <XCircle className="w-4 h-4" />
+                            Archive
                           </button>
                         ) : article.status === "archived" ? (
                           <button
                             onClick={() =>
                               handleToggleStatus(article.id, article.status)
                             }
-                            className="p-1 text-green-600 hover:text-green-600"
-                            title="Publicar"
+                            className="px-2 py-1 text-xs font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                           >
-                            <CheckCircle className="w-4 h-4" />
+                            Publish
                           </button>
                         ) : null}
                         <button
                           onClick={() => handleDeleteArticle(article.id)}
-                          className="p-1 text-red-400 hover:text-red-600"
-                          title="Eliminar"
+                          className="px-2 py-1 text-xs font-medium rounded border border-red-800 text-red-800 bg-red-50 hover:bg-red-100"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -824,6 +873,72 @@ const AdminArticlesPage: React.FC = () => {
                   onClose={closeArticleModal}
                   onArticleSaved={handleArticleSaved}
                 />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal Rechazar Artículo */}
+      {showRejectModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={closeRejectModal}
+          ></div>
+
+          {/* Modal Panel */}
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Rechazar Artículo
+                </h2>
+                <button
+                  onClick={closeRejectModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  Proporciona un mensaje explicando por qué se rechaza este artículo. El autor verá este mensaje.
+                </p>
+
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  rows={4}
+                  placeholder="Escribe tu mensaje de rechazo aquí (10-500 caracteres)..."
+                  value={rejectionMessage}
+                  onChange={(e) => setRejectionMessage(e.target.value)}
+                  maxLength={500}
+                />
+
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`text-xs ${rejectionMessage.length < 10 ? "text-red-500" : rejectionMessage.length > 450 ? "text-orange-500" : "text-gray-500"}`}>
+                    {rejectionMessage.length}/500 caracteres {rejectionMessage.length < 10 && "(mínimo 10)"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={closeRejectModal}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRejectArticle}
+                  disabled={rejectionMessage.trim().length < 10}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Rechazar Artículo
+                </button>
               </div>
             </div>
           </div>

@@ -85,15 +85,14 @@ const UserHeader = memo(() => {
     }, [fetchNotifications]),
   );
 
-  // 📄 Published articles count for venue/gallera
+  // 📄 Author's articles count (all statuses: draft, pending, published)
   useEffect(() => {
     const fetchPublished = async () => {
       if (!user || (user.role !== "venue" && user.role !== "gallera")) return;
       try {
         const res = await articlesAPI.getAll({
           author_id: user.id,
-          status: "published",
-          limit: 10,
+          limit: 100,
         });
         const count = Array.isArray(res.data?.articles)
           ? res.data.articles.length

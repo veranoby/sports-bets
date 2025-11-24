@@ -160,8 +160,11 @@ router.get(
 
     // Build visibility filter
     if (isPrivileged) {
-      // Admin/operator: see requested status (default to published if not specified)
-      whereClause.status = requestedStatus || "published";
+      // Admin/operator: see requested status (no default filter - see ALL statuses)
+      if (requestedStatus) {
+        whereClause.status = requestedStatus;
+      }
+      // If no status specified, admin sees all articles (no status filter)
     } else if (requestedStatus) {
       // Non-admin user explicitly requested a status
       // Only allow if requesting "published"
@@ -186,7 +189,7 @@ router.get(
       whereClause.status = "published";
     }
 
-    const cacheKey = `${cacheKeyPrefix}_${isPrivileged ? (requestedStatus || 'published') : (requestedStatus || (req.user ? 'own_plus_published' : 'published'))}`;
+    const cacheKey = `${cacheKeyPrefix}_${isPrivileged ? (requestedStatus || 'all_statuses') : (requestedStatus || (req.user ? 'own_plus_published' : 'published'))}`;
 
     // Add search filter (combines with visibility using AND)
     if (search) {
@@ -583,6 +586,93 @@ router.put(
 
     res.json({
       success: true,
+      data: serializeArticle(article),
+    });
+  })
+);
+
+// PATCH /articles/:id/approve - Admin approves article (pending → published)
+router.patch(
+  "/:id/approve",
+  authenticate,
+  authorize("admin", "operator"),
+  asyncHandler(async (req, res) => {
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      throw errors.notFound("Article not found");
+    }
+
+    if (article.status !== "pending") {
+      throw errors.badRequest("Only pending articles can be approved");
+    }
+
+    article.status = "published";
+    article.published_at = new Date();
+    article.admin_rejection_message = null; // Clear any previous rejection message
+    await article.save();
+
+    // Invalidate caches
+    await Promise.all([
+      invalidatePattern('articles_list_*'),
+      invalidatePattern('articles_featured_*'),
+      invalidatePattern(`article_detail_${req.params.id}_*`)
+    ]);
+
+    res.json({
+      success: true,
+      message: "Article approved and published successfully",
+      data: serializeArticle(article),
+    });
+  })
+);
+
+// PATCH /articles/:id/reject - Admin rejects article (pending → draft with feedback)
+router.patch(
+  "/:id/reject",
+  authenticate,
+  authorize("admin", "operator"),
+  [
+    body("rejection_message")
+      .isString()
+      .isLength({ min: 10, max: 500 })
+      .withMessage("Rejection message required (10-500 chars)"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      throw errors.notFound("Article not found");
+    }
+
+    if (article.status !== "pending") {
+      throw errors.badRequest("Only pending articles can be rejected");
+    }
+
+    const { rejection_message } = req.body;
+
+    article.status = "draft";
+    article.admin_rejection_message = rejection_message;
+    await article.save();
+
+    // Invalidate caches
+    await Promise.all([
+      invalidatePattern('articles_list_*'),
+      invalidatePattern(`article_detail_${req.params.id}_*`)
+    ]);
+
+    res.json({
+      success: true,
+      message: "Article rejected and returned to draft with feedback",
       data: serializeArticle(article),
     });
   })
