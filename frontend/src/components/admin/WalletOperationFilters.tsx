@@ -1,40 +1,49 @@
 // frontend/src/components/admin/WalletOperationFilters.tsx
 
 import React from "react";
-import { Filter, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  Filter,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 
 interface WalletOperationFiltersProps {
   filters: {
     status: string;
     dateFrom: string;
     dateTo: string;
-    type: 'deposit' | 'withdrawal';
+    type: "deposit" | "withdrawal";
   };
   onChange: (newFilters: any) => void;
-  onTabChange: (tab: 'deposits' | 'withdrawals' | 'history') => void;
-  activeTab: 'deposits' | 'withdrawals' | 'history';
+  onTabChange: (tab: "deposits" | "withdrawals" | "history") => void;
+  activeTab: "deposits" | "withdrawals" | "history";
 }
 
 const WalletOperationFilters: React.FC<WalletOperationFiltersProps> = ({
   filters,
   onChange,
   onTabChange,
-  activeTab
+  activeTab,
 }) => {
   // Opciones de estado
   const statusOptions = [
-    { value: '', label: 'Todos', icon: Filter },
-    { value: 'pending', label: 'Pendiente', icon: Clock },
-    { value: 'approved', label: 'Aprobado', icon: CheckCircle },
-    { value: 'rejected', label: 'Rechazado', icon: XCircle },
-    { value: 'completed', label: 'Completado', icon: TrendingUp },
-    { value: 'cancelled', label: 'Cancelado', icon: AlertCircle },
+    { value: "", label: "Todos", icon: Filter },
+    { value: "pending", label: "Pendiente", icon: Clock },
+    { value: "approved", label: "Aprobado", icon: CheckCircle },
+    { value: "rejected", label: "Rechazado", icon: XCircle },
+    { value: "completed", label: "Completado", icon: TrendingUp },
+    { value: "cancelled", label: "Cancelado", icon: AlertCircle },
   ];
 
   // Opciones de tipo
   const typeOptions = [
-    { value: 'deposit', label: 'Depósito', icon: TrendingUp },
-    { value: 'withdrawal', label: 'Retiro', icon: TrendingDown },
+    { value: "deposit", label: "Depósito", icon: TrendingUp },
+    { value: "withdrawal", label: "Retiro", icon: TrendingDown },
   ];
 
   return (
@@ -44,11 +53,11 @@ const WalletOperationFilters: React.FC<WalletOperationFiltersProps> = ({
         <div className="flex border-b border-gray-200">
           <button
             className={`px-4 py-2 font-medium text-sm ${
-              activeTab === 'deposits'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+              activeTab === "deposits"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
-            onClick={() => onTabChange('deposits')}
+            onClick={() => onTabChange("deposits")}
           >
             <span className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -57,11 +66,11 @@ const WalletOperationFilters: React.FC<WalletOperationFiltersProps> = ({
           </button>
           <button
             className={`px-4 py-2 font-medium text-sm ${
-              activeTab === 'withdrawals'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+              activeTab === "withdrawals"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
-            onClick={() => onTabChange('withdrawals')}
+            onClick={() => onTabChange("withdrawals")}
           >
             <span className="flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />
@@ -70,11 +79,11 @@ const WalletOperationFilters: React.FC<WalletOperationFiltersProps> = ({
           </button>
           <button
             className={`px-4 py-2 font-medium text-sm ${
-              activeTab === 'history'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+              activeTab === "history"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
-            onClick={() => onTabChange('history')}
+            onClick={() => onTabChange("history")}
           >
             <span className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -104,14 +113,16 @@ const WalletOperationFilters: React.FC<WalletOperationFiltersProps> = ({
         </div>
 
         {/* Filtro de tipo - Solo mostrar si no está en historial */}
-        {activeTab !== 'history' && (
+        {activeTab !== "history" && (
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tipo
             </label>
             <select
               value={filters.type}
-              onChange={(e) => onChange({ type: e.target.value as 'deposit' | 'withdrawal' })}
+              onChange={(e) =>
+                onChange({ type: e.target.value as "deposit" | "withdrawal" })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               {typeOptions.map((option) => (

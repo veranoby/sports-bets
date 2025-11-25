@@ -44,12 +44,15 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
     }
 
     try {
-      const response = await fetch(`${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/alerts`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/alerts`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -119,14 +122,15 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
         try {
           // Parse the SSE event data
           const data: MonitoringAlertData = JSON.parse(event.data);
-          if (data && data.critical !== undefined && data.warnings !== undefined) {
+          if (
+            data &&
+            data.critical !== undefined &&
+            data.warnings !== undefined
+          ) {
             setCriticalAlerts(data.critical);
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
-            console.log(
-              "📊 SSE: Received admin monitoring alerts data:",
-              data,
-            );
+            console.log("📊 SSE: Received admin monitoring alerts data:", data);
           } else {
             console.error("❌ SSE: Invalid monitoring data format:", data);
           }
@@ -140,21 +144,25 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
         }
       };
 
-      es.addEventListener('monitoring-update', (event: MessageEvent) => {
+      es.addEventListener("monitoring-update", (event: MessageEvent) => {
         if (!mountedRef.current) return;
-        
+
         try {
           const data: MonitoringAlertData = JSON.parse(event.data);
-          if (data && data.critical !== undefined && data.warnings !== undefined) {
+          if (
+            data &&
+            data.critical !== undefined &&
+            data.warnings !== undefined
+          ) {
             setCriticalAlerts(data.critical);
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
-            console.log(
-              "📊 SSE: Received monitoring-update event:",
+            console.log("📊 SSE: Received monitoring-update event:", data);
+          } else {
+            console.error(
+              "❌ SSE: Invalid monitoring-update data format:",
               data,
             );
-          } else {
-            console.error("❌ SSE: Invalid monitoring-update data format:", data);
           }
         } catch (parseError: any) {
           console.error(
@@ -162,7 +170,9 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
             event.data,
             parseError,
           );
-          setError(`Failed to parse SSE monitoring-update: ${parseError.message}`);
+          setError(
+            `Failed to parse SSE monitoring-update: ${parseError.message}`,
+          );
         }
       });
 
@@ -206,12 +216,12 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
     console.log("🔄 Manual refresh of monitoring alerts requested");
     setLoading(true);
     setError(null);
-    
+
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
-    
+
     fetchInitialAlerts();
     setTimeout(() => {
       if (mountedRef.current) {
@@ -221,7 +231,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
   }, [fetchInitialAlerts, connect]);
 
   useEffect(() => {
-    if (user && token && (user.role === 'admin' || user.role === 'operator')) {
+    if (user && token && (user.role === "admin" || user.role === "operator")) {
       // Initial fetch
       fetchInitialAlerts();
 

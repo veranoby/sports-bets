@@ -7,26 +7,30 @@ import { WalletOperation } from "../../types/walletOperation";
 interface RejectOperationModalProps {
   operation: WalletOperation;
   onClose: () => void;
-  onReject: (operationId: string, rejectionReason: string, adminNotes?: string) => Promise<void>;
+  onReject: (
+    operationId: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ) => Promise<void>;
 }
 
 const RejectOperationModal: React.FC<RejectOperationModalProps> = ({
   operation,
   onClose,
-  onReject
+  onReject,
 }) => {
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [adminNotes, setAdminNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!rejectionReason.trim()) {
-      alert('La razón de rechazo es obligatoria');
+      alert("La razón de rechazo es obligatoria");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await onReject(operation.id, rejectionReason, adminNotes);
@@ -37,9 +41,9 @@ const RejectOperationModal: React.FC<RejectOperationModalProps> = ({
 
   // Formatear monto
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-EC', { 
-      style: 'currency', 
-      currency: 'USD' 
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -70,19 +74,25 @@ const RejectOperationModal: React.FC<RejectOperationModalProps> = ({
                 <span className="font-medium">Usuario:</span> {operation.userId}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Tipo:</span> {operation.type === 'deposit' ? 'Depósito' : 'Retiro'}
+                <span className="font-medium">Tipo:</span>{" "}
+                {operation.type === "deposit" ? "Depósito" : "Retiro"}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Monto:</span> {formatCurrency(operation.amount)}
+                <span className="font-medium">Monto:</span>{" "}
+                {formatCurrency(operation.amount)}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Fecha de Solicitud:</span> {new Date(operation.requestedAt).toLocaleString('es-ES')}
+                <span className="font-medium">Fecha de Solicitud:</span>{" "}
+                {new Date(operation.requestedAt).toLocaleString("es-ES")}
               </p>
             </div>
           </div>
 
           <div>
-            <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="rejectionReason"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Razón de Rechazo <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -98,7 +108,10 @@ const RejectOperationModal: React.FC<RejectOperationModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="adminNotes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notas del Administrador (opcional)
             </label>
             <textarea
@@ -127,7 +140,7 @@ const RejectOperationModal: React.FC<RejectOperationModalProps> = ({
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center gap-2"
             >
               {isLoading ? (
-                'Procesando...'
+                "Procesando..."
               ) : (
                 <>
                   <X className="w-4 h-4" />

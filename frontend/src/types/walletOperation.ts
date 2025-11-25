@@ -4,9 +4,9 @@ export interface WalletOperation {
   id: string;
   userId: string;
   walletId: string;
-  type: 'deposit' | 'withdrawal';
+  type: "deposit" | "withdrawal";
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';
+  status: "pending" | "approved" | "rejected" | "cancelled" | "completed";
   paymentProofUrl?: string;
   adminProofUrl?: string;
   adminNotes?: string;
@@ -21,7 +21,7 @@ export interface WalletOperation {
 
 export interface WalletOperationFilters {
   status?: string;
-  type?: 'deposit' | 'withdrawal';
+  type?: "deposit" | "withdrawal";
   dateFrom?: string;
   dateTo?: string;
   userId?: string;

@@ -2,7 +2,20 @@
 // 💰 GESTIÓN DE OPERACIONES DE WALLET - Página de administración de depósitos y retiros
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Wallet, PlusCircle, Download, Eye, Check, X, Upload, AlertCircle, Clock, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  Wallet,
+  PlusCircle,
+  Download,
+  Eye,
+  Check,
+  X,
+  Upload,
+  AlertCircle,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as XLSX from "xlsx";
 
@@ -14,7 +27,15 @@ import Modal from "../../components/shared/Modal";
 
 // APIs y tipos
 import { walletAPI } from "../../config/api";
-import { WalletOperation, WalletOperationStats, CreateDepositData, CreateWithdrawalData, ApproveOperationData, CompleteOperationData, RejectOperationData } from "../../types/walletOperation";
+import {
+  WalletOperation,
+  WalletOperationStats,
+  CreateDepositData,
+  CreateWithdrawalData,
+  ApproveOperationData,
+  CompleteOperationData,
+  RejectOperationData,
+} from "../../types/walletOperation";
 
 // Componentes específicos
 import WalletOperationCard from "../../components/admin/WalletOperationCard";
@@ -25,24 +46,28 @@ import WalletOperationFilters from "../../components/admin/WalletOperationFilter
 
 const AdminFinancePage: React.FC = () => {
   // Estados principales
-  const [activeTab, setActiveTab] = useState<'deposits' | 'withdrawals' | 'history'>('deposits');
+  const [activeTab, setActiveTab] = useState<
+    "deposits" | "withdrawals" | "history"
+  >("deposits");
   const [operations, setOperations] = useState<WalletOperation[]>([]);
   const [stats, setStats] = useState<WalletOperationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estados de modales
   const [showApproveDepositModal, setShowApproveDepositModal] = useState(false);
-  const [showApproveWithdrawalModal, setShowApproveWithdrawalModal] = useState(false);
+  const [showApproveWithdrawalModal, setShowApproveWithdrawalModal] =
+    useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<WalletOperation | null>(null);
-  
+  const [selectedOperation, setSelectedOperation] =
+    useState<WalletOperation | null>(null);
+
   // Filtros
   const [filters, setFilters] = useState({
-    status: 'pending',
-    dateFrom: '',
-    dateTo: '',
-    type: 'deposit' as 'deposit' | 'withdrawal',
+    status: "pending",
+    dateFrom: "",
+    dateTo: "",
+    type: "deposit" as "deposit" | "withdrawal",
   });
 
   // Cargar datos iniciales
@@ -58,19 +83,19 @@ const AdminFinancePage: React.FC = () => {
       }
 
       // Cargar operaciones según pestaña activa
-      let params: any = { status: filters.status || 'pending' };
+      const params: any = { status: filters.status || "pending" };
       if (filters.dateFrom) params.dateFrom = filters.dateFrom;
       if (filters.dateTo) params.dateTo = filters.dateTo;
-      
+
       // Filtrar por tipo según la pestaña activa
-      if (activeTab === 'deposits') {
-        params.type = 'deposit';
-      } else if (activeTab === 'withdrawals') {
-        params.type = 'withdrawal';
+      if (activeTab === "deposits") {
+        params.type = "deposit";
+      } else if (activeTab === "withdrawals") {
+        params.type = "withdrawal";
       } else {
         // En historial, no filtrar por tipo
         delete params.type;
-        params.status = 'completed'; // Mostrar solo operaciones completadas en historial
+        params.status = "completed"; // Mostrar solo operaciones completadas en historial
       }
 
       const operationsRes = await walletAPI.getWalletOperations(params);
@@ -78,9 +103,9 @@ const AdminFinancePage: React.FC = () => {
         setOperations(operationsRes.data.operations || []);
       }
     } catch (err: any) {
-      console.error('Error loading wallet operations:', err);
-      setError(err.message || 'Error al cargar operaciones de wallet');
-      toast.error('Error al cargar operaciones de wallet');
+      console.error("Error loading wallet operations:", err);
+      setError(err.message || "Error al cargar operaciones de wallet");
+      toast.error("Error al cargar operaciones de wallet");
     } finally {
       setLoading(false);
     }
@@ -93,32 +118,32 @@ const AdminFinancePage: React.FC = () => {
 
   // Manejar filtros
   const handleFilterChange = (newFilters: any) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   // Exportar a Excel
   const exportToExcel = () => {
     if (!operations.length) {
-      toast.error('No hay operaciones para exportar');
+      toast.error("No hay operaciones para exportar");
       return;
     }
 
     try {
       // Preparar datos para exportación
-      const exportData = operations.map(op => ({
+      const exportData = operations.map((op) => ({
         ID: op.id,
         Usuario: op.userId,
-        'Tipo de Operación': op.type,
+        "Tipo de Operación": op.type,
         Monto: op.amount,
         Estado: op.status,
-        'Fecha de Solicitud': op.requestedAt,
-        'Fecha de Procesamiento': op.processedAt || '',
-        'Fecha de Completado': op.completedAt || '',
-        'URL de Prueba de Pago': op.paymentProofUrl || '',
-        'URL de Prueba de Admin': op.adminProofUrl || '',
-        'Notas de Admin': op.adminNotes || '',
-        'Razón de Rechazo': op.rejectionReason || '',
-        ProcesadoPor: op.processedBy || ''
+        "Fecha de Solicitud": op.requestedAt,
+        "Fecha de Procesamiento": op.processedAt || "",
+        "Fecha de Completado": op.completedAt || "",
+        "URL de Prueba de Pago": op.paymentProofUrl || "",
+        "URL de Prueba de Admin": op.adminProofUrl || "",
+        "Notas de Admin": op.adminNotes || "",
+        "Razón de Rechazo": op.rejectionReason || "",
+        ProcesadoPor: op.processedBy || "",
       }));
 
       // Crear libro de Excel y hoja
@@ -127,70 +152,89 @@ const AdminFinancePage: React.FC = () => {
       XLSX.utils.book_append_sheet(wb, ws, "Operaciones Wallet");
 
       // Generar archivo y descargar
-      const fileName = `operaciones_wallet_${activeTab}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `operaciones_wallet_${activeTab}_${new Date().toISOString().split("T")[0]}.xlsx`;
       XLSX.writeFile(wb, fileName);
 
-      toast.success('Exportación completada');
+      toast.success("Exportación completada");
     } catch (err) {
-      console.error('Error exporting to Excel:', err);
-      toast.error('Error al exportar a Excel');
+      console.error("Error exporting to Excel:", err);
+      toast.error("Error al exportar a Excel");
     }
   };
 
   // Manejar acciones de operaciones
-  const handleApproveOperation = async (operationId: string, adminNotes?: string) => {
+  const handleApproveOperation = async (
+    operationId: string,
+    adminNotes?: string,
+  ) => {
     try {
       await walletAPI.approveWalletOperation(operationId, adminNotes);
-      toast.success('Operación aprobada exitosamente');
-      
+      toast.success("Operación aprobada exitosamente");
+
       // Refrescar datos
       fetchData();
-      
+
       // Cerrar modal
       setShowApproveDepositModal(false);
       setShowApproveWithdrawalModal(false);
     } catch (err: any) {
-      console.error('Error approving operation:', err);
-      toast.error('Error al aprobar operación');
+      console.error("Error approving operation:", err);
+      toast.error("Error al aprobar operación");
     }
   };
 
-  const handleCompleteOperation = async (operationId: string, adminProofUrl: string, adminNotes?: string) => {
+  const handleCompleteOperation = async (
+    operationId: string,
+    adminProofUrl: string,
+    adminNotes?: string,
+  ) => {
     try {
-      await walletAPI.completeWalletOperation(operationId, adminProofUrl, adminNotes);
-      toast.success('Operación completada exitosamente');
-      
+      await walletAPI.completeWalletOperation(
+        operationId,
+        adminProofUrl,
+        adminNotes,
+      );
+      toast.success("Operación completada exitosamente");
+
       // Refrescar datos
       fetchData();
-      
+
       // Cerrar modal
       setShowApproveWithdrawalModal(false);
     } catch (err: any) {
-      console.error('Error completing operation:', err);
-      toast.error('Error al completar operación');
+      console.error("Error completing operation:", err);
+      toast.error("Error al completar operación");
     }
   };
 
-  const handleRejectOperation = async (operationId: string, rejectionReason: string, adminNotes?: string) => {
+  const handleRejectOperation = async (
+    operationId: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ) => {
     try {
-      await walletAPI.rejectWalletOperation(operationId, rejectionReason, adminNotes);
-      toast.success('Operación rechazada exitosamente');
-      
+      await walletAPI.rejectWalletOperation(
+        operationId,
+        rejectionReason,
+        adminNotes,
+      );
+      toast.success("Operación rechazada exitosamente");
+
       // Refrescar datos
       fetchData();
-      
+
       // Cerrar modal
       setShowRejectModal(false);
     } catch (err: any) {
-      console.error('Error rejecting operation:', err);
-      toast.error('Error al rechazar operación');
+      console.error("Error rejecting operation:", err);
+      toast.error("Error al rechazar operación");
     }
   };
 
   // Abrir modales según el tipo de operación
   const openApproveModal = (operation: WalletOperation) => {
     setSelectedOperation(operation);
-    if (operation.type === 'deposit') {
+    if (operation.type === "deposit") {
       setShowApproveDepositModal(true);
     } else {
       setShowApproveWithdrawalModal(true);
@@ -207,11 +251,11 @@ const AdminFinancePage: React.FC = () => {
     if (!operations.length) return [];
 
     switch (activeTab) {
-      case 'deposits':
-        return operations.filter(op => op.type === 'deposit');
-      case 'withdrawals':
-        return operations.filter(op => op.type === 'withdrawal');
-      case 'history':
+      case "deposits":
+        return operations.filter((op) => op.type === "deposit");
+      case "withdrawals":
+        return operations.filter((op) => op.type === "withdrawal");
+      case "history":
         return operations; // Mostrar todas las operaciones completadas
       default:
         return operations;
@@ -317,8 +361,8 @@ const AdminFinancePage: React.FC = () => {
       </div>
 
       {/* Filtros */}
-      <WalletOperationFilters 
-        filters={filters} 
+      <WalletOperationFilters
+        filters={filters}
         onChange={handleFilterChange}
         onTabChange={setActiveTab}
         activeTab={activeTab}
@@ -330,7 +374,7 @@ const AdminFinancePage: React.FC = () => {
           {/* Lista de operaciones */}
           {filteredOperations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredOperations.map(operation => (
+              {filteredOperations.map((operation) => (
                 <WalletOperationCard
                   key={operation.id}
                   operation={operation}
@@ -346,11 +390,11 @@ const AdminFinancePage: React.FC = () => {
                 No se encontraron operaciones
               </h3>
               <p className="text-gray-500">
-                {activeTab === 'deposits' 
-                  ? 'No hay depósitos pendientes para mostrar' 
-                  : activeTab === 'withdrawals'
-                  ? 'No hay retiros pendientes para mostrar'
-                  : 'No hay operaciones completadas para mostrar'}
+                {activeTab === "deposits"
+                  ? "No hay depósitos pendientes para mostrar"
+                  : activeTab === "withdrawals"
+                    ? "No hay retiros pendientes para mostrar"
+                    : "No hay operaciones completadas para mostrar"}
               </p>
             </div>
           )}

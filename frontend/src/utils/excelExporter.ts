@@ -2,36 +2,43 @@
 // Utility functions to export data to Excel format
 // Uses xlsx library to generate .xlsx files with proper formatting
 
-import { utils, writeFile } from 'xlsx';
+import { utils, writeFile } from "xlsx";
 
 /**
  * Export wallet operations to Excel file with proper formatting and filters
  * @param operations - Array of wallet operations to export
  * @param filename - Name for the output Excel file
  */
-export const exportWalletOperationsToExcel = (operations: any[], filename: string = 'wallet-operations.xlsx') => {
+export const exportWalletOperationsToExcel = (
+  operations: any[],
+  filename: string = "wallet-operations.xlsx",
+) => {
   // Prepare data with proper column headers
-  const worksheetData = operations.map(operation => ({
-    'ID': operation.id,
-    'Usuario': operation.user?.username || operation.userId,
-    'Tipo': operation.type,
-    'Monto': operation.amount,
-    'Estado': operation.status,
-    'Prueba Pago': operation.paymentProofUrl || '',
-    'Prueba Admin': operation.adminProofUrl || '',
-    'Notas Admin': operation.adminNotes || '',
-    'Motivo Rechazo': operation.rejectionReason || '',
-    'Creado': new Date(operation.createdAt).toLocaleString('es-ES'),
-    'Procesado': operation.processedAt ? new Date(operation.processedAt).toLocaleString('es-ES') : '',
-    'Completado': operation.completedAt ? new Date(operation.completedAt).toLocaleString('es-ES') : '',
-    'Usuario Procesado': operation.processedBy || ''
+  const worksheetData = operations.map((operation) => ({
+    ID: operation.id,
+    Usuario: operation.user?.username || operation.userId,
+    Tipo: operation.type,
+    Monto: operation.amount,
+    Estado: operation.status,
+    "Prueba Pago": operation.paymentProofUrl || "",
+    "Prueba Admin": operation.adminProofUrl || "",
+    "Notas Admin": operation.adminNotes || "",
+    "Motivo Rechazo": operation.rejectionReason || "",
+    Creado: new Date(operation.createdAt).toLocaleString("es-ES"),
+    Procesado: operation.processedAt
+      ? new Date(operation.processedAt).toLocaleString("es-ES")
+      : "",
+    Completado: operation.completedAt
+      ? new Date(operation.completedAt).toLocaleString("es-ES")
+      : "",
+    "Usuario Procesado": operation.processedBy || "",
   }));
 
   // Create worksheet
   const worksheet = utils.json_to_sheet(worksheetData);
-  
+
   // Add some basic formatting
-  worksheet['!cols'] = [
+  worksheet["!cols"] = [
     { wch: 30 }, // ID column
     { wch: 15 }, // Usuario column
     { wch: 12 }, // Tipo column
@@ -44,12 +51,12 @@ export const exportWalletOperationsToExcel = (operations: any[], filename: strin
     { wch: 20 }, // Creado column
     { wch: 20 }, // Procesado column
     { wch: 20 }, // Completado column
-    { wch: 15 }  // Usuario Procesado column
+    { wch: 15 }, // Usuario Procesado column
   ];
 
   // Create workbook
   const workbook = utils.book_new();
-  utils.book_append_sheet(workbook, worksheet, 'Operaciones Wallet');
+  utils.book_append_sheet(workbook, worksheet, "Operaciones Wallet");
 
   // Generate and download file
   const safeFilename = sanitizeFilename(filename);
@@ -61,31 +68,34 @@ export const exportWalletOperationsToExcel = (operations: any[], filename: strin
  * @param bets - Array of bets to export
  * @param filename - Name for the output Excel file
  */
-export const exportBetsToExcel = (bets: any[], filename: string = 'bets.xlsx') => {
-  const worksheetData = bets.map(bet => ({
-    'ID': bet.id,
-    'Usuario': bet.user?.username || bet.userId,
-    'Pelear': bet.fight?.number || bet.fightId,
-    'Lado': bet.side,
-    'Monto': bet.amount,
-    'Tipo': bet.betType || 'flat',
-    'Estado': bet.status,
-    'Resultado': bet.result || '',
-    'Potencial Ganar': bet.potentialWin || '',
-    'Emparejado Con': bet.matchedWith || '',
-    'Padre Apuesta': bet.parentBetId || '',
-    'Términos': JSON.stringify(bet.terms || {}),
-    'Creado': new Date(bet.createdAt).toLocaleString('es-ES'),
-    'Actualizado': new Date(bet.updatedAt).toLocaleString('es-ES')
+export const exportBetsToExcel = (
+  bets: any[],
+  filename: string = "bets.xlsx",
+) => {
+  const worksheetData = bets.map((bet) => ({
+    ID: bet.id,
+    Usuario: bet.user?.username || bet.userId,
+    Pelear: bet.fight?.number || bet.fightId,
+    Lado: bet.side,
+    Monto: bet.amount,
+    Tipo: bet.betType || "flat",
+    Estado: bet.status,
+    Resultado: bet.result || "",
+    "Potencial Ganar": bet.potentialWin || "",
+    "Emparejado Con": bet.matchedWith || "",
+    "Padre Apuesta": bet.parentBetId || "",
+    Términos: JSON.stringify(bet.terms || {}),
+    Creado: new Date(bet.createdAt).toLocaleString("es-ES"),
+    Actualizado: new Date(bet.updatedAt).toLocaleString("es-ES"),
   }));
 
   const worksheet = utils.json_to_sheet(worksheetData);
-  
-  worksheet['!cols'] = [
+
+  worksheet["!cols"] = [
     { wch: 20 }, // ID
     { wch: 15 }, // Usuario
     { wch: 10 }, // Pelear
-    { wch: 8 },  // Lado
+    { wch: 8 }, // Lado
     { wch: 10 }, // Monto
     { wch: 10 }, // Tipo
     { wch: 12 }, // Estado
@@ -95,11 +105,11 @@ export const exportBetsToExcel = (bets: any[], filename: string = 'bets.xlsx') =
     { wch: 20 }, // Padre Apuesta
     { wch: 20 }, // Términos
     { wch: 20 }, // Creado
-    { wch: 20 }  // Actualizado
+    { wch: 20 }, // Actualizado
   ];
 
   const workbook = utils.book_new();
-  utils.book_append_sheet(workbook, worksheet, 'Apuestas');
+  utils.book_append_sheet(workbook, worksheet, "Apuestas");
 
   const safeFilename = sanitizeFilename(filename);
   writeFile(workbook, safeFilename);
@@ -110,37 +120,44 @@ export const exportBetsToExcel = (bets: any[], filename: string = 'bets.xlsx') =
  * @param users - Array of users to export
  * @param filename - Name for the output Excel file
  */
-export const exportUsersToExcel = (users: any[], filename: string = 'users.xlsx') => {
-  const worksheetData = users.map(user => ({
-    'ID': user.id,
-    'Username': user.username,
-    'Email': user.email,
-    'Rol': user.role,
-    'Activo': user.isActive ? 'Sí' : 'No',
-    'Billetera Balance': user.wallet?.balance || 0,
-    'Creado': new Date(user.createdAt).toLocaleString('es-ES'),
-    'Último Login': user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('es-ES') : '',
-    'Tipo Subscripción': user.currentSubscription?.type || 'N/A',
-    'Expira Subscripción': user.currentSubscription?.expiresAt ? new Date(user.currentSubscription.expiresAt).toLocaleString('es-ES') : ''
+export const exportUsersToExcel = (
+  users: any[],
+  filename: string = "users.xlsx",
+) => {
+  const worksheetData = users.map((user) => ({
+    ID: user.id,
+    Username: user.username,
+    Email: user.email,
+    Rol: user.role,
+    Activo: user.isActive ? "Sí" : "No",
+    "Billetera Balance": user.wallet?.balance || 0,
+    Creado: new Date(user.createdAt).toLocaleString("es-ES"),
+    "Último Login": user.lastLoginAt
+      ? new Date(user.lastLoginAt).toLocaleString("es-ES")
+      : "",
+    "Tipo Subscripción": user.currentSubscription?.type || "N/A",
+    "Expira Subscripción": user.currentSubscription?.expiresAt
+      ? new Date(user.currentSubscription.expiresAt).toLocaleString("es-ES")
+      : "",
   }));
 
   const worksheet = utils.json_to_sheet(worksheetData);
-  
-  worksheet['!cols'] = [
+
+  worksheet["!cols"] = [
     { wch: 30 }, // ID
     { wch: 15 }, // Username
     { wch: 25 }, // Email
     { wch: 10 }, // Rol
-    { wch: 8 },  // Activo
+    { wch: 8 }, // Activo
     { wch: 15 }, // Billetera Balance
     { wch: 20 }, // Creado
     { wch: 20 }, // Último Login
     { wch: 15 }, // Tipo Subscripción
-    { wch: 20 }  // Expira Subscripción
+    { wch: 20 }, // Expira Subscripción
   ];
 
   const workbook = utils.book_new();
-  utils.book_append_sheet(workbook, worksheet, 'Usuarios');
+  utils.book_append_sheet(workbook, worksheet, "Usuarios");
 
   const safeFilename = sanitizeFilename(filename);
   writeFile(workbook, safeFilename);
@@ -151,13 +168,13 @@ export const exportUsersToExcel = (users: any[], filename: string = 'users.xlsx'
  */
 const sanitizeFilename = (filename: string): string => {
   // Remove or replace characters that are problematic in filenames
-  let sanitized = filename.replace(/[<>:"/\\|?*]/g, '_');
-  
+  let sanitized = filename.replace(/[<>:"/\\|?*]/g, "_");
+
   // Ensure proper extension
-  if (!sanitized.toLowerCase().endsWith('.xlsx')) {
-    sanitized += '.xlsx';
+  if (!sanitized.toLowerCase().endsWith(".xlsx")) {
+    sanitized += ".xlsx";
   }
-  
+
   return sanitized;
 };
 
@@ -165,5 +182,5 @@ const sanitizeFilename = (filename: string): string => {
 export default {
   exportWalletOperationsToExcel,
   exportBetsToExcel,
-  exportUsersToExcel
+  exportUsersToExcel,
 };

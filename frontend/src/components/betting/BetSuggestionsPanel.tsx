@@ -1,12 +1,12 @@
 // frontend/src/components/betting/BetSuggestionsPanel.tsx
 
-import React, { useState, useEffect } from 'react';
-import { useBets } from '../../hooks/useApi';
-import { Bet, BetData } from '../../types';
+import React, { useState, useEffect } from "react";
+import { useBets } from "../../hooks/useApi";
+import { Bet, BetData } from "../../types";
 
 interface BetSuggestionsPanelProps {
   fightId: string;
-  side: 'red' | 'blue';
+  side: "red" | "blue";
   amount: number;
   onSuggestionSelect: (bet: BetData) => void;
   onProposePago: (bet: BetData) => void;
@@ -17,7 +17,7 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
   side,
   amount,
   onSuggestionSelect,
-  onProposePago
+  onProposePago,
 }) => {
   const { getCompatibleBets } = useBets();
   const [suggestions, setSuggestions] = useState<BetData[]>([]);
@@ -39,7 +39,7 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
 
       const response = await getCompatibleBets({
         fightId,
-        side: side === 'red' ? 'blue' : 'red',  // Opposite side
+        side: side === "red" ? "blue" : "red", // Opposite side
         minAmount,
         maxAmount,
       });
@@ -48,7 +48,7 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
         setSuggestions(response.data.bets);
       }
     } catch (error) {
-      console.error('Error fetching bet suggestions:', error);
+      console.error("Error fetching bet suggestions:", error);
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -62,16 +62,16 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
   return (
     <div className="mt-4 pt-4 border-t border-gray-200">
       <h3 className="text-gray-700 font-medium mb-3 flex items-center gap-2">
-        <span className="bg-blue-100 p-1 rounded">
-          🔍
-        </span>
+        <span className="bg-blue-100 p-1 rounded">🔍</span>
         Apuestas Similares Disponibles
       </h3>
-      
+
       {loading && (
         <div className="text-center py-4">
           <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="mt-2 text-sm text-gray-600">Buscando apuestas compatibles...</p>
+          <p className="mt-2 text-sm text-gray-600">
+            Buscando apuestas compatibles...
+          </p>
         </div>
       )}
 
@@ -90,19 +90,21 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
             >
               <div className="flex-1 min-w-[150px]">
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${bet.side === 'red' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                  <div
+                    className={`w-3 h-3 rounded-full ${bet.side === "red" ? "bg-red-500" : "bg-blue-500"}`}
+                  ></div>
                   <span className="font-medium text-gray-900">
-                    ${bet.amount} · {bet.side === 'red' ? '🔴 Rojo' : '🔵 Azul'}
+                    ${bet.amount} · {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                   </span>
                   <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-full ml-2">
                     {bet.betType}
                   </span>
-                  {bet.betType === 'doy' && (
+                  {bet.betType === "doy" && (
                     <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
                       DOY
                     </span>
                   )}
-                  {bet.status === 'pending' && (
+                  {bet.status === "pending" && (
                     <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
                       Pendiente
                     </span>
@@ -114,7 +116,7 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
               </div>
 
               <div className="flex gap-2 mt-2 sm:mt-0">
-                {bet.betType === 'flat' && (
+                {bet.betType === "flat" && (
                   <button
                     onClick={() => handleAcceptBet(bet)}
                     className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors flex items-center gap-1"
@@ -123,8 +125,8 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
                     Aceptar
                   </button>
                 )}
-                
-                {bet.betType === 'flat' && (
+
+                {bet.betType === "flat" && (
                   <button
                     onClick={() => onProposePago(bet)}
                     className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors flex items-center gap-1"

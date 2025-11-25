@@ -1,7 +1,15 @@
 // frontend/src/components/admin/WalletOperationCard.tsx
 
 import React from "react";
-import { Wallet, Clock, Check, X, Eye, AlertTriangle, User } from "lucide-react";
+import {
+  Wallet,
+  Clock,
+  Check,
+  X,
+  Eye,
+  AlertTriangle,
+  User,
+} from "lucide-react";
 import { WalletOperation } from "../../types/walletOperation";
 
 interface WalletOperationCardProps {
@@ -10,26 +18,50 @@ interface WalletOperationCardProps {
   onReject: () => void;
 }
 
-const WalletOperationCard: React.FC<WalletOperationCardProps> = ({ 
-  operation, 
-  onApprove, 
-  onReject 
+const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
+  operation,
+  onApprove,
+  onReject,
 }) => {
   // Determinar estilos según el estado
   const getStatusColors = () => {
     switch (operation.status) {
-      case 'pending':
-        return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200' };
-      case 'approved':
-        return { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' };
-      case 'completed':
-        return { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-200' };
-      case 'rejected':
-        return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' };
-      case 'cancelled':
-        return { bg: 'bg-gray-50', text: 'text-gray-800', border: 'border-gray-200' };
+      case "pending":
+        return {
+          bg: "bg-yellow-50",
+          text: "text-yellow-800",
+          border: "border-yellow-200",
+        };
+      case "approved":
+        return {
+          bg: "bg-blue-50",
+          text: "text-blue-800",
+          border: "border-blue-200",
+        };
+      case "completed":
+        return {
+          bg: "bg-green-50",
+          text: "text-green-800",
+          border: "border-green-200",
+        };
+      case "rejected":
+        return {
+          bg: "bg-red-50",
+          text: "text-red-800",
+          border: "border-red-200",
+        };
+      case "cancelled":
+        return {
+          bg: "bg-gray-50",
+          text: "text-gray-800",
+          border: "border-gray-200",
+        };
       default:
-        return { bg: 'bg-gray-50', text: 'text-gray-800', border: 'border-gray-200' };
+        return {
+          bg: "bg-gray-50",
+          text: "text-gray-800",
+          border: "border-gray-200",
+        };
     }
   };
 
@@ -37,7 +69,7 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
 
   // Determinar ícono según el tipo
   const getTypeIcon = () => {
-    if (operation.type === 'deposit') {
+    if (operation.type === "deposit") {
       return <Wallet className="w-5 h-5 text-green-600" />;
     } else {
       return <Wallet className="w-5 h-5 text-red-600" />;
@@ -46,25 +78,31 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
 
   // Formatear monto
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-EC', { 
-      style: 'currency', 
-      currency: 'USD' 
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
   return (
-    <div className={`border rounded-lg p-4 ${statusColors.border} ${statusColors.bg} hover:shadow-md transition-shadow`}>
+    <div
+      className={`border rounded-lg p-4 ${statusColors.border} ${statusColors.bg} hover:shadow-md transition-shadow`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {getTypeIcon()}
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors.text} ${statusColors.bg}`}>
-            {operation.type === 'deposit' ? 'Depósito' : 'Retiro'} 
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors.text} ${statusColors.bg}`}
+          >
+            {operation.type === "deposit" ? "Depósito" : "Retiro"}
           </span>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors.text} ${statusColors.bg}`}>
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors.text} ${statusColors.bg}`}
+          >
             {operation.status}
           </span>
         </div>
-        
+
         <div className="text-right">
           <p className="text-lg font-bold text-gray-900">
             {formatCurrency(operation.amount)}
@@ -80,16 +118,16 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
       <div className="mt-3 text-sm text-gray-600">
         <p className="flex items-center">
           <Clock className="w-4 h-4 mr-1" />
-          {new Date(operation.requestedAt).toLocaleDateString('es-ES')}
+          {new Date(operation.requestedAt).toLocaleDateString("es-ES")}
         </p>
       </div>
 
       {/* Mostrar información adicional según el tipo y estado */}
-      {operation.type === 'deposit' && operation.paymentProofUrl && (
+      {operation.type === "deposit" && operation.paymentProofUrl && (
         <div className="mt-2">
-          <a 
-            href={operation.paymentProofUrl} 
-            target="_blank" 
+          <a
+            href={operation.paymentProofUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-600 hover:underline flex items-center"
           >
@@ -99,11 +137,11 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
         </div>
       )}
 
-      {operation.type === 'withdrawal' && operation.adminProofUrl && (
+      {operation.type === "withdrawal" && operation.adminProofUrl && (
         <div className="mt-2">
-          <a 
-            href={operation.adminProofUrl} 
-            target="_blank" 
+          <a
+            href={operation.adminProofUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-600 hover:underline flex items-center"
           >
@@ -122,7 +160,7 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
       )}
 
       {/* Acciones para operaciones pendientes */}
-      {operation.status === 'pending' && (
+      {operation.status === "pending" && (
         <div className="mt-4 flex gap-2">
           <button
             onClick={onApprove}
@@ -142,7 +180,7 @@ const WalletOperationCard: React.FC<WalletOperationCardProps> = ({
       )}
 
       {/* Mostrar estado adicional si es rechazado */}
-      {operation.status === 'rejected' && operation.rejectionReason && (
+      {operation.status === "rejected" && operation.rejectionReason && (
         <div className="mt-2 p-2 bg-red-100 text-red-700 text-xs rounded flex items-start">
           <AlertTriangle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
           <span>Razón: {operation.rejectionReason}</span>

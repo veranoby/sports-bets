@@ -178,11 +178,9 @@ export const betsAPI = {
   proposePago: (betId: string, pagoAmount: number) =>
     apiClient.post(`/bets/${betId}/propose-pago`, { pagoAmount }),
 
-  acceptPago: (betId: string) =>
-    apiClient.put(`/bets/${betId}/accept-pago`),
+  acceptPago: (betId: string) => apiClient.put(`/bets/${betId}/accept-pago`),
 
-  rejectPago: (betId: string) =>
-    apiClient.put(`/bets/${betId}/reject-pago`),
+  rejectPago: (betId: string) => apiClient.put(`/bets/${betId}/reject-pago`),
 
   getPendingProposals: () => apiClient.get("/bets/pending-proposals"),
   getCompatibleBets: (params: {
@@ -197,7 +195,7 @@ export const monitoringAPI = {
   getAlerts: () => apiClient.get("/monitoring/alerts"),
 
   getAdminMonitoringSSEUrl: () => {
-    return `${API_BASE_URL.replace('/api', '')}/monitoring/sse/admin/monitoring`;
+    return `${API_BASE_URL.replace("/api", "")}/monitoring/sse/admin/monitoring`;
   },
 };
 
@@ -265,7 +263,7 @@ export const walletAPI = {
   // Wallet Operations API (for deposits and withdrawals management)
   getWalletOperations: (params?: {
     status?: string;
-    type?: 'deposit' | 'withdrawal';
+    type?: "deposit" | "withdrawal";
     userId?: string;
     limit?: number;
     offset?: number;
@@ -273,23 +271,34 @@ export const walletAPI = {
     dateTo?: string;
   }) => apiClient.get("/wallet-operations", { params }),
 
-  createDeposit: (data: {
-    amount: number;
-    paymentProofUrl?: string;
-  }) => apiClient.post("/wallet-operations/deposit", data),
+  createDeposit: (data: { amount: number; paymentProofUrl?: string }) =>
+    apiClient.post("/wallet-operations/deposit", data),
 
-  createWithdrawal: (data: {
-    amount: number;
-  }) => apiClient.post("/wallet-operations/withdrawal", data),
+  createWithdrawal: (data: { amount: number }) =>
+    apiClient.post("/wallet-operations/withdrawal", data),
 
   approveWalletOperation: (id: string, adminNotes?: string) =>
     apiClient.put(`/wallet-operations/${id}/approve`, { adminNotes }),
 
-  completeWalletOperation: (id: string, adminProofUrl: string, adminNotes?: string) =>
-    apiClient.put(`/wallet-operations/${id}/complete`, { adminProofUrl, adminNotes }),
+  completeWalletOperation: (
+    id: string,
+    adminProofUrl: string,
+    adminNotes?: string,
+  ) =>
+    apiClient.put(`/wallet-operations/${id}/complete`, {
+      adminProofUrl,
+      adminNotes,
+    }),
 
-  rejectWalletOperation: (id: string, rejectionReason: string, adminNotes?: string) =>
-    apiClient.put(`/wallet-operations/${id}/reject`, { rejectionReason, adminNotes }),
+  rejectWalletOperation: (
+    id: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ) =>
+    apiClient.put(`/wallet-operations/${id}/reject`, {
+      rejectionReason,
+      adminNotes,
+    }),
 
   uploadWithdrawalProof: (id: string, adminProofUrl: string) =>
     apiClient.put(`/wallet-operations/${id}/upload-proof`, { adminProofUrl }),

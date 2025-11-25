@@ -1,10 +1,10 @@
 // frontend/src/components/betting/EditBetModal.tsx
 
-import React, { useState, useEffect } from 'react';
-import { useBets } from '../../hooks/useApi';
-import { BetData } from '../../types';
-import Modal from '../shared/Modal';
-import { DollarSign, RotateCcw, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useBets } from "../../hooks/useApi";
+import { BetData } from "../../types";
+import Modal from "../shared/Modal";
+import { DollarSign, RotateCcw, AlertTriangle } from "lucide-react";
 
 interface EditBetModalProps {
   bet: BetData;
@@ -12,23 +12,31 @@ interface EditBetModalProps {
   onSave: (updatedBet: BetData) => void;
 }
 
-const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => {
+const EditBetModal: React.FC<EditBetModalProps> = ({
+  bet,
+  onClose,
+  onSave,
+}) => {
   const { updateBet } = useBets();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for editable fields
   const [amount, setAmount] = useState(bet.amount.toString());
-  const [side, setSide] = useState<'red' | 'blue'>(bet.side as 'red' | 'blue');
-  const [betType, setBetType] = useState<'flat' | 'doy'>(bet.betType as 'flat' | 'doy');
-  const [doyAmount, setDoyAmount] = useState(bet.terms?.doyAmount?.toString() || '');
-  
+  const [side, setSide] = useState<"red" | "blue">(bet.side as "red" | "blue");
+  const [betType, setBetType] = useState<"flat" | "doy">(
+    bet.betType as "flat" | "doy",
+  );
+  const [doyAmount, setDoyAmount] = useState(
+    bet.terms?.doyAmount?.toString() || "",
+  );
+
   // Check if bet can be edited (should be pending)
-  const canEdit = bet.status === 'pending';
+  const canEdit = bet.status === "pending";
 
   useEffect(() => {
     if (!canEdit) {
-      setError('Solo se pueden editar apuestas pendientes');
+      setError("Solo se pueden editar apuestas pendientes");
     }
   }, [canEdit]);
 
@@ -46,10 +54,10 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
       };
 
       // Add DOY amount if bet type is DOY
-      if (betType === 'doy' && doyAmount) {
+      if (betType === "doy" && doyAmount) {
         updateData.terms = {
           ...bet.terms,
-          doyAmount: Number(doyAmount)
+          doyAmount: Number(doyAmount),
         };
       }
 
@@ -60,8 +68,8 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
         onClose();
       }
     } catch (err: any) {
-      console.error('Error updating bet:', err);
-      setError(err.message || 'Error al actualizar la apuesta');
+      console.error("Error updating bet:", err);
+      setError(err.message || "Error al actualizar la apuesta");
     } finally {
       setLoading(false);
     }
@@ -69,14 +77,17 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-EC', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(value);
   };
 
   return (
-    <Modal title={`Editar Apuesta #${bet.id.substring(0, 8)}`} onClose={onClose}>
+    <Modal
+      title={`Editar Apuesta #${bet.id.substring(0, 8)}`}
+      onClose={onClose}
+    >
       <div className="space-y-4">
         {!canEdit ? (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -92,7 +103,9 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Current Bet Info */}
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-2">Información Actual</h3>
+              <h3 className="font-medium text-gray-900 mb-2">
+                Información Actual
+              </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Monto:</span>
@@ -100,7 +113,9 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                 </div>
                 <div>
                   <span className="text-gray-500">Lado:</span>
-                  <p className="font-medium">{bet.side === 'red' ? '🔴 Rojo' : '🔵 Azul'}</p>
+                  <p className="font-medium">
+                    {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
+                  </p>
                 </div>
                 <div>
                   <span className="text-gray-500">Tipo:</span>
@@ -144,11 +159,11 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setSide('red')}
+                    onClick={() => setSide("red")}
                     className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      side === 'red'
-                        ? 'bg-red-100 border-2 border-red-500 text-red-700 font-medium'
-                        : 'bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200'
+                      side === "red"
+                        ? "bg-red-100 border-2 border-red-500 text-red-700 font-medium"
+                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
                     }`}
                     disabled={!canEdit || loading}
                   >
@@ -157,11 +172,11 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSide('blue')}
+                    onClick={() => setSide("blue")}
                     className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      side === 'blue'
-                        ? 'bg-blue-100 border-2 border-blue-500 text-blue-700 font-medium'
-                        : 'bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200'
+                      side === "blue"
+                        ? "bg-blue-100 border-2 border-blue-500 text-blue-700 font-medium"
+                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
                     }`}
                     disabled={!canEdit || loading}
                   >
@@ -180,13 +195,13 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                   <button
                     type="button"
                     onClick={() => {
-                      setBetType('flat');
-                      setDoyAmount(''); // Clear DOY amount when switching to flat
+                      setBetType("flat");
+                      setDoyAmount(""); // Clear DOY amount when switching to flat
                     }}
                     className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      betType === 'flat'
-                        ? 'bg-green-100 border-2 border-green-500 text-green-700 font-medium'
-                        : 'bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200'
+                      betType === "flat"
+                        ? "bg-green-100 border-2 border-green-500 text-green-700 font-medium"
+                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
                     }`}
                     disabled={!canEdit || loading}
                   >
@@ -195,11 +210,11 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                   </button>
                   <button
                     type="button"
-                    onClick={() => setBetType('doy')}
+                    onClick={() => setBetType("doy")}
                     className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      betType === 'doy'
-                        ? 'bg-yellow-100 border-2 border-yellow-500 text-yellow-700 font-medium'
-                        : 'bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200'
+                      betType === "doy"
+                        ? "bg-yellow-100 border-2 border-yellow-500 text-yellow-700 font-medium"
+                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
                     }`}
                     disabled={!canEdit || loading}
                   >
@@ -210,7 +225,7 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
               </div>
 
               {/* DOY Amount - Only show if bet type is DOY */}
-              {betType === 'doy' && (
+              {betType === "doy" && (
                 <div>
                   <label className="block text-gray-700 mb-1 font-medium">
                     Monto DOY <span className="text-red-500">*</span>
@@ -230,7 +245,8 @@ const EditBetModal: React.FC<EditBetModalProps> = ({ bet, onClose, onSave }) => 
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Monto adicional que recibirás si ganas (mínimo debe ser mayor al monto principal)
+                    Monto adicional que recibirás si ganas (mínimo debe ser
+                    mayor al monto principal)
                   </p>
                 </div>
               )}

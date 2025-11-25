@@ -13,15 +13,15 @@ interface ApproveDepositModalProps {
 const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
   operation,
   onClose,
-  onApprove
+  onApprove,
 }) => {
-  const [adminNotes, setAdminNotes] = useState('');
+  const [adminNotes, setAdminNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await onApprove(operation.id, adminNotes);
     } finally {
@@ -31,9 +31,9 @@ const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
 
   // Formatear monto
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-EC', { 
-      style: 'currency', 
-      currency: 'USD' 
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -63,10 +63,12 @@ const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
                 <span className="font-medium">Usuario:</span> {operation.userId}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Monto:</span> {formatCurrency(operation.amount)}
+                <span className="font-medium">Monto:</span>{" "}
+                {formatCurrency(operation.amount)}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Fecha de Solicitud:</span> {new Date(operation.requestedAt).toLocaleString('es-ES')}
+                <span className="font-medium">Fecha de Solicitud:</span>{" "}
+                {new Date(operation.requestedAt).toLocaleString("es-ES")}
               </p>
             </div>
           </div>
@@ -76,9 +78,9 @@ const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Comprobante de Pago
               </label>
-              <a 
-                href={operation.paymentProofUrl} 
-                target="_blank" 
+              <a
+                href={operation.paymentProofUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline break-all"
               >
@@ -88,7 +90,10 @@ const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
           )}
 
           <div>
-            <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="adminNotes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notas del Administrador (opcional)
             </label>
             <textarea
@@ -117,7 +122,7 @@ const ApproveDepositModal: React.FC<ApproveDepositModalProps> = ({
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center gap-2"
             >
               {isLoading ? (
-                'Procesando...'
+                "Procesando..."
               ) : (
                 <>
                   <Check className="w-4 h-4" />

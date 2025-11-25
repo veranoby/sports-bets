@@ -276,11 +276,22 @@ const UserHeader = memo(() => {
                 <button
                   onClick={() => {
                     setShowNotifications(false); // Close other dropdowns
-                    setShowWalletDropdown(prev => !prev); // Toggle wallet dropdown
+                    setShowWalletDropdown((prev) => !prev); // Toggle wallet dropdown
                   }}
                   className="flex items-center justify-center p-2.5 h-10 bg-white border border-[#bdd5ef75] rounded-lg hover:bg-[#f0f9ff] transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down text-gray-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-chevron-down text-gray-600"
+                  >
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </button>
@@ -314,7 +325,7 @@ const UserHeader = memo(() => {
                           navigate("/wallet");
                           setShowWalletDropdown(false);
                           // Trigger deposit modal by adding hash to URL or setting a state in a context
-                          window.location.hash = 'deposit';
+                          window.location.hash = "deposit";
                         }}
                         className="w-full text-left px-4 py-2 hover:bg-green-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
                       >
@@ -326,7 +337,7 @@ const UserHeader = memo(() => {
                           navigate("/wallet");
                           setShowWalletDropdown(false);
                           // Trigger withdrawal modal by adding hash to URL or setting a state in a context
-                          window.location.hash = 'withdraw';
+                          window.location.hash = "withdraw";
                         }}
                         className="w-full text-left px-4 py-2 hover:bg-red-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
                       >

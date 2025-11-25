@@ -8,26 +8,32 @@ interface ApproveWithdrawalModalProps {
   operation: WalletOperation;
   onClose: () => void;
   onApprove: (operationId: string, adminNotes?: string) => Promise<void>;
-  onComplete: (operationId: string, adminProofUrl: string, adminNotes?: string) => Promise<void>;
+  onComplete: (
+    operationId: string,
+    adminProofUrl: string,
+    adminNotes?: string,
+  ) => Promise<void>;
 }
 
 const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
   operation,
   onClose,
   onApprove,
-  onComplete
+  onComplete,
 }) => {
-  const [adminNotes, setAdminNotes] = useState('');
-  const [adminProofUrl, setAdminProofUrl] = useState('');
+  const [adminNotes, setAdminNotes] = useState("");
+  const [adminProofUrl, setAdminProofUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'complete'>('approve'); // Approve first, then complete
+  const [actionType, setActionType] = useState<"approve" | "complete">(
+    "approve",
+  ); // Approve first, then complete
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      if (actionType === 'approve') {
+      if (actionType === "approve") {
         // Only approve the operation
         await onApprove(operation.id, adminNotes);
       } else {
@@ -41,9 +47,9 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
 
   // Formatear monto
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-EC', { 
-      style: 'currency', 
-      currency: 'USD' 
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -52,7 +58,7 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {actionType === 'approve' ? 'Aprobar Retiro' : 'Completar Retiro'}
+            {actionType === "approve" ? "Aprobar Retiro" : "Completar Retiro"}
           </h2>
           <button
             onClick={onClose}
@@ -73,10 +79,12 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
                 <span className="font-medium">Usuario:</span> {operation.userId}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Monto:</span> {formatCurrency(operation.amount)}
+                <span className="font-medium">Monto:</span>{" "}
+                {formatCurrency(operation.amount)}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Fecha de Solicitud:</span> {new Date(operation.requestedAt).toLocaleString('es-ES')}
+                <span className="font-medium">Fecha de Solicitud:</span>{" "}
+                {new Date(operation.requestedAt).toLocaleString("es-ES")}
               </p>
             </div>
           </div>
@@ -85,11 +93,11 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
             <button
               type="button"
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
-                actionType === 'approve'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                actionType === "approve"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
-              onClick={() => setActionType('approve')}
+              onClick={() => setActionType("approve")}
               disabled={isLoading}
             >
               Aprobar
@@ -97,20 +105,23 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
             <button
               type="button"
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
-                actionType === 'complete'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                actionType === "complete"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
-              onClick={() => setActionType('complete')}
+              onClick={() => setActionType("complete")}
               disabled={isLoading}
             >
               Completar
             </button>
           </div>
 
-          {actionType === 'complete' && (
+          {actionType === "complete" && (
             <div>
-              <label htmlFor="adminProofUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="adminProofUrl"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 URL de Comprobante de Transferencia (Obligatorio)
               </label>
               <input
@@ -124,13 +135,17 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
                 disabled={isLoading}
               />
               <p className="mt-1 text-xs text-gray-500">
-                El comprobante de transferencia es obligatorio para completar el retiro
+                El comprobante de transferencia es obligatorio para completar el
+                retiro
               </p>
             </div>
           )}
 
           <div>
-            <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="adminNotes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notas del Administrador (opcional)
             </label>
             <textarea
@@ -159,11 +174,13 @@ const ApproveWithdrawalModal: React.FC<ApproveWithdrawalModalProps> = ({
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center gap-2"
             >
               {isLoading ? (
-                'Procesando...'
+                "Procesando..."
               ) : (
                 <>
                   <Check className="w-4 h-4" />
-                  {actionType === 'approve' ? 'Aprobar Retiro' : 'Completar Retiro'}
+                  {actionType === "approve"
+                    ? "Aprobar Retiro"
+                    : "Completar Retiro"}
                 </>
               )}
             </button>

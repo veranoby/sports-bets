@@ -738,8 +738,8 @@
       "enable_autostart": "sudo systemctl enable postgresql",
       "database_creation": "sudo -u postgres createdb gallerosnet",
       "user_creation": "sudo -u postgres createuser gallerosnet_user",
-      "password_setup": "sudo -u postgres psql -c \"ALTER ROLE gallerosnet_user WITH PASSWORD 'secure_password';\"",
-      "connection_string": "postgresql://gallerosnet_user:secure_password@localhost:5432/gallerosnet",
+      "password_setup": "sudo -u postgres psql -c \"ALTER ROLE gallerosnet_user WITH PASSWORD '0102Mina';\"",
+      "connection_string": "postgresql://gallerosnet_user:0102Mina@127.0.0.1:5432/gallerosnet",
       "backup_strategy": {
         "manual_backup": "pg_dump -U gallerosnet_user gallerosnet > /backups/backup_$(date +%Y%m%d).sql",
         "automate_with_cron": "0 2 * * * pg_dump -U gallerosnet_user gallerosnet > /backups/backup_$(date +\\%Y\\%m\\%d).sql",
@@ -866,18 +866,22 @@
       "recommended_for_gallobets": "Option 2 (GitHub Actions) - safest, logged, easy rollback",
       "rollback_strategy": "Keep git history. If deployment breaks: git revert <commit> + git push + auto-redeploy",
       "server_directory_structure": {
-        "application": "/var/www/gallobets",
-        "backups": "/backups (PostgreSQL backups)",
-        "logs": "/var/log/gallobets (nginx, backend, postgres)",
-        "hls_streams": "/var/www/hls (Nginx RTMP generated)",
+        "application_backend": "/var/gallerosnet/backend (Node.js backend)",
+        "application_frontend": "/var/gallerosnet/frontend (React frontend - built files)",
+        "source_code": "/home/veranoby/sports-bets (git repository)",
+        "nginx_config": "/var/gallerosnet/nginx (Nginx configuration)",
+        "hls_streams": "/var/gallerosnet/hls (Nginx RTMP generated HLS segments)",
+        "backups": "/home/veranoby/backups (PostgreSQL backups - user-owned)",
+        "pgadmin": "/home/veranoby/opt/pgadmin4-web (PgAdmin installation)",
+        "logs": "/var/gallerosnet/logs (Application logs)",
         "ssl_certificates": "/etc/letsencrypt/live/galleros.net"
       },
       "environment_variables": {
-        "location": "/var/www/gallobets/.env (production)",
+        "location": "/var/gallerosnet/backend/.env (production)",
         "source_control": "NEVER commit .env to GitHub - use GitHub Actions secrets",
         "variables_to_set": [
-          "DATABASE_URL=postgresql://gallerosnet_user:password@localhost:5432/gallerosnet",
-          "REDIS_URL=redis://localhost:6379",
+          "DATABASE_URL=postgresql://gallerosnet_user:0102Mina@127.0.0.1:5432/gallerosnet",
+          "REDIS_URL=redis://127.0.0.1:6379",
           "JWT_SECRET=<long_random_string>",
           "STREAM_SERVER_URL=rtmp://galleros.net:1935/live",
           "CDN_URL=https://galleros.net",
@@ -901,6 +905,121 @@
       "types_supported": ["betting_window_open", "betting_window_close", "fight_result", "pago_proposal"],
       "storage": "Subscriptions stored in database (table: push_subscriptions)",
       "no_installation_needed": "web-push already in package.json"
+    },
+    "local_development_setup": {
+      "title": "Local Development & Testing Environment Setup",
+      "overview": "Complete setup for running Galleros.net locally (CachyOS/Arch Linux)",
+      "installation_checklist": [
+        "✅ FFmpeg (for Nginx RTMP transcoding)",
+        "✅ Node.js + npm (for backend and frontend)",
+        "✅ PostgreSQL (database)",
+        "✅ Redis (caching and real-time features)",
+        "✅ PgAdmin (PostgreSQL GUI administration)",
+        "✅ Nginx (reverse proxy and RTMP streaming)"
+      ],
+      "system_dependencies": {
+        "ffmpeg": {
+          "purpose": "Required for Nginx RTMP module to transcode streams from OBS to HLS format",
+          "installation": "sudo pacman -S ffmpeg",
+          "verification": "ffmpeg -version",
+          "critical": "YES - without FFmpeg, Nginx RTMP cannot generate HLS segments"
+        },
+        "nodejs_npm": {
+          "purpose": "JavaScript runtime for backend (Node.js) and frontend build (npm)",
+          "installation": "sudo pacman -S nodejs npm",
+          "verification": "node --version && npm --version"
+        },
+        "postgresql": {
+          "purpose": "Primary database for Galleros.net",
+          "installation": "sudo pacman -S postgresql",
+          "verification": "psql --version"
+        },
+        "redis": {
+          "purpose": "In-memory caching for session data, real-time features, and system settings",
+          "installation": "sudo pacman -S redis",
+          "verification": "redis-cli ping",
+          "optional": "Can be omitted if only testing backend without caching"
+        },
+        "nginx": {
+          "purpose": "Web server, reverse proxy, and RTMP streaming server",
+          "installation": "sudo pacman -S nginx (base) + AUR nginx-rtmp-module or custom build",
+          "verification": "nginx -v"
+        }
+      },
+      "local_directory_structure": {
+        "source_code": "/home/veranoby/sports-bets (git repository, contains frontend/ and backend/)",
+        "backend_binary": "/var/gallerosnet/backend (deployed Node.js backend)",
+        "frontend_build": "/var/gallerosnet/frontend (built React files - dist/)",
+        "nginx_config": "/var/gallerosnet/nginx (Nginx configuration files)",
+        "hls_streams": "/var/gallerosnet/hls (Nginx RTMP generates HLS segments here)",
+        "database_data": "/var/lib/postgres/data (PostgreSQL data directory)",
+        "backups": "/home/veranoby/backups (Database backups - user-owned for write access)",
+        "pgadmin_data": "/home/veranoby/opt/pgadmin4-web/data (PgAdmin local data)",
+        "pgadmin_install": "/home/veranoby/opt/pgadmin4-web (PgAdmin web installation)",
+        "logs": "/var/gallerosnet/logs (Backend, Nginx, and other application logs)"
+      },
+      "database_local_setup": {
+        "database_name": "gallerosnet",
+        "database_user": "gallerosnet_user",
+        "database_password": "0102Mina",
+        "host": "127.0.0.1",
+        "port": 5432,
+        "connection_string_development": "postgresql://gallerosnet_user:0102Mina@127.0.0.1:5432/gallerosnet",
+        "connection_string_for_env": "DATABASE_URL=postgresql://gallerosnet_user:0102Mina@127.0.0.1:5432/gallerosnet",
+        "initialization_steps": [
+          "1. sudo systemctl start postgresql",
+          "2. sudo -u postgres createdb gallerosnet",
+          "3. sudo -u postgres createuser gallerosnet_user",
+          "4. sudo -u postgres psql -c \"ALTER ROLE gallerosnet_user WITH PASSWORD '0102Mina';\"",
+          "5. Load schema: psql -U gallerosnet_user -d gallerosnet -f sql-complete-schema.sql"
+        ]
+      },
+      "pgadmin_local_setup": {
+        "installation_path": "/home/veranoby/opt/pgadmin4-web",
+        "data_path": "/home/veranoby/opt/pgadmin4-web/data",
+        "access_url": "http://127.0.0.1:5050",
+        "port": 5050,
+        "configuration": "web/config_local.py (overrides default paths to user-writable directory)",
+        "startup_command": "cd ~/opt/pgadmin4-web && source pgadmin_venv/bin/activate && python web/pgAdmin4.py",
+        "database_connection_in_pgadmin": {
+          "host": "127.0.0.1",
+          "port": 5432,
+          "username": "gallerosnet_user",
+          "password": "0102Mina",
+          "database": "gallerosnet"
+        }
+      },
+      "backend_local_development": {
+        "location": "/home/veranoby/sports-bets/backend",
+        "env_file": "/home/veranoby/sports-bets/backend/.env.local (for local testing)",
+        "npm_commands": {
+          "install_dependencies": "npm install",
+          "start_development": "npm run dev (nodemon with hot reload)",
+          "build": "npm run build (TypeScript compilation)",
+          "test": "npm test"
+        },
+        "key_env_variables_local": [
+          "DATABASE_URL=postgresql://gallerosnet_user:0102Mina@127.0.0.1:5432/gallerosnet",
+          "REDIS_URL=redis://127.0.0.1:6379",
+          "NODE_ENV=development",
+          "LOG_LEVEL=debug",
+          "PORT=3001"
+        ]
+      },
+      "frontend_local_development": {
+        "location": "/home/veranoby/sports-bets/frontend",
+        "npm_commands": {
+          "install_dependencies": "npm install",
+          "start_development": "npm run dev (Vite dev server on :5173)",
+          "build_for_deployment": "npm run build (outputs to dist/)",
+          "preview": "npm run preview"
+        },
+        "env_file": "/home/veranoby/sports-bets/frontend/.env.local",
+        "key_env_variables_local": [
+          "VITE_API_BASE_URL=http://127.0.0.1:3001",
+          "VITE_STREAM_BASE_URL=http://127.0.0.1:8080/hls"
+        ]
+      }
     },
     "monitoring_and_maintenance": {
       "daily_checks": [

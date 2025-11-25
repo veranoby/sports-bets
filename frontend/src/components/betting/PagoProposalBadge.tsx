@@ -1,8 +1,8 @@
 // frontend/src/components/betting/PagoProposalBadge.tsx
 
-import React from 'react';
-import { DollarSign, Clock, Check, X } from 'lucide-react';
-import { BetData } from '../../types';
+import React from "react";
+import { DollarSign, Clock, Check, X } from "lucide-react";
+import { BetData } from "../../types";
 
 interface PagoProposalBadgeProps {
   bet: BetData;
@@ -15,55 +15,57 @@ const PagoProposalBadge: React.FC<PagoProposalBadgeProps> = ({
   bet,
   onAccept,
   onReject,
-  showActions = false
+  showActions = false,
 }) => {
   // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-EC', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("es-EC", {
+      style: "currency",
+      currency: "USD",
     }).format(value);
   };
 
   // Determine badge appearance based on proposal status
-  let statusColor = '';
+  let statusColor = "";
   let statusIcon = null;
-  let statusLabel = '';
+  let statusLabel = "";
 
   switch (bet.proposalStatus) {
-    case 'pending':
-      statusColor = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case "pending":
+      statusColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
       statusIcon = <Clock className="w-4 h-4 mr-1" />;
-      statusLabel = 'PAGO propuesto';
+      statusLabel = "PAGO propuesto";
       break;
-    case 'accepted':
-      statusColor = 'bg-green-100 text-green-800 border-green-200';
+    case "accepted":
+      statusColor = "bg-green-100 text-green-800 border-green-200";
       statusIcon = <Check className="w-4 h-4 mr-1" />;
-      statusLabel = 'PAGO aceptado';
+      statusLabel = "PAGO aceptado";
       break;
-    case 'rejected':
-      statusColor = 'bg-red-100 text-red-800 border-red-200';
+    case "rejected":
+      statusColor = "bg-red-100 text-red-800 border-red-200";
       statusIcon = <X className="w-4 h-4 mr-1" />;
-      statusLabel = 'PAGO rechazado';
+      statusLabel = "PAGO rechazado";
       break;
     default:
-      statusColor = 'bg-blue-100 text-blue-800 border-blue-200';
+      statusColor = "bg-blue-100 text-blue-800 border-blue-200";
       statusIcon = <DollarSign className="w-4 h-4 mr-1" />;
-      statusLabel = 'PAGO';
+      statusLabel = "PAGO";
   }
 
   // Extract PAGO amount from terms
   const pagoAmount = bet.terms?.pagoAmount;
 
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${statusColor} text-sm font-medium`}>
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${statusColor} text-sm font-medium`}
+    >
       {statusIcon}
       <span>
         {statusLabel}
         {pagoAmount !== undefined && ` (${formatCurrency(pagoAmount)})`}
       </span>
-      
-      {showActions && bet.proposalStatus === 'pending' && (
+
+      {showActions && bet.proposalStatus === "pending" && (
         <div className="ml-2 flex gap-1">
           <button
             onClick={onAccept}

@@ -571,7 +571,7 @@ export const monitoringAPI = {
     return apiCall("get", "/monitoring/alerts");
   },
   getAdminMonitoringSSEUrl: () => {
-    return `${import.meta.env.VITE_API_BASE_URL || '/api'}/monitoring/sse/admin/monitoring`;
+    return `${import.meta.env.VITE_API_BASE_URL || "/api"}/monitoring/sse/admin/monitoring`;
   },
 };
 
