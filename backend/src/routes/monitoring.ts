@@ -386,6 +386,136 @@ router.get(
 );
 
 /**
+ * GET /api/monitoring/alerts
+ * Get current system alert counts for admin header badge
+ */
+router.get('/alerts',
+  authenticate,
+  authorize("admin", "operator"),
+  (req, res) => {
+    const poolStats = getPoolStats();
+    const safetyMetrics = SafetyLimits.getHealthMetrics();
+    const alerts = {
+      critical: 0,
+      warnings: 0,
+      total: 0
+    };
+
+    // Database connection pool alerts
+    if (poolStats.using > 8) {
+      alerts.critical++;
+    } else if (poolStats.using > 6) {
+      alerts.warnings++;
+    }
+
+    if (poolStats.queue > 0) {
+      alerts.critical++;
+    }
+
+    // Memory alerts
+    if (safetyMetrics.memory.currentMB > 380) {
+      alerts.critical++;
+    } else if (safetyMetrics.memory.currentMB > 300) {
+      alerts.warnings++;
+    }
+
+    // Interval tracking alerts
+    if (safetyMetrics.intervals.activeCount > 50) {
+      alerts.warnings++;
+    }
+
+    alerts.total = alerts.critical + alerts.warnings;
+
+    res.json({
+      success: true,
+      data: alerts
+    });
+  }
+);
+
+/**
+ * SSE endpoint for admin monitoring alerts
+ * Provides real-time updates to admin header badge
+ */
+router.get('/sse/admin/monitoring',
+  authenticate,
+  authorize("admin", "operator"),
+  (req, res) => {
+    // Upgrade to SSE connection
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control',
+      'X-Accel-Buffering': 'no'
+    });
+
+    // Send connected message
+    res.write(`event: connected\n`);
+    res.write(`data: ${JSON.stringify({ message: 'Monitoring SSE connection established', timestamp: new Date().toISOString() })}\n\n`);
+
+    // Set up interval to send alert updates every 30 seconds
+    const interval = setInterval(async () => {
+      try {
+        const poolStats = getPoolStats();
+        const safetyMetrics = SafetyLimits.getHealthMetrics();
+        const alerts = {
+          critical: 0,
+          warnings: 0,
+          total: 0,
+          timestamp: new Date().toISOString()
+        };
+
+        // Database connection pool alerts
+        if (poolStats.using > 8) {
+          alerts.critical++;
+        } else if (poolStats.using > 6) {
+          alerts.warnings++;
+        }
+
+        if (poolStats.queue > 0) {
+          alerts.critical++;
+        }
+
+        // Memory alerts
+        if (safetyMetrics.memory.currentMB > 380) {
+          alerts.critical++;
+        } else if (safetyMetrics.memory.currentMB > 300) {
+          alerts.warnings++;
+        }
+
+        // Interval tracking alerts
+        if (safetyMetrics.intervals.activeCount > 50) {
+          alerts.warnings++;
+        }
+
+        alerts.total = alerts.critical + alerts.warnings;
+
+        // Send alert update
+        res.write(`event: monitoring-update\n`);
+        res.write(`data: ${JSON.stringify(alerts)}\n\n`);
+      } catch (error) {
+        console.error('Error sending monitoring SSE update:', error);
+        res.write(`event: error\n`);
+        res.write(`data: ${JSON.stringify({ error: 'Error updating monitoring data', timestamp: new Date().toISOString() })}\n\n`);
+      }
+    }, 30000); // Update every 30 seconds
+
+    // Handle connection close
+    req.on('close', () => {
+      clearInterval(interval);
+      console.log('Admin monitoring SSE connection closed');
+    });
+
+    req.on('error', (err) => {
+      clearInterval(interval);
+      console.error('Admin monitoring SSE connection error:', err);
+    });
+  }
+);
+
+/**
  * POST /api/monitoring/webhook/railway
  * Railway webhook endpoint for alerts
  */

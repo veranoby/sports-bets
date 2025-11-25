@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import { articlesAPI, venuesAPI, gallerasAPI } from "../../config/api";
 import { userAPI, uploadsAPI } from "../../services/api";
 import type { Article } from "../../types/article";
@@ -48,7 +48,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
         const [venuesRes, gallerasRes, usersRes] = await Promise.all([
           venuesAPI.getAll({ status: "active", limit: 1000 }),
           gallerasAPI.getAll({ status: "active", limit: 1000 }),
-          userAPI.getAll({ limit: 1000 }) // Load all users for admin to assign articles
+          userAPI.getAll({ limit: 1000 }), // Load all users for admin to assign articles
         ]);
         setVenues(venuesRes.data?.venues || []);
         setGalleras(gallerasRes.data?.galleras || []);
@@ -77,7 +77,9 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           setFormData((prev) => ({ ...prev, featured_image_url: imageUrl }));
         } else {
           console.error("Upload failed:", response.message);
-          setError(response.message || "Error uploading image. Please try again.");
+          setError(
+            response.message || "Error uploading image. Please try again.",
+          );
         }
       } catch (error) {
         console.error("Upload error:", error);
@@ -94,9 +96,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -108,7 +108,12 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
     setError(null);
 
     // Validate required fields before submission
-    if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+    if (
+      !formData.title ||
+      !formData.content ||
+      !formData.summary ||
+      !formData.author_id
+    ) {
       setError("Title, content, summary, and author are required fields.");
       setLoading(false);
       return;
@@ -150,11 +155,14 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
   };
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      // Prevent default form submission since we handle everything with buttons
-      // This is just in case someone presses Enter in a field
-    }} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        // Prevent default form submission since we handle everything with buttons
+        // This is just in case someone presses Enter in a field
+      }}
+      className="space-y-4"
+    >
       <div>
         <label
           htmlFor="title"
@@ -268,8 +276,8 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
               <p className="mt-2 text-xs text-blue-500">Subiendo imagen...</p>
             )}
             <p className="mt-2 text-xs text-gray-500">
-              Formatos: JPG, PNG, WEBP. Tamaño recomendado: 1200 x 630
-              píxeles. Máximo 5MB.
+              Formatos: JPG, PNG, WEBP. Tamaño recomendado: 1200 x 630 píxeles.
+              Máximo 5MB.
             </p>
             {(formData.featured_image_url || imagePreview) && (
               <button
@@ -314,14 +322,16 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           id="author_id"
           name="author_id"
           value={formData.author_id || ""}
-          onChange={(e) => setFormData(prev => ({ ...prev, author_id: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, author_id: e.target.value }))
+          }
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
         >
           <option value="">Select an Author</option>
           <optgroup label="Admins">
             {allUsers
-              .filter(user => user.role === 'admin')
+              .filter((user) => user.role === "admin")
               .map((user) => (
                 <option key={`admin-${user.id}`} value={user.id}>
                   👑 {user.username} (admin)
@@ -330,7 +340,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           </optgroup>
           <optgroup label="Operators">
             {allUsers
-              .filter(user => user.role === 'operator')
+              .filter((user) => user.role === "operator")
               .map((user) => (
                 <option key={`op-${user.id}`} value={user.id}>
                   👔 {user.username} (operator)
@@ -339,7 +349,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           </optgroup>
           <optgroup label="Venues">
             {allUsers
-              .filter(user => user.role === 'venue')
+              .filter((user) => user.role === "venue")
               .map((user) => (
                 <option key={`venue-${user.id}`} value={user.id}>
                   🏟️ {user.username} (venue)
@@ -348,7 +358,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           </optgroup>
           <optgroup label="Galleras">
             {allUsers
-              .filter(user => user.role === 'gallera')
+              .filter((user) => user.role === "gallera")
               .map((user) => (
                 <option key={`gall-${user.id}`} value={user.id}>
                   🐓 {user.username} (gallera)
@@ -357,7 +367,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           </optgroup>
           <optgroup label="Users">
             {allUsers
-              .filter(user => user.role === 'user')
+              .filter((user) => user.role === "user")
               .map((user) => (
                 <option key={`usr-${user.id}`} value={user.id}>
                   👤 {user.username} (user)
@@ -385,8 +395,15 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             setError(null);
 
             // Validate required fields
-            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
-              setError("Title, content, summary, and author are required fields.");
+            if (
+              !formData.title ||
+              !formData.content ||
+              !formData.summary ||
+              !formData.author_id
+            ) {
+              setError(
+                "Title, content, summary, and author are required fields.",
+              );
               setLoading(false);
               return;
             }
@@ -435,8 +452,15 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             setError(null);
 
             // Validate required fields
-            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
-              setError("Title, content, summary, and author are required fields.");
+            if (
+              !formData.title ||
+              !formData.content ||
+              !formData.summary ||
+              !formData.author_id
+            ) {
+              setError(
+                "Title, content, summary, and author are required fields.",
+              );
               setLoading(false);
               return;
             }
@@ -485,8 +509,15 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             setError(null);
 
             // Validate required fields
-            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
-              setError("Title, content, summary, and author are required fields.");
+            if (
+              !formData.title ||
+              !formData.content ||
+              !formData.summary ||
+              !formData.author_id
+            ) {
+              setError(
+                "Title, content, summary, and author are required fields.",
+              );
               setLoading(false);
               return;
             }

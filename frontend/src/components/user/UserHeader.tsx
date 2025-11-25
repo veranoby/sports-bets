@@ -45,6 +45,7 @@ const UserHeader = memo(() => {
   // Estados UI
   const [showBets, setShowBets] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const [publishedArticles, setPublishedArticles] = useState(0);
 
   // ✅ DATOS COMPUTADOS CON HOOKS REALES
@@ -153,15 +154,16 @@ const UserHeader = memo(() => {
       if (!target.closest(".dropdown-container")) {
         setShowBets(false);
         setShowNotifications(false);
+        setShowWalletDropdown(false);
       }
     };
 
-    if (showBets || showNotifications) {
+    if (showBets || showNotifications || showWalletDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [showBets, showNotifications]);
+  }, [showBets, showNotifications, showWalletDropdown]);
 
   if (!user) return null;
 
@@ -248,24 +250,94 @@ const UserHeader = memo(() => {
 
         {/* RIGHT SIDE - ACTIONS */}
         <div className="flex items-center gap-2">
-          {/* WALLET BALANCE */}
+          {/* WALLET BALANCE & OPERATIONS DROPDOWN */}
           {isWalletEnabled && (
-            <button
-              onClick={() => navigate("/wallet")}
-              className="flex items-center gap-2 px-3 py-2 h-10 bg-white hover:bg-[#f0f9ff] group border border-[#bdd5ef75] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              <Wallet className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-semibold text-gray-800">
-                {isLoading ? (
-                  <span className="flex items-center gap-1">
-                    <span className="h-3 w-3 rounded-full bg-gray-300 animate-pulse"></span>
-                    ...
-                  </span>
-                ) : (
-                  `${walletBalance.toFixed(2)}`
+            <div className="flex items-center gap-2">
+              {/* Wallet Balance Display */}
+              <button
+                onClick={() => navigate("/wallet")}
+                className="flex items-center gap-2 px-3 py-2 h-10 bg-white hover:bg-[#f0f9ff] group border border-[#bdd5ef75] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <Wallet className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-gray-800">
+                  {isLoading ? (
+                    <span className="flex items-center gap-1">
+                      <span className="h-3 w-3 rounded-full bg-gray-300 animate-pulse"></span>
+                      ...
+                    </span>
+                  ) : (
+                    `${walletBalance.toFixed(2)}`
+                  )}
+                </span>
+              </button>
+
+              {/* Wallet Operations Dropdown */}
+              <div className="relative dropdown-container">
+                <button
+                  onClick={() => {
+                    setShowNotifications(false); // Close other dropdowns
+                    setShowWalletDropdown(prev => !prev); // Toggle wallet dropdown
+                  }}
+                  className="flex items-center justify-center p-2.5 h-10 bg-white border border-[#bdd5ef75] rounded-lg hover:bg-[#f0f9ff] transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down text-gray-600">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+
+                {/* WALLET OPERATIONS DROPDOWN */}
+                {showWalletDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-2xl z-50 overflow-hidden border border-gray-200 rounded-xl">
+                    <div className="p-2 space-y-1">
+                      <button
+                        onClick={() => {
+                          navigate("/wallet");
+                          setShowWalletDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Wallet className="w-4 h-4 text-green-600" />
+                        Ver Billetera
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/wallet");
+                          setShowWalletDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Wallet className="w-4 h-4 text-green-600" />
+                        Historial
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/wallet");
+                          setShowWalletDropdown(false);
+                          // Trigger deposit modal by adding hash to URL or setting a state in a context
+                          window.location.hash = 'deposit';
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-green-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Wallet className="w-4 h-4 text-green-600" />
+                        Depositar
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/wallet");
+                          setShowWalletDropdown(false);
+                          // Trigger withdrawal modal by adding hash to URL or setting a state in a context
+                          window.location.hash = 'withdraw';
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-red-50 text-sm font-medium text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Wallet className="w-4 h-4 text-red-600" />
+                        Retirar
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </span>
-            </button>
+              </div>
+            </div>
           )}
 
           {/* ACTIVE BETS */}

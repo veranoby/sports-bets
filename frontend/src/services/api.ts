@@ -343,11 +343,11 @@ export const betsAPI = {
   }) => {
     return apiCall("get", "/bets/compatible", params);
   },
-  acceptProposal: async (betId: string) => {
-    return apiCall("post", `/bets/${betId}/accept-proposal`);
+  acceptPago: async (betId: string) => {
+    return apiCall("put", `/bets/${betId}/accept-pago`);
   },
-  rejectProposal: async (betId: string) => {
-    return apiCall("post", `/bets/${betId}/reject-proposal`);
+  rejectPago: async (betId: string) => {
+    return apiCall("put", `/bets/${betId}/reject-pago`);
   },
   getPendingProposals: async () => {
     return apiCall("get", "/bets/pending-proposals");
@@ -562,6 +562,16 @@ export const gallerasAPI = {
   },
   getById: async (id: string) => {
     return apiCall("get", `/galleras/${id}`);
+  },
+};
+
+// Monitoring API for admin alerts
+export const monitoringAPI = {
+  getAlerts: async () => {
+    return apiCall("get", "/monitoring/alerts");
+  },
+  getAdminMonitoringSSEUrl: () => {
+    return `${import.meta.env.VITE_API_BASE_URL || '/api'}/monitoring/sse/admin/monitoring`;
   },
 };
 

@@ -88,7 +88,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                 </h4>
                 <p className="text-sm text-red-700">{adminRejectionMessage}</p>
                 <p className="text-xs text-red-600 mt-2 italic">
-                  Por favor, realiza las correcciones necesarias y vuelve a enviar para revisión.
+                  Por favor, realiza las correcciones necesarias y vuelve a
+                  enviar para revisión.
                 </p>
               </div>
             </div>

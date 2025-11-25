@@ -55,9 +55,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 4210,
-  "tuples_read": 4220,
-  "tuples_fetched": 3912
+  "times_used": 7147,
+  "tuples_read": 8002,
+  "tuples_fetched": 6699
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -103,9 +103,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 6,
-  "tuples_read": 8,
-  "tuples_fetched": 2
+  "times_used": 1730,
+  "tuples_read": 2365,
+  "tuples_fetched": 1726
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -226,30 +226,6 @@
   "times_used": 2140,
   "tuples_read": 304,
   "tuples_fetched": 294
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_venue_id",
-  "indexdef": "CREATE INDEX idx_articles_venue_id ON public.articles USING btree (venue_id)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_venue_status_published",
-  "indexdef": "CREATE INDEX idx_articles_venue_status_published ON public.articles USING btree (venue_id, status, published_at)",
-  "is_unique": false,
-  "created_concurrently": false,
-  "index_type": "btree",
-  "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
 }, {
   "schemaname": "public",
   "tablename": "bets",
@@ -762,7 +738,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "btree",
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1087,9 +1063,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0
+  "times_used": 51,
+  "tuples_read": 114,
+  "tuples_fetched": 51
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
@@ -1183,7 +1159,7 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 775,
+  "times_used": 855,
   "tuples_read": 774,
   "tuples_fetched": 774
 }, {
@@ -1410,7 +1386,7 @@
   "is_unique": false,
   "created_concurrently": false,
   "index_type": "gin",
-  "index_size": "24 kB",
+  "index_size": "56 kB",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0
@@ -1519,9 +1495,9 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
-  "times_used": 5,
-  "tuples_read": 5,
-  "tuples_fetched": 5
+  "times_used": 565,
+  "tuples_read": 565,
+  "tuples_fetched": 565
 }, {
   "schemaname": "public",
   "tablename": "users",
@@ -1543,6 +1519,90 @@
   "created_concurrently": false,
   "index_type": "btree",
   "index_size": "16 kB",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_pending",
+  "indexdef": "CREATE INDEX idx_wallet_operations_pending ON public.wallet_operations USING btree (status, requested_at) WHERE ((status)::text = 'pending'::text)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_requested",
+  "indexdef": "CREATE INDEX idx_wallet_operations_requested ON public.wallet_operations USING btree (requested_at DESC)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_status",
+  "indexdef": "CREATE INDEX idx_wallet_operations_status ON public.wallet_operations USING btree (status)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_type",
+  "indexdef": "CREATE INDEX idx_wallet_operations_type ON public.wallet_operations USING btree (operation_type)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_user",
+  "indexdef": "CREATE INDEX idx_wallet_operations_user ON public.wallet_operations USING btree (user_id)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_wallet",
+  "indexdef": "CREATE INDEX idx_wallet_operations_wallet ON public.wallet_operations USING btree (wallet_id)",
+  "is_unique": false,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "wallet_operations_pkey",
+  "indexdef": "CREATE UNIQUE INDEX wallet_operations_pkey ON public.wallet_operations USING btree (id)",
+  "is_unique": true,
+  "created_concurrently": false,
+  "index_type": "btree",
+  "index_size": "8192 bytes",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0

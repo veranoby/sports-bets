@@ -178,11 +178,11 @@ export const betsAPI = {
   proposePago: (betId: string, pagoAmount: number) =>
     apiClient.post(`/bets/${betId}/propose-pago`, { pagoAmount }),
 
-  acceptProposal: (betId: string) =>
-    apiClient.put(`/bets/${betId}/accept-proposal`),
+  acceptPago: (betId: string) =>
+    apiClient.put(`/bets/${betId}/accept-pago`),
 
-  rejectProposal: (betId: string) =>
-    apiClient.put(`/bets/${betId}/reject-proposal`),
+  rejectPago: (betId: string) =>
+    apiClient.put(`/bets/${betId}/reject-pago`),
 
   getPendingProposals: () => apiClient.get("/bets/pending-proposals"),
   getCompatibleBets: (params: {
@@ -191,6 +191,14 @@ export const betsAPI = {
     minAmount: number;
     maxAmount: number;
   }) => apiClient.get(`/bets/available/${params.fightId}`, { params }),
+};
+
+export const monitoringAPI = {
+  getAlerts: () => apiClient.get("/monitoring/alerts"),
+
+  getAdminMonitoringSSEUrl: () => {
+    return `${API_BASE_URL.replace('/api', '')}/monitoring/sse/admin/monitoring`;
+  },
 };
 
 export const walletAPI = {
@@ -253,6 +261,40 @@ export const walletAPI = {
 
   // Get wallet for specific user (admin only)
   getUserWallet: (userId: string) => apiClient.get(`/wallet/user/${userId}`),
+
+  // Wallet Operations API (for deposits and withdrawals management)
+  getWalletOperations: (params?: {
+    status?: string;
+    type?: 'deposit' | 'withdrawal';
+    userId?: string;
+    limit?: number;
+    offset?: number;
+    dateFrom?: string;
+    dateTo?: string;
+  }) => apiClient.get("/wallet-operations", { params }),
+
+  createDeposit: (data: {
+    amount: number;
+    paymentProofUrl?: string;
+  }) => apiClient.post("/wallet-operations/deposit", data),
+
+  createWithdrawal: (data: {
+    amount: number;
+  }) => apiClient.post("/wallet-operations/withdrawal", data),
+
+  approveWalletOperation: (id: string, adminNotes?: string) =>
+    apiClient.put(`/wallet-operations/${id}/approve`, { adminNotes }),
+
+  completeWalletOperation: (id: string, adminProofUrl: string, adminNotes?: string) =>
+    apiClient.put(`/wallet-operations/${id}/complete`, { adminProofUrl, adminNotes }),
+
+  rejectWalletOperation: (id: string, rejectionReason: string, adminNotes?: string) =>
+    apiClient.put(`/wallet-operations/${id}/reject`, { rejectionReason, adminNotes }),
+
+  uploadWithdrawalProof: (id: string, adminProofUrl: string) =>
+    apiClient.put(`/wallet-operations/${id}/upload-proof`, { adminProofUrl }),
+
+  getWalletOperationStats: () => apiClient.get("/wallet-operations/stats"),
 };
 
 export const subscriptionAPI = {

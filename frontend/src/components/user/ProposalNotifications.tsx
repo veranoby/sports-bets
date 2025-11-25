@@ -14,7 +14,7 @@ interface Proposal {
 
 const ProposalNotifications = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
-  const { acceptProposal, rejectProposal, getPendingProposals } = useBets();
+  const { acceptPago, rejectPago, getPendingProposals } = useBets();
 
   const handleProposalReceived = useCallback((proposal: Proposal) => {
     setProposals((prev) => [proposal, ...prev]);
@@ -49,11 +49,11 @@ const ProposalNotifications = () => {
   useWebSocketListener("bet_proposal_update", handleBetProposalUpdate);
 
   const handleAccept = async (proposalId: string) => {
-    await acceptProposal(proposalId);
+    await acceptPago(proposalId);
   };
 
   const handleReject = async (proposalId: string) => {
-    await rejectProposal(proposalId);
+    await rejectPago(proposalId);
   };
 
   return (

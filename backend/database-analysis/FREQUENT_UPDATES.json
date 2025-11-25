@@ -11,12 +11,12 @@
   "attname": "created_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4642857
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "device_fingerprint",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "common_values_sample": "{124d5a6b011c7921a7f03b3a1bb581c86d532ab7cd0dd6e1ea9e94c8376f63b7}",
   "correlation": 1
 }, {
@@ -25,68 +25,82 @@
   "attname": "expires_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4642857
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "id",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.10714286
+  "correlation": -1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "ip_address",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "common_values_sample": "{::1}",
   "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "is_active",
-  "n_distinct": -0.2857143,
-  "common_values_sample": "{f}",
-  "correlation": 0.25
+  "n_distinct": -0.5,
+  "common_values_sample": "{t}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "last_activity",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4642857
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "session_token",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4642857
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "updated_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.4642857
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "user_agent",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "common_values_sample": "{\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"}",
   "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "attname": "user_id",
-  "n_distinct": -0.14285715,
-  "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
-  "correlation": 1
+  "n_distinct": -1,
+  "common_values_sample": null,
+  "correlation": -1
 }, {
   "schemaname": "public",
   "tablename": "idx_users_business_entities",
   "attname": "expr",
-  "n_distinct": -1,
+  "n_distinct": -0.111111104,
+  "common_values_sample": null,
+  "correlation": null
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_gallera_status",
+  "attname": "expr",
+  "n_distinct": 0,
+  "common_values_sample": null,
+  "correlation": null
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_venue_status",
+  "attname": "expr",
+  "n_distinct": 0,
   "common_values_sample": null,
   "correlation": null
 }, {
@@ -135,63 +149,63 @@
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "category",
-  "n_distinct": -0.375,
-  "common_values_sample": "{features,business}",
-  "correlation": 0.2857143
+  "n_distinct": -0.125,
+  "common_values_sample": "{features,business,wallets,cache,notifications,streaming,system,betting,security,limits,performance}",
+  "correlation": -0.108608365
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "created_at",
-  "n_distinct": -0.25,
-  "common_values_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
-  "correlation": 0.9285714
+  "n_distinct": -0.14772727,
+  "common_values_sample": "{\"2025-11-24 18:16:02.492044+00\",\"2025-11-24 18:16:32.828964+00\",\"2025-11-24 18:16:32.992421+00\",\"2025-11-24 18:20:14.594586+00\",\"2025-09-07 20:57:14.722654+00\",\"2025-11-24 18:16:32.710207+00\",\"2025-11-24 18:16:33.114803+00\",\"2025-11-24 18:20:14.711715+00\",\"2025-11-24 18:20:15.068826+00\",\"2025-11-24 18:20:15.189417+00\",\"2025-11-24 18:20:14.831138+00\",\"2025-11-24 18:20:14.948105+00\"}",
+  "correlation": 0.9999472
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "description",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": -0.5952381
+  "n_distinct": -0.9886364,
+  "common_values_sample": "{\"Enable push notifications\"}",
+  "correlation": -0.073262654
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "id",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": 0.1904762
+  "correlation": 0.15504913
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "is_public",
-  "n_distinct": -0.25,
-  "common_values_sample": "{t,f}",
-  "correlation": 0.16666667
+  "n_distinct": 2,
+  "common_values_sample": "{f,t}",
+  "correlation": 0.697228
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "key",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": -0.16666667
+  "correlation": -0.16721849
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "type",
-  "n_distinct": -0.25,
-  "common_values_sample": "{boolean,number}",
-  "correlation": 0.35714287
+  "n_distinct": 3,
+  "common_values_sample": "{object,boolean,number}",
+  "correlation": 0.9995245
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "updated_at",
-  "n_distinct": -0.5,
-  "common_values_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "n_distinct": -0.17045455,
+  "common_values_sample": "{\"2025-11-24 18:16:02.492044+00\",\"2025-11-24 18:16:32.828964+00\",\"2025-11-24 18:16:32.992421+00\",\"2025-11-24 18:20:14.594586+00\",\"2025-11-24 18:16:32.710207+00\",\"2025-11-24 18:16:33.114803+00\",\"2025-11-24 18:20:14.711715+00\",\"2025-11-24 18:20:15.068826+00\",\"2025-11-24 18:20:15.189417+00\",\"2025-11-24 18:20:14.831138+00\",\"2025-11-24 18:20:14.948105+00\",\"2025-09-07 20:57:14.722654+00\"}",
   "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "attname": "updated_by",
-  "n_distinct": -0.125,
+  "n_distinct": 1,
   "common_values_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
   "correlation": 1
 }, {
@@ -199,92 +213,92 @@
   "tablename": "system_settings",
   "attname": "value",
   "n_distinct": -0.625,
-  "common_values_sample": "{false,true}",
-  "correlation": 0.21428572
+  "common_values_sample": "{\"{\\\"enabled\\\": true}\",true,\"{\\\"count\\\": 3}\",\"{\\\"enabled\\\": false}\",\"{\\\"amount\\\": 5}\",\"{\\\"amount\\\": 500}\",\"{\\\"amount\\\": 2000}\",\"{\\\"count\\\": 2}\",\"{\\\"count\\\": 5}\",\"{\\\"count\\\": 100}\",\"{\\\"days\\\": 30}\",\"{\\\"minutes\\\": 5}\",\"{\\\"rate\\\": 0.05}\",\"{\\\"size\\\": 5}\",\"{\\\"ttl\\\": 300}\"}",
+  "correlation": 0.49644253
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "approved",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": null
+  "n_distinct": -0.11111111,
+  "common_values_sample": "{t}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "created_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": 0.6
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.26666668
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "email_verified",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": null
+  "n_distinct": -0.11111111,
+  "common_values_sample": "{f}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "id",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.2
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "is_active",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": null
+  "n_distinct": -0.11111111,
+  "common_values_sample": "{t}",
+  "correlation": 1
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "last_login",
-  "n_distinct": -1,
+  "n_distinct": -0.5555556,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.5
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "password_hash",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": 0.38333333
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "profile_info",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.36666667
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "role",
-  "n_distinct": -1,
-  "common_values_sample": null,
-  "correlation": null
+  "n_distinct": -0.5555556,
+  "common_values_sample": "{venue,user}",
+  "correlation": 0.41666666
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "updated_at",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.35
 }, {
   "schemaname": "public",
   "tablename": "users",
   "attname": "username",
   "n_distinct": -1,
   "common_values_sample": null,
-  "correlation": null
+  "correlation": -0.38333333
 }, {
   "schemaname": "public",
   "tablename": "users",

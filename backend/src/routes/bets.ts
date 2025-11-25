@@ -7,6 +7,7 @@ import { transaction, retryOperation, cache } from "../config/database";
 import { sequelize } from "../config/database";
 import { Op } from "sequelize";
 import { requireBetting, enforceBetLimits, injectCommissionSettings } from "../middleware/settingsMiddleware";
+import { BetService } from "../services/betService";
 
 const router = Router();
 
@@ -343,144 +344,360 @@ router.post(
   })
 );
 
+// GET /api/bets/suggestions - Get matching bets for suggestions panel (when user types amount)
+router.get('/suggestions/:fightId',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const { fightId } = req.params;
+    const { side, amount } = req.query;
+
+    if (!side || !['red', 'blue'].includes(side as string)) {
+      throw errors.badRequest("Valid side (red or blue) is required");
+    }
+
+    const oppositeSide = side === 'red' ? 'blue' : 'red';
+
+    // Build query filters
+    const where: any = {
+      fightId,
+      side: oppositeSide,
+      status: 'pending',
+      betType: 'flat', // Only match flat bets by default
+    };
+
+    // If amount is provided, filter within ±20% range
+    if (amount) {
+      const numAmount = parseFloat(amount as string);
+      if (isNaN(numAmount)) {
+        throw errors.badRequest("Amount must be a valid number");
+      }
+
+      const lowerBound = numAmount * 0.8; // 20% lower
+      const upperBound = numAmount * 1.2; // 20% higher
+
+      where.amount = {
+        [Op.gte]: lowerBound,
+        [Op.lte]: upperBound
+      };
+    }
+
+    const suggestions = await Bet.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'profileInfo'],
+        },
+      ],
+      order: [['createdAt', 'ASC']], // Order by oldest first to match
+    });
+
+    res.json({
+      success: true,
+      data: suggestions.map(bet => bet.toPublicJSON()),
+    });
+  })
+);
+
+// PUT /api/bets/:id/edit - Edit pending bet (only if status is pending)
+router.put('/:id/edit',
+  authenticate,
+  [
+    body('amount')
+      .optional()
+      .isFloat({ min: 10, max: 10000 })
+      .withMessage('Amount must be between 10 and 10000'),
+    body('side')
+      .optional()
+      .isIn(['red', 'blue'])
+      .withMessage('Side must be red or blue'),
+    body('betType')
+      .optional()
+      .isIn(['flat', 'doy', 'pago'])
+      .withMessage('betType must be flat, doy, or pago'),
+    body('terms')
+      .optional()
+      .isObject()
+      .withMessage('Terms must be an object'),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { id } = req.params;
+    const { amount, side, betType, terms } = req.body;
+
+    const bet = await Bet.findByPk(id, {
+      include: [
+        { model: Fight, as: "fight" },
+        { model: Wallet, as: "wallet" }
+      ],
+    });
+
+    if (!bet) {
+      throw errors.notFound("Bet not found");
+    }
+
+    if (bet.userId !== req.user!.id) {
+      throw errors.forbidden("You can only edit your own bets");
+    }
+
+    if (bet.status !== 'pending') {
+      throw errors.badRequest("Only pending bets can be edited");
+    }
+
+    // Update allowed fields
+    if (amount !== undefined) bet.amount = amount;
+    if (side !== undefined) bet.side = side;
+    if (betType !== undefined) bet.betType = betType;
+    if (terms !== undefined) bet.terms = { ...bet.terms, ...terms };
+
+    await bet.save();
+
+    res.json({
+      success: true,
+      message: "Bet updated successfully",
+      data: bet.toPublicJSON(),
+    });
+  })
+);
+
+// POST /api/bets/:id/auto-match - Check for and match flat bets after creation (for auto-matching)
+// This will be called internally from the POST / endpoint
+async function autoMatchFlatBet(bet: Bet, t: any, io: any) {
+  if (bet.betType !== 'flat' || bet.status !== 'pending') {
+    return null; // Only flat, pending bets are eligible for auto-match
+  }
+
+  // Look for an opposite-side, exact amount flat bet that is still pending
+  const oppositeBet = await Bet.findOne({
+    where: {
+      fightId: bet.fightId,
+      side: bet.side === 'red' ? 'blue' : 'red', // Opposite side
+      amount: bet.amount, // Exact amount match
+      status: 'pending',
+      betType: 'flat', // Only flat bets match each other
+    },
+    include: [
+      { model: User, as: "user" },
+      { model: Wallet, as: "wallet" },
+    ],
+    transaction: t,
+  });
+
+  if (!oppositeBet) {
+    return null; // No matching bet found
+  }
+
+  // Get the wallets for both users
+  const bettorWallet = await Wallet.findOne({
+    where: { userId: bet.userId },
+    transaction: t,
+  });
+
+  const oppositeWallet = await Wallet.findOne({
+    where: { userId: oppositeBet.userId },
+    transaction: t,
+  });
+
+  if (!bettorWallet || !oppositeWallet) {
+    throw errors.notFound("Wallet not found for one of the bettors");
+  }
+
+  // Check if both users have sufficient available balance
+  if (!bettorWallet.canBet(bet.amount) || !oppositeWallet.canBet(oppositeBet.amount)) {
+    return null; // One of the wallets doesn't have enough balance
+  }
+
+  // Mark both bets as active and matched with each other
+  bet.status = 'active';
+  bet.matchedWith = oppositeBet.id;
+  await bet.save({ transaction: t });
+
+  oppositeBet.status = 'active';
+  oppositeBet.matchedWith = bet.id;
+  await oppositeBet.save({ transaction: t });
+
+  // Update wallet frozen amounts (they should already be frozen when bet was created)
+  // but make sure they're properly set for both bets
+  await bettorWallet.reload({ transaction: t });
+  await oppositeWallet.reload({ transaction: t });
+
+  // The amounts should already be frozen when the bets were created, so no additional freezing needed
+
+  // Update fight counters
+  const fight = await Fight.findByPk(bet.fightId, { transaction: t });
+  if (fight) {
+    fight.totalBets += 1; // Only increment by 1 since it's one matched bet pair
+    fight.totalAmount += bet.amount + oppositeBet.amount;
+    await fight.save({ transaction: t });
+
+    // Update event counters
+    const event = await Event.findByPk(fight.eventId, { transaction: t });
+    if (event) {
+      event.totalBets += 1; // Only increment by 1 since it's one matched bet pair
+      event.totalPrizePool += bet.amount + oppositeBet.amount;
+      await event.save({ transaction: t });
+    }
+  }
+
+  // Create transactions for both bets
+  await Transaction.create(
+    {
+      walletId: bettorWallet.id,
+      type: "bet-loss", // Amount is frozen initially
+      amount: bet.amount,
+      status: "pending",
+      description: `Auto-matched bet on fight ${fight?.number}`,
+      metadata: {
+        betId: bet.id,
+        fightId: bet.fightId,
+        matchedBetId: oppositeBet.id,
+      },
+    },
+    { transaction: t }
+  );
+
+  await Transaction.create(
+    {
+      walletId: oppositeWallet.id,
+      type: "bet-loss", // Amount is frozen initially
+      amount: oppositeBet.amount,
+      status: "pending",
+      description: `Auto-matched bet on fight ${fight?.number}`,
+      metadata: {
+        betId: oppositeBet.id,
+        fightId: oppositeBet.fightId,
+        matchedBetId: bet.id,
+      },
+    },
+    { transaction: t }
+  );
+
+  // Emit WebSocket event
+  if (io) {
+    io.to(`event_${fight?.eventId}`).emit("bet_matched", {
+      offerBet: bet.toPublicJSON(),
+      acceptBet: oppositeBet.toPublicJSON(),
+      fightId: bet.fightId,
+    });
+  }
+
+  return { bet, oppositeBet };
+}
+
+// POST /api/bets - Crear nueva apuesta (enhanced with auto-match)
+router.post(
+  "/",
+  authenticate,
+  enforceBetLimits,
+  injectCommissionSettings,
+  [
+    body("fightId").isUUID().withMessage("Valid fight ID is required"),
+    body("side").isIn(["red", "blue"]).withMessage("Side must be red or blue"),
+    body("amount")
+      .isFloat({ min: 10, max: 10000 })
+      .withMessage("Amount must be between 10 and 10000"),
+    body("betType")
+      .optional()
+      .isIn(["flat", "doy"])
+      .withMessage("betType must be flat or doy"),
+    body("ratio")
+      .optional()
+      .isFloat({ min: 1.01, max: 100 })
+      .withMessage("Ratio must be between 1.01 and 100"),
+    body("isOffer")
+      .optional()
+      .isBoolean()
+      .withMessage("isOffer must be a boolean"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { fightId, side, amount, betType = 'flat', ratio = 2.0, isOffer = true, terms } = req.body;
+
+    try {
+      // Use BetService to handle the core business logic
+      const bet = await BetService.createBet({
+        fightId,
+        userId: req.user!.id,
+        side,
+        amount,
+        betType,
+        ratio,
+        isOffer,
+        terms
+      });
+
+      // Try to auto-match for flat bets using BetService
+      const io = req.app.get("io");
+      const matchedBets = await BetService.autoMatchFlatBet(bet, io);
+
+      if (matchedBets) {
+        res.status(201).json({
+          success: true,
+          message: "Bet created and auto-matched successfully",
+          data: {
+            yourBet: matchedBets.bet.toPublicJSON(),
+            matchedBet: matchedBets.oppositeBet.toPublicJSON(),
+          },
+        });
+      } else {
+        res.status(201).json({
+          success: true,
+          message: "Bet created successfully",
+          data: bet.toPublicJSON(),
+        });
+      }
+    } catch (error) {
+      console.error("Error creating bet:", error);
+      throw error;
+    }
+  })
+);
+
 // POST /api/bets/:id/accept - Aceptar una apuesta existente
+// POST /api/bets/:id/accept - Accept an existing bet
 router.post(
   "/:id/accept",
   authenticate,
   injectCommissionSettings,
   asyncHandler(async (req, res) => {
-    await transaction(async (t) => {
-      // Buscar la apuesta a aceptar
-      const offerBet = await Bet.findByPk(req.params.id, {
-        include: [
-          { model: Fight, as: "fight" },
-          { model: User, as: "user" },
-        ],
-        transaction: t,
-      });
-
-      if (!offerBet) {
-        throw errors.notFound("Bet not found");
-      }
-
-      if (!offerBet.canBeMatched()) {
-        throw errors.badRequest("This bet cannot be accepted");
-      }
-
-      if (offerBet.userId === req.user!.id) {
-        throw errors.badRequest("You cannot accept your own bet");
-      }
-
-      const fight = await offerBet.getFight();
-      if (!fight.canAcceptBets()) {
-        throw errors.badRequest("Betting is closed for this fight");
-      }
-
-      // Verificar si el usuario ya tiene una apuesta en esta pelea
-      const existingBet = await Bet.findOne({
-        where: {
-          fightId: fight.id,
-          userId: req.user!.id,
-        },
-        transaction: t,
-      });
-
-      if (existingBet) {
-        throw errors.conflict("You already have a bet on this fight");
-      }
-
-      // Verificar wallet del usuario
-      const wallet = await Wallet.findOne({
-        where: { userId: req.user!.id },
-        transaction: t,
-      });
-
-      if (!wallet) {
-        throw errors.notFound("Wallet not found");
-      }
-
-      // Calcular el monto necesario basado en el ratio
-      const requiredAmount = offerBet.amount / (offerBet.terms?.ratio || 2.0);
-
-      if (!wallet.canBet(requiredAmount)) {
-        throw errors.badRequest("Insufficient available balance");
-      }
-
-      // Crear apuesta complementaria
-      const acceptBet = await Bet.create(
-        {
-          fightId: fight.id,
-          userId: req.user!.id,
-          side: offerBet.side === "red" ? "blue" : "red", // Lado opuesto
-          amount: requiredAmount,
-          potentialWin: offerBet.amount + requiredAmount,
-          status: "active",
-          matchedWith: offerBet.id,
-          terms: {
-            ratio: 1 / (offerBet.terms?.ratio || 2.0),
-            isOffer: false,
-          },
-        },
-        { transaction: t }
-      );
-
-      // Actualizar apuesta original
-      offerBet.status = "active";
-      offerBet.matchedWith = acceptBet.id;
-      await offerBet.save({ transaction: t });
-
-      // Congelar fondos del aceptante
-      await wallet.freezeAmount(requiredAmount);
-      await wallet.save({ transaction: t });
-
-      // Actualizar contadores
-      fight.totalBets += 1;
-      fight.totalAmount += requiredAmount;
-      await fight.save({ transaction: t });
-
-      const event = await Event.findByPk(fight.eventId, { transaction: t });
-      if (event) {
-        event.totalBets += 1;
-        event.totalPrizePool += requiredAmount;
-        await event.save({ transaction: t });
-      }
-
-      // Crear transacción
-      await Transaction.create(
-        {
-          walletId: wallet.id,
-          type: "bet-loss",
-          amount: requiredAmount,
-          status: "pending",
-          description: `Bet accepted on fight ${fight.number}`,
-          metadata: {
-            betId: acceptBet.id,
-            matchedBetId: offerBet.id,
-            fightId: fight.id,
-          },
-        },
-        { transaction: t }
-      );
-
-      // Emitir eventos via WebSocket
+    try {
+      // Use BetService to handle the acceptance logic
       const io = req.app.get("io");
-      if (io) {
-        io.to(`event_${fight.eventId}`).emit("bet_matched", {
-          offerBet: offerBet.toPublicJSON(),
-          acceptBet: acceptBet.toPublicJSON(),
-          fightId: fight.id,
-        });
-      }
+      const result = await BetService.acceptBet(req.params.id, req.user!.id, io);
 
       res.json({
         success: true,
         message: "Bet accepted successfully",
         data: {
-          yourBet: acceptBet.toPublicJSON(),
-          matchedBet: offerBet.toPublicJSON(),
+          yourBet: result.yourBet.toPublicJSON(),
+          matchedBet: result.matchedBet.toPublicJSON(),
         },
       });
-    });
+    } catch (error) {
+      console.error("Error accepting bet:", error);
+      throw error;
+    }
   })
 );
 
@@ -489,78 +706,20 @@ router.put(
   "/:id/cancel",
   authenticate,
   asyncHandler(async (req, res) => {
-    await transaction(async (t) => {
-      const bet = await Bet.findOne({
-        where: {
-          id: req.params.id,
-          userId: req.user!.id,
-        },
-        include: [{ model: Fight, as: "fight" }],
-        transaction: t,
-      });
-
-      if (!bet) {
-        throw errors.notFound("Bet not found");
-      }
-
-      if (bet.status !== "pending") {
-        throw errors.badRequest("Only pending bets can be cancelled");
-      }
-
-      // Cancelar apuesta
-      bet.status = "cancelled";
-      await bet.save({ transaction: t });
-
-      // Liberar fondos congelados
-      const wallet = await Wallet.findOne({
-        where: { userId: req.user!.id },
-        transaction: t,
-      });
-
-      if (wallet) {
-        await wallet.unfreezeAmount(bet.amount);
-        wallet.balance += bet.amount;
-        await wallet.save({ transaction: t });
-
-        // Crear transacción de reembolso
-        const fight = await bet.getFight();
-        await Transaction.create(
-          {
-            walletId: wallet.id,
-            type: "bet-refund",
-            amount: bet.amount,
-            status: "completed",
-            description: `Refund for cancelled bet on fight ${fight.number}`,
-            metadata: {
-              betId: bet.id,
-              fightId: fight.id,
-            },
-          },
-          { transaction: t }
-        );
-      }
-
-      // Actualizar contadores
-      const fight = await Fight.findByPk(bet.fightId, { transaction: t });
-      if (fight) {
-        fight.totalBets -= 1;
-        fight.totalAmount -= bet.amount;
-        await fight.save({ transaction: t });
-
-        const event = await Event.findByPk(fight.eventId, { transaction: t });
-        if (event) {
-          event.totalBets -= 1;
-          event.totalPrizePool -= bet.amount;
-          await event.save({ transaction: t });
-        }
-      }
+    try {
+      // Use BetService to handle the cancellation logic
+      const io = req.app.get("io");
+      const cancelledBet = await BetService.cancelBet(req.params.id, req.user!.id, io);
 
       res.json({
         success: true,
         message: "Bet cancelled successfully",
-        data: bet.toPublicJSON(),
+        data: cancelledBet.toPublicJSON(),
       });
-    });
+    } catch (error) {
+      console.error("Error cancelling bet:", error);
+      throw error;
+    }
   })
 );
 
@@ -610,180 +769,72 @@ router.post(
   ],
   asyncHandler(async (req, res) => {
     const { pagoAmount } = req.body;
-    await transaction(async (t) => {
-      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
-      if (
-        !originalBet ||
-        originalBet.betType !== "flat" ||
-        !originalBet.isPending()
-      ) {
-        throw errors.badRequest("Invalid bet for PAGO proposal");
-      }
-      if (pagoAmount >= originalBet.amount) {
-        throw errors.badRequest("PAGO amount must be less than original bet");
-      }
 
-      const wallet = await Wallet.findOne({
-        where: { userId: req.user!.id },
-        transaction: t,
-      });
-      if (!wallet || !wallet.canBet(pagoAmount)) {
-        throw errors.badRequest("Insufficient available balance");
-      }
-
-      const pagoBet = await Bet.create(
-        {
-          fightId: originalBet.fightId,
-          userId: req.user!.id,
-          side: originalBet.side,
-          amount: pagoAmount,
-          betType: "flat",
-          proposalStatus: "pending",
-          parentBetId: originalBet.id,
-          terms: {
-            ratio: 2.0, // Valor por defecto
-            isOffer: false, // Es una propuesta, no una oferta
-            pagoAmount,
-            proposedBy: req.user!.id,
-          },
-        },
-        { transaction: t }
-      );
-
-      await wallet.freezeAmount(pagoAmount);
-      await wallet.save({ transaction: t });
-
-      // Emitir evento WebSocket
+    try {
+      // Use BetService to handle the PAGO proposal logic
       const io = req.app.get("io");
-      if (io) {
-        io.to(`user_${originalBet.userId}`).emit("pago_proposed", {
-          originalBet: originalBet.toPublicJSON(),
-          pagoBet: pagoBet.toPublicJSON(),
-        });
-      }
+      const pagoBet = await BetService.proposePago({
+        betId: req.params.id,
+        userId: req.user!.id,
+        pagoAmount
+      }, io);
 
       res.status(201).json({
         success: true,
         message: "PAGO proposal created",
         data: pagoBet.toPublicJSON(),
       });
-    });
+    } catch (error) {
+      console.error("Error proposing PAGO:", error);
+      throw error;
+    }
   })
 );
 
-// PUT /api/bets/:id/accept-proposal - Aceptar una propuesta de PAGO
+// PUT /api/bets/:id/accept-pago - Aceptar una propuesta de PAGO
 router.put(
-  "/:id/accept-proposal",
+  "/:id/accept-pago",
   authenticate,
   authorize("user", "admin"),
   asyncHandler(async (req, res) => {
-    await transaction(async (t) => {
-      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
-      if (
-        !originalBet ||
-        originalBet.userId !== req.user!.id ||
-        originalBet.proposalStatus !== "pending"
-      ) {
-        throw errors.badRequest("Invalid bet for accepting PAGO proposal");
-      }
-
-      const pagoBet = await Bet.findOne({
-        where: { parentBetId: originalBet.id, proposalStatus: "pending" },
-        transaction: t,
-      });
-      if (!pagoBet) {
-        throw errors.notFound("PAGO proposal not found");
-      }
-
-      // Validar saldos
-      const originalWallet = await Wallet.findOne({
-        where: { userId: originalBet.userId },
-        transaction: t,
-      });
-      if (!originalWallet || !originalWallet.canBet(originalBet.amount)) {
-        throw errors.badRequest("Insufficient available balance");
-      }
-
-      // Activar apuestas
-      originalBet.proposalStatus = "accepted";
-      pagoBet.proposalStatus = "accepted";
-      originalBet.status = "active";
-      pagoBet.status = "active";
-      await Promise.all([
-        originalBet.save({ transaction: t }),
-        pagoBet.save({ transaction: t }),
-      ]);
-
-      // Emitir evento WebSocket
+    try {
+      // Use BetService to handle the PAGO acceptance logic
       const io = req.app.get("io");
-      if (io) {
-        io.to(`user_${pagoBet.userId}`).emit("pago_accepted", {
-          originalBet: originalBet.toPublicJSON(),
-          pagoBet: pagoBet.toPublicJSON(),
-        });
-      }
+      const originalBet = await BetService.acceptPago(req.params.id, req.user!.id, io);
 
       res.json({
         success: true,
         message: "PAGO proposal accepted",
         data: {
           originalBet: originalBet.toPublicJSON(),
-          pagoBet: pagoBet.toPublicJSON(),
         },
       });
-    });
+    } catch (error) {
+      console.error("Error accepting PAGO:", error);
+      throw error;
+    }
   })
 );
 
-// PUT /api/bets/:id/reject-proposal - Rechazar una propuesta de PAGO
+// PUT /api/bets/:id/reject-pago - Rechazar una propuesta de PAGO
 router.put(
-  "/:id/reject-proposal",
+  "/:id/reject-pago",
   authenticate,
   asyncHandler(async (req, res) => {
-    await transaction(async (t) => {
-      const originalBet = await Bet.findByPk(req.params.id, { transaction: t });
-      if (
-        !originalBet ||
-        originalBet.userId !== req.user!.id ||
-        originalBet.proposalStatus !== "pending"
-      ) {
-        throw errors.badRequest("Invalid bet for rejecting PAGO proposal");
-      }
-
-      const pagoBet = await Bet.findOne({
-        where: { parentBetId: originalBet.id, proposalStatus: "pending" },
-        transaction: t,
-      });
-      if (!pagoBet) {
-        throw errors.notFound("PAGO proposal not found");
-      }
-
-      // Liberar fondos
-      const pagoWallet = await Wallet.findOne({
-        where: { userId: pagoBet.userId },
-        transaction: t,
-      });
-      if (pagoWallet) {
-        await pagoWallet.unfreezeAmount(pagoBet.amount);
-        await pagoWallet.save({ transaction: t });
-      }
-
-      // Eliminar propuesta
-      await pagoBet.destroy({ transaction: t });
-
-      // Emitir evento WebSocket
+    try {
+      // Use BetService to handle the PAGO rejection logic
       const io = req.app.get("io");
-      if (io) {
-        io.to(`user_${pagoBet.userId}`).emit("pago_rejected", {
-          originalBet: originalBet.toPublicJSON(),
-        });
-      }
+      const result = await BetService.rejectPago(req.params.id, req.user!.id, io);
 
       res.json({
         success: true,
         message: "PAGO proposal rejected",
+        data: result
       });
-    });
+    } catch (error) {
+      console.error("Error rejecting PAGO:", error);
+      throw error;
+    }
   })
 );
 

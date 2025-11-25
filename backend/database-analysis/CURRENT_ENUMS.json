@@ -6,7 +6,7 @@
   "enum_values": "{draft,pending,published,archived}"
 }, {
   "enum_name": "enum_bets_bet_type",
-  "enum_values": "{flat,doy}"
+  "enum_values": "{flat,doy,pago}"
 }, {
   "enum_name": "enum_bets_proposal_status",
   "enum_values": "{none,pending,accepted,rejected}"

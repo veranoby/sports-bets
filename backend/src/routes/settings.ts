@@ -1,274 +1,238 @@
+// backend/src/routes/settings.ts
+// API routes for system settings management
+// Implements admin-only access with proper validation
 
-import express from 'express';
+import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth';
-import settingsService from '../services/settingsService';
-import { body, validationResult } from 'express-validator';
+import { asyncHandler, errors } from '../middleware/errorHandler';
+import { body, validationResult, query } from 'express-validator';
+import { Op } from 'sequelize';
+import SystemSettingsService, { SystemSettingValue } from '../services/systemSettingsService';
+import { SystemSetting as Setting } from '../models';
 
-const router = express.Router();
+const router = Router();
 
-/**
- * GET /api/settings/features/public  
- * Get current feature toggle status for dashboard (NO AUTH REQUIRED)
- */
-router.get('/features/public', async (req, res) => {
-  try {
-    const features = {
-      betting_enabled: await settingsService.isBettingEnabled(),
-      wallets_enabled: await settingsService.areWalletsEnabled(),
-      streaming_enabled: await settingsService.isStreamingEnabled(),
-      maintenance_mode: await settingsService.isMaintenanceMode()
-    };
-    
+// GET /api/settings - Get all settings (admin only)
+router.get('/', 
+  authenticate, 
+  authorize('admin'),
+  asyncHandler(async (req, res) => {
+    const settings = await SystemSettingsService.getAllSettings();
     res.json({
       success: true,
-      data: features,
-      message: 'Public feature status retrieved successfully'
+      data: settings
     });
-  } catch (error) {
-    console.error('❌ Error getting public feature status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving public feature status'
-    });
-  }
-});
+  })
+);
 
-// Middleware: All other settings routes require authentication
-router.use(authenticate);
-
-/**
- * GET /api/settings/public
- * Get public settings (accessible to all authenticated users)
- */
-router.get('/public', async (req, res) => {
-  try {
-    const publicSettings = await settingsService.getPublicSettings();
-    
-    res.json({
-      success: true,
-      data: publicSettings,
-      message: 'Public settings retrieved successfully'
-    });
-  } catch (error) {
-    console.error('❌ Error getting public settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving public settings'
-    });
-  }
-});
-
-/**
- * GET /api/settings/category/:category
- * Get all settings by category (admin only)
- */
-router.get('/category/:category', authorize('admin'), async (req, res) => {
-  try {
+// GET /api/settings/category/:category - Get settings by category (admin only)
+router.get('/category/:category',
+  authenticate,
+  authorize('admin'),
+  asyncHandler(async (req, res) => {
     const { category } = req.params;
-    const settings = await settingsService.getByCategory(category);
     
+    // Validate category exists
+    const categorySettings = await Setting.findAll({ where: { category } });
+    if (categorySettings.length === 0) {
+      throw errors.notFound(`No settings found for category: ${category}`);
+    }
+    
+    const settings = await SystemSettingsService.getSettingsByCategory(category);
     res.json({
       success: true,
-      data: settings,
-      message: `Settings for category '${category}' retrieved successfully`
+      data: settings
     });
-  } catch (error) {
-    console.error(`❌ Error getting settings for category '${req.params.category}':`, error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving category settings'
-    });
-  }
-});
+  })
+);
 
-/**
- * GET /api/settings/features/status
- * Get current feature toggle status (admin only)
- * TEMPORARY: Allow public access for testing dashboard
- */
-router.get('/features/status', (req, res, next) => {
-  // Skip auth for this endpoint temporarily
-  next();
-}, async (req, res) => {
-  try {
-    const features = {
-      wallets_enabled: await settingsService.areWalletsEnabled(),
-      betting_enabled: await settingsService.isBettingEnabled(),
-      streaming_enabled: await settingsService.isStreamingEnabled(),
-      maintenance_mode: await settingsService.isMaintenanceMode()
-    };
+// GET /api/settings/public - Get public settings (authenticated users only)
+router.get('/public',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    // Only return settings that are safe to expose to users
+    const publicSettingsKeys = [
+      'betting.active', // Whether betting is enabled
+      'betting.min_amount', // Minimum bet amount
+      'betting.max_amount', // Maximum bet amount
+      'site.maintenance_mode', // Whether site is in maintenance
+      'limits.deposit_min', // Minimum deposit amount
+      'limits.deposit_max', // Maximum deposit amount
+      'limits.deposit_max_daily', // Maximum daily deposits
+      'limits.withdrawal_min', // Minimum withdrawal amount
+      'limits.withdrawal_max', // Maximum withdrawal amount
+      'limits.withdrawal_max_daily', // Maximum daily withdrawals
+      'limits.require_proof_over' // Amount requiring proof
+    ];
     
+    const settings = await SystemSettingsService.getSpecificSettings(publicSettingsKeys);
     res.json({
       success: true,
-      data: features,
-      message: 'Feature status retrieved successfully'
+      data: settings
     });
-  } catch (error) {
-    console.error('❌ Error getting feature status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving feature status'
-    });
-  }
-});
+  })
+);
 
-/**
- * GET /api/settings/:key
- * Get specific setting by key (admin only)
- */
-router.get('/:key', authorize('admin'), async (req, res) => {
-  try {
+// GET /api/settings/:key - Get specific setting by key (admin only)
+router.get('/:key',
+  authenticate,
+  authorize('admin'),
+  asyncHandler(async (req, res) => {
     const { key } = req.params;
-    const value = await settingsService.getSetting(key);
+    const value = await SystemSettingsService.getSettingValue(key);
     
     if (value === null) {
-      return res.status(404).json({
-        success: false,
-        message: `Setting '${key}' not found`
-      });
+      throw errors.notFound(`Setting not found: ${key}`);
     }
     
     res.json({
       success: true,
-      data: { [key]: value },
-      message: 'Setting retrieved successfully'
+      data: { [key]: value }
     });
-  } catch (error) {
-    console.error(`❌ Error getting setting '${req.params.key}':`, error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving setting'
-    });
-  }
-});
+  })
+);
 
-/**
- * GET /api/settings
- * Get all settings (admin only)
- */
-router.get('/', authorize('admin'), async (req, res) => {
-  try {
-    const allSettings = await settingsService.getAllSettings();
-    
-    res.json({
-      success: true,
-      data: allSettings,
-      message: 'All settings retrieved successfully'
-    });
-  } catch (error) {
-    console.error('❌ Error getting all settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving settings'
-    });
-  }
-});
-
-/**
- * PUT /api/settings/:key
- * Update specific setting by key (admin only)
- */
-router.put('/:key', authorize('admin'), async (req, res) => {
-  try {
-    const { key } = req.params;
-    const { value } = req.body;
-    const userId = req.user?.id;
-    
-    if (value === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Setting value is required'
-      });
-    }
-    
-    const result = await settingsService.updateSetting(key, value, userId);
-    
-    if (result[0] === 0) {
-      return res.status(404).json({
-        success: false,
-        message: `Setting '${key}' not found`
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: { [key]: value },
-      message: `Setting '${key}' updated successfully`
-    });
-  } catch (error) {
-    console.error(`❌ Error updating setting '${req.params.key}':`, error);
-    res.status(400).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Error updating setting'
-    });
-  }
-});
-
-/**
- * PUT /api/settings (Bulk update)
- * Bulk update multiple settings (admin only)
- */
-router.put(
-  '/',
+// PUT /api/settings/:key - Update specific setting (admin only)
+router.put('/:key',
+  authenticate,
   authorize('admin'),
   [
-    body().isObject(),
-    body('*.key').not().exists(), // a key should not be a property of the value object
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
-      }
+    body('value').notEmpty().withMessage('Setting value is required'),
+    body('value').custom((value, { req }) => {
+      // Validate value type based on key pattern
+      const { key } = req.params;
 
-      const settingsToUpdate = req.body;
-      const userId = req.user?.id;
-      
-      // Update each setting
-      const results = [];
-      for (const key in settingsToUpdate) {
-        try {
-          await settingsService.updateSetting(key, settingsToUpdate[key], userId);
-          results.push({
-            key,
-            success: true,
-            message: 'Updated successfully'
-          });
-        } catch (error) {
-          results.push({
-            key,
-            success: false,
-            message: error instanceof Error ? error.message : 'Update failed'
-          });
+      if (key.includes('.min') || key.includes('.max') || key.includes('.amount')) {
+        if (typeof value !== 'number' || value < 0) {
+          throw new Error('Amount settings must be positive numbers');
+        }
+      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+        if (typeof value !== 'boolean') {
+          throw new Error('Boolean settings must be true/false');
         }
       }
 
-      const updatedSettings = await settingsService.getAllSettings();
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.filter(r => !r.success).length;
+      return true;
+    })
+  ],
+  asyncHandler(async (req, res) => {
+    const { key } = req.params;
+    const { value } = req.body;
+    const updatedBy = req.user?.id;
 
-      res.json({
-        success: failureCount === 0,
-        data: {
-          settings: updatedSettings,
-          updateResults: {
-            total: results.length,
-            successful: successCount,
-            failed: failureCount,
-            details: results
-          }
-        },
-        message: `Bulk update completed: ${successCount} successful, ${failureCount} failed`
-      });
-    } catch (error) {
-      console.error('❌ Error in bulk settings update:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error in bulk settings update'
-      });
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(`Validation failed: ${validationErrors.array().map(err => err.msg).join(', ')}`);
     }
-  }
+
+    // Check if setting exists first
+    const existingSetting = await Setting.findOne({ where: { key } });
+    if (!existingSetting) {
+      // If it doesn't exist, create it with a default category
+      const category = key.split('.')[0] || 'general';
+      await Setting.create({
+        key,
+        value,
+        category,
+        updated_by: updatedBy
+      });
+    } else {
+      // Update existing setting
+      await SystemSettingsService.updateSettingValue(key, value, updatedBy);
+    }
+
+    res.json({
+      success: true,
+      message: `Setting ${key} updated successfully`,
+      data: { key, value }
+    });
+  })
+);
+
+// POST /api/settings/bulk-update - Update multiple settings at once (admin only)
+router.post('/bulk-update',
+  authenticate,
+  authorize('admin'),
+  [
+    body('settings').isArray().withMessage('Settings must be an array'),
+    body('settings.*.key').notEmpty().withMessage('Each setting must have a key'),
+    body('settings.*.value').exists().withMessage('Each setting must have a value')
+  ],
+  asyncHandler(async (req, res) => {
+    const { settings } = req.body;
+    const updatedBy = req.user?.id;
+
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(`Validation failed: ${validationErrors.array().map(err => err.msg).join(', ')}`);
+    }
+
+    // Validate each setting's value based on its key
+    for (const setting of settings) {
+      const { key, value } = setting;
+      
+      if (key.includes('.min') || key.includes('.max') || key.includes('.amount')) {
+        if (typeof value !== 'number' || value < 0) {
+          throw errors.badRequest(`Setting ${key} must be a positive number`);
+        }
+      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+        if (typeof value !== 'boolean') {
+          throw errors.badRequest(`Setting ${key} must be a boolean`);
+        }
+      }
+    }
+
+    const settingsToUpdate = settings.map((setting: any) => ({
+      key: setting.key,
+      value: setting.value,
+      updatedBy
+    }));
+
+    await SystemSettingsService.bulkUpdateSettings(settingsToUpdate);
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      data: settings
+    });
+  })
+);
+
+// GET /api/settings/search - Search settings (admin only)
+router.get('/search',
+  authenticate,
+  authorize('admin'),
+  [
+    query('q').optional().isString().withMessage('Search query must be a string'),
+    query('category').optional().isString().withMessage('Category must be a string')
+  ],
+  asyncHandler(async (req, res) => {
+    const { q, category } = req.query;
+
+    let where: any = {};
+    if (category) {
+      where.category = category;
+    }
+    
+    if (q) {
+      where.key = { [Op.iLike]: `%${q}%` };
+    }
+
+    const settings = await Setting.findAll({ where, order: [['category', 'ASC'], ['key', 'ASC']] });
+
+    res.json({
+      success: true,
+      data: settings.map(setting => ({
+        key: setting.key,
+        value: setting.value,
+        category: setting.category,
+        description: setting.description,
+        createdAt: setting.created_at,
+        updatedAt: setting.updated_at,
+        updatedBy: setting.updated_by
+      }))
+    });
+  })
 );
 
 export default router;

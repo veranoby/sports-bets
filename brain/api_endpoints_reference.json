@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for GalloBets platform",
     "created": "2025-09-27",
-    "version": "1.7",
-    "last_updated": "2025-11-22 - Added role-based status filtering logic to GET /articles endpoint. Fixed ArticleDetail premium error handling and Articles.tsx response format handling. Documented filtering behavior for admin/auth/guest users.",
+    "version": "1.8",
+    "last_updated": "2025-11-24 - Added system_settings and wallet_operations endpoints. P2P betting PAGO/DOY endpoints. Enhanced monitoring SSE. Settings admin UI complete.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -1803,6 +1803,226 @@
           "Better handling of traffic spikes"
         ],
         "implementation": "Analyze historical traffic patterns to predict peak times and pre-scale resources"
+      }
+    },
+
+    "system_settings_endpoints": {
+      "get_all_settings": {
+        "method": "GET",
+        "path": "/api/settings",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {
+          "success": true,
+          "data": {
+            "wallets": "object - wallet configuration settings",
+            "betting": "object - betting limits and rules",
+            "streaming": "object - streaming configuration",
+            "cache": "object - cache TTL settings",
+            "security": "object - security and auth settings",
+            "notifications": "object - notification settings",
+            "system": "object - general system settings",
+            "limits": "object - upload and resource limits",
+            "performance": "object - performance and rate limits",
+            "business": "object - pricing and features",
+            "features": "object - feature flags"
+          }
+        },
+        "description": "Returns all system settings grouped by category. Redis cached with TTL=300s.",
+        "frontend_usage": "frontend/src/pages/admin/Settings.tsx"
+      },
+      "get_settings_by_category": {
+        "method": "GET",
+        "path": "/api/settings/category/:category",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {"success": true, "data": "object - settings in requested category"},
+        "description": "Returns settings for specific category (wallets, betting, streaming, etc.)"
+      },
+      "get_public_settings": {
+        "method": "GET",
+        "path": "/api/settings/public",
+        "auth_required": true,
+        "response": {"success": true, "data": "object - public settings (is_public=true)"},
+        "description": "Returns only public settings accessible to non-admin users"
+      },
+      "update_setting": {
+        "method": "PUT",
+        "path": "/api/settings/:key",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"value": "any - new setting value"},
+        "response": {"success": true, "message": "Setting updated successfully"},
+        "description": "Updates single setting value. Invalidates Redis cache.",
+        "validation": "Validates value type matches setting.type before saving"
+      }
+    },
+
+    "wallet_operations_endpoints": {
+      "create_deposit": {
+        "method": "POST",
+        "path": "/api/wallet-operations/deposit",
+        "auth_required": true,
+        "body": {
+          "amount": "number - deposit amount",
+          "paymentProofUrl": "string (optional) - bank transfer screenshot URL"
+        },
+        "response": {"success": true, "message": "Deposit request created successfully", "data": "WalletOperation object"},
+        "validation": [
+          "amount >= wallet.deposit_min (default $5)",
+          "amount <= wallet.deposit_max (default $1000/tx)",
+          "daily total + amount <= wallet.deposit_max_daily (default $5000)",
+          "if amount > wallet.require_proof_over ($50), paymentProofUrl required"
+        ],
+        "status_workflow": "pending → approved (admin) → completed",
+        "frontend_usage": "frontend/src/components/user/UserHeader.tsx (wallet dropdown)"
+      },
+      "create_withdrawal": {
+        "method": "POST",
+        "path": "/api/wallet-operations/withdrawal",
+        "auth_required": true,
+        "body": {
+          "amount": "number - withdrawal amount",
+          "userNotes": "string (optional) - user explanation"
+        },
+        "response": {"success": true, "message": "Withdrawal request created successfully", "data": "WalletOperation object"},
+        "validation": [
+          "amount >= wallet.withdrawal_min (default $10)",
+          "amount <= wallet.withdrawal_max (default $500/tx)",
+          "amount <= user.wallet.balance",
+          "daily total + amount <= wallet.withdrawal_max_daily (default $2000)"
+        ],
+        "admin_requirement": "Admin MUST upload admin_proof_url before approval",
+        "status_workflow": "pending → admin uploads proof → approved → completed"
+      },
+      "get_wallet_operations": {
+        "method": "GET",
+        "path": "/api/wallet-operations",
+        "auth_required": true,
+        "query_params": {
+          "status": "string (optional) - filter by status (pending, approved, completed, rejected)",
+          "type": "string (optional) - filter by type (deposit, withdrawal)",
+          "dateFrom": "string (optional) - ISO date",
+          "dateTo": "string (optional) - ISO date"
+        },
+        "response": {"success": true, "data": {"operations": "WalletOperation[]"}},
+        "authorization": "Admin sees all operations. Users see only their own.",
+        "frontend_usage": "frontend/src/pages/admin/Finance.tsx"
+      },
+      "approve_operation": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/approve",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"adminNotes": "string (optional)"},
+        "response": {"success": true, "message": "Operation approved successfully"},
+        "transaction_safety": "Transactional: UPDATE wallet balance + INSERT transaction + UPDATE operation status. Rollback on error.",
+        "deposit_flow": "balance += amount, create transaction, status=approved",
+        "withdrawal_flow": "REQUIRES admin_proof_url uploaded first. balance -= amount, create transaction, status=completed"
+      },
+      "reject_operation": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/reject",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {
+          "rejectionReason": "string (required) - reason for rejection",
+          "adminNotes": "string (optional)"
+        },
+        "response": {"success": true, "message": "Operation rejected successfully"},
+        "notification": "User receives notification with rejection reason"
+      },
+      "upload_admin_proof": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/upload-proof",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"adminProofUrl": "string - transfer receipt screenshot URL"},
+        "response": {"success": true, "message": "Admin proof uploaded successfully"},
+        "requirement": "MANDATORY for withdrawal approvals. Admin uploads transfer receipt."
+      },
+      "get_stats": {
+        "method": "GET",
+        "path": "/api/wallet-operations/stats",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {
+          "success": true,
+          "data": {
+            "pendingDeposits": "number - count",
+            "pendingWithdrawals": "number - count",
+            "pendingDepositsAmount": "number - total USD",
+            "pendingWithdrawalsAmount": "number - total USD",
+            "processedToday": "number - count completed today"
+          }
+        },
+        "frontend_usage": "frontend/src/pages/admin/Finance.tsx (stats cards)"
+      }
+    },
+
+    "p2p_betting_pago_doy_endpoints": {
+      "get_bet_suggestions": {
+        "method": "GET",
+        "path": "/api/bets/suggestions",
+        "auth_required": true,
+        "query_params": {
+          "fightId": "string - fight UUID",
+          "side": "string - red|blue (opposite side)",
+          "amount": "number (optional) - filters ±20% range"
+        },
+        "response": {"success": true, "data": {"bets": "Bet[] - pending compatible bets"}},
+        "logic": "Returns pending bets: opposite side, amount within ±20% if provided",
+        "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx (live suggestions)"
+      },
+      "edit_pending_bet": {
+        "method": "PUT",
+        "path": "/api/bets/:id/edit",
+        "auth_required": true,
+        "constraint": "ONLY if bet.status='pending' (not active)",
+        "body": {
+          "amount": "number (optional)",
+          "side": "string (optional) - red|blue",
+          "betType": "string (optional) - flat|doy",
+          "terms": "object (optional) - {doyAmount: number}"
+        },
+        "response": {"success": true, "data": "Updated bet object"},
+        "validation": "Rejects if bet.status !== 'pending'",
+        "frontend_usage": "frontend/src/components/betting/EditBetModal.tsx"
+      },
+      "propose_pago": {
+        "method": "POST",
+        "path": "/api/bets/:id/propose-pago",
+        "auth_required": true,
+        "body": {"pagoAmount": "number - counter-offer amount"},
+        "logic": "Creates new bet with betType='pago', parentBetId=:id, proposalStatus='pending'",
+        "notification": "WebSocket to original bettor: 'PAGO proposal received'",
+        "response": {"success": true, "data": "Created PAGO proposal bet"},
+        "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx"
+      },
+      "accept_pago": {
+        "method": "PUT",
+        "path": "/api/bets/:id/accept-pago",
+        "auth_required": true,
+        "logic": "Match both bets (original + PAGO proposal), lock frozen_amounts, status='active'",
+        "transaction_safety": "Transactional: UPDATE both bets + UPDATE wallets frozen_amount. Rollback on error.",
+        "notification": "WebSocket to both users: 'Bet matched'",
+        "response": {"success": true, "data": {"originalBet": "object", "pagoBet": "object"}},
+        "frontend_usage": "frontend/src/components/betting/AcceptPagoModal.tsx"
+      },
+      "reject_pago": {
+        "method": "PUT",
+        "path": "/api/bets/:id/reject-pago",
+        "auth_required": true,
+        "logic": "Update PAGO proposal: proposalStatus='rejected'",
+        "notification": "WebSocket to proposer: 'PAGO proposal rejected'",
+        "response": {"success": true, "message": "PAGO proposal rejected"}
+      },
+      "create_bet_auto_match": {
+        "enhancement_to": "POST /api/bets",
+        "new_logic": "After creating flat bet, check for exact match: same fightId, opposite side, exact amount, status=pending, betType=flat",
+        "auto_match_condition": "ONLY flat bets. DOY and PAGO require manual acceptance.",
+        "transaction": "If match found: UPDATE both bets (status='active', matchedWith), UPDATE wallets frozen_amount, notify both users",
+        "response": {"success": true, "data": "Created bet (or matched bets if auto-matched)"}
       }
     },
 

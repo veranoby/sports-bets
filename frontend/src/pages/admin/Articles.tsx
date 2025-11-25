@@ -97,7 +97,9 @@ const AdminArticlesPage: React.FC = () => {
 
   // Modal rechazo
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectingArticleId, setRejectingArticleId] = useState<string | null>(null);
+  const [rejectingArticleId, setRejectingArticleId] = useState<string | null>(
+    null,
+  );
   const [rejectionMessage, setRejectionMessage] = useState("");
 
   // Funciones auxiliares que faltan
@@ -248,7 +250,10 @@ const AdminArticlesPage: React.FC = () => {
     }
 
     try {
-      const result = await articlesAPI.reject(rejectingArticleId, rejectionMessage.trim());
+      const result = await articlesAPI.reject(
+        rejectingArticleId,
+        rejectionMessage.trim(),
+      );
       if (result.success) {
         closeRejectModal();
         fetchData(); // Refrescar lista
@@ -297,7 +302,9 @@ const AdminArticlesPage: React.FC = () => {
   };
 
   const handleBulkReject = async () => {
-    const message = window.prompt("Ingresa el mensaje de rechazo (10-500 caracteres):");
+    const message = window.prompt(
+      "Ingresa el mensaje de rechazo (10-500 caracteres):",
+    );
     if (!message) return;
 
     if (message.trim().length < 10 || message.trim().length > 500) {
@@ -630,7 +637,6 @@ const AdminArticlesPage: React.FC = () => {
                 key={article.id}
                 className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
-
                 {/* Imagen preview */}
                 <div className="w-16 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                   {article.featured_image_url ? (
@@ -905,7 +911,8 @@ const AdminArticlesPage: React.FC = () => {
 
               <div className="p-4">
                 <p className="text-sm text-gray-600 mb-4">
-                  Proporciona un mensaje explicando por qué se rechaza este artículo. El autor verá este mensaje.
+                  Proporciona un mensaje explicando por qué se rechaza este
+                  artículo. El autor verá este mensaje.
                 </p>
 
                 <textarea
@@ -918,8 +925,11 @@ const AdminArticlesPage: React.FC = () => {
                 />
 
                 <div className="flex items-center justify-between mt-2">
-                  <span className={`text-xs ${rejectionMessage.length < 10 ? "text-red-500" : rejectionMessage.length > 450 ? "text-orange-500" : "text-gray-500"}`}>
-                    {rejectionMessage.length}/500 caracteres {rejectionMessage.length < 10 && "(mínimo 10)"}
+                  <span
+                    className={`text-xs ${rejectionMessage.length < 10 ? "text-red-500" : rejectionMessage.length > 450 ? "text-orange-500" : "text-gray-500"}`}
+                  >
+                    {rejectionMessage.length}/500 caracteres{" "}
+                    {rejectionMessage.length < 10 && "(mínimo 10)"}
                   </span>
                 </div>
               </div>

@@ -183,8 +183,8 @@
 }, {
   "table_schema": "public",
   "table_name": "articles",
-  "column_name": "venue_id",
-  "data_type": "uuid",
+  "column_name": "admin_rejection_message",
+  "data_type": "text",
   "is_nullable": "YES",
   "column_default": null
 }, {
@@ -1349,6 +1349,146 @@
   "data_type": "boolean",
   "is_nullable": "YES",
   "column_default": "false"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": "gen_random_uuid()"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "user_id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "wallet_id",
+  "data_type": "uuid",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "operation_type",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "amount",
+  "data_type": "numeric",
+  "is_nullable": "NO",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "currency",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": "'USD'::character varying"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "status",
+  "data_type": "character varying",
+  "is_nullable": "NO",
+  "column_default": "'pending'::character varying"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "payment_proof_url",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "payment_method",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "bank_reference",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "user_notes",
+  "data_type": "text",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "processed_by",
+  "data_type": "uuid",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "processed_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "admin_notes",
+  "data_type": "text",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "rejection_reason",
+  "data_type": "text",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "admin_proof_url",
+  "data_type": "character varying",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "requested_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "NO",
+  "column_default": "CURRENT_TIMESTAMP"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "completed_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "YES",
+  "column_default": null
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "created_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "NO",
+  "column_default": "CURRENT_TIMESTAMP"
+}, {
+  "table_schema": "public",
+  "table_name": "wallet_operations",
+  "column_name": "updated_at",
+  "data_type": "timestamp with time zone",
+  "is_nullable": "NO",
+  "column_default": "CURRENT_TIMESTAMP"
 }, {
   "table_schema": "public",
   "table_name": "wallets",

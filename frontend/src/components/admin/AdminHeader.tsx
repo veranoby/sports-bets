@@ -2,6 +2,7 @@
 import { memo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { LogOut, Bell } from "lucide-react";
+import SystemHealthBadge from "./SystemHealthBadge";
 
 const AdminHeader = memo(() => {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ const AdminHeader = memo(() => {
           Panel de Administración
         </h1>
         <div className="flex items-center gap-4">
+          <SystemHealthBadge size="md" className="mr-2" />
           <button className="p-2 hover:bg-theme-accent rounded-lg transition-colors">
             <Bell className="w-5 h-5 text-theme-secondary" />
           </button>

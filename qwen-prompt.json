@@ -1,267 +1,110 @@
 {
-  "⚠️_CRITICAL_PRE_REQUISITE": {
-    "MANDATORY_READ": "brain/multi_ai_coordination_strategy.json - COMPLETE FILE, NO ASSUMPTIONS",
-    "REASON": "This file contains DIRECTOR_PLANNING_PROTOCOL, AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL, and validation gates that are NON-NEGOTIABLE",
-    "YOUR_ROLE": "Executor - Must operate under simulate-y-confirmar protocol. Simulation before execution is MANDATORY, not optional.",
-    "PROFESSIONAL_STANDARD": "Deep, systematic analysis. NO assumptions. NO delirium. Code must be production-ready."
+  "=4_COORDINATOR_STRATEGY_COMPLIANCE": {
+    "director_ai": "Claude Sonnet 4.5 - Created following DIRECTOR_PLANNING_PROTOCOL",
+    "executor_ai": "Qwen - Execute following ALL mandatory protocols"
   },
 
-  "⚡_EXECUTIVE_SUMMARY": {
-    "task": "Complete admin article management workflow at /admin/articles with proper UI, editor, and role-based entity assignment",
-    "scope": "frontend/src/pages/admin/Articles.tsx + ArticleEditorForm.tsx + related components",
-    "priority": "HIGH - Admin article CRUD must be fully functional with proper UX"
+  "task_metadata": {
+    "task_name": "Code Quality Refactoring + Backend Code Cleanup",
+    "complexity": "MEDIUM",
+    "execution_mode": "standard",
+    "assigned_role": "executor",
+    "estimated_duration_minutes": "75 (Session 1: Refactor bets.ts 60min + Session 2: Code cleanup 15min)",
+    "git_branch": "main",
+    "mcp_activation_required": ["--seq", "--sequential"],
+    "checkpoint_frequency": "Every 15 minutes"
   },
 
-  "📋_DETAILED_REQUIREMENTS": {
-    "requirement_1_article_list_display": {
-      "location": "Sección 'Gestión General' - líneas 560-730",
-      "current_state": "Shows articles in table with image preview, title, summary, author info",
-      "required_changes": [
-        "1) Add STATUS CHIP to each row (BEFORE title) showing: draft|pending|published|archived with color coding",
-        "2) Replace icon buttons with TEXT BUTTONS (no lucide icons) - buttons must say: 'Preview' 'Edit' 'Approve' 'Reject' 'Delete'",
-        "3) Approve button: calls handleApproveArticle() → PATCH /articles/:id/approve",
-        "4) Reject button: calls openRejectModal() → opens modal for rejection message",
-        "5) Delete button: existing handleDeleteArticle() functionality"
-      ],
-      "button_styling": "Use consistent button classes: px-3 py-1 text-sm font-medium rounded - no icons, text only",
-      "visual_priority": "Status → Title → Summary → Author → Date | [Preview] [Edit] [Approve] [Reject] [Delete]"
+  "=4_SESSION_START_DECLARATION": {
+    "must_declare": "Model: qwen3-coder-plus | Role: executor | Mode: standard | Task: Refactor + Code Cleanup | Flags: --seq ACTIVATED",
+    "must_echo_back": "Session 1: Refactor bets.ts service layer (60min). Session 2: Cleanup articles.venue_id code (15min). Confirm Y/N?",
+    "validation": "npx tsc --noEmit && npm run build && git diff --name-only"
+  },
+
+  "=4_CRITICAL_PREREQUISITES": {
+    "mandatory_reads": [
+      "brain/multi_ai_coordination_strategy.json",
+      "backend/src/routes/bets.ts (UNDERSTAND COMPLETELY - 1270 lines)"
+    ]
+  },
+
+  "problems_to_solve": {
+    "problem_1_refactor_bets_service_layer": {
+      "priority": "P2_MEDIUM",
+      "description": "Extract business logic from bets.ts (1270 lines) into betService.ts for better maintainability",
+      "DO_NOT": [
+        "DO NOT change business logic - only reorganize code",
+        "DO NOT break existing P2P betting functionality"
+      ]
     },
 
-    "requirement_2_edit_modal_with_quill_editor": {
-      "location": "Modal Crear/Editar Artículo - líneas 798-831",
-      "component": "ArticleEditorForm.tsx",
-      "current_problem": "Uses basic <textarea> for content. Should use ReactQuill like user ArticleEditor.tsx",
-      "required_implementation": [
-        "1) Replace textarea (lines 132-139 in ArticleEditorForm) with ReactQuill component",
-        "2) Import ReactQuill: import ReactQuill from 'react-quill-new';",
-        "3) Copy Quill toolbar config from frontend/src/components/articles/ArticleEditor.tsx lines 156-177",
-        "4) Must support: headers, bold, italic, links, lists, images",
-        "5) Content field must store/retrieve HTML (as it does now)"
-      ],
-      "reference_implementation": "frontend/src/components/articles/ArticleEditor.tsx lines 147-185"
-    },
-
-    "requirement_3_image_upload_in_modal": {
-      "location": "ArticleEditorForm.tsx - currently missing image upload",
-      "required_implementation": [
-        "1) Add image preview section (like ArticleEditor.tsx lines 66-124)",
-        "2) File input with: accept='image/jpeg,image/jpg,image/png,image/webp'",
-        "3) Upload button that calls uploadsAPI.uploadImage(file)",
-        "4) Image preview showing uploaded image or placeholder",
-        "5) Remove button to clear selected image",
-        "6) Display upload progress while uploading"
-      ],
-      "reference": "frontend/src/components/articles/ArticleEditor.tsx lines 39-61 (handleImageChange function)"
-    },
-
-    "requirement_4_associated_entity_mandatory": {
-      "location": "ArticleEditorForm.tsx lines 177-192 (current 'venue_id' optional field)",
-      "current_state": "Optional select for venue_id. Says 'Associated Entity (Optional)' - WRONG",
-      "required_changes": [
-        "1) Change label to 'Associated Entity (REQUIRED)' - NOT optional",
-        "2) Make select field REQUIRED - validation should fail if empty",
-        "3) In CREATION mode: populate with list of all users (admins, venues, galleras)",
-        "4) In EDIT mode: show current user who created article (read-only or selectable for admin reassign)",
-        "5) Filter options to show: username (role) for clarity"
-      ],
-      "validation_logic": "Form should not submit if Associated Entity is empty"
-    },
-
-    "requirement_5_creation_vs_edit_mode_logic": {
-      "creation_mode": {
-        "trigger": "Click 'Crear Artículo' button or in general admin management section",
-        "author_field": "Must be EMPTY - admin selects via 'Associated Entity' dropdown",
-        "entity_options": "Load all users (admins, venues, galleras) from API",
-        "status_default": "draft (admin can save as draft or pending/published)",
-        "image": "Allow upload via file input"
+    "problem_2_backend_code_cleanup_articles_venue_id": {
+      "priority": "P1_HIGH",
+      "description": "Cleanup backend code references to obsolete articles.venue_id (Director will execute SQL)",
+      "code_cleanup_required": {
+        "file_1": "backend/src/models/Article.ts - Remove ALL commented venue_id lines",
+        "file_2": "backend/src/routes/articles.ts - Remove venue_id from line 86 and line 431"
       },
-      "edit_mode": {
-        "trigger": "Click 'Edit' button on existing article in list",
-        "author_field": "Show original author (who created it) - consider if admin can reassign",
-        "entity_options": "Show current author, maybe allow change",
-        "status_current": "Show current status (draft|pending|published|archived)",
-        "image": "Show current image with option to change/remove"
-      }
-    },
-
-    "requirement_6_modal_actions": {
-      "location": "ArticleEditorForm.tsx - button section",
-      "required_buttons": [
-        "1) Cancel button - closes modal without saving",
-        "2) Save as Draft button - saves with status='draft'",
-        "3) Submit for Review button - saves with status='pending'",
-        "4) Publish button (admin only) - saves with status='published'",
-        "Note: Button labels/availability may differ based on article current status and user role"
+      "CRITICAL_ORDER": [
+        "1. Qwen cleans up backend code",
+        "2. Validate code compiles with 0 errors",
+        "3. Commit code cleanup",
+        "4. Director executes SQL in Neon (sql-drop-articles-venue-id.sql)"
       ]
     }
   },
 
-  "🔴_CRITICAL_INVESTIGATION_BEFORE_CODE": {
-    "investigation_1_pending_articles_empty": {
-      "issue": "pendingArticles array is empty in /admin/articles, buttons don't show",
-      "root_cause_hypothesis": [
-        "A) articlesAPI.getAll() response doesn't include status='pending' articles for admin",
-        "B) Response structure differs from expected { success, data: { articles: [...] } }",
-        "C) Filter logic at line 127-132 doesn't correctly extract pending articles",
-        "D) User is not authenticated as admin"
-      ],
-      "investigation_steps": [
-        "1) Open browser F12 → Network tab",
-        "2) Reload /admin/articles",
-        "3) Find GET /articles request → Click it",
-        "4) Check Response tab - does it contain articles with status='pending'?",
-        "5) If yes: problem is frontend filter logic. If no: problem is backend endpoint"
-      ],
-      "backend_endpoint_check": [
-        "curl -H 'Authorization: Bearer ADMIN_TOKEN' 'http://localhost:3001/api/articles?limit=1000'",
-        "Does response include pending articles? If not, backend GET /articles has issue"
-      ]
+  "implementation_plan": {
+    "SESSION_1_REFACTOR_BETS": {
+      "duration": "60 min max",
+      "steps": "Read bets.ts → Create betService.ts → Refactor routes incrementally → Validate → Commit",
+      "commit_message": "[REFACTOR] Extract betting business logic to betService.ts\n\nRefactored:\n- Created BetService with core business methods\n- bets.ts now thin controller (HTTP handling only)\n- 100% backward compatible\n\nValidation: TypeScript 0 errors, Build success\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude <noreply@anthropic.com>"
     },
 
-    "investigation_2_current_articleeditorform_limitations": {
-      "issue": "ArticleEditorForm.tsx is too basic for admin use",
-      "current_implementation": [
-        "- No Quill editor (textarea only)",
-        "- No image upload capability",
-        "- venue_id field but confusing UX",
-        "- No role-based field handling"
+    "SESSION_2_BACKEND_CODE_CLEANUP": {
+      "duration": "15 min max",
+      "cleanup_article_model": {
+        "file": "backend/src/models/Article.ts",
+        "action": "Remove ALL lines containing 'venue_id' comment (lines ~13-15, 38-39, 119-120)"
+      },
+      "cleanup_articles_routes": {
+        "file": "backend/src/routes/articles.ts",
+        "line_86": "Remove 'venue_id' from array → const adminAttributes = [...publicAttributes, \"tags\", \"view_count\"];",
+        "line_431": "Remove venue_id from destructuring → const { title, content, excerpt, featured_image, featured_image_url, status: requestedStatus } = req.body;"
+      },
+      "validation": [
+        "npx tsc --noEmit (MUST be 0 errors)",
+        "npm run build (MUST succeed)",
+        "grep 'venue_id' backend/src/models/Article.ts (expect 0 results)",
+        "grep 'venue_id' backend/src/routes/articles.ts (expect 0 results)"
       ],
-      "compare_with": "ArticleEditor.tsx (user version) has proper image upload, Quill, good UX",
-      "action": "ArticleEditorForm must be enhanced to match or exceed user ArticleEditor functionality"
+      "commit_message": "[CODE CLEANUP] Remove articles.venue_id backend references\n\nCleaned:\n- Article.ts: Removed commented venue_id lines\n- articles.ts: Removed venue_id from attributes + req.body\n\nNote: DB column will be dropped via sql-drop-articles-venue-id.sql\n\nValidation: TypeScript 0 errors, Build success\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude <noreply@anthropic.com>"
     }
   },
 
-  "🎯_IMPLEMENTATION_TASKS_FOR_QWEN": {
-    "PHASE_1_INVESTIGATION_AND_SIMULATION": {
-      "task_1": "Read multi_ai_coordination_strategy.json COMPLETELY - document key protocols applicable to this task",
-      "task_2": "Investigate why pendingArticles is empty - use Network tab debugging",
-      "task_3": "Analyze ArticleEditor.tsx (user version) to understand proper image upload and Quill integration",
-      "task_4": "Analyze ArticleEditorForm.tsx current implementation - identify gaps vs requirements",
-      "task_5": "Simulate the changes mentally - plan exact modifications to each file",
-      "task_6": "Document simulation findings in brief summary before coding"
-    },
-
-    "PHASE_2_CORE_IMPLEMENTATION": {
-      "task_1_fix_pending_articles_display": {
-        "status": "BLOCKING",
-        "description": "Ensure pending articles render in sección 1",
-        "investigation_required": true,
-        "simulate_before_coding": true
-      },
-
-      "task_2_update_article_list_ui": {
-        "file": "frontend/src/pages/admin/Articles.tsx",
-        "lines": "560-730 (Gestión General section)",
-        "changes": [
-          "1) Add STATUS CHIP before title for each article",
-          "2) Replace icon buttons with TEXT buttons",
-          "3) Add 'Approve' button (green) - calls handleApproveArticle()",
-          "4) Add 'Reject' button (red) - calls openRejectModal()",
-          "5) Keep existing 'Delete' functionality",
-          "6) Update button styling to be text-based, not icon-based"
-        ],
-        "simulate_before_coding": true
-      },
-
-      "task_3_enhance_articleeditorform_quill": {
-        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
-        "changes": [
-          "1) Add ReactQuill import",
-          "2) Replace <textarea> content field with <ReactQuill>",
-          "3) Copy toolbar config from ArticleEditor.tsx",
-          "4) Ensure HTML content is preserved on save/load"
-        ],
-        "reference": "ArticleEditor.tsx lines 147-185",
-        "simulate_before_coding": true
-      },
-
-      "task_4_add_image_upload": {
-        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
-        "changes": [
-          "1) Add image preview section (model from ArticleEditor.tsx)",
-          "2) Add file input for image selection",
-          "3) Implement uploadImage handler",
-          "4) Show upload progress",
-          "5) Allow image removal"
-        ],
-        "reference": "ArticleEditor.tsx lines 39-61, 66-124",
-        "simulate_before_coding": true
-      },
-
-      "task_5_fix_associated_entity_mandatory": {
-        "file": "frontend/src/components/admin/ArticleEditorForm.tsx",
-        "changes": [
-          "1) Change label from 'Optional' to 'REQUIRED'",
-          "2) Make select field required in validation",
-          "3) Load users list on component mount",
-          "4) Filter to show: username (role type) for clarity"
-        ],
-        "modes": {
-          "creation": "Empty select - user picks from list",
-          "edit": "Show current author - allow admin to reassign if needed"
-        },
-        "simulate_before_coding": true
-      },
-
-      "task_6_implement_button_actions": {
-        "buttons_to_implement": [
-          "Cancel",
-          "Save as Draft",
-          "Submit for Review (status=pending)",
-          "Publish (status=published, admin only)"
-        ],
-        "file": "ArticleEditorForm.tsx",
-        "simulate_before_coding": true
-      }
-    },
-
-    "PHASE_3_VALIDATION_AND_TESTING": {
-      "validation_checklist": [
-        "[ ] Pending articles render with status chip",
-        "[ ] All 5 action buttons visible (Preview, Edit, Approve, Reject, Delete)",
-        "[ ] Edit button opens modal with Quill editor",
-        "[ ] Image upload works in modal",
-        "[ ] Associated Entity field is required",
-        "[ ] Creation mode: select from user list",
-        "[ ] Edit mode: shows current author",
-        "[ ] Approve button: article moves to published",
-        "[ ] Reject button: opens modal, saves message, moves to draft",
-        "[ ] Delete button: removes article",
-        "[ ] No console errors",
-        "[ ] TypeScript compilation succeeds: npx tsc --noEmit",
-        "[ ] CSS buttons render properly (text, not icons)"
-      ]
-    }
+  "=4_MANDATORY_CHECKLIST": {
+    "before_commit": [
+      "✅ TypeScript: 0 errors (NON-NEGOTIABLE)",
+      "✅ Build: success",
+      "✅ P2P betting: still works",
+      "✅ bets.ts: significantly smaller",
+      "✅ betService.ts: created with business logic",
+      "✅ venue_id: NO references in Article.ts or articles.ts"
+    ]
   },
 
-  "📊_SIMULATION_TEMPLATE": {
-    "before_you_code": "Document these findings",
-    "what_will_change": "List exact file changes and line numbers",
-    "what_could_break": "Identify potential issues (imports, dependencies, logic conflicts)",
-    "how_to_test": "Define manual test steps for each feature",
-    "success_indicators": "Clear pass/fail criteria"
+  "=4_REPORTING_PROTOCOL": {
+    "success_criteria": [
+      "Session 1: BetService created, bets.ts refactored, tests pass",
+      "Session 2: venue_id code cleaned up, TypeScript compiles"
+    ],
+    "post_execution": "Director provides sql-drop-articles-venue-id.sql for Neon execution"
   },
 
-  "🔧_DEBUGGING_TOOLS_AVAILABLE": [
-    "Browser DevTools (F12) - Network, Console, Elements tabs",
-    "npm run dev - local dev server",
-    "npx ts-node - script execution",
-    "curl - API testing",
-    "VS Code debugger"
-  ],
-
-  "🚀_EXECUTION_STANDARDS": {
-    "code_quality": "Production-ready, no TODOs, no debug logs left in commits",
-    "testing": "Manual QA each feature before considering done",
-    "documentation": "Update brain files if interfaces change",
-    "professionalism": "Deep analysis, systematic implementation, comprehensive validation"
-  },
-
-  "⚠️_REMINDERS_FOR_QWEN": {
-    "1_read_coordination_file": "brain/multi_ai_coordination_strategy.json is MANDATORY. Read completely. Not optional.",
-    "2_simulate_first": "Use SIMULATE-Y-CONFIRMAR protocol from coordination file. Simulate changes before coding.",
-    "3_no_assumptions": "Debug first, understand root cause, then implement. Don't guess.",
-    "4_professional_depth": "This is admin-facing functionality. Quality and thoroughness non-negotiable.",
-    "5_validation_gates": "TypeScript must compile. Test in browser before claiming done."
+  "=4_CRITICAL_CONSTRAINTS": {
+    "constraint_1": "NEVER break P2P betting functionality",
+    "constraint_2": "TypeScript MUST compile with 0 errors",
+    "constraint_3": "Session max 75 min total",
+    "constraint_4": "NEVER modify database - only code cleanup"
   }
 }

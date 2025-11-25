@@ -151,6 +151,30 @@
   "update_rule": "CASCADE",
   "delete_rule": "CASCADE"
 }, {
+  "constraint_name": "wallet_operations_processed_by_fkey",
+  "table_name": "wallet_operations",
+  "column_name": "processed_by",
+  "foreign_table_name": "users",
+  "foreign_column_name": "id",
+  "update_rule": "NO ACTION",
+  "delete_rule": "SET NULL"
+}, {
+  "constraint_name": "wallet_operations_user_id_fkey",
+  "table_name": "wallet_operations",
+  "column_name": "user_id",
+  "foreign_table_name": "users",
+  "foreign_column_name": "id",
+  "update_rule": "NO ACTION",
+  "delete_rule": "CASCADE"
+}, {
+  "constraint_name": "wallet_operations_wallet_id_fkey",
+  "table_name": "wallet_operations",
+  "column_name": "wallet_id",
+  "foreign_table_name": "wallets",
+  "foreign_column_name": "id",
+  "update_rule": "NO ACTION",
+  "delete_rule": "CASCADE"
+}, {
   "constraint_name": "wallets_user_id_fkey",
   "table_name": "wallets",
   "column_name": "user_id",

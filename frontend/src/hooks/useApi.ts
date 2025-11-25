@@ -455,15 +455,15 @@ export function useBets() {
     [execute],
   );
 
-  const acceptProposal = useCallback(
+  const acceptPago = useCallback(
     (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/accept-proposal`)),
+      execute(() => apiClient.put(`/bets/${betId}/accept-pago`)),
     [execute],
   );
 
-  const rejectProposal = useCallback(
+  const rejectPago = useCallback(
     (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/reject-proposal`)),
+      execute(() => apiClient.put(`/bets/${betId}/reject-pago`)),
     [execute],
   );
 
@@ -484,8 +484,8 @@ export function useBets() {
     getBetsStats,
     getCompatibleBets,
     getPendingProposals,
-    acceptProposal,
-    rejectProposal,
+    acceptPago,
+    rejectPago,
   };
 }
 

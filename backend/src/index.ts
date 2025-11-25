@@ -37,6 +37,7 @@ import membershipRequestsRoutes from "./routes/membership-requests";
 import streamingRoutes from "./routes/streaming";
 import streamingMonitoringRoutes from "./routes/streaming-monitoring";
 import adminSessionsRoutes from "./routes/admin-sessions";
+import walletOperationsRoutes from "./routes/walletOperations";
 
 // Cargar variables de entorno
 config();
@@ -161,6 +162,7 @@ class Server {
     this.app.use("/api/streaming", streamingRoutes);
     this.app.use("/api/sse", streamingMonitoringRoutes);
     this.app.use("/api/admin", adminSessionsRoutes);
+    this.app.use("/api/wallet-operations", walletOperationsRoutes);
 
     // Ruta para servir archivos estáticos con CORS headers
     this.app.use("/uploads", (req, res, next) => {

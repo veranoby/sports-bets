@@ -15,6 +15,7 @@ import { SystemSetting } from './SystemSetting';
 import { EventConnection } from "./EventConnection";
 import { MembershipChangeRequest } from "./MembershipChangeRequest";
 import { ActiveSession } from "./ActiveSession";
+import WalletOperation from "./WalletOperation";
 
 console.log("📦 Configurando modelos y asociaciones...");
 
@@ -199,6 +200,14 @@ MembershipChangeRequest.belongsTo(User, { foreignKey: "processedBy", as: "proces
 User.hasMany(ActiveSession, { foreignKey: "userId", as: "activeSessions" });
 ActiveSession.belongsTo(User, { foreignKey: "userId", as: "user" });
 
+// User -> WalletOperation (One-to-Many)
+User.hasMany(WalletOperation, { foreignKey: "userId", as: "walletOperations" });
+WalletOperation.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+// Wallet -> WalletOperation (One-to-Many)
+Wallet.hasMany(WalletOperation, { foreignKey: "walletId", as: "walletOperations" });
+WalletOperation.belongsTo(Wallet, { foreignKey: "walletId", as: "wallet" });
+
 console.log("✅ Asociaciones configuradas correctamente");
 
 // ========================================
@@ -219,6 +228,7 @@ export {
   EventConnection,
   MembershipChangeRequest,
   ActiveSession,
+  WalletOperation,
   connectDatabase,
 };
 
@@ -285,6 +295,7 @@ export default {
   EventConnection,
   MembershipChangeRequest,
   ActiveSession,
+  WalletOperation,
   syncModels,
   checkAssociations,
   ModelUtils,

@@ -833,6 +833,90 @@
   "column_names": "id",
   "check_clause": null
 }, {
+  "constraint_name": "2200_1228800_17_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "requested_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_19_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "created_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_1_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "id IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_20_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "updated_at IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_2_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "user_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_3_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "wallet_id IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_4_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "operation_type IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_5_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "amount IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_6_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "currency IS NOT NULL"
+}, {
+  "constraint_name": "2200_1228800_7_not_null",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "status IS NOT NULL"
+}, {
+  "constraint_name": "wallet_operations_amount_check",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "(amount > (0)::numeric)"
+}, {
+  "constraint_name": "wallet_operations_operation_type_check",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "((operation_type)::text = ANY ((ARRAY['deposit'::character varying, 'withdrawal'::character varying])::text[]))"
+}, {
+  "constraint_name": "wallet_operations_status_check",
+  "table_name": "wallet_operations",
+  "constraint_type": "CHECK",
+  "column_names": null,
+  "check_clause": "((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying, 'completed'::character varying, 'cancelled'::character varying])::text[]))"
+}, {
+  "constraint_name": "wallet_operations_pkey",
+  "table_name": "wallet_operations",
+  "constraint_type": "PRIMARY KEY",
+  "column_names": "id",
+  "check_clause": null
+}, {
   "constraint_name": "2200_811239_1_not_null",
   "table_name": "wallets",
   "constraint_type": "CHECK",

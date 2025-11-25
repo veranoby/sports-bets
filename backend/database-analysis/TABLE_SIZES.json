@@ -1,27 +1,19 @@
 [{
   "schemaname": "public",
   "tablename": "users",
-  "total_size": "352 kB",
-  "table_size": "8192 bytes",
-  "indexes_size": "344 kB",
-  "index_to_table_ratio_percentage": 4300.00,
-  "total_bytes": 360448
+  "total_size": "440 kB",
+  "table_size": "16 kB",
+  "indexes_size": "424 kB",
+  "index_to_table_ratio_percentage": 2650.00,
+  "total_bytes": 450560
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
-  "total_size": "344 kB",
-  "table_size": "32 kB",
-  "indexes_size": "312 kB",
-  "index_to_table_ratio_percentage": 975.00,
-  "total_bytes": 352256
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "total_size": "192 kB",
+  "total_size": "320 kB",
   "table_size": "8192 bytes",
-  "indexes_size": "184 kB",
-  "index_to_table_ratio_percentage": 2300.00,
-  "total_bytes": 196608
+  "indexes_size": "312 kB",
+  "index_to_table_ratio_percentage": 3900.00,
+  "total_bytes": 327680
 }, {
   "schemaname": "public",
   "tablename": "events",
@@ -40,11 +32,27 @@
   "total_bytes": 196608
 }, {
   "schemaname": "public",
+  "tablename": "articles",
+  "total_size": "160 kB",
+  "table_size": "8192 bytes",
+  "indexes_size": "152 kB",
+  "index_to_table_ratio_percentage": 1900.00,
+  "total_bytes": 163840
+}, {
+  "schemaname": "public",
   "tablename": "fights",
   "total_size": "136 kB",
   "table_size": "8192 bytes",
   "indexes_size": "128 kB",
   "index_to_table_ratio_percentage": 1600.00,
+  "total_bytes": 139264
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "total_size": "136 kB",
+  "table_size": "24 kB",
+  "indexes_size": "112 kB",
+  "index_to_table_ratio_percentage": 466.67,
   "total_bytes": 139264
 }, {
   "schemaname": "public",
@@ -57,19 +65,11 @@
 }, {
   "schemaname": "public",
   "tablename": "membership_change_requests",
-  "total_size": "104 kB",
+  "total_size": "112 kB",
   "table_size": "8192 bytes",
-  "indexes_size": "96 kB",
-  "index_to_table_ratio_percentage": 1200.00,
-  "total_bytes": 106496
-}, {
-  "schemaname": "public",
-  "tablename": "payment_transactions",
-  "total_size": "96 kB",
-  "table_size": "0 bytes",
-  "indexes_size": "96 kB",
-  "index_to_table_ratio_percentage": null,
-  "total_bytes": 98304
+  "indexes_size": "104 kB",
+  "index_to_table_ratio_percentage": 1300.00,
+  "total_bytes": 114688
 }, {
   "schemaname": "public",
   "tablename": "transactions",
@@ -80,11 +80,11 @@
   "total_bytes": 98304
 }, {
   "schemaname": "public",
-  "tablename": "system_settings",
+  "tablename": "payment_transactions",
   "total_size": "96 kB",
-  "table_size": "8192 bytes",
-  "indexes_size": "88 kB",
-  "index_to_table_ratio_percentage": 1100.00,
+  "table_size": "0 bytes",
+  "indexes_size": "96 kB",
+  "index_to_table_ratio_percentage": null,
   "total_bytes": 98304
 }, {
   "schemaname": "public",
@@ -94,6 +94,14 @@
   "indexes_size": "64 kB",
   "index_to_table_ratio_percentage": 800.00,
   "total_bytes": 73728
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "total_size": "64 kB",
+  "table_size": "0 bytes",
+  "indexes_size": "64 kB",
+  "index_to_table_ratio_percentage": null,
+  "total_bytes": 65536
 }, {
   "schemaname": "public",
   "tablename": "notifications",

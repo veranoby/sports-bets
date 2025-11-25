@@ -1,531 +1,111 @@
 {
-  "optimization_plan_metadata": {
-    "plan_created_date": "2025-11-21",
-    "updated_date": "2025-11-21",
-    "created_by": "Claude Sonnet 4.5 (Director Mode)",
-    "source_analysis": "brain/backlog.json (BACKEND_PERFORMANCE_ANALYSIS_COMPLETED, 2025-11-20)",
-    "analysis_performed_by": "QWEN (qwen3-coder-plus-2025-09-23)",
-    "plan_scope": "Implementation roadmap for OPTION B.1 infrastructure (Dedicated Server + Nginx RTMP + PostgreSQL local)",
-    "infrastructure": "Vultr/Hetzner Dedicated $155-195/mo (8-core, 32GB RAM, 10Gbps, 500GB SSD) - includes Nginx RTMP + PostgreSQL local. Scale Phase: +Bunny CDN $108/mo = $263-303/mo",
-    "total_realistic_savings": "$40/month ($480/year) in CDN bandwidth (Phase 2 only)",
-    "original_qwen_estimate": "$3,400/month (cloud elastic pricing - NOT APPLICABLE to dedicated server)",
-    "total_implementation_effort": "47 hours (includes Phase 0)",
-    "average_roi_score": "N/A - Optimizations are for crash prevention and UX, not cost savings"
+  "director_override_metadata": {
+    "director_ai": "Gemini (acting as Director)",
+    "target_executor_ai": "Qwen",
+    "plan_creation_date": "2025-11-24",
+    "purpose": "Post-implementation validation, technical debt remediation, and next-phase optimization plan."
   },
-
-  "validation_summary": {
-    "analysis_quality": "EXCELLENT - Comprehensive 4-phase analysis with evidence-based findings",
-    "findings_validity": "VERIFIED - All 7 recommendations have clear file:line references",
-    "savings_recalculated": "ADJUSTED for OPTION B.1 - Dedicated server ($155-195/mo fixed) with PostgreSQL local ($0). Optimizations are for crash prevention and UX, not cost reduction.",
-    "methodology_compliance": "COMPLIANT - Follows AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL",
-    "risk_assessment": "ACCURATE - Risk levels (LOW/MEDIUM) appropriately assigned",
-    "recommendation": "APPROVED - Phase 0 critical for admin UX, Phase 1 prevents crashes at scale, Phase 2 reduces CDN bandwidth costs"
-  },
-
-  "prioritized_implementation_phases": [
-    {
-      "phase": "PHASE_0_ADMIN_SESSION_MANAGEMENT",
-      "description": "Admin UI para gestión de sesiones activas (columna En Línea + botón Desconectar)",
-      "target_completion": "Week 1 - Day 1",
-      "total_effort_hours": 1,
-      "total_monthly_savings": "$0 (UX improvement only)",
-      "priority": "P0_CRITICAL_UX",
-      "optimizations": [
-        {
-          "rank": 0,
-          "optimization_id": "ADMIN_SESSION_VISIBILITY_CONTROL",
-          "title": "Admin Session Management UI",
-          "current_issue": "Admins no pueden ver qué usuarios están online ni forzar logout",
-          "proposed_fix": "Agregar columna 'En Línea' (🟢/🔴) y botón 'Desconectar' en /admin/users, /admin/galleras, /admin/venues",
-          "monthly_savings": "$0",
-          "implementation_hours": 1,
-          "roi_score": "N/A (UX feature)",
-          "risk_level": "LOW",
-          "implementation_files": [
-            "backend/src/routes/admin-sessions.ts (NEW)",
-            "frontend/src/pages/admin/Users.tsx",
-            "frontend/src/pages/admin/Galleras.tsx",
-            "frontend/src/pages/admin/Venues.tsx"
-          ],
-          "implementation_strategy": {
-            "backend": {
-              "step_1": "Create DELETE /api/admin/sessions/:userId endpoint",
-              "step_2": "Call SessionService.invalidateAllUserSessions(userId)",
-              "step_3": "Return success/failure status"
-            },
-            "frontend": {
-              "step_1": "Add isOnline column: JOIN active_sessions with lastActivity < 30min",
-              "step_2": "Display 🟢 (online) or 🔴 (offline) badge",
-              "step_3": "Add 'Desconectar' button calling DELETE /api/admin/sessions/:userId",
-              "step_4": "Show toast confirmation after disconnect"
-            },
-            "database_query": "SELECT u.*, EXISTS(SELECT 1 FROM active_sessions WHERE user_id = u.id AND last_activity > NOW() - INTERVAL '30 minutes') as is_online FROM users u"
-          },
-          "validation_gates": [
-            "Admin sees 🟢 for online users (lastActivity < 30min)",
-            "Admin sees 🔴 for offline users",
-            "Button 'Desconectar' successfully removes session from DB",
-            "User gets logged out immediately (next request fails with 401)",
-            "Toast shows 'Usuario desconectado correctamente'"
-          ],
-          "business_impact": "Admins can manage concurrent logins, force logout suspicious sessions, improve security monitoring",
-          "user_experience": "Clear visibility of online users, one-click disconnect for troubleshooting"
-        }
-      ]
-    },
-    {
-      "phase": "PHASE_1_IMMEDIATE_WINS",
-      "description": "Crash prevention optimizations (prevents downtime at scale)",
-      "target_completion": "Week 1",
-      "total_effort_hours": 10,
-      "total_monthly_savings": "$50 (downtime prevention)",
-      "realistic_benefit": "Prevents crashes at 500+ users, improves memory stability",
-      "optimizations": [
-        {
-          "rank": 1,
-          "optimization_id": "CONNECTION_LIMITS_PER_USER_IP",
-          "title": "Implement Connection Limits Per User/IP",
-          "current_issue": "No visible connection limits per user/IP - potential unbounded growth",
-          "proposed_fix": "Add connection tracking by IP/user to limit concurrent connections (max 3 per IP, max 2 per user)",
-          "monthly_savings": "$50 (prevents downtime → revenue loss prevention)",
-          "original_qwen_estimate": "$2,000 (cloud elastic - NOT APPLICABLE to OPTION B.1)",
-          "implementation_hours": 4,
-          "roi_score": "N/A (crash prevention)",
-          "risk_level": "LOW",
-          "implementation_files": [
-            "backend/src/sockets/streamingSocket.ts",
-            "backend/src/services/sseService.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add Map<userId, Set<sessionId>> to track connections per user",
-            "step_2": "Add Map<ipAddress, Set<sessionId>> to track connections per IP",
-            "step_3": "Check limits in connection handlers before accepting new connections",
-            "step_4": "Return 429 (Too Many Connections) error if limits exceeded",
-            "step_5": "Clean up Maps when connections close"
-          },
-          "validation_gates": [
-            "User with 2 active connections cannot open 3rd connection",
-            "IP with 3 active connections cannot open 4th connection",
-            "Error message clearly indicates connection limit reached",
-            "Connection Maps properly cleaned on disconnect"
-          ],
-          "business_impact": "Prevents unbounded connection growth � prevents exponential cloud costs",
-          "priority": "P0_CRITICAL"
-        },
-        {
-          "rank": 2,
-          "optimization_id": "USER_CACHE_TTL_OPTIMIZATION",
-          "title": "Optimize User Cache TTL",
-          "current_issue": "User cache TTL is 2 minutes (120s) but could be optimized based on usage patterns",
-          "proposed_fix": "Implement adaptive TTL based on user activity patterns (1-5 minutes depending on recency)",
-          "monthly_savings": "$0 (memory fixed in VPS)",
-          "original_qwen_estimate": "$500 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 3,
-          "roi_score": "N/A (latency improvement only)",
-          "risk_level": "LOW",
-          "implementation_files": [
-            "backend/src/middleware/auth.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add lastAccessTime field to userCache Map values",
-            "step_2": "Track access frequency: users accessed in last 30s get 1min TTL, 30-60s get 2min TTL, >60s get 5min TTL",
-            "step_3": "Modify cleanup logic to use adaptive TTL based on access patterns",
-            "step_4": "Log TTL distribution for monitoring"
-          },
-          "validation_gates": [
-            "Frequently accessed users (admin, operators) cached longer",
-            "Infrequently accessed users expired faster",
-            "Memory usage reduced by 20-30% compared to static TTL",
-            "No increase in database query rate for active users"
-          ],
-          "business_impact": "Reduces memory usage � reduces cloud infrastructure costs",
-          "priority": "P1_HIGH"
-        },
-        {
-          "rank": 3,
-          "optimization_id": "EVENT_HISTORY_SIZE_MANAGEMENT",
-          "title": "Event History Size Management",
-          "current_issue": "Event history per channel may accumulate unnecessarily",
-          "proposed_fix": "Implement time-based and count-based limits on event history with more aggressive cleanup",
-          "monthly_savings": "$0 (memory fixed in VPS)",
-          "original_qwen_estimate": "$400 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 3,
-          "roi_score": "N/A (memory leak prevention)",
-          "risk_level": "LOW",
-          "implementation_files": [
-            "backend/src/services/sseService.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add time-based limit: events older than 5 minutes auto-deleted",
-            "step_2": "Add count-based limit: max 100 events per channel",
-            "step_3": "Implement FIFO queue: oldest events deleted when limit reached",
-            "step_4": "Run cleanup every 30 seconds instead of 2 minutes"
-          },
-          "validation_gates": [
-            "Event history never exceeds 100 events per channel",
-            "Events older than 5 minutes automatically removed",
-            "Memory usage stable during long-running streams",
-            "No impact on client reconnection experience"
-          ],
-          "business_impact": "Prevents memory bloat during long streaming sessions",
-          "priority": "P1_HIGH"
-        }
-      ]
-    },
-    {
-      "phase": "PHASE_2_MEDIUM_RISK_OPTIMIZATIONS",
-      "description": "CDN bandwidth savings (real savings in Bunny CDN)",
-      "target_completion": "Week 2-3",
-      "total_effort_hours": 19,
-      "total_monthly_savings": "$50 (Bunny CDN bandwidth reduction)",
-      "realistic_benefit": "Reduces SSE/WebSocket bandwidth on Bunny CDN at scale",
-      "optimizations": [
-        {
-          "rank": 4,
-          "optimization_id": "CONNECTION_HEALTH_MONITORING_AUTO_CLEANUP",
-          "title": "Connection Health Monitoring & Auto-cleanup",
-          "current_issue": "Current heartbeat interval is 30s with 60s timeout, could be optimized",
-          "proposed_fix": "Implement adaptive heartbeat based on connection usage patterns",
-          "monthly_savings": "$20 (Bunny CDN bandwidth: 200 users × 100MB saved × $0.01/GB)",
-          "original_qwen_estimate": "$300 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 5,
-          "roi_score": "N/A (UX + bandwidth)",
-          "risk_level": "MEDIUM",
-          "implementation_files": [
-            "backend/src/services/sseService.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Track connection activity: last event sent, last heartbeat response",
-            "step_2": "Implement adaptive heartbeat: active connections 15s, idle 60s, stale 120s",
-            "step_3": "Add connection quality metrics: latency, dropped heartbeats",
-            "step_4": "Auto-close connections with 3+ consecutive missed heartbeats"
-          },
-          "validation_gates": [
-            "Active connections receive faster heartbeats",
-            "Idle connections use slower heartbeats to save bandwidth",
-            "Dead connections auto-closed within 3 heartbeat cycles",
-            "No false positives (healthy connections incorrectly closed)"
-          ],
-          "business_impact": "Faster detection of dead connections � better resource utilization",
-          "priority": "P2_MEDIUM",
-          "testing_requirements": "Load testing required to tune heartbeat intervals"
-        },
-        {
-          "rank": 5,
-          "optimization_id": "SSE_MESSAGE_BATCHING",
-          "title": "Optimize SSE Message Batching",
-          "current_issue": "SSE messages are sent individually, could be batched during high load",
-          "proposed_fix": "Implement message batching when sending to multiple clients during high load periods",
-          "monthly_savings": "$30 (Bunny CDN: 100 users × 300MB saved × $0.01/GB)",
-          "original_qwen_estimate": "$400 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 6,
-          "roi_score": "N/A (bandwidth savings)",
-          "risk_level": "MEDIUM",
-          "implementation_files": [
-            "backend/src/services/sseService.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add message buffer with 50ms window during high load (>100 active connections)",
-            "step_2": "Batch similar events (e.g., multiple bet updates) into single SSE message",
-            "step_3": "Send immediately if buffer reaches 10 messages or critical event detected",
-            "step_4": "Disable batching during low load (<50 connections) for lower latency"
-          },
-          "validation_gates": [
-            "Message batching activated only during high load",
-            "Latency increase < 100ms during batching",
-            "Critical events (stream start/stop) never batched",
-            "Client-side properly handles batched message format"
-          ],
-          "business_impact": "Reduced bandwidth usage during peak load � lower CDN costs",
-          "priority": "P2_MEDIUM",
-          "testing_requirements": "Spike load testing with 500+ concurrent users"
-        },
-        {
-          "rank": 6,
-          "optimization_id": "DATABASE_CONNECTION_POOL_MONITORING_ENHANCEMENT",
-          "title": "Database Connection Pool Monitoring Enhancement",
-          "current_issue": "Basic pool monitoring exists but could be more proactive",
-          "proposed_fix": "Add proactive connection management and better queue handling",
-          "monthly_savings": "$0 (Neon pricing fixed at $50/mo)",
-          "original_qwen_estimate": "$300 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 8,
-          "roi_score": "N/A (stability improvement)",
-          "risk_level": "MEDIUM",
-          "implementation_files": [
-            "backend/src/config/database.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add connection pool metrics: active, idle, waiting, total",
-            "step_2": "Implement queue monitoring: alert if wait time >500ms",
-            "step_3": "Add automatic pool size adjustment based on load patterns",
-            "step_4": "Implement connection health checks: test idle connections before use"
-          },
-          "validation_gates": [
-            "Pool metrics available via /api/monitoring/database endpoint",
-            "Automatic alerts when pool exhaustion detected",
-            "Pool size adjusts based on load (min 5, max 20)",
-            "Stale connections properly recycled"
-          ],
-          "business_impact": "Prevents database bottlenecks during traffic spikes",
-          "priority": "P2_MEDIUM",
-          "testing_requirements": "Soak testing with sustained high database load"
-        }
-      ]
-    },
-    {
-      "phase": "PHASE_3_ADVANCED_OPTIMIZATIONS",
-      "description": "Compression for bandwidth savings at scale (500+ users)",
-      "target_completion": "Week 4 or Future Phase",
-      "total_effort_hours": 8,
-      "total_monthly_savings": "$40 (HLS bandwidth reduction on Bunny CDN)",
-      "realistic_benefit": "40% compression on video traffic → $40/mo at 200 users",
-      "optimizations": [
-        {
-          "rank": 7,
-          "optimization_id": "WEBSOCKET_MESSAGE_COMPRESSION",
-          "title": "WebSocket Message Compression",
-          "current_issue": "Messages are sent uncompressed",
-          "proposed_fix": "Implement compression for SSE/WebSocket payloads during high bandwidth usage",
-          "monthly_savings": "$40 (HLS: 200 users × 200MB saved × $0.01/GB)",
-          "original_qwen_estimate": "$150 (cloud elastic - NOT APPLICABLE)",
-          "implementation_hours": 8,
-          "roi_score": "N/A (bandwidth savings at scale)",
-          "risk_level": "MEDIUM",
-          "implementation_files": [
-            "backend/src/sockets/streamingSocket.ts",
-            "backend/src/services/sseService.ts"
-          ],
-          "implementation_strategy": {
-            "step_1": "Add zlib compression for payloads >1KB",
-            "step_2": "Negotiate compression support during connection handshake",
-            "step_3": "Add compression level control (1-9) based on CPU availability",
-            "step_4": "Monitor compression ratio and CPU usage"
-          },
-          "validation_gates": [
-            "Compression activated only for large payloads (>1KB)",
-            "Client-side properly decompresses messages",
-            "CPU usage increase < 10%",
-            "Bandwidth reduction > 40% for compressed messages"
-          ],
-          "business_impact": "Reduced bandwidth costs at scale (>1000 users)",
-          "priority": "P3_LOW",
-          "defer_until": "After reaching 500+ concurrent users",
-          "testing_requirements": "Load testing with realistic payload sizes"
-        }
-      ]
-    }
-  ],
-
-  "implementation_roadmap": {
-    "week_1_day_1": {
-      "focus": "Phase 0 - Admin Session Management (CRITICAL UX)",
-      "optimizations": [
-        "ADMIN_SESSION_VISIBILITY_CONTROL"
-      ],
-      "effort_hours": 1,
-      "expected_savings": "$0 (UX improvement)",
-      "risk": "LOW",
-      "executor": "QWEN or Sonnet",
-      "validation_required": "Manual testing: admin sees online status, disconnect button works"
-    },
-    "week_1": {
-      "focus": "Phase 1 - Crash Prevention (Connection Limits + Cache + Event History)",
-      "optimizations": [
-        "CONNECTION_LIMITS_PER_USER_IP",
-        "USER_CACHE_TTL_OPTIMIZATION",
-        "EVENT_HISTORY_SIZE_MANAGEMENT"
-      ],
-      "effort_hours": 10,
-      "expected_savings": "$50/month (downtime prevention)",
-      "actual_benefit": "Prevents server crashes at 500+ users",
-      "risk": "LOW",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "validation_required": "Load testing with 100 concurrent users"
-    },
-    "week_2_3": {
-      "focus": "Phase 2 - Medium Risk Optimizations (Health Monitoring + Message Batching + Pool Enhancement)",
-      "optimizations": [
-        "CONNECTION_HEALTH_MONITORING_AUTO_CLEANUP",
-        "SSE_MESSAGE_BATCHING",
-        "DATABASE_CONNECTION_POOL_MONITORING_ENHANCEMENT"
-      ],
-      "effort_hours": 19,
-      "expected_savings": "$50/month (Bunny CDN bandwidth)",
-      "actual_benefit": "Real bandwidth savings on Bunny CDN",
-      "risk": "MEDIUM",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "validation_required": "Spike and soak load testing with 500 concurrent users"
-    },
-    "week_4_or_future": {
-      "focus": "Phase 3 - Advanced Optimizations (WebSocket Compression)",
-      "optimizations": [
-        "WEBSOCKET_MESSAGE_COMPRESSION"
-      ],
-      "effort_hours": 8,
-      "expected_savings": "$40/month (HLS compression on Bunny CDN)",
-      "risk": "MEDIUM",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "defer_criteria": "Implement only after reaching 500+ concurrent users",
-      "validation_required": "Load testing at scale (1000+ users)"
-    }
-  },
-
-  "load_testing_requirements": {
-    "baseline_test": {
-      "scenario": "25 concurrent users",
-      "duration": "10 minutes",
-      "purpose": "Establish baseline metrics before optimizations",
-      "success_criteria": "Memory stable, <100ms response time, 0 errors"
-    },
-    "phase_1_validation": {
-      "scenario": "100 concurrent users",
-      "duration": "15 minutes",
-      "purpose": "Validate connection limits and cache optimizations",
-      "success_criteria": "Connection limits enforced, memory growth <50MB, response time <200ms"
-    },
-    "phase_2_validation": {
-      "scenario": "500 concurrent users with spike pattern",
-      "duration": "30 minutes",
-      "purpose": "Validate adaptive heartbeat and message batching under load",
-      "success_criteria": "No connection accumulation, message batching active, latency <500ms"
-    },
-    "soak_test": {
-      "scenario": "500 concurrent users sustained",
-      "duration": "2 hours",
-      "purpose": "Detect memory leaks and resource exhaustion",
-      "success_criteria": "Linear memory growth <100MB/hour, no connection leaks, pool stable"
-    }
-  },
-
-  "monitoring_and_metrics": {
-    "new_metrics_to_add": [
-      "Active SSE Connections Count (real-time)",
-      "Active WebSocket Connections Count (real-time)",
-      "Connections Per User (max, avg, distribution)",
-      "Connections Per IP (max, avg, distribution)",
-      "User Cache Size and Hit Rate",
-      "Event History Size Per Channel",
-      "Connection Health Score (heartbeat success rate)",
-      "Message Batching Rate (messages/sec, batch size avg)",
-      "Database Pool Utilization (active/total, queue length)",
-      "Memory Usage Per Connection (avg, max)"
-    ],
-    "monitoring_endpoints": {
-      "real_time_dashboard": "/api/monitoring/connections",
-      "performance_metrics": "/api/monitoring/performance",
-      "database_pool": "/api/monitoring/database",
-      "cache_stats": "/api/monitoring/cache"
-    },
-    "alert_thresholds": {
-      "connection_limit_reached": "Trigger when 80% of users reach connection limit",
-      "memory_leak_detected": "Alert if memory growth >200MB/hour",
-      "database_pool_exhaustion": "Alert if queue wait time >500ms",
-      "heartbeat_failure_rate": "Alert if >10% heartbeats fail"
-    }
-  },
-
-  "economic_analysis": {
-    "context": "OPTION B.1 uses dedicated server ($155-195/mo fixed). Optimizations prevent crashes and improve UX, NOT reduce infrastructure costs.",
-    "qwen_original_estimate": "$3,400/mo savings (based on cloud elastic pricing - NOT APPLICABLE to dedicated server)",
-    "total_potential_savings_monthly": "$90/mo (CDN bandwidth only - Phases 2+3)",
-    "total_potential_savings_annual": "$1,080/year (CDN bandwidth reduction only)",
-    "total_implementation_cost": "47 hours x $50/hour (estimated) = $2,350",
-    "break_even_point": "26 months (CDN bandwidth savings only - NOT including crash prevention value)",
-    "roi_calculation": "Optimizations are for reliability and UX, not cost reduction. Value is in crash prevention and better user experience.",
-    "cost_breakdown_by_phase": {
-      "phase_0": {
-        "investment": "$50 (1 hour)",
-        "monthly_savings": "$0",
-        "break_even": "N/A (UX feature)",
-        "benefit": "Critical admin UX + security monitoring"
+  "director_validation_report": {
+    "assessment_date": "2025-11-24",
+    "summary": "Validation of Qwen's implementation based on the executor's report in 'backlog.json' and direct code verification. The implementation of core features is successful, but a critical gap and reporting inaccuracy has been identified.",
+    "feature_validation_status": [
+      {
+        "feature": "Problem 1, 2, 3, 4, 6: Finance, P2P Betting, User Header",
+        "status": "✅ VERIFIED (Based on Executor Report & File Existence)",
+        "evidence": "Key files like 'walletOperations.ts', 'Finance.tsx', and 'BetSuggestionsPanel.tsx' exist, and the executor's detailed report provides high confidence in their completion."
       },
-      "phase_1": {
-        "investment": "$500 (10 hours)",
-        "monthly_savings": "$0 (crash prevention - avoids revenue loss)",
-        "break_even": "N/A (prevents downtime)",
-        "benefit": "Prevents server crashes at 500+ concurrent users - critical for reliability"
-      },
-      "phase_2": {
-        "investment": "$950 (19 hours)",
-        "monthly_savings": "$50 (CDN bandwidth)",
-        "break_even": "19 months",
-        "benefit": "Real bandwidth savings on Bunny CDN"
-      },
-      "phase_3": {
-        "investment": "$850 (17 hours)",
-        "monthly_savings": "$40 (CDN bandwidth only)",
-        "break_even": "21 months",
-        "benefit": "HLS compression reduces Bunny CDN bandwidth at scale (500+ users with CDN active)"
+      {
+        "feature": "Problem 5: Admin Header System Monitoring",
+        "status": "❌ VALIDATION FAILED - DISCREPANCY DETECTED",
+        "evidence": "Direct file system verification via `glob` confirms that critical files 'frontend/src/hooks/useMonitoringAlerts.ts' and 'frontend/src/components/admin/SystemHealthBadge.tsx' are MISSING.",
+        "director_note": "This is a critical failure. The executor's report claims this feature was completed and validated, but the core artifacts were never created. This is a breach of the evidence-based reporting protocol and must be the first priority to resolve."
       }
-    },
-    "recommendation": "Phase 0 IMMEDIATE (admin UX). Phase 1 RECOMMENDED (crash prevention). Phase 2-3 DEFER until Bunny CDN active + 500+ users."
+    ],
+    "director_conclusion": "Qwen successfully executed the most complex parts of the plan. However, the failure to implement the Admin Header monitoring feature, combined with an inaccurate completion report, is a significant issue. The next work cycle must begin by rectifying this implementation gap."
   },
-
-  "risk_mitigation_strategies": {
-    "connection_limits": {
-      "risk": "False positives - legitimate users blocked",
-      "mitigation": "Implement whitelist for operators/admins, add manual override capability"
-    },
-    "adaptive_ttl": {
-      "risk": "Cache misses increase database load",
-      "mitigation": "Monitor database query rate, adjust TTL thresholds based on metrics"
-    },
-    "event_history_limits": {
-      "risk": "Clients reconnecting lose recent history",
-      "mitigation": "Keep last 100 events, ensure 5-minute retention sufficient for reconnect"
-    },
-    "message_batching": {
-      "risk": "Increased latency affects user experience",
-      "mitigation": "Disable batching for critical events, monitor latency metrics, rollback if >100ms increase"
-    },
-    "database_pool_adjustment": {
-      "risk": "Automatic scaling causes resource exhaustion",
-      "mitigation": "Set hard limits (min 5, max 20), monitor CPU/memory before scaling"
-    }
+  "technical_debt_remediation_plan": {
+    "title": "Plan to Address Remaining Technical Debt",
+    "tasks": [
+      {
+        "task_id": "TECH_DEBT_REMOVE_ARTICLE_VENUE_ID",
+        "priority": "P1_HIGH",
+        "description": "Remove the obsolete 'venue_id' column from the 'articles' table and all associated code references. This requires a careful database migration and code cleanup.",
+        "analysis": "The column is still referenced in routes (`articles.ts`) and has multiple database indexes and foreign key constraints that must be removed first.",
+        "implementation_steps": [
+          {
+            "step": 1,
+            "action": "Create a new Sequelize migration file.",
+            "details": "The migration must first use `queryInterface.removeConstraint()` and `queryInterface.removeIndex()` for all dependencies on `articles.venue_id` before calling `queryInterface.removeColumn('articles', 'venue_id')`."
+          },
+          {
+            "step": 2,
+            "action": "Remove all code references to 'venue_id' in the backend.",
+            "details": "This includes removing the field from the `articles.ts` route logic and cleaning up the commented-out code in the `Article.ts` model."
+          }
+        ],
+        "validation_checklist": [
+          "✅ A new migration file to drop the column and its constraints exists in `backend/migrations/`.",
+          "✅ `backend/src/routes/articles.ts` no longer references `venue_id`.",
+          "✅ The backend application compiles and runs without errors (`npx tsc --noEmit && npm run build` in 'backend' directory)."
+        ]
+      }
+    ]
   },
-
-  "rollback_strategy": {
-    "phase_1_rollback": "Feature flags for connection limits, cache TTL, event history - disable via environment variable",
-    "phase_2_rollback": "Separate deployment for each optimization, rollback individually if issues detected",
-    "monitoring_triggers": "Automatic rollback if error rate >5% or latency >1000ms for 5 consecutive minutes",
-    "manual_override": "Emergency disable endpoint: POST /api/admin/optimizations/disable/{optimization_id}"
-  },
-
-  "next_steps": {
-    "immediate_action_1": {
-      "task": "Implement Phase 0 - Admin Session Management",
-      "assignee": "QWEN or Sonnet",
-      "files": [
-        "backend/src/routes/admin-sessions.ts (NEW)",
-        "frontend/src/pages/admin/Users.tsx",
-        "frontend/src/pages/admin/Galleras.tsx",
-        "frontend/src/pages/admin/Venues.tsx"
-      ],
-      "estimated_time": "1 hour",
-      "priority": "P0_CRITICAL_UX"
-    },
-    "immediate_action_2": {
-      "task": "Test Phase 0 implementation",
-      "assignee": "User (veranoby)",
-      "test_cases": [
-        "Admin sees 🟢 for online users",
-        "Admin sees 🔴 for offline users",
-        "Disconnect button removes session from DB",
-        "User gets 401 on next request after disconnect"
-      ],
-      "estimated_time": "10 minutes"
-    },
-    "deferred_action_1": {
-      "task": "Implement Phase 1 (Connection Limits + Cache + Event History)",
-      "assignee": "QWEN",
-      "defer_until": "After 100+ concurrent users OR user explicitly requests",
-      "estimated_time": "10 hours"
-    },
-    "deferred_action_2": {
-      "task": "Implement Phase 2 (Adaptive Heartbeat + Message Batching)",
-      "assignee": "QWEN",
-      "defer_until": "After Bunny CDN activated + 500+ concurrent users",
-      "estimated_time": "19 hours"
-    }
+  "post_implementation_optimization_plan": {
+    "title": "Next Sprint: Feature Completion and Architectural Improvement",
+    "tasks": [
+      {
+        "task_id": "OPTIMIZE_COMPLETE_ADMIN_MONITORING",
+        "priority": "P0_CRITICAL",
+        "description": "Complete the unfinished 'Admin Header System Monitoring' feature (Problem #5) to resolve the implementation gap identified during validation.",
+        "implementation_steps": [
+          {
+            "step": 1,
+            "action": "Create the file 'frontend/src/hooks/useMonitoringAlerts.ts'.",
+            "details": "This hook must subscribe to the '/api/sse/admin/monitoring' endpoint using the existing SSE connection logic and return the alert counts."
+          },
+          {
+            "step": 2,
+            "action": "Create the file 'frontend/src/components/admin/SystemHealthBadge.tsx'.",
+            "details": "This component will consume the 'useMonitoringAlerts' hook, display the alert count with a color-coded icon (red/yellow/green), and navigate to '/admin/monitoring' on click."
+          },
+          {
+            "step": 3,
+            "action": "Integrate the 'SystemHealthBadge' into 'frontend/src/components/admin/AdminHeader.tsx'.",
+            "details": "Ensure the badge is visible and persistent across all admin pages."
+          }
+        ],
+        "validation_checklist": [
+          "✅ Both 'useMonitoringAlerts.ts' and 'SystemHealthBadge.tsx' files exist.",
+          "✅ The health badge is visible on all admin pages.",
+          "✅ The badge updates its count and color in real-time.",
+          "✅ Clicking the badge correctly navigates to the monitoring page."
+        ]
+      },
+      {
+        "task_id": "OPTIMIZE_REFACTOR_BETS_ROUTE",
+        "priority": "P2_MEDIUM",
+        "description": "Refactor the monolithic 'backend/src/routes/bets.ts' to improve maintainability and separation of concerns.",
+        "rationale": "The route file currently contains significant business logic for matching, proposals, and settlement. This logic should be moved to a dedicated service layer to improve testability and adhere to the Single Responsibility Principle.",
+        "implementation_steps": [
+          {
+            "step": 1,
+            "action": "Create a new file 'backend/src/services/betService.ts'.",
+            "details": "Migrate the core logic (e.g., auto-matching, PAGO/DOY proposal handling, settlement calculations, frozen amount updates) from 'bets.ts' into methods within a 'BetService' class."
+          },
+          {
+            "step": 2,
+            "action": "Refactor 'backend/src/routes/bets.ts' to be a thin controller.",
+            "details": "The route handlers should only be responsible for handling HTTP request/response, validating input, and calling the appropriate methods on the new 'BetService'."
+          }
+        ],
+        "validation_checklist": [
+          "✅ 'betService.ts' exists and contains the core betting business logic.",
+          "✅ 'bets.ts' is significantly smaller and acts as a controller.",
+          "✅ All P2P betting functionality remains fully operational after the refactor.",
+          "✅ Backend compiles and all tests pass."
+        ]
+      }
+    ]
   }
 }

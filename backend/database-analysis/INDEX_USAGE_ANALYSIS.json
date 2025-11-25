@@ -2,12 +2,12 @@
   "schemaname": "public",
   "tablename": "active_sessions",
   "indexname": "idx_active_sessions_expires",
-  "times_used": 4210,
-  "tuples_read": 4220,
-  "tuples_fetched": 3912,
+  "times_used": 7147,
+  "tuples_read": 8002,
+  "tuples_fetched": 6699,
   "index_size": "16 kB",
   "usage_category": "HIGH_USAGE",
-  "fetch_efficiency_percentage": 92.70
+  "fetch_efficiency_percentage": 83.72
 }, {
   "schemaname": "public",
   "tablename": "articles",
@@ -20,6 +20,16 @@
   "fetch_efficiency_percentage": 96.71
 }, {
   "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "idx_active_sessions_user_active",
+  "times_used": 1730,
+  "tuples_read": 2365,
+  "tuples_fetched": 1726,
+  "index_size": "16 kB",
+  "usage_category": "HIGH_USAGE",
+  "fetch_efficiency_percentage": 72.98
+}, {
+  "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_status",
   "times_used": 1316,
@@ -28,6 +38,16 @@
   "index_size": "16 kB",
   "usage_category": "HIGH_USAGE",
   "fetch_efficiency_percentage": 79.31
+}, {
+  "schemaname": "public",
+  "tablename": "system_settings",
+  "indexname": "system_settings_key_key",
+  "times_used": 855,
+  "tuples_read": 774,
+  "tuples_fetched": 774,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
@@ -50,16 +70,6 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "system_settings",
-  "indexname": "system_settings_key_key",
-  "times_used": 775,
-  "tuples_read": 774,
-  "tuples_fetched": 774,
-  "index_size": "16 kB",
-  "usage_category": "MEDIUM_USAGE",
-  "fetch_efficiency_percentage": 100.00
-}, {
-  "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_status_expires",
   "times_used": 579,
@@ -68,6 +78,16 @@
   "index_size": "16 kB",
   "usage_category": "MEDIUM_USAGE",
   "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "users",
+  "indexname": "users_pkey",
+  "times_used": 565,
+  "tuples_read": 565,
+  "tuples_fetched": 565,
+  "index_size": "16 kB",
+  "usage_category": "MEDIUM_USAGE",
+  "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
   "tablename": "transactions",
@@ -130,14 +150,14 @@
   "fetch_efficiency_percentage": 94.34
 }, {
   "schemaname": "public",
-  "tablename": "active_sessions",
-  "indexname": "active_sessions_pkey",
-  "times_used": 49,
-  "tuples_read": 95,
-  "tuples_fetched": 49,
+  "tablename": "subscriptions",
+  "indexname": "idx_subscriptions_user_created",
+  "times_used": 51,
+  "tuples_read": 114,
+  "tuples_fetched": 51,
   "index_size": "16 kB",
   "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 51.58
+  "fetch_efficiency_percentage": 44.74
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
@@ -148,6 +168,16 @@
   "index_size": "32 kB",
   "usage_category": "LOW_USAGE",
   "fetch_efficiency_percentage": 53.85
+}, {
+  "schemaname": "public",
+  "tablename": "active_sessions",
+  "indexname": "active_sessions_pkey",
+  "times_used": 49,
+  "tuples_read": 95,
+  "tuples_fetched": 49,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 51.58
 }, {
   "schemaname": "public",
   "tablename": "membership_change_requests",
@@ -240,26 +270,6 @@
   "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
-  "tablename": "active_sessions",
-  "indexname": "idx_active_sessions_user_active",
-  "times_used": 6,
-  "tuples_read": 8,
-  "tuples_fetched": 2,
-  "index_size": "16 kB",
-  "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 25.00
-}, {
-  "schemaname": "public",
-  "tablename": "users",
-  "indexname": "users_pkey",
-  "times_used": 5,
-  "tuples_read": 5,
-  "tuples_fetched": 5,
-  "index_size": "16 kB",
-  "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 100.00
-}, {
-  "schemaname": "public",
   "tablename": "articles",
   "indexname": "articles_slug_unique",
   "times_used": 5,
@@ -310,16 +320,6 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "payment_transactions",
-  "indexname": "idx_payment_transactions_subscription_id",
-  "times_used": 3,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "8192 bytes",
-  "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
   "tablename": "bets",
   "indexname": "idx_bets_user_status",
   "times_used": 3,
@@ -330,24 +330,14 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "articles_pkey",
-  "times_used": 2,
-  "tuples_read": 2,
-  "tuples_fetched": 2,
-  "index_size": "16 kB",
+  "tablename": "payment_transactions",
+  "indexname": "idx_payment_transactions_subscription_id",
+  "times_used": 3,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
   "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 100.00
-}, {
-  "schemaname": "public",
-  "tablename": "membership_change_requests",
-  "indexname": "membership_change_requests_pkey",
-  "times_used": 2,
-  "tuples_read": 2,
-  "tuples_fetched": 2,
-  "index_size": "16 kB",
-  "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 100.00
+  "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
   "tablename": "bets",
@@ -370,16 +360,6 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "transactions",
-  "indexname": "transactions_status",
-  "times_used": 2,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "8192 bytes",
-  "usage_category": "LOW_USAGE",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
   "tablename": "bets",
   "indexname": "bets_pkey",
   "times_used": 2,
@@ -388,6 +368,16 @@
   "index_size": "8192 bytes",
   "usage_category": "LOW_USAGE",
   "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "articles_pkey",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
   "tablename": "subscriptions",
@@ -400,11 +390,21 @@
   "fetch_efficiency_percentage": 66.67
 }, {
   "schemaname": "public",
-  "tablename": "schema_migrations",
-  "indexname": "schema_migrations_pkey",
-  "times_used": 1,
-  "tuples_read": 1,
-  "tuples_fetched": 1,
+  "tablename": "transactions",
+  "indexname": "transactions_status",
+  "times_used": 2,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "membership_change_requests",
+  "indexname": "membership_change_requests_pkey",
+  "times_used": 2,
+  "tuples_read": 2,
+  "tuples_fetched": 2,
   "index_size": "16 kB",
   "usage_category": "LOW_USAGE",
   "fetch_efficiency_percentage": 100.00
@@ -430,8 +430,8 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "fights",
-  "indexname": "fights_pkey",
+  "tablename": "schema_migrations",
+  "indexname": "schema_migrations_pkey",
   "times_used": 1,
   "tuples_read": 1,
   "tuples_fetched": 1,
@@ -440,14 +440,14 @@
   "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
-  "tablename": "transactions",
-  "indexname": "idx_transactions_wallet_status_created_at",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "8192 bytes",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
+  "tablename": "fights",
+  "indexname": "fights_pkey",
+  "times_used": 1,
+  "tuples_read": 1,
+  "tuples_fetched": 1,
+  "index_size": "16 kB",
+  "usage_category": "LOW_USAGE",
+  "fetch_efficiency_percentage": 100.00
 }, {
   "schemaname": "public",
   "tablename": "transactions",
@@ -486,6 +486,46 @@
   "tuples_read": 0,
   "tuples_fetched": 0,
   "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "articles_slug_key",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_category_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_author_status_published",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "articles",
+  "indexname": "idx_articles_featured",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "16 kB",
   "usage_category": "UNUSED",
   "fetch_efficiency_percentage": 0.00
 }, {
@@ -570,66 +610,6 @@
   "fetch_efficiency_percentage": 0.00
 }, {
   "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "articles_slug_key",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_category_status",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_venue_id",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_author_status_published",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_venue_status_published",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "articles",
-  "indexname": "idx_articles_featured",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
   "tablename": "notifications",
   "indexname": "notifications_pkey",
   "times_used": 0,
@@ -672,16 +652,6 @@
   "schemaname": "public",
   "tablename": "subscriptions",
   "indexname": "idx_subscriptions_user_id",
-  "times_used": 0,
-  "tuples_read": 0,
-  "tuples_fetched": 0,
-  "index_size": "16 kB",
-  "usage_category": "UNUSED",
-  "fetch_efficiency_percentage": 0.00
-}, {
-  "schemaname": "public",
-  "tablename": "subscriptions",
-  "indexname": "idx_subscriptions_user_created",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0,
@@ -835,7 +805,7 @@
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0,
-  "index_size": "8192 bytes",
+  "index_size": "16 kB",
   "usage_category": "UNUSED",
   "fetch_efficiency_percentage": 0.00
 }, {
@@ -846,6 +816,76 @@
   "tuples_read": 0,
   "tuples_fetched": 0,
   "index_size": "16 kB",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "wallet_operations_pkey",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_user",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_wallet",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_status",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_type",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_requested",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "wallet_operations",
+  "indexname": "idx_wallet_operations_pending",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
   "usage_category": "UNUSED",
   "fetch_efficiency_percentage": 0.00
 }, {
@@ -935,7 +975,7 @@
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0,
-  "index_size": "24 kB",
+  "index_size": "56 kB",
   "usage_category": "UNUSED",
   "fetch_efficiency_percentage": 0.00
 }, {
@@ -1322,6 +1362,16 @@
   "schemaname": "public",
   "tablename": "transactions",
   "indexname": "idx_transactions_wallet_date",
+  "times_used": 0,
+  "tuples_read": 0,
+  "tuples_fetched": 0,
+  "index_size": "8192 bytes",
+  "usage_category": "UNUSED",
+  "fetch_efficiency_percentage": 0.00
+}, {
+  "schemaname": "public",
+  "tablename": "transactions",
+  "indexname": "idx_transactions_wallet_status_created_at",
   "times_used": 0,
   "tuples_read": 0,
   "tuples_fetched": 0,

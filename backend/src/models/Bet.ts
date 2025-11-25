@@ -30,7 +30,7 @@ export class Bet extends Model<
   declare result: CreationOptional<"win" | "loss" | "draw" | "cancelled">;
   declare matchedWith: CreationOptional<ForeignKey<Bet["id"]>>;
   declare parentBetId: CreationOptional<ForeignKey<Bet["id"]>>;
-  declare betType: CreationOptional<"flat" | "doy">;
+  declare betType: CreationOptional<"flat" | "doy" | "pago">;
   declare proposalStatus: CreationOptional<
     "none" | "pending" | "accepted" | "rejected"
   >;
@@ -200,7 +200,7 @@ Bet.init(
       },
     },
     betType: {
-      type: DataTypes.ENUM("flat", "doy"),
+      type: DataTypes.ENUM("flat", "doy", "pago"),
       allowNull: false,
       defaultValue: "flat",
     },

@@ -13,16 +13,16 @@
   "tablename": "active_sessions",
   "column_name": "created_at",
   "n_distinct": -1,
-  "correlation": -0.4642857,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-11-19 11:57:22.673+00\",\"2025-11-19 12:13:21.039+00\",\"2025-11-19 12:28:22.699+00\",\"2025-11-19 12:43:45.885+00\",\"2025-11-19 13:13:48.358+00\",\"2025-11-19 13:59:11.168+00\",\"2025-11-19 16:59:23.566+00\"}"
+  "histogram_sample": "{\"2025-11-22 12:52:33.625+00\",\"2025-11-23 02:16:06.436+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "device_fingerprint",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "correlation": 1,
   "null_frac": 0,
   "avg_width": 65,
@@ -33,26 +33,26 @@
   "tablename": "active_sessions",
   "column_name": "expires_at",
   "n_distinct": -1,
-  "correlation": -0.4642857,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-11-26 11:57:22.673+00\",\"2025-11-26 12:13:21.039+00\",\"2025-11-26 12:28:22.698+00\",\"2025-11-26 12:43:45.885+00\",\"2025-11-26 13:13:48.358+00\",\"2025-11-26 13:59:11.168+00\",\"2025-11-26 16:59:23.565+00\"}"
+  "histogram_sample": "{\"2025-11-23 12:52:33.624+00\",\"2025-11-24 02:16:06.433+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "id",
   "n_distinct": -1,
-  "correlation": 0.10714286,
+  "correlation": -1,
   "null_frac": 0,
   "avg_width": 16,
   "most_common_vals_sample": null,
-  "histogram_sample": "{5aa1792c-b789-43ce-8e43-34a90a29933e,6f8f55fd-df05-46ce-b277-9e5d06c0cf7a,8da5825d-9654-428c-a418-9bb23f676889,a584d014-c7f9-4368-8100-6d3bc7cb9f34,a9e66674-cd97-44fe-ab83-2467f75c2962,c64c3391-aa1f-4658-887f-e08bd23a8575,dc7bd90c-0109-401b-8300-95c29a1c3be3}"
+  "histogram_sample": "{1d4ea291-7640-4eb6-ba94-7fee41dbb455,22266a65-5e0e-44e7-90b5-822743da3cd2}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "ip_address",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "correlation": 1,
   "null_frac": 0,
   "avg_width": 4,
@@ -62,47 +62,47 @@
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "is_active",
-  "n_distinct": -0.2857143,
-  "correlation": 0.25,
+  "n_distinct": -0.5,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": "{f}",
+  "most_common_vals_sample": "{t}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "last_activity",
   "n_distinct": -1,
-  "correlation": -0.4642857,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-11-19 12:05:52.745+00\",\"2025-11-19 12:23:25.049+00\",\"2025-11-19 12:31:21.611+00\",\"2025-11-19 12:44:02.912+00\",\"2025-11-19 13:16:09.486+00\",\"2025-11-19 16:51:37.457+00\",\"2025-11-19 17:36:01.473+00\"}"
+  "histogram_sample": "{\"2025-11-22 12:59:28.168+00\",\"2025-11-23 02:16:36.915+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "session_token",
   "n_distinct": -1,
-  "correlation": -0.4642857,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 196,
   "most_common_vals_sample": null,
-  "histogram_sample": "{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTM0NDIsImV4cCI6MTc2NDE1ODI0Mn0.trn18UUgcixbjqqJRcA0dZVNHY8SnCYJ_DwzFSFJqzI,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTQ0MDAsImV4cCI6MTc2NDE1OTIwMH0.u2Mwd7Tzt22qiR9tu6gGtTYizP3FwIqcPo0qAUtfCKA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTUzMDIsImV4cCI6MTc2NDE2MDEwMn0.zS2aXE3FSqDX9_486Bz2xd4aPS9I-NSaht-Bs6l0dks,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTYyMjUsImV4cCI6MTc2NDE2MTAyNX0.K1RMo2Z7qJ40yFwVM3LF4g2cmSy675VVR65bLEMs1dY,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NTgwMjgsImV4cCI6MTc2NDE2MjgyOH0.fs_Hm1Yn7IAk4plDh71ZJ2KTpvmP6bqlPkVqd-wJDAA,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NjA3NTAsImV4cCI6MTc2NDE2NTU1MH0.yPKLK0_VW60t77uMa9L6fzciBz6rLdpLC453-8aITfs,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM1NzE1NjMsImV4cCI6MTc2NDE3NjM2M30.7Y9nukeq-8diuZr9y5xX-xEWMfCrq2tKFPTVxyZKv5k}"
+  "histogram_sample": "{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0YjVmYjk3NS02MTZhLTQxMGItOWMxZC1mNmRiMGE4YTA5OTgiLCJpYXQiOjE3NjM4MTU5NTMsImV4cCI6MTc2MzkwMjM1M30.DG3Ahx-AlRkYnjeWoI1nmVAhi460Gc_JUj4YGxYgosQ,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNWM1NzQzNC03ZWY3LTRmMWQtYjM2Yy1jMWZiZTU1MDdkZGUiLCJpYXQiOjE3NjM4NjQxNjUsImV4cCI6MTc2Mzk1MDU2NX0.2D6sWDobUGjWdjAyVEt8qrCZGMU-TM-CtD--VXGY4bs}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "updated_at",
   "n_distinct": -1,
-  "correlation": -0.4642857,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": "{\"2025-11-19 11:57:24.172089+00\",\"2025-11-19 12:13:21.213283+00\",\"2025-11-19 12:28:22.867514+00\",\"2025-11-19 12:43:46.053815+00\",\"2025-11-19 13:13:48.530081+00\",\"2025-11-19 13:59:11.341457+00\",\"2025-11-19 16:59:23.748559+00\"}"
+  "histogram_sample": "{\"2025-11-22 12:52:33.449479+00\",\"2025-11-23 02:16:06.126462+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "user_agent",
-  "n_distinct": -0.14285715,
+  "n_distinct": -0.5,
   "correlation": 1,
   "null_frac": 0,
   "avg_width": 102,
@@ -112,20 +112,40 @@
   "schemaname": "public",
   "tablename": "active_sessions",
   "column_name": "user_id",
-  "n_distinct": -0.14285715,
-  "correlation": 1,
+  "n_distinct": -1,
+  "correlation": -1,
   "null_frac": 0,
   "avg_width": 16,
-  "most_common_vals_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
-  "histogram_sample": null
+  "most_common_vals_sample": null,
+  "histogram_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde,4b5fb975-616a-410b-9c1d-f6db0a8a0998}"
 }, {
   "schemaname": "public",
   "tablename": "idx_users_business_entities",
   "column_name": "expr",
-  "n_distinct": -1,
+  "n_distinct": -0.111111104,
   "correlation": null,
-  "null_frac": 0,
+  "null_frac": 0.8888889,
   "avg_width": 8,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_gallera_status",
+  "column_name": "expr",
+  "n_distinct": 0,
+  "correlation": null,
+  "null_frac": 1,
+  "avg_width": 0,
+  "most_common_vals_sample": null,
+  "histogram_sample": null
+}, {
+  "schemaname": "public",
+  "tablename": "idx_users_venue_status",
+  "column_name": "expr",
+  "n_distinct": 0,
+  "correlation": null,
+  "null_frac": 1,
+  "avg_width": 0,
   "most_common_vals_sample": null,
   "histogram_sample": null
 }, {
@@ -192,89 +212,89 @@
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "category",
-  "n_distinct": -0.375,
-  "correlation": 0.2857143,
+  "n_distinct": -0.125,
+  "correlation": -0.108608365,
   "null_frac": 0,
   "avg_width": 8,
-  "most_common_vals_sample": "{features,business}",
+  "most_common_vals_sample": "{features,business,wallets,cache,notifications,streaming,system,betting,security,limits,performance}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "created_at",
-  "n_distinct": -0.25,
-  "correlation": 0.9285714,
+  "n_distinct": -0.14772727,
+  "correlation": 0.9999472,
   "null_frac": 0,
   "avg_width": 8,
-  "most_common_vals_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
+  "most_common_vals_sample": "{\"2025-11-24 18:16:02.492044+00\",\"2025-11-24 18:16:32.828964+00\",\"2025-11-24 18:16:32.992421+00\",\"2025-11-24 18:20:14.594586+00\",\"2025-09-07 20:57:14.722654+00\",\"2025-11-24 18:16:32.710207+00\",\"2025-11-24 18:16:33.114803+00\",\"2025-11-24 18:20:14.711715+00\",\"2025-11-24 18:20:15.068826+00\",\"2025-11-24 18:20:15.189417+00\",\"2025-11-24 18:20:14.831138+00\",\"2025-11-24 18:20:14.948105+00\"}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "description",
-  "n_distinct": -1,
-  "correlation": -0.5952381,
+  "n_distinct": -0.9886364,
+  "correlation": -0.073262654,
   "null_frac": 0,
-  "avg_width": 23,
-  "most_common_vals_sample": null,
-  "histogram_sample": "{\"Enable betting system\",\"Enable push notifications\",\"Enable streaming features\",\"Enable wallet system\",\"Maximum bet amount\",\"Minimum bet amount\",\"Platform commission percentage\",\"Platform maintenance mode\"}"
+  "avg_width": 35,
+  "most_common_vals_sample": "{\"Enable push notifications\"}",
+  "histogram_sample": "{\"API rate limit per user per minute\",\"Account lockout duration after max failed attempts\",\"Adaptive heartbeat intervals based on connection activity\",\"Allowed image MIME types\",\"Articles cache TTL (10 minutes)\",\"Auto-disconnect after X missed heartbeats\",\"Bitrate for 480p streaming\",\"Bitrate for 720p streaming\",\"Bonus amount for successful referral\",\"Burst allowance for rate limiting\",\"Close betting window X minutes before fight starts\",\"Database connection idle timeout\",\"Days to retain read notifications\",\"Duration of daily subscription\",\"Duration of monthly subscription\",\"Enable adaptive TTL based on access patterns\",\"Enable betting system\",\"Enable email notifications\",\"Enable maintenance mode (blocks non-admin users)\",\"Enable streaming features\",\"Enable wallet system\",\"Enable/disable articles/news\",\"Enable/disable betting system\",\"Enable/disable referral program\",\"Enable/disable streaming\",\"Enable/disable wallet deposits\",\"Enable/disable wallet withdrawals\",\"Events list cache TTL (2 minutes)\",\"Features available to free tier users\",\"Fights cache TTL (1 minute)\",\"HLS segment duration in seconds\",\"Maximum age of events in history\",\"Maximum bet amount\",\"Maximum bet amount per fight in USD\",\"Maximum concurrent active bets per user\",\"Maximum concurrent active events per venue\",\"Maximum concurrent connections per IP address\",\"Maximum concurrent connections per user\",\"Maximum database connection pool size\",\"Maximum deposit amount per transaction in USD\",\"Maximum events per channel in history\",\"Maximum failed login attempts before lockout\",\"Maximum hours for admin to process withdrawal request\",\"Maximum image upload size in MB\",\"Maximum images per article\",\"Maximum images per gallera\",\"Maximum images per venue\",\"Maximum notifications to send in single batch\",\"Maximum query execution time\",\"Maximum total bets per user per day in USD\",\"Maximum total deposits per user per day in USD\",\"Maximum total withdrawals per user per day in USD\",\"Maximum withdrawal amount per transaction in USD\",\"Message shown during maintenance\",\"Minimum bet amount\",\"Minimum bet amount in USD\",\"Minimum database connection pool size\",\"Minimum deposit amount in USD\",\"Minimum password length\",\"Minimum withdrawal amount in USD\",\"NEVER auto-approve deposits - always require admin review\",\"Notify author when article is rejected\",\"Notify user when bet is settled\",\"Notify user when deposit is approved\",\"Notify user when withdrawal is being processed\",\"Number of segments in HLS playlist\",\"PAGO proposal timeout in seconds (3 minutes)\",\"Platform commission on bet winnings (5%)\",\"Platform commission percentage\",\"Platform commission rate (5% of winnings)\",\"Platform currency\",\"Platform maintenance mode\",\"Platform wallet ID for commission collection\",\"Prevent concurrent logins (reject new login if active session exists)\",\"Price for 24-hour subscription\",\"Price for monthly subscription\",\"Require at least one number\",\"Require at least one uppercase letter\",\"Require payment proof for deposits over this amount\",\"Server timezone (Ecuador)\",\"Session lifetime (7 days)\",\"Show rooster performance statistics\",\"Support WhatsApp number\",\"Support email address\",\"User cache TTL (5 minutes)\",\"Venues/Galleras cache TTL (5 minutes)\"}"
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "id",
   "n_distinct": -1,
-  "correlation": 0.1904762,
+  "correlation": 0.15504913,
   "null_frac": 0,
   "avg_width": 16,
   "most_common_vals_sample": null,
-  "histogram_sample": "{000b81d6-a832-4787-b041-9f1de17a3a4d,2f309cbd-d9aa-423c-a442-a8562bc2820c,3963edbb-e117-47ed-868b-3e692283e409,42a2f706-f1ad-4bdb-9788-f907350c89eb,5146456f-afdd-4b52-be49-61ae8a8d627f,b40e993f-0209-4352-b280-ac84b92a3675,cb451bf2-c8a0-493f-9c97-f60707d8a020,d8dd0fbc-6085-447a-9537-117a49890821}"
+  "histogram_sample": "{000b81d6-a832-4787-b041-9f1de17a3a4d,053d8a4e-3a0b-43ae-a0a8-f21947b6aac3,0cc23a63-e030-405c-aa11-f3b9d7324329,1247fe3f-40f7-4a85-ad00-5dc145bb6983,16dc6123-3d96-4781-89f9-5179583e1df1,1a5e5d78-cc2a-46bd-9e1d-6348d9122a96,1b7b3756-8114-408f-b415-2f9fd9bd8161,1e9da865-1651-4a58-bf0e-44866aee903d,23e1e9ba-f17c-4c71-a8bf-5b4d357b86e3,270658d5-f072-4794-9a8f-e0b1d02b33ec,2a3a2f77-2d27-499f-a3b2-87740cb93309,2bda99eb-149c-40ab-9b35-58161c96a9ac,2c1745c3-bc09-4b51-97d8-8263a586d977,2f309cbd-d9aa-423c-a442-a8562bc2820c,3963edbb-e117-47ed-868b-3e692283e409,3b54e6c9-6f1c-4206-8cc2-44fa339be11d,401b3efe-c2ca-4731-88af-779d8ba64690,42a2f706-f1ad-4bdb-9788-f907350c89eb,450fe069-49a7-4c8f-8960-f09656de411e,4884468b-de89-4801-be51-e060e5293731,4aa127b2-7f5b-41e7-bd3a-317516fd2960,4ab5ecbc-41de-4f32-8b49-33dc20adad64,4b058559-8b77-446c-98a8-4be37d10466e,4c9ad950-796f-4b41-9357-c95e0aca8096,512ed609-b1e0-46c5-adac-32c14bbc33a4,5146456f-afdd-4b52-be49-61ae8a8d627f,53951362-b366-455d-985d-19244957666a,594255ff-fec1-443c-b188-9c7cd6c93999,5ae56866-0e75-44bf-aa68-8aa651447b61,5b67e695-afdc-456e-81d1-d07fba74406f,5dc631e9-e841-409a-a0a3-523d0165a835,5ef9fdff-c12e-4b82-af87-27ba7ffd82d2,60f5eb6b-b048-4284-a4a9-48ec2cd409ae,63b16087-938e-4c1f-99d7-4cb0c94e4948,6c970fe2-18a7-45fe-a176-4230f3a10c52,6d79b197-a03f-4d44-a16a-f67c52a79996,71054641-352c-49fe-84a7-f0e23b75d8ef,79700880-eb62-4220-99e4-12081c87bdf6,7f2f71c3-32cb-401e-ba96-b993952713bb,7fd9874b-1d5c-4924-a853-1117b5bd625b,80a1b907-d88e-4ec0-8243-cd28f8d7a0b5,8245f5b8-93cc-43c1-9050-3dd685f103b3,83b6d41d-c794-4f80-82bc-76e8f3ba7bde,84ab15dc-75a0-4700-93bb-e99c02c77e51,94bb42c6-e82e-486c-8b85-9e754df5edc5,9a1434b5-7a67-492c-b746-a4053027a92a,9a837c28-107d-46f9-b95e-c149cb248f38,9d70ec9f-8511-4cc7-81ef-9eadaa89b4f0,9d7fe02a-20c2-45d7-a49d-911146516b6d,9e9020c0-6962-4937-8a0a-831292df3fbd,9f3eeac6-1e39-4f3e-9fd8-97111805beb8,9fd72a63-8a0d-4ecd-b13c-010dcbe4d317,a0d50162-dacf-486b-b2c0-8ccf1d1f72fb,a256d10e-d1fa-499a-a13a-1cd30f79b41b,a7368735-bef8-4672-aace-bda6499f4c15,aa94de9c-b940-4b5f-b7c4-75c48002e347,ab36967d-8de6-4d9a-8234-8d0e9cfc20e9,acf0af7a-a365-43c3-9d05-e319bc3f779b,aef07851-0437-4de1-8dcb-c163ea2e1934,afcb3a65-684d-4288-9632-2f1417c2eafb,affb6f77-ce22-4f01-9020-69f9501871c4,b0391602-62cb-490f-80cb-2102530d7f98,b1fe9c9b-f198-48ae-b1eb-2e8e83b46d8b,b40e993f-0209-4352-b280-ac84b92a3675,b5bad8a6-156c-4eb8-be91-79b3885452bc,bee1040d-f429-4181-b21d-c78013f0ce8f,c185331a-b950-4e6c-8294-6ab3553fc3a8,c4f7c3e2-a046-4027-bd2f-4d344fce9375,ca4b779c-51cb-41a1-996b-31f9c27a2e00,cb451bf2-c8a0-493f-9c97-f60707d8a020,d0e8574e-adcf-4b46-94a0-70efe9fcbbec,d2d080a1-f494-4efe-a27d-c9b72444996d,d8dd0fbc-6085-447a-9537-117a49890821,dcf6cfcf-d4fd-4254-8f31-38ef47e10456,e1ae8924-046f-4c3a-90b8-1158c8df2485,e2e96fe3-0f80-4f68-acb0-f14ad9a07169,e992e539-73cb-4039-8c65-c7a79aacb85a,eb23274c-9449-41b5-ae47-4c3eae101091,f0626d78-7ceb-429e-81d7-281c3b314ed7,f1bde4d8-9aca-4e09-9536-2882a011ed0f,f41af32c-92b6-4f84-b455-820ca2d673d2,f45bb69f-5f2a-40ff-bb49-05168214bca9,f62a8552-1df1-45b8-b100-97b2f8e704bf,f7577feb-7ab9-4dc6-a0b5-14b5c57331cb,f90a8ddb-1101-4019-97df-728b75c4bab5,fc069745-9a7a-47d9-9594-03b44493ccb2,fd6bf04a-1756-49f4-9194-3ed850c9fbda,ff643ecc-4cb7-4be3-b631-0e890e5c8431}"
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "is_public",
-  "n_distinct": -0.25,
-  "correlation": 0.16666667,
+  "n_distinct": 2,
+  "correlation": 0.697228,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": "{t,f}",
+  "most_common_vals_sample": "{f,t}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "key",
   "n_distinct": -1,
-  "correlation": -0.16666667,
+  "correlation": -0.16721849,
   "null_frac": 0,
-  "avg_width": 17,
+  "avg_width": 27,
   "most_common_vals_sample": null,
-  "histogram_sample": "{commission_percentage,enable_betting,enable_push_notifications,enable_streaming,enable_wallets,maintenance_mode,max_bet_amount,min_bet_amount}"
+  "histogram_sample": "{betting.commission_rate,betting.max_amount,betting.max_concurrent_bets,betting.max_daily_total,betting.min_amount,betting.pago_timeout_seconds,betting.window_before_fight,business.free_tier_features,business.platform_commission_bets,business.referral_bonus,business.subscription_daily_duration_hours,business.subscription_daily_price,business.subscription_monthly_duration_days,business.subscription_monthly_price,cache.adaptive_enabled,cache.articles_ttl_seconds,cache.event_history_max_age_minutes,cache.event_history_max_size,cache.events_ttl_seconds,cache.fights_ttl_seconds,cache.users_ttl_seconds,cache.venues_ttl_seconds,commission_percentage,enable_betting,enable_push_notifications,enable_streaming,enable_wallets,features.articles_enabled,features.betting_enabled,features.referral_program_enabled,features.rooster_statistics_enabled,features.streaming_enabled,features.wallet_deposits_enabled,features.wallet_withdrawals_enabled,limits.allowed_image_types,limits.article_max_images,limits.gallera_max_images,limits.image_max_size_mb,limits.max_active_events_per_venue,limits.venue_max_images,maintenance_mode,max_bet_amount,min_bet_amount,notifications.article_rejected,notifications.batch_size,notifications.bet_settled,notifications.deposit_approval,notifications.email_enabled,notifications.push_enabled,notifications.retention_days,notifications.withdrawal_processing,performance.db_pool_idle_timeout_ms,performance.db_pool_max,performance.db_pool_min,performance.query_timeout_seconds,performance.rate_limit_burst,performance.rate_limit_requests_per_minute,security.concurrent_login_prevention,security.lockout_duration_minutes,security.max_login_attempts,security.password_min_length,security.require_password_number,security.require_password_uppercase,security.session_lifetime_hours,streaming.auto_disconnect_missed,streaming.bitrate_480p,streaming.bitrate_720p,streaming.heartbeat_interval_ms,streaming.hls_playlist_size,streaming.hls_segment_duration,streaming.max_connections_per_ip,streaming.max_connections_per_user,system.currency,system.maintenance_message,system.maintenance_mode,system.platform_commission_wallet,system.support_email,system.support_whatsapp,system.timezone,wallet.auto_approve_deposits,wallet.deposit_max,wallet.deposit_max_daily,wallet.deposit_min,wallet.require_proof_over,wallet.withdrawal_max,wallet.withdrawal_max_daily,wallet.withdrawal_min,wallet.withdrawal_processing_hours}"
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "type",
-  "n_distinct": -0.25,
-  "correlation": 0.35714287,
+  "n_distinct": 3,
+  "correlation": 0.9995245,
   "null_frac": 0,
   "avg_width": 7,
-  "most_common_vals_sample": "{boolean,number}",
+  "most_common_vals_sample": "{object,boolean,number}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "updated_at",
-  "n_distinct": -0.5,
+  "n_distinct": -0.17045455,
   "correlation": 1,
   "null_frac": 0,
   "avg_width": 8,
-  "most_common_vals_sample": "{\"2025-09-07 20:57:14.722654+00\"}",
-  "histogram_sample": "{\"2025-09-11 02:35:48.134+00\",\"2025-09-13 04:21:22.532+00\",\"2025-09-13 04:21:22.763+00\"}"
+  "most_common_vals_sample": "{\"2025-11-24 18:16:02.492044+00\",\"2025-11-24 18:16:32.828964+00\",\"2025-11-24 18:16:32.992421+00\",\"2025-11-24 18:20:14.594586+00\",\"2025-11-24 18:16:32.710207+00\",\"2025-11-24 18:16:33.114803+00\",\"2025-11-24 18:20:14.711715+00\",\"2025-11-24 18:20:15.068826+00\",\"2025-11-24 18:20:15.189417+00\",\"2025-11-24 18:20:14.831138+00\",\"2025-11-24 18:20:14.948105+00\",\"2025-09-07 20:57:14.722654+00\"}",
+  "histogram_sample": "{\"2025-09-11 02:35:48.134+00\",\"2025-11-20 17:34:35.78+00\",\"2025-11-20 17:34:36.372+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "system_settings",
   "column_name": "updated_by",
-  "n_distinct": -0.125,
+  "n_distinct": 1,
   "correlation": 1,
-  "null_frac": 0.75,
+  "null_frac": 0.97727275,
   "avg_width": 16,
   "most_common_vals_sample": "{35c57434-7ef7-4f1d-b36c-c1fbe5507dde}",
   "histogram_sample": null
@@ -283,131 +303,131 @@
   "tablename": "system_settings",
   "column_name": "value",
   "n_distinct": -0.625,
-  "correlation": 0.21428572,
+  "correlation": 0.49644253,
   "null_frac": 0,
-  "avg_width": 12,
-  "most_common_vals_sample": "{false,true}",
-  "histogram_sample": "{1,5,10000}"
+  "avg_width": 27,
+  "most_common_vals_sample": "{\"{\\\"enabled\\\": true}\",true,\"{\\\"count\\\": 3}\",\"{\\\"enabled\\\": false}\",\"{\\\"amount\\\": 5}\",\"{\\\"amount\\\": 500}\",\"{\\\"amount\\\": 2000}\",\"{\\\"count\\\": 2}\",\"{\\\"count\\\": 5}\",\"{\\\"count\\\": 100}\",\"{\\\"days\\\": 30}\",\"{\\\"minutes\\\": 5}\",\"{\\\"rate\\\": 0.05}\",\"{\\\"size\\\": 5}\",\"{\\\"ttl\\\": 300}\"}",
+  "histogram_sample": "{1,5,10000,false,\"{\\\"amount\\\": 1}\",\"{\\\"amount\\\": 10}\",\"{\\\"amount\\\": 50}\",\"{\\\"amount\\\": 1000}\",\"{\\\"amount\\\": 5000}\",\"{\\\"attempts\\\": 5}\",\"{\\\"count\\\": 10}\",\"{\\\"currency\\\": \\\"USD\\\"}\",\"{\\\"email\\\": \\\"soporte@gallobets.com\\\"}\",\"{\\\"hours\\\": 24}\",\"{\\\"hours\\\": 48}\",\"{\\\"hours\\\": 168}\",\"{\\\"kbps\\\": 1200}\",\"{\\\"kbps\\\": 2500}\",\"{\\\"length\\\": 8}\",\"{\\\"message\\\": \\\"Sistema en mantenimiento. Volveremos pronto.\\\"}\",\"{\\\"minutes\\\": 30}\",\"{\\\"ms\\\": 10000}\",\"{\\\"phone\\\": \\\"+593999999999\\\"}\",\"{\\\"requests\\\": 10}\",\"{\\\"requests\\\": 60}\",\"{\\\"seconds\\\": 6}\",\"{\\\"seconds\\\": 30}\",\"{\\\"seconds\\\": 180}\",\"{\\\"segments\\\": 5}\",\"{\\\"size\\\": 20}\",\"{\\\"timezone\\\": \\\"America/Guayaquil\\\"}\",\"{\\\"ttl\\\": 60}\",\"{\\\"ttl\\\": 120}\",\"{\\\"ttl\\\": 600}\",\"{\\\"types\\\": [\\\"image/jpeg\\\", \\\"image/jpg\\\", \\\"image/png\\\", \\\"image/webp\\\"]}\",\"{\\\"wallet_id\\\": null}\",\"{\\\"amount\\\": 5, \\\"currency\\\": \\\"USD\\\"}\",\"{\\\"amount\\\": 10, \\\"currency\\\": \\\"USD\\\"}\",\"{\\\"betting\\\": true, \\\"articles\\\": true, \\\"streaming\\\": false}\",\"{\\\"idle\\\": 60000, \\\"stale\\\": 120000, \\\"active\\\": 15000}\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "approved",
-  "n_distinct": -1,
-  "correlation": null,
+  "n_distinct": -0.11111111,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": null,
+  "most_common_vals_sample": "{t}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "created_at",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": 0.6,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{\"2025-08-23 00:58:31.733495+00\",\"2025-11-19 16:35:44.536+00\",\"2025-11-19 16:36:44.54+00\",\"2025-11-20 00:44:35.904+00\",\"2025-11-20 01:35:50.206+00\",\"2025-11-20 01:41:10.847+00\",\"2025-11-20 12:52:29.188+00\",\"2025-11-20 17:23:40.697+00\",\"2025-11-20 17:26:42.564+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "email",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": -0.26666668,
   "null_frac": 0,
-  "avg_width": 21,
+  "avg_width": 24,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{admin@sportsbets.com,buijo@gmail.com,cheo@sportsbets.com,criadero_test@sportsbets.com,gallera_test@sportsbets.com,operator_test@sportsbets.com,testuser2@sportsbets.com,testuser3@sportsbets.com,testuser@sportsbets.com}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "email_verified",
-  "n_distinct": -1,
-  "correlation": null,
+  "n_distinct": -0.11111111,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": null,
+  "most_common_vals_sample": "{f}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "id",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": -0.2,
   "null_frac": 0,
   "avg_width": 16,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{0d629962-d810-4959-b461-bfb67de20b0d,35c57434-7ef7-4f1d-b36c-c1fbe5507dde,40efead9-8a71-45a0-8d23-8b5c1e7b6359,450b6df6-5511-4579-8773-06cc6137a067,4b5fb975-616a-410b-9c1d-f6db0a8a0998,4d13eb9e-7b6e-43ae-94cd-0b2b00aebd3a,4ded2961-9391-46b6-a963-595a3436a1c7,8cea95bc-7ae2-46fd-81dc-032a8602aa76,a07062be-01b1-4dac-8da2-8940a778fc91}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "is_active",
-  "n_distinct": -1,
-  "correlation": null,
+  "n_distinct": -0.11111111,
+  "correlation": 1,
   "null_frac": 0,
   "avg_width": 1,
-  "most_common_vals_sample": null,
+  "most_common_vals_sample": "{t}",
   "histogram_sample": null
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "last_login",
-  "n_distinct": -1,
-  "correlation": null,
-  "null_frac": 0,
+  "n_distinct": -0.5555556,
+  "correlation": -0.5,
+  "null_frac": 0.44444445,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{\"2025-11-20 17:12:12.515+00\",\"2025-11-21 02:20:23.374+00\",\"2025-11-21 02:56:22.927+00\",\"2025-11-21 03:20:49.46+00\",\"2025-11-21 03:22:30.922+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "password_hash",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": 0.38333333,
   "null_frac": 0,
   "avg_width": 61,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{$2b$12$ETA8yn1ehB2qYF/O7PGK7ucyFcy0.7D/cxXO1T/hRoEO/j7FSJhA.,$2b$12$HIOhQ8hA7u0Dv/nZKQTxk.5gB4wp9TSx.QH5RAg31DtjBnj5QJvle,$2b$12$SnONGNSn7iXCfAlpzkLPLuxOUHxi9uwQbDLLNgjU/hkMVTAeWERee,$2b$12$cQjSzqgNdWCGbYKvO.arFOo2RNWeDhv93muOcwlrcRHSkf7jjxCz6,$2b$12$ekBk4pVQ.1XWy3uPRV318eS5U2iOA6dftqhyMSAOqCp6mFHfxsKU2,$2b$12$fxbfIxZUMM5uWbUT6oF/9OUlc6CnoTpuqB7szSxbyMCuYkvSki4wC,$2b$12$gxCX2yBiCC0v8l8jAbTn1.5lrYRbAccvpdn5TLE.F4LuQzsYKQO/6,$2b$12$n3asGpRn4K.NP1PHzGIY0updrMVxSnQh63TXXV7UbxPKu612BgTQ.,$2b$12$uJF2aP0QDq0pdALryFhSXe6/LTr4mB6R3PXpE.vCpez4cz8TzJY0e}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "profile_info",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": -0.36666667,
   "null_frac": 0,
-  "avg_width": 174,
+  "avg_width": 459,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{\"{\\\"images\\\": [], \\\"fullName\\\": \\\"Cheo\\\", \\\"venueName\\\": \\\"Coliseo Cheo Internacional\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"Pascuales\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"fullName\\\": \\\"Dr Guevara\\\", \\\"venueName\\\": \\\"Coliseo El Buijo\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"Cdla Buijo\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"fullName\\\": \\\"Test Operator\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"fullName\\\": \\\"Test User 2\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"fullName\\\": \\\"Test User3\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"address\\\": \\\"\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"imageUrl\\\": \\\"http://localhost:3001/uploads/images/1763659987406-452989425-4d13eb9e-7b6e-43ae-94cd-0b2b00aebd3a.jpeg\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"Criadero Paparrillos\\\", \\\"phoneNumber\\\": \\\"0987058175\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"identificationNumber\\\": \\\"\\\", \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"address\\\": \\\"\\\", \\\"fullName\\\": \\\"Samuel Mora\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"Criadero Paparrillos\\\", \\\"phoneNumber\\\": \\\"\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"sabanilla\\\", \\\"businessEntities\\\": {}, \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"identificationNumber\\\": \\\"0909626202\\\", \\\"galleraActiveRoosters\\\": []}\",\"{\\\"images\\\": [], \\\"address\\\": \\\"cdla ceibos\\\", \\\"fullName\\\": \\\"Test User\\\", \\\"imageUrl\\\": \\\"http://localhost:3001/uploads/images/1763647684072-386662316-0d629962-d810-4959-b461-bfb67de20b0d.png\\\", \\\"venueName\\\": \\\"\\\", \\\"venueEmail\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"identificationNumber\\\": \\\"\\\", \\\"galleraActiveRoosters\\\": []}\",\"{\\\"email\\\": \\\"\\\", \\\"images\\\": [], \\\"address\\\": \\\"\\\", \\\"website\\\": \\\"\\\", \\\"fullName\\\": \\\"Ricardo Vera\\\", \\\"imageUrl\\\": \\\"\\\", \\\"location\\\": \\\"Ceibos\\\", \\\"venueName\\\": \\\"Estadio Veranoby\\\", \\\"venueEmail\\\": \\\"\\\", \\\"description\\\": \\\"\\\", \\\"galleraName\\\": \\\"\\\", \\\"phoneNumber\\\": \\\"0996109336\\\", \\\"businessName\\\": \\\"Estadio Veranoby\\\", \\\"galleraEmail\\\": \\\"\\\", \\\"venueWebsite\\\": \\\"\\\", \\\"venueLocation\\\": \\\"Ceibos\\\", \\\"galleraWebsite\\\": \\\"\\\", \\\"galleraLocation\\\": \\\"\\\", \\\"venueDescription\\\": \\\"\\\", \\\"verificationLevel\\\": \\\"none\\\", \\\"galleraDescription\\\": \\\"\\\", \\\"galleraSpecialties\\\": [], \\\"identificationNumber\\\": \\\"0909626203\\\", \\\"galleraActiveRoosters\\\": []}\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "role",
-  "n_distinct": -1,
-  "correlation": null,
+  "n_distinct": -0.5555556,
+  "correlation": 0.41666666,
   "null_frac": 0,
   "avg_width": 4,
-  "most_common_vals_sample": null,
-  "histogram_sample": null
+  "most_common_vals_sample": "{venue,user}",
+  "histogram_sample": "{admin,operator,gallera}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "updated_at",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": -0.35,
   "null_frac": 0,
   "avg_width": 8,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{\"2025-11-20 12:04:19.861432+00\",\"2025-11-20 12:52:29.189+00\",\"2025-11-20 17:12:12.67284+00\",\"2025-11-20 17:23:40.697+00\",\"2025-11-20 17:26:42.564+00\",\"2025-11-21 02:20:23.538739+00\",\"2025-11-21 02:56:23.102837+00\",\"2025-11-21 03:20:49.625142+00\",\"2025-11-21 03:22:31.098601+00\"}"
 }, {
   "schemaname": "public",
   "tablename": "users",
   "column_name": "username",
   "n_distinct": -1,
-  "correlation": null,
+  "correlation": -0.38333333,
   "null_frac": 0,
-  "avg_width": 11,
+  "avg_width": 10,
   "most_common_vals_sample": null,
-  "histogram_sample": null
+  "histogram_sample": "{admin_test,buijo,cheo,criadero_test,gallera_test,operator_test,user_test,user_test2,user_test3}"
 }, {
   "schemaname": "public",
   "tablename": "users",
