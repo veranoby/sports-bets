@@ -6,6 +6,24 @@
 
 ---
 
+## 📌 MIGRACIÓN COMPLETADA (2025-11-25)
+
+**Status:** ✅ Database migration from Neon Tech to PostgreSQL local COMPLETED
+
+**Migration details:**
+- Schema: migracion.sql with 22 ENUMs, 19 tables, 26 FKs created successfully
+- Data imported: 5 tables from Neon Tech to local (users:9, system_settings:88, subscriptions:2, articles:1, membership_change_requests:2)
+- Method: Manual CSV export from Neon SQL Editor → COPY FROM in local PostgreSQL
+- Database location: 127.0.0.1:5432 (user: postgres, password: 0102Mina)
+- Backup of old config preserved: /tmp/nginx.conf.backup
+
+**Files updated:**
+- backend/.env: DATABASE_URL, pricing (5.00/10.00), RTMP/HLS URLs
+- backend/src/config/envValidator.ts: Updated defaults for subscription pricing
+- Nginx config: RTMP module added, HLS generation enabled
+
+---
+
 ## 🔍 TAREAS SEMANALES (Lunes 10:00 AM recomendado)
 
 ### ACTIVIDAD 1: Verificar Salud del Sistema (5 min)

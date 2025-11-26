@@ -65,9 +65,9 @@ const envSchema = Joi.object<EnvConfig>({
     .uri({ scheme: ['http', 'https'] })
     .default('http://localhost:8080'),
   
-  // Business configuration
-  SUBSCRIPTION_DAILY_PRICE: Joi.number().positive().default(2.99),
-  SUBSCRIPTION_MONTHLY_PRICE: Joi.number().positive().default(9.99),
+  // Business configuration (PRD: 24h=$5, monthly=$10)
+  SUBSCRIPTION_DAILY_PRICE: Joi.number().positive().default(5.00),
+  SUBSCRIPTION_MONTHLY_PRICE: Joi.number().positive().default(10.00),
   MAX_BET_AMOUNT: Joi.number().positive().default(10000),
   MIN_BET_AMOUNT: Joi.number().positive().default(10),
   MAX_WITHDRAWAL_DAILY: Joi.number().positive().default(500),

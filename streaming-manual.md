@@ -359,24 +359,57 @@ curl http://YOUR-SERVER-IP:3001/api/health
 
 Antes de comenzar cualquier evento de streaming, el servidor RTMP debe estar corriendo. Esta tarea normalmente la realiza el administrador del sistema.
 
-### Para administradores:
+### Para administradores - Setup Local Development (COMPLETED 2025-11-25):
+
+**Status:** ✅ RTMP compilado con Nginx + PostgreSQL local + HLS en /tmp/hls
+
+**Configuración completada:**
+1. Nginx con módulo RTMP compilado e instalado
+2. PostgreSQL 18 corriendo en 127.0.0.1:5432
+3. Datos migrados desde Neon Tech (usuarios, configuraciones, suscripciones, artículos)
+4. Backend .env actualizado con URLs locales
+5. HLS streaming configurado en /tmp/hls
+
+**Para iniciar servicios:**
+```bash
+# Terminal 1: PostgreSQL (ya corriendo)
+psql -h 127.0.0.1 -U postgres -d gallerosnet
+
+# Terminal 2: Nginx (RTMP + HLS)
+sudo systemctl restart nginx
+# Verificar: sudo systemctl status nginx
+
+# Terminal 3: Backend
+cd /home/veranoby/sports-bets/backend && npm run dev
+
+# Terminal 4: Frontend
+cd /home/veranoby/sports-bets/frontend && npm start
+```
+
+**URLs de Desarrollo:**
+- RTMP Input: `rtmp://127.0.0.1:1935/live`
+- HLS Playback: `http://127.0.0.1/hls/test.m3u8`
+- API Backend: `http://localhost:3001`
+- Frontend: `http://localhost:5173`
+
+### Configuración Producción (Alternativa):
 
 1. Abre una terminal en el servidor
 2. Navega al directorio raíz del proyecto GALEROS.NET
-3. Ejecuta el siguiente comando:
+3. Ejecuta el siguiente comando (si usas node-media-server):
    ```
    node rtmp-server.js
    ```
 4. Verifica que veas mensajes como:
    - "🚀 Starting GALEROS.NET RTMP Server..."
-   - "📡 RTMP: rtmp://localhost:1935/live"
-   - "🌐 HTTP: http://localhost:8000"
+   - "📡 RTMP: rtmp://YOUR-DOMAIN:1935/live"
+   - "🌐 HTTP: http://YOUR-DOMAIN:8000"
 5. El servidor debe mantenerse corriendo durante todo el evento
 
 ### Nota importante:
 - Si estás probando localmente, asegúrate de que el servidor esté corriendo en la misma máquina
-- El puerto 1935 (RTMP) y 8000 (HTTP) deben estar disponibles
-- Necesitas tener `node-media-server` instalado como dependencia
+- El puerto 1935 (RTMP) y 80 (HTTP/HLS) deben estar disponibles
+- Nginx RTMP ahora es la solución oficial para desarrollo/producción
 
 ## Panel de Administración de Streaming
 
