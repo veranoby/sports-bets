@@ -45,7 +45,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
 
     try {
       const response = await fetch(
-        `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/alerts`,
+        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/alerts`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +96,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
 
     try {
       // Use the new SSE endpoint for admin monitoring alerts
-      const url = `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/sse/admin/monitoring`;
+      const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/sse/admin/monitoring`;
       console.log(`🔄 SSE: Connecting to admin monitoring alerts at ${url}`);
 
       // For SSE with authentication, we'll pass the token in the URL

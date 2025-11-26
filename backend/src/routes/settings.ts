@@ -64,11 +64,36 @@ router.get('/public',
       'limits.withdrawal_max_daily', // Maximum daily withdrawals
       'limits.require_proof_over' // Amount requiring proof
     ];
-    
+
     const settings = await SystemSettingsService.getSpecificSettings(publicSettingsKeys);
     res.json({
       success: true,
       data: settings
+    });
+  })
+);
+
+// GET /api/settings/features/public - Get feature flags (authenticated users only)
+router.get('/features/public',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    // Return feature flags for dashboard and UI
+    const featureKeys = [
+      'betting.active',
+      'wallet.active',
+      'streaming.active',
+      'notifications.push_enabled'
+    ];
+
+    const settings = await SystemSettingsService.getSpecificSettings(featureKeys);
+    res.json({
+      success: true,
+      data: {
+        betting: settings['betting.active'] || false,
+        wallet: settings['wallet.active'] || false,
+        streaming: settings['streaming.active'] || false,
+        push_notifications: settings['notifications.push_enabled'] || false
+      }
     });
   })
 );

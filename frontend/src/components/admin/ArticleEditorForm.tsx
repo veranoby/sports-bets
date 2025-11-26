@@ -3,6 +3,7 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { articlesAPI, venuesAPI, gallerasAPI } from "../../config/api";
 import { userAPI, uploadsAPI } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
 import type { Article } from "../../types/article";
 import type { Venue, Gallera } from "../../types";
 import LoadingSpinner from "../shared/LoadingSpinner";
@@ -28,6 +29,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
   onClose,
   onArticleSaved,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Article>>(emptyArticle);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [galleras, setGalleras] = useState<Gallera[]>([]);
@@ -444,63 +446,65 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
         >
           Save as Draft
         </button>
-        <button
-          type="button"
-          onClick={async () => {
-            // Submit for Review functionality
-            setLoading(true);
-            setError(null);
+        {user?.role !== 'admin' && (
+          <button
+            type="button"
+            onClick={async () => {
+              // Submit for Review functionality
+              setLoading(true);
+              setError(null);
 
-            // Validate required fields
-            if (
-              !formData.title ||
-              !formData.content ||
-              !formData.summary ||
-              !formData.author_id
-            ) {
-              setError(
-                "Title, content, summary, and author are required fields.",
-              );
-              setLoading(false);
-              return;
-            }
-
-            try {
-              let response;
-              if (article && article.id) {
-                // Update existing article with pending status
-                const updatePayload = {
-                  ...formData,
-                  status: "pending",
-                  content: formData.content || "",
-                  excerpt: formData.summary,
-                };
-                response = await articlesAPI.update(article.id, updatePayload);
-              } else {
-                // Create new article with pending status
-                const createPayload = {
-                  title: formData.title,
-                  content: formData.content || "",
-                  excerpt: formData.summary,
-                  featured_image_url: formData.featured_image_url,
-                  status: "pending",
-                  author_id: formData.author_id,
-                };
-                response = await articlesAPI.create(createPayload);
+              // Validate required fields
+              if (
+                !formData.title ||
+                !formData.content ||
+                !formData.summary ||
+                !formData.author_id
+              ) {
+                setError(
+                  "Title, content, summary, and author are required fields.",
+                );
+                setLoading(false);
+                return;
               }
-              onArticleSaved(response.data);
-              onClose();
-            } catch (error) {
-              console.error("Error submitting for review:", error);
-              setError("Failed to submit for review. Please try again.");
-            } finally {
-              setLoading(false);
-            }
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          Submit for Review
-        </button>
+
+              try {
+                let response;
+                if (article && article.id) {
+                  // Update existing article with pending status
+                  const updatePayload = {
+                    ...formData,
+                    status: "pending",
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                  };
+                  response = await articlesAPI.update(article.id, updatePayload);
+                } else {
+                  // Create new article with pending status
+                  const createPayload = {
+                    title: formData.title,
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                    featured_image_url: formData.featured_image_url,
+                    status: "pending",
+                    author_id: formData.author_id,
+                  };
+                  response = await articlesAPI.create(createPayload);
+                }
+                onArticleSaved(response.data);
+                onClose();
+              } catch (error) {
+                console.error("Error submitting for review:", error);
+                setError("Failed to submit for review. Please try again.");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Submit for Review
+          </button>
+        )}
         <button
           type="button"
           onClick={async () => {
