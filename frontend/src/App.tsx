@@ -51,14 +51,13 @@ const AdminFinance = lazy(() => import("./pages/admin/Finance"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminEvents = lazy(() => import("./pages/admin/Events"));
 const AdminArticles = lazy(() => import("./pages/admin/Articles"));
+const AdminBets = lazy(() => import("./pages/admin/Bets"));
 const AdminVenues = lazy(() => import("./pages/admin/Venues"));
 const AdminGalleras = lazy(() => import("./pages/admin/Galleras"));
 const AdminRequests = lazy(() => import("./pages/admin/Requests"));
 const AdminMembershipRequests = lazy(
   () => import("./pages/admin/MembershipRequests"),
 );
-const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
-const AdminStreaming = lazy(() => import("./pages/admin/Streaming"));
 const OptimizedStreamingMonitor = lazy(
   () => import("./pages/admin/OptimizedStreamingMonitor"),
 );
@@ -248,6 +247,16 @@ const AppContent: React.FC = () => {
             element={
               <Suspense fallback={<LoadingSpinner fullPage />}>
                 <AdminArticles />
+              </Suspense>
+            }
+          />
+
+          {/* Apuestas */}
+          <Route
+            path="/admin/bets"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminBets />
               </Suspense>
             }
           />

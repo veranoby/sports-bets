@@ -8,9 +8,6 @@ import {
   Settings,
   DollarSign,
   Building2,
-  Radio,
-  BarChart3,
-  Monitor,
   LogOut,
   Shield,
   CreditCard,
@@ -72,18 +69,6 @@ const AdminSidebar: React.FC = () => {
       icon: FileText,
       label: "Artículos/Noticias",
       roles: ["admin"],
-    },
-    {
-      path: "/admin/reports",
-      icon: BarChart3,
-      label: "Reportes",
-      roles: ["admin"],
-    },
-    {
-      path: "/admin/streaming",
-      icon: Radio,
-      label: "Monitoreo General",
-      roles: ["admin", "operator"],
     },
     {
       path: "/admin/requests",
