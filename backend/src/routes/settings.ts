@@ -13,11 +13,11 @@ import { SystemSetting as Setting } from '../models';
 const router = Router();
 
 // GET /api/settings - Get all settings (admin only)
-router.get('/', 
-  authenticate, 
+router.get('/',
+  authenticate,
   authorize('admin'),
   asyncHandler(async (req, res) => {
-    const settings = await SystemSettingsService.getAllSettings();
+    const settings = await SystemSettingsService.getAllSettingsFlat();
     res.json({
       success: true,
       data: settings
@@ -92,7 +92,58 @@ router.get('/:key',
   })
 );
 
+// PUT /api/settings - Bulk update settings (admin only)
+// This endpoint handles the bulk update used by the Settings page
+router.put('/',
+  authenticate,
+  authorize('admin'),
+  asyncHandler(async (req, res) => {
+    const settings = req.body; // Settings are sent directly in the body, not in a 'settings' field
+    const updatedBy = req.user?.id;
+
+    // Validate settings object
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+      throw errors.badRequest('Settings must be an object');
+    }
+
+    const keys = Object.keys(settings);
+    if (keys.length === 0) {
+      throw errors.badRequest('Settings object cannot be empty');
+    }
+
+    // Validate each setting's value based on its key
+    for (const [key, value] of Object.entries(settings)) {
+      if (key.includes('.min') || key.includes('.max') || key.includes('.amount')) {
+        if (typeof value !== 'number' || value < 0) {
+          throw errors.badRequest(`Setting ${key} must be a positive number`);
+        }
+      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+        if (typeof value !== 'boolean') {
+          throw errors.badRequest(`Setting ${key} must be a boolean`);
+        }
+      }
+    }
+
+    // Prepare settings array for bulk update
+    const settingsToUpdate = Object.entries(settings).map(([key, value]) => ({
+      key,
+      value,
+      updatedBy
+    }));
+
+    await SystemSettingsService.bulkUpdateSettings(settingsToUpdate);
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      data: settings
+    });
+  })
+);
+
 // PUT /api/settings/:key - Update specific setting (admin only)
+// Note: This route was moved to come after the bulk update route
+// to avoid conflicts with the catch-all PUT /api/settings
 router.put('/:key',
   authenticate,
   authorize('admin'),

@@ -711,7 +711,14 @@ const AdminArticlesPage: React.FC = () => {
                         >
                           Edit
                         </button>
-                        {article.status === "published" ? (
+                        {article.status === "pending" ? (
+                          <button
+                            onClick={() => handleApproveArticle(article.id)}
+                            className="px-2 py-1 text-xs font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
+                          >
+                            Approve
+                          </button>
+                        ) : article.status === "published" ? (
                           <button
                             onClick={() =>
                               handleToggleStatus(article.id, article.status)

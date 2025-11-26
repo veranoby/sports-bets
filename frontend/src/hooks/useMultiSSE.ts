@@ -26,6 +26,7 @@ export interface SSEChannelState<T> {
 export type MultiSSEState<T> = Record<string, SSEChannelState<T>>;
 
 const MAX_RECONNECT_DELAY = 30000; // 30 seconds
+const MAX_RETRIES = 5;
 
 const useMultiSSE = <T>(
   channels: Record<string, string | null>,
@@ -110,13 +111,20 @@ const useMultiSSE = <T>(
       }));
 
       const retryCount = retryCountsRef.current[key] || 0;
+
+      // Check if we've reached the maximum retry attempts
+      if (retryCount >= MAX_RETRIES) {
+        console.error(`[SSE] Max retries reached for ${key}. Stopping reconnection attempts.`);
+        return;
+      }
+
       const delay = Math.min(
         MAX_RECONNECT_DELAY,
         1000 * Math.pow(2, retryCount),
       );
       retryCountsRef.current[key] = retryCount + 1;
 
-      console.log(`[SSE] Reconnecting channel [${key}] in ${delay}ms...`);
+      console.log(`[SSE] Reconnecting channel [${key}] in ${delay}ms... (Retry ${retryCount + 1}/${MAX_RETRIES})`);
       reconnectTimeoutsRef.current[key] = setTimeout(
         () => connect(key, url),
         delay,
@@ -133,10 +141,25 @@ const useMultiSSE = <T>(
     });
 
     return () => {
-      Object.values(eventSourcesRef.current).forEach((es) => es.close());
-      Object.values(reconnectTimeoutsRef.current).forEach((timeout) =>
-        clearTimeout(timeout),
-      );
+      // Close all EventSource connections
+      Object.values(eventSourcesRef.current).forEach((es) => {
+        if (es) {
+          es.close();
+          console.log(`[SSE] Closed connection for channel`);
+        }
+      });
+
+      // Clear all reconnect timeouts
+      Object.values(reconnectTimeoutsRef.current).forEach((timeout) => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+      });
+
+      // Reset retry counters
+      Object.keys(retryCountsRef.current).forEach((key) => {
+        retryCountsRef.current[key] = 0;
+      });
     };
   }, [channels, connect]);
 

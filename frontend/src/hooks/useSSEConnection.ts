@@ -174,4 +174,5 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
   };
 };
 
+export { useSSEConnection };
 export default useSSEConnection;

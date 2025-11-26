@@ -154,6 +154,23 @@ export class SystemSettingsService {
   }
 
   /**
+   * Get all settings as a flat key-value object for frontend compatibility
+   */
+  static async getAllSettingsFlat(): Promise<Record<string, any>> {
+    const settings = await Setting.findAll({
+      order: [['category', 'ASC'], ['key', 'ASC']]
+    });
+
+    const settingsFlat: Record<string, any> = {};
+
+    settings.forEach(setting => {
+      settingsFlat[setting.key] = setting.value;
+    });
+
+    return settingsFlat;
+  }
+
+  /**
    * Get specific settings by keys with caching
    */
   static async getSpecificSettings(keys: string[]): Promise<Record<string, any>> {
