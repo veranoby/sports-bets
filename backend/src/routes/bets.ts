@@ -43,6 +43,7 @@ router.get(
               model: Event,
               as: "event",
               where: eventId ? { id: eventId } : {},
+              required: false, // LEFT OUTER JOIN - allows fights without events
               attributes: ['id', 'title', 'status', 'scheduledDate'],
             },
           ],
@@ -59,13 +60,19 @@ router.get(
       order: [['createdAt', 'DESC']],
     });
 
+    // When eventId is specified, we need to adjust the count to reflect actual filtered results
+    let resultCount = total;
+    if (eventId) {
+      resultCount = bets.length; // Use the actual length after Sequelize applies the where condition
+    }
+
     res.json({
       success: true,
       data: {
         bets,
-        total,
+        total: resultCount,
         page: Number(page),
-        totalPages: Math.ceil(total / Number(limit)),
+        totalPages: Math.ceil(resultCount / Number(limit)),
         offset: Number(offset),
       },
     });
