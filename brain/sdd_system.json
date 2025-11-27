@@ -646,8 +646,10 @@
       "os_rationale": "5 years standard support (until 2029), extendible to 10 years with ESM. Powers 40% of cloud servers globally. CachyOS rolling-release not suitable for production stability.",
       "os_development_alternative": "CachyOS/Arch for local development laptop only, NOT for dedicated server",
       "location": "Germany (Falkenstein or Nuremberg datacenter)",
-      "cdn": "AWS CloudFront with edge locations in São Paulo (Brazil), Mexico City, Bogotá (Colombia) for <50ms latency to LATAM users",
-      "cdn_cost": "$102/mo (Phase 1: 12 TB) to $197/mo (Phase 3: 23.2 TB)",
+      "cdn": "AWS CloudFront Flat-Rate Pro Plan (Nov 2025) with edge locations in São Paulo, Mexico City, Bogotá for <50ms LATAM latency",
+      "cdn_cost": "$15/mo (Pro: 50 TB, 10M requests) to $200/mo (Business: 50 TB, 125M requests)",
+      "cdn_protection": "Zero overage charges - performance degrades at 100% but no surprise bills. DDoS excluded from quota.",
+      "cdn_monitoring": "AWS alerts at 50%, 80%, 100%. Upgrade trigger: sustained >80% for 2+ weeks.",
       "decision_rationale": "Hetzner unlimited traffic absorbs origin bandwidth without overage charges. CloudFront edge in LATAM provides low latency. Fixed monthly cost vs cloud variable pricing."
     },
     "domain_and_dns": {
