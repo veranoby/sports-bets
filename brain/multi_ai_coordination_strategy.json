@@ -1,23 +1,24 @@
 {
   "📋_TABLE_OF_CONTENTS": {
     "ai_roles_and_preferences": "Lines 5-35 (READ FIRST - Core Configuration)",
-    "critical_rules": "Lines 36-280 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL)",
-    "role_responsibilities": "Lines 282-350",
-    "execution_workflows": "Lines 351-440",
-    "validation_gates": "Lines 441-500",
-    "failure_recovery": "Lines 501-590",
-    "recommended_practices": "Lines 591-780",
-    "business_clarifications": "Lines 781-880"
+    "critical_rules": "Lines 36-396 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL)",
+    "role_responsibilities": "Lines 398-466",
+    "execution_workflows": "Lines 467-556",
+    "validation_gates": "Lines 557-616",
+    "failure_recovery": "Lines 617-706",
+    "recommended_practices": "Lines 707-896",
+    "business_clarifications": "Lines 897-996"
   },
 
   "metadata": {
-    "version": "5.2",
-    "updated": "2025-11-11",
+    "version": "5.3",
+    "updated": "2025-11-27",
     "purpose": "Role-based AI orchestration framework - decoupled, resilient, and future-proof.",
     "note": "This file is READ-FIRST by all AIs. Core logic is based on ROLES, not specific models. Model selection is a configuration preference.",
     "prompt_files_location": "PROJECT ROOT (director-prompt.json, executor-prompt.json) - Role-based prompts for easier AI access.",
-    "changelog_v5.2": "Added AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 146-280) - Prevents unidirectional search, tool validation failures, and 'absence of finding = absence of existence' errors. Incident lesson: 2025-11-11 backend audit missed existing endpoints.",
-    "changelog_v5.1": "Added DIRECTOR_PLANNING_PROTOCOL (lines 77-99) - Director MUST read this file BEFORE creating executor plans to incorporate all critical error prevention protocols"
+    "changelog_v5.3": "Added UI_VERIFICATION_PROTOCOL (lines 283-396) - Prevents false affirmations about UI implementation. MANDATORY: Read .tsx/.jsx component files before claiming UI displays data. Never infer rendering from backend/hooks/interfaces alone. Incident lesson: 2025-11-27 SystemHealthBadge metrics claim without reading component JSX.",
+    "changelog_v5.2": "Added AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 147-281) - Prevents unidirectional search, tool validation failures, and 'absence of finding = absence of existence' errors. Incident lesson: 2025-11-11 backend audit missed existing endpoints.",
+    "changelog_v5.1": "Added DIRECTOR_PLANNING_PROTOCOL (lines 79-101) - Director MUST read this file BEFORE creating executor plans to incorporate all critical error prevention protocols"
   },
 
   "ai_roles_and_preferences": {
@@ -278,6 +279,121 @@
     },
 
     "applicability": "All AIs performing audits, analysis, verification, or 'confirm X matches Y' tasks"
+  },
+
+  "🔴_UI_VERIFICATION_PROTOCOL": {
+    "severity": "CRITICAL",
+    "principle": "Never affirm about UI implementation without reading actual component files. Interface contracts do not guarantee rendering implementation.",
+    "applicability": "All questions about UI/frontend state: 'Is X displayed?', 'Does component show Y?', 'Is Z implemented in the interface?'",
+
+    "core_violation": {
+      "error_pattern": "Assuming UI displays data because backend sends it or hook returns it",
+      "example": "Backend returns metrics → Hook has metrics field → [FALSE ASSUMPTION] → Component displays metrics",
+      "correct_pattern": "Backend returns metrics → Hook has metrics field → [READ COMPONENT] → Verify JSX rendering"
+    },
+
+    "mandatory_verification_workflow": {
+      "step_1_stop_before_affirming": {
+        "trigger": "User asks: 'Is [UI_ELEMENT] displayed/implemented/shown?'",
+        "action": "STOP - Do NOT answer based on backend/hooks/interfaces",
+        "rationale": "Data availability ≠ UI implementation"
+      },
+      "step_2_read_component_file": {
+        "action": "Read the .tsx/.jsx component file that would render the UI element",
+        "required": "MANDATORY - No exceptions",
+        "target_lines": "Focus on JSX return statement and render logic (typically last 30-50% of file)"
+      },
+      "step_3_search_jsx_rendering": {
+        "action": "Search for specific JSX elements that would render the feature",
+        "examples": [
+          "Looking for metrics display? Search for '{metrics.memory' or 'metrics?.database' in JSX",
+          "Looking for button? Search for '<button' or 'onClick=' with relevant handler name",
+          "Looking for modal? Search for modal component name and its props"
+        ],
+        "validation": "Must find actual JSX tags/elements, not just TypeScript logic"
+      },
+      "step_4_cite_evidence": {
+        "requirement": "Quote specific line numbers from component file",
+        "format": "[ComponentName.tsx:150-165] shows <div>{metrics.memory.currentMB}</div>",
+        "anti_pattern": "Saying 'Yes it's implemented' without line number citation"
+      },
+      "step_5_respond_with_evidence": {
+        "if_found": "Confirm with line citations: 'Yes, [feature] is rendered at [file:lines]'",
+        "if_not_found": "Deny with evidence: 'No, reading [file] lines [X-Y] shows only [what_actually_exists]'",
+        "never": "Never respond based on inference or assumptions"
+      }
+    },
+
+    "common_false_assumption_patterns": {
+      "backend_sends_equals_frontend_displays": {
+        "false_logic": "API endpoint returns data → UI must be showing it",
+        "reality": "API can return 100 fields, UI may only display 3",
+        "prevention": "Always read component to verify which fields are actually rendered"
+      },
+      "interface_has_field_equals_component_uses_it": {
+        "false_logic": "TypeScript interface defines 'metrics' → Component must display metrics",
+        "reality": "Interface defines contract, component may destructure and ignore fields",
+        "prevention": "Search for actual usage in JSX, not just in destructuring/props"
+      },
+      "hook_returns_data_equals_ui_shows_data": {
+        "false_logic": "useData() hook returns X → Component calling useData() shows X",
+        "reality": "Component may call hook but only use subset of returned data",
+        "prevention": "Verify JSX rendering, not just hook invocation"
+      }
+    },
+
+    "incident_lesson_2025_11_27": {
+      "task": "User asked: 'Is AdminHeader showing detailed metrics (Memory MB, DB connections, Intervals)?'",
+      "what_went_wrong": [
+        "AI read useMonitoringAlerts.ts (hook) and saw it returned alertCount/criticalAlerts",
+        "AI read monitoring.ts (backend) and saw it sent alert data",
+        "AI ASSUMED SystemHealthBadge.tsx was displaying detailed metrics",
+        "AI did NOT read SystemHealthBadge.tsx to verify actual JSX rendering"
+      ],
+      "actual_state": [
+        "SystemHealthBadge.tsx:150-165 only showed '3 Critical Alerts' (generic count)",
+        "NO detailed metrics were rendered (no Memory MB, no DB connections, no Intervals)"
+      ],
+      "impact": [
+        "User caught the error and questioned the claim",
+        "Wasted ~3,700 tokens on incorrect affirmation + correction cycle",
+        "Loss of trust - user had to verify AI claims instead of trusting response"
+      ],
+      "correct_approach": [
+        "Step 1: User asks about UI display",
+        "Step 2: Read SystemHealthBadge.tsx (the actual component)",
+        "Step 3: Search JSX for 'metrics.memory', 'metrics.database', 'metrics.intervals'",
+        "Step 4: Find only generic '{alertCount} Critical Alerts' display",
+        "Step 5: Respond: 'No, lines 150-165 show only alert counts, not detailed metrics'"
+      ]
+    },
+
+    "enforcement_rules": {
+      "rule_1_read_before_claim": "NEVER claim UI displays X without reading component .tsx/.jsx file",
+      "rule_2_jsx_is_evidence": "Only JSX rendering counts as evidence, not TypeScript logic or interfaces",
+      "rule_3_cite_line_numbers": "Always cite specific line numbers when confirming UI implementation",
+      "rule_4_admit_when_uncertain": "If you haven't read the component yet, say so explicitly",
+      "rule_5_inference_prohibition": "Prohibited: Inferring UI state from backend/hooks/contracts alone"
+    },
+
+    "token_waste_prevention": {
+      "cost_of_false_affirmation": "~3,700 tokens for correction cycle (~$0.01 USD but high trust cost)",
+      "prevention_cost": "~500 tokens to Read component file before answering",
+      "efficiency_gain": "87% token savings + 100% accuracy by reading before affirming",
+      "trust_preservation": "User confidence maintained when answers are evidence-based from first response"
+    },
+
+    "quick_reference_checklist": {
+      "before_saying_yes_to_ui_question": [
+        "☐ Have I read the actual .tsx/.jsx component file?",
+        "☐ Have I searched the JSX return statement for the specific UI element?",
+        "☐ Can I cite line numbers where the element is rendered?",
+        "☐ Am I basing this on actual JSX, not on interfaces/hooks/backend?",
+        "☐ If NO to any above → READ COMPONENT FIRST, then answer"
+      ]
+    },
+
+    "applicability": "All AIs (director and executor) when answering questions about UI/frontend implementation, display, or rendering"
   },
 
   "role_responsibilities": {
