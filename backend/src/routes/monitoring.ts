@@ -516,6 +516,68 @@ router.get('/sse/admin/monitoring',
 );
 
 /**
+ * POST /api/monitoring/actions/:actionType
+ * Execute quick actions to resolve system issues without leaving current admin context
+ */
+router.post('/actions/:actionType',
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    const { actionType } = req.params;
+
+    switch (actionType) {
+      case 'clear-cache':
+        // Clear all Redis cache using pattern matching
+        await cache.invalidatePattern('*');
+        res.json({
+          success: true,
+          message: 'Cache cleared successfully',
+          timestamp: new Date().toISOString()
+        });
+        break;
+
+      case 'force-gc':
+        // Force garbage collection if available
+        if (global.gc) {
+          global.gc();
+          res.json({
+            success: true,
+            message: 'Garbage collection triggered',
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: 'Garbage collection not available (run with --expose-gc)',
+            timestamp: new Date().toISOString()
+          });
+        }
+        break;
+
+      case 'clear-intervals':
+        // Get current interval count
+        const beforeCount = SafetyLimits.getHealthMetrics().intervals.activeCount;
+        // SafetyLimits already manages interval cleanup
+        res.json({
+          success: true,
+          message: `Interval tracking status: ${beforeCount} active`,
+          note: 'Intervals are auto-managed by SafetyLimits',
+          timestamp: new Date().toISOString()
+        });
+        break;
+
+      default:
+        res.status(400).json({
+          success: false,
+          message: `Unknown action type: ${actionType}`,
+          availableActions: ['clear-cache', 'force-gc', 'clear-intervals'],
+          timestamp: new Date().toISOString()
+        });
+    }
+  })
+);
+
+/**
  * POST /api/monitoring/webhook/railway
  * Railway webhook endpoint for alerts
  */

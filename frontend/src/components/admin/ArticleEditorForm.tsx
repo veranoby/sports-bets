@@ -446,7 +446,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
         >
           Save as Draft
         </button>
-        {user?.role !== 'admin' && (
+        {user?.role !== "admin" && (
           <button
             type="button"
             onClick={async () => {
@@ -478,7 +478,10 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
                     content: formData.content || "",
                     excerpt: formData.summary,
                   };
-                  response = await articlesAPI.update(article.id, updatePayload);
+                  response = await articlesAPI.update(
+                    article.id,
+                    updatePayload,
+                  );
                 } else {
                   // Create new article with pending status
                   const createPayload = {

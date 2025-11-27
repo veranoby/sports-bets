@@ -412,7 +412,7 @@ const LoginPage: React.FC = () => {
 
           {/* Demo Credentials */}
           {isLoginMode && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+            <div className="hidden mt-6 p-4 bg-gray-50 rounded-lg border">
               <div className="flex items-start">
                 <Info className="w-4 h-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                 <div className="text-xs text-gray-600">

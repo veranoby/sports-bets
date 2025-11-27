@@ -114,7 +114,9 @@ const useMultiSSE = <T>(
 
       // Check if we've reached the maximum retry attempts
       if (retryCount >= MAX_RETRIES) {
-        console.error(`[SSE] Max retries reached for ${key}. Stopping reconnection attempts.`);
+        console.error(
+          `[SSE] Max retries reached for ${key}. Stopping reconnection attempts.`,
+        );
         return;
       }
 
@@ -124,7 +126,9 @@ const useMultiSSE = <T>(
       );
       retryCountsRef.current[key] = retryCount + 1;
 
-      console.log(`[SSE] Reconnecting channel [${key}] in ${delay}ms... (Retry ${retryCount + 1}/${MAX_RETRIES})`);
+      console.log(
+        `[SSE] Reconnecting channel [${key}] in ${delay}ms... (Retry ${retryCount + 1}/${MAX_RETRIES})`,
+      );
       reconnectTimeoutsRef.current[key] = setTimeout(
         () => connect(key, url),
         delay,
