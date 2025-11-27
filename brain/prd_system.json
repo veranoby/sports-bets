@@ -266,7 +266,7 @@
         "streaming_ingest": "Ant Media Server open-source on VPS = $24/month",
         "cdn_distribution": "Bunny CDN HLS at $0.01/GB = $2,000-3,000/month",
         "monitoring": "Prometheus+Grafana self-hosted = $0-50/month",
-        "suitable_for": "24h streaming, high-volume events (not GalloBets use case)"
+        "suitable_for": "24h streaming, high-volume events (not Galleros.Net use case)"
       },
       "tier_2_production_$3400_5300_month": {
         "compute": "Load-balanced (2× c6i.xlarge EC2) = $300-400/month",
@@ -277,7 +277,7 @@
         "suitable_for": "Revenue-generating production platform"
       },
       "tier_0_480p_galloBets_$205_month_RECOMMENDED": {
-        "description": "GalloBets final recommended stack: 480p + pause optimization + Neon.tech",
+        "description": "Galleros.Net final recommended stack: 480p + pause optimization + Neon.tech",
         "rationale": "480p reduces bandwidth 50% vs 720p. Pause between fights saves 35-40% more. Total = most cost-effective for 2×/week, 6h sessions with 500 concurrent users",
         "compute": "Vultr 4-core 8GB RAM = $24/month",
         "database": "Neon.tech PostgreSQL managed = $50/month (includes auto-scaling, built-in backups, connection pooling)",

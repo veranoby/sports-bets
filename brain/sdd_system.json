@@ -92,7 +92,7 @@
           },
           "cost_addition": "+$108-216/month (Bunny CDN)",
           "total_monthly": "$263-411/mo",
-          "code_changes": "VITE_STREAM_BASE_URL=https://gallobets-cdn.b-cdn.net/hls/ (5 min update)",
+          "code_changes": "VITE_STREAM_BASE_URL=https://gallerosnet-cdn.b-cdn.net/hls/ (5 min update)",
           "nginx_config": "No change needed (Bunny Pull Zone pulls from Nginx)"
         }
       },
@@ -176,7 +176,7 @@
       "implementation_priority": "HIGH - Ready for immediate executor implementation. 100% complete, high-value cost optimization ($1,200+/year savings with 480p)"
     },
     "streaming_quality_recommendation": {
-      "default_quality": "480p (cost-optimized for GalloBets schedule)",
+      "default_quality": "480p (cost-optimized for Galleros.Net schedule)",
       "fallback_quality": "720p (for users with >5 Mbps connection)",
       "annual_savings_vs_720p": "$1,608 with 480p default",
       "implementation_note": "Client-side adaptive bitrate selection handled by HLS.js"
@@ -799,13 +799,13 @@
             "option": "3. Hybrid: Local SMTP for sending + external IMAP for personal accounts",
             "pros": ["Best of both worlds", "Low maintenance", "Scalable"],
             "cons": ["Slightly complex"],
-            "recommended_for": "GalloBets case - send verification emails + admin personal email elsewhere"
+            "recommended_for": "Galleros.Net case - send verification emails + admin personal email elsewhere"
           }
         ]
       },
       "recommended_for_gallobets": {
         "approach": "Option 2: SMTP relay (SendGrid or Mailgun)",
-        "rationale": "Simple, reliable, GalloBets only needs to SEND (registration emails, password resets, notifications). Users can reply-to their own email.",
+        "rationale": "Simple, reliable, Galleros.Net only needs to SEND (registration emails, password resets, notifications). Users can reply-to their own email.",
         "setup_time": "5 minutes",
         "cost": "$15-20/month for volume"
       },
@@ -852,10 +852,10 @@
       "option_1_manual_ssh_deployment": {
         "step_1": "git commit + git push to GitHub",
         "step_2": "SSH to server: ssh user@<server_ip>",
-        "step_3": "cd /var/www/gallobets && git pull origin main",
+        "step_3": "cd /var/www/gallerosnet && git pull origin main",
         "step_4": "npm install (if dependencies changed)",
         "step_5": "npm run build (frontend)",
-        "step_6": "sudo systemctl restart gallobets-backend",
+        "step_6": "sudo systemctl restart gallerosnet-backend",
         "tools": "SSH key authentication (no passwords)",
         "time_to_deploy": "2-3 minutes manual"
       },
@@ -913,7 +913,7 @@
       "status": "✅ Already implemented (backend/src/routes/push.ts)",
       "setup_step_1": "Generate VAPID keys: web-push generate-vapid-keys (run once)",
       "setup_step_2": "Add to .env: VAPID_PUBLIC_KEY=xxx, VAPID_PRIVATE_KEY=yyy",
-      "setup_step_3": "Restart backend: sudo systemctl restart gallobets-backend",
+      "setup_step_3": "Restart backend: sudo systemctl restart gallerosnet-backend",
       "endpoints": [
         "POST /api/push/subscribe - Browser registers for notifications",
         "POST /api/push/send - Admin sends to user (types: betting_window_open, fight_result, etc)"
