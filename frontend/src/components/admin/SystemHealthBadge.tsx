@@ -287,7 +287,6 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         )}

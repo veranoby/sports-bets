@@ -106,7 +106,8 @@ const AdminDashboard: React.FC = () => {
       const featuresMap = {
         betting_enabled: featuresData.betting_enabled === true,
         wallet_enabled: featuresData.wallets_enabled === true,
-        user_registration: featuresData.streaming_enabled === true, // Usamos streaming como proxy para registro
+        streaming_enabled: featuresData.streaming_enabled === true,
+        push_notifications_enabled: featuresData.push_notifications_enabled === true,
         event_creation: !featuresData.maintenance_mode, // Si no está en mantenimiento, eventos están habilitados
         loading: false,
       };

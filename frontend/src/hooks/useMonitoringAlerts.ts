@@ -159,6 +159,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
             setCriticalAlerts(data.critical);
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
+            setMetrics(data.metrics || null);
             console.log("📊 SSE: Received admin monitoring alerts data:", data);
           } else {
             console.error("❌ SSE: Invalid monitoring data format:", data);
@@ -186,6 +187,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
             setCriticalAlerts(data.critical);
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
+            setMetrics(data.metrics || null);
             console.log("📊 SSE: Received monitoring-update event:", data);
           } else {
             console.error(

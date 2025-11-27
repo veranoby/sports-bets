@@ -26,7 +26,9 @@ const AdminHeader = memo(() => {
             >
               <Bell className="w-5 h-5 text-theme-secondary" />
             </button>
-            <span className="text-sm text-theme-secondary">{user?.username}</span>
+            <span className="text-sm text-theme-secondary">
+              {user?.username}
+            </span>
             <button
               onClick={logout}
               className="flex btn-primary items-center gap-2 px-3 py-2 text-theme-secondary hover:text-theme-primary hover:bg-theme-accent rounded-lg transition-colors"
