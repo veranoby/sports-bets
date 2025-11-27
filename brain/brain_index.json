@@ -2,8 +2,9 @@
   "metadata": {
     "purpose": "Brain Index - Meta-cerebro para navegar el sistema BRAIN v2.0",
     "created": "2025-09-27",
-    "version": "2.0",
-    "last_updated": "2025-11-27"
+    "version": "2.1",
+    "last_updated": "2025-11-27",
+    "recent_update": "Added coordination_strategy_framework_updates section documenting IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK v5.4 - git-based evidence mandatory for all work reports"
   },
 
   "file_purposes": {
@@ -169,6 +170,55 @@
         "backend/src/config/database.ts",
         "brain/backlog.json"
       ]
+    }
+  },
+
+  "coordination_strategy_framework_updates": {
+    "implementation_and_reporting_optimization_framework_v5_4": {
+      "status": "IMPLEMENTED",
+      "implementation_date": "2025-11-27",
+      "version": "5.4",
+      "protocol_name": "IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK_2025_11_27",
+      "location": "brain/multi_ai_coordination_strategy.json lines 953-1225",
+      "trigger_incident": "Opción B Audit discovered 2 false claims out of 47 verified (95.7% accuracy): temporal mismatch (work date vs commit date) and feature anticipation (reported before implementation)",
+      "core_principles": [
+        "Work without verifiable evidence is fiction",
+        "Git commits are the single source of truth for implementation timing and scope",
+        "Evidence-based reporting eliminates false claims (45/47 claims with evidence were 100% accurate)"
+      ],
+      "mandatory_requirements": {
+        "git_commit_evidence": "ALL backlog work reports MUST include git_commits field with actual commit hashes",
+        "temporal_validation": "completion_date MUST match git commit timestamp, not task start date",
+        "feature_claims": "Claims about 'implemented feature X' must cite commit where feature was added",
+        "backlog_integrity": "Minimum required fields: task_id, status, completion_date (from git log), completed_by, git_commits, files_modified, verification_evidence"
+      },
+      "workflow_phases": [
+        "Phase 1: Pre-implementation git baseline (git status, git log, document branch)",
+        "Phase 2: Implementation with incremental commits (frequent commits with [CATEGORY] format)",
+        "Phase 3: Post-implementation evidence collection (git log, git diff --stat, npx tsc)",
+        "Phase 4: Backlog update with git citations (actual commit hashes, completion_date from git)"
+      ],
+      "bidirectional_audit_framework": {
+        "direction_A_backlog_to_code": "Verify documented claims are actually implemented (read files, run git show)",
+        "direction_B_code_to_backlog": "Verify implemented code is documented in backlog (git log comparison)",
+        "audit_frequency": "Monthly or after major work sessions (3+ hours)"
+      },
+      "enforcement": {
+        "zero_tolerance_date": "2025-11-27",
+        "rule": "No backlog updates without git_commits field after 2025-11-27",
+        "target_accuracy": "98%+ claim verification rate (current baseline: 95.7%)",
+        "ai_responsibilities": {
+          "executor": "Collect git evidence before reporting, cite actual commit hashes, verify dates with git log",
+          "director": "Verify executor claims with independent git log checks, reject reports without git evidence"
+        }
+      },
+      "impact": [
+        "Eliminates temporal mismatches (work date vs commit date)",
+        "Prevents feature anticipation (reporting before implementation)",
+        "Enables quick integrity audits with git-based verification",
+        "Establishes evidence-based culture: 'No git commit = didn't happen'"
+      ],
+      "business_value": "Maintains backlog as reliable project memory and single source of truth for work history. Enables accurate sprint planning, prevents wasted time on false claims, preserves user trust."
     }
   },
   

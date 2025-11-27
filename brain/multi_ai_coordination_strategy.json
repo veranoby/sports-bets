@@ -1,21 +1,23 @@
 {
   "📋_TABLE_OF_CONTENTS": {
     "ai_roles_and_preferences": "Lines 5-35 (READ FIRST - Core Configuration)",
-    "critical_rules": "Lines 36-396 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL)",
+    "critical_rules": "Lines 36-396 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL + PROTOCOL_EXECUTION_DISCIPLINE + IMPLEMENTATION_AND_REPORTING_OPTIMIZATION)",
     "role_responsibilities": "Lines 398-466",
     "execution_workflows": "Lines 467-556",
     "validation_gates": "Lines 557-616",
     "failure_recovery": "Lines 617-706",
     "recommended_practices": "Lines 707-896",
-    "business_clarifications": "Lines 897-996"
+    "business_clarifications": "Lines 897-996",
+    "implementation_and_reporting_framework": "Lines 953-1225 (Git-based evidence, backlog integrity, audit framework)"
   },
 
   "metadata": {
-    "version": "5.3",
+    "version": "5.4",
     "updated": "2025-11-27",
     "purpose": "Role-based AI orchestration framework - decoupled, resilient, and future-proof.",
     "note": "This file is READ-FIRST by all AIs. Core logic is based on ROLES, not specific models. Model selection is a configuration preference.",
     "prompt_files_location": "PROJECT ROOT (director-prompt.json, executor-prompt.json) - Role-based prompts for easier AI access.",
+    "changelog_v5.4": "Added IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK (lines 953-1225) - MANDATORY git commit evidence for all work reports. Prevents temporal mismatches and false feature claims. Based on 2025-11-27 Opción B Audit: 47 claims verified, 95.7% accuracy. Establishes git_commits field requirement, temporal validation protocol, backlog integrity standards, and bidirectional audit framework. Zero tolerance: No backlog updates without git evidence after 2025-11-27.",
     "changelog_v5.3": "Added UI_VERIFICATION_PROTOCOL (lines 283-396) - Prevents false affirmations about UI implementation. MANDATORY: Read .tsx/.jsx component files before claiming UI displays data. Never infer rendering from backend/hooks/interfaces alone. Incident lesson: 2025-11-27 SystemHealthBadge metrics claim without reading component JSX.",
     "changelog_v5.2": "Added AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 147-281) - Prevents unidirectional search, tool validation failures, and 'absence of finding = absence of existence' errors. Incident lesson: 2025-11-11 backend audit missed existing endpoints.",
     "changelog_v5.1": "Added DIRECTOR_PLANNING_PROTOCOL (lines 79-101) - Director MUST read this file BEFORE creating executor plans to incorporate all critical error prevention protocols"
@@ -948,5 +950,279 @@
 
     "applicability": "ALL AI sessions, ALL task types. This is a discipline framework, not a protocol for specific tasks.",
     "enforcement": "Session is INVALID if AI reads this protocol and ignores it. User should interrupt and restart session with commitment to execution discipline."
+  },
+
+  "🔴_IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK_2025_11_27": {
+    "severity": "CRITICAL",
+    "principle": "Work without verifiable evidence is fiction. Git commits are the single source of truth for implementation timing and scope.",
+    "incident_basis": "2025-11-27 Opción B Audit: 47 claims verified, 2 false claims detected (work date mismatch + feature reported before implementation). 95.7% accuracy proves framework works when evidence is present.",
+
+    "core_problem_analysis": {
+      "false_claim_pattern_1_temporal_mismatch": {
+        "description": "Work reported on date X but git commit shows date Y",
+        "example": "Task reported 2025-11-24, git shows 7be19c0f @ 2025-11-25 08:17:40",
+        "root_cause": "AI reports task start date, not actual commit completion date",
+        "impact": "Backlog chronology incorrect, wastes time in audits"
+      },
+      "false_claim_pattern_2_feature_anticipation": {
+        "description": "Feature reported as implemented before actual code exists",
+        "example": "Session 2 claimed 'persistent monitoring badge' but only dropdown existed. Persistent metrics added 3 days later in 0e6e74dd.",
+        "root_cause": "AI confuses intent/plan with actual implementation, or reports aspirational state",
+        "impact": "User discovers features don't exist when trying to use them, loss of trust"
+      },
+      "success_pattern_evidence_based_claims": {
+        "description": "When claims include file:line citations and git commits, accuracy is 100%",
+        "example": "45 out of 47 claims with evidence were TRUE (useMultiSSE.ts:29, systemSettingsService.ts:159, etc.)",
+        "lesson": "Evidence-based reporting eliminates false claims entirely"
+      }
+    },
+
+    "mandatory_git_commit_evidence_protocol": {
+      "rule_1_every_backlog_update_requires_commit_id": {
+        "requirement": "ALL backlog work reports MUST include git_commits field with actual commit hashes",
+        "format": "\"git_commits\": [\"e63e3812\", \"0e6e74dd\"]",
+        "verification": "AI must run 'git log --oneline -n 5' and cite actual commit hash from output",
+        "enforcement": "Backlog update without git_commits field is INCOMPLETE"
+      },
+      "rule_2_work_date_must_match_commit_timestamp": {
+        "requirement": "completion_date field MUST match git commit date, not task start date",
+        "verification_command": "git log --format='%ai' [commit_hash] to get actual timestamp",
+        "example": "Task started 2025-11-24, committed 2025-11-25 08:17:40 → completion_date: 2025-11-25",
+        "enforcement": "AI must run git log to verify date before updating backlog"
+      },
+      "rule_3_feature_claims_require_git_evidence": {
+        "requirement": "Claims about 'implemented feature X' must cite commit where feature was added",
+        "verification_workflow": [
+          "Step 1: Claim: 'Implemented persistent metrics display'",
+          "Step 2: Run: git log --all --oneline -- path/to/component.tsx",
+          "Step 3: Identify commit hash where feature was added (0e6e74dd)",
+          "Step 4: Include in report: \"git_commits\": [\"0e6e74dd\"], \"files_created\": [\"AdminHeaderMetricsBar.tsx\"]"
+        ],
+        "enforcement": "Feature claim without git commit citation is REJECTED"
+      }
+    },
+
+    "temporal_validation_protocol": {
+      "never_assume_dates": {
+        "rule": "NEVER use task assignment date or session start date as completion_date",
+        "correct_approach": "Run git log to get actual commit timestamp, use that as completion_date",
+        "command": "git log --format='%ai %H %s' --since='YYYY-MM-DD' --until='YYYY-MM-DD' | grep 'relevant keywords'"
+      },
+      "verify_chronological_consistency": {
+        "rule": "If multiple sessions reported, verify commits are in chronological order",
+        "example": "Session 1 (backend) → Session 2 (frontend) → Session 3 (integration) should have commits in same order",
+        "detection": "If git log shows commits out of order, investigate and correct backlog"
+      },
+      "timestamp_precision": {
+        "requirement": "Use git commit timestamp for completion_time field when available",
+        "format": "\"completion_time\": \"08:17:40\" (from git log --format='%H:%M:%S')",
+        "benefit": "Enables accurate time-tracking and session duration analysis"
+      }
+    },
+
+    "backlog_integrity_standards": {
+      "minimum_required_fields_for_work_reports": {
+        "always_required": [
+          "task_id (unique, descriptive)",
+          "status (COMPLETED/IN_PROGRESS/BLOCKED)",
+          "completion_date (from git log, not assumption)",
+          "completed_by (Model name + version)",
+          "git_commits (array of commit hashes)",
+          "files_modified (with line count changes)",
+          "verification_evidence (actual command outputs)"
+        ],
+        "strongly_recommended": [
+          "completion_time (HH:MM:SS from git)",
+          "git_diff_summary (X files changed, Y insertions, Z deletions)",
+          "typescript_validation (npx tsc --noEmit output)",
+          "build_validation (npm run build success/failure)"
+        ]
+      },
+      "evidence_citation_format": {
+        "file_changes": "\"file\": \"path/to/file.ts\", \"lines_modified\": \"45-60\", \"change\": \"Added metrics object to SSE events\"",
+        "command_outputs": "\"command\": \"npx tsc --noEmit\", \"result\": \"0 errors\", \"timestamp\": \"2025-11-27 13:25:00\"",
+        "git_evidence": "\"git_commits\": [\"e63e3812\"], \"commit_message\": \"[FIX] AdminHeaderMetricsBar + AdminDashboard feature flags\"",
+        "database_operations": "\"sql_command\": \"INSERT INTO...\", \"result\": \"INSERT 0 13\", \"verification\": \"SELECT COUNT(*) returned 13\""
+      },
+      "verification_checklist_before_backlog_update": [
+        "□ Ran git log to verify commit hash and timestamp",
+        "□ Ran git diff --stat to verify file changes",
+        "□ Ran npx tsc --noEmit to verify TypeScript compilation",
+        "□ Read actual modified files to verify claims (not assumptions)",
+        "□ Included file:line citations for all code changes",
+        "□ Cited command outputs (not simulated results)",
+        "□ Used actual git commit date as completion_date (not task start date)"
+      ]
+    },
+
+    "implementation_workflow_optimization": {
+      "phase_1_pre_implementation_git_baseline": {
+        "actions": [
+          "Run git status to verify clean working tree",
+          "Run git log --oneline -n 5 to capture starting point",
+          "Document current branch with git branch --show-current",
+          "Create feature branch if needed: git checkout -b feature/task-name"
+        ],
+        "purpose": "Establish verifiable baseline for comparing work completion"
+      },
+      "phase_2_implementation_with_incremental_commits": {
+        "best_practice": "Commit frequently with descriptive messages, not one giant commit",
+        "commit_message_format": "[CATEGORY] Brief description\n\nDetailed changes:\n- Change 1\n- Change 2\n\n🤖 Generated with Claude Code\nCo-Authored-By: [AI_Name]",
+        "categories": ["FIX", "FEATURE", "REFACTOR", "DOCS", "TEST", "CHECKPOINT", "BRAIN"],
+        "enforcement": "Each logical unit of work gets separate commit for easier audit"
+      },
+      "phase_3_post_implementation_evidence_collection": {
+        "required_commands_before_backlog_update": [
+          "git log --oneline -n 3 (capture commit hashes)",
+          "git diff --stat HEAD~1 (or HEAD~N for N commits)",
+          "git show --name-only [commit_hash] (verify files in specific commit)",
+          "npx tsc --noEmit (TypeScript validation)",
+          "git diff --name-only (verify no uncommitted changes)"
+        ],
+        "evidence_documentation": "Paste actual command outputs in backlog verification_evidence field"
+      },
+      "phase_4_backlog_update_with_git_citations": {
+        "workflow": [
+          "Open brain/backlog.json",
+          "Locate task entry or create new one",
+          "Add git_commits array with actual commit hashes from git log",
+          "Add completion_date from git log --format='%ai' [commit_hash]",
+          "Add verification_evidence with command outputs",
+          "Commit backlog update: git commit -m '[BRAIN] Update backlog with [task_name] completion evidence'"
+        ]
+      }
+    },
+
+    "reporting_optimization_best_practices": {
+      "use_structured_templates": {
+        "work_completion_report_template": {
+          "task_id": "DESCRIPTIVE_UNIQUE_ID_YYYY_MM_DD",
+          "status": "COMPLETED",
+          "completion_date": "YYYY-MM-DD (from git log)",
+          "completion_time": "HH:MM:SS (from git log)",
+          "git_commits": ["hash1", "hash2"],
+          "git_diff_summary": "X files changed, Y insertions(+), Z deletions(-)",
+          "files_modified": [
+            {"file": "path/to/file.ts", "lines": "45-60", "change": "Description"}
+          ],
+          "verification_evidence": {
+            "typescript": "npx tsc --noEmit: 0 errors",
+            "git_verification": "git show hash1 --name-only: [files]",
+            "functional_test": "Manual/automated test result"
+          }
+        }
+      },
+      "avoid_vague_language": {
+        "never_say": ["'Fixed some issues'", "'Made improvements'", "'Updated the code'", "'Implemented feature X' (without git commit)"],
+        "always_say": ["'Fixed 3 TypeScript errors in monitoring.ts:45-60 (commit e63e3812)'", "'Added metrics object to SSE events in monitoring.ts:506-528'", "'Implemented AdminHeaderMetricsBar component (180 lines, commit 0e6e74dd)'"]
+      },
+      "evidence_over_description": {
+        "principle": "Show, don't tell. Cite file:line and git commits instead of describing what you did.",
+        "example_bad": "'I added a new component for displaying metrics'",
+        "example_good": "'Created AdminHeaderMetricsBar.tsx (180 lines, commit 0e6e74dd) with color-coded severity display (lines 45-60)'"
+      }
+    },
+
+    "bidirectional_audit_framework": {
+      "when_to_audit": [
+        "After major work sessions (3+ hours of implementation)",
+        "Before releasing features to users",
+        "When claims seem inconsistent with observed behavior",
+        "Monthly backlog integrity reviews"
+      ],
+      "audit_methodology": {
+        "direction_A_backlog_to_code": {
+          "question": "Is what's documented in backlog actually implemented in code?",
+          "approach": [
+            "List all claims from backlog entry",
+            "For each claim, read cited file:line to verify",
+            "Run git show [commit_hash] to verify commit content",
+            "Mark claim as TRUE (with evidence) or FALSE (with counter-evidence)"
+          ]
+        },
+        "direction_B_code_to_backlog": {
+          "question": "Is what's implemented in code documented in backlog?",
+          "approach": [
+            "Run git log --since='start_date' --until='end_date' to list commits",
+            "For each commit, check if backlog has corresponding entry",
+            "Identify undocumented work (commits without backlog entry)",
+            "Add missing work to backlog with [RETROACTIVE] tag"
+          ]
+        }
+      },
+      "audit_report_template": {
+        "audit_metadata": {
+          "audit_date": "YYYY-MM-DD",
+          "tasks_audited": "List of task IDs",
+          "total_claims": "Number",
+          "verification_method": "Bidirectional (A→B and B→A)"
+        },
+        "findings": {
+          "verified_true": "Count + percentage",
+          "verified_false": "Count + percentage + specific examples",
+          "undocumented_work": "Git commits without backlog entry"
+        },
+        "false_claims_detail": [
+          {
+            "claim": "Description of false claim",
+            "evidence_against": "Git/file evidence proving claim false",
+            "correction": "What actually happened"
+          }
+        ],
+        "recommendations": [
+          "Specific actions to improve backlog accuracy"
+        ]
+      }
+    },
+
+    "enforcement_and_accountability": {
+      "ai_responsibilities": {
+        "executor_ai": [
+          "MUST commit work with descriptive messages",
+          "MUST collect git evidence before reporting completion",
+          "MUST cite actual commit hashes in completion reports",
+          "MUST verify dates with git log before reporting"
+        ],
+        "director_ai": [
+          "MUST verify executor claims with independent git log checks",
+          "MUST audit backlog updates for git_commits field presence",
+          "MUST run git show [hash] to verify commit content matches claims",
+          "MUST reject completion reports without git evidence"
+        ]
+      },
+      "user_responsibilities": {
+        "spot_check_backlog": "Randomly verify 2-3 claims per week with git show",
+        "question_vague_reports": "If report lacks git commits, ask AI to add them",
+        "run_audits_periodically": "Monthly Opción B style audits to maintain integrity"
+      },
+      "quality_metrics": {
+        "target_accuracy": "98%+ claim verification rate (current: 95.7%)",
+        "zero_tolerance": "No reports without git_commits field after 2025-11-27",
+        "audit_frequency": "Monthly bidirectional audits"
+      }
+    },
+
+    "lesson_learned_from_2025_11_27_audit": {
+      "what_worked_well": [
+        "Bidirectional audit caught false claims that unidirectional wouldn't",
+        "File:line citations enabled 100% accuracy for technical claims",
+        "Git evidence (when present) proved claims definitively",
+        "Systematic verification across 47 claims identified patterns"
+      ],
+      "what_needs_improvement": [
+        "Temporal validation: Dates must come from git log, not assumptions",
+        "Feature existence verification: Don't report features before git commit exists",
+        "Mandatory git_commits field: Make it impossible to update backlog without it"
+      ],
+      "prevention_going_forward": [
+        "This protocol makes git evidence MANDATORY, not optional",
+        "Template enforcement ensures no backlog update lacks verification",
+        "Audit framework enables quick integrity checks",
+        "Evidence-based culture: 'No git commit = didn't happen'"
+      ]
+    },
+
+    "applicability": "ALL AIs performing implementation work or updating brain/backlog.json. Mandatory for all work reports after 2025-11-27.",
+    "enforcement": "Backlog updates without git_commits field are REJECTED. Work without verifiable git evidence is considered incomplete."
   }
 }
