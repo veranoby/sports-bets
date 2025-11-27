@@ -3,7 +3,7 @@
     "purpose": "Brain Index - Meta-cerebro para navegar el sistema BRAIN v2.0",
     "created": "2025-09-27",
     "version": "2.0",
-    "last_updated": "2025-11-21"
+    "last_updated": "2025-11-27"
   },
 
   "file_purposes": {
@@ -105,6 +105,32 @@
     "impact": "Brain files now contain accurate, up-to-date information that matches actual implementation, eliminating discrepancies between documentation and code."
   },
   
+  "recent_critical_fixes_2025_11_27": {
+    "adminheader_metrics_sse_fix": {
+      "status": "COMPLETE",
+      "completion_date": "2025-11-27",
+      "problem": "AdminHeaderMetricsBar showed 'no data' - SSE not sending metrics object",
+      "solution": "Backend monitoring.ts:506-528 now includes metrics in SSE events, Frontend hook processes metrics from SSE",
+      "impact": "Real-time system monitoring restored: Memory, DB connections, Intervals, Admin SSE visible",
+      "commit": "e63e3812"
+    },
+    "admindashboard_feature_flags_fix": {
+      "status": "COMPLETE",
+      "completion_date": "2025-11-27",
+      "problem": "AdminDashboard showed all features disabled despite database having enabled=true",
+      "solution": "Fixed backend/frontend field name mismatch (betting vs betting_enabled, wallet vs wallets_enabled). Added flexible parsing for string/boolean/JSON values.",
+      "impact": "Dashboard correctly shows platform status: Betting, Wallets, Streaming, Push Notifications enabled",
+      "commit": "e63e3812"
+    },
+    "system_settings_production_defaults": {
+      "status": "COMPLETE",
+      "completion_date": "2025-11-27",
+      "records_inserted": 13,
+      "categories": ["subscription (5 settings)", "platform (8 settings)"],
+      "impact": "Complete production configuration in PostgreSQL system_settings table"
+    }
+  },
+
   "completed_optimizations": {
     "connection_optimizations_phase_1": {
       "status": "COMPLETE",
