@@ -1,8 +1,8 @@
-# GalloBets SSE Architecture - Complete Implementation Summary
+# Galleros.Net SSE Architecture - Complete Implementation Summary
 
 ## 🏗️ Architecture Overview
 
-This implementation provides a complete Server-Sent Events (SSE) architecture for GalloBets admin real-time updates, complemented by a minimal WebSocket service for PAGO/DOY proposals only.
+This implementation provides a complete Server-Sent Events (SSE) architecture for Galleros.Net admin real-time updates, complemented by a minimal WebSocket service for PAGO/DOY proposals only.
 
 ### 🔑 Key Design Decisions
 
@@ -286,4 +286,4 @@ The system implements graceful shutdown handling:
 
 ---
 
-This complete SSE architecture provides a robust, scalable foundation for GalloBets real-time admin updates while maintaining clear separation between SSE (admin updates) and WebSocket (user proposals) concerns.
+This complete SSE architecture provides a robust, scalable foundation for Galleros.Net real-time admin updates while maintaining clear separation between SSE (admin updates) and WebSocket (user proposals) concerns.

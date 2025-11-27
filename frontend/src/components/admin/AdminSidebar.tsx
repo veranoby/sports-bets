@@ -102,7 +102,7 @@ const AdminSidebar: React.FC = () => {
   return (
     <div className="bg-gray-900 text-white w-64 min-h-screen flex flex-col">
       <div className="p-4 border-b border-gray-800">
-        <h1 className="text-xl font-bold">GalloBets Admin</h1>
+        <h1 className="text-xl font-bold">Galleros.Net Admin</h1>
         <div className="flex items-center mt-2 text-sm">
           <Shield className="w-4 h-4 mr-2" />
           <span className="capitalize">{user?.role}</span>

@@ -64,7 +64,7 @@ const BankInfo = () => (
       <div className="font-medium text-gray-500">Número de Cuenta:</div>
       <div className="text-gray-800">2100123456</div>
       <div className="font-medium text-gray-500">Beneficiario:</div>
-      <div className="text-gray-800">GalloBets S.A.</div>
+      <div className="text-gray-800">Galleros.Net S.A.</div>
       <div className="font-medium text-gray-500">RUC:</div>
       <div className="text-gray-800">1792345678001</div>
     </div>

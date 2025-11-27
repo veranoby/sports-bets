@@ -2,7 +2,7 @@
 
 **Estado**: ✅ **PRODUCCIÓN READY** - Tutorial verificado contra implementación actual
 **Última actualización**: 28 septiembre 2025
-**Para**: Administradores y Operadores de la plataforma GalloBets
+**Para**: Administradores y Operadores de la plataforma Galleros.Net
 
 ---
 

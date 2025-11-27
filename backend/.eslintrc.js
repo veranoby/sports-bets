@@ -12,7 +12,7 @@ module.exports = {
     '@typescript-eslint/recommended-requiring-type-checking',
   ],
   rules: {
-    // GalloBets specific rules
+    // Galleros.Net specific rules
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

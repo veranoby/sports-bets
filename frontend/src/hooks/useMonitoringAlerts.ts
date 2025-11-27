@@ -40,7 +40,7 @@ export interface UseMonitoringAlertsReturn {
   alertCount: number;
   criticalAlerts: number;
   warningAlerts: number;
-  metrics: MonitoringAlertData['metrics'] | null;
+  metrics: MonitoringAlertData["metrics"] | null;
   loading: boolean;
   error: string | null;
   refreshAlerts: () => void;
@@ -51,7 +51,9 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
   const [alertCount, setAlertCount] = useState<number>(0);
   const [criticalAlerts, setCriticalAlerts] = useState<number>(0);
   const [warningAlerts, setWarningAlerts] = useState<number>(0);
-  const [metrics, setMetrics] = useState<MonitoringAlertData['metrics'] | null>(null);
+  const [metrics, setMetrics] = useState<MonitoringAlertData["metrics"] | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

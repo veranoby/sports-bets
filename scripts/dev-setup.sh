@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# GalloBets - Development Environment Setup Script
+# Galleros.Net - Development Environment Setup Script
 # Optimiza el ambiente de desarrollo local
 
 set -e
 
-echo "🎮 GalloBets Development Environment Setup"
+echo "🎮 Galleros.Net Development Environment Setup"
 echo "=========================================="
 
 # Colors
@@ -87,7 +87,7 @@ fi
 
 log_step "5. Development environment summary"
 echo ""
-echo "🎯 GalloBets Development Status:"
+echo "🎯 Galleros.Net Development Status:"
 echo "  • Backend API: http://localhost:3001"
 echo "  • Frontend UI: http://localhost:5174 (or 5173)"
 echo "  • Database: PostgreSQL via Neon.tech"
@@ -109,5 +109,5 @@ if [[ -f "deployment/README-DEPLOYMENT.md" ]]; then
     log_info "📦 Production deployment scripts ready in deployment/"
 fi
 
-echo "🚀 Development environment optimized for GalloBets!"
+echo "🚀 Development environment optimized for Galleros.Net!"
 echo "=========================================="

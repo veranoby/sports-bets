@@ -1,4 +1,4 @@
-# GalloBets SSE Architecture - API Specification
+# Galleros.Net SSE Architecture - API Specification
 
 ## Complete SSE (Server-Sent Events) Architecture for Admin Real-time Updates
 
@@ -611,4 +611,4 @@ socket.emit('create_pago_proposal', {
 
 ---
 
-This specification provides everything needed to implement the complete SSE architecture for GalloBets admin real-time updates. The frontend team should use this as the definitive reference for implementing SSE hooks and admin dashboard real-time features.
+This specification provides everything needed to implement the complete SSE architecture for Galleros.Net admin real-time updates. The frontend team should use this as the definitive reference for implementing SSE hooks and admin dashboard real-time features.

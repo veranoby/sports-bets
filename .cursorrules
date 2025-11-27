@@ -1,4 +1,4 @@
-# GalloBets - Reglas de Desarrollo Optimizadas V9
+# Galleros.Net - Reglas de Desarrollo Optimizadas V9
 
 ## Arquitectura Moderna React + Anti Memory Leaks
 
@@ -393,7 +393,7 @@ try {
 // ✅ Token structure estándar
 const token = jwt.sign({ userId, role, sessionId }, process.env.JWT_SECRET, {
   expiresIn: "7d",
-  issuer: "gallobets",
+  issuer: "gallerosnet",
 });
 ```
 

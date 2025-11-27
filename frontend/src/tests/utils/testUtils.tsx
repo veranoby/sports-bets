@@ -72,17 +72,17 @@ const customRender = (ui: ReactElement, options?: CustomRenderOptions) => {
 export const mockUsers = {
   admin: {
     id: "1",
-    email: "admin@gallobets.com",
+    email: "admin@galleros.net",
     role: "admin" as const,
   },
   operator: {
     id: "2",
-    email: "operator@gallobets.com",
+    email: "operator@galleros.net",
     role: "operator" as const,
   },
   venue: {
     id: "3",
-    email: "venue@gallobets.com",
+    email: "venue@galleros.net",
     role: "venue" as const,
     subscription: {
       type: "monthly" as const,
@@ -91,7 +91,7 @@ export const mockUsers = {
   },
   user: {
     id: "4",
-    email: "user@gallobets.com",
+    email: "user@galleros.net",
     role: "user" as const,
     subscription: {
       type: "daily" as const,

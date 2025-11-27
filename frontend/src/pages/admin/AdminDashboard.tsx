@@ -286,7 +286,7 @@ const AdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-theme-primary">
-          Panel de Administración
+          Panel de Inicio Rapido
         </h1>
         <p className="text-theme-secondary">
           Última actualización: {lastRefresh.toLocaleTimeString()}

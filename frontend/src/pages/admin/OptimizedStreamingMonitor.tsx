@@ -95,7 +95,7 @@ const OptimizedStreamingMonitor: React.FC = () => {
           },
           {
             id: "3",
-            name: "Gran Final GalloBets",
+            name: "Gran Final Galleros.Net",
             status: "betting",
             scheduledTime: "2025-11-22T20:00:00Z",
             currentViewers: 0,

@@ -17,7 +17,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const mailOptions = {
     from: process.env.SMTP_FROM,
     to: email,
-    subject: 'Verifica tu cuenta - GalloBets',
+    subject: 'Verifica tu cuenta - Galleros.Net',
     html: `
       <h1>Verifica tu cuenta</h1>
       <p>Haz clic en el siguiente enlace para verificar tu cuenta:</p>

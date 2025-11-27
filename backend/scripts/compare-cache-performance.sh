@@ -10,7 +10,7 @@ AUTH_TOKEN="${TEST_AUTH_TOKEN:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQi
 # Output file for JSON results
 OUTPUT_FILE="/tmp/cache-comparison-$(date +%s).json"
 
-echo "GalloBets Cache Performance Comparison Tool"
+echo "Galleros.Net Cache Performance Comparison Tool"
 echo "==========================================="
 
 # Function to make API request and return response time

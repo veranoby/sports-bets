@@ -2,7 +2,7 @@
  * SSE Integration Service
  *
  * This service provides integration points for triggering SSE events
- * from various parts of the GalloBets application (fights, bets, users, etc.)
+ * from various parts of the Galleros.Net application (fights, bets, users, etc.)
  *
  * Usage: Import and call these functions when relevant events occur
  * in controllers, services, or model hooks.

@@ -68,7 +68,7 @@ nms.on('donePlay', (id, StreamPath, args) => {
 });
 
 
-console.log('🚀 Starting GalloBets RTMP Server...');
+console.log('🚀 Starting Galleros.Net RTMP Server...');
 console.log('📡 RTMP: rtmp://localhost:1935/live');
 console.log('🌐 HTTP: http://localhost:8000');
 console.log('');

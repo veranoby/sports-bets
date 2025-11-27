@@ -107,8 +107,12 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
 
         // Check if we've reached the maximum retry attempts
         if (retryCountRef.current >= MAX_SSE_RETRIES) {
-          console.error(`❌ SSE: Max retries (${MAX_SSE_RETRIES}) reached for streaming monitoring. Stopping reconnection.`);
-          setError(new Error(`Connection failed after ${MAX_SSE_RETRIES} attempts`));
+          console.error(
+            `❌ SSE: Max retries (${MAX_SSE_RETRIES}) reached for streaming monitoring. Stopping reconnection.`,
+          );
+          setError(
+            new Error(`Connection failed after ${MAX_SSE_RETRIES} attempts`),
+          );
           return;
         }
 

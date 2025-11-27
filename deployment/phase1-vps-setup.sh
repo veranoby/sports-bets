@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# GalloBets Production Streaming Infrastructure
+# Galleros.Net Production Streaming Infrastructure
 # Phase 1: DigitalOcean VPS Setup with nginx-rtmp
 # Version: 4.0-production-deployment
 # Target: Ubuntu 22.04 LTS
 
 set -e  # Exit on any error
 
-echo "🚀 Starting GalloBets Phase 1: VPS Setup"
+echo "🚀 Starting Galleros.Net Phase 1: VPS Setup"
 echo "Target: DigitalOcean VPS with nginx-rtmp streaming server"
 echo "========================================================"
 

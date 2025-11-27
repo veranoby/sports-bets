@@ -835,5 +835,118 @@
     },
     "applicability": "All AI sessions involving testing, validation, monitoring, or reporting of system behavior",
     "enforcement": "Any AI found fabricating or simulating results before actual execution must stop immediately, acknowledge the error, and perform the actual tests or validations requested."
+  },
+
+  "🔴_PROTOCOL_EXECUTION_DISCIPLINE_2025_11_27": {
+    "severity": "CRITICAL",
+    "principle": "Reading protocols ≠ executing protocols. Knowledge of rules is meaningless without disciplined application.",
+    "incident_2025_11_27": {
+      "what_happened": "AdminHeader reported as 'COMPLETED with persistent system monitoring badge' in backlog. User verified actual component showed only collapsible dropdown. Metrics were NOT permanently visible.",
+      "root_cause": "AI (Haiku/Director) read UI_VERIFICATION_PROTOCOL (line 284-396) but did NOT apply it. Read AdminHeader.tsx to validate claim BEFORE accepting completion.",
+      "lesson": "Protocols exist only if executed. Theoretical knowledge without action = protocol violation.",
+      "responsibility": "Director AI (validation role) failed to independently verify executor claims using required validation gates (line 757-761: EVIDENCE_BASED_VALIDATION_PROTOCOL)"
+    },
+
+    "execution_discipline_framework": {
+      "principle_1_read_then_execute": {
+        "rule": "For every critical protocol (UI_VERIFICATION, AUDIT_METHODOLOGY, EVIDENCE_BASED_VALIDATION, SIMULATE_Y_CONFIRMAR), reading the protocol section is STEP 1, EXECUTION is STEP 2.",
+        "execution_checklist": [
+          "Step 1: Read protocol section completely",
+          "Step 2: Identify which actions the protocol requires (Read file? Run command? Validate output?)",
+          "Step 3: ACTUALLY PERFORM each required action (not skip, not assume, not trust others' claims)",
+          "Step 4: Document evidence of execution (file paths, command outputs, line numbers)",
+          "Step 5: Only then accept completion or validate claims"
+        ],
+        "anti_pattern": "Read UI_VERIFICATION_PROTOCOL, then say 'Yes UI is implemented' without reading component file",
+        "enforcement": "AI must cite PROOF of execution, not just knowledge of protocol"
+      },
+
+      "principle_2_validation_gates_are_mandatory": {
+        "rule": "Every validation gate (TypeScript, build, scope, evidence) is MANDATORY unless explicitly waived in execution_mode='trusted' for LOW complexity",
+        "gates_always_mandatory": [
+          "TypeScript compilation: npx tsc --noEmit (NEVER skip, NEVER trust without running)",
+          "Evidence-based validation: Run commands yourself, don't trust reports",
+          "UI verification: Read actual .tsx files, don't infer from interfaces/hooks/backend"
+        ],
+        "gates_conditionally_skippable": [
+          "Build process: Can skip in trusted mode for UI-only changes ONLY AFTER TypeScript passes"
+        ],
+        "enforcement": "AI must OUTPUT evidence (actual command results) not claims"
+      },
+
+      "principle_3_trust_but_verify": {
+        "rule": "When a previous AI reports completion: 'Trust their effort, verify their claims independently'",
+        "three_tier_validation": [
+          "Tier 1 - File verification: Read actual source files (not reports, not claims)",
+          "Tier 2 - Command validation: Run commands yourself (npx tsc, npm run build, git diff)",
+          "Tier 3 - Functional testing: Verify the feature actually works (load component in browser, execute action)"
+        ],
+        "red_flags_requiring_deeper_investigation": [
+          "Executor report says 'X is implemented' but you haven't read component file",
+          "Executor report includes command output but you haven't verified those commands exist in the codebase",
+          "UI claim includes no line numbers or file paths",
+          "Report says 'X errors fixed' but provides no before/after evidence"
+        ],
+        "enforcement": "Director AI MUST independently validate before updating backlog or reporting success"
+      },
+
+      "principle_4_evidence_is_not_optional": {
+        "rule": "Every claim must be supported by independently verifiable evidence. No exceptions.",
+        "evidence_hierarchy": [
+          "Primary evidence: Actual file content (Read tool output) with line numbers",
+          "Secondary evidence: Command execution output (Bash tool results)",
+          "Tertiary evidence: Git diffs showing actual changes",
+          "NOT evidence: 'I wrote the code', 'I believe it works', 'The feature should be there'"
+        ],
+        "required_evidence_for_completion_claims": [
+          "File content: 'AdminHeaderMetricsBar.tsx:45-60 shows metric rendering with color-coded classes'",
+          "Command output: 'npx tsc --noEmit returned 0 errors (actual bash output pasted)'",
+          "Git diff: 'git diff --name-only shows only [AdminHeader.tsx, AdminHeaderMetricsBar.tsx, SystemHealthBadge.tsx]'",
+          "Functional test: 'Opened browser, clicked AdminHeader, metrics displayed in real-time'"
+        ],
+        "enforcement": "AI must cite specific file:line references and command outputs. Claims without evidence are rejected."
+      },
+
+      "principle_5_execution_discipline_is_personal_responsibility": {
+        "rule": "Each AI bears personal responsibility for protocol execution. Cannot blame previous AI or claim 'the protocol wasn't clear'.",
+        "responsibilities": [
+          "Director AI: Verify executor work independently using validation gates. Not optional.",
+          "Executor AI: Execute tasks using required protocols. Not optional.",
+          "Both: If you read a protocol, you must execute it. Knowledge creates obligation."
+        ],
+        "what_NOT_to_do": [
+          "❌ 'The protocol says X, but I'll skip it because I'm in a hurry'",
+          "❌ 'I trust Qwen's report, so I won't verify independently'",
+          "❌ 'The protocol is complex, so I'll just guess'",
+          "❌ 'I read the UI_VERIFICATION_PROTOCOL but I'll affirm UI without reading component'"
+        ],
+        "enforcement": "Any AI that violates execution discipline must: (1) Acknowledge the violation, (2) Explain why it happened, (3) Perform the required action now"
+      }
+    },
+
+    "implementation_for_all_ais": {
+      "session_start_checklist": [
+        "□ Read ~/.claude/CLAUDE.md (mandatory framework)",
+        "□ Read brain/brain_index.json (navigation)",
+        "□ Read brain/multi_ai_coordination_strategy.json (THIS FILE - coordination rules)",
+        "□ Check if this incident lesson applies to my task",
+        "□ Before executing critical tasks (UI, validation, reports): explicitly cite the protocol section + execution checklist"
+      ],
+      "during_task_execution": [
+        "□ For EVERY protocol reference: cite line numbers from multi_ai_coordination_strategy.json",
+        "□ For EVERY claim: provide evidence (file:line or command output)",
+        "□ For EVERY validation gate: execute it yourself, don't skip or assume",
+        "□ If tempted to skip: STOP and ask why, then execute anyway"
+      ],
+      "before_reporting_completion": [
+        "□ Have I actually performed every required action, or just read about it?",
+        "□ Can I cite 3+ pieces of evidence for each claim?",
+        "□ Did I run verification commands myself (npx tsc, git diff, etc.)?",
+        "□ If answer to any above is NO: go back and do it now"
+      ]
+    },
+
+    "applicability": "ALL AI sessions, ALL task types. This is a discipline framework, not a protocol for specific tasks.",
+    "enforcement": "Session is INVALID if AI reads this protocol and ignores it. User should interrupt and restart session with commitment to execution discipline."
   }
 }

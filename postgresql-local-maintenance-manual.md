@@ -1,6 +1,6 @@
 # 📋 MANUAL DE MANTENIMIENTO: PostgreSQL Local (Semanal)
 
-**Para:** GalloBets con Nginx RTMP + PostgreSQL local
+**Para:** Galleros.Net con Nginx RTMP + PostgreSQL local
 **Frecuencia:** Actividades semanales (30 min/semana)
 **Responsable:** Veranoby o DevOps designado
 
@@ -40,7 +40,7 @@ sudo systemctl status postgresql
 sudo -u postgres psql -c "SELECT datname, count(*) FROM pg_stat_activity GROUP BY datname;"
 
 # Ver tamaño de la BD
-sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('gallobets'));"
+sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('gallerosnet'));"
 ```
 
 **Qué buscar:**
@@ -61,14 +61,14 @@ sudo mkdir -p /var/backups/postgres
 sudo chown postgres:postgres /var/backups/postgres
 
 # Crear script de backup
-sudo tee /usr/local/bin/backup-gallobets.sh > /dev/null << 'EOF'
+sudo tee /usr/local/bin/backup-gallerosnet.sh > /dev/null << 'EOF'
 #!/bin/bash
 BACKUP_DIR="/var/backups/postgres"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/gallobets_$DATE.sql"
 
 # Full backup comprimido
-sudo -u postgres pg_dump gallobets | gzip > "$BACKUP_FILE.gz"
+sudo -u postgres pg_dump gallerosnet | gzip > "$BACKUP_FILE.gz"
 
 # Mantener últimos 4 backups (28 días si es 1/semana)
 ls -t "$BACKUP_DIR"/gallobets_*.sql.gz | tail -n +5 | xargs -r rm
@@ -76,12 +76,12 @@ ls -t "$BACKUP_DIR"/gallobets_*.sql.gz | tail -n +5 | xargs -r rm
 echo "✅ Backup completado: $BACKUP_FILE.gz"
 EOF
 
-sudo chmod +x /usr/local/bin/backup-gallobets.sh
+sudo chmod +x /usr/local/bin/backup-gallerosnet.sh
 
 # Agregar a cron (cada domingo 11:00 PM)
 sudo crontab -e
 # Agregar esta línea:
-# 0 23 * * 0 /usr/local/bin/backup-gallobets.sh
+# 0 23 * * 0 /usr/local/bin/backup-gallerosnet.sh
 
 # Verificar que está instalado
 sudo crontab -l | grep backup
@@ -167,7 +167,7 @@ sudo tail -50 /var/log/postgresql/postgresql.log | grep "duration:"
 ```bash
 # VACUUM: Limpia espacio muerto
 # ANALYZE: Actualiza estadísticas para query optimizer
-sudo -u postgres psql gallobets << 'EOF'
+sudo -u postgres psql gallerosnet << 'EOF'
 \timing on
 VACUUM ANALYZE;
 EOF
@@ -181,7 +181,7 @@ EOF
 **Alternativa automatizada (cron, en lugar de manual):**
 ```bash
 # Agregar a crontab (miércoles 2:00 AM):
-# 0 2 * * 3 sudo -u postgres psql gallobets -c "VACUUM ANALYZE;"
+# 0 2 * * 3 sudo -u postgres psql gallerosnet -c "VACUUM ANALYZE;"
 ```
 
 ---
@@ -226,7 +226,7 @@ GROUP BY application_name;"
 **Comando semanal:**
 ```bash
 # Ver índices que NO están siendo usados
-sudo -u postgres psql gallobets << 'EOF'
+sudo -u postgres psql gallerosnet << 'EOF'
 SELECT
     t.relname as table,
     i.relname as index,
@@ -278,7 +278,7 @@ sudo rm /var/log/postgresql/postgresql-*.log
 sudo find /var/log/postgresql -name "*.log" -exec gzip {} \;
 
 # Opción 3: REINDEX (LENTO, 30-60 min)
-sudo -u postgres psql gallobets -c "REINDEX DATABASE gallobets;"
+sudo -u postgres psql gallerosnet -c "REINDEX DATABASE gallerosnet;"
 ```
 
 ### Problema: "PostgreSQL no inicia"
@@ -299,7 +299,7 @@ sudo -u postgres pg_ctl -D /var/lib/postgresql/17/main status
 ### Problema: "Queries muy lentas"
 ```bash
 # Ver queries más lentas actualmente
-sudo -u postgres psql gallobets << 'EOF'
+sudo -u postgres psql gallerosnet << 'EOF'
 SELECT
     pid,
     now() - pg_stat_activity.query_start AS duration,
@@ -378,7 +378,7 @@ ACCIONES TOMADAS: [LIST]
 - ✅ Nginx server CPU >60% constantly
 - ✅ Network bandwidth output >500 Mbps average
 - ✅ Latency for users >200ms in other regions
-- ✅ GalloBets approaching 600+ concurrent users
+- ✅ Galleros.Net approaching 600+ concurrent users
 
 **When Phase 1B triggered:**
 1. Agregar Bunny CDN Pull Zone ($108-216/mo)

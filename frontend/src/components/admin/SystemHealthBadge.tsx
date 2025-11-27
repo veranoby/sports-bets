@@ -8,9 +8,7 @@ import {
   AlertCircle,
   CheckCircle,
   AlertOctagon,
-  ExternalLink,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import useMonitoringAlerts from "../../hooks/useMonitoringAlerts";
 
 interface SystemHealthBadgeProps {
@@ -205,13 +203,17 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
               {/* System Metrics - Always show if available */}
               {metrics && (
                 <div className="pt-3 mt-3 border-t border-gray-200 space-y-2">
-                  <p className="text-xs text-gray-500 font-semibold mb-2">System Metrics:</p>
+                  <p className="text-xs text-gray-500 font-semibold mb-2">
+                    System Metrics:
+                  </p>
 
                   {/* Memory */}
                   <div className="text-xs text-gray-700">
                     <span className="font-medium">Memory:</span>{" "}
                     {metrics.memory.currentMB} MB / {metrics.memory.limitMB} MB
-                    <span className={`ml-1 ${metrics.memory.percentUsed > 80 ? 'text-red-600' : metrics.memory.percentUsed > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                    <span
+                      className={`ml-1 ${metrics.memory.percentUsed > 80 ? "text-red-600" : metrics.memory.percentUsed > 60 ? "text-yellow-600" : "text-green-600"}`}
+                    >
                       ({metrics.memory.percentUsed}%)
                     </span>
                   </div>
@@ -219,8 +221,9 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
                   {/* Database Connections */}
                   <div className="text-xs text-gray-700">
                     <span className="font-medium">DB Pool:</span>{" "}
-                    {metrics.database.activeConnections} / {metrics.database.totalConnections} active
-                    ({metrics.database.freeConnections} free)
+                    {metrics.database.activeConnections} /{" "}
+                    {metrics.database.totalConnections} active (
+                    {metrics.database.freeConnections} free)
                     {metrics.database.queuedRequests > 0 && (
                       <span className="ml-1 text-red-600">
                         , {metrics.database.queuedRequests} queued
@@ -232,16 +235,21 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
                   <div className="text-xs text-gray-700">
                     <span className="font-medium">Intervals:</span>{" "}
                     {metrics.intervals.activeCount} active
-                    <span className={`ml-1 ${metrics.intervals.activeCount > 50 ? 'text-red-600' : metrics.intervals.activeCount > 30 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {metrics.intervals.activeCount > 50 ? '(HIGH!)' : '(OK)'}
+                    <span
+                      className={`ml-1 ${metrics.intervals.activeCount > 50 ? "text-red-600" : metrics.intervals.activeCount > 30 ? "text-yellow-600" : "text-green-600"}`}
+                    >
+                      {metrics.intervals.activeCount > 50 ? "(HIGH!)" : "(OK)"}
                     </span>
                   </div>
 
                   {/* Admin SSE Connections */}
                   <div className="text-xs text-gray-700">
                     <span className="font-medium">Admin SSE:</span>{" "}
-                    {metrics.adminSSE.activeConnections} / {metrics.adminSSE.maxConnections} connections
-                    <span className={`ml-1 ${metrics.adminSSE.percentUsed > 80 ? 'text-red-600' : metrics.adminSSE.percentUsed > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                    {metrics.adminSSE.activeConnections} /{" "}
+                    {metrics.adminSSE.maxConnections} connections
+                    <span
+                      className={`ml-1 ${metrics.adminSSE.percentUsed > 80 ? "text-red-600" : metrics.adminSSE.percentUsed > 60 ? "text-yellow-600" : "text-green-600"}`}
+                    >
                       ({metrics.adminSSE.percentUsed}%)
                     </span>
                   </div>
@@ -280,15 +288,6 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
                 </div>
               )}
 
-              {/* Link to full monitoring page */}
-              <Link
-                to="/admin/monitoring"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium mt-4 pt-3 border-t border-gray-200"
-                onClick={() => setShowDropdown(false)}
-              >
-                <span>View full monitoring dashboard</span>
-                <ExternalLink className="w-4 h-4" />
-              </Link>
             </div>
           </div>
         )}

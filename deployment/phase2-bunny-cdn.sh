@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# GalloBets Production Streaming Infrastructure
+# Galleros.Net Production Streaming Infrastructure
 # Phase 2: Bunny.net CDN Integration
 # Version: 4.0-production-deployment
 
 set -e
 
-echo "🚀 Starting GalloBets Phase 2: Bunny.net CDN Integration"
+echo "🚀 Starting Galleros.Net Phase 2: Bunny.net CDN Integration"
 echo "========================================================="
 
 # Colors for output
@@ -62,7 +62,7 @@ rtmp {
         application live {
             live on;
             
-            # Enhanced authentication with GalloBets backend
+            # Enhanced authentication with Galleros.Net backend
             on_publish ${BACKEND_URL}/api/stream/auth;
             on_publish_done ${BACKEND_URL}/api/stream/end;
             on_record_done ${BACKEND_URL}/api/stream/recorded;
@@ -197,7 +197,7 @@ log_step "Phase 2.A3: Testing CDN distribution"
 
 # Create test monitoring script
 log_info "Creating monitoring script for stream testing..."
-sudo tee /usr/local/bin/gallobets-stream-monitor.sh > /dev/null << 'EOF'
+sudo tee /usr/local/bin/gallerosnet-stream-monitor.sh > /dev/null << 'EOF'
 #!/bin/bash
 
 STREAM_NAME="$1"
@@ -233,7 +233,7 @@ echo -e "\n📝 Recent Nginx Logs:"
 tail -5 /var/log/nginx/error.log
 EOF
 
-sudo chmod +x /usr/local/bin/gallobets-stream-monitor.sh
+sudo chmod +x /usr/local/bin/gallerosnet-stream-monitor.sh
 
 # Validation tests
 log_step "Performing validation tests..."
@@ -276,12 +276,12 @@ log_info "Configuration Summary:"
 echo "  • Bunny.net Ingest: ${BUNNY_INGEST_URL}"
 echo "  • Backend Integration: ${BACKEND_URL}"
 echo "  • Local HLS: http://$(curl -s ifconfig.me):8080/hls/"
-echo "  • Stream Monitor: gallobets-stream-monitor.sh <stream_name>"
+echo "  • Stream Monitor: gallerosnet-stream-monitor.sh <stream_name>"
 echo ""
 log_info "Next Steps:"
 echo "  1. Test streaming with OBS Studio (Phase 3)"
 echo "  2. Verify CDN distribution in Bunny.net dashboard"
 echo "  3. Monitor stream quality and latency"
 echo ""
-log_warn "IMPORTANT: Ensure GalloBets backend is running for authentication"
+log_warn "IMPORTANT: Ensure Galleros.Net backend is running for authentication"
 echo "========================================================="

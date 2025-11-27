@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "purpose": "TypeScript interface reference for GalloBets platform",
+    "purpose": "TypeScript interface reference for Galleros.Net platform",
     "version": "3.3",
     "last_updated": "2025-11-24",
     "changelog": "Added WalletOperation and SystemSetting interfaces. Updated Bet interface with PAGO/DOY support (betType: 'flat'|'doy'|'pago', terms.pagoAmount, terms.doyAmount). Documented wallet operations workflow and system settings structure.",
@@ -1022,7 +1022,7 @@
         }
       },
       "usage_patterns": [
-        "Used in GalloBetsSSEService for connection tracking and management",
+        "Used in Galleros.NetSSEService for connection tracking and management",
         "Enables adaptive heartbeat based on connection activity patterns",
         "Supports connection health monitoring and auto-cleanup"
       ],

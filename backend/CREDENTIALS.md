@@ -1,4 +1,4 @@
-# GalloBets - Test Credentials
+# Galleros.Net - Test Credentials
 
 **Last Updated:** 2025-10-02
 

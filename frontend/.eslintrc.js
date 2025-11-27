@@ -32,7 +32,7 @@ module.exports = {
     '@typescript-eslint'
   ],
   rules: {
-    // GalloBets specific rules for betting platform
+    // Galleros.Net specific rules for betting platform
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true }

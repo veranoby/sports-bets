@@ -20,8 +20,8 @@ describe('Complete Streaming Flow - OBS to User', () => {
         success: true,
         data: {
           streamId: 'live_stream_123',
-          rtmpUrl: 'rtmp://stream.gallobets.com/live/test_stream_key',
-          hlsUrl: 'https://stream.gallobets.com/hls/test_stream_key.m3u8',
+          rtmpUrl: 'rtmp://stream.galleros.net/live/test_stream_key',
+          hlsUrl: 'https://stream.galleros.net/hls/test_stream_key.m3u8',
           streamKey: 'test_stream_key'
         }
       }
@@ -32,7 +32,7 @@ describe('Complete Streaming Flow - OBS to User', () => {
       body: {
         success: true,
         data: {
-          streamUrl: 'https://stream.gallobets.com/hls/test_stream_key.m3u8',
+          streamUrl: 'https://stream.galleros.net/hls/test_stream_key.m3u8',
           token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
           expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         }
@@ -84,7 +84,7 @@ describe('Complete Streaming Flow - OBS to User', () => {
       // Verify stream started
       cy.wait('@startStream')
       cy.get('[data-testid="stream-status"]').should('contain', 'Live')
-      cy.get('[data-testid="rtmp-url"]').should('contain', 'rtmp://stream.gallobets.com/live')
+      cy.get('[data-testid="rtmp-url"]').should('contain', 'rtmp://stream.galleros.net/live')
       cy.get('[data-testid="stream-key"]').should('be.visible')
 
       // Verify OBS setup instructions
@@ -320,7 +320,7 @@ describe('Complete Streaming Flow - OBS to User', () => {
         body: {
           success: true,
           data: {
-            streamUrl: 'https://stream.gallobets.com/hls/test.m3u8',
+            streamUrl: 'https://stream.galleros.net/hls/test.m3u8',
             token: 'valid_token'
           }
         }

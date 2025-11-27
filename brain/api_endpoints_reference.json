@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "purpose": "Comprehensive API endpoint reference for GalloBets platform",
+    "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
     "version": "1.8",
     "last_updated": "2025-11-24 - Added system_settings and wallet_operations endpoints. P2P betting PAGO/DOY endpoints. Enhanced monitoring SSE. Settings admin UI complete.",

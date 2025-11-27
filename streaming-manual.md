@@ -188,7 +188,7 @@ curl http://YOUR-SERVER-IP:3001/api/health
 4. En "Service", selecciona "Custom..."
 5. En "Server", escribe: `rtmp://YOUR-DOMAIN.com:1935/live`
    - **Desarrollo (localhost)**: `rtmp://localhost:1935/live`
-   - **Producción**: `rtmp://gallobets.com:1935/live` (usar tu dominio real)
+   - **Producción**: `rtmp://galleros.net:1935/live` (usar tu dominio real)
 
 ### Diferencia entre Desarrollo y Producción
 
@@ -243,7 +243,7 @@ curl http://YOUR-SERVER-IP:3001/api/health
 1. En OBS Studio, ve a "Configuración" (Settings)
 2. Ve a la pestaña "Output" (Salida)
 3. Ajusta los siguientes valores:
-   - **Bitrate**: 1500 para 480p (recomendado para GalloBets)
+   - **Bitrate**: 1500 para 480p (recomendado para Galleros.Net)
    - **Keyframe Interval**: 2 segundos
    - **CPU Usage Preset**: veryfast
 4. En la pestaña "Video":
@@ -256,7 +256,7 @@ curl http://YOUR-SERVER-IP:3001/api/health
 - Reduce ancho de banda de 3 Mbps a 1.5 Mbps
 - CDN cuesta ~$54/mes vs $108/mes con 720p (ahorro de $54/mes)
 - Mayor accesibilidad para usuarios con conexión más lenta
-- Recomendado por PRD de GalloBets
+- Recomendado por PRD de Galleros.Net
 
 **Alternativa 720p (Si tienes ancho de banda abundante)**:
 - **Bitrate**: 2500

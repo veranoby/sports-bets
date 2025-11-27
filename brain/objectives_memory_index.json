@@ -2,7 +2,7 @@
   "strategic_objectives": [
     {
       "objective_id": "MVP_LAUNCH",
-      "description": "Lanzar el MVP de la plataforma GalloBets funcional y estable.",
+      "description": "Lanzar el MVP de la plataforma Galleros.Net funcional y estable.",
       "source_file": "brain/prd_system.json"
     },
     {

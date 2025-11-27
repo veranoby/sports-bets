@@ -1,4 +1,4 @@
-# GalloBets Production Deployment Guide
+# Galleros.Net Production Deployment Guide
 
 ## 🎯 Objetivo
 Configurar infraestructura de streaming en producción: **OBS Studio → VPS RTMP → Bunny.net CDN → 1000 viewers**
@@ -62,7 +62,7 @@ export BUNNY_INGEST_URL="rtmp://ingest.bunnycdn.com/live"
 ## 🎛️ Monitoreo
 - **Stats**: `http://vps_ip:8080/stat` (admin only)
 - **Health**: `http://vps_ip:8080/health`
-- **Monitor Script**: `gallobets-stream-monitor.sh`
+- **Monitor Script**: `gallerosnet-stream-monitor.sh`
 
 ## ⚠️ IMPORTANTE
 - **NO ejecutar** en máquina local de desarrollo
