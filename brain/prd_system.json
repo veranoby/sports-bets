@@ -1,12 +1,13 @@
 {
   "business_context": {
     "company": "Galleros.net",
-    "product": "Plataforma de streaming profesional de peleas de gallos con apuestas P2P.",
-    "mission": "Primera plataforma profesional de streaming + apuestas para galleras.",
+    "product": "Plataforma de streaming profesional de peleas de gallos con apuestas P2P en tiempo real.",
+    "mission": "Primera plataforma profesional de streaming + apuestas P2P para galleras en Latinoamérica.",
     "timeline": "Sprint MVP de 15 días (7-21 de septiembre de 2025)",
+    "target_market": "México, Colombia, Perú y demás países de América Latina",
     "revenue_model": [
-      "Acceso a streaming basado en suscripción",
-      "Tarifas de transacción en apuestas P2P (Post-MVP)",
+      "Acceso a streaming basado en suscripción (24h: $5, mensual: $10)",
+      "Comisión 5% sobre ganador en apuestas P2P",
       "Funciones premium para galleras/venues"
     ]
   },
@@ -143,24 +144,31 @@
       ]
     },
     "infrastructure_tiers": {
-      "tier_0_galloBets_OPTION_B1_payAsYouGrow": {
-        "description": "SELECTED OPTION FOR GALLOBETS: Nginx RTMP + PostgreSQL local PERMANENT + Bunny CDN phased",
+      "tier_0_galleros_net_OPTION_FINAL_2025": {
+        "description": "SELECTED OPTION FOR GALLEROS.NET: Hetzner AX42 + PostgreSQL local + CloudFront CDN phased",
+        "decision_rationale": "Hetzner ofrece tráfico ilimitado gratis (absorbe 11.6 TB/mes sin cargos extra) + CloudFront tiene edge en LATAM (São Paulo, México, Colombia) con latencia <50ms a usuarios",
         "phases": {
           "phase_1_mvp": {
-            "name": "MVP (Months 1-4, <500 concurrent users)",
+            "name": "MVP (Months 1-4, 0-500 concurrent users)",
             "duration_notes": "Usually achievable in first quarter post-launch",
-            "architecture": "Dedicated Server + Nginx RTMP + PostgreSQL local + Video.js",
+            "architecture": "Hetzner Dedicated + Nginx RTMP + PostgreSQL local + CloudFront CDN + Video.js",
             "components": {
-              "server": "Vultr/Hetzner Dedicated (8-core, 32GB RAM, 10Gbps, 500GB SSD)",
-              "cost": "$155-195/month",
-              "streaming_software": "Nginx + RTMP module (open source, free)",
+              "server": "Hetzner AX42 (AMD Ryzen 7 Pro 8700GE, 8-core, 64GB DDR5 RAM, 2×512GB NVMe, 1Gbps unlimited traffic)",
+              "server_location": "Germany (Falkenstein or Nuremberg datacenter)",
+              "operating_system": "Ubuntu Server 24.04 LTS (5 years support until 2029, extendible to 10 years)",
+              "cost": "€46/month (~$50 USD)",
+              "cdn": "AWS CloudFront with edge locations in São Paulo (Brazil), Mexico City, Bogotá (Colombia)",
+              "cdn_cost": "$102/month (12 TB × $0.085/GB bandwidth)",
+              "streaming_software": "Nginx + RTMP module (open source, compiled from source)",
               "database": "PostgreSQL 18 installed locally ($0, manual maintenance 30 min/week per postgresql-local-maintenance-manual.md)",
-              "frontend": "Video.js (already integrated, HLS support)",
-              "hls_generation": "Local: Nginx RTMP generates .m3u8 + .ts files directly"
+              "frontend": "Video.js (already integrated, HLS.js adaptive bitrate)",
+              "hls_generation": "Local: Nginx RTMP generates .m3u8 + .ts files in /var/www/hls/",
+              "hls_distribution": "CloudFront Pull Origin caches from Hetzner, serves LATAM users <50ms latency"
             },
-            "total_monthly": "$155-195/mo",
+            "total_monthly": "$152/mo ($50 server + $102 CDN)",
+            "budget_remaining": "$98/mo for monitoring, backups, contingencies",
             "supports_concurrent": 500,
-            "flow": "OBS → Nginx RTMP (local HLS generation) → Video.js (direct from server)",
+            "flow": "OBS → Hetzner Nginx-RTMP (Germany) → HLS generation → CloudFront edge (LATAM) → Video.js playback",
             "performance_metrics": {
               "nginx_cpu": "150-200% (comfortable, 60% margin)",
               "postgresql_pool": "⚠️ At maximum 20 connections (monitor closely)",
@@ -170,23 +178,25 @@
             "monitoring_critical": "Start weekly monitoring via postgresql-local-maintenance-manual.md"
           },
           "phase_2_scaling": {
-            "name": "Scaling (Months 5-6, 500-800 concurrent users)",
-            "trigger_to_add_cdn": "When Nginx CPU >60% OR bandwidth >500 Mbps (Phase 1B)",
-            "trigger_for_server_upgrade": "When CPU >70% sustained OR disk >80% full OR pool exhausted (Phase 2A)",
+            "name": "Scaling (Months 5-8, 500-800 concurrent users)",
+            "trigger_for_server_upgrade": "When CPU >70% sustained OR disk >80% full OR PostgreSQL pool exhausted",
+            "note_cdn_already_active": "CloudFront CDN activated in Phase 1, no additional trigger needed",
             "phase_2a_server_upgrade_path": {
-              "decision_point": "Monitor CPU/disk during Phase 1 to predict timing",
-              "server_upgrade": "Vultr/Hetzner Dedicated (16-core, 64GB RAM, 2TB SSD)",
-              "cost_monthly": "$400-500/mo (server) + $108-216 (CDN) = $508-716/mo",
+              "decision_point": "Monitor CPU/disk during Phase 1 via weekly postgresql-local-maintenance-manual.md checks",
+              "server_upgrade": "Hetzner AX102 (AMD Ryzen 9 7950X3D, 16-core, 128GB DDR5 RAM, 2×1.92TB NVMe)",
+              "upgrade_method": "Contact Hetzner support via Robot panel for migration assistance",
+              "cost_monthly": "€150/mo (~$165 USD server) + $102-197 (CloudFront CDN) = $267-362/mo",
               "benefits": [
-                "16 cores = 2× CPU headroom, CPU reaches only 50% under load",
-                "64GB RAM = PostgreSQL unlimited performance",
-                "2TB SSD = 12+ months of data growth before filling",
-                "Eliminates connection pool bottleneck",
-                "PostgreSQL local remains PERMANENT solution"
+                "16 cores = 2× CPU headroom for 1000 concurrent users, CPU reaches only 50% under peak load",
+                "128GB RAM (not 64GB) = PostgreSQL optimal performance with large connection pools",
+                "3.84TB total storage (2×1.92TB NVMe) = 12+ months of data growth without disk pressure",
+                "Eliminates connection pool bottleneck (can tune to 50+ connections)",
+                "PostgreSQL local remains PERMANENT solution (no migration to cloud DB needed)",
+                "Same Hetzner infrastructure (Germany) with unlimited traffic"
               ],
-              "migration_effort": "2-4 hours (backup → restore → DNS switch)",
-              "downtime": "< 30 minutes (planned maintenance window)",
-              "flow": "OBS → Nginx RTMP (upgraded server, local HLS) → Bunny CDN → Video.js"
+              "migration_effort": "3-5 hours (pg_dump → transfer → pg_restore → DNS switch → CloudFront origin update)",
+              "downtime": "< 30 minutes (planned maintenance window, announce 48h in advance)",
+              "flow": "OBS → Hetzner AX102 Nginx-RTMP (Germany) → HLS generation → CloudFront edge (LATAM) → Video.js"
             },
             "phase_2b_pgbouncer_intermediate": {
               "description": "Optional: Add connection pooling WITHOUT full server upgrade",
@@ -216,22 +226,24 @@
           },
           "phase_3_maturity": {
             "name": "Mature Production (Month 12+, 1000+ concurrent users)",
-            "recommended_infrastructure": "Upgraded server (16-core, 64GB, 2TB) + Bunny CDN + PostgreSQL local PERMANENT",
-            "total_monthly": "$400-500 (server) + $108-216 (CDN) = $508-716/mo",
+            "recommended_infrastructure": "Hetzner AX102 (16-core, 128GB, 3.84TB) + CloudFront CDN + PostgreSQL local PERMANENT",
+            "total_monthly": "$165 (AX102 server) + $197 (CloudFront 23.2 TB) = $362/mo",
+            "bandwidth_at_1000_users": "23.2 TB/month (1000 users × 1.5 Mbps × 4h effective × 8.6 events)",
             "performance_at_1000_users": {
-              "nginx_cpu": "300-400% (of 800%, comfortable 50% margin)",
-              "postgresql_cpu": "400-500% (of 800%, tight but OK with 16-core)",
-              "disk_utilization": "28-40% (2TB SSD provides 12+ months growth)",
-              "connections_pool": "Database pool can be tuned to 50+ (not limited at 20)"
+              "nginx_cpu": "300-400% (of 1600% available with 16 cores, comfortable 50% margin)",
+              "postgresql_cpu": "400-500% (of 1600%, tight but OK with 128GB RAM)",
+              "disk_utilization": "28-40% (3.84TB provides 18+ months growth)",
+              "connections_pool": "Database pool tuned to 50-100 connections (128GB RAM allows this)"
             },
             "optional_advanced_features": [
-              "PostgreSQL replication (standby server for HA)",
-              "Multiple Nginx RTMP instances with load balancing",
-              "Elasticsearch for search/analytics (if needed)",
-              "Prometheus + Grafana for advanced monitoring",
-              "Kubernetes deployment (if multi-region scaling needed)"
+              "PostgreSQL replication to standby Hetzner server for HA (~€50/mo extra)",
+              "Multiple Nginx RTMP instances with HAProxy load balancing",
+              "Redis Cluster for advanced caching (3-node setup)",
+              "Prometheus + Grafana for advanced monitoring (self-hosted)",
+              "Multi-region CloudFront with Route53 failover"
             ],
-            "annual_cost_at_1000_users": "$6,096-8,592/year (server + CDN)"
+            "annual_cost_at_1000_users": "$4,344/year ($362 × 12 months)",
+            "budget_note": "Exceeds initial $250/mo budget, requires budget increase to $400/mo or quality reduction to 360p (reduces CDN 50%)"
           }
         },
         "cost_comparison": {

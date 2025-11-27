@@ -622,17 +622,33 @@
   },
   "production_deployment_and_operations": {
     "infrastructure_specifications": {
-      "server_provider": "Vultr or Hetzner",
-      "server_type": "Dedicated Server (NOT VPS)",
-      "specs": {
-        "cpu": "8-core processor",
-        "ram": "32GB RAM",
-        "bandwidth": "10Gbps",
-        "storage": "500GB SSD",
-        "monthly_cost": "$155-195"
+      "server_provider": "Hetzner (selected for unlimited traffic + price)",
+      "server_model_phase_1": "Hetzner AX42",
+      "server_model_phase_2_3": "Hetzner AX102 (upgrade at 800-1000 users)",
+      "server_type": "Dedicated Server (NOT VPS, NOT cloud)",
+      "specs_phase_1": {
+        "model": "AX42",
+        "cpu": "AMD Ryzen 7 Pro 8700GE (8 cores, 16 threads)",
+        "ram": "64GB DDR5 ECC RAM",
+        "bandwidth": "1Gbps unlimited traffic (no overage charges)",
+        "storage": "2×512GB NVMe SSD (1TB total)",
+        "monthly_cost": "€46 (~$50 USD)"
       },
-      "os": "CachyOS / Arch Linux (user preference)",
-      "decision_rationale": "Fixed monthly cost vs cloud variable pricing. Includes PostgreSQL local + Nginx RTMP without additional fees."
+      "specs_phase_2_3": {
+        "model": "AX102",
+        "cpu": "AMD Ryzen 9 7950X3D (16 cores, 32 threads with 3D V-Cache)",
+        "ram": "128GB DDR5 ECC RAM",
+        "bandwidth": "1Gbps unlimited traffic (no overage charges)",
+        "storage": "2×1.92TB NVMe SSD Datacenter Edition (3.84TB total)",
+        "monthly_cost": "€150 (~$165 USD)"
+      },
+      "os": "Ubuntu Server 24.04 LTS (PRODUCTION RECOMMENDED)",
+      "os_rationale": "5 years standard support (until 2029), extendible to 10 years with ESM. Powers 40% of cloud servers globally. CachyOS rolling-release not suitable for production stability.",
+      "os_development_alternative": "CachyOS/Arch for local development laptop only, NOT for dedicated server",
+      "location": "Germany (Falkenstein or Nuremberg datacenter)",
+      "cdn": "AWS CloudFront with edge locations in São Paulo (Brazil), Mexico City, Bogotá (Colombia) for <50ms latency to LATAM users",
+      "cdn_cost": "$102/mo (Phase 1: 12 TB) to $197/mo (Phase 3: 23.2 TB)",
+      "decision_rationale": "Hetzner unlimited traffic absorbs origin bandwidth without overage charges. CloudFront edge in LATAM provides low latency. Fixed monthly cost vs cloud variable pricing."
     },
     "domain_and_dns": {
       "domain": "galleros.net",
