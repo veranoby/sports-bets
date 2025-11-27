@@ -115,8 +115,16 @@ const useMultiSSE = <T>(
       // Check if we've reached the maximum retry attempts
       if (retryCount >= MAX_RETRIES) {
         console.error(
-          `[SSE] Max retries reached for ${key}. Stopping reconnection attempts.`,
+          `[SSE] Max retries reached for ${key}. Stopping reconnection attempts. Closing EventSource and cleaning up.`,
         );
+
+        // Clean up the EventSource and remove from refs to prevent memory leak
+        if (eventSourcesRef.current[key]) {
+          eventSourcesRef.current[key].close();
+          delete eventSourcesRef.current[key];
+        }
+        delete reconnectTimeoutsRef.current[key];
+
         return;
       }
 

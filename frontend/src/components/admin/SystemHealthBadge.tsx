@@ -22,7 +22,8 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
   className = "",
   size = "md",
 }) => {
-  const { alertCount, criticalAlerts, warningAlerts, loading, error } = useMonitoringAlerts();
+  const { alertCount, criticalAlerts, warningAlerts, metrics, loading, error } =
+    useMonitoringAlerts();
   const [showDropdown, setShowDropdown] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -31,14 +32,18 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
 
     if (showDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showDropdown]);
 
@@ -57,7 +62,7 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -171,7 +176,8 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
                 <div className="flex items-center gap-2 text-red-700">
                   <AlertTriangle className="w-4 h-4" />
                   <span className="text-sm font-medium">
-                    {criticalAlerts} Critical Alert{criticalAlerts > 1 ? "s" : ""}
+                    {criticalAlerts} Critical Alert
+                    {criticalAlerts > 1 ? "s" : ""}
                   </span>
                 </div>
               )}
@@ -190,13 +196,63 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
               {alertCount === 0 && (
                 <div className="flex items-center gap-2 text-green-700">
                   <CheckCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">All systems operational</span>
+                  <span className="text-sm font-medium">
+                    All systems operational
+                  </span>
+                </div>
+              )}
+
+              {/* System Metrics - Always show if available */}
+              {metrics && (
+                <div className="pt-3 mt-3 border-t border-gray-200 space-y-2">
+                  <p className="text-xs text-gray-500 font-semibold mb-2">System Metrics:</p>
+
+                  {/* Memory */}
+                  <div className="text-xs text-gray-700">
+                    <span className="font-medium">Memory:</span>{" "}
+                    {metrics.memory.currentMB} MB / {metrics.memory.limitMB} MB
+                    <span className={`ml-1 ${metrics.memory.percentUsed > 80 ? 'text-red-600' : metrics.memory.percentUsed > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      ({metrics.memory.percentUsed}%)
+                    </span>
+                  </div>
+
+                  {/* Database Connections */}
+                  <div className="text-xs text-gray-700">
+                    <span className="font-medium">DB Pool:</span>{" "}
+                    {metrics.database.activeConnections} / {metrics.database.totalConnections} active
+                    ({metrics.database.freeConnections} free)
+                    {metrics.database.queuedRequests > 0 && (
+                      <span className="ml-1 text-red-600">
+                        , {metrics.database.queuedRequests} queued
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Intervals */}
+                  <div className="text-xs text-gray-700">
+                    <span className="font-medium">Intervals:</span>{" "}
+                    {metrics.intervals.activeCount} active
+                    <span className={`ml-1 ${metrics.intervals.activeCount > 50 ? 'text-red-600' : metrics.intervals.activeCount > 30 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {metrics.intervals.activeCount > 50 ? '(HIGH!)' : '(OK)'}
+                    </span>
+                  </div>
+
+                  {/* Admin SSE Connections */}
+                  <div className="text-xs text-gray-700">
+                    <span className="font-medium">Admin SSE:</span>{" "}
+                    {metrics.adminSSE.activeConnections} / {metrics.adminSSE.maxConnections} connections
+                    <span className={`ml-1 ${metrics.adminSSE.percentUsed > 80 ? 'text-red-600' : metrics.adminSSE.percentUsed > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      ({metrics.adminSSE.percentUsed}%)
+                    </span>
+                  </div>
                 </div>
               )}
 
               {/* Action message feedback */}
               {actionMessage && (
-                <div className={`text-xs p-2 rounded ${actionMessage.startsWith('✓') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                <div
+                  className={`text-xs p-2 rounded ${actionMessage.startsWith("✓") ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                >
                   {actionMessage}
                 </div>
               )}

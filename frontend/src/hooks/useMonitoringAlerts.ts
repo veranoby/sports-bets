@@ -11,12 +11,36 @@ export interface MonitoringAlertData {
   warnings: number;
   total: number;
   timestamp: string;
+  metrics?: {
+    memory: {
+      currentMB: number;
+      limitMB: number;
+      percentUsed: number;
+    };
+    database: {
+      activeConnections: number;
+      freeConnections: number;
+      totalConnections: number;
+      queuedRequests: number;
+      percentUsed: number;
+    };
+    intervals: {
+      activeCount: number;
+      details: any[];
+    };
+    adminSSE: {
+      activeConnections: number;
+      maxConnections: number;
+      percentUsed: number;
+    };
+  };
 }
 
 export interface UseMonitoringAlertsReturn {
   alertCount: number;
   criticalAlerts: number;
   warningAlerts: number;
+  metrics: MonitoringAlertData['metrics'] | null;
   loading: boolean;
   error: string | null;
   refreshAlerts: () => void;
@@ -27,6 +51,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
   const [alertCount, setAlertCount] = useState<number>(0);
   const [criticalAlerts, setCriticalAlerts] = useState<number>(0);
   const [warningAlerts, setWarningAlerts] = useState<number>(0);
+  const [metrics, setMetrics] = useState<MonitoringAlertData['metrics'] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,15 +85,17 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
 
       const result = await response.json();
       if (result.success && result.data) {
-        const { critical, warnings, total } = result.data;
+        const { critical, warnings, total, metrics: metricsData } = result.data;
         setCriticalAlerts(critical || 0);
         setWarningAlerts(warnings || 0);
         setAlertCount(total || 0);
+        setMetrics(metricsData || null);
         setError(null);
       } else {
         setAlertCount(0);
         setCriticalAlerts(0);
         setWarningAlerts(0);
+        setMetrics(null);
       }
     } catch (fetchError: any) {
       console.error("❌ Fetch alerts error:", fetchError);
@@ -256,6 +283,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
     alertCount,
     criticalAlerts,
     warningAlerts,
+    metrics,
     loading,
     error,
     refreshAlerts,

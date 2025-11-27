@@ -42,6 +42,7 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
   const mountedRef = useRef(true);
 
   const MAX_RECONNECT_DELAY = 30000; // 30 seconds max delay
+  const MAX_SSE_RETRIES = 10; // Maximum number of reconnection attempts
 
   const connect = useCallback(() => {
     if (!user || !token || !mountedRef.current) {
@@ -104,6 +105,13 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
         setIsConnected(false);
         eventSourceRef.current?.close();
 
+        // Check if we've reached the maximum retry attempts
+        if (retryCountRef.current >= MAX_SSE_RETRIES) {
+          console.error(`❌ SSE: Max retries (${MAX_SSE_RETRIES}) reached for streaming monitoring. Stopping reconnection.`);
+          setError(new Error(`Connection failed after ${MAX_SSE_RETRIES} attempts`));
+          return;
+        }
+
         // Exponential backoff for reconnection
         const delay = Math.min(
           MAX_RECONNECT_DELAY,
@@ -112,7 +120,7 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
         retryCountRef.current++;
 
         console.log(
-          `🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`,
+          `🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current}/${MAX_SSE_RETRIES})`,
         );
         reconnectTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {

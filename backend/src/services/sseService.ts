@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { logger } from '../config/logger';
 
-// SSE Event Types for GalloBets Admin System
+// SSE Event Types for Galleros.Net Admin System
 export enum SSEEventType {
   // System Events
   SYSTEM_STATUS = 'SYSTEM_STATUS',
@@ -114,7 +114,7 @@ export enum AdminChannel {
   GLOBAL = 'admin-global'
 }
 
-class GalloBetsSSEService {
+class GallerosNetSSEService {
   private connections: Map<string, SSEConnection> = new Map();
   private eventHistory: Map<string, SSEEvent[]> = new Map();
   private heartbeatInterval: NodeJS.Timeout | null;
@@ -165,7 +165,7 @@ class GalloBetsSSEService {
     this.cleanupInterval = null;
     this.startHeartbeat();
     this.startCleanup();
-    logger.info('🔄 GalloBetsSSEService initialized');
+    logger.info('🔄 GallerosNetSSEService initialized');
   }
 
   /**
@@ -875,7 +875,7 @@ class GalloBetsSSEService {
 }
 
 // Export singleton instance
-export const sseService = new GalloBetsSSEService();
+export const sseService = new GallerosNetSSEService();
 
 // Export types for use in other modules
 export type { SSEConnection, SSEEvent };

@@ -257,6 +257,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           socketRef.current = null;
         }
 
+        // Socket.IO handles reconnection automatically with built-in exponential backoff
+        // reconnectionAttempts: 5 = max 5 attempts before giving up
+        // reconnectionDelay: 1000 = starts at 1s, doubles each attempt (1s, 2s, 4s, 8s, 16s)
         const socket = io(WEBSOCKET_URL, {
           auth: { token },
           transports: ["websocket", "polling"],

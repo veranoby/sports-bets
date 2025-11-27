@@ -6,6 +6,10 @@ import { getPoolStats } from "../config/database";
 import { cache } from "../config/database";
 import { SafetyLimits } from '../utils/safetyLimits';
 
+// Track active monitoring connections to prevent resource exhaustion
+const activeMonitoringConnections = new Set<any>();
+const MAX_MONITORING_CONNECTIONS = 20;
+
 const router = Router();
 
 /**
@@ -398,7 +402,31 @@ router.get('/alerts',
     const alerts = {
       critical: 0,
       warnings: 0,
-      total: 0
+      total: 0,
+      // Detailed metrics for AdminHeader dropdown
+      metrics: {
+        memory: {
+          currentMB: safetyMetrics.memory.currentMB,
+          limitMB: safetyMetrics.memory.limitMB,
+          percentUsed: Math.round((safetyMetrics.memory.currentMB / safetyMetrics.memory.limitMB) * 100)
+        },
+        database: {
+          activeConnections: poolStats.using,
+          freeConnections: poolStats.free,
+          totalConnections: poolStats.total,
+          queuedRequests: poolStats.queue,
+          percentUsed: poolStats.total > 0 ? Math.round((poolStats.using / poolStats.total) * 100) : 0
+        },
+        intervals: {
+          activeCount: safetyMetrics.intervals.activeCount,
+          details: safetyMetrics.intervals.details || []
+        },
+        adminSSE: {
+          activeConnections: activeMonitoringConnections.size,
+          maxConnections: MAX_MONITORING_CONNECTIONS,
+          percentUsed: Math.round((activeMonitoringConnections.size / MAX_MONITORING_CONNECTIONS) * 100)
+        }
+      }
     };
 
     // Database connection pool alerts
@@ -441,6 +469,12 @@ router.get('/sse/admin/monitoring',
   authenticate,
   authorize("admin", "operator"),
   (req, res) => {
+    // Check if we've reached the maximum number of monitoring connections
+    if (activeMonitoringConnections.size >= MAX_MONITORING_CONNECTIONS) {
+      console.error('Too many monitoring connections, rejecting new connection');
+      return res.status(429).json({ error: 'Too many monitoring connections' });
+    }
+
     // Upgrade to SSE connection
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -450,6 +484,9 @@ router.get('/sse/admin/monitoring',
       'Access-Control-Allow-Headers': 'Cache-Control',
       'X-Accel-Buffering': 'no'
     });
+
+    // Add this connection to the active connections set
+    activeMonitoringConnections.add(res);
 
     // Send connected message
     res.write(`event: connected\n`);
@@ -505,11 +542,13 @@ router.get('/sse/admin/monitoring',
     // Handle connection close
     req.on('close', () => {
       clearInterval(interval);
+      activeMonitoringConnections.delete(res); // Remove from active connections
       console.log('Admin monitoring SSE connection closed');
     });
 
     req.on('error', (err) => {
       clearInterval(interval);
+      activeMonitoringConnections.delete(res); // Remove from active connections
       console.error('Admin monitoring SSE connection error:', err);
     });
   }
