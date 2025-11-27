@@ -1489,6 +1489,50 @@
       "implementation": "backend/src/routes/monitoring.ts:392-411",
       "note": "Receives alerts from Railway monitoring service"
     },
+    "sse_admin_monitoring": {
+      "method": "SSE",
+      "path": "/api/monitoring/sse/admin/monitoring",
+      "auth_required": true,
+      "role_required": "admin",
+      "protocol": "Server-Sent Events (SSE) - connection persists and server pushes updates",
+      "push_interval": "5 seconds (configurable)",
+      "response_structure": {
+        "critical": "number - count of critical alerts",
+        "warnings": "number - count of warning alerts",
+        "total": "number - total alerts",
+        "timestamp": "ISO date",
+        "metrics": {
+          "memory": {
+            "currentMB": "number - current memory usage in MB",
+            "limitMB": "number - memory limit in MB",
+            "percentUsed": "number - percentage of memory used"
+          },
+          "database": {
+            "activeConnections": "number - active database connections",
+            "freeConnections": "number - available connections",
+            "totalConnections": "number - total connections in pool",
+            "queuedRequests": "number - queued connection requests",
+            "percentUsed": "number - percentage of pool capacity used"
+          },
+          "intervals": {
+            "activeCount": "number - active setInterval count",
+            "details": "array - interval details for monitoring"
+          },
+          "adminSSE": {
+            "activeConnections": "number - active admin SSE connections",
+            "maxConnections": "number - maximum allowed SSE connections",
+            "percentUsed": "number - percentage of max SSE connections"
+          }
+        }
+      },
+      "description": "Real-time monitoring metrics for AdminHeaderMetricsBar. Streams system health metrics every 5s.",
+      "implementation": "backend/src/routes/monitoring.ts:506-528",
+      "frontend_usage": "frontend/src/hooks/useMonitoringAlerts.ts - AdminHeaderMetricsBar real-time display",
+      "frontend_component": "frontend/src/components/admin/AdminHeader.tsx - displays Memory, DB, Intervals, Admin SSE metrics",
+      "added_date": "2025-11-27 (metrics object inclusion fix)",
+      "fix_commit": "e63e3812 - Fixed AdminHeaderMetricsBar 'no data' - SSE now includes metrics object",
+      "performance_benefit": "Real-time system monitoring without polling overhead"
+    },
     "🔴_REDUNDANCY_DETECTED": {
       "issue": "GET /alerts and /stats endpoints exist at line 252-386, duplicating /monitoring/alerts and /monitoring/stats",
       "path_difference_only": "/alerts vs /monitoring/alerts (same implementation)",
@@ -1845,6 +1889,25 @@
         "auth_required": true,
         "response": {"success": true, "data": "object - public settings (is_public=true)"},
         "description": "Returns only public settings accessible to non-admin users"
+      },
+      "get_features_public": {
+        "method": "GET",
+        "path": "/api/settings/features/public",
+        "auth_required": true,
+        "response": {
+          "success": true,
+          "data": {
+            "betting_enabled": "boolean - betting.active setting (handles string/boolean/JSON)",
+            "wallets_enabled": "boolean - wallet.active setting (handles string/boolean/JSON)",
+            "streaming_enabled": "boolean - streaming.active setting (handles string/boolean/JSON)",
+            "push_notifications_enabled": "boolean - notifications.push_enabled setting (handles object/string/boolean)"
+          }
+        },
+        "description": "Returns feature flags for dashboard and UI. Flexible parsing handles string 'true', boolean true, or object {enabled: true}.",
+        "implementation": "backend/src/routes/settings.ts:76-101",
+        "frontend_usage": "frontend/src/pages/admin/AdminDashboard.tsx - displays platform status",
+        "added_date": "2025-11-27 (field name alignment fix - betting_enabled vs betting)",
+        "fix_commit": "e63e3812 - Fixed field name mismatch causing 'all features disabled' bug"
       },
       "update_setting": {
         "method": "PUT",
