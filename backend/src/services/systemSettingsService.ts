@@ -72,9 +72,13 @@ export class SystemSettingsService {
     // If not in cache, fetch from database
     const settings = await Setting.findAll({ where: { category } });
     const settingsRecord: Record<string, any> = {};
-    
+
     settings.forEach(setting => {
-      settingsRecord[setting.key] = setting.value;
+      // Normalize boolean string values to actual booleans
+      let value = setting.value;
+      if (value === 'true') value = true;
+      if (value === 'false') value = false;
+      settingsRecord[setting.key] = value;
     });
 
     // Cache the result
@@ -155,6 +159,7 @@ export class SystemSettingsService {
 
   /**
    * Get all settings as a flat key-value object for frontend compatibility
+   * Normalizes boolean string values to actual booleans for consistency
    */
   static async getAllSettingsFlat(): Promise<Record<string, any>> {
     const settings = await Setting.findAll({
@@ -164,7 +169,11 @@ export class SystemSettingsService {
     const settingsFlat: Record<string, any> = {};
 
     settings.forEach(setting => {
-      settingsFlat[setting.key] = setting.value;
+      // Normalize boolean string values to actual booleans
+      let value = setting.value;
+      if (value === 'true') value = true;
+      if (value === 'false') value = false;
+      settingsFlat[setting.key] = value;
     });
 
     return settingsFlat;

@@ -1,10 +1,11 @@
 import { logger } from "../config/logger";
+import * as os from "os";
 
 // Track active intervals for cleanup
-const activeIntervals = new Map<NodeJS.Timeout, { 
-  id: string; 
-  fn: Function; 
-  interval: number; 
+const activeIntervals = new Map<NodeJS.Timeout, {
+  id: string;
+  fn: Function;
+  interval: number;
   errorCount: number;
   maxErrors: number;
   lastError?: Error;
@@ -12,7 +13,12 @@ const activeIntervals = new Map<NodeJS.Timeout, {
 
 // Track memory usage
 let peakMemoryUsage = 0;
-const MEMORY_LIMIT_MB = 400; // 400MB limit as specified in qwen-prompt.json
+// Use actual container/system memory limit, not arbitrary 400MB
+// Falls back to 400MB if system reports less (e.g., in development)
+const MEMORY_LIMIT_MB = Math.max(
+  Math.ceil(os.totalmem() / 1024 / 1024),
+  400
+);
 
 // Graceful shutdown handler
 let shutdownHandlers: Array<() => Promise<void> | void> = [];
@@ -20,10 +26,10 @@ let isShuttingDown = false;
 
 /**
  * SafetyLimits utility class for preventing memory leaks and infinite loops
- * 
+ *
  * Features:
  * - Circuit breaker for setInterval operations
- * - Memory usage monitoring (max 400MB)
+ * - Memory usage monitoring (actual container/system memory limit)
  * - Error count tracking with automatic stopping
  * - Graceful cleanup of all intervals on SIGTERM
  * - Health metrics endpoint for Railway monitoring
