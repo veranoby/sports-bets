@@ -89,10 +89,12 @@ router.get('/features/public',
     res.json({
       success: true,
       data: {
-        betting: settings['betting.active'] || false,
-        wallet: settings['wallet.active'] || false,
-        streaming: settings['streaming.active'] || false,
-        push_notifications: settings['notifications.push_enabled'] || false
+        betting_enabled: settings['betting.active'] === 'true' || settings['betting.active'] === true,
+        wallets_enabled: settings['wallet.active'] === 'true' || settings['wallet.active'] === true,
+        streaming_enabled: settings['streaming.active'] === 'true' || settings['streaming.active'] === true,
+        push_notifications_enabled: (typeof settings['notifications.push_enabled'] === 'object' && settings['notifications.push_enabled']?.enabled === true) ||
+                                    (settings['notifications.push_enabled'] === 'true') ||
+                                    (settings['notifications.push_enabled'] === true)
       }
     });
   })
@@ -142,7 +144,7 @@ router.put('/',
         if (typeof value !== 'number' || value < 0) {
           throw errors.badRequest(`Setting ${key} must be a positive number`);
         }
-      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+      } else if (key.includes('.active') || key.includes('.enabled') || key.includes('maintenance_mode')) {
         if (typeof value !== 'boolean') {
           throw errors.badRequest(`Setting ${key} must be a boolean`);
         }
@@ -182,7 +184,7 @@ router.put('/:key',
         if (typeof value !== 'number' || value < 0) {
           throw new Error('Amount settings must be positive numbers');
         }
-      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+      } else if (key.includes('.active') || key.includes('.enabled') || key.includes('maintenance_mode')) {
         if (typeof value !== 'boolean') {
           throw new Error('Boolean settings must be true/false');
         }
@@ -246,12 +248,12 @@ router.post('/bulk-update',
     // Validate each setting's value based on its key
     for (const setting of settings) {
       const { key, value } = setting;
-      
+
       if (key.includes('.min') || key.includes('.max') || key.includes('.amount')) {
         if (typeof value !== 'number' || value < 0) {
           throw errors.badRequest(`Setting ${key} must be a positive number`);
         }
-      } else if (key.includes('.active') || key.includes('maintenance_mode')) {
+      } else if (key.includes('.active') || key.includes('.enabled') || key.includes('maintenance_mode')) {
         if (typeof value !== 'boolean') {
           throw errors.badRequest(`Setting ${key} must be a boolean`);
         }
