@@ -8,6 +8,7 @@ import type { Article } from "../../types/article";
 import type { Venue, Gallera } from "../../types";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
+import StatusChip from "../shared/StatusChip";
 
 interface ArticleEditorFormProps {
   article: Article | null;
@@ -156,6 +157,36 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "published":
+        return "Publicado";
+      case "draft":
+        return "Borrador";
+      case "pending":
+        return "Pendiente";
+      case "archived":
+        return "Archivado";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "published":
+        return "text-green-600";
+      case "draft":
+        return "text-yellow-600";
+      case "pending":
+        return "text-blue-600";
+      case "archived":
+        return "text-gray-500";
+      default:
+        return "text-gray-600";
+    }
+  };
+
   return (
     <form
       onSubmit={(e) => {
@@ -165,6 +196,18 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
       }}
       className="space-y-4"
     >
+      {/* Status Indicator */}
+      {article && (
+        <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
+          <span className="text-sm text-gray-600">Estado actual:</span>
+          <StatusChip
+            status={formData.status || "draft"}
+            label={getStatusLabel(formData.status || "draft")}
+            className={getStatusColor(formData.status || "draft")}
+          />
+        </div>
+      )}
+
       <div>
         <label
           htmlFor="title"
@@ -295,26 +338,6 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
       </div>
       <div>
         <label
-          htmlFor="status"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Status
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-        >
-          <option value="draft">Draft</option>
-          <option value="pending">Pending</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
-        </select>
-      </div>
-      <div>
-        <label
           htmlFor="author_id"
           className="block text-sm font-medium text-gray-700"
         >
@@ -381,31 +404,28 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
 
       {error && <ErrorMessage error={error} />}
 
-      <div className="flex flex-wrap gap-2 mt-4">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-gray-200">
+        {/* Cancel */}
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          disabled={loading}
+          className="px-4 py-2 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
         >
-          Cancel
+          Cancelar
         </button>
+
+        {/* Save as Draft */}
         <button
           type="button"
+          disabled={loading}
           onClick={async () => {
-            // Save as Draft functionality
             setLoading(true);
             setError(null);
 
-            // Validate required fields
-            if (
-              !formData.title ||
-              !formData.content ||
-              !formData.summary ||
-              !formData.author_id
-            ) {
-              setError(
-                "Title, content, summary, and author are required fields.",
-              );
+            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+              setError("Título, contenido, resumen y autor son obligatorios.");
               setLoading(false);
               return;
             }
@@ -413,7 +433,6 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             try {
               let response;
               if (article && article.id) {
-                // Update existing article with draft status
                 const updatePayload = {
                   ...formData,
                   status: "draft",
@@ -422,7 +441,6 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
                 };
                 response = await articlesAPI.update(article.id, updatePayload);
               } else {
-                // Create new article with draft status
                 const createPayload = {
                   title: formData.title,
                   content: formData.content || "",
@@ -437,94 +455,26 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
               onClose();
             } catch (error) {
               console.error("Error saving draft:", error);
-              setError("Failed to save as draft. Please try again.");
+              setError("Error al guardar borrador.");
             } finally {
               setLoading(false);
             }
           }}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
         >
-          Save as Draft
+          Guardar Borrador
         </button>
-        {user?.role !== "admin" && (
-          <button
-            type="button"
-            onClick={async () => {
-              // Submit for Review functionality
-              setLoading(true);
-              setError(null);
 
-              // Validate required fields
-              if (
-                !formData.title ||
-                !formData.content ||
-                !formData.summary ||
-                !formData.author_id
-              ) {
-                setError(
-                  "Title, content, summary, and author are required fields.",
-                );
-                setLoading(false);
-                return;
-              }
-
-              try {
-                let response;
-                if (article && article.id) {
-                  // Update existing article with pending status
-                  const updatePayload = {
-                    ...formData,
-                    status: "pending",
-                    content: formData.content || "",
-                    excerpt: formData.summary,
-                  };
-                  response = await articlesAPI.update(
-                    article.id,
-                    updatePayload,
-                  );
-                } else {
-                  // Create new article with pending status
-                  const createPayload = {
-                    title: formData.title,
-                    content: formData.content || "",
-                    excerpt: formData.summary,
-                    featured_image_url: formData.featured_image_url,
-                    status: "pending",
-                    author_id: formData.author_id,
-                  };
-                  response = await articlesAPI.create(createPayload);
-                }
-                onArticleSaved(response.data);
-                onClose();
-              } catch (error) {
-                console.error("Error submitting for review:", error);
-                setError("Failed to submit for review. Please try again.");
-              } finally {
-                setLoading(false);
-              }
-            }}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Submit for Review
-          </button>
-        )}
+        {/* Save as Pending */}
         <button
           type="button"
+          disabled={loading}
           onClick={async () => {
-            // Publish functionality (admin only)
             setLoading(true);
             setError(null);
 
-            // Validate required fields
-            if (
-              !formData.title ||
-              !formData.content ||
-              !formData.summary ||
-              !formData.author_id
-            ) {
-              setError(
-                "Title, content, summary, and author are required fields.",
-              );
+            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+              setError("Título, contenido, resumen y autor son obligatorios.");
               setLoading(false);
               return;
             }
@@ -532,22 +482,20 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             try {
               let response;
               if (article && article.id) {
-                // Update existing article with published status
                 const updatePayload = {
                   ...formData,
-                  status: "published",
+                  status: "pending",
                   content: formData.content || "",
                   excerpt: formData.summary,
                 };
                 response = await articlesAPI.update(article.id, updatePayload);
               } else {
-                // Create new article with published status
                 const createPayload = {
                   title: formData.title,
                   content: formData.content || "",
                   excerpt: formData.summary,
                   featured_image_url: formData.featured_image_url,
-                  status: "published",
+                  status: "pending",
                   author_id: formData.author_id,
                 };
                 response = await articlesAPI.create(createPayload);
@@ -555,16 +503,118 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
               onArticleSaved(response.data);
               onClose();
             } catch (error) {
-              console.error("Error publishing:", error);
-              setError("Failed to publish. Please try again.");
+              console.error("Error saving pending:", error);
+              setError("Error al enviar a revisión.");
             } finally {
               setLoading(false);
             }
           }}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
         >
-          Publish
+          Enviar a Revisión
         </button>
+
+        {/* Publish - Admin only */}
+        {user?.role === "admin" && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+
+              if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+                setError("Título, contenido, resumen y autor son obligatorios.");
+                setLoading(false);
+                return;
+              }
+
+              try {
+                let response;
+                if (article && article.id) {
+                  const updatePayload = {
+                    ...formData,
+                    status: "published",
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                  };
+                  response = await articlesAPI.update(article.id, updatePayload);
+                } else {
+                  const createPayload = {
+                    title: formData.title,
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                    featured_image_url: formData.featured_image_url,
+                    status: "published",
+                    author_id: formData.author_id,
+                  };
+                  response = await articlesAPI.create(createPayload);
+                }
+                onArticleSaved(response.data);
+                onClose();
+              } catch (error) {
+                console.error("Error publishing:", error);
+                setError("Error al publicar artículo.");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+          >
+            Publicar
+          </button>
+        )}
+
+        {/* Archive - Admin only */}
+        {user?.role === "admin" && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+
+              if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+                setError("Título, contenido, resumen y autor son obligatorios.");
+                setLoading(false);
+                return;
+              }
+
+              try {
+                let response;
+                if (article && article.id) {
+                  const updatePayload = {
+                    ...formData,
+                    status: "archived",
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                  };
+                  response = await articlesAPI.update(article.id, updatePayload);
+                } else {
+                  const createPayload = {
+                    title: formData.title,
+                    content: formData.content || "",
+                    excerpt: formData.summary,
+                    featured_image_url: formData.featured_image_url,
+                    status: "archived",
+                    author_id: formData.author_id,
+                  };
+                  response = await articlesAPI.create(createPayload);
+                }
+                onArticleSaved(response.data);
+                onClose();
+              } catch (error) {
+                console.error("Error archiving:", error);
+                setError("Error al archivar artículo.");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          >
+            Archivar
+          </button>
+        )}
       </div>
     </form>
   );
