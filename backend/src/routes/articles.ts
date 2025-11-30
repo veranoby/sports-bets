@@ -549,8 +549,8 @@ router.put(
     }
     if (content !== undefined) article.content = content;
     if (excerpt !== undefined) article.excerpt = excerpt;
-    if (featured_image || featured_image_url) {
-      article.featured_image = featured_image || featured_image_url;
+    if (featured_image !== undefined || featured_image_url !== undefined) {
+      article.featured_image = featured_image || featured_image_url || null;
     }
 
     // Handle status updates with role-based restrictions
