@@ -521,7 +521,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
         >
-          Permanecer en Revisión
+          {user?.role === "admin" ? "Permanecer en Revisión" : "Enviar a Revisión"}
         </button>
 
         {/* Publish - Admin only */}
