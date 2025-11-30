@@ -122,9 +122,12 @@ const Settings: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setSettings(data.settings || data.data);
+        // Clear pending changes first
         setPendingChanges({});
         setSuccess(`Configuraciones actualizadas exitosamente`);
+
+        // Reload all settings from backend to ensure consistency
+        await fetchSettings();
 
         // Auto-clear success message
         setTimeout(() => setSuccess(null), 3000);
@@ -377,9 +380,9 @@ const Settings: React.FC = () => {
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-          <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-          <span className="text-green-700">{success}</span>
+        <div className="fixed top-4 right-4 p-4 bg-green-500 text-white rounded-lg shadow-lg flex items-center max-w-sm animate-in fade-in duration-300 z-50">
+          <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          <span className="text-sm font-medium">{success}</span>
         </div>
       )}
 
@@ -462,7 +465,7 @@ const Settings: React.FC = () => {
                 className="font-medium underline hover:text-blue-800"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = "/admin/dashboard";
+                  window.location.href = "/admin/";
                 }}
               >
                 Panel Principal

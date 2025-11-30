@@ -20,6 +20,17 @@ export interface SystemSettingValue {
 
 export class SystemSettingsService {
   /**
+   * Normalize boolean string values to actual booleans
+   * @param value The value to normalize
+   * @returns Normalized value
+   */
+  private static normalizeValue(value: any): any {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  }
+
+  /**
    * Get a specific setting value with Redis caching
    */
   static async getSettingValue(key: string): Promise<any> {
@@ -29,7 +40,7 @@ export class SystemSettingsService {
       const cached = await redisClient.get(cacheKey);
       if (cached) {
         logger.debug(`Cache hit for setting: ${key}`);
-        return JSON.parse(cached);
+        return this.normalizeValue(JSON.parse(cached));
       }
     } catch (error) {
       logger.warn(`Cache get failed for setting ${key}:`, error);
@@ -41,16 +52,16 @@ export class SystemSettingsService {
       return null;
     }
 
-    const value = setting.value;
-    
+    const normalizedValue = this.normalizeValue(setting.value);
+
     // Cache the result
     try {
-      await redisClient.set(cacheKey, JSON.stringify(value), SETTINGS_CACHE_TTL);
+      await redisClient.set(cacheKey, JSON.stringify(normalizedValue), SETTINGS_CACHE_TTL);
     } catch (error) {
       logger.warn(`Cache set failed for setting ${key}:`, error);
     }
 
-    return value;
+    return normalizedValue;
   }
 
   /**
@@ -74,11 +85,7 @@ export class SystemSettingsService {
     const settingsRecord: Record<string, any> = {};
 
     settings.forEach(setting => {
-      // Normalize boolean string values to actual booleans
-      let value = setting.value;
-      if (value === 'true') value = true;
-      if (value === 'false') value = false;
-      settingsRecord[setting.key] = value;
+      settingsRecord[setting.key] = this.normalizeValue(setting.value);
     });
 
     // Cache the result
@@ -169,11 +176,7 @@ export class SystemSettingsService {
     const settingsFlat: Record<string, any> = {};
 
     settings.forEach(setting => {
-      // Normalize boolean string values to actual booleans
-      let value = setting.value;
-      if (value === 'true') value = true;
-      if (value === 'false') value = false;
-      settingsFlat[setting.key] = value;
+      settingsFlat[setting.key] = this.normalizeValue(setting.value);
     });
 
     return settingsFlat;
