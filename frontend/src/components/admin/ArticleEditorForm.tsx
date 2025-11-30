@@ -424,7 +424,12 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             setLoading(true);
             setError(null);
 
-            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+            if (
+              !formData.title ||
+              !formData.content ||
+              !formData.summary ||
+              !formData.author_id
+            ) {
               setError("Título, contenido, resumen y autor son obligatorios.");
               setLoading(false);
               return;
@@ -462,7 +467,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           }}
           className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
         >
-          Guardar Borrador
+          Guardar como Borrador
         </button>
 
         {/* Save as Pending */}
@@ -473,7 +478,12 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
             setLoading(true);
             setError(null);
 
-            if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
+            if (
+              !formData.title ||
+              !formData.content ||
+              !formData.summary ||
+              !formData.author_id
+            ) {
               setError("Título, contenido, resumen y autor son obligatorios.");
               setLoading(false);
               return;
@@ -511,7 +521,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
         >
-          Enviar a Revisión
+          Permanecer en Revisión
         </button>
 
         {/* Publish - Admin only */}
@@ -523,8 +533,15 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
               setLoading(true);
               setError(null);
 
-              if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
-                setError("Título, contenido, resumen y autor son obligatorios.");
+              if (
+                !formData.title ||
+                !formData.content ||
+                !formData.summary ||
+                !formData.author_id
+              ) {
+                setError(
+                  "Título, contenido, resumen y autor son obligatorios.",
+                );
                 setLoading(false);
                 return;
               }
@@ -538,7 +555,10 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
                     content: formData.content || "",
                     excerpt: formData.summary,
                   };
-                  response = await articlesAPI.update(article.id, updatePayload);
+                  response = await articlesAPI.update(
+                    article.id,
+                    updatePayload,
+                  );
                 } else {
                   const createPayload = {
                     title: formData.title,
@@ -574,8 +594,15 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
               setLoading(true);
               setError(null);
 
-              if (!formData.title || !formData.content || !formData.summary || !formData.author_id) {
-                setError("Título, contenido, resumen y autor son obligatorios.");
+              if (
+                !formData.title ||
+                !formData.content ||
+                !formData.summary ||
+                !formData.author_id
+              ) {
+                setError(
+                  "Título, contenido, resumen y autor son obligatorios.",
+                );
                 setLoading(false);
                 return;
               }
@@ -589,7 +616,10 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
                     content: formData.content || "",
                     excerpt: formData.summary,
                   };
-                  response = await articlesAPI.update(article.id, updatePayload);
+                  response = await articlesAPI.update(
+                    article.id,
+                    updatePayload,
+                  );
                 } else {
                   const createPayload = {
                     title: formData.title,
