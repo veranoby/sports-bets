@@ -51,6 +51,7 @@ interface DashboardMetrics {
 interface SystemFeatures {
   betting_enabled: boolean;
   wallet_enabled: boolean;
+  streaming_enabled: boolean;
   user_registration: boolean;
   event_creation: boolean;
   loading: boolean;
@@ -74,6 +75,7 @@ const AdminDashboard: React.FC = () => {
   const [features, setFeatures] = useState<SystemFeatures>({
     betting_enabled: false,
     wallet_enabled: false,
+    streaming_enabled: false,
     user_registration: false,
     event_creation: false,
     loading: true,
@@ -107,7 +109,8 @@ const AdminDashboard: React.FC = () => {
         betting_enabled: featuresData.betting_enabled === true,
         wallet_enabled: featuresData.wallets_enabled === true,
         streaming_enabled: featuresData.streaming_enabled === true,
-        push_notifications_enabled: featuresData.push_notifications_enabled === true,
+        push_notifications_enabled:
+          featuresData.push_notifications_enabled === true,
         event_creation: !featuresData.maintenance_mode, // Si no está en mantenimiento, eventos están habilitados
         loading: false,
       };
@@ -122,6 +125,7 @@ const AdminDashboard: React.FC = () => {
       setFeatures({
         betting_enabled: true, // ✅ Demostrando sistema funcional
         wallet_enabled: false, // ❌ Demostrará estado mixto
+        streaming_enabled: true, // ✅ Streaming funcional
         user_registration: true, // ✅ Sistema abierto
         event_creation: false, // ❌ Demostración de estado deshabilitado
         loading: false,
@@ -335,14 +339,14 @@ const AdminDashboard: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             <Users
-              className={`w-5 h-5 ${features.user_registration ? "text-green-500" : "text-red-500"}`}
+              className={`w-5 h-5 ${features.streaming_enabled ? "text-green-500" : "text-red-500"}`}
             />
             <div>
               <p className="text-sm font-medium">Streaming</p>
               <p
-                className={`text-xs ${features.user_registration ? "text-green-600" : "text-red-600"}`}
+                className={`text-xs ${features.streaming_enabled ? "text-green-600" : "text-red-600"}`}
               >
-                {features.user_registration ? "Habilitado" : "Deshabilitado"}
+                {features.streaming_enabled ? "Habilitado" : "Deshabilitado"}
               </p>
             </div>
           </div>
