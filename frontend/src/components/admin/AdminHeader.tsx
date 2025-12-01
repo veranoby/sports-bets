@@ -39,11 +39,9 @@ const AdminHeader = memo(() => {
             </button>
           </div>
         </div>
-              {/* Row 2: Real-time metrics bar */}
-      <AdminHeaderMetricsBar />
+        {/* Row 2: Real-time metrics bar */}
+        <AdminHeaderMetricsBar />
       </div>
-
-
     </header>
   );
 });

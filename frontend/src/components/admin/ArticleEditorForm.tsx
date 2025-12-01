@@ -97,8 +97,8 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
     setImagePreview(null);
     setFormData((prev) => ({
       ...prev,
-      featured_image: "",  // Clear both fields
-      featured_image_url: ""
+      featured_image: "", // Clear both fields
+      featured_image_url: "",
     }));
   };
 

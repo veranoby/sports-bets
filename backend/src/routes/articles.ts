@@ -83,7 +83,7 @@ function getArticleAttributes(role: UserRole | undefined, type: "list" | "detail
   const authenticatedAttributes = [
     ...publicAttributes,
     "tags",
-    "venue_id",
+    // "venue_id" REMOVED - column deleted in FASE 5 consolidation
     "view_count",
   ];
 
