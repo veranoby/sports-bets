@@ -381,9 +381,32 @@ router.get(
       throw errors.forbidden("Article not available");
     }
 
+    // ✅ Check if content is premium and user has access
+    const serialized = serializeArticle(article, attributes);
+    if (serialized.is_premium_content && !isAuthor && !isAdmin) {
+      // Premium content - verify user has active subscription
+      if (!req.user) {
+        // Not authenticated - forbidden
+        throw errors.forbidden("Premium content requires active subscription");
+      }
+
+      // Check if user has active subscription - query directly from DB
+      const { Subscription } = require('../models');
+      const activeSubscription = await Subscription.findOne({
+        where: {
+          userId: req.user.id,
+          status: 'active'
+        }
+      });
+
+      if (!activeSubscription) {
+        throw errors.forbidden("Premium content requires active subscription");
+      }
+    }
+
     res.json({
       success: true,
-      data: serializeArticle(article, attributes),
+      data: serialized,
     });
   })
 );

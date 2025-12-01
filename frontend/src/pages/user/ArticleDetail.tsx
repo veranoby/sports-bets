@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import type { Article } from "../../types";
 import { apiClient } from "../../config/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,13 +36,13 @@ const ArticleDetail: React.FC = () => {
 
         // Check if this is a premium content access error
         if (
-          errorMessage.toLowerCase().includes("forbidden") ||
-          errorMessage.includes("premium") ||
+          errorMessage.toLowerCase().includes("premium") ||
+          errorMessage.includes("subscription") ||
           (err as any)?.response?.status === 403
         ) {
-          setError(
-            "Necesitas una membresía activa para acceder a este contenido premium",
-          );
+          // Redirect to profile membership section
+          navigate("/profile", { replace: true });
+          window.location.hash = "#membership";
         } else {
           setError(errorMessage);
         }
@@ -53,7 +54,7 @@ const ArticleDetail: React.FC = () => {
     if (id) {
       fetchArticle();
     }
-  }, [id]);
+  }, [id, navigate]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
