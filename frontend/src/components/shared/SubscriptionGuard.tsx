@@ -2,9 +2,12 @@
 // ================================================================
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Crown } from "lucide-react";
 import { useSubscriptions } from "../../hooks/useApi";
-import SubscriptionModal from "./SubscriptionModal";
+
+// ✅ Redirect pattern: Click "Actualizar a Premium" → Navigate to /profile#membership
+// No longer uses SubscriptionModal, instead directs to MembershipSection
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
@@ -19,9 +22,9 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   fallback,
   showUpgradePrompt = true,
 }) => {
+  const navigate = useNavigate();
   const { loading, error, checkAccess, fetchCurrent } = useSubscriptions();
   const [hasAccess, setHasAccess] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const mounted = useRef(true);
 
   // ✅ Memoizar las funciones para evitar recreación en cada render
@@ -121,7 +124,12 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
 
         {showUpgradePrompt && (
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() =>
+              navigate("/profile", {
+                replace: true,
+                state: { section: "membership" },
+              })
+            }
             className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center gap-2 mx-auto shadow-lg"
           >
             <Crown className="w-5 h-5" />
@@ -129,13 +137,6 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
           </button>
         )}
       </div>
-
-      {showModal && (
-        <SubscriptionModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-        />
-      )}
     </>
   );
 };

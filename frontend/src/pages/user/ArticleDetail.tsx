@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import type { Article } from "../../types";
 import { apiClient } from "../../config/api";
+import { useSubscription } from "../../hooks/useSubscription";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
@@ -9,6 +10,7 @@ import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isPremium } = useSubscription();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,11 +21,13 @@ const ArticleDetail: React.FC = () => {
         setLoading(true);
         const response = await apiClient.get(`/articles/${id}`);
 
-        // Check if this is a premium article and if the user has access
         const articleData = response.data.data;
-        if (articleData.is_premium_content && articleData.author_subscription) {
-          // The article is marked as premium, but we need to check if the current user has access
-          // The backend should handle authorization, so if we get the article, we should have access
+
+        // ✅ Check if article is premium and user doesn't have access
+        if (articleData.is_premium_content && !isPremium) {
+          // Premium content requires active subscription
+          navigate("/profile", { replace: true, state: { section: "membership" } });
+          return;
         }
 
         setArticle(articleData);
@@ -41,8 +45,7 @@ const ArticleDetail: React.FC = () => {
           (err as any)?.response?.status === 403
         ) {
           // Redirect to profile membership section
-          navigate("/profile", { replace: true });
-          window.location.hash = "#membership";
+          navigate("/profile", { replace: true, state: { section: "membership" } });
         } else {
           setError(errorMessage);
         }
@@ -54,7 +57,7 @@ const ArticleDetail: React.FC = () => {
     if (id) {
       fetchArticle();
     }
-  }, [id, navigate]);
+  }, [id, navigate, isPremium]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
