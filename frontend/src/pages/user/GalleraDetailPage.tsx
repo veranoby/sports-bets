@@ -3,7 +3,7 @@
 // Dedicated gallera detail page component with premium tiers and specialties
 
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { gallerasAPI, articlesAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
@@ -19,8 +19,11 @@ import {
   Crown,
   Award,
   Clock,
+  Phone,
+  Mail,
+  Globe,
 } from "lucide-react";
-import ImageCarouselViewer from "../../components/shared/ImageCarouselViewer";
+import type { Gallera as GalleraEntity, User } from "../../types";
 
 interface ArticleLite {
   id: string;
@@ -30,12 +33,19 @@ interface ArticleLite {
   created_at?: string;
   status: string;
   published_at?: string;
+  featured_image?: string;
+  featured_image_url?: string;
 }
+
+type GalleraWithOwner = GalleraEntity & {
+  owner?: User;
+  ownerId?: string;
+};
 
 const GalleraDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [gallera, setGallera] = useState<any | null>(null);
+  const [gallera, setGallera] = useState<GalleraWithOwner | null>(null);
   const [articles, setArticles] = useState<ArticleLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +64,7 @@ const GalleraDetailPage: React.FC = () => {
         if (!galleraResponse.success) {
           throw new Error(galleraResponse.error || "Error al cargar criadero");
         }
-        const galleraData = galleraResponse.data as any;
+        const galleraData = galleraResponse.data as GalleraWithOwner;
         setGallera(galleraData);
 
         // ⚡ Optimized: Try ownerId first, then fallback to owner data
@@ -70,7 +80,10 @@ const GalleraDetailPage: React.FC = () => {
             author_id: ownerId,
           });
           if (articlesResponse.success) {
-            setArticles((articlesResponse.data as any)?.articles || []);
+            const articlePayload = (articlesResponse.data as {
+              articles?: ArticleLite[];
+            })?.articles;
+            setArticles(articlePayload || []);
           }
         }
       } catch (err) {
@@ -185,217 +198,262 @@ const GalleraDetailPage: React.FC = () => {
   const publishedArticles = articles.filter((a) => a.status === "published");
   const draftArticles = articles.filter((a) => a.status === "draft");
 
+  const heroImage = images[0] || ownerProfileImage;
+
+  const statChips = [
+    {
+      label: location,
+      icon: <MapPin className="w-4 h-4" />,
+    },
+    rating > 0
+      ? {
+          label: `${rating.toFixed(1)} rating`,
+          icon: <Star className="w-4 h-4" />,
+        }
+      : null,
+    isCertified
+      ? {
+          label: "Certificado",
+          icon: <Sparkles className="w-4 h-4" />,
+        }
+      : null,
+    premiumLevel
+      ? {
+          label: premiumLevel.toUpperCase(),
+          icon: getPremiumIcon(premiumLevel),
+          extraClass: getPremiumColor(premiumLevel),
+        }
+      : null,
+    {
+      label: establishedDate
+        ? `Desde ${new Date(establishedDate).getFullYear()}`
+        : "Fundación N/D",
+      icon: <Calendar className="w-4 h-4" />,
+    },
+  ].filter(Boolean) as {
+    label: string;
+    icon: React.ReactNode;
+    extraClass?: string;
+  }[];
+
   return (
     <div className="page-background pb-24">
-      <div className="p-4 space-y-6">
-        {/* Back Navigation */}
+      <div className="p-4 space-y-8">
         <button
           onClick={() => navigate("/galleras")}
-          className="flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors btn-primary !rounded-l-none btn-primary !rounded-l-none"
+          className="inline-flex items-center gap-2 text-sm text-theme-light hover:text-theme-primary transition-colors rounded-full px-4 py-2 bg-white/90 shadow-sm border border-gray-200"
         >
-          <ChevronLeft className="w-4 h-4" />
-          Volver a Criaderos
+          <ChevronLeft className="w-4 h-4" /> Volver a Criaderos
         </button>
 
-        {/* Gallera Header - Entity Name with Logo and Info Chips */}
-        <div className="card-background p-6 md:p-8 mb-6">
-          {/* Main Entity Name with Logo */}
-          <div className="flex items-center gap-4">
-            {ownerProfileImage && (
-              <img
-                src={ownerProfileImage}
-                alt="Logo"
-                className="w-16 h-16 object-cover rounded-lg"
-              />
-            )}
-            <h1 className="text-4xl md:text-5xl font-bold text-theme-primary">
-              {entityName}
-            </h1>
-          </div>
-
-          {/* Info Chips - Location, Rating, Gallos, Verificación, Nivel, Fundada */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {/* Ubicación */}
-            <div className="bg-blue-500/30 border border-blue-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-blue-600" />
-              <span>{location}</span>
+        {/* Hero */}
+        <section className="relative rounded-3xl overflow-hidden shadow-2xl">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: heroImage
+                ? `linear-gradient(120deg, rgba(5,7,15,0.85), rgba(5,7,15,0.45)), url(${heroImage})`
+                : "linear-gradient(135deg, #1f1d42, #2a325c)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="relative z-10 p-6 md:p-10 text-white space-y-6">
+            <div className="flex items-center gap-4">
+              {ownerProfileImage && (
+                <img
+                  src={ownerProfileImage}
+                  alt={entityName}
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-white/40 shadow-lg"
+                />
+              )}
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/70 mb-2">
+                  Criadero destacado
+                </p>
+                <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+                  {entityName}
+                </h1>
+              </div>
             </div>
-
-            {/* Rating */}
-            {rating > 0 && (
-              <div className="bg-yellow-500/30 border border-yellow-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
-                <Star className="w-3.5 h-3.5 text-yellow-600" />
-                <span>{rating.toFixed(1)}</span>
-              </div>
-            )}
-
-            {/* Verificación */}
-            {isCertified && (
-              <div className="bg-amber-500/30 border border-amber-500 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Certificado</span>
-              </div>
-            )}
-
-            {/* Nivel Premium */}
-            {premiumLevel && (
-              <div
-                className={`rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs font-medium border text-gray-900 ${getPremiumColor(premiumLevel)}`}
-              >
-                {getPremiumIcon(premiumLevel)}
-                <span>{premiumLevel.toUpperCase()}</span>
-              </div>
-            )}
-
-            {/* Fundada */}
-            <div className="bg-slate-400/30 border border-slate-400 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gray-900 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-slate-600" />
-              <span>
-                {establishedDate
-                  ? new Date(establishedDate).getFullYear()
-                  : "N/A"}
-              </span>
+            <div className="flex flex-wrap gap-2">
+              {statChips.map((chip, idx) => (
+                <span
+                  key={idx}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-white/25 bg-white/15 ${chip.extraClass || ""}`}
+                >
+                  {chip.icon}
+                  {chip.label}
+                </span>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Description */}
-        <div className="card-background p-6 md:p-8 mb-6">
-          <p className="text-theme-light leading-relaxed">{description}</p>
-        </div>
-
-        {/* Representative Info Card - OVER images and articles */}
-        <div className="card-background p-6 md:p-8 mb-6">
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 font-semibold">
-            Propietario/Representante
-          </p>
-          <p className="text-2xl font-bold text-theme-primary mb-4">
-            {representativeName}
-          </p>
-          <div className="space-y-3">
-            {representativeEmail !== "No especificado" && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">📧</span>
+        {/* Description + Contact */}
+        <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="card-background p-6 md:p-8">
+            <h2 className="text-xl font-semibold text-theme-primary mb-4">
+              Sobre el criadero
+            </h2>
+            <p className="text-theme-light leading-relaxed">{description}</p>
+          </div>
+          <div className="card-background p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-theme-primary">
+              Contacto directo
+            </h3>
+            <div className="space-y-3 text-sm text-theme-light">
+              {representativeEmail !== "No especificado" && (
                 <a
                   href={`mailto:${representativeEmail}`}
-                  className="text-theme-light hover:text-theme-primary transition-colors"
+                  className="flex items-center gap-2 hover:text-theme-primary"
                 >
-                  {representativeEmail}
+                  <Mail className="w-4 h-4" /> {representativeEmail}
                 </a>
-              </div>
-            )}
-            {representativePhone !== "No especificado" && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">📞</span>
-                <span className="text-theme-light">{representativePhone}</span>
-              </div>
-            )}
-            {website && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">🌐</span>
+              )}
+              {representativePhone !== "No especificado" && (
+                <a
+                  href={`tel:${representativePhone}`}
+                  className="flex items-center gap-2 hover:text-theme-primary"
+                >
+                  <Phone className="w-4 h-4" /> {representativePhone}
+                </a>
+              )}
+              {website && (
                 <a
                   href={website}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-theme-light hover:text-theme-primary transition-colors truncate"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 hover:text-theme-primary truncate"
                 >
-                  {website}
+                  <Globe className="w-4 h-4" /> {website}
                 </a>
-              </div>
-            )}
+              )}
+            </div>
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-xs uppercase tracking-[0.2em] text-theme-light mb-2">
+                Representante
+              </p>
+              <p className="text-lg font-semibold text-theme-primary">
+                {representativeName}
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Additional Images - Following BusinessInfoSection pattern with specific image display */}
+        {/* Gallery */}
         {images && images.length > 0 && (
-          <div className="card-background p-6 mb-6">
-            <h2 className="text-xl font-semibold text-theme-primary mb-4">
-              Imágenes Adicionales
-            </h2>
-
-            {/* Principal Image - First image as main image */}
-            {images[0] && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Imagen Principal
-                </h3>
-                <div className="flex justify-center">
-                  <img
-                    src={images[0]}
-                    alt="Imagen Principal"
-                    className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Other Images - Remaining images */}
-            {images.slice(1).map((img, index) => (
-              <div key={index + 1} className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Otra Imagen {index + 1}
-                </h3>
-                <div className="flex justify-center">
+          <section className="card-background p-6 md:p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-theme-primary">
+                Galería
+              </h2>
+              <span className="text-sm text-theme-light">
+                Recomendado: imágenes horizontales 16:9
+              </span>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {images.slice(0, 2).map((img, idx) => (
+                <div
+                  key={idx}
+                  className="relative rounded-2xl overflow-hidden aspect-video group"
+                >
                   <img
                     src={img}
-                    alt={`Otra Imagen ${index + 1}`}
-                    className="max-w-md w-full h-64 object-cover rounded-lg border border-gray-200 shadow-sm"
+                    alt={`${entityName}-galeria-${idx}`}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Articles Section - FINAL SECTION */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-theme-primary mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            Artículos del Criadero
-          </h2>
-
-          {publishedArticles.length > 0 ? (
-            <div className="space-y-4">
-              {publishedArticles.map((article) => (
-                <div
-                  key={article.id}
-                  className="p-4 rounded-lg bg-[#1a1f37]/50 hover:bg-[#2a325c]/50 cursor-pointer transition-colors"
-                >
-                  <h3 className="font-semibold text-theme-primary mb-1">
-                    {article.title}
-                  </h3>
-                  {article.summary && (
-                    <p className="text-sm text-theme-light line-clamp-2 mb-2">
-                      {article.summary}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-theme-light">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>
-                        {new Date(
-                          article.published_at ||
-                            article.created_at ||
-                            Date.now(),
-                        ).toLocaleDateString("es-ES")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>Publicado</span>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
               ))}
+              {images.slice(2).length > 0 && (
+                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                  {images.slice(2).map((img, idx) => (
+                    <div key={`extra-${idx}`} className="relative rounded-xl overflow-hidden aspect-video">
+                      <img
+                        src={img}
+                        alt={`${entityName}-extra-${idx}`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Articles */}
+        <section className="card-background p-6 md:p-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-theme-primary flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600" /> Artículos del criadero
+            </h2>
+            <span className="text-sm text-theme-light">
+              {publishedArticles.length} publicados · {draftArticles.length} borradores
+            </span>
+          </div>
+
+          {publishedArticles.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {publishedArticles.map((article) => {
+                const thumbnail =
+                  article.featured_image || article.featured_image_url;
+
+                return (
+                  <Link
+                    key={article.id}
+                    to={`/article/${article.id}`}
+                    className="p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur hover:border-white/30 transition block"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/20 flex items-center justify-center">
+                        {thumbnail ? (
+                          <img
+                            src={thumbnail}
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <BookOpen className="w-6 h-6 text-white/60" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-theme-primary mb-1">
+                          {article.title}
+                        </h3>
+                        {article.summary && (
+                          <p className="text-sm text-theme-light line-clamp-2 mb-3">
+                            {article.summary}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-theme-light">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(
+                              article.published_at ||
+                                article.created_at ||
+                                Date.now(),
+                            ).toLocaleDateString("es-ES")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Publicado
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <EmptyState
               title="Sin artículos publicados"
-              description={`${entityName} aún no ha publicado artículos especializados.`}
+              description={`${entityName} aún no ha publicado artículos.`}
               icon={<BookOpen className="w-10 h-10" />}
             />
           )}
-        </Card>
+        </section>
       </div>
     </div>
   );

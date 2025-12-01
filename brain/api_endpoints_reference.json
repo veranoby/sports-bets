@@ -1897,17 +1897,17 @@
         "response": {
           "success": true,
           "data": {
-            "betting_enabled": "boolean - betting.active setting (handles string/boolean/JSON)",
-            "wallets_enabled": "boolean - wallet.active setting (handles string/boolean/JSON)",
-            "streaming_enabled": "boolean - streaming.active setting (handles string/boolean/JSON)",
-            "push_notifications_enabled": "boolean - notifications.push_enabled setting (handles object/string/boolean)"
+            "betting_enabled": "boolean - enable_betting setting (handles string/boolean/JSON)",
+            "wallets_enabled": "boolean - enable_wallets setting (handles string/boolean/JSON)",
+            "streaming_enabled": "boolean - enable_streaming setting (handles string/boolean/JSON)",
+            "push_notifications_enabled": "boolean - enable_push_notifications setting (handles object/string/boolean)"
           }
         },
-        "description": "Returns feature flags for dashboard and UI. Flexible parsing handles string 'true', boolean true, or object {enabled: true}.",
+        "description": "Returns feature flags for dashboard and UI. Flexible parsing handles string 'true', boolean true, or object {enabled: true}. Updated 2025-12-01 to use enable_* keys for consistency.",
         "implementation": "backend/src/routes/settings.ts:76-101",
         "frontend_usage": "frontend/src/pages/admin/AdminDashboard.tsx - displays platform status",
-        "added_date": "2025-11-27 (field name alignment fix - betting_enabled vs betting)",
-        "fix_commit": "e63e3812 - Fixed field name mismatch causing 'all features disabled' bug"
+        "updated_date": "2025-12-01 (feature flag unification - migrated from *.active to enable_* keys)",
+        "update_reason": "Feature flag system unification to eliminate redundancy between enable_* and *.active fields"
       },
       "update_setting": {
         "method": "PUT",

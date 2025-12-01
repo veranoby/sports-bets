@@ -114,6 +114,8 @@ const UserHeader = memo(() => {
       "/wallet": "Billetera",
       "/profile": "Perfil",
       "/bets": "Apuestas",
+      "/galleras": "Criaderos",
+      "/venues": "Galleras",
     };
     return pathToTitle[location.pathname] || "Dashboard";
   }, [location.pathname]);

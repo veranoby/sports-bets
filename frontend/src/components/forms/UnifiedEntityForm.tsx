@@ -69,24 +69,25 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
 
     try {
       // Prepare profileInfo data structure based on entity type
-      const profileInfoUpdate: Record<string, any> = {
-        // Common fields (always present)
+      const verificationLevel: User["profileInfo"]["verificationLevel"] =
+        initialData?.verificationLevel === "full" ||
+        initialData?.verificationLevel === "basic" ||
+        initialData?.verificationLevel === "none"
+          ? initialData.verificationLevel
+          : "none";
+
+      const profileInfoUpdate: User["profileInfo"] = {
         businessName: formData.businessName,
         location: formData.location,
         description: formData.description,
-        email: formData.email,
-        website: formData.website,
-        // Entity-specific fields
-        ...{
-          [`${entityType}Name`]: formData.businessName,
-          [`${entityType}Location`]: formData.location,
-          [`${entityType}Description`]: formData.description,
-          [`${entityType}Email`]: formData.email,
-          [`${entityType}Website`]: formData.website,
-        },
-        // Images
+        verificationLevel,
         images: formData.images,
-      };
+        [`${entityType}Name`]: formData.businessName,
+        [`${entityType}Location`]: formData.location,
+        [`${entityType}Description`]: formData.description,
+        [`${entityType}Email`]: formData.email,
+        [`${entityType}Website`]: formData.website,
+      } as User["profileInfo"];
 
       // Use correct endpoint: updateProfile for own profile, updateProfileInfo for admin editing others
       const response = await userAPI.updateProfile({

@@ -1231,5 +1231,46 @@
         "POST /api/bets - Enhanced with auto-match for flat bets"
       ]
     }
+  },
+  "feature_flags_interface": {
+    "FeatureFlags": {
+      "file": "/frontend/src/hooks/useFeatureFlags.ts",
+      "purpose": "Type definition for feature flags that control UI visibility and functionality",
+      "required_properties": ["isBettingEnabled", "isWalletEnabled", "isStreamingEnabled", "isArticlesEnabled", "isAdsEnabled"],
+      "interface": {
+        "isBettingEnabled": "boolean - Controls betting functionality access and UI visibility",
+        "isWalletEnabled": "boolean - Controls wallet functionality access and UI visibility",
+        "isStreamingEnabled": "boolean - Controls streaming functionality access and UI visibility",
+        "isArticlesEnabled": "boolean - Controls articles functionality access and UI visibility (currently environment-controlled)",
+        "isAdsEnabled": "boolean - Controls advertisements functionality access and UI visibility (currently environment-controlled)"
+      },
+      "data_source": {
+        "dynamic_flags": ["isBettingEnabled", "isWalletEnabled", "isStreamingEnabled", "isPushNotificationsEnabled"],
+        "source": "GET /api/settings/features/public endpoint (reads from system_settings database with enable_* keys)",
+        "processing": "Hook fetches from API and maps betting_enabled → isBettingEnabled, wallets_enabled → isWalletEnabled, etc."
+      },
+      "data_source_static": {
+        "static_flags": ["isArticlesEnabled", "isAdsEnabled"],
+        "source": "Environment variables (VITE_FEATURES_ARTICLES, VITE_FEATURES_ADS)",
+        "reason": "These flags are not yet implemented in database settings system"
+      },
+      "frontend_usage": [
+        "frontend/src/components/user/Navigation.tsx - Conditionally renders Wallet/Betting links",
+        "frontend/src/components/user/UserHeader.tsx - Shows wallet balance and betting access",
+        "frontend/src/pages/user/Dashboard.tsx - Shows/hides betting features based on isBettingEnabled",
+        "frontend/src/pages/user/Bets.tsx - Shows/hides betting interface based on isBettingEnabled",
+        "frontend/src/pages/user/Wallet.tsx - Shows/hides wallet interface based on isWalletEnabled"
+      ],
+      "feature_flag_mapping": {
+        "backend_key_to_frontend_property": {
+          "enable_betting": "isBettingEnabled",
+          "enable_wallets": "isWalletEnabled",
+          "enable_streaming": "isStreamingEnabled",
+          "enable_push_notifications": "isPushNotificationsEnabled (hypothetical)"
+        }
+      },
+      "implementation_date": "2025-12-01 (feature flag unification - migrated from *.active to enable_* keys in database)",
+      "update_reason": "Feature flag system unification to eliminate redundancy between enable_* and *.active fields"
+    }
   }
 }

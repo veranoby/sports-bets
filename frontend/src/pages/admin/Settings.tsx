@@ -67,10 +67,10 @@ const Settings: React.FC = () => {
       if (Object.keys(settingsData).length === 0) {
         const defaultSettings = {
           maintenance_mode: false,
-          "streaming.active": true,
-          "wallet.active": true,
-          "betting.active": true,
-          "notifications.push_enabled": true,
+          "enable_streaming": true,
+          "enable_wallets": true,
+          "enable_betting": true,
+          "enable_push_notifications": true,
         };
         console.log("🔧 Using default settings:", defaultSettings);
         setSettings(defaultSettings);
@@ -244,10 +244,10 @@ const Settings: React.FC = () => {
     const settingsStructure = {
       system: ["maintenance_mode", "api_rate_limit", "max_concurrent_streams"],
       features: [
-        "wallet.active",
-        "betting.active",
-        "streaming.active",
-        "notifications.push_enabled",
+        "enable_wallets",
+        "enable_betting",
+        "enable_streaming",
+        "enable_push_notifications",
       ],
       business: [
         "commission_percentage",
@@ -278,10 +278,10 @@ const Settings: React.FC = () => {
         "Habilita el modo de mantenimiento, bloqueando el acceso a la plataforma",
       api_rate_limit: "Número máximo de peticiones por minuto por usuario",
       max_concurrent_streams: "Número máximo de streams simultáneos permitidos",
-      "wallet.active": "Habilita/deshabilita el sistema de billeteras",
-      "betting.active": "Habilita/deshabilita el sistema de apuestas",
-      "streaming.active": "Habilita/deshabilita las funciones de streaming",
-      "notifications.push_enabled":
+      "enable_wallets": "Habilita/deshabilita el sistema de billeteras",
+      "enable_betting": "Habilita/deshabilita el sistema de apuestas",
+      "enable_streaming": "Habilita/deshabilita las funciones de streaming",
+      "enable_push_notifications":
         "Habilita/deshabilita las notificaciones push de la PWA",
       commission_percentage:
         "Porcentaje de comisión de la plataforma sobre las apuestas",
@@ -301,10 +301,10 @@ const Settings: React.FC = () => {
   const getSettingType = (key: string): string => {
     const types: Record<string, string> = {
       maintenance_mode: "boolean",
-      "wallet.active": "boolean",
-      "betting.active": "boolean",
-      "streaming.active": "boolean",
-      "notifications.push_enabled": "boolean",
+      "enable_wallets": "boolean",
+      "enable_betting": "boolean",
+      "enable_streaming": "boolean",
+      "enable_push_notifications": "boolean",
       api_rate_limit: "number",
       max_concurrent_streams: "number",
       commission_percentage: "number",
