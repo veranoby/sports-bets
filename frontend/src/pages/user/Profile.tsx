@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   User as UserIcon,
   Edit3,
@@ -17,10 +18,24 @@ import BusinessInfoSection from "../../components/user/BusinessInfoSection";
 
 const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const location = useLocation();
   useMembershipCheck();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingBusiness, setIsEditingBusiness] = useState(false);
+  const membershipRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Auto-scroll to membership section when navigated with state.section = "membership"
+  useEffect(() => {
+    if (
+      (location.state as any)?.section === "membership" &&
+      membershipRef.current
+    ) {
+      setTimeout(() => {
+        membershipRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [location.state]);
 
   const handleSaveSuccess = useCallback(async () => {
     await refreshUser();
@@ -270,7 +285,7 @@ const Profile: React.FC = () => {
 
         {/* Membership Section */}
         {!isEditing && (
-          <div className="mt-6">
+          <div ref={membershipRef} id="membership" className="mt-6">
             <MembershipSection
               user={user}
               subscription={
