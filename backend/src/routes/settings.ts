@@ -78,23 +78,22 @@ router.get('/features/public',
   authenticate,
   asyncHandler(async (req, res) => {
     // Return feature flags for dashboard and UI
+    // Use the same keys as in the middleware and seed script
     const featureKeys = [
-      'betting.active',
-      'wallet.active',
-      'streaming.active',
-      'notifications.push_enabled'
+      'enable_betting',
+      'enable_wallets',
+      'enable_streaming',
+      'enable_push_notifications'
     ];
 
     const settings = await SystemSettingsService.getSpecificSettings(featureKeys);
     res.json({
       success: true,
       data: {
-        betting_enabled: settings['betting.active'] === 'true' || settings['betting.active'] === true,
-        wallets_enabled: settings['wallet.active'] === 'true' || settings['wallet.active'] === true,
-        streaming_enabled: settings['streaming.active'] === 'true' || settings['streaming.active'] === true,
-        push_notifications_enabled: (typeof settings['notifications.push_enabled'] === 'object' && settings['notifications.push_enabled']?.enabled === true) ||
-                                    (settings['notifications.push_enabled'] === 'true') ||
-                                    (settings['notifications.push_enabled'] === true)
+        betting_enabled: settings['enable_betting'] === 'true' || settings['enable_betting'] === true,
+        wallets_enabled: settings['enable_wallets'] === 'true' || settings['enable_wallets'] === true,
+        streaming_enabled: settings['enable_streaming'] === 'true' || settings['enable_streaming'] === true,
+        push_notifications_enabled: settings['enable_push_notifications'] === 'true' || settings['enable_push_notifications'] === true
       }
     });
   })
