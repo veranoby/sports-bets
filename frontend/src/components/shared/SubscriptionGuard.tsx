@@ -1,10 +1,11 @@
 // frontend/src/components/shared/SubscriptionGuard.tsx - FIXED VERSION
 // ================================================================
+// ✅ Uses same hook as UserHeader.tsx: useSubscription() for consistent premium logic
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Crown } from "lucide-react";
-import { useSubscriptions } from "../../hooks/useApi";
+import { Crown } from "lucide-react";
+import { useSubscription } from "../../hooks/useSubscription";
 
 // ✅ Redirect pattern: Click "Actualizar a Premium" → Navigate to /profile#membership
 // No longer uses SubscriptionModal, instead directs to MembershipSection
@@ -23,82 +24,11 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   showUpgradePrompt = true,
 }) => {
   const navigate = useNavigate();
-  const { loading, error, checkAccess, fetchCurrent } = useSubscriptions();
-  const [hasAccess, setHasAccess] = useState(false);
-  const mounted = useRef(true);
+  // ✅ SAME HOOK AS UserHeader - uses isPremium from useSubscription()
+  const { isPremium } = useSubscription();
 
-  // ✅ Memoizar las funciones para evitar recreación en cada render
-  const stableCheckAccess = useCallback(async () => {
-    try {
-      const result = await checkAccess();
-      return result;
-    } catch (err) {
-      console.error("Error in checkAccess:", err);
-      throw err;
-    }
-  }, [checkAccess]);
-
-  const stableFetchCurrent = useCallback(async () => {
-    try {
-      const result = await fetchCurrent();
-      return result;
-    } catch (err) {
-      console.error("Error in fetchCurrent:", err);
-      throw err;
-    }
-  }, [fetchCurrent]);
-
-  // ✅ Efecto con dependencias controladas
-  useEffect(() => {
-    if (loading || !mounted.current) return;
-
-    const verifyAccess = async () => {
-      try {
-        const [accessResult] = await Promise.all([
-          stableCheckAccess(),
-          stableFetchCurrent(),
-        ]);
-
-        if (mounted.current) {
-          const hasAccess =
-            (accessResult?.data as unknown as { hasAccess: boolean })
-              ?.hasAccess || false;
-          setHasAccess(hasAccess);
-        }
-      } catch (err) {
-        if (mounted.current) {
-          console.error("Error verificando acceso:", err);
-          setHasAccess(false);
-        }
-      }
-    };
-
-    verifyAccess();
-
-    return () => {
-      mounted.current = false;
-    };
-  }, [loading, stableCheckAccess, stableFetchCurrent]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-4 text-theme-light">
-        <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
-        Verificando...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-        <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
-        <span className="text-sm">Error verificando suscripción</span>
-      </div>
-    );
-  }
-
-  if (hasAccess) {
+  // ✅ If user has premium access, show content immediately
+  if (isPremium) {
     return <>{children}</>;
   }
 
