@@ -583,6 +583,8 @@ export const settingsAPI = {
   get: (key: string) => apiClient.get(`/settings/${key}`),
   set: (key: string, value: unknown) =>
     apiClient.put(`/settings/${key}`, { value }),
+  // ✅ Get dynamic feature flags from DB (betting, wallet, streaming)
+  getFeatureFlags: () => apiClient.get("/settings/features/public"),
 };
 
 // Admin API for membership management
