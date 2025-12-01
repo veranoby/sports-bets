@@ -428,7 +428,7 @@ const ArticleManagement: React.FC = () => {
             </div>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2a325c] text-white px-4 py-2 text-sm font-semibold shadow-lg shadow-[#2a325c]/30 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              className="inline-flex items-center justify-center gap-2 rounded-full btn-primary text-white px-4 py-2 text-sm font-semibold shadow-lg shadow-[#2a325c]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >
               <Plus className="w-4 h-4" />
               Nuevo Artículo

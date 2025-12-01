@@ -151,6 +151,8 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
   const goNext = () => handleTransition("next");
 
   const currentNews = news[current];
+  const hasFeaturedImage = Boolean(currentNews?.featured_image);
+  const featuredImageUrl = currentNews?.featured_image;
 
   // Get random gradient for current article (deterministic based on article id)
   const getGradientForArticle = (articleId: string) => {
@@ -159,6 +161,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return professionalGradients[hash % professionalGradients.length];
   };
+  const articleGradient = getGradientForArticle(currentNews.id);
 
   // Get category badge based on content
   const getCategoryBadge = (title: string, content: string) => {
@@ -244,26 +247,61 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         height: "350px",
       }}
     >
-      {/* Background Layer - with fade transition */}
-      <div
-        className={`absolute inset-0 transition-opacity duration-500 ${
-          isTransitioning ? "opacity-0" : "opacity-100"
-        }`}
-        style={{
-          backgroundImage: currentNews.featured_image
-            ? `url(${currentNews.featured_image})`
-            : getGradientForArticle(currentNews.id),
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+      {/* Background Layer - gradient base */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className={`absolute inset-0 transition-opacity duration-500 ${
+            isTransitioning ? "opacity-0" : "opacity-100"
+          }`}
+          style={{
+            backgroundImage: articleGradient,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+
+        {hasFeaturedImage && (
+          <>
+            {/* Blurred fill to cover width */}
+            <div
+              className={`absolute inset-0 transition-opacity duration-500 ${
+                isTransitioning ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              <div
+                className="absolute inset-[-25%] scale-110 blur-3xl opacity-70"
+                style={{
+                  backgroundImage: `url(${featuredImageUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            </div>
+
+            {/* Main featured image constrained to height */}
+            <div
+              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
+                isTransitioning ? "opacity-0" : "opacity-100"
+              }`}
+              aria-hidden
+            >
+              <img
+                src={featuredImageUrl}
+                alt={currentNews.title}
+                className="h-full w-auto max-w-none object-cover drop-shadow-[0_25px_45px_rgba(5,7,15,0.55)]"
+                loading="lazy"
+              />
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Enhanced overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#05070f]/80 via-[#05070f]/55 to-[#05070f]/10" />
 
       {/* Content - with slide and fade transition */}
       <div
-        className={`relative z-10 h-full flex flex-col justify-center p-6 md:p-8 transition-all duration-500 transform ${
+        className={`relative z-10 h-full flex flex-col justify-center px-6 py-6 md:px-10 md:py-8 lg:px-14 transition-all duration-500 transform ${
           isTransitioning
             ? "opacity-0 translate-x-4"
             : "opacity-100 translate-x-0"
@@ -285,17 +323,17 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
         </div>
 
         {/* Title */}
-        <div className="text-white font-bold text-2xl md:text-3xl mb-4 line-clamp-2 leading-tight">
+        <div className="text-white font-bold text-2xl md:text-[2rem] md:leading-[2.5rem] mb-4 line-clamp-2">
           {currentNews.title}
         </div>
 
         {/* Content */}
-        <div className="text-white/90 text-base md:text-lg mb-6 line-clamp-3 leading-relaxed">
+        <div className="text-white/85 text-base md:text-lg mb-8 line-clamp-3 leading-relaxed">
           {currentNews.content}
         </div>
 
         {/* Footer with date and CTA */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span className="text-sm text-white/80 font-medium">
               {formatDate(currentNews.published_at)}
@@ -311,9 +349,10 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           {/* Call to Action */}
           <Link
             to={`/article/${currentNews.id}`}
-            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105"
+            className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-5 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 backdrop-blur-md border border-white/20 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             Leer más
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -324,7 +363,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           {/* Left Arrow */}
           <button
             onClick={goPrev}
-            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             aria-label="Artículo anterior"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -342,7 +381,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
                     setIsTransitioning(false);
                   }, 300);
                 }}
-                className={`transition-all duration-300 rounded-full ${
+                className={`transition-all duration-300 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
                   index === current
                     ? "w-10 h-2 bg-white shadow-lg"
                     : "w-2 h-2 bg-white/50 hover:bg-white/70 hover:scale-125"
@@ -355,7 +394,7 @@ const NewsBanner: React.FC<{ className?: string }> = ({ className = "" }) => {
           {/* Right Arrow */}
           <button
             onClick={goNext}
-            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20"
+            className="p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full transition-all duration-200 hover:scale-110 shadow-lg border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             aria-label="Siguiente artículo"
           >
             <ChevronRight className="w-5 h-5" />

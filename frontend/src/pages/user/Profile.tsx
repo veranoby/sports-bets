@@ -32,7 +32,10 @@ const Profile: React.FC = () => {
       membershipRef.current
     ) {
       setTimeout(() => {
-        membershipRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        membershipRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     }
   }, [location.state]);

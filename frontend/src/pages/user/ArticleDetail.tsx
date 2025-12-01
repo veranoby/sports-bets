@@ -26,7 +26,10 @@ const ArticleDetail: React.FC = () => {
         // ✅ Check if article is premium and user doesn't have access
         if (articleData.is_premium_content && !isPremium) {
           // Premium content requires active subscription
-          navigate("/profile", { replace: true, state: { section: "membership" } });
+          navigate("/profile", {
+            replace: true,
+            state: { section: "membership" },
+          });
           return;
         }
 
@@ -45,7 +48,10 @@ const ArticleDetail: React.FC = () => {
           (err as any)?.response?.status === 403
         ) {
           // Redirect to profile membership section
-          navigate("/profile", { replace: true, state: { section: "membership" } });
+          navigate("/profile", {
+            replace: true,
+            state: { section: "membership" },
+          });
         } else {
           setError(errorMessage);
         }

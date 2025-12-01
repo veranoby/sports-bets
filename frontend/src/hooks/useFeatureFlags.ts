@@ -32,12 +32,16 @@ export const useFeatureFlags = (): FeatureFlags => {
             isWalletEnabled: data.wallets_enabled === true,
             isStreamingEnabled: data.streaming_enabled === true,
             // These remain from .env as they're not in DB yet
-            isArticlesEnabled: import.meta.env.VITE_FEATURES_ARTICLES === "true",
+            isArticlesEnabled:
+              import.meta.env.VITE_FEATURES_ARTICLES === "true",
             isAdsEnabled: import.meta.env.VITE_FEATURES_ADS === "true",
           });
         }
       } catch (error) {
-        console.error("Failed to fetch feature flags, using .env defaults:", error);
+        console.error(
+          "Failed to fetch feature flags, using .env defaults:",
+          error,
+        );
         // Keep .env defaults on error
       }
     };
