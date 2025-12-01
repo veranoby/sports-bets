@@ -95,7 +95,11 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
 
   const handleRemoveImage = () => {
     setImagePreview(null);
-    setFormData((prev) => ({ ...prev, featured_image_url: "" }));
+    setFormData((prev) => ({
+      ...prev,
+      featured_image: "",  // Clear both fields
+      featured_image_url: ""
+    }));
   };
 
   const handleChange = (

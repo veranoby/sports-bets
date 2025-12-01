@@ -501,7 +501,31 @@ router.get('/sse/admin/monitoring',
           critical: 0,
           warnings: 0,
           total: 0,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          // Include detailed metrics for AdminHeaderMetricsBar
+          metrics: {
+            memory: {
+              currentMB: safetyMetrics.memory.currentMB,
+              limitMB: safetyMetrics.memory.limitMB,
+              percentUsed: Math.round((safetyMetrics.memory.currentMB / safetyMetrics.memory.limitMB) * 100)
+            },
+            database: {
+              activeConnections: poolStats.using,
+              freeConnections: poolStats.free,
+              totalConnections: poolStats.total,
+              queuedRequests: poolStats.queue,
+              percentUsed: poolStats.total > 0 ? Math.round((poolStats.using / poolStats.total) * 100) : 0
+            },
+            intervals: {
+              activeCount: safetyMetrics.intervals.activeCount,
+              details: safetyMetrics.intervals.details || []
+            },
+            adminSSE: {
+              activeConnections: activeMonitoringConnections.size,
+              maxConnections: MAX_MONITORING_CONNECTIONS,
+              percentUsed: Math.round((activeMonitoringConnections.size / MAX_MONITORING_CONNECTIONS) * 100)
+            }
+          }
         };
 
         // Database connection pool alerts
@@ -529,7 +553,7 @@ router.get('/sse/admin/monitoring',
 
         alerts.total = alerts.critical + alerts.warnings;
 
-        // Send alert update
+        // Send alert update with metrics
         res.write(`event: monitoring-update\n`);
         res.write(`data: ${JSON.stringify(alerts)}\n\n`);
       } catch (error) {

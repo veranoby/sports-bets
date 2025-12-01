@@ -21,7 +21,7 @@ import type {
 } from "../../types/article";
 import StatusChip from "../../components/shared/StatusChip";
 
-// Article Card Component - Following Events page patterns
+// Article row component used inside the list view
 const ArticleCard = React.memo(
   ({
     article,
@@ -67,59 +67,58 @@ const ArticleCard = React.memo(
     };
 
     return (
-      <div className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-200 transform hover:scale-[1.02]">
-        {/* Article Image */}
-        {article.featured_image && (
-          <div className="w-full h-32 rounded-lg overflow-hidden mb-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-2 rounded-xl bg-[#f6f8ff] hover:bg-[#ecf1ff] transition-colors">
+        <div className="flex items-center gap-4 w-full">
+          {article.featured_image ? (
             <img
               src={article.featured_image}
               alt={article.title}
-              className="w-full h-full object-cover"
+              className="w-14 h-14 rounded-full object-cover border border-gray-200"
             />
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mb-3">
-          <StatusChip
-            status={article.status}
-            label={getStatusLabel(article.status)}
-            className={getStatusColor(article.status)}
-          />
-          <ChevronRight className="w-4 h-4 text-theme-light" />
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="font-semibold text-theme-primary line-clamp-2">
-            {article.title}
-          </h3>
-
-          {article.summary && (
-            <p className="text-sm text-theme-light line-clamp-2">
-              {article.summary}
-            </p>
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-theme-primary font-semibold uppercase">
+              {(article.title || "?").charAt(0)}
+            </div>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-theme-light">
-            <Calendar className="w-3 h-3" />
-            <span>
-              {new Date(article.created_at).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-theme-primary text-base line-clamp-1">
+                {article.title}
+              </h3>
+              {article.venue_name && (
+                <div className="text-xs text-blue-600 font-medium line-clamp-1">
+                  {article.venue_name}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 text-xs sm:text-sm text-theme-light/70">
+              <StatusChip
+                status={article.status}
+                label={getStatusLabel(article.status)}
+                className={getStatusColor(article.status)}
+              />
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                {new Date(article.created_at).toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#596c95]/20">
+        <div className="flex flex-col items-start gap-2 sm:items-end">
           <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview();
               }}
-              className="text-blue-600 hover:text-blue-300 p-1 rounded transition-colors"
+              className="text-blue-500 hover:text-blue-300 p-1.5 rounded transition-colors"
               title="Previsualizar"
             >
               <Eye className="w-4 h-4" />
@@ -129,7 +128,7 @@ const ArticleCard = React.memo(
                 e.stopPropagation();
                 onEdit();
               }}
-              className="text-yellow-400 hover:text-yellow-300 p-1 rounded transition-colors"
+              className="text-yellow-400 hover:text-yellow-300 p-1.5 rounded transition-colors"
               title="Editar"
             >
               <Edit className="w-4 h-4" />
@@ -139,7 +138,7 @@ const ArticleCard = React.memo(
                 e.stopPropagation();
                 onArchive();
               }}
-              className="text-gray-400 hover:text-gray-300 p-1 rounded transition-colors"
+              className="text-gray-400 hover:text-gray-300 p-1.5 rounded transition-colors"
               title="Archivar"
             >
               <Archive className="w-4 h-4" />
@@ -149,7 +148,7 @@ const ArticleCard = React.memo(
                 e.stopPropagation();
                 onDelete();
               }}
-              className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
+              className="text-red-400 hover:text-red-300 p-1.5 rounded transition-colors"
               title="Eliminar"
             >
               <Trash2 className="w-4 h-4" />
@@ -157,7 +156,9 @@ const ArticleCard = React.memo(
           </div>
 
           {article.status === "published" && article.published_at && (
-            <span className="text-xs text-green-600">Publicado</span>
+            <span className="text-xs text-green-500 font-semibold">
+              Publicado
+            </span>
           )}
         </div>
       </div>
@@ -472,93 +473,54 @@ const ArticleManagement: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Published Articles */}
-          {articlesByStatus.published.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Artículos Publicados ({articlesByStatus.published.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesByStatus.published.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onEdit={() => openEditModal(article)}
-                    onPreview={() => openPreviewModal(article)}
-                    onDelete={() => handleDelete(article.id)}
-                    onArchive={() => handleArchive(article)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {[
+            {
+              key: "published" as const,
+              title: "Artículos Publicados",
+              indicatorClass: "bg-green-500 animate-pulse",
+            },
+            {
+              key: "draft" as const,
+              title: "Borradores",
+              indicatorClass: "bg-yellow-500",
+            },
+            {
+              key: "pending" as const,
+              title: "En Revisión",
+              indicatorClass: "bg-blue-500 animate-pulse",
+            },
+            {
+              key: "archived" as const,
+              title: "Archivados",
+              indicatorClass: "bg-gray-500",
+            },
+          ].map(({ key, title, indicatorClass }) => {
+            const list = articlesByStatus[key];
+            if (!list.length) return null;
 
-          {/* Draft Articles */}
-          {articlesByStatus.draft.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                Borradores ({articlesByStatus.draft.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesByStatus.draft.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onEdit={() => openEditModal(article)}
-                    onPreview={() => openPreviewModal(article)}
-                    onDelete={() => handleDelete(article.id)}
-                    onArchive={() => handleArchive(article)}
-                  />
-                ))}
+            return (
+              <div key={key}>
+                <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${indicatorClass}`}
+                  ></span>
+                  {title} ({list.length})
+                </h2>
+                <div className="rounded-2xl border border-[#dfe6ff] bg-[#f6f8ff] divide-y divide-[#dfe6ff] shadow-sm">
+                  {list.map((article) => (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      onEdit={() => openEditModal(article)}
+                      onPreview={() => openPreviewModal(article)}
+                      onDelete={() => handleDelete(article.id)}
+                      onArchive={() => handleArchive(article)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Pending Articles */}
-          {articlesByStatus.pending.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                En Revisión ({articlesByStatus.pending.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesByStatus.pending.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onEdit={() => openEditModal(article)}
-                    onPreview={() => openPreviewModal(article)}
-                    onDelete={() => handleDelete(article.id)}
-                    onArchive={() => handleArchive(article)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Archived Articles */}
-          {articlesByStatus.archived.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                Archivados ({articlesByStatus.archived.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesByStatus.archived.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onEdit={() => openEditModal(article)}
-                    onPreview={() => openPreviewModal(article)}
-                    onDelete={() => handleDelete(article.id)}
-                    onArchive={() => handleArchive(article)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       )}
 

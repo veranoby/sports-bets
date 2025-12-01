@@ -535,6 +535,15 @@ router.put(
 
     const { title, content, excerpt, featured_image, featured_image_url, status } = req.body;
 
+    // 🔍 DEBUG: Log image fields received
+    console.log('🔍 UPDATE ARTICLE - Image fields:', {
+      featured_image,
+      featured_image_url,
+      typeof_featured_image: typeof featured_image,
+      typeof_featured_image_url: typeof featured_image_url,
+      current_db_value: article.featured_image
+    });
+
     // Update fields if provided
     if (title !== undefined) {
       article.title = title;
@@ -550,7 +559,9 @@ router.put(
     if (content !== undefined) article.content = content;
     if (excerpt !== undefined) article.excerpt = excerpt;
     if (featured_image !== undefined || featured_image_url !== undefined) {
-      article.featured_image = featured_image || featured_image_url || null;
+      const newValue = featured_image || featured_image_url || null;
+      console.log('🔍 Setting featured_image to:', newValue);
+      article.featured_image = newValue;
     }
 
     // Handle status updates with role-based restrictions

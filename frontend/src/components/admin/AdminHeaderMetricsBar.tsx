@@ -68,7 +68,7 @@ const AdminHeaderMetricsBar: React.FC<AdminHeaderMetricsBarProps> = ({
   if (loading || error || !metrics) {
     return (
       <div
-        className={`bg-gray-50 px-6 py-2 border-t border-gray-200 ${className}`}
+        className={`bg-gray-50 px-6 py-2 border-t m-2 border-radius-lg  ${className}`}
       >
         <span className="text-xs text-gray-500">
           {loading
@@ -83,7 +83,7 @@ const AdminHeaderMetricsBar: React.FC<AdminHeaderMetricsBarProps> = ({
 
   return (
     <div
-      className={`bg-gray-50 px-6 py-2.5 border-t border-gray-200 flex items-center gap-6 text-xs ${className}`}
+      className={`bg-gray-100 px-6 py-2.5  m-2 border-radius-lg  flex items-center gap-6 text-xs ${className}`}
     >
       {/* Memory */}
       <div className="flex items-center gap-1.5">
