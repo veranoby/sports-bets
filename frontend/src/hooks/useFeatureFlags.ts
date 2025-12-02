@@ -47,9 +47,12 @@ export const useFeatureFlags = (): FeatureFlags => {
       try {
         const response = await settingsAPI.getFeatureFlags();
         console.log("🔍 Raw API response:", response);
-        console.log("🔍 response.data:", response.data);
-        if (response.data?.success && response.data?.data) {
-          const data = response.data.data;
+
+        // Axios interceptor already unwraps response.data
+        // Backend: { success: true, data: {...} }
+        // After interceptor: response = { success: true, data: {...} }
+        if (response?.success && response?.data) {
+          const data = response.data;
           setFlags({
             // Dynamic flags from database
             isBettingEnabled: data.betting_enabled === true,
