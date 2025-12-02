@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for Galleros.Net platform",
-    "version": "3.3",
-    "last_updated": "2025-11-24",
-    "changelog": "Added WalletOperation and SystemSetting interfaces. Updated Bet interface with PAGO/DOY support (betType: 'flat'|'doy'|'pago', terms.pagoAmount, terms.doyAmount). Documented wallet operations workflow and system settings structure.",
+    "version": "3.4",
+    "last_updated": "2025-12-02",
+    "changelog": "Updated Transaction type enum to include admin_credit/admin_debit for manual balance adjustments. Validated ProtectedRoute implementation with feature flags integration.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",

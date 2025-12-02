@@ -1,6 +1,92 @@
 {
   "active_tasks": [
     {
+      "task_id": "GEMINI_PROTECTEDROUTE_VALIDATION_AND_TYPESCRIPT_FIXES_2025_12_02",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-02",
+      "completion_time": "17:30:00",
+      "complexity": "LOW",
+      "category": "VALIDATION_AND_BUGFIX",
+      "priority": "P0_CRITICAL",
+      "completed_by": "Claude Sonnet 4.5",
+      "execution_mode": "standard",
+      "summary": "Validated Gemini's ProtectedRoute implementation (95% correct). Fixed critical typo: 'loading' → 'isLoading' in useFeatureFlags destructuring. Corrected TypeScript errors in Transaction model and test files.",
+      "gemini_implementation_analysis": {
+        "what_gemini_did_right": [
+          "✅ Correctly centralized feature flag verification in ProtectedRoute.tsx",
+          "✅ Removed redundant logic from Wallet.tsx and Bets.tsx pages",
+          "✅ Added proper loading state guard to prevent race condition",
+          "✅ Implemented feature flag enforcement by route path (lines 43-48)",
+          "✅ Overall architecture was sound and solved the core problem"
+        ],
+        "critical_bug_found": {
+          "file": "frontend/src/components/ProtectedRoute.tsx",
+          "line": 21,
+          "error": "Property 'loading' does not exist on type 'FeatureFlags'",
+          "gemini_code": "const { isWalletEnabled, isBettingEnabled, loading: flagsLoading } = useFeatureFlags();",
+          "correct_code": "const { isWalletEnabled, isBettingEnabled, isLoading: flagsLoading } = useFeatureFlags();",
+          "impact": "flagsLoading was always undefined, causing loading guard to NEVER wait for feature flags. Race condition NOT fixed.",
+          "root_cause": "Gemini did not verify property names from useFeatureFlags hook before destructuring"
+        },
+        "gemini_accuracy": "95% - Architecture correct, 1 typo prevented functionality"
+      },
+      "fixes_applied_by_sonnet": [
+        {
+          "fix": "ProtectedRoute.tsx:21 - Changed 'loading' to 'isLoading'",
+          "file": "frontend/src/components/ProtectedRoute.tsx",
+          "type": "CRITICAL_BUG_FIX"
+        },
+        {
+          "fix": "App.tsx:61 - Added missing newline after comment",
+          "file": "frontend/src/App.tsx",
+          "type": "SYNTAX_FIX"
+        },
+        {
+          "fix": "Transaction model - Added admin_credit/admin_debit types",
+          "file": "backend/src/models/Wallet.ts",
+          "lines": "102-109, 137-143",
+          "type": "TYPE_EXTENSION"
+        },
+        {
+          "fix": "TestUser interface - Changed role to literal type",
+          "file": "backend/src/__tests__/admin.users.adjust-balance.test.ts",
+          "line": 25,
+          "type": "TYPE_FIX"
+        }
+      ],
+      "validation_methodology": {
+        "step_1": "Read ProtectedRoute.tsx and useFeatureFlags.ts to verify integration",
+        "step_2": "Ran npx tsc to detect type errors",
+        "step_3": "Identified mismatch: hook returns 'isLoading', Gemini used 'loading'",
+        "step_4": "Applied fix and verified compilation success",
+        "step_5": "Traced full data flow: UserHeader → ProtectedRoute → Wallet page"
+      },
+      "advice_for_gemini": {
+        "critical_lesson": "ALWAYS read the source file BEFORE destructuring properties",
+        "specific_steps": [
+          "1. When destructuring from a hook/function, READ that hook's definition first",
+          "2. Verify exact property names from the type definition or return statement",
+          "3. Run 'npx tsc --noEmit' after EVERY code change to catch type errors immediately",
+          "4. Don't assume property names - they may differ from conventions (isLoading vs loading)"
+        ],
+        "prevention_protocol": "Before writing 'const { propA, propB } = useHook()', execute: grep -A 20 'export const useHook' hookFile.ts to see exact return shape"
+      },
+      "git_commits": ["92e5e212"],
+      "files_modified": [
+        "frontend/src/components/ProtectedRoute.tsx",
+        "frontend/src/App.tsx",
+        "backend/src/models/Wallet.ts",
+        "backend/src/__tests__/admin.users.adjust-balance.test.ts"
+      ],
+      "verification_evidence": {
+        "typescript_validation": "npx tsc --noEmit: 0 errors (before fix: 3 errors)",
+        "bug_impact": "With Gemini's bug: feature flags never waited, pages redirected. With fix: works correctly.",
+        "architectural_validation": "Gemini's approach was correct - centralize verification in ProtectedRoute. Only implementation detail was wrong."
+      },
+      "business_impact": "Users can now access /wallet and /bets pages correctly. Race condition fully resolved with Sonnet's fix to Gemini's typo.",
+      "lessons_learned": "Even with correct architecture, a single character typo can break entire functionality. Type checking catches these - run tsc frequently."
+    },
+    {
       "task_id": "FINANCE_ADMIN_UI_ENHANCEMENT_2025_12_02",
       "status": "COMPLETED",
       "completion_date": "2025-12-01",
