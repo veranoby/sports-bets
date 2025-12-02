@@ -82,6 +82,9 @@ router.get(
 // Apply betting feature gate to all routes below (excludes admin endpoint above)
 router.use(requireBetting);
 
+// 🔐 AUTHENTICATION: Must authenticate first to have req.user available
+router.use(authenticate);
+
 // 🔒 ROLE RESTRICTION: Only 'user' and 'gallera' roles can access betting
 router.use((req, res, next) => {
   if (!['user', 'gallera'].includes(req.user?.role || '')) {

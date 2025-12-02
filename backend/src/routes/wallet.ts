@@ -13,6 +13,9 @@ const router = Router();
 // Apply wallet feature gate to all routes
 router.use(requireWallets);
 
+// 🔐 AUTHENTICATION: Must authenticate first to have req.user available
+router.use(authenticate);
+
 // 🔒 ROLE RESTRICTION: Only 'user', 'gallera', 'admin', and 'operator' roles can access wallet
 // Business context: Admin/operator roles need wallet access for financial operations (e.g., withdrawal approval)
 router.use((req, res, next) => {
@@ -29,7 +32,6 @@ router.use((req, res, next) => {
 // ⚡ ULTRA OPTIMIZED: Wallet GET with aggressive caching and error recovery
 router.get(
   "/",
-  authenticate,
   asyncHandler(async (req, res) => {
     // ⚡ CRITICAL OPTIMIZATION: Cache user wallet data
     const cacheKey = `wallet_main_${req.user!.id}`;
@@ -90,7 +92,6 @@ router.get(
 // ⚡ OPTIMIZED: Wallet transactions with enhanced caching
 router.get(
   "/transactions",
-  authenticate,
   [
     // Validaciones opcionales para filtros
   ],
@@ -161,7 +162,6 @@ router.get(
 // ⚡ OPTIMIZED: Deposit with cache invalidation
 router.post(
   "/deposit",
-  authenticate,
   [
     body("amount")
       .isFloat({ min: 10, max: 10000 })
@@ -261,7 +261,6 @@ router.post(
 // ⚡ OPTIMIZED: Withdrawal with cache invalidation
 router.post(
   "/withdraw",
-  authenticate,
   [
     body("amount")
       .isFloat({ min: 10, max: 50000 })
@@ -383,7 +382,6 @@ router.post(
 // ⚡ ULTRA OPTIMIZED: Balance endpoint with micro-caching
 router.get(
   "/balance",
-  authenticate,
   asyncHandler(async (req, res) => {
     // ⚡ MICRO-CACHE: Very short cache for balance queries (30 seconds)
     const cacheKey = `wallet_balance_${req.user!.id}`;
@@ -414,7 +412,6 @@ router.get(
 // ⚡ OPTIMIZED: Stats with caching
 router.get(
   "/stats",
-  authenticate,
   asyncHandler(async (req, res) => {
     // ⚡ PERFORMANCE: Get or create wallet
     let wallet = await Wallet.findOne({
@@ -537,7 +534,6 @@ router.post(
 // Admin routes - no changes needed for core functionality
 router.get(
   "/withdrawal-requests",
-  authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
     const transactions = await Transaction.findAll({
@@ -555,7 +551,6 @@ router.get(
 
 router.get(
   "/financial-metrics",
-  authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
     // ⚡ OPTIMIZATION: Cache admin financial metrics
@@ -578,7 +573,6 @@ router.get(
 
 router.get(
   "/revenue-by-source",
-  authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
     // ⚡ OPTIMIZATION: Cache revenue source data
@@ -608,7 +602,6 @@ router.get(
 
 router.get(
   "/revenue-trends",
-  authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
     const { period = "daily", days = 30 } = req.query;
@@ -653,7 +646,6 @@ router.get(
 
 router.get(
   "/user/:userId",
-  authenticate,
   authorize("admin"),
   asyncHandler(async (req, res) => {
     const wallet = await Wallet.findOne({
