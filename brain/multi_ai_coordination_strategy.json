@@ -1,7 +1,7 @@
 {
   "📋_TABLE_OF_CONTENTS": {
     "ai_roles_and_preferences": "Lines 5-35 (READ FIRST - Core Configuration)",
-    "critical_rules": "Lines 36-396 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL + PROTOCOL_EXECUTION_DISCIPLINE + IMPLEMENTATION_AND_REPORTING_OPTIMIZATION)",
+    "critical_rules": "Lines 36-515 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL + SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL + PROTOCOL_EXECUTION_DISCIPLINE + IMPLEMENTATION_AND_REPORTING_OPTIMIZATION)",
     "role_responsibilities": "Lines 398-466",
     "execution_workflows": "Lines 467-556",
     "validation_gates": "Lines 557-616",
@@ -12,11 +12,12 @@
   },
 
   "metadata": {
-    "version": "5.4",
-    "updated": "2025-11-27",
+    "version": "5.5",
+    "updated": "2025-12-02",
     "purpose": "Role-based AI orchestration framework - decoupled, resilient, and future-proof.",
     "note": "This file is READ-FIRST by all AIs. Core logic is based on ROLES, not specific models. Model selection is a configuration preference.",
     "prompt_files_location": "PROJECT ROOT (director-prompt.json, executor-prompt.json) - Role-based prompts for easier AI access.",
+    "changelog_v5.5": "Added SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL (lines 401-515) - MANDATORY: Read source definition before destructuring/using external functions/hooks/types. Prevents assumption-based errors (loading vs isLoading). Incident lesson: 2025-12-02 Gemini's 95% correct implementation broken by 1-word property name typo. Universal protocol for all external reference usage.",
     "changelog_v5.4": "Added IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK (lines 953-1225) - MANDATORY git commit evidence for all work reports. Prevents temporal mismatches and false feature claims. Based on 2025-11-27 Opción B Audit: 47 claims verified, 95.7% accuracy. Establishes git_commits field requirement, temporal validation protocol, backlog integrity standards, and bidirectional audit framework. Zero tolerance: No backlog updates without git evidence after 2025-11-27.",
     "changelog_v5.3": "Added UI_VERIFICATION_PROTOCOL (lines 283-396) - Prevents false affirmations about UI implementation. MANDATORY: Read .tsx/.jsx component files before claiming UI displays data. Never infer rendering from backend/hooks/interfaces alone. Incident lesson: 2025-11-27 SystemHealthBadge metrics claim without reading component JSX.",
     "changelog_v5.2": "Added AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 147-281) - Prevents unidirectional search, tool validation failures, and 'absence of finding = absence of existence' errors. Incident lesson: 2025-11-11 backend audit missed existing endpoints.",
@@ -396,6 +397,122 @@
     },
 
     "applicability": "All AIs (director and executor) when answering questions about UI/frontend implementation, display, or rendering"
+  },
+
+  "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL": {
+    "severity": "CRITICAL",
+    "principle": "Never assume property names, function signatures, or type structures. Always read the source definition before using.",
+    "applicability": "All scenarios where AI destructures properties, calls functions, uses hooks, or references types",
+
+    "incident_2025_12_02_gemini": {
+      "what_happened": "Gemini implemented ProtectedRoute with 'const { loading: flagsLoading } = useFeatureFlags()' but hook returns 'isLoading' not 'loading'",
+      "impact": "flagsLoading was undefined, loading guard never waited, race condition NOT fixed despite correct architecture",
+      "root_cause": "Assumed conventional name 'loading' without reading hook definition",
+      "lesson": "95% correct implementation broken by 1 word typo due to assumption"
+    },
+
+    "core_violation": {
+      "error_pattern": "Using/destructuring from source without reading source definition first",
+      "examples": [
+        "const { prop1, prop2 } = useHook() // Without reading hook file",
+        "myFunction(arg1, arg2) // Without verifying function signature",
+        "interface.property // Without checking if property exists",
+        "import { Thing } from './file' // Without verifying Thing is exported"
+      ]
+    },
+
+    "mandatory_workflow": {
+      "step_1_identify_external_reference": {
+        "trigger": "About to use hook/function/type/component from another file",
+        "action": "STOP - Do not write usage code yet"
+      },
+      "step_2_read_source_definition": {
+        "action": "Read the file that defines the hook/function/type",
+        "command": "Read [source_file] or grep -A 20 'export const hookName'",
+        "focus": "Return type, exported properties, function signature, type definition"
+      },
+      "step_3_verify_exact_names": {
+        "action": "Note exact property/parameter names from source",
+        "examples": [
+          "Hook returns { isLoading, isError } not { loading, error }",
+          "Function expects (userId, options) not (id, settings)",
+          "Type has 'userName' not 'username'"
+        ]
+      },
+      "step_4_write_usage_with_verified_names": {
+        "action": "Write code using EXACT names from source",
+        "validation": "If unsure, re-read source. Never guess."
+      },
+      "step_5_run_type_checking": {
+        "action": "npx tsc --noEmit immediately after writing",
+        "purpose": "Catch property name errors before they cause runtime bugs"
+      }
+    },
+
+    "prevention_rules": {
+      "rule_1_no_convention_assumptions": {
+        "wrong": "Assuming 'loading' because most hooks use that name",
+        "right": "Reading hook file to see it returns 'isLoading'",
+        "enforcement": "Conventions are guidelines, source is truth"
+      },
+      "rule_2_read_before_destructure": {
+        "wrong": "const { a, b, c } = source() without reading source",
+        "right": "Read source definition → Note exact property names → Then destructure",
+        "enforcement": "MANDATORY for all destructuring from external sources"
+      },
+      "rule_3_verify_function_signatures": {
+        "wrong": "Calling myFunc(arg1, arg2) based on intuition",
+        "right": "Read function definition to verify parameter order and types",
+        "enforcement": "Especially critical for functions with multiple parameters"
+      },
+      "rule_4_check_exports_before_import": {
+        "wrong": "import { Thing } from './file' assuming Thing exists",
+        "right": "grep 'export.*Thing' file.ts to verify export exists",
+        "enforcement": "Prevents 'module has no exported member' errors"
+      }
+    },
+
+    "quick_verification_commands": {
+      "verify_hook_return_type": "grep -A 30 'export const useHook' hookFile.ts",
+      "verify_function_signature": "grep -A 5 'export.*function.*myFunc' file.ts",
+      "verify_type_definition": "grep -A 20 'export.*interface.*MyType' types.ts",
+      "verify_export_exists": "grep 'export.*TargetName' file.ts"
+    },
+
+    "common_assumption_traps": {
+      "loading_vs_isLoading": "Both common, don't assume",
+      "error_vs_isError": "Both used, verify which",
+      "data_vs_result": "Check actual return property name",
+      "id_vs_userId": "Naming varies, read source",
+      "onClick_vs_handleClick": "Prop names differ by component"
+    },
+
+    "enforcement_checklist": {
+      "before_using_external_source": [
+        "□ Have I read the file that defines this hook/function/type?",
+        "□ Do I know the EXACT property/parameter names?",
+        "□ Am I using the names from source, not assumptions?",
+        "□ Will I run npx tsc after writing this code?",
+        "□ If NO to any: Read source file NOW, then proceed"
+      ]
+    },
+
+    "cost_benefit_analysis": {
+      "cost_of_assumption": "~3 hours debugging + user frustration + loss of trust",
+      "cost_of_verification": "~30 seconds to Read source file",
+      "benefit": "100% prevention of property name errors",
+      "roi": "360x time savings (30 sec vs 3 hours)"
+    },
+
+    "integration_with_existing_protocols": {
+      "complements_UI_VERIFICATION": "Read component before claiming UI displays data",
+      "complements_AUDIT_METHODOLOGY": "Verify tool outputs, don't assume",
+      "complements_EVIDENCE_BASED": "Source code is evidence, not assumptions",
+      "complements_PROTOCOL_DISCIPLINE": "Executing means reading source, not guessing"
+    },
+
+    "applicability": "ALL AIs when using any external function/hook/type/component. Universal prevention for assumption-based errors.",
+    "enforcement": "TypeScript will catch these errors, but only AFTER wasting time. Read source BEFORE writing usage code to prevent entirely."
   },
 
   "role_responsibilities": {
