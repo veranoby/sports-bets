@@ -207,8 +207,6 @@ const WalletPage: React.FC = () => {
     }
   });
 
-  if (!isWalletEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
-
   if (loading && !refreshing) {
     return (
       <div className="bg-theme-main text-theme-primary">

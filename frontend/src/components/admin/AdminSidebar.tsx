@@ -70,19 +70,24 @@ const AdminSidebar: React.FC = () => {
       label: "Artículos/Noticias",
       roles: ["admin"],
     },
-    {
-      path: "/admin/requests",
-      icon: DollarSign,
-      label: "Retiros",
-      roles: ["admin"],
-    },
-    {
-      path: "/admin/membership-requests",
-      icon: CreditCard,
-      label: "Suscripciones",
-      roles: ["admin"],
-    },
-    {
+            {
+              path: "/admin/requests",
+              icon: DollarSign,
+              label: "Retiros",
+              roles: ["admin"],
+            },
+            { // NEW ITEM
+              path: "/admin/finance/deposits",
+              icon: DollarSign,
+              label: "Depósitos",
+              roles: ["admin"],
+            },
+            {
+              path: "/admin/membership-requests",
+              icon: CreditCard,
+              label: "Suscripciones",
+              roles: ["admin"],
+            },    {
       path: "/admin/settings",
       icon: Settings,
       label: "Configuración",

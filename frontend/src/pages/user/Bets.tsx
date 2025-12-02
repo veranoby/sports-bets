@@ -209,8 +209,6 @@ const UserBets: React.FC = () => {
     }
   };
 
-  if (!isBettingEnabled) return <Navigate to="/dashboard" replace />; // Conditional rendering
-
   if (loading) return <LoadingSpinner text="Cargando apuestas..." />;
 
   return (

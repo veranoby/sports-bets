@@ -7,9 +7,12 @@ import ErrorMessage from "../shared/ErrorMessage";
 import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 import SubscriptionTabs from "./SubscriptionTabs";
 import type { User } from "../../types";
+import { adminAPI } from "../../services/api"; // Added for balance adjustment
+import ConfirmModal from "../shared/ConfirmModal"; // Added for balance adjustment confirmation
 
 type UserRole = "operator" | "venue" | "gallera" | "user";
 type FormMode = "create" | "edit";
+type ActiveTab = "profile" | "subscription" | "balance"; // Added 'balance'
 
 interface UserModalProps {
   mode: FormMode;
@@ -27,13 +30,16 @@ const UserModal: React.FC<UserModalProps> = ({
   onSuccess,
 }) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"profile" | "subscription">(
-    "profile",
-  );
+  const [activeTab, setActiveTab] = useState<ActiveTab>("profile"); // Use new ActiveTab type
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+        const [isLoading, setIsLoading] = useState(false);
+        const [error, setError] = useState<string | null>(null);
+  
+        // New states for balance adjustment
+        const [balanceAdjustmentType, setBalanceAdjustmentType] = useState<"credit" | "debit">("credit");
+        const [balanceAdjustmentAmount, setBalanceAdjustmentAmount] = useState<number>(0);
+        const [balanceAdjustmentReason, setBalanceAdjustmentReason] = useState<string>("");
+        const [showConfirmAdjustmentModal, setShowConfirmAdjustmentModal] = useState<boolean>(false);
   const {
     formData,
     handleChange,
@@ -79,6 +85,32 @@ const UserModal: React.FC<UserModalProps> = ({
       assigned_username: subscriptionData.assigned_username || "",
     });
   }, []);
+
+  const handleAdjustBalance = async () => {
+    if (!user?.id || !balanceAdjustmentAmount || balanceAdjustmentAmount <= 0 || !balanceAdjustmentReason || balanceAdjustmentReason.length < 10) {
+      toast.error("Por favor, rellena todos los campos de ajuste de saldo y asegúrate de que el monto sea positivo y la razón tenga al menos 10 caracteres.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await adminAPI.adjustUserBalance(user.id, {
+        type: balanceAdjustmentType,
+        amount: balanceAdjustmentAmount,
+        reason: balanceAdjustmentReason,
+      });
+      toast.success("Saldo ajustado exitosamente.");
+      onSuccess(user); // Refresh user data to show new balance
+      onClose(); // Close modal after successful adjustment
+    } catch (err: any) {
+      setError(err.message || "Error al ajustar el saldo.");
+      toast.error(err.message || "Error al ajustar el saldo.");
+    } finally {
+      setIsLoading(false);
+      setShowConfirmAdjustmentModal(false);
+    }
+  };
 
   const onSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -176,6 +208,16 @@ const UserModal: React.FC<UserModalProps> = ({
                 }`}
               >
                 💳 Suscripción
+              </button>
+              <button // New "Ajuste de Saldo" tab
+                onClick={() => setActiveTab("balance")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "balance"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                💰 Ajuste de Saldo
               </button>
             </nav>
           </div>
@@ -536,7 +578,7 @@ const UserModal: React.FC<UserModalProps> = ({
                 </div>
               </div>
             </form>
-          ) : (
+          ) : activeTab === "subscription" ? (
             // Subscription tab
             <SubscriptionTabs
               mode={mode}
@@ -545,6 +587,105 @@ const UserModal: React.FC<UserModalProps> = ({
               onSave={handleSubscriptionSave}
               onCancel={onClose}
             />
+          ) : (
+            // Balance Adjustment tab
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Ajuste Manual de Saldo para {user?.username}
+              </h3>
+              <p className="text-sm text-gray-600">
+                Ajusta el saldo de la billetera del usuario. Esta acción
+                requiere una justificación obligatoria y es irreversible.
+              </p>
+
+              {/* Balance Adjustment Form */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Tipo de Ajuste
+                </label>
+                <div className="mt-1 flex space-x-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="adjustmentType"
+                      value="credit"
+                      checked={balanceAdjustmentType === "credit"}
+                      onChange={(e) => setBalanceAdjustmentType(e.target.value as "credit" | "debit")}
+                    />
+                    <span className="ml-2">Añadir Saldo (Crédito)</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="adjustmentType"
+                      value="debit"
+                      checked={balanceAdjustmentType === "debit"}
+                      onChange={(e) => setBalanceAdjustmentType(e.target.value as "credit" | "debit")}
+                    />
+                    <span className="ml-2">Restar Saldo (Débito)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="adjustmentAmount" className={labelStyle}>
+                  Monto
+                </label>
+                <input
+                  type="number"
+                  id="adjustmentAmount"
+                  name="adjustmentAmount"
+                  value={balanceAdjustmentAmount}
+                  onChange={(e) => setBalanceAdjustmentAmount(parseFloat(e.target.value))}
+                  min="0.01"
+                  step="0.01"
+                  required
+                  className={inputStyle}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="adjustmentReason" className={labelStyle}>
+                  Razón (Obligatoria para auditoría)
+                </label>
+                <textarea
+                  id="adjustmentReason"
+                  name="adjustmentReason"
+                  value={balanceAdjustmentReason}
+                  onChange={(e) => setBalanceAdjustmentReason(e.target.value)}
+                  rows={3}
+                  minLength={10}
+                  maxLength={255}
+                  required
+                  className={inputStyle}
+                  placeholder="Ej: Bonificación por lealtad, corrección de depósito erróneo, etc."
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmAdjustmentModal(true)}
+                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  disabled={isLoading || !balanceAdjustmentAmount || !balanceAdjustmentReason || balanceAdjustmentReason.length < 10}
+                >
+                  Confirmar Ajuste
+                </button>
+              </div>
+
+              {/* Confirmation Modal */}
+              <ConfirmModal
+                isOpen={showConfirmAdjustmentModal}
+                onClose={() => setShowConfirmAdjustmentModal(false)}
+                onConfirm={handleAdjustBalance}
+                title="Confirmar Ajuste de Saldo"
+                message={`¿Está seguro que desea ${balanceAdjustmentType === "credit" ? "AÑADIR" : "RESTAR"} $${balanceAdjustmentAmount.toFixed(2)} al saldo de la billetera de ${user?.username}? Esta acción es irreversible y se registrará como: "${balanceAdjustmentReason}".`}
+                confirmText={balanceAdjustmentType === "credit" ? "Añadir" : "Restar"}
+                isConfirming={isLoading}
+              />
+            </div>
           )}
         </div>
 

@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import { asyncHandler, errors } from "../middleware/errorHandler";
-import { User, Subscription } from "../models";
+import { User, Subscription, Wallet, Transaction } from "../models"; // ADD Wallet, Transaction
 import { body, param, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis";
+import { transaction, sequelize } from "../config/database"; // ADD transaction, sequelize
 
 const router = Router();
 
@@ -737,10 +738,30 @@ router.put(
     }
 
     // Update allowed fields
-    if (role !== undefined) targetUser.role = role;
+    let roleChanged = false;
+    if (role !== undefined && targetUser.role !== role) {
+      targetUser.role = role;
+      roleChanged = true;
+    }
     if (isActive !== undefined) targetUser.isActive = isActive;
 
     await targetUser.save();
+
+    // ⚡ CRITICAL: Invalidate user cache if role changed to ensure new permissions take effect immediately
+    if (roleChanged) {
+      // Remove from local cache
+      import('../middleware/auth').then(authModule => {
+        authModule.clearUserCache(targetUser.id);
+      }).catch(console.error);
+
+      // Remove from Redis cache if applicable
+      import('../config/redis').then(redisModule => {
+        if (redisModule.delCache) {
+          redisModule.delCache(`user_${targetUser.id}`)
+            .catch(error => console.error('Error clearing user cache:', error));
+        }
+      }).catch(console.error);
+    }
 
     res.json({
       success: true,
@@ -952,6 +973,98 @@ router.put(
       success: true,
       message: "User rejected successfully",
       data: await user.toPublicJSON(),
+    });
+  })
+);
+
+// POST /api/admin/users/:userId/adjust-balance - Ajuste manual de saldo (solo admin)
+router.post(
+  "/:userId/adjust-balance",
+  authenticate,
+  authorize("admin"),
+  [
+    param("userId").isUUID().withMessage("Valid user ID required"),
+    body("type")
+      .isIn(["credit", "debit"])
+      .withMessage("Type must be 'credit' or 'debit'"),
+    body("amount")
+      .isFloat({ min: 0.01 })
+      .withMessage("Amount must be a positive number"),
+    body("reason")
+      .isString()
+      .isLength({ min: 10, max: 255 })
+      .withMessage("Reason must be between 10 and 255 characters"),
+  ],
+  asyncHandler(async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      throw errors.badRequest(
+        "Validation failed: " +
+          validationErrors
+            .array()
+            .map((err) => err.msg)
+            .join(", ")
+      );
+    }
+
+    const { userId } = req.params;
+    const { type, amount, reason } = req.body;
+    const adminId = req.user!.id; // ID del administrador que realiza la acción
+
+    await transaction(async (t) => {
+      const user = await User.findByPk(userId, { transaction: t });
+      if (!user) {
+        throw errors.notFound("User not found");
+      }
+
+      const wallet = await Wallet.findOne({ where: { userId: user.id }, transaction: t });
+      if (!wallet) {
+        throw errors.notFound("User wallet not found");
+      }
+
+      let newBalance = wallet.balance;
+      let transactionType: 'admin_credit' | 'admin_debit';
+      let description: string;
+
+      if (type === "credit") {
+        newBalance += amount;
+        transactionType = 'admin_credit';
+        description = `Admin Credit: ${reason}`;
+      } else { // type === "debit"
+        if (newBalance < amount) {
+          throw errors.badRequest("Insufficient balance for debit adjustment");
+        }
+        newBalance -= amount;
+        transactionType = 'admin_debit';
+        description = `Admin Debit: ${reason}`;
+      }
+
+      wallet.balance = newBalance;
+      await wallet.save({ transaction: t });
+
+      // Create transaction record
+      await Transaction.create({
+        walletId: wallet.id,
+        type: transactionType,
+        amount: amount,
+        status: 'completed',
+        description: description,
+        metadata: {
+          adminId: adminId,
+          reason: reason,
+          previousBalance: wallet.balance, // Store previous balance for audit
+          newBalance: newBalance,
+        },
+      }, { transaction: t });
+
+      // Invalidate user profile cache to reflect new balance
+      await invalidatePattern(`user:profile:${userId}`);
+
+      res.json({
+        success: true,
+        message: `Wallet ${type} adjusted successfully`,
+        data: { user: await user.toPublicJSON(), wallet: wallet.toPublicJSON() },
+      });
     });
   })
 );

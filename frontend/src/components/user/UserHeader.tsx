@@ -40,7 +40,11 @@ const UserHeader = memo(() => {
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
   const { subscription, isPremium } = useSubscription();
 
-  const { isWalletEnabled, isBettingEnabled, isLoading: featureFlagsLoading } = useFeatureFlags();
+  const {
+    isWalletEnabled,
+    isBettingEnabled,
+    isLoading: featureFlagsLoading,
+  } = useFeatureFlags();
 
   // Estados UI
   const [showBets, setShowBets] = useState(false);
@@ -180,7 +184,8 @@ const UserHeader = memo(() => {
           user.username
         : user.username;
 
-  const isLoading = walletLoading || notificationsLoading || betsLoading || featureFlagsLoading;
+  const isLoading =
+    walletLoading || notificationsLoading || betsLoading || featureFlagsLoading;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg shadow-lg text-gray-900 border-b border-gray-200">

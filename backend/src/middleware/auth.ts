@@ -301,3 +301,13 @@ function calculateAdaptiveTtl(cached: CachedUser): number {
   // If not accessed recently, use shorter cache time
   return MIN_CACHE_DURATION; // 30 seconds for infrequently accessed users
 }
+
+// ⚡ UTILITY: Function to clear user from cache when role or settings change
+export const clearUserCache = (userId: string): void => {
+  userCache.delete(userId);
+};
+
+// Export cache for use in other modules (for cache invalidation purposes)
+export const getUserCache = (): Map<string, CachedUser> => {
+  return userCache;
+};

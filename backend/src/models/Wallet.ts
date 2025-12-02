@@ -104,7 +104,9 @@ class Transaction extends Model<
     | "withdrawal"
     | "bet-win"
     | "bet-loss"
-    | "bet-refund";
+    | "bet-refund"
+    | "admin_credit"
+    | "admin_debit";
   declare amount: number;
   declare status: CreationOptional<
     "pending" | "completed" | "failed" | "cancelled"
@@ -133,11 +135,11 @@ class Transaction extends Model<
   }
 
   isDebit(): boolean {
-    return ["withdrawal", "bet-loss"].includes(this.type);
+    return ["withdrawal", "bet-loss", "admin_debit"].includes(this.type);
   }
 
   isCredit(): boolean {
-    return ["deposit", "bet-win", "bet-refund"].includes(this.type);
+    return ["deposit", "bet-win", "bet-refund", "admin_credit"].includes(this.type);
   }
 
   toPublicJSON() {

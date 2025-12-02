@@ -216,20 +216,40 @@
       "security": "Operators cannot modify admin/operator accounts",
       "added_by": "QWEN optimization - admin password management feature"
     },
-    "update_user": {
-      "method": "PUT",
-      "path": "/users/:id",
-      "body": {"role": "string (optional)", "isActive": "boolean (optional)"},
-      "allowed_fields": ["role", "isActive"],
-      "read_only_fields": ["username", "email", "profileInfo"],
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "security": [
-        "Operators cannot modify admin/operator accounts",
-        "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
-        "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
-      ]
-    },
+            "update_user": {
+              "method": "PUT",
+              "path": "/users/:id",
+              "body": {"role": "string (optional)", "isActive": "boolean (optional)"},
+              "allowed_fields": ["role", "isActive"],
+              "read_only_fields": ["username", "email", "profileInfo"],
+              "auth_required": true,
+              "roles": ["admin", "operator"],
+              "security": [
+                "Operators cannot modify admin/operator accounts",
+                "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
+                "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
+              ]
+            },
+            "adjust_user_balance": {
+              "method": "POST",
+              "path": "/admin/users/:userId/adjust-balance",
+              "auth_required": true,
+              "roles": ["admin"],
+              "body": {
+                "type": "'credit' | 'debit'",
+                "amount": "number (positive)",
+                "reason": "string (min 10, max 255 chars)"
+              },
+              "response": {"success": true, "message": "string", "data": {"user": "User object", "wallet": "Wallet object"}},
+              "purpose": "Manually adjust user's wallet balance (admin only)",
+              "features": {
+                "transactional": "Ensures atomicity",
+                "auditable": "Records adminId and reason in transaction metadata",
+                "cache_invalidation": "Invalidates user profile cache"
+              },
+              "implementation": "backend/src/routes/users.ts",
+              "added_date": "2025-12-02"
+            },
     "update_profile_info": {
       "method": "PUT",
       "path": "/users/:userId/profile-info",

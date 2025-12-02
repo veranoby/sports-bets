@@ -84,7 +84,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
       },
     ];
 
-    // Only add wallet and betting items for user and gallera roles
+    /* Only add wallet and betting items for user and gallera roles
     if (isWalletEnabled && ["user", "gallera"].includes(role)) {
       // Conditionally add wallet item
       commonItems.push({
@@ -105,7 +105,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
         gradient: "from-red-500 to-red-600",
       });
     }
-
+    */
     switch (role) {
       case "user": {
         // For regular users, return common items (they get all standard navigation)

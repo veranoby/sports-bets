@@ -80,9 +80,11 @@ const GalleraDetailPage: React.FC = () => {
             author_id: ownerId,
           });
           if (articlesResponse.success) {
-            const articlePayload = (articlesResponse.data as {
-              articles?: ArticleLite[];
-            })?.articles;
+            const articlePayload = (
+              articlesResponse.data as {
+                articles?: ArticleLite[];
+              }
+            )?.articles;
             setArticles(articlePayload || []);
           }
         }
@@ -369,7 +371,10 @@ const GalleraDetailPage: React.FC = () => {
               {images.slice(2).length > 0 && (
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   {images.slice(2).map((img, idx) => (
-                    <div key={`extra-${idx}`} className="relative rounded-xl overflow-hidden aspect-video">
+                    <div
+                      key={`extra-${idx}`}
+                      className="relative rounded-xl overflow-hidden aspect-video"
+                    >
                       <img
                         src={img}
                         alt={`${entityName}-extra-${idx}`}
@@ -387,10 +392,12 @@ const GalleraDetailPage: React.FC = () => {
         <section className="card-background p-6 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-theme-primary flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-600" /> Artículos del criadero
+              <BookOpen className="w-5 h-5 text-blue-600" /> Artículos del
+              criadero
             </h2>
             <span className="text-sm text-theme-light">
-              {publishedArticles.length} publicados · {draftArticles.length} borradores
+              {publishedArticles.length} publicados · {draftArticles.length}{" "}
+              borradores
             </span>
           </div>
 
