@@ -46,6 +46,8 @@ export const useFeatureFlags = (): FeatureFlags => {
     const fetchFeatureFlags = async () => {
       try {
         const response = await settingsAPI.getFeatureFlags();
+        console.log("🔍 Raw API response:", response);
+        console.log("🔍 response.data:", response.data);
         if (response.data?.success && response.data?.data) {
           const data = response.data.data;
           setFlags({
@@ -66,7 +68,7 @@ export const useFeatureFlags = (): FeatureFlags => {
           });
         } else {
           console.error("❌ Invalid response format from feature flags API");
-          setFlags(prev => ({ ...prev, isLoading: false }));
+          setFlags((prev) => ({ ...prev, isLoading: false }));
         }
       } catch (error) {
         console.error("❌ Failed to fetch feature flags from database:", error);
