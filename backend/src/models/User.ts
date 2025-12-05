@@ -96,6 +96,11 @@ export class User extends Model<
   async toPublicJSON() {
     const { passwordHash, verificationToken, ...publicData } = this.toJSON();
 
+    // Include wallet if loaded
+    if ((this as any).wallet) {
+      (publicData as any).wallet = (this as any).wallet;
+    }
+
     // Include current subscription - use pre-loaded subscription if available
     try {
       // If subscriptions were already loaded (from include: subscriptionInclude), use them

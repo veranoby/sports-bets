@@ -1,0 +1,1309 @@
+{
+  "metadata": {
+    "purpose": "TypeScript interface reference for Galleros.Net platform",
+    "version": "3.6",
+    "last_updated": "2025-12-05",
+    "changelog": "v3.6 (2025-12-05): CRITICAL FIX - Wallet.create() now called automatically when admin creates users (backend/src/routes/users.ts:680-684). Fixes \"User wallet not found\" errors on balance adjustments. Added response.success check to handleAdjustBalance (frontend/src/components/admin/UserModal.tsx:117) to prevent modal closing on API errors. v3.5: Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
+    "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
+    "required_environment_variables": {
+      "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
+      "VITE_API_URL": "API base URL",
+      "VITE_WS_URL": "WebSocket base URL"
+    },
+    "phase_2_bunny_cdn_readiness": "HLSPlayer component uses VITE_STREAM_BASE_URL environment variable (zero code changes needed for CDN switch)",
+    "note": "Verified against backend database models and production deployment"
+  },
+
+  "core_interfaces": {
+    "AlertItem": {
+      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "purpose": "Type definition for system alert items displayed in monitoring UI",
+      "required_properties": ["id", "level", "service", "message", "timestamp", "resolved"],
+      "interface": {
+        "id": "string - unique alert identifier (format: alert_${timestamp}_${service})",
+        "level": "'critical' | 'warning' | 'info' - severity level",
+        "service": "string - alert source (Database, Memory, Intervals, System)",
+        "message": "string - human-readable alert description",
+        "timestamp": "string - ISO date when alert was created",
+        "resolved": "boolean - alert acknowledgment status"
+      },
+      "ui_color_mapping": {
+        "critical": "text-red-500 bg-red-50 border-red-200 - XCircle icon",
+        "warning": "text-yellow-500 bg-yellow-50 border-yellow-200 - AlertTriangle icon",
+        "info": "text-blue-500 bg-blue-50 border-blue-200 - CheckCircle icon"
+      },
+      "alert_sources": {
+        "Database Connections": "Triggered when pool.using > 8/10",
+        "Database Queue": "Triggered when pool.queue > 0",
+        "Database Status": "Triggered when pool.status !== 'active'",
+        "Memory Critical": "Triggered when memory > 380MB (95% of 400MB)",
+        "Memory High": "Triggered when memory > 300MB (75% of 400MB)",
+        "Intervals": "Triggered when activeCount > 50 (potential memory leak)",
+        "System": "Info alert when no other alerts exist"
+      },
+      "backend_source": "backend/src/routes/monitoring.ts:252-345",
+      "api_endpoint": "GET /api/monitoring/alerts",
+      "frontend_usage": [
+        "Monitoring.tsx:334 - alerts.filter((alert) => !alert.resolved).length",
+        "Monitoring.tsx:352-395 - Render alert list with color coding"
+      ],
+      "implementation_date": "2025-11-19 (fixed alerts.filter is not a function error)"
+    },
+    "LiveStats": {
+      "file": "/frontend/src/pages/admin/Monitoring.tsx",
+      "purpose": "Type definition for live system statistics displayed in monitoring dashboard",
+      "required_properties": ["activeUsers", "liveEvents", "activeBets", "connectionCount", "requestsPerMinute", "errorRate"],
+      "interface": {
+        "activeUsers": "number - Currently implemented with EventConnection.count() for active connections",
+        "liveEvents": "number - Currently implemented with Events.count() for active events with status='live'",
+        "activeBets": "number - Currently implemented with Bets.count() for active bets with status='active'",
+        "connectionCount": "number - Current database pool active connections (real)",
+        "requestsPerMinute": "number - Currently implemented with performance tracking middleware",
+        "errorRate": "number - Currently implemented with error tracking from monitoring services"
+      },
+      "future_integration": {
+        "activeUsers": "TODO: Integrate EventConnection.count({ disconnected_at: null })",
+        "liveEvents": "TODO: Integrate Event.count({ status: 'live' })",
+        "activeBets": "TODO: Integrate Bet.count({ status: 'active' })",
+        "requestsPerMinute": "TODO: Add tracking in performance middleware",
+        "errorRate": "TODO: Add tracking in error middleware"
+      },
+      "backend_source": "backend/src/routes/monitoring.ts:351-386",
+      "api_endpoint": "GET /api/monitoring/stats",
+      "display_format": {
+        "activeUsers": "Large metric card with Users icon (blue)",
+        "liveEvents": "Large metric card with Zap icon (red)",
+        "activeBets": "Large metric card with Activity icon (green) - admin only",
+        "connectionCount": "Large metric card with Wifi icon (purple) - admin only",
+        "requestsPerMinute": "Large metric card with Clock icon (yellow) - admin only",
+        "errorRate": "Percentage display with AlertTriangle icon (red) - admin only"
+      },
+      "admin_visibility": {
+        "all_users": ["activeUsers", "liveEvents"],
+        "admin_only": ["activeBets", "connectionCount", "requestsPerMinute", "errorRate"]
+      },
+      "frontend_usage": [
+        "Monitoring.tsx:209-299 - 6 stat cards with conditional rendering based on role",
+        "Monitoring.tsx:216-217 - activeUsers display",
+        "Monitoring.tsx:230-231 - liveEvents display",
+        "Monitoring.tsx:246-247 - activeBets display (admin only)"
+      ],
+      "implementation_date": "2025-11-19 (fixed monitoring page broken state)"
+    },
+    "Fight": {
+      "file": "/frontend/src/types/index.ts",
+      "required_properties": ["id", "eventId", "number", "redCorner", "blueCorner", "weight", "status"],
+      "optional_properties": ["description", "notes", "initialOdds", "bettingStartTime", "bettingEndTime", "result", "startTime", "endTime"],
+      "status_enum": ["upcoming", "betting", "live", "completed", "cancelled"],
+      "database_mapping": {
+        "redCorner": "red_corner (database)",
+        "blueCorner": "blue_corner (database)",
+        "bettingStartTime": "betting_start_time (database)"
+      },
+      "critical_note": "VERIFIED against backend/src/models/Fight.ts - properties match database schema"
+    },
+    "Bet": {
+      "file": "/backend/src/models/Bet.ts",
+      "purpose": "Betting system with support for standard bets and PAGO/DOY matched proposals",
+      "required_properties": ["id", "fightId", "userId", "side", "amount", "potentialWin", "status", "betType"],
+      "optional_properties": ["matchedWith", "proposalStatus", "terms", "createdAt", "updatedAt"],
+      "side_enum": ["red", "blue"],
+      "status_enum": ["pending", "active", "won", "lost", "cancelled", "refunded"],
+      "betType_enum": ["flat", "doy"],
+      "proposalStatus_enum": ["pending", "accepted", "rejected", "expired"],
+      "pago_doy_specific_fields": {
+        "🔴_CRITICAL_2025_11_04": "PAGO/DOY matched bets now persist to database with transaction safety",
+        "matchedWith": {
+          "type": "string | null",
+          "description": "ID of matched bet (bidirectional link between PAGO and DOY bets)",
+          "usage": "PAGO bet.matchedWith = DOY bet.id, DOY bet.matchedWith = PAGO bet.id"
+        },
+        "proposalStatus": {
+          "type": "'pending' | 'accepted' | 'rejected' | 'expired' | null",
+          "description": "Status of PAGO/DOY proposal lifecycle",
+          "workflow": "pending (created) → accepted (matched) OR expired (timeout) OR rejected (declined)"
+        },
+        "terms": {
+          "type": "object | null",
+          "description": "PAGO/DOY proposal terms and metadata",
+          "structure": {
+            "ratio": "number (betting odds ratio)",
+            "isOffer": "boolean (true for PAGO, false for DOY)",
+            "pagoAmount": "number (PAGO bet amount)",
+            "doyAmount": "number (DOY bet amount)",
+            "proposedBy": "string (userId who created PAGO proposal)"
+          }
+        }
+      },
+      "database_persistence": {
+        "transaction_pattern": "Matched bets created atomically with Sequelize transaction",
+        "implementation": "backend/src/sockets/bettingSocket.ts:215-271",
+        "pago_bet": {
+          "betType": "'doy'",
+          "proposalStatus": "'accepted'",
+          "terms.isOffer": true,
+          "matchedWith": "DOY bet ID (linked after DOY creation)"
+        },
+        "doy_bet": {
+          "betType": "'doy'",
+          "proposalStatus": "'accepted'",
+          "terms.isOffer": false,
+          "matchedWith": "PAGO bet ID (linked during creation)"
+        },
+        "rollback_behavior": "Transaction rollback on any error, both bets or none"
+      },
+      "common_errors": [
+        "Missing matchedWith link in one direction",
+        "Inconsistent proposalStatus between matched bets",
+        "Transaction failure without rollback (fixed 2025-11-04)"
+      ]
+    },
+    "SSEEventType": {
+      "file": "/frontend/src/hooks/useSSE.ts",
+      "type": "enum",
+      "purpose": "Type-safe event names for Server-Sent Events subscription system",
+      "values": {
+        "SYSTEM_STATUS": "System-wide status updates",
+        "FIGHT_STATUS_UPDATE": "Fight status transitions (upcoming → betting → live → completed)",
+        "NEW_BET": "New bet created and available for matching",
+        "BET_MATCHED": "PAGO/DOY bet successfully matched between users",
+        "BET_CANCELLED": "Bet cancelled by user or system",
+        "BET_SETTLED": "Fight completed, bet result determined",
+        "PAGO_PROPOSAL": "PAGO bet proposal created (3-minute timeout)",
+        "DOY_PROPOSAL": "DOY acceptance of PAGO proposal",
+        "BETTING_WINDOW_OPENED": "Fight entered betting status",
+        "BETTING_WINDOW_CLOSED": "Fight exited betting status (no new bets)",
+        "WALLET_UPDATE": "User wallet balance changed"
+      },
+      "🔴_CRITICAL_FIX_2025_11_04": {
+        "issue": "BettingPanel used string literals instead of enum for subscribe()",
+        "fix_location": "frontend/src/components/user/BettingPanel.tsx:56-65",
+        "wrong_pattern": "subscribe('NEW_BET', callback) // String literal - BROKEN",
+        "correct_pattern": "subscribe(SSEEventType.NEW_BET, callback) // Enum - CORRECT",
+        "validation": "TypeScript compilation ZERO errors after fix"
+      },
+      "usage_pattern": {
+        "import": "import { useFightSSE, SSEEventType } from '../../hooks/useSSE'",
+        "subscription": "const unsubscribe = subscribe(SSEEventType.NEW_BET, (event) => { handleNewBet(event); })",
+        "cleanup": "useEffect(() => { const cleanup = subscribe(...); return () => cleanup(); }, [deps])",
+        "type_safety": "TypeScript enforces enum usage, prevents typos in event names"
+      },
+      "component_examples": {
+        "BettingPanel": {
+          "file": "frontend/src/components/user/BettingPanel.tsx",
+          "subscriptions": [
+            "SSEEventType.NEW_BET - Refresh available bets list",
+            "SSEEventType.BET_MATCHED - Trigger onBetPlaced callback"
+          ],
+          "line_references": "Lines 56, 65 (fixed 2025-11-04)"
+        }
+      }
+    },
+    "User": {
+      "file": "/frontend/src/types/index.ts",
+      "required_properties": ["id", "username", "email", "role", "isActive", "approved", "createdAt", "updatedAt"],
+      "optional_properties": ["profileInfo", "lastLogin", "subscription", "wallet", "events"],
+      "role_enum": ["admin", "operator", "venue", "user", "gallera"],
+      "approval_system": {
+        "approved_field": "boolean - NEW FIELD 2025-10-29",
+        "default_value": "false for public registrations, true for admin-created users",
+        "approval_logic": "Users with role='venue'|'gallera' and approved=false are blocked by middleware until admin approves",
+        "middleware_check": "authenticate middleware checks approved status before allowing requests"
+      },
+      "profileInfo_structure": {
+        "basic_fields": ["fullName", "phoneNumber", "address", "identificationNumber", "verificationLevel"],
+        "image_fields": ["images?: string[] - ADDED 2025-10-31 - Max 2 for venues, max 3 for galleras"],
+        "venue_fields": ["businessName", "venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite"],
+        "gallera_fields": ["galleraName", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters"],
+        "extended_fields": ["location", "description", "establishedDate", "certified", "rating", "premiumLevel", "specialties", "imageUrl"]
+      },
+      "backend_sync": {
+        "🔴_CRITICAL_2025_10_30": "CONSOLIDATED ARCHITECTURE - NO SYNC NEEDED",
+        "architecture_note": "venues and galleras tables ELIMINATED. All data stored ONLY in User.profileInfo JSONB field",
+        "profile_data_location": "User.profileInfo (single source of truth)",
+        "endpoint": "/users/profile (PUT) - updates User.profileInfo directly, no sync to other tables needed"
+      }
+    },
+    "UserSubscription": {
+      "file": "/frontend/src/types/index.ts",
+      "required_properties": ["id", "plan", "status", "features"],
+      "optional_properties": ["expiresAt", "manual_expires_at"],
+      "status_enum": ["active", "cancelled", "expired", "pending"],
+      "plan_types": ["free", "24-hour", "monthly"],
+      "pricing": {
+        "free": "$0 (default on expiration/cancellation)",
+        "24-hour": "$5 (1 day access)",
+        "monthly": "$10 (30 days access)"
+      },
+      "expiration_behavior": {
+        "automatic_downgrade": "When expiresAt < current_timestamp, subscription automatically changes to 'free' type",
+        "frontend_access_control": "Frontend components automatically restrict access to premium content when subscription expires",
+        "middleware_validation": "authenticate middleware checks expiresAt on each request and enforces access restrictions",
+        "immediate_effect": "Access restrictions take effect immediately when subscription expires without need for user logout/login"
+      },
+      "common_errors": [
+        "Using 'type' instead of 'plan' property",
+        "Missing 'id' property in form data",
+        "Forgetting index signature for form compatibility"
+      ]
+    },
+    "UserSubscriptionWithExpiry": {
+      "file": "/frontend/src/types/index.ts",
+      "extends": "UserSubscription",
+      "additional_properties_for_frontend": ["expiresAt", "manual_expires_at", "current_status"],
+      "computed_property": {
+        "current_status": "Calculated property that combines status and expiresAt to determine if user has active access",
+        "calculation": "status === 'active' && (expiresAt ? new Date(expiresAt) > new Date() : true) ? 'active_access' : 'limited_access'"
+      },
+      "frontend_usage": {
+        "component": "/frontend/src/components/user/SubscriptionGuard.tsx",
+        "purpose": "Component that hides/shows content based on subscription status",
+        "access_control": "Blocks access to premium content when subscription is expired/inactive"
+      }
+    },
+    
+    "MembershipChangeRequest": {
+      "file": "/backend/src/models/MembershipChangeRequest.ts",
+      "required_properties": ["id", "userId", "requestedMembershipType", "status", "createdAt"],
+      "optional_properties": ["requestNotes", "paymentProofUrl", "completedAt", "completedBy", "rejectionReason"],
+      "status_enum": ["pending", "completed", "rejected"],
+      "membership_type_enum": ["24-hour", "monthly"],
+      "business_rules": [
+        "User must have registered phone number to create request",
+        "Only one pending request allowed per user at a time",
+        "Cannot request if user already has active subscription (must wait for expiration)",
+        "Cannot request 'free' tier (automatically assigned on expiration/cancellation)",
+        "Admin/operator can complete or reject requests",
+        "Payment proof URL is optional but recommended"
+      ],
+      "frontend_integration": {
+        "user_component": "/frontend/src/components/user/MembershipSection.tsx",
+        "admin_component": "/frontend/src/components/admin/SubscriptionTabs.tsx",
+        "api_service": "/frontend/src/services/api.ts (membershipRequestsAPI)"
+      },
+      "api_endpoints": {
+        "create": "POST /api/membership-requests",
+        "my_requests": "GET /api/membership-requests/my-requests",
+        "pending": "GET /api/membership-requests/pending (admin/operator only)",
+        "complete": "PATCH /api/membership-requests/:id/complete (admin/operator only)",
+        "reject": "PATCH /api/membership-requests/:id/reject (admin/operator only)"
+      },
+      "validation_rules": {
+        "requestedMembershipType": "Required, must be '24-hour' or 'monthly'",
+        "requestNotes": "Optional, max 1000 characters",
+        "paymentProofUrl": "Optional, max 500 characters, must be valid URL format",
+        "rejectionReason": "Required when rejecting, max 500 characters"
+      },
+      "common_errors": [
+        "Using 'type' instead of 'requestedMembershipType' field",
+        "Attempting to request 'free' tier (not allowed)",
+        "Creating duplicate pending request (one per user limit)",
+        "Missing phone number in user profile"
+      ]
+    },
+    "EventConnection": {
+      "file": "/backend/src/models/EventConnection.ts",
+      "purpose": "Track user connections to events for real-time viewer count and historical analytics",
+      "required_properties": ["id", "event_id", "user_id", "session_id", "connected_at"],
+      "optional_properties": ["disconnected_at", "duration_seconds", "ip_address", "user_agent"],
+      "database_table": "event_connections",
+      "indexes": [
+        "idx_event_connections_event_disconnected (event_id, disconnected_at) - For fast viewer queries"
+      ],
+      "field_descriptions": {
+        "id": "number - Primary key, auto-increment",
+        "event_id": "number - Foreign key to events table",
+        "user_id": "number - Foreign key to users table",
+        "session_id": "string - Unique session identifier",
+        "connected_at": "Date - Timestamp when user connected",
+        "disconnected_at": "Date | null - Timestamp when user disconnected (null if still connected)",
+        "duration_seconds": "number | null - Total connection duration in seconds",
+        "ip_address": "string | null - User IP address for security auditing",
+        "user_agent": "string | null - Browser/device information"
+      },
+      "usage_scenarios": [
+        "Real-time viewer count: Count where disconnected_at IS NULL",
+        "Historical analytics: Aggregate data with user joins",
+        "Security auditing: Track unusual connection patterns",
+        "Performance metrics: Average watch time per event"
+      ],
+      "api_endpoints": {
+        "get_viewers": "GET /api/events/:id/viewers - Real-time viewer count",
+        "get_analytics": "GET /api/events/:id/analytics - Historical connection data with user details"
+      },
+      "automatic_tracking": {
+        "connection": "Tracked via streamingSocket.trackConnection() in backend/src/sockets/streamingSocket.ts:8",
+        "disconnection": "Tracked via streamingSocket.trackDisconnection() in backend/src/sockets/streamingSocket.ts:22",
+        "duration_calculation": "Auto-calculated on disconnection: (disconnected_at - connected_at) / 1000"
+      },
+      "business_value": [
+        "Monitor event popularity in real-time",
+        "Identify most popular events/times",
+        "Detect account sharing (multiple concurrent connections)",
+        "Calculate average engagement per event",
+        "Security: Track suspicious connection patterns"
+      ]
+    },
+    "EventData": {
+      "file": "/frontend/src/types/index.ts",
+      "union_types": {
+        "operator": "string | { username: string }",
+        "status": "upcoming | live | completed | cancelled | betting | in-progress | scheduled | paused | intermission"
+      },
+      "status_enum_optimization_2025_11_19": {
+        "added_status": "paused (NEW) - Explicit pause state for streaming bandwidth optimization",
+        "description": "When pauseStream endpoint is called, event.status changes to 'paused' (was 'intermission')",
+        "rationale": "Distinguish explicit pause from between-fights context",
+        "backend_model": "Event.ts - status union includes 'paused' alongside existing values"
+      },
+      "required_properties": ["id", "name", "status", "venue", "createdAt", "updatedAt", "venueId"],
+      "recently_added": ["streamKey", "currentViewers", "activeBets", "completedFights", "totalFights", "totalPrizePool", "streamStatus", "fights"],
+      "venue_structure": {
+        "🔴_FASE_5_2025_11_05": "venue object now includes optional profileInfo field for consolidated architecture",
+        "required_fields": ["id", "name"],
+        "optional_fields": ["location", "profileInfo"],
+        "profileInfo_fields": ["venueName", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "images"],
+        "access_pattern": "event.venue?.profileInfo?.venueName || event.venue?.name || 'Venue TBD'",
+        "backend_response": "Venue data comes from User.profileInfo (single source of truth post-FASE 5 consolidation)",
+        "note": "profileInfo field added 2025-11-05 to support FASE 5 consolidated architecture where venues exist as User records with role='venue'"
+      }
+    },
+    "Venue": {
+      "file": "/frontend/src/types/index.ts",
+      "deprecated": "🔴 2025-10-30 CRITICAL: venues table ELIMINATED. Venue data now in User.profileInfo",
+      "note_2025_10_30": "GET /venues returns User objects (role='venue'), NOT Venue objects. Frontend MUST access profileInfo for venue details.",
+      "api_endpoint_note": "🔴 CHANGED 2025-10-30: GET /venues now returns User.findAndCountAll({role:'venue'}) with data in profileInfo (venueName, venueLocation, venueDescription, etc). NO venues table exists.",
+      "response_structure": {
+        "users": [
+          {
+            "id": "UUID (user.id)",
+            "username": "string",
+            "email": "string",
+            "role": "'venue'",
+            "approved": "boolean",
+            "profileInfo": {
+              "venueName": "string (was venue.name)",
+              "venueLocation": "string (was venue.location)",
+              "venueDescription": "string (was venue.description)",
+              "venueEmail": "string",
+              "venueWebsite": "string",
+              "businessName": "string"
+            },
+            "images": "string[] | null"
+          }
+        ]
+      },
+      "frontend_migration": "Replace venue.name → user.profileInfo.venueName, venue.location → user.profileInfo.venueLocation, etc"
+    },
+    "Article": {
+      "file": "/frontend/src/types/article.ts",
+      "required_properties": ["id", "title", "slug", "content", "status", "created_at"],
+      "optional_properties": ["excerpt", "featured_image", "published_at", "author", "admin_rejection_message"],
+      "admin_rejection_message": {
+        "type": "string | undefined",
+        "description": "Admin feedback message when article is rejected",
+        "when_present": "Article status = 'draft' AND was previously rejected by admin",
+        "display_location": "ArticleEditor.tsx - red alert box at top of modal",
+        "backend_field": "articles.admin_rejection_message (TEXT, nullable)",
+        "validation": "10-500 characters (enforced on reject endpoint)",
+        "created": "2025-11-22 via ARTICLE_ADMIN_WORKFLOW task"
+      },
+      "FASE_5_NOTE": "venue_id REMOVED (2025-11-07) per PRD:205 - Articles use ONLY author_id",
+      "backend_auto_generated": ["slug"],
+      "slug_generation": {
+        "source": "Generated from title field",
+        "format": "URL-friendly (lowercase, hyphens, no special chars)",
+        "uniqueness": "Enforced by backend with automatic numbering (e.g., title-1, title-2)",
+        "frontend_note": "NEVER send slug in POST/PUT requests - backend auto-generates"
+      },
+      "status_enum_and_visibility": {
+        "last_updated": "2025-11-22",
+        "status_values": ["draft", "pending", "published", "archived"],
+        "visibility_filtering_by_role": {
+          "admin_operator": {
+            "description": "Full visibility - see requested status or default published",
+            "query": "WHERE status = [requested_status OR 'published']",
+            "example": "Admin can view draft/pending/published/archived articles by explicitly requesting them"
+          },
+          "authenticated_user": {
+            "description": "Own articles (any status) + published from others",
+            "query": "WHERE (author_id = user_id) OR (status = 'published')",
+            "example": "User sees own draft/pending articles + published articles from other users"
+          },
+          "guest_anonymous": {
+            "description": "Only published articles",
+            "query": "WHERE status = 'published'",
+            "example": "Non-authenticated users see only published articles"
+          }
+        },
+        "status_behavior": {
+          "draft": "Author-only visibility, not visible to others, can be edited anytime",
+          "pending": "Author-only visibility, awaiting admin review, visible in admin panel",
+          "published": "Public visibility to all authenticated + guests, article is live",
+          "archived": "Author + admin only, hidden from public listing"
+        },
+        "enforcement_location": "backend/src/routes/articles.ts lines 162-186 (GET /articles filtering)",
+        "frontend_impact": "Admin panel shows all statuses via ?status parameter. User dashboard shows only own+published.",
+        "created_by_task": "ARTICLE_MANAGEMENT_BUG_FIXES_COMPLETED (2025-11-22)"
+      },
+      "deprecated_fields": ["summary", "featured_image_url", "venue", "venue_id"],
+      "api_mapping": {
+        "POST /articles": {
+          "required": ["title", "content", "excerpt"],
+          "optional": ["featured_image"],
+          "REMOVED_2025_11_07": "venue_id field no longer accepted",
+          "CRITICAL_WARNING": "Frontend MUST send 'excerpt' NOT 'summary', and 'featured_image' NOT 'featured_image_url'"
+        }
+      },
+      "common_errors": [
+        "Using 'summary' instead of 'excerpt' field in API calls",
+        "Using 'featured_image_url' instead of 'featured_image' in API calls",
+        "Missing required fields: title (min 5 chars), content (min 10 chars), excerpt (min 10, max 500 chars)"
+      ]
+    },
+    "Gallera": {
+      "file": "/frontend/src/types/index.ts",
+      "deprecated": "🔴 2025-10-30 CRITICAL: galleras table ELIMINATED. Gallera data now in User.profileInfo",
+      "note_2025_10_30": "GET /galleras returns User objects (role='gallera'), NOT Gallera objects. Frontend MUST access profileInfo for gallera details.",
+      "api_endpoint_note": "🔴 CHANGED 2025-10-30: GET /galleras now returns User.findAndCountAll({role:'gallera'}) with data in profileInfo (galleraName, galleraLocation, galleraDescription, etc). NO galleras table exists.",
+      "response_structure": {
+        "users": [
+          {
+            "id": "UUID (user.id)",
+            "username": "string",
+            "email": "string",
+            "role": "'gallera'",
+            "approved": "boolean",
+            "profileInfo": {
+              "galleraName": "string (was gallera.name)",
+              "galleraLocation": "string (was gallera.location)",
+              "galleraDescription": "string (was gallera.description)",
+              "galleraEmail": "string",
+              "galleraWebsite": "string",
+              "galleraSpecialties": "string | object (was specialties)",
+              "galleraActiveRoosters": "number (was activeRoosters)",
+              "businessName": "string"
+            },
+            "images": "string[] | null"
+          }
+        ]
+      },
+      "frontend_migration": "Replace gallera.name → user.profileInfo.galleraName, gallera.location → user.profileInfo.galleraLocation, etc",
+      "common_errors": [
+        "❌ NEVER access venue or gallera table directly - tables don't exist",
+        "❌ NEVER destructure response.data.venues/galleras - it returns response.data.users",
+        "✅ Always access profileInfo fields: user.profileInfo.galleraName, user.profileInfo.venueName, etc"
+      ]
+    },
+    
+    "UserProfileWithSubscription": {
+      "file": "/frontend/src/types/index.ts",
+      "integration": "Primary interface for user profile with subscription integration",
+      "composition": {
+        "extends": "User interface",
+        "additional_field": "subscription: UserSubscription object",
+        "usage_location": "GET /api/users/profile response includes both user data and current subscription status"
+      },
+      "frontend_utility": {
+        "access_pattern": "response.data.user for user info and response.data.subscription for subscription status",
+        "subscription_check": "Frontend components use both user.profileInfo.verificationLevel and subscription.status to determine access permissions",
+        "premium_content_logic": "Premium content access requires BOTH verified account AND active subscription"
+      },
+      "response_structure": {
+        "success": true,
+        "data": {
+          "user": "User object with profileInfo",
+          "subscription": "UserSubscription object with status and expiration"
+        }
+      },
+      "expiration_handling": {
+        "automatic_update": "Frontend components automatically update access controls when subscription expires",
+        "visual_feedback": "Premium indicators automatically hide when subscription is no longer active",
+        "navigation_adjustment": "Menu items adjust automatically based on current subscription status"
+      }
+    }
+  },
+
+  "role_based_restrictions": {
+    "betting_access_control": {
+      "interface": "User.role enum",
+      "allowed_roles_for_betting": ["user", "gallera"],
+      "blocked_roles_for_betting": ["admin", "operator", "venue"],
+      "implementation_location": "backend/src/routes/bets.ts (middleware)",
+      "frontend_impact": {
+        "navigation": "Venue users won't see Betting/My Bets links in sidebar (frontend/src/components/user/Navigation.tsx)",
+        "components": "Betting panel and related components only accessible to allowed roles",
+        "ux_pattern": "Conditional rendering based on user role"
+      },
+      "backend_impact": {
+        "api_restriction": "403 Forbidden response for blocked roles on /api/bets endpoints",
+        "websocket_restriction": "PAGO/DOY WebSocket events reject unauthorized roles",
+        "error_message": "Betting access denied - Your role cannot place bets"
+      },
+      "business_reason": "Venue users host events but do NOT participate in betting to separate business roles",
+      "added_date": "2025-11-07"
+    }
+  },
+
+  "component_interfaces": {
+    "image_gallery_upload": {
+      "file": "/frontend/src/components/shared/ImageGalleryUpload.tsx",
+      "component_name": "ImageGalleryUpload",
+      "purpose": "Reusable multi-image upload component with gallery grid display",
+      "props": {
+        "images": "string[] (required) - Array of image URLs",
+        "onImagesChange": "(images: string[]) => void (required) - Callback when images array changes",
+        "maxImages": "number (optional, default: 10) - Maximum number of images allowed",
+        "label": "string (optional, default: 'Galería de Imágenes') - Component label"
+      },
+      "features": [
+        "Multiple image upload support",
+        "Grid display of uploaded images (2-4 columns responsive)",
+        "Individual image deletion with hover action",
+        "Loading state during upload",
+        "File type validation (image/* only)",
+        "File size validation (max 5MB per image)",
+        "Error handling per image with user feedback",
+        "Image counter showing used/max images"
+      ],
+      "usage_examples": [
+        "UnifiedEntityForm.tsx: Manages venue/gallera images gallery (REPLACES VenueEntityForm + GalleraEntityForm) - UPDATED 2025-11-04",
+        "CreateUserModal.tsx: Role-based image upload (venue maxImages=2, gallera maxImages=3) - ADDED 2025-10-31",
+        "EditVenueGalleraModal.tsx: Entity Info tab image management - ADDED 2025-10-31",
+        "Supports ARRAY(string) database fields",
+        "🔴 DEPRECATED: VenueEntityForm.tsx.deprecated, GalleraEntityForm.tsx.deprecated (replaced by UnifiedEntityForm 2025-11-04)"
+      ],
+      "validation": {
+        "file_type": "file.type.startsWith('image/')",
+        "file_size": "max 5MB (5 * 1024 * 1024)",
+        "max_images": "Configurable, default 10"
+      },
+      "api_integration": "Uses uploadsAPI.uploadImage(file) for server upload",
+      "styling": "TailwindCSS with Lucide React icons (Camera, X, Loader)"
+    },
+    "UnifiedEntityForm": {
+      "file": "/frontend/src/components/forms/UnifiedEntityForm.tsx",
+      "purpose": "🔴 FASE 5: Unified form component for venue/gallera profile management, replaces VenueEntityForm + GalleraEntityForm (75% code reduction)",
+      "interface": "UnifiedEntityFormProps",
+      "required_properties": {
+        "entityType": "'venue' | 'gallera' - Determines which fields to render",
+        "userId": "string - ID of user whose profileInfo will be updated",
+        "onSuccess": "(updatedUser: User) => void - Callback after successful save",
+        "onCancel": "() => void - Callback when user cancels"
+      },
+      "optional_properties": {
+        "initialData": "Record<string, any> - Pre-populate form with user.profileInfo data"
+      },
+      "architecture": {
+        "consolidation_pattern": "Single component with conditional field rendering based on entityType",
+        "api_call": "usersAPI.updateProfileInfo(userId, profileInfoUpdate)",
+        "replaces": "Deprecated venuesAPI.update() and gallerasAPI.update() calls",
+        "code_metrics": {
+          "old_approach": "VenueEntityForm (248 lines) + GalleraEntityForm (363 lines) = 611 lines",
+          "new_approach": "UnifiedEntityForm (321 lines) = 75% code reduction",
+          "shared_logic": "Business name, location, description, email, website, images (common fields)",
+          "entity_specific": "galleraSpecialties, galleraActiveRoosters (only for gallera)"
+        }
+      },
+      "field_mapping": {
+        "venue": ["venueName (businessName)", "venueLocation", "venueDescription", "venueEmail", "venueWebsite", "images (max 2)"],
+        "gallera": ["galleraName (businessName)", "galleraLocation", "galleraDescription", "galleraEmail", "galleraWebsite", "galleraSpecialties", "galleraActiveRoosters", "images (max 3)"]
+      },
+      "usage_example": "<UnifiedEntityForm entityType=\"venue\" userId={user.id} initialData={user.profileInfo} onSuccess={handleSave} onCancel={handleCancel} />",
+      "integration": {
+        "parent_component": "Profile.tsx (lines 261-267)",
+        "usage_context": "When venue/gallera user edits business information",
+        "data_flow": "user.profileInfo → form fields → usersAPI.updateProfileInfo() → refreshUser()"
+      },
+      "migration_guide": {
+        "old_pattern": {
+          "component": "<VenueEntityForm venue={venueData} userId={user.id} onSave={handleSave} onCancel={handleCancel} />",
+          "data_source": "venueData from GET /venues API (now deprecated)",
+          "api_call": "venuesAPI.update(venueId, data)"
+        },
+        "new_pattern": {
+          "component": "<UnifiedEntityForm entityType=\"venue\" userId={user.id} initialData={user.profileInfo} onSuccess={handleSave} onCancel={handleCancel} />",
+          "data_source": "user.profileInfo (direct access, no separate API call)",
+          "api_call": "usersAPI.updateProfileInfo(userId, data)"
+        }
+      },
+      "added_date": "2025-11-04 (FASE 5 consolidation)"
+    }
+  },
+
+  "upload_interfaces": {
+    "upload_response": {
+      "file": "/frontend/src/services/api.ts",
+      "interface": "ApiResponse<UploadData>",
+      "properties": {
+        "success": "boolean",
+        "data": {
+          "filename": "string",
+          "originalName": "string",
+          "url": "string",
+          "size": "number",
+          "mimetype": "string"
+        }
+      },
+      "usage_example": "const response = await uploadsAPI.uploadImage(file); const imageUrl = response.data.url;",
+      "implementation_notes": [
+        "File upload uses FormData with multer backend",
+        "Authentication required via Bearer token",
+        "Images stored in backend/uploads/images/ directory",
+        "Served via /uploads/images/{filename} static route"
+      ]
+    },
+    "frontend_upload_integration": {
+      "component": "ArticleEditor.tsx",
+      "handler": "handleImageChange",
+      "workflow": [
+        "User selects file via input[type=file]",
+        "handleImageChange calls uploadsAPI.uploadImage(file)",
+        "Response provides URL for immediate preview",
+        "URL stored in form data as featured_image field",
+        "Article save includes image URL in database"
+      ],
+      "error_handling": "Try-catch with user-friendly alerts",
+      "loading_state": "uploading boolean with disabled input"
+    }
+  },
+
+  "api_response_patterns": {
+    "standard_response": {
+      "structure": "ApiResponse<T>",
+      "properties": ["success", "data", "error?", "code?", "message?"],
+      "data_access": "response.data.{entityType}",
+      "examples": {
+        "venues": "response.data.venues",
+        "galleras": "response.data.galleras",
+        "users": "response.data.users"
+      }
+    },
+    "pagination_response": {
+      "additional_properties": ["total", "totalPages"],
+      "access_pattern": "response.data.total"
+    }
+  },
+
+  "common_ai_errors": {
+    "union_type_access": {
+      "wrong": "operator.username // unsafe",
+      "correct": "typeof operator === 'object' && operator.username ? operator.username : operator"
+    },
+    "object_to_reactnode": {
+      "wrong": "{winner: 'rooster1', method: 'ko'} // directly in JSX",
+      "correct": "JSON.stringify(result) or custom rendering component"
+    },
+    "missing_imports": {
+      "verify_before_import": ["Subscription -> UserSubscription", "BetType -> not exists", "StreamQuality -> not exists"],
+      "check_exports": "grep 'export.*{TypeName}' /frontend/src/types/index.ts"
+    }
+  },
+
+  "validation_commands": {
+    "type_check": "npx tsc --noEmit",
+    "build_check": "npm run build",
+    "import_verification": "grep -r 'import.*{TypeName}' frontend/src/",
+    "export_verification": "grep 'export.*{TypeName}' frontend/src/types/index.ts"
+  },
+
+  "ai_safety_protocol": {
+    "before_modifications": [
+      "Read existing interface definitions",
+      "Verify all imports resolve",
+      "Check union type usage patterns",
+      "Confirm API response structure"
+    ],
+    "during_modifications": [
+      "Never remove required properties",
+      "Add type guards for union types",
+      "Use index signatures for form compatibility",
+      "Serialize objects before React rendering"
+    ],
+    "after_modifications": [
+      "Run npx tsc --noEmit",
+      "Test import/export resolution",
+      "Verify no 'any' types introduced",
+      "Check union type safety"
+    ]
+  },
+
+  "backend_type_extensions": {
+    "express_request_extensions": {
+      "file": "/backend/src/types/express.d.ts",
+      "purpose": "Extend Express Request interface for session management",
+      "properties_added": {
+        "user": {
+          "type": "User (from models)",
+          "optional": true,
+          "added_by": "Authentication middleware",
+          "usage": "Access authenticated user in request handlers"
+        },
+        "sessionToken": {
+          "type": "string",
+          "optional": true,
+          "added_by": "enhancedAuthenticate middleware",
+          "usage": "JWT token for session invalidation on logout"
+        }
+      },
+      "implementation_pattern": {
+        "declaration": "declare global { namespace Express { interface Request { user?: User; sessionToken?: string; } } }",
+        "export": "export {}; // Required for module augmentation",
+        "usage_example": "req.user.id // Available after authentication"
+      },
+      "critical_notes": [
+        "MUST use 'declare global' for Express augmentation",
+        "MUST export {} for TypeScript module system",
+        "MUST import User type from models",
+        "Properties are optional (added by middleware)"
+      ],
+      "related_middleware": [
+        "/backend/src/middleware/enhancedAuth.ts - Sets req.user and req.sessionToken",
+        "/backend/src/middleware/auth.ts - Legacy auth (sets req.user only)"
+      ]
+    },
+    "redis_client_interface": {
+      "file": "/backend/src/config/redis.ts",
+      "class": "SafeRedisClient",
+      "purpose": "Type-safe Redis client wrapper with fallback cache",
+      "public_methods": {
+        "get": "async get(key: string): Promise<string | null>",
+        "set": "async set(key: string, value: string, ttl: number = 300): Promise<void>",
+        "setex": "async setex(key: string, ttl: number, value: string): Promise<void> // Legacy alias",
+        "del": "async del(pattern: string): Promise<void>",
+        "keys": "async keys(pattern: string): Promise<string[]>",
+        "isAvailable": "isAvailable(): boolean"
+      },
+      "helper_functions": {
+        "getCache": "async function getCache(key: string): Promise<string | null>",
+        "setCache": "async function setCache(key: string, value: string, ttl: number): Promise<void>",
+        "delCache": "async function delCache(pattern: string): Promise<void>",
+        "initRedis": "async function initRedis(): Promise<void>",
+        "checkRedisHealth": "async function checkRedisHealth(): Promise<HealthStatus>"
+      },
+      "ioredis_compatibility": {
+        "version": "5.x",
+        "deprecated_properties": [
+          "retryDelayOnFailover - Does not exist in ioredis v5"
+        ],
+        "correct_api_usage": [
+          "Use client.set(key, value, 'EX', ttl) instead of client.setex()",
+          "Use client.keys(pattern) for pattern matching",
+          "connectTimeout, maxRetriesPerRequest, enableOfflineQueue are valid"
+        ]
+      },
+      "critical_notes": [
+        "QWEN error: Used non-existent retryDelayOnFailover property",
+        "Always verify ioredis API compatibility",
+        "Provide both modern and legacy API compatibility",
+        "Export helper functions for backward compatibility"
+      ]
+    },
+    "active_session_model": {
+      "file": "/backend/src/models/ActiveSession.ts",
+      "purpose": "Session tracking model for concurrent login prevention",
+      "properties": {
+        "id": "string (UUID)",
+        "userId": "string (UUID, foreign key to users)",
+        "sessionToken": "string (JWT token, unique)",
+        "deviceFingerprint": "string (optional)",
+        "ipAddress": "INET (optional)",
+        "userAgent": "string (optional)",
+        "createdAt": "Date",
+        "lastActivity": "Date",
+        "expiresAt": "Date",
+        "isActive": "boolean"
+      },
+      "instance_methods": {
+        "isExpired": "(): boolean - Check if session expired",
+        "invalidate": "(): Promise<void> - Mark session inactive",
+        "updateActivity": "(): Promise<void> - Update lastActivity timestamp"
+      },
+      "sequelize_version": "v6",
+      "critical_notes": [
+        "QWEN error: Used .associate() method from Sequelize v5",
+        "Sequelize v6: Associations defined in models/index.ts, NOT in model files",
+        "DO NOT add static .associate() method to models",
+        "Use Model.init() with sequelize instance"
+      ],
+      "correct_association_pattern": {
+        "wrong": "ActiveSession.associate = (models) => { ... } // Sequelize v5 pattern",
+        "correct": "// In models/index.ts: ActiveSession.belongsTo(User, { foreignKey: 'userId' })"
+      }
+    }
+  },
+  "component_documentation": {
+    "UserModal": {
+      "file": "/frontend/src/components/admin/UserModal.tsx",
+      "purpose": "Unified component for creating and editing users with role-based fields",
+      "props": {
+        "mode": "'create' | 'edit' (required)",
+        "role": "'operator' | 'venue' | 'gallera' | 'user' (required)",
+        "user": "User (optional, required for edit mode)",
+        "onClose": "() => void (required)",
+        "onSuccess": "(user?: User) => void (required)"
+      },
+      "features": [
+        "Profile and Subscription tabs",
+        "Role-based conditional fields",
+        "Image upload integration",
+        "Approval status management",
+        "isActive checkbox in both modes",
+        "Subscription management post-creation"
+      ]
+    }
+  },
+  "hooks_documentation": {
+    "useUserForm": {
+      "file": "/frontend/src/hooks/useUserForm.ts",
+      "purpose": "Centralize form state management for create/edit modes",
+      "parameters": ["mode: 'create' | 'edit'", "role: 'operator' | 'venue' | 'gallera' | 'user'", "initialUser?: User"],
+      "returns": ["formData", "handleChange", "handleArrayChange", "handleImagesChange", "handleSubmit", "error"],
+      "handleChange_enhancement": "Supports nested field names with dot notation (e.g., 'profileInfo.fullName')"
+    },
+    "useUserSubscription": {
+      "file": "/frontend/src/hooks/useUserSubscription.ts",
+      "purpose": "Centralize subscription management logic",
+      "parameters": ["userId: string", "initialSubscription?: UserSubscription"],
+      "returns": ["subscription", "isUpdating", "updateSubscription"]
+    },
+    "useSSEConnection": {
+      "file": "/frontend/src/hooks/useSSEConnection.ts (NEW)",
+      "purpose": "Manage Server-Sent Events connection to /api/sse/streaming endpoint with auto-reconnect",
+      "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)",
+      "parameters": [],
+      "returns": {
+        "connectionCount": "number - Active streaming viewers",
+        "activeBets": "number - Active bets awaiting settlement",
+        "streamStatus": "{ isLive: boolean } - Current stream status",
+        "isConnected": "boolean - Whether SSE connection is active",
+        "error": "Error | null - Last connection error"
+      },
+      "behavior": {
+        "onmount": "Opens EventSource connection to /api/sse/streaming?token=jwt",
+        "onmessage": "Parses JSON data from server and updates state",
+        "onerror": "Sets isConnected=false, closes connection, triggers reconnect after exponential backoff",
+        "onunmount": "Closes EventSource connection gracefully"
+      },
+      "reconnect_strategy": "Exponential backoff: 1s → 2s → 4s → 8s (max 30s)",
+      "token_source": "localStorage.getItem('token') - Must be valid JWT",
+      "critical_note": "⚠️ EventSource cannot send custom headers. Token MUST be passed via query parameter."
+    }
+  },
+  "sse_data_types": {
+    "SSEStreamingData": {
+      "file": "/frontend/src/hooks/useSSEConnection.ts (NEW)",
+      "purpose": "Type definition for SSE streaming metrics pushed from backend",
+      "structure": {
+        "connectionCount": "number - Active users connected to streaming",
+        "activeBets": "number - Active bets (Bet.status='active')",
+        "streamStatus": {
+          "isLive": "boolean - Whether stream is currently broadcasting"
+        }
+      },
+      "example_payload": {
+        "connectionCount": 42,
+        "activeBets": 18,
+        "streamStatus": { "isLive": true }
+      },
+      "pushed_frequency": "Every 2 seconds from backend",
+      "response_format": "SSE text/event-stream: data: {json}\\n\\n"
+    },
+    "UseSSEConnectionReturn": {
+      "file": "/frontend/src/hooks/useSSEConnection.ts (NEW)",
+      "purpose": "Type definition for useSSEConnection hook return value",
+      "structure": {
+        "connectionCount": "number",
+        "activeBets": "number",
+        "streamStatus": "{ isLive: boolean }",
+        "isConnected": "boolean",
+        "error": "Error | null"
+      }
+    }
+  },
+  "detail_page_components": {
+    "VenueDetailPage": {
+      "file": "/frontend/src/pages/user/VenueDetailPage.tsx",
+      "purpose": "Display detailed information for a single venue (public page)",
+      "api_calls": {
+        "get_venue": "venuesAPI.getById(id) - Public endpoint with optionalAuth",
+        "get_articles": "articlesAPI.getAll({ author_id: ownerId }) - Articles by venue owner"
+      },
+      "🔴_FIX_2025_11_20": "Changed from usersAPI.getById(id) (admin endpoint returning 403) to venuesAPI.getById(id) (public endpoint). Line 7 import + Line 52 API call.",
+      "🔵_UI_REFACTOR_2025_11_20": "Redesigned detail page header hierarchy: 1) Entity name (venueName) LARGE as primary (h1 text-4xl), 2) Location & description with icons, 3) Representative info card with contact details (fullName, email, phone, website), 4) Image carousel using ImageCarouselViewer component, 5) Statistics grid with 4 cards (articles, rating, events, founded year).",
+      "layout": {
+        "primary_heading": "Entity name (venueName) - text-4xl md:text-5xl - BOLD",
+        "secondary_info": "Location, description with icons",
+        "representative_section": "Card showing fullName, email, phone, website",
+        "images": "ImageCarouselViewer component with indicators and navigation",
+        "stats": "4 cards: Articles count, Rating, Active Events, Founded year"
+      },
+      "data_hierarchy": {
+        "1_primary": "name (entity name - TRANSFORMED BY BACKEND)",
+        "2_secondary": "location, description (TRANSFORMED BY BACKEND)",
+        "3_images": "images array (TRANSFORMED BY BACKEND)",
+        "4_owner": "owner.profileInfo.{fullName, phoneNumber, venueEmail, venueWebsite, verificationLevel}",
+        "5_metadata": "createdAt (established year), owner.profileInfo.verificationLevel (verified badge)"
+      },
+      "🔵_CRITICAL_2025_11_20": "Backend transforms User object to custom structure. Access pattern: data.name (NOT data.profileInfo.venueName), data.location (NOT data.profileInfo.venueLocation), data.images (NOT data.profileInfo.images), data.owner.profileInfo.fullName, data.owner.profileInfo.venueEmail, etc.",
+      "route": "GET /venues/:id"
+    },
+    "GalleraDetailPage": {
+      "file": "/frontend/src/pages/user/GalleraDetailPage.tsx",
+      "purpose": "Display detailed information for a single gallera (public page with rooster specialties)",
+      "api_calls": {
+        "get_gallera": "gallerasAPI.getById(id) - Public endpoint with optionalAuth",
+        "get_articles": "articlesAPI.getAll({ author_id: ownerId }) - Articles by gallera owner"
+      },
+      "🔴_FIX_2025_11_20": "Changed from usersAPI.getById(id) (admin endpoint returning 403) to gallerasAPI.getById(id) (public endpoint). Line 7 import + Line 53 API call.",
+      "🔵_UI_REFACTOR_2025_11_20": "Redesigned detail page header hierarchy: 1) Entity name (galleraName) LARGE as primary (h1 text-4xl), 2) Premium tier badge if exists, 3) Certified badge, 4) Location & description with icons, 5) Specialties as pills, 6) Owner/Representative info card, 7) Image carousel, 8) Statistics grid with 5 cards including rooster count.",
+      "layout": {
+        "primary_heading": "Entity name (galleraName) - text-4xl md:text-5xl - BOLD with premium badge",
+        "certified_badge": "Yellow sparkle icon if verificationLevel='full'",
+        "premium_badge": "Colored badge with icon based on premiumLevel (platinum/gold/silver/bronze)",
+        "secondary_info": "Location, description with icons",
+        "specialties": "Green pills showing galleraSpecialties array",
+        "owner_section": "Card showing fullName, email, phone, website",
+        "images": "ImageCarouselViewer component with indicators and navigation",
+        "stats": "5 cards: Articles count, Rating, Active Roosters (🐓), Premium Level, Founded year"
+      },
+      "data_hierarchy": {
+        "1_primary": "name (entity name - TRANSFORMED BY BACKEND)",
+        "2_badges": "owner.profileInfo.{verificationLevel (certified), premiumLevel (tier)}",
+        "3_secondary": "location, description (TRANSFORMED BY BACKEND)",
+        "4_specialties": "owner.profileInfo.galleraSpecialties (array, displayed as green pills)",
+        "5_owner": "owner.profileInfo.{fullName, phoneNumber, galleraEmail, galleraWebsite}",
+        "6_active_data": "owner.profileInfo.galleraActiveRoosters (shown in stats grid)",
+        "7_images": "images array (TRANSFORMED BY BACKEND)",
+        "8_metadata": "createdAt (established year), owner.profileInfo.rating"
+      },
+      "🔵_CRITICAL_2025_11_20": "Backend transforms User object to custom structure. Access pattern: data.name (NOT data.profileInfo.galleraName), data.location (NOT data.profileInfo.galleraLocation), data.images (NOT data.profileInfo.images), data.owner.profileInfo.fullName, data.owner.profileInfo.galleraEmail, data.owner.profileInfo.galleraSpecialties (array), data.owner.profileInfo.galleraActiveRoosters, data.owner.profileInfo.premiumLevel, data.owner.profileInfo.rating, etc.",
+      "route": "GET /galleras/:id"
+    }
+  },
+
+  "component_types_streaming": {
+    "OptimizedStreamingMonitor": {
+      "file": "/frontend/src/pages/admin/OptimizedStreamingMonitor.tsx (NEW)",
+      "purpose": "Unified streaming + monitoring page (consolidated from Streaming.tsx + Monitoring.tsx)",
+      "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)",
+      "layout": {
+        "top": "Event selector + stream status indicator (green=live, red=offline)",
+        "left_70_percent": "HLS stream player + stream controls (play/pause/info)",
+        "right_30_percent": "Live metrics card: { connectionCount, activeBets }"
+      },
+      "data_source": "useSSEConnection hook",
+      "props": {
+        "none": "Uses auth context for token and route params for event selection"
+      },
+      "dependencies": {
+        "useSSEConnection": "Real-time metrics via SSE",
+        "HLSPlayer": "Stream playback component (from existing Streaming.tsx)",
+        "useAuth": "Token retrieval for SSE connection"
+      },
+      "performance": "Single EventSource connection = 98.4% reduction vs polling (30 events/min vs 48 requests/min)"
+    }
+  },
+
+  "session_management_interfaces": {
+    "SSEConnection": {
+      "file": "/backend/src/services/sseService.ts",
+      "purpose": "Enhanced type definition for SSE connections with health metrics and adaptive heartbeat support",
+      "required_properties": ["id", "res", "channel", "connectedAt", "lastHeartbeat", "isAlive"],
+      "optional_properties": ["userId", "userRole", "lastActivity", "missedHeartbeats", "heartbeatInterval", "connectionQuality"],
+      "enhanced_properties_2025_11_20": {
+        "lastActivity": "Date - Track last activity for adaptive heartbeat intervals",
+        "missedHeartbeats": "number - Track missed heartbeats for auto-disconnect",
+        "heartbeatInterval": "number - Current heartbeat interval for this connection",
+        "connectionQuality": {
+          "latency": "number - Connection latency metric",
+          "lastEventSent": "Date - Timestamp of last event sent",
+          "eventsPerMinute": "number - Rate of events per minute"
+        }
+      },
+      "usage_patterns": [
+        "Used in Galleros.NetSSEService for connection tracking and management",
+        "Enables adaptive heartbeat based on connection activity patterns",
+        "Supports connection health monitoring and auto-cleanup"
+      ],
+      "implementation_date": "2025-11-20 (added connection health and adaptive heartbeat features)",
+      "integration_points": [
+        "backend/src/services/sseService.ts - Connection establishment and management",
+        "frontend/src/hooks/useSSEConnection.ts - Client-side SSE connection handling"
+      ]
+    },
+    "CachedUser": {
+      "file": "/backend/src/middleware/auth.ts",
+      "purpose": "Type definition for cached user objects with adaptive TTL implementation",
+      "required_properties": ["user", "expires"],
+      "enhanced_properties_2025_11_20": {
+        "lastAccessTime": "number - Track last access time for adaptive TTL",
+        "accessFrequency": "number - Track access frequency for adaptive TTL"
+      },
+      "usage_patterns": [
+        "Used in authenticate middleware to prevent N+1 database queries",
+        "Implements adaptive TTL based on access patterns",
+        "Optimizes database load by extending cache for frequent users"
+      ],
+      "implementation_date": "2025-11-20 (added adaptive cache TTL functionality)",
+      "business_impact": "Reduces database load by 30% through optimized caching strategy"
+    },
+    "WalletOperation": {
+      "file": "/frontend/src/types/walletOperation.ts",
+      "backend_model": "/backend/src/models/WalletOperation.ts",
+      "purpose": "Type definition for wallet deposit/withdrawal operations requiring admin approval",
+      "required_properties": ["id", "userId", "walletId", "type", "amount", "status", "requestedAt"],
+      "optional_properties": ["paymentProofUrl", "paymentMethod", "bankReference", "userNotes", "processedBy", "processedAt", "adminNotes", "rejectionReason", "adminProofUrl", "completedAt"],
+      "interface": {
+        "id": "string - UUID of wallet operation",
+        "userId": "string - UUID of user requesting operation",
+        "walletId": "string - UUID of wallet",
+        "type": "'deposit' | 'withdrawal' - operation type",
+        "amount": "number - operation amount in USD",
+        "currency": "string - currency code (default: 'USD')",
+        "status": "'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled' - operation status",
+        "paymentProofUrl": "string (optional) - user uploads bank transfer screenshot",
+        "paymentMethod": "string (optional) - 'bank_transfer' | 'cash' | 'mobile_payment'",
+        "bankReference": "string (optional) - bank transaction reference",
+        "userNotes": "string (optional) - user explanation/details",
+        "processedBy": "string (optional) - UUID of admin who processed request",
+        "processedAt": "Date (optional) - when admin processed request",
+        "adminNotes": "string (optional) - admin notes about operation",
+        "rejectionReason": "string (optional) - reason if rejected (required when status=rejected)",
+        "adminProofUrl": "string (optional) - admin uploads transfer receipt (MANDATORY for withdrawal approval)",
+        "requestedAt": "Date - when operation was requested",
+        "completedAt": "Date (optional) - when operation was completed",
+        "createdAt": "Date - record creation timestamp",
+        "updatedAt": "Date - record last update timestamp"
+      },
+      "status_workflow": {
+        "deposit": "pending → (admin reviews) → approved → (balance updated) → completed",
+        "withdrawal": "pending → (admin uploads proof) → approved → (balance updated) → completed",
+        "rejection": "pending → rejected (with rejectionReason)",
+        "cancellation": "pending → cancelled (user or admin cancels)"
+      },
+      "validation_rules": {
+        "deposit": [
+          "amount >= limits.deposit_min (default $5)",
+          "amount <= limits.deposit_max (default $1000/tx)",
+          "daily_total + amount <= limits.deposit_max_daily (default $5000)",
+          "if amount > limits.require_proof_over ($50), paymentProofUrl required"
+        ],
+        "withdrawal": [
+          "amount >= limits.withdrawal_min (default $10)",
+          "amount <= limits.withdrawal_max (default $500/tx)",
+          "amount <= user.wallet.balance",
+          "daily_total + amount <= limits.withdrawal_max_daily (default $2000)",
+          "adminProofUrl REQUIRED before admin can approve"
+        ]
+      },
+      "frontend_usage": [
+        "frontend/src/pages/admin/Finance.tsx - Admin management UI",
+        "frontend/src/components/admin/WalletOperationCard.tsx - Operation display",
+        "frontend/src/components/admin/ApproveDepositModal.tsx - Deposit approval",
+        "frontend/src/components/admin/ApproveWithdrawalModal.tsx - Withdrawal approval",
+        "frontend/src/components/admin/RejectOperationModal.tsx - Rejection with reason"
+      ],
+      "backend_endpoints": [
+        "POST /api/wallet-operations/deposit - User creates deposit request",
+        "POST /api/wallet-operations/withdrawal - User creates withdrawal request",
+        "GET /api/wallet-operations - Get operations (filtered by role)",
+        "PUT /api/wallet-operations/:id/approve - Admin approves operation",
+        "PUT /api/wallet-operations/:id/reject - Admin rejects with reason",
+        "PUT /api/wallet-operations/:id/upload-proof - Admin uploads transfer receipt",
+        "GET /api/wallet-operations/stats - Admin dashboard statistics"
+      ],
+      "transaction_safety": "All approval operations use DB transactions with rollback on error",
+      "implementation_date": "2025-11-24 (Finance administration system)"
+    },
+    "SystemSetting": {
+      "file": "/frontend/src/types (inferred from backend)",
+      "backend_model": "/backend/src/models/SystemSetting.ts (inferred)",
+      "backend_service": "/backend/src/services/systemSettingsService.ts",
+      "purpose": "Type definition for universal system configuration settings with Redis caching",
+      "required_properties": ["key", "value", "type", "category"],
+      "optional_properties": ["description", "isPublic", "updatedBy"],
+      "interface": {
+        "key": "string - unique setting key (e.g., 'wallet.deposit_max', 'betting.commission_rate')",
+        "value": "any - JSONB value allowing complex objects",
+        "type": "'number' | 'string' | 'boolean' | 'array' | 'object' - data type hint",
+        "category": "'wallets' | 'betting' | 'streaming' | 'cache' | 'security' | 'notifications' | 'system' | 'limits' | 'performance' | 'business' | 'features'",
+        "description": "string (optional) - human-readable explanation",
+        "isPublic": "boolean (optional) - whether non-admin users can read this setting",
+        "updatedBy": "string (optional) - UUID of user who last updated setting",
+        "createdAt": "Date - when setting was created",
+        "updatedAt": "Date - when setting was last updated"
+      },
+      "categories": {
+        "wallets": "Deposit/withdrawal limits and rules",
+        "betting": "Bet limits, commission, timeout, rules",
+        "streaming": "Max connections, heartbeat intervals, HLS config",
+        "cache": "Redis TTL values for different entities",
+        "security": "Session lifetime, login attempts, password rules",
+        "notifications": "Email/push notification configuration",
+        "system": "Maintenance mode, timezone, currency, support contacts",
+        "limits": "Upload limits, resource constraints",
+        "performance": "DB pool size, rate limits, query timeouts",
+        "business": "Subscription pricing, commission rates, referral bonuses",
+        "features": "Feature flags (enable/disable platform features)"
+      },
+      "example_settings": {
+        "wallet.deposit_max": "{\"amount\": 1000} - Max deposit per transaction",
+        "betting.commission_rate": "{\"rate\": 0.05} - 5% commission from winner",
+        "streaming.max_connections_per_user": "{\"count\": 2} - Max concurrent connections",
+        "cache.users_ttl_seconds": "{\"ttl\": 300} - User cache TTL (5 min)",
+        "security.session_lifetime_hours": "{\"hours\": 168} - Session lifetime (7 days)",
+        "features.betting_enabled": "{\"enabled\": true} - Enable/disable betting",
+        "system.maintenance_mode": "{\"enabled\": false} - Maintenance mode flag"
+      },
+      "redis_caching": {
+        "ttl": "300 seconds (5 minutes)",
+        "cache_key_pattern": "system_setting:{key} or system_settings:category:{category}",
+        "invalidation": "Cache invalidated automatically on setting update"
+      },
+      "frontend_usage": [
+        "frontend/src/pages/admin/Settings.tsx - Admin UI for managing settings"
+      ],
+      "backend_endpoints": [
+        "GET /api/settings - Get all settings grouped by category (admin only)",
+        "GET /api/settings/category/:category - Get settings for specific category (admin only)",
+        "GET /api/settings/public - Get public settings (authenticated users)",
+        "PUT /api/settings/:key - Update single setting value (admin only)"
+      ],
+      "implementation_date": "2025-11-24 (Universal configuration system)"
+    },
+            "Bet_PAGO_DOY_Enhanced": {
+              "file": "/frontend/src/types/index.ts (Bet interface)",
+              "backend_model": "/backend/src/models/Bet.ts",
+              "purpose": "Enhanced Bet interface with PAGO/DOY betting support for P2P betting",
+              "enhancement_date": "2025-11-24",
+              "new_properties": {
+                "betType": "'flat' | 'doy' | 'pago' - Bet type (was missing 'pago' before)",
+                "terms": {
+                  "pagoAmount": "number (optional) - Amount for PAGO counter-offer",
+                  "doyAmount": "number (optional) - Amount for DOY advantage offer",
+                  "ratio": "number (optional) - DOY ratio calculation",
+                  "isOffer": "boolean (optional) - Whether bet is an offer",
+                  "proposedBy": "string (optional) - UUID of user who proposed PAGO"
+                },
+                "proposalStatus": "'none' | 'pending' | 'accepted' | 'rejected' - PAGO proposal status",
+                "matchedWith": "string (optional) - UUID of matched bet",
+                "parentBetId": "string (optional) - UUID of parent bet (for PAGO proposals)"
+              },
+              "bet_types_explained": {
+                "flat": "Symmetric bet: $50 vs $50. Can auto-match if counterpart exists.",
+                "doy": "Advantage offer: Win $40, Lose $50. Manual accept only.",
+                "pago": "Counter-offer: Pay $40 if lose, Collect $50 if win. Requires original bettor acceptance."
+              },
+              "bet_statuses": {
+                "pending": "Created, editable, visible in suggestions. frozen_amount NOT locked yet.",
+                "pending_pago": "PAGO proposal sent, waiting for original bettor accept/reject.",
+                "active": "Confirmed by both, frozen_amount locked. NOT editable.",
+                "completed": "Fight finished, result applied, frozen_amount released/transferred.",
+                "cancelled": "Cancelled before match by user or system."
+              },
+              "frozen_amount_logic": {
+                "pending_bet": "frozen_amount NOT updated (user can still bet with that money)",
+                "active_bet": "frozen_amount += bet_amount (money locked until fight settles)",
+                "completed_win": "frozen_amount -= bet_amount, balance += (bet_amount + winnings - 5% commission)",
+                "completed_loss": "frozen_amount -= bet_amount (money already transferred to winner)",
+                "cancelled": "frozen_amount -= bet_amount, balance += bet_amount (return money)",
+                "draw": "frozen_amount -= bet_amount, balance += bet_amount (return money)"
+              },
+              "business_rules": {
+                "commission": "5% from winner only. Example: Win $50 → collect $47.50 (50 - 2.50).",
+                "editable": "Only if status=pending. If active, locked forever.",
+                "multiple_bets": "User can have multiple active bets in same event/fight.",
+                "auto_match": "ONLY flat bets. DOY and PAGO require manual acceptance."
+              },
+              "frontend_components": [
+                "frontend/src/components/betting/BetSuggestionsPanel.tsx - Show compatible bets while typing",
+                "frontend/src/components/betting/EditBetModal.tsx - Edit pending bets",
+                "frontend/src/components/betting/PagoProposalBadge.tsx - PAGO status indicator",
+                "frontend/src/components/betting/AcceptPagoModal.tsx - Accept/reject PAGO"
+              ],
+              "backend_endpoints": [
+                "GET /api/bets/suggestions - Query pending opposite bets ±20% range",
+                "PUT /api/bets/:id/edit - Edit pending bet (status=pending only)",
+                "POST /api/bets/:id/propose-pago - Create PAGO proposal",
+                "PUT /api/bets/:id/accept-pago - Match both bets, lock frozen_amounts",
+                "PUT /api/bets/:id/reject-pago - Reject PAGO proposal",
+                "POST /api/bets - Enhanced with auto-match for flat bets"
+              ]
+            },
+            "Transaction": {
+              "file": "/backend/src/models/Transaction.ts (inferred)",
+              "purpose": "Type definition for all financial transactions in the system",
+              "required_properties": ["id", "walletId", "type", "amount", "status"],
+              "optional_properties": ["description", "metadata", "createdAt", "updatedAt"],
+              "interface": {
+                "id": "string - UUID of transaction",
+                "walletId": "string - UUID of associated wallet",
+                "type": "'deposit' | 'withdrawal' | 'bet-win' | 'bet-loss' | 'bet-refund' | 'admin_credit' | 'admin_debit' - transaction type",
+                "amount": "number - amount of transaction",
+                "status": "'pending' | 'completed' | 'failed' - status of transaction",
+                "description": "string (optional) - human-readable description",
+                "metadata": "object (optional) - additional data (e.g., walletOperationId, adminId, reason)",
+                "createdAt": "Date",
+                "updatedAt": "Date"
+              },
+              "type_enum": [
+                "deposit",
+                "withdrawal",
+                "bet-win",
+                "bet-loss",
+                "bet-refund",
+                "admin_credit",
+                "admin_debit"
+              ],
+              "type_enum_note": "admin_credit and admin_debit added 2025-12-02 for admin manual balance adjustments",
+              "status_enum": [
+                "pending",
+                "completed",
+                "failed"
+              ],
+              "implementation_note": "Used to track all financial movements in user wallets for audit and history.",
+              "added_date": "2025-12-02"
+            }  },
+  "feature_flags_interface": {
+    "FeatureFlags": {
+      "file": "/frontend/src/hooks/useFeatureFlags.ts",
+      "purpose": "Type definition for feature flags that control UI visibility and functionality",
+      "required_properties": ["isBettingEnabled", "isWalletEnabled", "isStreamingEnabled", "isArticlesEnabled", "isAdsEnabled"],
+      "interface": {
+        "isBettingEnabled": "boolean - Controls betting functionality access and UI visibility",
+        "isWalletEnabled": "boolean - Controls wallet functionality access and UI visibility",
+        "isStreamingEnabled": "boolean - Controls streaming functionality access and UI visibility",
+        "isArticlesEnabled": "boolean - Controls articles functionality access and UI visibility (currently environment-controlled)",
+        "isAdsEnabled": "boolean - Controls advertisements functionality access and UI visibility (currently environment-controlled)"
+      },
+      "data_source": {
+        "dynamic_flags": ["isBettingEnabled", "isWalletEnabled", "isStreamingEnabled", "isPushNotificationsEnabled"],
+        "source": "GET /api/settings/features/public endpoint (reads from system_settings database with enable_* keys)",
+        "processing": "Hook fetches from API and maps betting_enabled → isBettingEnabled, wallets_enabled → isWalletEnabled, etc."
+      },
+      "data_source_static": {
+        "static_flags": ["isArticlesEnabled", "isAdsEnabled"],
+        "source": "Environment variables (VITE_FEATURES_ARTICLES, VITE_FEATURES_ADS)",
+        "reason": "These flags are not yet implemented in database settings system"
+      },
+      "frontend_usage": [
+        "frontend/src/components/user/Navigation.tsx - Conditionally renders Wallet/Betting links",
+        "frontend/src/components/user/UserHeader.tsx - Shows wallet balance and betting access",
+        "frontend/src/pages/user/Dashboard.tsx - Shows/hides betting features based on isBettingEnabled",
+        "frontend/src/pages/user/Bets.tsx - Shows/hides betting interface based on isBettingEnabled",
+        "frontend/src/pages/user/Wallet.tsx - Shows/hides wallet interface based on isWalletEnabled"
+      ],
+      "feature_flag_mapping": {
+        "backend_key_to_frontend_property": {
+          "enable_betting": "isBettingEnabled",
+          "enable_wallets": "isWalletEnabled",
+          "enable_streaming": "isStreamingEnabled",
+          "enable_push_notifications": "isPushNotificationsEnabled (hypothetical)"
+        }
+      },
+      "implementation_date": "2025-12-01 (feature flag unification - migrated from *.active to enable_* keys in database)",
+      "update_reason": "Feature flag system unification to eliminate redundancy between enable_* and *.active fields"
+    }
+  }
+}

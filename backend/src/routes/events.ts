@@ -137,7 +137,7 @@ router.get(
         { model: User, as: 'creator', attributes: ['id', 'username'], separate: false },
         { model: Fight, as: 'fights', attributes: ['id', 'number', 'status', 'red_corner', 'blue_corner'], separate: false }
       ],
-      order: [["scheduledDate", "ASC"]],
+      order: [["scheduledDate", "DESC"]],
       limit,
       offset,
     });

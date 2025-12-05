@@ -68,11 +68,13 @@ const CreateEvent: React.FC = () => {
 
         // Si el usuario actual es admin, incluirlo en la lista de operadores
         if (currentUser && currentUser.role === "admin") {
-          const adminInList = operatorsData.find((op) => op.id === currentUser.id);
+          const adminInList = operatorsData.find(
+            (op) => op.id === currentUser.id,
+          );
           if (!adminInList) {
             operatorsData = [
               { id: currentUser.id, username: currentUser.username },
-              ...operatorsData
+              ...operatorsData,
             ];
           }
         }
@@ -80,7 +82,10 @@ const CreateEvent: React.FC = () => {
         setOperators(operatorsData);
 
         // Usar operador actual por defecto si aplica
-        if (currentUser && (currentUser.role === "admin" || currentUser.role === "operator")) {
+        if (
+          currentUser &&
+          (currentUser.role === "admin" || currentUser.role === "operator")
+        ) {
           setOperatorId(currentUser.id);
         }
       } catch (err) {
@@ -171,7 +176,9 @@ const CreateEvent: React.FC = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a Eventos
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Crear nuevo Evento</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Crear nuevo Evento
+          </h1>
         </div>
 
         {error && <ErrorMessage message={error} className="mb-6" />}
@@ -187,7 +194,8 @@ const CreateEvent: React.FC = () => {
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Ingresa un nombre claro para el evento (ej. "Pelea de Gallos - Viernes 6 Oct").
+                    Ingresa un nombre claro para el evento (ej. "Pelea de Gallos
+                    - Viernes 6 Oct").
                   </div>
                 </div>
               </div>
@@ -248,7 +256,8 @@ const CreateEvent: React.FC = () => {
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Selecciona la fecha y hora de inicio. Debe ser posterior al momento actual.
+                    Selecciona la fecha y hora de inicio. Debe ser posterior al
+                    momento actual.
                   </div>
                 </div>
               </div>
@@ -300,7 +309,8 @@ const CreateEvent: React.FC = () => {
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Selecciona el operador responsable. Si lo dejas vacío, tú serás asignado automáticamente.
+                    Selecciona el operador responsable. Si lo dejas vacío, tú
+                    serás asignado automáticamente.
                   </div>
                 </div>
               </div>
@@ -321,7 +331,8 @@ const CreateEvent: React.FC = () => {
                 ))}
               </select>
               <p className="text-gray-500 text-sm mt-1">
-                Selecciona el operador responsable. Si lo dejas vacío, se te asignará automáticamente.
+                Selecciona el operador responsable. Si lo dejas vacío, se te
+                asignará automáticamente.
               </p>
             </div>
 

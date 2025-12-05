@@ -35,11 +35,13 @@ class Wallet extends Model<
 
   // Métodos de instancia
   getAvailableBalance(): number {
-    return this.balance - this.frozenAmount;
+    const balance = parseFloat(String(this.balance));
+    const frozen = parseFloat(String(this.frozenAmount));
+    return balance - frozen;
   }
 
   getTotalBalance(): number {
-    return this.balance;
+    return parseFloat(String(this.balance));
   }
 
   canWithdraw(amount: number): boolean {
@@ -52,7 +54,7 @@ class Wallet extends Model<
 
   async freezeAmount(amount: number): Promise<boolean> {
     if (this.canBet(amount)) {
-      this.frozenAmount += amount;
+      this.frozenAmount = parseFloat(String(this.frozenAmount)) + amount;
       await this.save();
       return true;
     }
@@ -60,8 +62,9 @@ class Wallet extends Model<
   }
 
   async unfreezeAmount(amount: number): Promise<boolean> {
-    if (this.frozenAmount >= amount) {
-      this.frozenAmount -= amount;
+    const frozen = parseFloat(String(this.frozenAmount));
+    if (frozen >= amount) {
+      this.frozenAmount = frozen - amount;
       await this.save();
       return true;
     }
@@ -69,13 +72,14 @@ class Wallet extends Model<
   }
 
   async addBalance(amount: number): Promise<void> {
-    this.balance += amount;
+    this.balance = parseFloat(String(this.balance)) + amount;
     await this.save();
   }
 
   async deductBalance(amount: number): Promise<boolean> {
-    if (this.balance >= amount) {
-      this.balance -= amount;
+    const balance = parseFloat(String(this.balance));
+    if (balance >= amount) {
+      this.balance = balance - amount;
       await this.save();
       return true;
     }
@@ -84,9 +88,9 @@ class Wallet extends Model<
 
   toPublicJSON() {
     return {
-      balance: this.balance,
-      frozenAmount: this.frozenAmount,
-      availableBalance: this.getAvailableBalance(),
+      balance: parseFloat(String(this.balance)),
+      frozenAmount: parseFloat(String(this.frozenAmount)),
+      availableBalance: parseFloat(String(this.getAvailableBalance())),
       updatedAt: this.updatedAt,
     };
   }

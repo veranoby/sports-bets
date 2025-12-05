@@ -32,13 +32,13 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
 
   const validateForm = () => {
     const errors: FormErrors = {};
-    if (!redCorner) errors.redCorner = "Red corner is required.";
-    if (!blueCorner) errors.blueCorner = "Blue corner is required.";
+    if (!redCorner) errors.redCorner = "El gallo del rincón rojo es obligatorio.";
+    if (!blueCorner) errors.blueCorner = "El gallo del rincón azul es obligatorio.";
     if (redCorner === blueCorner && redCorner !== "") {
-      errors.blueCorner = "Blue corner must be different from red corner.";
+      errors.blueCorner = "El rincón azul debe ser distinto al rojo.";
     }
-    if (!weight) errors.weight = "Weight is required.";
-    if (!number) errors.number = "Fight number is required.";
+    if (!weight) errors.weight = "El peso es obligatorio.";
+    if (!number) errors.number = "El número de pelea es obligatorio.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -64,14 +64,14 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
       if (response.success && response.data) {
         onFightCreated(response.data as Fight);
       } else {
-        throw new Error(response.error || "Failed to create fight");
+        throw new Error(response.error || "No se pudo crear la pelea");
       }
       onClose();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("An unknown error occurred while creating the fight.");
+        setError("Ocurrió un error inesperado al crear la pelea.");
       }
     } finally {
       setLoading(false);
@@ -81,14 +81,14 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Create New Fight</h3>
+        <h3 className="text-lg font-semibold mb-4">Registrar nueva pelea</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="number"
               className="block text-sm font-medium text-gray-700"
             >
-              Fight Number
+              Número de pelea
             </label>
             <input
               type="number"
@@ -106,7 +106,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
               htmlFor="redCorner"
               className="block text-sm font-medium text-gray-700"
             >
-              Red Corner
+              Rincón rojo
             </label>
             <input
               type="text"
@@ -126,7 +126,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
               htmlFor="blueCorner"
               className="block text-sm font-medium text-gray-700"
             >
-              Blue Corner
+              Rincón azul
             </label>
             <input
               type="text"
@@ -146,7 +146,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
               htmlFor="weight"
               className="block text-sm font-medium text-gray-700"
             >
-              Weight (kg)
+              Peso (kg)
             </label>
             <input
               type="number"
@@ -165,7 +165,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
               htmlFor="notes"
               className="block text-sm font-medium text-gray-700"
             >
-              Notes (Optional)
+              Notas (opcional)
             </label>
             <textarea
               id="notes"
@@ -184,14 +184,14 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? <LoadingSpinner text="Creating..." /> : "Create Fight"}
+              {loading ? <LoadingSpinner text="Creando..." /> : "Crear pelea"}
             </button>
           </div>
         </form>

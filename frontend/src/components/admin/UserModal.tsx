@@ -114,11 +114,18 @@ const UserModal: React.FC<UserModalProps> = ({
       });
 
       // ✅ Check if API call was actually successful before closing modal
-      if (response.success && response.data) { // Check for response.data
+      if (response.success && response.data) {
+        // Check for response.data
         toast.success("Saldo ajustado exitosamente.");
         // We now have the updated user object from the backend response
         onSuccess(response.data.user); // Pass the UPDATED user to the parent
         setActiveTab("balance"); // Keep modal on balance tab
+
+        // Reset form for next adjustment
+        setBalanceAdjustmentAmount(0);
+        setBalanceAdjustmentReason("");
+        setBalanceAdjustmentType("credit");
+
         // onClose(); // DO NOT close the modal immediately - modal remains open for further adjustments/verification
       } else {
         // API returned error response - show error and stay on balance tab
@@ -629,7 +636,7 @@ const UserModal: React.FC<UserModalProps> = ({
                 <p className="text-2xl font-bold text-blue-600 mt-2">
                   {user?.wallet?.balance !== undefined &&
                   user?.wallet?.balance !== null
-                    ? `$${user.wallet.balance.toFixed(2)}`
+                    ? `$${parseFloat(String(user.wallet.balance)).toFixed(2)}`
                     : "No disponible"}
                 </p>
               </div>
@@ -737,12 +744,15 @@ const UserModal: React.FC<UserModalProps> = ({
                 message={`¿Está seguro que desea ${balanceAdjustmentType === "credit" ? "AÑADIR" : "RESTAR"} $${balanceAdjustmentAmount.toFixed(2)} al saldo de la billetera de ${user?.username}? Esta acción es irreversible y se registrará como: "${balanceAdjustmentReason}".`}
                 details={
                   user?.wallet?.balance !== undefined
-                    ? `Saldo Actual: $${user.wallet.balance.toFixed(2)}\n` +
-                      `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
-                      `Nuevo Saldo: $${(balanceAdjustmentType === "credit"
-                        ? user.wallet.balance + balanceAdjustmentAmount
-                        : user.wallet.balance - balanceAdjustmentAmount
-                      ).toFixed(2)}`
+                    ? (() => {
+                        const currentBalance = parseFloat(String(user.wallet.balance));
+                        const newBalance = balanceAdjustmentType === "credit"
+                          ? currentBalance + balanceAdjustmentAmount
+                          : currentBalance - balanceAdjustmentAmount;
+                        return `Saldo Actual: $${currentBalance.toFixed(2)}\n` +
+                               `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
+                               `Nuevo Saldo: $${newBalance.toFixed(2)}`;
+                      })()
                     : undefined
                 }
                 confirmText={

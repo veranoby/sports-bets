@@ -977,7 +977,7 @@ export function useWalletOperations() {
         apiClient.put(`/wallet-operations/${id}/approve`, { adminNotes }),
       );
       // Refresh operations after approval
-      await fetchOperations({ status: 'pending', type: 'deposit' });
+      await fetchOperations({ status: "pending", type: "deposit" });
       return response;
     },
     [execute, fetchOperations],
@@ -992,7 +992,7 @@ export function useWalletOperations() {
         }),
       );
       // Refresh operations after rejection
-      await fetchOperations({ status: 'pending', type: 'deposit' });
+      await fetchOperations({ status: "pending", type: "deposit" });
       return response;
     },
     [execute, fetchOperations],
@@ -1003,7 +1003,9 @@ export function useWalletOperations() {
       if (adminProofUrl) {
         // First upload proof if provided
         await execute(() =>
-          apiClient.put(`/wallet-operations/${id}/upload-proof`, { adminProofUrl }),
+          apiClient.put(`/wallet-operations/${id}/upload-proof`, {
+            adminProofUrl,
+          }),
         );
       }
       const response = await execute(() =>
@@ -1013,7 +1015,7 @@ export function useWalletOperations() {
         }),
       );
       // Refresh operations after completion
-      await fetchOperations({ status: 'pending', type: 'deposit' });
+      await fetchOperations({ status: "pending", type: "deposit" });
       return response;
     },
     [execute, fetchOperations],

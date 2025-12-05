@@ -1009,7 +1009,13 @@ const AdminEventsPage: React.FC = () => {
                       <p className="font-medium text-gray-900">{event.name}</p>
                       <p className="text-sm text-gray-600">
                         {event.venue?.name} •{" "}
-                        {new Date(event.scheduledDate).toLocaleDateString()}
+                        {new Date(event.scheduledDate).toLocaleString([], {
+                              year: 'numeric',
+                              month: 'numeric',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                       </p>
                     </div>
                   </div>

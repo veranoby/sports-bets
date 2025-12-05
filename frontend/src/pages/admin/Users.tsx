@@ -179,10 +179,19 @@ const AdminUsersPage: React.FC = () => {
     return matchesSearch && matchesStatus && matchesSubscription;
   });
 
-  const handleEditUser = (userId: string) => {
-    const user = users.find((u) => u.id === userId);
-    if (user) {
-      setModalState({ mode: "edit", user: user });
+  const handleEditUser = async (userId: string) => {
+    try {
+      // Fetch full user data including wallet
+      const response = await usersAPI.getById(userId);
+      const fullUser = response.data;
+      setModalState({ mode: "edit", user: fullUser });
+    } catch (err) {
+      console.error("Error loading user details:", err);
+      // Fallback to list data if endpoint fails
+      const user = users.find((u) => u.id === userId);
+      if (user) {
+        setModalState({ mode: "edit", user: user });
+      }
     }
   };
 
@@ -192,7 +201,7 @@ const AdminUsersPage: React.FC = () => {
 
   const handleUserUpdated = (updatedUser: User) => {
     setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
-    handleCloseModal();
+    // DO NOT close modal - allow admin to see updated balance and make additional adjustments
   };
 
   const handleCreateUser = () => {

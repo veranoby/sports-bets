@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
-    "version": "2.0",
-    "last_updated": "2025-12-05 - Added wallet relation documentation and frozenAmount validation",
+    "version": "1.8",
+    "last_updated": "2025-11-24 - Added system_settings and wallet_operations endpoints. P2P betting PAGO/DOY endpoints. Enhanced monitoring SSE. Settings admin UI complete.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -14,30 +14,31 @@
     "phase_2_bunny_cdn": "When scaling >500 concurrent, add Bunny CDN (config-only change, no code changes needed)",
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
-    "changelog": {
-      "v2.0": "2025-12-05 - Added GET /users/:id wallet relation documentation with DECIMAL string serialization. Enhanced POST /users/:userId/adjust-balance with frozenAmount validation and parseFloat() pattern. Documents critical PostgreSQL DECIMAL behavior.",
-      "v1.9": "2025-12-05 - Optimized structure with consistent formatting and logical grouping",
-      "v1.8": "2025-11-24 - Added system_settings and wallet_operations endpoints. P2P betting PAGO/DOY endpoints. Enhanced monitoring SSE. Settings admin UI complete."
+    "frontend_updates_2025_10_30": {
+      "fase_1": "EditVenueGalleraModal - Removed venuesAPI/gallerasAPI calls, consolidated to usersAPI.updateProfile()",
+      "fase_2": "CreateUserModal - Extended with role-based business field collection (venue/gallera fields)",
+      "fase_3": "Backend image validation - Added max image limits: galleras=3, venues=2",
+      "impact": "Single-step user creation workflow with complete business info stored in User.profileInfo",
+      "affected_files": [
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "frontend/src/components/admin/CreateUserModal.tsx",
+        "backend/src/routes/users.ts"
+      ]
+    },
+    "frontend_updates_2025_10_31": {
+      "image_upload_ui": "Added ImageGalleryUpload component integration to CreateUserModal and EditVenueGalleraModal for image management",
+      "admin_ux_consistency": "Unified all admin pages (/admin/users, /admin/venues, /admin/galleras) to use CreateUserModal pattern instead of navigation",
+      "type_definition_completion": "Added images?: string[] to User.profileInfo interface for type safety",
+      "dashboard_filter_clarification": "AdminDashboard 'Pending Users' card now explicitly filters by role='user' to prevent ambiguity",
+      "client_side_validation": "CreateUserModal enforces maxImages limits (venue=2, gallera=3) with conditional rendering",
+      "affected_files": [
+        "frontend/src/components/admin/CreateUserModal.tsx",
+        "frontend/src/components/admin/EditVenueGalleraModal.tsx",
+        "frontend/src/pages/admin/Users.tsx",
+        "frontend/src/pages/admin/AdminDashboard.tsx",
+        "frontend/src/types/index.ts"
+      ]
     }
-  },
-  
-  "quick_reference": {
-    "authentication": ["/auth/login", "/auth/register", "/auth/verify/:token", "/auth/forgot-password", "/auth/reset-password", "/auth/check-membership-status"],
-    "users": ["/users/profile", "/users", "/users/:id", "/users/:id/password", "/users/:id/approve", "/users/:id/reject", "/users/:userId/adjust-balance", "/users/:userId/profile-info"],
-    "venues": ["/venues", "/venues/:id"],
-    "galleras": ["/galleras", "/galleras/:id"],
-    "articles": ["/articles", "/articles/featured", "/articles/:id", "/articles/:id/approve", "/articles/:id/reject"],
-    "events": ["/events", "/events/:id", "/events/:id/stats", "/events/:id/viewers", "/events/:id/analytics"],
-    "fights": ["/fights", "/fights/:id", "/fights/:id/status"],
-    "bets": ["/bets", "/bets/my-bets", "/bets/compatible", "/bets/:id", "/bets/:id/accept", "/bets/:id/cancel", "/bets/:id/edit", "/bets/:id/propose-pago", "/bets/:id/accept-pago", "/bets/:id/reject-pago", "/bets/:id/propose-doy", "/bets/:id/accept-doy", "/bets/:id/reject-doy", "/bets/pending-proposals"],
-    "wallet": ["/wallet", "/wallet/balance", "/wallet/transactions", "/wallet/deposit", "/wallet/withdraw", "/wallet/financial-metrics", "/wallet/revenue-by-source", "/wallet/revenue-trends"],
-    "wallet_operations": ["/wallet-operations", "/wallet-operations/deposit", "/wallet-operations/withdrawal", "/wallet-operations/:id/approve", "/wallet-operations/:id/reject", "/wallet-operations/:id/upload-proof", "/wallet-operations/stats"],
-    "monitoring": ["/health", "/monitoring/alerts", "/monitoring/stats", "/monitoring/performance", "/monitoring/database", "/monitoring/cache", "/monitoring/memory", "/monitoring/connections", "/monitoring/intervals", "/monitoring/webhook/railway", "/monitoring/sse/admin/monitoring"],
-    "settings": ["/settings", "/settings/:key", "/settings/features/public", "/settings/category/:category", "/settings/public"],
-    "admin": ["/admin/sessions/active-users", "/admin/sessions/:userId", "/admin/users/:userId/adjust-balance", "/membership-requests", "/membership-requests/:id/complete", "/membership-requests/:id/reject", "/membership-requests/my-requests", "/membership-requests/pending"],
-    "notifications": ["/notifications", "/notifications/:id/read", "/notifications/:id", "/notifications/mark-all-read"],
-    "uploads": ["/uploads/image", "/uploads/image/:filename"],
-    "streaming": ["/sse/streaming"]
   },
 
   "base_configuration": {
@@ -45,7 +46,7 @@
     "api_prefix": "/api",
     "authentication": "Bearer token in Authorization header",
     "content_type": "application/json",
-    "sse_authentication_note_2025_11_19": "EventSource API (used for SSE connections) CANNOT send custom headers. Token must be passed via query parameter (?token=...) instead of Authorization header. Updated extractToken() middleware to check req.query.token for SSE compatibility."
+    "🔴_SSE_AUTHENTICATION_NOTE_2025_11_19": "EventSource API (used for SSE connections) CANNOT send custom headers. Token must be passed via query parameter (?token=...) instead of Authorization header. Updated extractToken() middleware to check req.query.token for SSE compatibility."
   },
 
   "authentication_endpoints": {
@@ -147,7 +148,7 @@
         "combining_filters": "✅ All filters can be combined. Example: /users?search=john&approved=false&subscriptionType=monthly",
         "note_2025_10_30": "Backend updated to support combined filters using Op.and(Op.or(...)) pattern. Filters work independently AND together."
       },
-      "critical_change_2025_10_30": "CONSOLIDATED ARCHITECTURE: venues and galleras tables ELIMINATED. All data now in User.profileInfo for users with role='venue' or role='gallera'",
+      "🔴_CRITICAL_CHANGE_2025_10_30": "CONSOLIDATED ARCHITECTURE: venues and galleras tables ELIMINATED. All data now in User.profileInfo for users with role='venue' or role='gallera'",
       "usage_for_venues": "/users?role=venue → Returns User[] with profileInfo.venueName, venueLocation, venueDescription, venueEmail, venueWebsite, venueImages (max 3)",
       "usage_for_galleras": "/users?role=gallera → Returns User[] with profileInfo.galleraName, galleraLocation, galleraDescription, galleraEmail, galleraWebsite, galleraSpecialties, galleraActiveRoosters, galleraImages (max 3)",
       "status_field_logic": "Status is CALCULATED field, not stored. Derived from (User.isActive && User.approved): true+true='active', true+false='pending', false+true='inactive', false+false='rejected'. NO status filter in venues/galleras queries.",
@@ -156,19 +157,7 @@
     "get_user_by_id": {
       "method": "GET",
       "path": "/users/:id",
-      "auth_required": true,
-      "response": {"success": true, "user": "User object with wallet relation if exists"},
-      "includes": {
-        "wallet": "Wallet object with balance, frozenAmount, availableBalance (ADDED 2025-12-05)",
-        "note": "Wallet relation loaded via Sequelize include for admin balance management"
-      },
-      "wallet_serialization": {
-        "critical": "PostgreSQL DECIMAL(12,2) fields return as strings. Wallet.toPublicJSON() converts to numbers.",
-        "pattern": "parseFloat(String(wallet.balance)) used throughout backend for arithmetic operations"
-      },
-      "implementation": "backend/src/routes/users.ts:211-223",
-      "purpose": "Get user details with wallet for admin balance adjustment operations",
-      "updated_date": "2025-12-05"
+      "auth_required": true
     },
     "get_user_business_entity": {
       "method": "GET",
@@ -227,52 +216,40 @@
       "security": "Operators cannot modify admin/operator accounts",
       "added_by": "QWEN optimization - admin password management feature"
     },
-    "update_user": {
-      "method": "PUT",
-      "path": "/users/:id",
-      "body": {"role": "string (optional)", "isActive": "boolean (optional)"},
-      "allowed_fields": ["role", "isActive"],
-      "read_only_fields": ["username", "email", "profileInfo"],
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "security": [
-        "Operators cannot modify admin/operator accounts",
-        "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
-        "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
-      ]
-    },
-    "adjust_user_balance": {
-      "method": "POST",
-      "path": "/users/:userId/adjust-balance",
-      "auth_required": true,
-      "roles": ["admin"],
-      "body": {
-        "type": "'credit' | 'debit'",
-        "amount": "number (positive)",
-        "reason": "string (min 10, max 255 chars)"
-      },
-      "response": {"success": true, "message": "string", "data": {"user": "User object", "wallet": "Wallet object"}},
-      "purpose": "Manually adjust user's wallet balance (admin only)",
-      "validation": {
-        "credit": "No balance check required, adds amount to wallet.balance",
-        "debit": "Validates available balance: (balance - frozenAmount) >= amount",
-        "frozenAmount": "CRITICAL (ADDED 2025-12-05): Locked funds from active bets. Debit requires sufficient AVAILABLE balance, not just total balance.",
-        "error_example": "balance=$150, frozenAmount=$80, debit $100 → ERROR (available=$70 < $100)"
-      },
-      "features": {
-        "transactional": "Ensures atomicity with Sequelize transaction",
-        "auditable": "Records adminId and reason in transaction metadata",
-        "cache_invalidation": "Invalidates user profile cache",
-        "decimal_handling": "CRITICAL: Uses parseFloat(String()) pattern for PostgreSQL DECIMAL fields"
-      },
-      "implementation": "backend/src/routes/users.ts:1042-1087",
-      "transaction_types": {
-        "credit": "Creates 'admin_credit' transaction",
-        "debit": "Creates 'admin_debit' transaction"
-      },
-      "added_date": "2025-12-02",
-      "updated_date": "2025-12-05 (added frozenAmount validation + DECIMAL string handling)"
-    },
+            "update_user": {
+              "method": "PUT",
+              "path": "/users/:id",
+              "body": {"role": "string (optional)", "isActive": "boolean (optional)"},
+              "allowed_fields": ["role", "isActive"],
+              "read_only_fields": ["username", "email", "profileInfo"],
+              "auth_required": true,
+              "roles": ["admin", "operator"],
+              "security": [
+                "Operators cannot modify admin/operator accounts",
+                "✅ ENFORCED 2025-10-19: Only 'role' and 'isActive' fields allowed, all other fields rejected",
+                "Prevents unauthorized modification of profileInfo, username, or email via this endpoint"
+              ]
+            },
+            "adjust_user_balance": {
+              "method": "POST",
+              "path": "/users/:userId/adjust-balance",
+              "auth_required": true,
+              "roles": ["admin"],
+              "body": {
+                "type": "'credit' | 'debit'",
+                "amount": "number (positive)",
+                "reason": "string (min 10, max 255 chars)"
+              },
+              "response": {"success": true, "message": "string", "data": {"user": "User object", "wallet": "Wallet object"}},
+              "purpose": "Manually adjust user's wallet balance (admin only)",
+              "features": {
+                "transactional": "Ensures atomicity",
+                "auditable": "Records adminId and reason in transaction metadata",
+                "cache_invalidation": "Invalidates user profile cache"
+              },
+              "implementation": "backend/src/routes/users.ts",
+              "added_date": "2025-12-02"
+            },
     "update_profile_info": {
       "method": "PUT",
       "path": "/users/:userId/profile-info",
@@ -315,7 +292,7 @@
       "blocked_roles": ["admin", "operator", "venue"],
       "behavior": "Users with role 'venue' are blocked from betting endpoints with 403 Forbidden response",
       "message": "'Betting access denied - Your role cannot place bets'",
-      "business_reason": "Venue users are event hosts, not bettors, preventing role conflicts",
+      "business_reason": "Venue users are event hosts, not bettors, preventing role conflcits",
       "added_date": "2025-11-07"
     },
     "wallet_access": {
@@ -361,7 +338,7 @@
   },
 
   "venue_endpoints": {
-    "critical_note": "⚠️ 2025-10-30: Venues table ELIMINATED. Frontend MUST use /venues (returns User objects with role='venue')",
+    "CRITICAL_NOTE": "⚠️ 2025-10-30: Venues table ELIMINATED. Frontend MUST use /venues (returns User objects with role='venue')",
     "implementation_note": "🔴 CRITICAL CHANGE 2025-10-30: venues table DELETED from Neon. GET /venues now returns User.findAndCountAll({role:'venue'}) with profileInfo containing venueName, venueLocation, etc. NO MORE LEFT JOIN venues. Data consolidated in User.profileInfo.",
     "list_venues": {
       "method": "GET",
@@ -378,7 +355,7 @@
         "combining_filters": "✅ All filters can be combined. Example: /venues?search=john&ownerApproved=true&ownerSubscription=monthly",
         "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
       },
-      "fix_2025_11_20": "Backend was returning {venues: [...]} instead of {users: [...]}. Fixed in backend/src/routes/venues.ts:155 to match documented response structure. Frontend depends on response.data.users."
+      "🔴_FIX_2025_11_20": "Backend was returning {venues: [...]} instead of {users: [...]}. Fixed in backend/src/routes/venues.ts:155 to match documented response structure. Frontend depends on response.data.users."
     },
     "create_venue": {
       "method": "POST",
@@ -417,7 +394,7 @@
         }
       },
       "note": "🔴 CRITICAL 2025-11-20: Backend TRANSFORMS response to custom structure. NOT a User object directly. Data access pattern: data.name (NOT data.profileInfo.venueName), data.owner.profileInfo.venueEmail, etc.",
-      "fix_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed VenueDetailPage.tsx:7 and line 52 to use venuesAPI.getById(id) (public endpoint with optionalAuth middleware)."
+      "🔴_FIX_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed VenueDetailPage.tsx:7 and line 52 to use venuesAPI.getById(id) (public endpoint with optionalAuth middleware)."
     },
     "update_venue": {
       "method": "PUT",
@@ -443,7 +420,7 @@
   },
 
   "gallera_endpoints": {
-    "critical_note": "⚠️ 2025-10-30: Galleras table ELIMINATED. Frontend MUST use /galleras (returns User objects with role='gallera')",
+    "CRITICAL_NOTE": "⚠️ 2025-10-30: Galleras table ELIMINATED. Frontend MUST use /galleras (returns User objects with role='gallera')",
     "implementation_note": "🔴 CRITICAL CHANGE 2025-10-30: galleras table DELETED from Neon. GET /galleras now returns User.findAndCountAll({role:'gallera'}) with profileInfo containing galleraName, galleraLocation, etc. NO MORE LEFT JOIN galleras. Data consolidated in User.profileInfo.",
     "list_galleras": {
       "method": "GET",
@@ -460,7 +437,7 @@
         "combining_filters": "✅ All filters can be combined. Example: /galleras?search=juan&ownerApproved=false&ownerSubscription=daily",
         "note_2025_10_30": "Backend updated to support combined filters. Query uses Op.and(Op.or(...)) pattern for proper multi-filter support."
       },
-      "fix_2025_11_20": "Backend was returning {galleras: [...]} instead of {users: [...]}. Fixed in backend/src/routes/galleras.ts:158 to match documented response structure. Frontend depends on response.data.users."
+      "🔴_FIX_2025_11_20": "Backend was returning {galleras: [...]} instead of {users: [...]}. Fixed in backend/src/routes/galleras.ts:158 to match documented response structure. Frontend depends on response.data.users."
     },
     "create_gallera": {
       "method": "POST",
@@ -503,7 +480,7 @@
         }
       },
       "note": "🔴 CRITICAL 2025-11-20: Backend TRANSFORMS response to custom structure. NOT a User object directly. Data access pattern: data.name (NOT data.profileInfo.galleraName), data.owner.profileInfo.galleraEmail, data.owner.profileInfo.galleraSpecialties (array), data.owner.profileInfo.galleraActiveRoosters, etc.",
-      "fix_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed GalleraDetailPage.tsx:7 and line 53 to use gallerasAPI.getById(id) (public endpoint with optionalAuth middleware)."
+      "🔴_FIX_2025_11_20": "Frontend was calling usersAPI.getById(id) (admin endpoint). Changed GalleraDetailPage.tsx:7 and line 53 to use gallerasAPI.getById(id) (public endpoint with optionalAuth middleware)."
     },
     "update_gallera": {
       "method": "PUT",
@@ -529,12 +506,12 @@
   },
 
   "article_endpoints": {
-    "critical_note": "Route order matters: /featured MUST come before /:id",
+    "CRITICAL_NOTE": "Route order matters: /featured MUST come before /:id",
     "list_articles": {
       "method": "GET",
       "path": "/articles",
       "query_params": ["search", "authorId", "status", "limit", "offset"],
-      "removed_2025_11_07": "venueId replaced with authorId per PRD:205 FASE 5 consolidation",
+      "REMOVED_2025_11_07": "venueId replaced with authorId per PRD:205 FASE 5 consolidation",
       "auth_required": false,
       "middleware": "optionalAuth",
       "status_filtering_logic": {
@@ -592,7 +569,7 @@
       "auth_required": true,
       "roles": ["admin", "gallera", "venue"],
       "venue_id_status": "✅ CLARIFICATION 2025-11-21: Field EXISTS in database. Not removed. Used for optional venue association.",
-      "critical_validation": {
+      "CRITICAL_VALIDATION": {
         "field_names": "MUST use 'excerpt' NOT 'summary', 'featured_image' NOT 'featured_image_url'",
         "slug_generation": "✅ FIXED: Backend auto-generates URL-friendly slug from title - NEVER send slug field",
         "sanitization": "Content is automatically sanitized by DOMPurify middleware",
@@ -809,117 +786,6 @@
     }
   },
 
-  "fight_endpoints": {
-    "list_fights": {
-      "method": "GET",
-      "path": "/fights",
-      "query_params": ["eventId", "status"],
-      "response": {"success": true, "data": {"fights": "array of Fight objects", "total": "number"}},
-      "auth_required": false,
-      "middleware": "optionalAuth"
-    },
-    "get_fight": {
-      "method": "GET",
-      "path": "/fights/:id",
-      "response": {"success": true, "data": "Fight object"},
-      "auth_required": false,
-      "middleware": "optionalAuth"
-    },
-    "create_fight": {
-      "method": "POST",
-      "path": "/fights",
-      "body": {
-        "eventId": "string (UUID)",
-        "number": "number",
-        "redCorner": "string (max 255 chars)",
-        "blueCorner": "string (max 255 chars)",
-        "weight": "number",
-        "notes": "string (optional, max 1000 chars)"
-      },
-      "response": {"success": true, "data": "Fight object"},
-      "auth_required": true,
-      "roles": ["admin", "operator"]
-    },
-    "update_fight": {
-      "method": "PUT",
-      "path": "/fights/:id",
-      "body": {
-        "redCorner": "string (max 255 chars)",
-        "blueCorner": "string (max 255 chars)",
-        "weight": "number",
-        "notes": "string (max 1000 chars)"
-      },
-      "response": {"success": true, "data": "Fight object"},
-      "auth_required": true,
-      "roles": ["admin", "operator"]
-    },
-    "record_fight_result": {
-      "method": "POST",
-      "path": "/fights/:id/result",
-      "body": {
-        "result": "string ('red' | 'blue' | 'draw' | 'cancelled')"
-      },
-      "response": {"success": true, "data": "Fight object with updated result"},
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "note": "Updates fight status to 'completed' and sets result"
-    },
-    "open_betting": {
-      "method": "POST",
-      "path": "/fights/:id/open-betting",
-      "response": {"success": true, "data": "Fight object with status='betting'"},
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "note": "Changes fight status from 'upcoming' to 'betting' to start accepting bets"
-    },
-    "close_betting": {
-      "method": "POST",
-      "path": "/fights/:id/close-betting",
-      "response": {"success": true, "data": "Fight object with status='live'"},
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "note": "Changes fight status from 'betting' to 'live' to close betting"
-    },
-    "update_fight_status": {
-      "method": "PATCH",
-      "path": "/fights/:id/status",
-      "body": {
-        "status": "'upcoming' | 'betting' | 'live' | 'completed'"
-      },
-      "auth_required": true,
-      "roles": ["admin", "operator"],
-      "response": {
-        "success": true,
-        "data": {
-          "fight": "Fight object",
-          "event": "Event object",
-          "statusTransition": "string (e.g., 'upcoming → betting')"
-        }
-      },
-      "critical_fix_2025_11_04": {
-        "issue": "Response referenced undefined variable currentStatus",
-        "fix_location": "backend/src/routes/fights.ts:367",
-        "fix_applied": "const currentStatus = fight.status; // Save before status change",
-        "validation": "TypeScript compilation ZERO errors"
-      },
-      "state_machine_validation": {
-        "allowed_transitions": {
-          "upcoming": ["betting"],
-          "betting": ["live"],
-          "live": ["completed"],
-          "completed": []
-        },
-        "validation": "Transition validation enforced before database update",
-        "error_response": "400 BadRequest if invalid transition attempted"
-      },
-      "sse_broadcast": {
-        "event_type": "FIGHT_STATUS_UPDATE",
-        "recipients": "All users connected to event SSE stream",
-        "payload": "Updated fight object with new status"
-      }
-    }
-  },
-
   "bet_endpoints": {
     "my_bets": {
       "method": "GET",
@@ -967,7 +833,7 @@
   },
 
   "websocket_betting_endpoints": {
-    "critical_note_2025_11_04": "PAGO/DOY bet matching now includes DB persistence with transaction safety",
+    "CRITICAL_NOTE_2025_11_04": "PAGO/DOY bet matching now includes DB persistence with transaction safety",
     "protocol": "WebSocket (bidirectional, minimal usage for proposals only)",
     "connection": "ws://localhost:3001 (authenticated via JWT)",
     "pago_doy_bet_matching": {
@@ -998,7 +864,7 @@
           "server_response": "bet_matched event",
           "race_condition_protection": "In-memory lock prevents double-acceptance",
           "db_persistence": {
-            "critical_fix_2025_11_04": "Matched bets now persisted to database with transaction safety",
+            "🔴_CRITICAL_FIX_2025_11_04": "Matched bets now persisted to database with transaction safety",
             "implementation": "backend/src/sockets/bettingSocket.ts:215-271",
             "transaction_pattern": "Sequelize transaction with bidirectional bet linking",
             "pago_bet_creation": {
@@ -1089,6 +955,47 @@
     }
   },
 
+  "fight_status_endpoints": {
+    "update_fight_status": {
+      "method": "PATCH",
+      "path": "/fights/:id/status",
+      "body": {
+        "status": "'upcoming' | 'betting' | 'live' | 'completed'"
+      },
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "data": {
+          "fight": "Fight object",
+          "event": "Event object",
+          "statusTransition": "string (e.g., 'upcoming → betting')"
+        }
+      },
+      "🔴_CRITICAL_FIX_2025_11_04": {
+        "issue": "Response referenced undefined variable currentStatus",
+        "fix_location": "backend/src/routes/fights.ts:367",
+        "fix_applied": "const currentStatus = fight.status; // Save before status change",
+        "validation": "TypeScript compilation ZERO errors"
+      },
+      "state_machine_validation": {
+        "allowed_transitions": {
+          "upcoming": ["betting"],
+          "betting": ["live"],
+          "live": ["completed"],
+          "completed": []
+        },
+        "validation": "Transition validation enforced before database update",
+        "error_response": "400 BadRequest if invalid transition attempted"
+      },
+      "sse_broadcast": {
+        "event_type": "FIGHT_STATUS_UPDATE",
+        "recipients": "All users connected to event SSE stream",
+        "payload": "Updated fight object with new status"
+      }
+    }
+  },
+
   "wallet_endpoints": {
     "get_balance": {
       "method": "GET",
@@ -1172,111 +1079,8 @@
     }
   },
 
-  "wallet_operations_endpoints": {
-    "description": "Bet amounts deducted and recorded for later settlement",
-    "wallet_operations_endpoints": {
-      "create_deposit": {
-        "method": "POST",
-        "path": "/api/wallet-operations/deposit",
-        "auth_required": true,
-        "body": {
-          "amount": "number - deposit amount",
-          "paymentProofUrl": "string (optional) - bank transfer screenshot URL"
-        },
-        "response": {"success": true, "message": "Deposit request created successfully", "data": "WalletOperation object"},
-        "validation": [
-          "amount >= wallet.deposit_min (default $5)",
-          "amount <= wallet.deposit_max (default $1000/tx)",
-          "daily total + amount <= wallet.deposit_max_daily (default $5000)",
-          "if amount > wallet.require_proof_over ($50), paymentProofUrl required"
-        ],
-        "status_workflow": "pending → approved (admin) → completed",
-        "frontend_usage": "frontend/src/components/user/UserHeader.tsx (wallet dropdown)"
-      },
-      "create_withdrawal": {
-        "method": "POST",
-        "path": "/api/wallet-operations/withdrawal",
-        "auth_required": true,
-        "body": {
-          "amount": "number - withdrawal amount",
-          "userNotes": "string (optional) - user explanation"
-        },
-        "response": {"success": true, "message": "Withdrawal request created successfully", "data": "WalletOperation object"},
-        "validation": [
-          "amount >= wallet.withdrawal_min (default $10)",
-          "amount <= wallet.withdrawal_max (default $500/tx)",
-          "amount <= user.wallet.balance",
-          "daily total + amount <= wallet.withdrawal_max_daily (default $2000)"
-        ],
-        "admin_requirement": "Admin MUST upload admin_proof_url before approval",
-        "status_workflow": "pending → admin uploads proof → approved → completed"
-      },
-      "get_wallet_operations": {
-        "method": "GET",
-        "path": "/api/wallet-operations",
-        "auth_required": true,
-        "query_params": {
-          "status": "string (optional) - filter by status (pending, approved, completed, rejected)",
-          "type": "string (optional) - filter by type (deposit, withdrawal)",
-          "dateFrom": "string (optional) - ISO date",
-          "dateTo": "string (optional) - ISO date"
-        },
-        "response": {"success": true, "data": {"operations": "WalletOperation[]"}},
-        "authorization": "Admin sees all operations. Users see only their own.",
-        "frontend_usage": "frontend/src/pages/admin/Finance.tsx"
-      },
-      "approve_operation": {
-        "method": "PUT",
-        "path": "/api/wallet-operations/:id/approve",
-        "auth_required": true,
-        "role_required": "admin",
-        "body": {"adminNotes": "string (optional)"},
-        "response": {"success": true, "message": "Operation approved successfully"},
-        "transaction_safety": "Transactional: UPDATE wallet balance + INSERT transaction + UPDATE operation status. Rollback on error."
-      },
-      "reject_operation": {
-        "method": "PUT",
-        "path": "/api/wallet-operations/:id/reject",
-        "auth_required": true,
-        "role_required": "admin",
-        "body": {
-          "rejectionReason": "string (required) - reason for rejection",
-          "adminNotes": "string (optional)"
-        },
-        "response": {"success": true, "message": "Operation rejected successfully"},
-        "notification": "User receives notification with rejection reason"
-      },
-      "upload_admin_proof": {
-        "method": "PUT",
-        "path": "/api/wallet-operations/:id/upload-proof",
-        "auth_required": true,
-        "role_required": "admin",
-        "body": {"adminProofUrl": "string - transfer receipt screenshot URL"},
-        "response": {"success": true, "message": "Admin proof uploaded successfully"},
-        "requirement": "MANDATORY for withdrawal approvals. Admin uploads transfer receipt."
-      },
-      "get_stats": {
-        "method": "GET",
-        "path": "/api/wallet-operations/stats",
-        "auth_required": true,
-        "role_required": "admin",
-        "response": {
-          "success": true,
-          "data": {
-            "pendingDeposits": "number - count",
-            "pendingWithdrawals": "number - count",
-            "pendingDepositsAmount": "number - total USD",
-            "pendingWithdrawalsAmount": "number - total USD",
-            "processedToday": "number - count completed today"
-          }
-        },
-        "frontend_usage": "frontend/src/pages/admin/Finance.tsx (stats cards)"
-      }
-    }
-  },
-
   "membership_request_endpoints": {
-    "critical_note": "Membership requests for users to request plan changes (free → 24-hour @ $5 or monthly @ $10)",
+    "CRITICAL_NOTE": "Membership requests for users to request plan changes (free → 24-hour @ $5 or monthly @ $10)",
     "create_request": {
       "method": "POST",
       "path": "/membership-requests",
@@ -1438,9 +1242,29 @@
     }
   },
 
+  "subscription_expiration_validation": {
+    "REALITY_CHECK": "Expiration validated ONLY in subscription routes, NOT in auth middleware",
+    "actual_implementation": {
+      "location": "backend/src/routes/subscriptions.ts",
+      "validation_points": [
+        "Lines 76-78: Check expiresAt > now when fetching active subscriptions",
+        "Lines 221, 288: Filter active subscriptions by expiresAt > current time",
+        "Query-based: Uses Sequelize Op.gt(new Date()) in where clauses"
+      ],
+      "NO_MIDDLEWARE": "auth.ts does NOT check subscription expiration",
+      "NO_CRON_JOB": "No background service exists for automatic expiration",
+      "manual_check": "Expiration status determined at query time, not request time"
+    },
+    "frontend_behavior": {
+      "access_control": "Frontend checks subscription status via GET /users/profile",
+      "conditional_rendering": "Components show/hide premium features based on subscription object",
+      "no_realtime_expiration": "User keeps access until next profile refresh after expiration"
+    }
+  },
+
   "subscription_admin_endpoints": {
     "description": "Admin subscription management endpoints (direct changes WITHOUT membership requests)",
-    "consolidation_note": "Both PUT /subscriptions/admin/:userId/membership and PATCH /membership-requests/:id/complete create/update subscriptions. PUT is for DIRECT changes (no request). PATCH is for REQUEST APPROVAL workflow. Both use shared subscription creation logic.",
+    "⚡_CONSOLIDATION_NOTE": "Both PUT /subscriptions/admin/:userId/membership and PATCH /membership-requests/:id/complete create/update subscriptions. PUT is for DIRECT changes (no request). PATCH is for REQUEST APPROVAL workflow. Both use shared subscription creation logic.",
     "admin_update_membership": {
       "method": "PUT",
       "path": "/subscriptions/admin/:userId/membership",
@@ -1479,7 +1303,7 @@
   },
 
   "monitoring_endpoints": {
-    "critical_note_2025_11_19": "Complete monitoring system with 11 endpoints. Fixed Monitoring page broken alerts.filter error by creating proper /monitoring/alerts and /monitoring/stats endpoints.",
+    "🔴_CRITICAL_NOTE_2025_11_19": "Complete monitoring system with 11 endpoints. Fixed Monitoring page broken alerts.filter error by creating proper /monitoring/alerts and /monitoring/stats endpoints.",
     "health_check": {
       "method": "GET",
       "path": "/health",
@@ -1729,7 +1553,7 @@
       "fix_commit": "e63e3812 - Fixed AdminHeaderMetricsBar 'no data' - SSE now includes metrics object",
       "performance_benefit": "Real-time system monitoring without polling overhead"
     },
-    "redundancy_detected": {
+    "🔴_REDUNDANCY_DETECTED": {
       "issue": "GET /alerts and /stats endpoints exist at line 252-386, duplicating /monitoring/alerts and /monitoring/stats",
       "path_difference_only": "/alerts vs /monitoring/alerts (same implementation)",
       "consolidation_opportunity": "Refactor to remove duplicate code - keep /monitoring/* prefix for consistency",
@@ -1739,27 +1563,27 @@
 
   "common_mistakes_to_avoid": {
     "wrong_venue_endpoint": {
-      "never_use": "/users?role=venue",
-      "always_use": "/venues",
+      "NEVER_USE": "/users?role=venue",
+      "ALWAYS_USE": "/venues",
       "reason": "Dedicated endpoints exist with proper data structure"
     },
     "wrong_gallera_endpoint": {
-      "never_use": "/users?role=gallera",
-      "always_use": "/galleras",
+      "NEVER_USE": "/users?role=gallera",
+      "ALWAYS_USE": "/galleras",
       "reason": "Dedicated endpoints exist with proper data structure"
     },
     "route_ordering": {
-      "critical": "Specific routes (/featured) MUST come before parameterized routes (/:id)",
+      "CRITICAL": "Specific routes (/featured) MUST come before parameterized routes (/:id)",
       "example": "articles/featured before articles/:id"
     },
     "profile_route": {
-      "critical": "/users/profile MUST come before /users/:id",
+      "CRITICAL": "/users/profile MUST come before /users/:id",
       "reason": "Prevents 'profile' being parsed as UUID"
     }
   },
 
   "streaming_sse_endpoints": {
-    "unified_streaming_monitoring_2025_11_19": "SSE endpoint for real-time monitoring of streaming metrics (consolidated from polling-based /monitoring endpoints)",
+    "🔴_UNIFIED_STREAMING_MONITORING_2025_11_19": "SSE endpoint for real-time monitoring of streaming metrics (consolidated from polling-based /monitoring endpoints)",
     "get_streaming_metrics": {
       "method": "GET",
       "path": "/sse/streaming",
@@ -1769,9 +1593,7 @@
       "push_interval": "2 seconds (throttled to reduce backend load)",
       "response_structure": {
         "connectionCount": "number - Active users connected to streaming (from EventConnection table)",
-        "activeBets": "number - Active bets awaiting settlement (from Bet table)",
-        "totalBetsToday": "number - Total bets made today",
-        "totalPrizePool": "number - Amount in current prize pools",
+        "activeBets": "number - Active bets awaiting settlement (from Bet table, status='active')",
         "streamStatus": {
           "isLive": "boolean - Whether stream is currently broadcasting"
         }
@@ -1806,6 +1628,61 @@
         }
       ]
     }
+  },
+
+  "frontend_api_client_patterns": {
+    "import_pattern": "import { venuesAPI, gallerasAPI, userAPI } from '../../services/api'",
+    "correct_usage": {
+      "venues": "const response = await venuesAPI.getAll();",
+      "galleras": "const response = await gallerasAPI.getAll();",
+      "users": "const response = await userAPI.getAll({ role: 'admin' });"
+    },
+    "data_access_patterns": {
+      "venues": "response.data.venues",
+      "galleras": "response.data.galleras",
+      "users": "response.data.users"
+    },
+    "sse_pattern": "🔴 SPECIAL: SSE connections pass token via query parameter: new EventSource(`/api/sse/streaming?token=${localStorage.getItem('token')}`)"
+  },
+
+  "testing_endpoints": {
+    "quick_validation": {
+      "venues": "curl -X GET http://localhost:3001/api/venues",
+      "galleras": "curl -X GET http://localhost:3001/api/galleras",
+      "articles_featured": "curl -X GET 'http://localhost:3001/api/articles/featured?limit=5&type=banner'",
+      "profile": "curl -X GET http://localhost:3001/api/users/profile -H 'Authorization: Bearer TOKEN'"
+    }
+  },
+
+  "prevention_checklist": [
+    "✅ Check this documentation before changing any API calls",
+    "✅ Test endpoints with curl before committing",
+    "✅ Run npm run build && npm start to verify compiled changes",
+    "✅ Verify frontend can load data from correct endpoints",
+    "✅ Never change API calls during ESLint/TypeScript optimizations"
+  ],
+
+  "production_status": {
+    "date": "2025-09-28",
+    "status": "✅ PRODUCTION READY - 100% API completeness verified",
+    "gemini_cli_completion": {
+      "userAPI.delete": "✅ COMPLETED",
+      "userAPI.update": "✅ COMPLETED",
+      "fightsAPI.delete": "✅ COMPLETED",
+      "typescript_errors": "✅ REDUCED FROM 68 → 0",
+      "component_cleanup": "✅ COMPLETED (non-destructive)"
+    },
+    "critical_systems_status": {
+      "authentication": "✅ Production JWT secrets configured",
+      "event_management": "✅ Complete CRUD workflows",
+      "betting_engine": "✅ PAGO/DOY + settlement logic",
+      "streaming_pipeline": "✅ RTMP → HLS + SSE monitoring",
+      "admin_dashboard": "✅ Full management capabilities",
+      "operator_interface": "✅ Event control workflows",
+      "database_optimization": "✅ Query performance <500ms"
+    },
+    "production_ready": true,
+    "24h_launch_status": "✅ GO FOR PRODUCTION"
   },
 
   "admin_session_endpoints": {
@@ -1851,7 +1728,7 @@
   },
 
   "webhook_endpoints": {
-    "note": "Webhooks for external integrations (Kushki payments, etc.)",
+    "🔴_NOTE": "Webhooks for external integrations (Kushki payments, etc.)",
     "payment_webhook": {
       "method": "POST",
       "path": "/webhooks/payment",
@@ -1879,30 +1756,11 @@
       "roles": ["admin"],
       "body": {"value": "JSON object"},
       "purpose": "Update global system configuration"
-    },
-    "get_features_public": {
-      "method": "GET",
-      "path": "/api/settings/features/public",
-      "auth_required": true,
-      "response": {
-        "success": true,
-        "data": {
-          "betting_enabled": "boolean - enable_betting setting (handles string/boolean/JSON)",
-          "wallets_enabled": "boolean - enable_wallets setting (handles string/boolean/JSON)",
-          "streaming_enabled": "boolean - enable_streaming setting (handles string/boolean/JSON)",
-          "push_notifications_enabled": "boolean - enable_push_notifications setting (handles object/string/boolean)"
-        }
-      },
-      "description": "Returns feature flags for dashboard and UI. Flexible parsing handles string 'true', boolean true, or object {enabled: true}. Updated 2025-12-01 to use enable_* keys for consistency.",
-      "implementation": "backend/src/routes/settings.ts:76-101",
-      "frontend_usage": "frontend/src/pages/admin/AdminDashboard.tsx - displays platform status",
-      "updated_date": "2025-12-01 (feature flag unification - migrated from *.active to enable_* keys)",
-      "update_reason": "Feature flag system unification to eliminate redundancy between enable_* and *.active fields"
     }
   },
 
   "push_notification_endpoints": {
-    "note": "Web Push API (VAPID keys already configured)",
+    "🔴_NOTE": "Web Push API (VAPID keys already configured)",
     "subscribe_push": {
       "method": "POST",
       "path": "/push/subscribe",
@@ -1918,119 +1776,6 @@
       "body": {"title": "string", "message": "string", "recipients": "string[] (userIds or 'all')"},
       "purpose": "Send push notifications to subscribed clients"
     }
-  },
-
-  "p2p_betting_pago_doy_endpoints": {
-    "get_bet_suggestions": {
-      "method": "GET",
-      "path": "/api/bets/suggestions",
-      "auth_required": true,
-      "query_params": {
-        "fightId": "string - fight UUID",
-        "side": "string - red|blue (opposite side)",
-        "amount": "number (optional) - filters ±20% range"
-      },
-      "response": {"success": true, "data": {"bets": "Bet[] - pending compatible bets"}},
-      "logic": "Returns pending bets: opposite side, amount within ±20% if provided",
-      "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx (live suggestions)"
-    },
-    "edit_pending_bet": {
-      "method": "PUT",
-      "path": "/api/bets/:id/edit",
-      "auth_required": true,
-      "constraint": "ONLY if bet.status='pending' (not active)",
-      "body": {
-        "amount": "number (optional)",
-        "side": "string (optional) - red|blue",
-        "betType": "string (optional) - flat|doy",
-        "terms": "object (optional) - {doyAmount: number}"
-      },
-      "response": {"success": true, "data": "Updated bet object"},
-      "validation": "Rejects if bet.status !== 'pending'",
-      "frontend_usage": "frontend/src/components/betting/EditBetModal.tsx"
-    },
-    "propose_pago": {
-      "method": "POST",
-      "path": "/api/bets/:id/propose-pago",
-      "auth_required": true,
-      "body": {"pagoAmount": "number - counter-offer amount"},
-      "logic": "Creates new bet with betType='pago', parentBetId=:id, proposalStatus='pending'",
-      "notification": "WebSocket to original bettor: 'PAGO proposal received'",
-      "response": {"success": true, "data": "Created PAGO proposal bet"},
-      "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx"
-    },
-    "accept_pago": {
-      "method": "PUT",
-      "path": "/api/bets/:id/accept-pago",
-      "auth_required": true,
-      "logic": "Match both bets (original + PAGO proposal), lock frozen_amounts, status='active'",
-      "transaction_safety": "Transactional: UPDATE both bets + UPDATE wallets frozen_amount. Rollback on error.",
-      "notification": "WebSocket to both users: 'Bet matched'",
-      "response": {"success": true, "data": {"originalBet": "object", "pagoBet": "object"}},
-      "frontend_usage": "frontend/src/components/betting/AcceptPagoModal.tsx"
-    },
-    "reject_pago": {
-      "method": "PUT",
-      "path": "/api/bets/:id/reject-pago",
-      "auth_required": true,
-      "logic": "Update PAGO proposal: proposalStatus='rejected'",
-      "notification": "WebSocket to proposer: 'PAGO proposal rejected'",
-      "response": {"success": true, "message": "PAGO proposal rejected"}
-    },
-    "create_bet_auto_match": {
-      "enhancement_to": "POST /api/bets",
-      "new_logic": "After creating flat bet, check for exact match: same fightId, opposite side, exact amount, status=pending, betType=flat",
-      "auto_match_condition": "ONLY flat bets. DOY and PAGO require manual acceptance.",
-      "transaction": "If match found: UPDATE both bets (status='active', matchedWith), UPDATE wallets frozen_amount, notify both users",
-      "response": {"success": true, "data": "Created bet (or matched bets if auto-matched)"}
-    }
-  },
-
-  "frontend_api_client_patterns": {
-    "import_pattern": "import { venuesAPI, gallerasAPI, userAPI } from '../../services/api'",
-    "correct_usage": {
-      "venues": "const response = await venuesAPI.getAll();",
-      "galleras": "const response = await gallerasAPI.getAll();",
-      "users": "const response = await userAPI.getAll({ role: 'admin' });"
-    },
-    "data_access_patterns": {
-      "venues": "response.data.venues",
-      "galleras": "response.data.galleras",
-      "users": "response.data.users"
-    },
-    "sse_pattern": "🔴 SPECIAL: SSE connections pass token via query parameter: new EventSource(`/api/sse/streaming?token=${localStorage.getItem('token')}`)"
-  },
-
-  "testing_endpoints": {
-    "quick_validation": {
-      "venues": "curl -X GET http://localhost:3001/api/venues",
-      "galleras": "curl -X GET http://localhost:3001/api/galleras",
-      "articles_featured": "curl -X GET 'http://localhost:3001/api/articles/featured?limit=5&type=banner'",
-      "profile": "curl -X GET http://localhost:3001/api/users/profile -H 'Authorization: Bearer TOKEN'"
-    }
-  },
-
-  "production_status": {
-    "date": "2025-09-28",
-    "status": "✅ PRODUCTION READY - 100% API completeness verified",
-    "gemini_cli_completion": {
-      "userAPI.delete": "✅ COMPLETED",
-      "userAPI.update": "✅ COMPLETED",
-      "fightsAPI.delete": "✅ COMPLETED",
-      "typescript_errors": "✅ REDUCED FROM 68 → 0",
-      "component_cleanup": "✅ COMPLETED (non-destructive)"
-    },
-    "critical_systems_status": {
-      "authentication": "✅ Production JWT secrets configured",
-      "event_management": "✅ Complete CRUD workflows",
-      "betting_engine": "✅ PAGO/DOY + settlement logic",
-      "streaming_pipeline": "✅ RTMP → HLS + SSE monitoring",
-      "admin_dashboard": "✅ Full management capabilities",
-      "operator_interface": "✅ Event control workflows",
-      "database_optimization": "✅ Query performance <500ms"
-    },
-    "production_ready": true,
-    "24h_launch_status": "✅ GO FOR PRODUCTION"
   },
 
   "backend_optimization_recommendations": {
@@ -2094,6 +1839,7 @@
         }
       ]
     },
+
     "smart_backend_architecture_patterns": {
       "event_driven_updates": {
         "description": "Implement event-driven architecture for real-time updates and reduced polling",
@@ -2122,26 +1868,265 @@
         ],
         "implementation": "Analyze historical traffic patterns to predict peak times and pre-scale resources"
       }
-    }
-  },
-
-  "machine_learning_integrations": {
-    "anomaly_detection": {
-      "description": "Implement ML-based anomaly detection for security and performance",
-      "use_cases": [
-        "Detecting unusual API access patterns that might indicate security threats",
-        "Identifying performance anomalies before they affect users",
-        "Recognizing fraudulent account behaviors"
-      ]
     },
-    "personalization_engine": {
-      "description": "Create intelligent personalization based on user behavior and preferences",
-      "implementation": "Analyze user interactions to serve personalized content, layouts, and features",
-      "benefits": [
-        "Higher user engagement",
-        "Better conversion rates",
-        "Improved user experience"
-      ]
+
+    "system_settings_endpoints": {
+      "get_all_settings": {
+        "method": "GET",
+        "path": "/api/settings",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {
+          "success": true,
+          "data": {
+            "wallets": "object - wallet configuration settings",
+            "betting": "object - betting limits and rules",
+            "streaming": "object - streaming configuration",
+            "cache": "object - cache TTL settings",
+            "security": "object - security and auth settings",
+            "notifications": "object - notification settings",
+            "system": "object - general system settings",
+            "limits": "object - upload and resource limits",
+            "performance": "object - performance and rate limits",
+            "business": "object - pricing and features",
+            "features": "object - feature flags"
+          }
+        },
+        "description": "Returns all system settings grouped by category. Redis cached with TTL=300s.",
+        "frontend_usage": "frontend/src/pages/admin/Settings.tsx"
+      },
+      "get_settings_by_category": {
+        "method": "GET",
+        "path": "/api/settings/category/:category",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {"success": true, "data": "object - settings in requested category"},
+        "description": "Returns settings for specific category (wallets, betting, streaming, etc.)"
+      },
+      "get_public_settings": {
+        "method": "GET",
+        "path": "/api/settings/public",
+        "auth_required": true,
+        "response": {"success": true, "data": "object - public settings (is_public=true)"},
+        "description": "Returns only public settings accessible to non-admin users"
+      },
+      "get_features_public": {
+        "method": "GET",
+        "path": "/api/settings/features/public",
+        "auth_required": true,
+        "response": {
+          "success": true,
+          "data": {
+            "betting_enabled": "boolean - enable_betting setting (handles string/boolean/JSON)",
+            "wallets_enabled": "boolean - enable_wallets setting (handles string/boolean/JSON)",
+            "streaming_enabled": "boolean - enable_streaming setting (handles string/boolean/JSON)",
+            "push_notifications_enabled": "boolean - enable_push_notifications setting (handles object/string/boolean)"
+          }
+        },
+        "description": "Returns feature flags for dashboard and UI. Flexible parsing handles string 'true', boolean true, or object {enabled: true}. Updated 2025-12-01 to use enable_* keys for consistency.",
+        "implementation": "backend/src/routes/settings.ts:76-101",
+        "frontend_usage": "frontend/src/pages/admin/AdminDashboard.tsx - displays platform status",
+        "updated_date": "2025-12-01 (feature flag unification - migrated from *.active to enable_* keys)",
+        "update_reason": "Feature flag system unification to eliminate redundancy between enable_* and *.active fields"
+      },
+      "update_setting": {
+        "method": "PUT",
+        "path": "/api/settings/:key",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"value": "any - new setting value"},
+        "response": {"success": true, "message": "Setting updated successfully"},
+        "description": "Updates single setting value. Invalidates Redis cache.",
+        "validation": "Validates value type matches setting.type before saving"
+      }
+    },
+
+    "wallet_operations_endpoints": {
+      "create_deposit": {
+        "method": "POST",
+        "path": "/api/wallet-operations/deposit",
+        "auth_required": true,
+        "body": {
+          "amount": "number - deposit amount",
+          "paymentProofUrl": "string (optional) - bank transfer screenshot URL"
+        },
+        "response": {"success": true, "message": "Deposit request created successfully", "data": "WalletOperation object"},
+        "validation": [
+          "amount >= wallet.deposit_min (default $5)",
+          "amount <= wallet.deposit_max (default $1000/tx)",
+          "daily total + amount <= wallet.deposit_max_daily (default $5000)",
+          "if amount > wallet.require_proof_over ($50), paymentProofUrl required"
+        ],
+        "status_workflow": "pending → approved (admin) → completed",
+        "frontend_usage": "frontend/src/components/user/UserHeader.tsx (wallet dropdown)"
+      },
+      "create_withdrawal": {
+        "method": "POST",
+        "path": "/api/wallet-operations/withdrawal",
+        "auth_required": true,
+        "body": {
+          "amount": "number - withdrawal amount",
+          "userNotes": "string (optional) - user explanation"
+        },
+        "response": {"success": true, "message": "Withdrawal request created successfully", "data": "WalletOperation object"},
+        "validation": [
+          "amount >= wallet.withdrawal_min (default $10)",
+          "amount <= wallet.withdrawal_max (default $500/tx)",
+          "amount <= user.wallet.balance",
+          "daily total + amount <= wallet.withdrawal_max_daily (default $2000)"
+        ],
+        "admin_requirement": "Admin MUST upload admin_proof_url before approval",
+        "status_workflow": "pending → admin uploads proof → approved → completed"
+      },
+      "get_wallet_operations": {
+        "method": "GET",
+        "path": "/api/wallet-operations",
+        "auth_required": true,
+        "query_params": {
+          "status": "string (optional) - filter by status (pending, approved, completed, rejected)",
+          "type": "string (optional) - filter by type (deposit, withdrawal)",
+          "dateFrom": "string (optional) - ISO date",
+          "dateTo": "string (optional) - ISO date"
+        },
+        "response": {"success": true, "data": {"operations": "WalletOperation[]"}},
+        "authorization": "Admin sees all operations. Users see only their own.",
+        "frontend_usage": "frontend/src/pages/admin/Finance.tsx"
+      },
+      "approve_operation": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/approve",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"adminNotes": "string (optional)"},
+        "response": {"success": true, "message": "Operation approved successfully"},
+        "transaction_safety": "Transactional: UPDATE wallet balance + INSERT transaction + UPDATE operation status. Rollback on error.",
+        "deposit_flow": "balance += amount, create transaction, status=approved",
+        "withdrawal_flow": "REQUIRES admin_proof_url uploaded first. balance -= amount, create transaction, status=completed"
+      },
+      "reject_operation": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/reject",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {
+          "rejectionReason": "string (required) - reason for rejection",
+          "adminNotes": "string (optional)"
+        },
+        "response": {"success": true, "message": "Operation rejected successfully"},
+        "notification": "User receives notification with rejection reason"
+      },
+      "upload_admin_proof": {
+        "method": "PUT",
+        "path": "/api/wallet-operations/:id/upload-proof",
+        "auth_required": true,
+        "role_required": "admin",
+        "body": {"adminProofUrl": "string - transfer receipt screenshot URL"},
+        "response": {"success": true, "message": "Admin proof uploaded successfully"},
+        "requirement": "MANDATORY for withdrawal approvals. Admin uploads transfer receipt."
+      },
+      "get_stats": {
+        "method": "GET",
+        "path": "/api/wallet-operations/stats",
+        "auth_required": true,
+        "role_required": "admin",
+        "response": {
+          "success": true,
+          "data": {
+            "pendingDeposits": "number - count",
+            "pendingWithdrawals": "number - count",
+            "pendingDepositsAmount": "number - total USD",
+            "pendingWithdrawalsAmount": "number - total USD",
+            "processedToday": "number - count completed today"
+          }
+        },
+        "frontend_usage": "frontend/src/pages/admin/Finance.tsx (stats cards)"
+      }
+    },
+
+    "p2p_betting_pago_doy_endpoints": {
+      "get_bet_suggestions": {
+        "method": "GET",
+        "path": "/api/bets/suggestions",
+        "auth_required": true,
+        "query_params": {
+          "fightId": "string - fight UUID",
+          "side": "string - red|blue (opposite side)",
+          "amount": "number (optional) - filters ±20% range"
+        },
+        "response": {"success": true, "data": {"bets": "Bet[] - pending compatible bets"}},
+        "logic": "Returns pending bets: opposite side, amount within ±20% if provided",
+        "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx (live suggestions)"
+      },
+      "edit_pending_bet": {
+        "method": "PUT",
+        "path": "/api/bets/:id/edit",
+        "auth_required": true,
+        "constraint": "ONLY if bet.status='pending' (not active)",
+        "body": {
+          "amount": "number (optional)",
+          "side": "string (optional) - red|blue",
+          "betType": "string (optional) - flat|doy",
+          "terms": "object (optional) - {doyAmount: number}"
+        },
+        "response": {"success": true, "data": "Updated bet object"},
+        "validation": "Rejects if bet.status !== 'pending'",
+        "frontend_usage": "frontend/src/components/betting/EditBetModal.tsx"
+      },
+      "propose_pago": {
+        "method": "POST",
+        "path": "/api/bets/:id/propose-pago",
+        "auth_required": true,
+        "body": {"pagoAmount": "number - counter-offer amount"},
+        "logic": "Creates new bet with betType='pago', parentBetId=:id, proposalStatus='pending'",
+        "notification": "WebSocket to original bettor: 'PAGO proposal received'",
+        "response": {"success": true, "data": "Created PAGO proposal bet"},
+        "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx"
+      },
+      "accept_pago": {
+        "method": "PUT",
+        "path": "/api/bets/:id/accept-pago",
+        "auth_required": true,
+        "logic": "Match both bets (original + PAGO proposal), lock frozen_amounts, status='active'",
+        "transaction_safety": "Transactional: UPDATE both bets + UPDATE wallets frozen_amount. Rollback on error.",
+        "notification": "WebSocket to both users: 'Bet matched'",
+        "response": {"success": true, "data": {"originalBet": "object", "pagoBet": "object"}},
+        "frontend_usage": "frontend/src/components/betting/AcceptPagoModal.tsx"
+      },
+      "reject_pago": {
+        "method": "PUT",
+        "path": "/api/bets/:id/reject-pago",
+        "auth_required": true,
+        "logic": "Update PAGO proposal: proposalStatus='rejected'",
+        "notification": "WebSocket to proposer: 'PAGO proposal rejected'",
+        "response": {"success": true, "message": "PAGO proposal rejected"}
+      },
+      "create_bet_auto_match": {
+        "enhancement_to": "POST /api/bets",
+        "new_logic": "After creating flat bet, check for exact match: same fightId, opposite side, exact amount, status=pending, betType=flat",
+        "auto_match_condition": "ONLY flat bets. DOY and PAGO require manual acceptance.",
+        "transaction": "If match found: UPDATE both bets (status='active', matchedWith), UPDATE wallets frozen_amount, notify both users",
+        "response": {"success": true, "data": "Created bet (or matched bets if auto-matched)"}
+      }
+    },
+
+    "machine_learning_integrations": {
+      "anomaly_detection": {
+        "description": "Implement ML-based anomaly detection for security and performance",
+        "use_cases": [
+          "Detecting unusual API access patterns that might indicate security threats",
+          "Identifying performance anomalies before they affect users",
+          "Recognizing fraudulent account behaviors"
+        ]
+      },
+      "personalization_engine": {
+        "description": "Create intelligent personalization based on user behavior and preferences",
+        "implementation": "Analyze user interactions to serve personalized content, layouts, and features",
+        "benefits": [
+          "Higher user engagement",
+          "Better conversion rates",
+          "Improved user experience"
+        ]
+      }
     }
   }
 }

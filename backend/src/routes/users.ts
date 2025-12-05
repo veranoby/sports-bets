@@ -212,6 +212,14 @@ router.get(
       attributes: {
         exclude: ["passwordHash", "verificationToken"],
       },
+      include: [
+        {
+          model: Wallet,
+          attributes: ["id", "balance", "frozenAmount"],
+          required: false,
+          as: "wallet",
+        },
+      ],
     });
 
     if (!targetUser) {
@@ -1031,7 +1039,9 @@ router.post(
         throw errors.notFound("User wallet not found");
       }
 
-      let newBalance = wallet.balance;
+      let currentBalance = parseFloat(String(wallet.balance));
+      let currentFrozen = parseFloat(String(wallet.frozenAmount));
+      let newBalance = currentBalance;
       let transactionType: 'admin_credit' | 'admin_debit';
       let description: string;
 
@@ -1040,15 +1050,18 @@ router.post(
         transactionType = 'admin_credit';
         description = `Admin Credit: ${reason}`;
       } else { // type === "debit"
-        if (newBalance < amount) {
-          throw errors.badRequest("Insufficient balance for debit adjustment");
+        const availableBalance = currentBalance - currentFrozen;
+        if (availableBalance < amount) {
+          throw errors.badRequest(
+            `Insufficient available balance. Balance: $${currentBalance.toFixed(2)}, Frozen: $${currentFrozen.toFixed(2)}, Available: $${availableBalance.toFixed(2)}`
+          );
         }
         newBalance -= amount;
         transactionType = 'admin_debit';
         description = `Admin Debit: ${reason}`;
       }
 
-      const originalBalance = wallet.balance; // Capture original balance BEFORE update
+      const originalBalance = currentBalance; // Capture original balance BEFORE update
       wallet.balance = newBalance;
       await wallet.save({ transaction: t });
 
@@ -1069,6 +1082,9 @@ router.post(
 
       // Invalidate user profile cache to reflect new balance
       await invalidatePattern(`user:profile:${userId}`);
+
+      // Attach wallet to user for toPublicJSON serialization
+      (user as any).wallet = wallet;
 
       res.json({
         success: true,
