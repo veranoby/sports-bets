@@ -39,9 +39,13 @@ const Drawer: React.FC<DrawerProps> = ({ open, onClose, title, children }) => {
         <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <div>
             {title && (
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-400">{title}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                {title}
+              </p>
             )}
-            <h2 className="text-base font-semibold text-gray-900">Galleros.Net</h2>
+            <h2 className="text-base font-semibold text-gray-900">
+              Galleros.Net
+            </h2>
           </div>
           <button
             onClick={onClose}

@@ -63,7 +63,7 @@
   "enum_values": "{pending,completed,failed,cancelled}"
 }, {
   "enum_name": "enum_transactions_type",
-  "enum_values": "{deposit,withdrawal,bet-win,bet-loss,bet-refund}"
+  "enum_values": "{deposit,withdrawal,bet-win,bet-loss,bet-refund,admin_credit,admin_debit}"
 }, {
   "enum_name": "enum_users_role",
   "enum_values": "{admin,operator,venue,user,gallera}"

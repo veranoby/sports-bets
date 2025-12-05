@@ -151,7 +151,9 @@ const UserHeader = memo(() => {
             <Wallet className="w-4 h-4 text-green-600" />
             {!isMobile && (
               <>
-                <span className="text-sm font-semibold text-gray-800">Saldo disponible</span>
+                <span className="text-sm font-semibold text-gray-800">
+                  Saldo disponible
+                </span>
                 <span className="text-sm font-semibold text-gray-900 tabular-nums">
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
@@ -232,7 +234,9 @@ const UserHeader = memo(() => {
     const showBadge = !isLoading && activeBetsCount > 0;
 
     return (
-      <div className={`relative dropdown-container overflow-visible ${isMobile ? "" : "z-40"}`}>
+      <div
+        className={`relative dropdown-container overflow-visible ${isMobile ? "" : "z-40"}`}
+      >
         <button
           onClick={() => {
             setShowNotifications(false);
@@ -284,8 +288,12 @@ const UserHeader = memo(() => {
               {activeBets.length === 0 ? (
                 <div className="p-6 text-center text-gray-500">
                   <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50 text-blue-600" />
-                  <p className="text-sm font-medium">No tienes apuestas activas</p>
-                  <p className="text-xs mt-1">Las apuestas aparecerán aquí cuando las crees</p>
+                  <p className="text-sm font-medium">
+                    No tienes apuestas activas
+                  </p>
+                  <p className="text-xs mt-1">
+                    Las apuestas aparecerán aquí cuando las crees
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col">
@@ -305,13 +313,18 @@ const UserHeader = memo(() => {
                               </span>
                               <span>${bet.amount}</span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1 capitalize">{bet.status}</div>
+                            <div className="text-xs text-gray-500 mt-1 capitalize">
+                              {bet.status}
+                            </div>
                           </div>
                           <div className="text-xs text-gray-400">
-                            {new Date(bet.createdAt).toLocaleDateString("es-ES", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(bet.createdAt).toLocaleDateString(
+                              "es-ES",
+                              {
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
                           </div>
                         </div>
                       </div>
@@ -391,7 +404,9 @@ const UserHeader = memo(() => {
                 <div className="p-6 text-center text-gray-500">
                   <Bell className="w-12 h-12 mx-auto mb-3 opacity-50 text-yellow-400" />
                   <p className="text-sm font-medium">No hay notificaciones</p>
-                  <p className="text-xs mt-1">Las notificaciones importantes aparecerán aquí</p>
+                  <p className="text-xs mt-1">
+                    Las notificaciones importantes aparecerán aquí
+                  </p>
                 </div>
               ) : (
                 <div className="p-3 space-y-2">
@@ -406,20 +421,27 @@ const UserHeader = memo(() => {
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900 text-sm">{notification.title}</div>
-                          <div className="text-xs text-gray-600 mt-1 line-clamp-2">{notification.message}</div>
+                          <div className="font-medium text-gray-900 text-sm">
+                            {notification.title}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                            {notification.message}
+                          </div>
                         </div>
                         {notification.status === "unread" && (
                           <div className="w-2.5 h-2.5 bg-blue-500 rounded-full ml-2 mt-1 flex-shrink-0"></div>
                         )}
                       </div>
                       <div className="text-xs text-gray-400 mt-2">
-                        {new Date(notification.createdAt).toLocaleDateString("es-ES", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(notification.createdAt).toLocaleDateString(
+                          "es-ES",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </div>
                     </div>
                   ))}
@@ -487,9 +509,7 @@ const UserHeader = memo(() => {
           <AvatarVisual />
           {!isMobile && (
             <div className="text-left min-w-[140px]">
-              <p className="text-[0.65rem] uppercase tracking-[0.2em] text-gray-400">
-                Cuenta
-              </p>
+
               <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
                 {displayName}
               </p>
@@ -504,16 +524,18 @@ const UserHeader = memo(() => {
               <div className="flex items-center gap-3">
                 <AvatarVisual />
                 <div className="min-w-0">
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
-                    Hola
-                  </p>
                   <p className="text-lg font-semibold text-gray-900 leading-tight truncate">
                     {displayName}
-                  </p>
-                  <p className="text-xs text-gray-500">@{user.username}</p>
-                  <RoleBadge className="mt-2 bg-blue-50 border-blue-100" />
+                 
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-blue/100 border border-white/60 text-gray-600 lg:hidden">
+                      @{user.username}
+                    </span><RoleBadge className="mt-2 bg-blue-50 border-blue-100" /></p>               
                 </div>
               </div>
+
+                <div className="rounded-xl border border-gray-300 bg-gray-50/70 p-2">
+                  <SubscriptionStatus subscription={subscription} />
+                </div>
 
               <button
                 onClick={() => {
@@ -525,14 +547,6 @@ const UserHeader = memo(() => {
                 <User className="w-4 h-4" /> Ver perfil
               </button>
 
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                  Suscripción
-                </p>
-                <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-2">
-                  <SubscriptionStatus subscription={subscription} />
-                </div>
-              </div>
 
               <button
                 onClick={handleLogout}
@@ -681,31 +695,20 @@ const UserHeader = memo(() => {
                   src="/src/assets/logo.png"
                   alt="Logo Galleros.Net"
                   className="h-11 w-11 sm:h-12 sm:w-12 lg:h-14 lg:w-14 object-contain rounded-2xl bg-white/80 p-1 shadow"
-                />
-                <div className="min-w-0 space-y-1 text-gray-800">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Bienvenido</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-base lg:text-lg font-semibold truncate">
-                      Hola, {displayName}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-white/70 border border-white/60 text-gray-600 lg:hidden">
-                      @{user.username}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <RoleBadge className="bg-white/70 border border-white/60 shadow-none" />
-                    <span className="hidden lg:inline-flex px-3 py-1 rounded-full text-xs bg-white/70 border border-white/60 text-gray-600">
-                      @{user.username}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex lg:hidden items-center gap-2 justify-end flex-wrap">
+                /> 
+                  <span className="font-semibold lg:text-lg text-[#1b2a4a]">
+                    GALLEROS
+                  </span>
+                  <span className="font-semibold lg:text-lg text-red-600">
+                    .NET
+                  </span>           <div className="flex lg:hidden items-center gap-2 justify-end flex-wrap">
                 {renderActionCluster("mobile")}
                 {renderUserMenu("mobile")}
               </div>
-            </div>
+
+              </div>
+
+   
 
             {infoChips.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-center">
@@ -725,6 +728,8 @@ const UserHeader = memo(() => {
               {renderActionCluster("desktop")}
               {renderUserMenu("desktop")}
             </div>
+                        </div>
+
           </div>
         </div>
       </div>

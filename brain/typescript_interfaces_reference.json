@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for Galleros.Net platform",
-    "version": "3.4",
+    "version": "3.5",
     "last_updated": "2025-12-02",
-    "changelog": "Updated Transaction type enum to include admin_credit/admin_debit for manual balance adjustments. Validated ProtectedRoute implementation with feature flags integration.",
+    "changelog": "Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
@@ -1256,6 +1256,7 @@
                 "admin_credit",
                 "admin_debit"
               ],
+              "type_enum_note": "admin_credit and admin_debit added 2025-12-02 for admin manual balance adjustments",
               "status_enum": [
                 "pending",
                 "completed",

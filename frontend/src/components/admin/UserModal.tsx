@@ -94,7 +94,6 @@ const UserModal: React.FC<UserModalProps> = ({
   const handleAdjustBalance = async () => {
     if (
       !user?.id ||
-      !balanceAdjustmentAmount ||
       balanceAdjustmentAmount <= 0 ||
       !balanceAdjustmentReason ||
       balanceAdjustmentReason.length < 10
@@ -611,6 +610,18 @@ const UserModal: React.FC<UserModalProps> = ({
                 requiere una justificación obligatoria y es irreversible.
               </p>
 
+              {/* Current Balance Display */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900">
+                  Saldo Actual de Billetera
+                </p>
+                <p className="text-2xl font-bold text-blue-600 mt-2">
+                  {user?.wallet?.balance !== undefined && user?.wallet?.balance !== null
+                    ? `$${user.wallet.balance.toFixed(2)}`
+                    : "No disponible"}
+                </p>
+              </div>
+
               {/* Balance Adjustment Form */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -658,10 +669,12 @@ const UserModal: React.FC<UserModalProps> = ({
                   type="number"
                   id="adjustmentAmount"
                   name="adjustmentAmount"
-                  value={balanceAdjustmentAmount}
-                  onChange={(e) =>
-                    setBalanceAdjustmentAmount(parseFloat(e.target.value))
-                  }
+                  value={balanceAdjustmentAmount || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const numValue = value === "" ? 0 : parseFloat(value);
+                    setBalanceAdjustmentAmount(isNaN(numValue) ? 0 : numValue);
+                  }}
                   min="0.01"
                   step="0.01"
                   required
@@ -671,7 +684,7 @@ const UserModal: React.FC<UserModalProps> = ({
 
               <div>
                 <label htmlFor="adjustmentReason" className={labelStyle}>
-                  Razón (Obligatoria para auditoría)
+                  Razón (Obligatoria para auditoría. Min 20 caracteres)
                 </label>
                 <textarea
                   id="adjustmentReason"
@@ -694,7 +707,7 @@ const UserModal: React.FC<UserModalProps> = ({
                   className="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                   disabled={
                     isLoading ||
-                    !balanceAdjustmentAmount ||
+                    balanceAdjustmentAmount <= 0 ||
                     !balanceAdjustmentReason ||
                     balanceAdjustmentReason.length < 10
                   }
@@ -714,10 +727,9 @@ const UserModal: React.FC<UserModalProps> = ({
                   user?.wallet?.balance !== undefined
                     ? `Saldo Actual: $${user.wallet.balance.toFixed(2)}\n` +
                       `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
-                      `Nuevo Saldo: $${(
-                        balanceAdjustmentType === "credit"
-                          ? user.wallet.balance + balanceAdjustmentAmount
-                          : user.wallet.balance - balanceAdjustmentAmount
+                      `Nuevo Saldo: $${(balanceAdjustmentType === "credit"
+                        ? user.wallet.balance + balanceAdjustmentAmount
+                        : user.wallet.balance - balanceAdjustmentAmount
                       ).toFixed(2)}`
                     : undefined
                 }

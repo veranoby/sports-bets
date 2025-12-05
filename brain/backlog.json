@@ -1,6 +1,36 @@
 {
   "active_tasks": [
     {
+      "task_id": "ADMIN_BALANCE_ADJUSTMENT_ENUM_MIGRATION_2025_12_02",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-02",
+      "complexity": "MEDIUM",
+      "category": "DATABASE_OPTIMIZATION",
+      "priority": "P1_HIGH",
+      "completed_by": "Claude Sonnet 4.5",
+      "execution_mode": "standard",
+      "summary": "Optimized Transaction enum by adding admin_credit/admin_debit types. Created PostgreSQL migration, updated backend code, and synchronized documentation.",
+      "changes": {
+        "database": "Created migration 20251202-add-admin-transaction-types.sql with ALTER TYPE enum_transactions_type ADD VALUE",
+        "backend": "Updated backend/src/routes/users.ts:1026-1040 to use proper admin_credit/admin_debit types",
+        "frontend": "Added adjustUserBalance to adminAPI in frontend/src/services/api.ts",
+        "documentation": [
+          "Updated backend/database-analysis/CURRENT_ENUMS.json",
+          "Updated brain/typescript_interfaces_reference.json v3.5"
+        ]
+      },
+      "business_impact": "Proper semantic separation of admin adjustments from user deposits/withdrawals for audit compliance",
+      "files_modified": [
+        "backend/migrations/20251202-add-admin-transaction-types.sql",
+        "backend/src/routes/users.ts",
+        "frontend/src/services/api.ts",
+        "frontend/src/components/admin/UserModal.tsx",
+        "backend/database-analysis/CURRENT_ENUMS.json",
+        "brain/typescript_interfaces_reference.json"
+      ],
+      "next_step": "Execute migration: psql -U postgres -d galleros_net -f migrations/20251202-add-admin-transaction-types.sql"
+    },
+    {
       "task_id": "CRITICAL_FEEDBACK_GEMINI_2025_12_02",
       "status": "COMPLETED",
       "completion_date": "2025-12-02",

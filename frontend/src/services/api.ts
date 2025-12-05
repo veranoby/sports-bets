@@ -141,6 +141,12 @@ export const adminAPI = {
   getActiveUsers: async () => {
     return apiCall("get", `/admin/sessions/active-users`);
   },
+  adjustUserBalance: async (
+    userId: string,
+    data: { type: "credit" | "debit"; amount: number; reason: string },
+  ) => {
+    return apiCall("post", `/users/${userId}/adjust-balance`, data);
+  },
 };
 
 export const userAPI = {
