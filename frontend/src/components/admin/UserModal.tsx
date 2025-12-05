@@ -745,13 +745,18 @@ const UserModal: React.FC<UserModalProps> = ({
                 details={
                   user?.wallet?.balance !== undefined
                     ? (() => {
-                        const currentBalance = parseFloat(String(user.wallet.balance));
-                        const newBalance = balanceAdjustmentType === "credit"
-                          ? currentBalance + balanceAdjustmentAmount
-                          : currentBalance - balanceAdjustmentAmount;
-                        return `Saldo Actual: $${currentBalance.toFixed(2)}\n` +
-                               `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
-                               `Nuevo Saldo: $${newBalance.toFixed(2)}`;
+                        const currentBalance = parseFloat(
+                          String(user.wallet.balance),
+                        );
+                        const newBalance =
+                          balanceAdjustmentType === "credit"
+                            ? currentBalance + balanceAdjustmentAmount
+                            : currentBalance - balanceAdjustmentAmount;
+                        return (
+                          `Saldo Actual: $${currentBalance.toFixed(2)}\n` +
+                          `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
+                          `Nuevo Saldo: $${newBalance.toFixed(2)}`
+                        );
                       })()
                     : undefined
                 }

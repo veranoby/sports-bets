@@ -7,6 +7,47 @@
   },
   "active_tasks": [
     {
+      "task_id": "ADMIN_EVENTS_LIST_DATETIME_SORT_2025_12_05",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-05",
+      "completion_time": "18:30:00",
+      "complexity": "LOW",
+      "category": "FEATURE_ENHANCEMENT",
+      "priority": "P2_MEDIUM",
+      "completed_by": "Gemini",
+      "execution_mode": "standard",
+      "summary": "Enhanced the admin events list to display both date and time, and changed the default sort order to show upcoming/newest events first.",
+      "changes_implemented": {
+        "backend": {
+          "file": "backend/src/routes/events.ts",
+          "details": "Changed the default sort order in the GET /api/events endpoint from ascending (ASC) to descending (DESC) by 'scheduledDate'. This ensures that the API returns the newest or upcoming events first, which is more practical for an admin view."
+        },
+        "frontend": {
+          "file": "frontend/src/pages/admin/Events.tsx",
+          "details": "Updated the 'Historial de Eventos' section to display both the date and time for each event using toLocaleString(), providing more precise information to the admin at a glance."
+        }
+      },
+      "files_modified": [
+        "backend/src/routes/events.ts",
+        "frontend/src/pages/admin/Events.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["586ecfc390ebaac086a63cce82b0bfaaec6de5a5"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled both frontend and backend without errors after the changes."
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to the '/admin/events' page.",
+          "Verify that the 'Historial de Eventos' list now shows both the date and time for each event.",
+          "Confirm that the events in the list are sorted with the newest or most future-dated events appearing at the top."
+        ]
+      },
+      "business_impact": "Improves the admin user experience by providing more detailed event information (including time) and a more logical default sort order, allowing admins to quickly see the most relevant upcoming events."
+    },
+    {
       "task_id": "WALLET_BALANCE_DECIMAL_STRING_FIX_2025_12_05",
       "status": "COMPLETED",
       "completion_date": "2025-12-05",

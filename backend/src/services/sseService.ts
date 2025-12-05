@@ -125,8 +125,8 @@ class GallerosNetSSEService {
   private connectionsByUser = new Map<string, Set<string>>(); // UserId -> Set of connection IDs
 
   // Constants for connection limits (same as WebSocket)
-  private readonly MAX_CONNECTIONS_PER_IP = 3;
-  private readonly MAX_CONNECTIONS_PER_USER = 2;
+  private readonly MAX_CONNECTIONS_PER_IP = 5;
+  private readonly MAX_CONNECTIONS_PER_USER = 5;
 
   // Batching buffers and timers
   private eventBatchBuffers: Map<string, {events: SSEEvent[], timer: NodeJS.Timeout | null}> = new Map();

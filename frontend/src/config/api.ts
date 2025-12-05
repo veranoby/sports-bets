@@ -71,6 +71,7 @@ export const eventsAPI = {
     venueId?: string;
     status?: string;
     upcoming?: boolean;
+    dateRange?: string; // Add dateRange parameter
     limit?: number;
     offset?: number;
     includeVenue?: boolean;

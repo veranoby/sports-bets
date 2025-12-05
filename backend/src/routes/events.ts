@@ -254,8 +254,8 @@ router.post(
 
     if (operatorId) {
       const operator = await User.findByPk(operatorId);
-      if (!operator || operator.role !== "operator") {
-        throw errors.badRequest("Invalid operator specified");
+      if (!operator || (operator.role !== "operator" && operator.role !== "admin")) {
+        throw errors.badRequest("Invalid operator specified. Must be operator or admin.");
       }
     }
 

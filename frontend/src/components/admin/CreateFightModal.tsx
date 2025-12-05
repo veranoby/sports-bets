@@ -32,8 +32,10 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
 
   const validateForm = () => {
     const errors: FormErrors = {};
-    if (!redCorner) errors.redCorner = "El gallo del rincón rojo es obligatorio.";
-    if (!blueCorner) errors.blueCorner = "El gallo del rincón azul es obligatorio.";
+    if (!redCorner)
+      errors.redCorner = "El gallo del rincón rojo es obligatorio.";
+    if (!blueCorner)
+      errors.blueCorner = "El gallo del rincón azul es obligatorio.";
     if (redCorner === blueCorner && redCorner !== "") {
       errors.blueCorner = "El rincón azul debe ser distinto al rojo.";
     }

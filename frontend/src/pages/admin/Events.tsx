@@ -91,16 +91,33 @@ const AdminEventsPage: React.FC = () => {
   );
   const sseState = useMultiSSE<any>(sseChannels);
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (status: string, date: string) => {
     try {
       setLoading(true);
       setError(null);
-      const eventsRes = await eventsAPI.getAll({
+
+      const params: {
+        limit: number;
+        includeVenue: boolean;
+        includeOperator: boolean;
+        includeStats: boolean;
+        dateRange?: string;
+        status?: string;
+      } = {
         limit: 500,
         includeVenue: true,
         includeOperator: true,
         includeStats: true,
-      });
+      };
+
+      if (date) {
+        params.dateRange = date;
+      }
+      if (status) {
+        params.status = status;
+      }
+
+      const eventsRes = await eventsAPI.getAll(params);
       let eventData = eventsRes.data?.events || [];
       if (user?.role === "operator") {
         eventData = eventData.filter((event) => event.operatorId === user.id);
@@ -114,8 +131,8 @@ const AdminEventsPage: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    fetchEvents(statusFilter, dateFilter);
+  }, [fetchEvents, statusFilter, dateFilter]);
 
   // Handle SSE updates
   useEffect(() => {
@@ -201,26 +218,18 @@ const AdminEventsPage: React.FC = () => {
     const todayEvts = events.filter(
       (e) => e.scheduledDate.startsWith(today) || e.status === "live",
     );
-    let filtered = [...events];
-    if (statusFilter) {
-      filtered = filtered.filter((e) => e.status === statusFilter);
-    }
-    if (dateFilter === "today") {
-      filtered = todayEvts;
-    } else if (dateFilter === "week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      filtered = filtered.filter((e) => new Date(e.scheduledDate) >= weekAgo);
-    }
+
+    const sortedEvents = [...events].sort(
+      (a, b) =>
+        new Date(b.scheduledDate).getTime() -
+        new Date(a.scheduledDate).getTime(),
+    );
+
     return {
       todayEvents: todayEvts,
-      filteredEvents: filtered.sort(
-        (a, b) =>
-          new Date(b.scheduledDate).getTime() -
-          new Date(a.scheduledDate).getTime(),
-      ),
+      filteredEvents: sortedEvents,
     };
-  }, [events, statusFilter, dateFilter]);
+  }, [events]);
 
   const handleEventAction = async (eventId: string, action: string) => {
     let response = null; // Initialize response outside try block
@@ -1010,12 +1019,12 @@ const AdminEventsPage: React.FC = () => {
                       <p className="text-sm text-gray-600">
                         {event.venue?.name} •{" "}
                         {new Date(event.scheduledDate).toLocaleString([], {
-                              year: 'numeric',
-                              month: 'numeric',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
