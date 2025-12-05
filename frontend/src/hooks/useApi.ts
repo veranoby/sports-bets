@@ -18,6 +18,7 @@ import type {
   Transaction,
   UserSubscription as Subscription,
 } from "../types";
+import type { WalletOperation } from "../types/walletOperation";
 
 // ====================== TYPES ======================
 interface WalletData {
@@ -945,6 +946,88 @@ export function useUsers() {
     getProfile,
     updateProfile,
     getAvailableOperators,
+  };
+}
+
+// ====================== WALLET OPERATIONS HOOK ======================
+export function useWalletOperations() {
+  const { data, loading, error, execute, setData } = useAsyncOperation<{
+    operations: WalletOperation[];
+    total: number;
+  }>();
+
+  const fetchOperations = useCallback(
+    async (params?: {
+      status?: string;
+      type?: "deposit" | "withdrawal";
+      userId?: string;
+      limit?: number;
+      offset?: number;
+      dateFrom?: string;
+      dateTo?: string;
+    }) => {
+      return execute(() => apiClient.get("/wallet-operations", { params }));
+    },
+    [execute],
+  );
+
+  const approveOperation = useCallback(
+    async (id: string, adminNotes?: string) => {
+      const response = await execute(() =>
+        apiClient.put(`/wallet-operations/${id}/approve`, { adminNotes }),
+      );
+      // Refresh operations after approval
+      await fetchOperations({ status: 'pending', type: 'deposit' });
+      return response;
+    },
+    [execute, fetchOperations],
+  );
+
+  const rejectOperation = useCallback(
+    async (id: string, rejectionReason: string, adminNotes?: string) => {
+      const response = await execute(() =>
+        apiClient.put(`/wallet-operations/${id}/reject`, {
+          rejectionReason,
+          adminNotes,
+        }),
+      );
+      // Refresh operations after rejection
+      await fetchOperations({ status: 'pending', type: 'deposit' });
+      return response;
+    },
+    [execute, fetchOperations],
+  );
+
+  const completeOperation = useCallback(
+    async (id: string, adminProofUrl?: string, adminNotes?: string) => {
+      if (adminProofUrl) {
+        // First upload proof if provided
+        await execute(() =>
+          apiClient.put(`/wallet-operations/${id}/upload-proof`, { adminProofUrl }),
+        );
+      }
+      const response = await execute(() =>
+        apiClient.put(`/wallet-operations/${id}/complete`, {
+          adminProofUrl,
+          adminNotes,
+        }),
+      );
+      // Refresh operations after completion
+      await fetchOperations({ status: 'pending', type: 'deposit' });
+      return response;
+    },
+    [execute, fetchOperations],
+  );
+
+  return {
+    operations: data?.operations || [],
+    total: data?.total || 0,
+    loading,
+    error,
+    fetchOperations,
+    approveOperation,
+    rejectOperation,
+    completeOperation,
   };
 }
 

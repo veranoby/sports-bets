@@ -85,7 +85,9 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@types/jsdom": "^21.1.7",
+    "@types/web-push": "^3.6.3"
   },
   "engines": {
     "node": ">=18.0.0"

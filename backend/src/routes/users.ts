@@ -662,23 +662,32 @@ router.post(
       throw errors.conflict("User with this email or username already exists");
     }
 
-    const user = await User.create({
-      username,
-      email,
-      passwordHash: password,
-      role,
-      isActive: true,
-      approved: true, // ✅ Admin-created users are auto-approved
-      profileInfo: {
-        verificationLevel: "none",
-        ...(profileInfo || {}), // ✅ Merge incoming business fields (venue/gallera data)
-      },
-    });
+    await transaction(async (t) => {
+      const user = await User.create({
+        username,
+        email,
+        passwordHash: password,
+        role,
+        isActive: true,
+        approved: true, // ✅ Admin-created users are auto-approved
+        profileInfo: {
+          verificationLevel: "none",
+          ...(profileInfo || {}), // ✅ Merge incoming business fields (venue/gallera data)
+        },
+      }, { transaction: t });
 
-    res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      data: await user.toPublicJSON(),
+      // ✅ CREATE WALLET FOR NEW USER - Critical for balance adjustments
+      await Wallet.create({
+        userId: user.id,
+        balance: 0,
+        frozenAmount: 0,
+      }, { transaction: t });
+
+      res.status(201).json({
+        success: true,
+        message: "User created successfully",
+        data: await user.toPublicJSON(),
+      });
     });
   })
 );
@@ -1039,6 +1048,7 @@ router.post(
         description = `Admin Debit: ${reason}`;
       }
 
+      const originalBalance = wallet.balance; // Capture original balance BEFORE update
       wallet.balance = newBalance;
       await wallet.save({ transaction: t });
 
@@ -1052,7 +1062,7 @@ router.post(
         metadata: {
           adminId: adminId,
           reason: reason,
-          previousBalance: wallet.balance, // Store previous balance for audit
+          previousBalance: originalBalance, // Use original balance
           newBalance: newBalance,
         },
       }, { transaction: t });

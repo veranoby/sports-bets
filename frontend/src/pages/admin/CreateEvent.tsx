@@ -24,7 +24,8 @@ const CreateEvent: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [name, setName] = useState("");
   const [venueId, setVenueId] = useState("");
-  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledDateDate, setScheduledDateDate] = useState("");
+  const [scheduledDateTime, setScheduledDateTime] = useState("");
   const [operatorId, setOperatorId] = useState<string | null>(null);
 
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -39,7 +40,7 @@ const CreateEvent: React.FC = () => {
       try {
         setLoading(true);
 
-        // Fetch venues and operators in parallel
+        // Obtener galleras y operadores en paralelo
         const [venuesRes, operatorsRes] = await Promise.all([
           usersAPI.getAll({
             role: "venue",
@@ -49,7 +50,7 @@ const CreateEvent: React.FC = () => {
           usersAPI.getOperators().catch(() => ({ data: { users: [] } })), // Handle potential error gracefully
         ]);
 
-        // Transform venues data to match expected structure
+        // Normalizar datos de galleras
         const venuesData = Array.isArray(venuesRes.data.users)
           ? venuesRes.data.users.map((user) => ({
               id: user.id,
@@ -60,23 +61,31 @@ const CreateEvent: React.FC = () => {
 
         setVenues(venuesData);
 
-        // Extract operators from response
-        const operatorsData = Array.isArray(operatorsRes.data.users)
+        // Extraer operadores
+        let operatorsData = Array.isArray(operatorsRes.data.users)
           ? operatorsRes.data.users
           : [];
 
+        // Si el usuario actual es admin, incluirlo en la lista de operadores
+        if (currentUser && currentUser.role === "admin") {
+          const adminInList = operatorsData.find((op) => op.id === currentUser.id);
+          if (!adminInList) {
+            operatorsData = [
+              { id: currentUser.id, username: currentUser.username },
+              ...operatorsData
+            ];
+          }
+        }
+
         setOperators(operatorsData);
 
-        // Set current user as default operator if they are an operator
-        if (
-          currentUser &&
-          (currentUser.role === "admin" || currentUser.role === "operator")
-        ) {
+        // Usar operador actual por defecto si aplica
+        if (currentUser && (currentUser.role === "admin" || currentUser.role === "operator")) {
           setOperatorId(currentUser.id);
         }
       } catch (err) {
         console.error("Failed to fetch data:", err);
-        setError("Failed to load data. Please try again.");
+        setError("No se pudo cargar la información. Intenta nuevamente.");
       } finally {
         setLoading(false);
       }
@@ -85,24 +94,29 @@ const CreateEvent: React.FC = () => {
     fetchData();
   }, [currentUser]);
 
+  const scheduledDate =
+    scheduledDateDate && scheduledDateTime
+      ? `${scheduledDateDate}T${scheduledDateTime}:00`
+      : "";
+
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
     if (!name.trim()) {
-      errors.name = "Event name is required";
+      errors.name = "El nombre del evento es obligatorio";
     }
 
     if (!venueId) {
-      errors.venueId = "Please select a venue";
+      errors.venueId = "Selecciona un estadio o coliseo";
     }
 
     if (!scheduledDate) {
-      errors.scheduledDate = "Scheduled date is required";
+      errors.scheduledDate = "La fecha y hora son obligatorias";
     } else {
       const selectedDate = new Date(scheduledDate);
       const now = new Date();
       if (selectedDate <= now) {
-        errors.scheduledDate = "Scheduled date must be in the future";
+        errors.scheduledDate = "La fecha debe estar en el futuro";
       }
     }
 
@@ -118,16 +132,26 @@ const CreateEvent: React.FC = () => {
 
     try {
       setLoading(true);
-      const eventData = {
+      const eventData: {
+        name: string;
+        venueId: string;
+        scheduledDate: string;
+        operatorId?: string;
+      } = {
         name,
         venueId,
         scheduledDate,
-        operatorId: operatorId || null,
       };
+
+      // Only include operatorId if it has a valid value
+      if (operatorId && operatorId.trim()) {
+        eventData.operatorId = operatorId;
+      }
+
       await eventsAPI.create(eventData);
       navigate("/admin/events");
     } catch {
-      setError("Failed to create event. Please try again.");
+      setError("No se pudo crear el evento. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -145,9 +169,9 @@ const CreateEvent: React.FC = () => {
             className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Events
+            Volver a Eventos
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Crear nuevo Evento</h1>
         </div>
 
         {error && <ErrorMessage message={error} className="mb-6" />}
@@ -158,13 +182,12 @@ const CreateEvent: React.FC = () => {
             <div className="relative">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Name *
+                  Nombre del Evento *
                 </label>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Enter the name for your cockfighting event (e.g., "Pelea de
-                    Gallos - Viernes 6 Oct")
+                    Ingresa un nombre claro para el evento (ej. "Pelea de Gallos - Viernes 6 Oct").
                   </div>
                 </div>
               </div>
@@ -175,7 +198,7 @@ const CreateEvent: React.FC = () => {
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   formErrors.name ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="Enter event name"
+                placeholder="Introduce el nombre del evento"
               />
               {formErrors.name && (
                 <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
@@ -186,13 +209,12 @@ const CreateEvent: React.FC = () => {
             <div className="relative">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Venue *
+                  Estadio/Coliseo *
                 </label>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Select the location where the cockfighting event will take
-                    place
+                    Selecciona la gallera donde se realizará la jornada.
                   </div>
                 </div>
               </div>
@@ -203,7 +225,7 @@ const CreateEvent: React.FC = () => {
                   formErrors.venueId ? "border-red-500" : "border-gray-300"
                 }`}
               >
-                <option value="">Select a venue</option>
+                <option value="">Selecciona un estadio o coliseo</option>
                 {venues.map((venue) => (
                   <option key={venue.id} value={venue.id}>
                     {venue.name}
@@ -221,28 +243,49 @@ const CreateEvent: React.FC = () => {
             <div className="relative">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Scheduled Date & Time *
+                  Fecha y hora programada *
                 </label>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Select the date and time when the event will begin. Must be
-                    in the future.
+                    Selecciona la fecha y hora de inicio. Debe ser posterior al momento actual.
                   </div>
                 </div>
               </div>
-              <input
-                type="datetime-local"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  formErrors.scheduledDate
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Fecha
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduledDateDate}
+                    onChange={(e) => setScheduledDateDate(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      formErrors.scheduledDate
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Hora
+                  </label>
+                  <input
+                    type="time"
+                    value={scheduledDateTime}
+                    onChange={(e) => setScheduledDateTime(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      formErrors.scheduledDate
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                </div>
+              </div>
               {formErrors.scheduledDate && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-2">
                   {formErrors.scheduledDate}
                 </p>
               )}
@@ -252,13 +295,12 @@ const CreateEvent: React.FC = () => {
             <div className="relative">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Operator
+                  Operador
                 </label>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                    Select the operator who will manage this event. If left
-                    blank, you will be assigned as the operator.
+                    Selecciona el operador responsable. Si lo dejas vacío, tú serás asignado automáticamente.
                   </div>
                 </div>
               </div>
@@ -267,20 +309,19 @@ const CreateEvent: React.FC = () => {
                 onChange={(e) => setOperatorId(e.target.value || null)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select an operator (optional)</option>
+                <option value="">Selecciona un operador (opcional)</option>
                 {operators.map((operator) => (
                   <option key={operator.id} value={operator.id}>
                     {typeof operator.username === "string"
                       ? operator.username
                       : typeof operator === "object" && operator.username
                         ? operator.username
-                        : "Unknown Operator"}
+                        : "Operador desconocido"}
                   </option>
                 ))}
               </select>
               <p className="text-gray-500 text-sm mt-1">
-                Select the operator who will manage this event. If left blank,
-                you will be assigned as the operator.
+                Selecciona el operador responsable. Si lo dejas vacío, se te asignará automáticamente.
               </p>
             </div>
 
@@ -291,14 +332,14 @@ const CreateEvent: React.FC = () => {
                 onClick={() => navigate("/admin/events")}
                 className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? "Creating..." : "Create Event"}
+                {loading ? "Creando..." : "Crear evento"}
               </button>
             </div>
           </form>

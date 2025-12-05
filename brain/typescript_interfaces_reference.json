@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "TypeScript interface reference for Galleros.Net platform",
-    "version": "3.5",
-    "last_updated": "2025-12-02",
-    "changelog": "Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
+    "version": "3.6",
+    "last_updated": "2025-12-05",
+    "changelog": "v3.6 (2025-12-05): CRITICAL FIX - Wallet.create() now called automatically when admin creates users (backend/src/routes/users.ts:680-684). Fixes \"User wallet not found\" errors on balance adjustments. Added response.success check to handleAdjustBalance (frontend/src/components/admin/UserModal.tsx:117) to prevent modal closing on API errors. v3.5: Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",

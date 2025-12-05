@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Check, X, Upload } from "lucide-react";
-import { WalletOperation } from "../../types/walletOperation";
+import type { WalletOperation } from "../../types/walletOperation";
 
 interface ApproveWithdrawalModalProps {
   operation: WalletOperation;

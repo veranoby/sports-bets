@@ -107,14 +107,25 @@ const UserModal: React.FC<UserModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      await adminAPI.adjustUserBalance(user.id, {
+      const response = await adminAPI.adjustUserBalance(user.id, {
         type: balanceAdjustmentType,
         amount: balanceAdjustmentAmount,
         reason: balanceAdjustmentReason,
       });
-      toast.success("Saldo ajustado exitosamente.");
-      onSuccess(user); // Refresh user data to show new balance
-      onClose(); // Close modal after successful adjustment
+
+      // ✅ Check if API call was actually successful before closing modal
+      if (response.success && response.data) { // Check for response.data
+        toast.success("Saldo ajustado exitosamente.");
+        // We now have the updated user object from the backend response
+        onSuccess(response.data.user); // Pass the UPDATED user to the parent
+        setActiveTab("balance"); // Keep modal on balance tab
+        // onClose(); // DO NOT close the modal immediately - modal remains open for further adjustments/verification
+      } else {
+        // API returned error response - show error and stay on balance tab
+        const errorMsg = response.error || "Error al ajustar el saldo.";
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
     } catch (err: any) {
       setError(err.message || "Error al ajustar el saldo.");
       toast.error(err.message || "Error al ajustar el saldo.");
@@ -616,7 +627,8 @@ const UserModal: React.FC<UserModalProps> = ({
                   Saldo Actual de Billetera
                 </p>
                 <p className="text-2xl font-bold text-blue-600 mt-2">
-                  {user?.wallet?.balance !== undefined && user?.wallet?.balance !== null
+                  {user?.wallet?.balance !== undefined &&
+                  user?.wallet?.balance !== null
                     ? `$${user.wallet.balance.toFixed(2)}`
                     : "No disponible"}
                 </p>

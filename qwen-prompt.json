@@ -1,95 +1,102 @@
 {
-  "task_title": "Optimización y Gestión Completa de Operaciones de Wallet",
-  "objective": "Garantizar el acceso correcto a las funcionalidades de wallet y apuestas, implementar el flujo completo de gestión de solicitudes de wallet para administradores, y permitir ajustes manuales de saldo.",
-  "estado_actual": "Acceso a /wallet y /bets RESTAURADO. Flujos de backend de wallet mejor entendidos.",
-  "fases_implementacion": [
+  "task_description": "Fix User Balance Adjustment Issues in UserModal and Backend",
+  "problem_description": [
+    "1. After confirming balance adjustment in UserModal, the modal closes and returns to user list instead of staying on balance tab to show updated balance",
+    "2. String concatenation issue: Balance shows '6040' instead of '100' when adding 40 to 60, indicating string concatenation instead of numerical addition",
+    "3. Balance not updating on UI after adjustment, even though database shows correct value after first adjustment",
+    "4. Transaction metadata stores incorrect 'previousBalance' value (stores new balance instead of previous balance)"
+  ],
+  "analysis_of_causes": [
     {
-      "fase": 0,
-      "titulo": "Diagnóstico y Reparación de Acceso a Módulos (COMPLETADA)",
-      "descripcion": "Resolver el problema crítico de redirección desde /wallet y /bets. Se descubrió una condición de carrera debido a la verificación tardía de feature flags en los componentes de página.",
-      "tareas": [
-        "**Tarea 0.1:** [Análisis Frontend] Trazar el Flujo de Navegación. (Completada - Causa: Redirección en componentes de página debido a feature flags no cargados).",
-        "**Tarea 0.2:** [Verificación Frontend] Validar Estado de `useFeatureFlags`. (Completada - Se confirmó que `ProtectedRoute` no verificaba feature flags).",
-        "**Tarea 0.3:** [Implementación] Aplicar el Parche. (Completada - Se centralizó la verificación de feature flags y el manejo de carga en `ProtectedRoute.tsx`. Se eliminó la lógica de redirección redundante de `Wallet.tsx` y `Bets.tsx`)."
-      ],
-      "resultado_esperado": "Usuarios con roles y feature flags correctos pueden acceder a /wallet y /bets sin redirección. (CONFIRMADO POR EL USUARIO)",
-      "git_commits": ["e63e3812", "commit_del_fix_ProtectedRoute", "commit_del_fix_Wallet", "commit_del_fix_Bets"]
+      "issue": "Modal closing after balance adjustment",
+      "root_cause": "In handleAdjustBalance function, onSuccess() and onClose() are called after successful adjustment, which closes the modal instead of keeping it open on the balance tab",
+      "location": "frontend/src/components/admin/UserModal.tsx line 121-125"
     },
     {
-      "fase": 1,
-      "titulo": "Análisis Detallado y Diseño de Flujos de Wallet (COMPLETADA)",
-      "descripcion": "Reconfirmar el comportamiento del backend para depósitos y retiros, y diseñar las nuevas funcionalidades de UI/UX y endpoints necesarios.",
-      "tareas": [
-        "**Tarea 1.1:** [Análisis Backend] Confirmar Gaps en el Flujo de Depósito. (Completada - Se descubrió que el saldo SÍ se actualiza y la transacción SÍ se crea en `/approve` para depósitos).",
-        "**Tarea 1.2:** [Análisis Backend y Frontend] Análisis Formal del Flujo de Retiro. (Completada - Se formalizó que el balance de retiro se descuenta en `/complete`).",
-        "**Tarea 1.3:** [Diseño UI/UX y Backend] Diseño de la Funcionalidad 'Ajuste Manual de Saldo' y 'Gestión de Solicitudes de Depósito'. (Completada - Incluye pestaña de ajuste directo en usuario y nueva página de administración para depósitos pendientes)."
-      ],
-      "descubrimientos_clave": [
-        "El backend ya suma el balance de depósitos y crea la transacción al APROBAR una operación de `deposit` (PUT /api/wallet-operations/:id/approve).",
-        "Para los `withdrawal`, el balance se descuenta al COMPLETAR la operación (PUT /api/wallet-operations/:id/complete)."
-      ],
-      "nuevas_funcionalidades_diseñadas": [
-        "**Ajuste Manual de Saldo (Admin):** Pestaña 'Ajuste de Saldo' en el modal de edición de usuarios. Backend: `POST /api/admin/users/:userId/adjust-balance`.",
-        "**Gestión de Solicitudes de Depósito (Admin):** Nueva página en `/admin/finance/deposits` (o similar) para listar y gestionar solicitudes de depósito pendientes."
-      ],
-      "resultado_esperado": "Comprensión clara de los flujos de wallet existentes y un diseño detallado para las nuevas funcionalidades.",
-      "git_commits": []
+      "issue": "String concatenation in balance calculation", 
+      "root_cause": "Possible type coercion where numeric values are treated as strings during input processing or calculation. The DECIMAL field in DB should handle numbers correctly, so the issue may be in data handling.",
+      "location": "Potential issue in frontend input handling or backend data processing"
     },
     {
-      "fase": 2,
-      "titulo": "Implementación Backend",
-      "descripcion": "Desarrollar los nuevos endpoints y modificar los existentes según el diseño.",
-      "tareas": [
-        "**Tarea 2.1:** [Implementación Backend] Implementar `POST /api/admin/users/:userId/adjust-balance` para ajustes manuales de saldo.",
-        "**Tarea 2.2:** [Implementación Backend] Asegurar que el endpoint `PUT /api/wallet-operations/:id/complete` funcione correctamente para retiros (descuenta saldo) y depósitos (solo cambia estado).",
-        "**Tarea 2.3:** [Actualización Documentación Brain] Agregar `POST /api/admin/users/:userId/adjust-balance` a `api_endpoints_reference.json` y actualizar `typescript_interfaces_reference.json` con nuevos tipos de transacción (`admin_credit`, `admin_debit`)."
-      ],
-      "notas_implementacion": [
-        "Asegurar transacciones atómicas para todas las operaciones de balance.",
-        "Crear registros de `Transaction` para cada ajuste manual (tipo `admin_credit` o `admin_debit`).",
-        "Aplicar validaciones robustas (montos positivos, razón obligatoria)."
-      ],
-      "consideraciones_adicionales": "Eliminar mock data y reemplazar por lógica real durante la implementación."
+      "issue": "Previous balance incorrectly stored in transaction metadata",
+      "root_cause": "In backend users.ts, the metadata.previousBalance is set after wallet.balance is updated, so it stores the new balance instead of the previous one",
+      "location": "backend/src/routes/users.ts around line 1063"
     },
     {
-      "fase": 3,
-      "titulo": "Implementación Frontend",
-      "descripcion": "Desarrollar las interfaces de usuario para las nuevas funcionalidades.",
-      "tareas": [
-        "**Tarea 3.1:** [Implementación Frontend] Crear pestaña 'Ajuste de Saldo' en el modal de edición de usuarios.",
-        "**Tarea 3.2:** [Implementación Frontend] Desarrollar la nueva página de administración para 'Gestión de Solicitudes de Depósito' (`/admin/finance/deposits`)."
-      ],
-      "consideraciones_adicionales": "Eliminar mock data y reemplazar por lógica real durante la implementación."
-    },
-    {
-      "fase": 4,
-      "titulo": "Testing y Validación",
-      "descripcion": "Verificación exhaustiva de todos los flujos implementados.",
-      "tareas": [
-        "**Tarea 4.1:** [Pruebas E2E] Crear Pruebas de Cypress para las nuevas funcionalidades y los flujos modificados.",
-        "**Tarea 4.2:** [Testing Unitario/Integración] Crear pruebas para los nuevos endpoints backend.",
-        "**Tarea 4.3:** [Verificación] Asegurar que no se introduzca mock data en producción y que toda la data sea real."
-      ]
+      "issue": "UI not refreshing after balance adjustment",
+      "root_cause": "User data is not refreshed in modal after balance adjustment, so the displayed balance remains unchanged",
+      "location": "frontend/src/components/admin/UserModal.tsx"
     }
   ],
-  "technical_considerations": [
-    "Asegurar la integridad transaccional en todas las operaciones de balance.",
-    "Implementar controles de acceso basados en roles apropiados.",
-    "Mantener un rastro de auditoría para todas las modificaciones de saldo.",
-    "Manejar las condiciones de carrera durante las actualizaciones de saldo.",
-    "Garantizar una validación adecuada antes de cualquier cambio de saldo."
+  "proposed_solutions": [
+    {
+      "solution": "Update modal behavior to stay open and refresh data after balance adjustment",
+      "implementation": [
+        "Modify handleAdjustBalance function to not call onClose() immediately after successful adjustment",
+        "Add logic to refresh user data after successful balance adjustment",
+        "Keep the active tab on 'balance' after adjustment confirmation",
+        "Update the local state to reflect the new balance value"
+      ],
+      "file": "frontend/src/components/admin/UserModal.tsx"
+    },
+    {
+      "solution": "Fix previous balance metadata issue",
+      "implementation": [
+        "Store the original balance value before updating wallet.balance",
+        "Use the original balance value for previousBalance in transaction metadata",
+        "Ensure the correct sequence: capture original balance → perform calculation → update wallet → record transaction with original and new values"
+      ],
+      "file": "backend/src/routes/users.ts"
+    },
+    {
+      "solution": "Ensure proper type handling for balance operations",
+      "implementation": [
+        "Verify input validation properly converts string inputs to numbers",
+        "Ensure all mathematical operations are performed on numeric types",
+        "Check frontend input handling for proper number conversion"
+      ],
+      "file": "backend/src/routes/users.ts and frontend/src/components/admin/UserModal.tsx"
+    },
+    {
+      "solution": "Update UI to properly display updated balance",
+      "implementation": [
+        "Update the component state to reflect the new balance after adjustment",
+        "Ensure the wallet balance display refreshes with new value",
+        "Potentially trigger a refetch of user data to refresh all related information"
+      ],
+      "file": "frontend/src/components/admin/UserModal.tsx"
+    }
   ],
-  "riesgos_mitigacion": [
-    "Todas las modificaciones de saldo deben ser transaccionales con capacidad de rollback.",
-    "Implementar confirmación de administrador para operaciones sensibles.",
-    "Añadir registro (logging) para todos los ajustes manuales de saldo.",
-    "Validar el estado de la operación antes de procesarla."
+  "expected_results_after_implementation": [
+    "After confirming balance adjustment, the modal remains open on the balance tab showing the updated balance",
+    "Balance calculations work numerically (60 + 40 = 100) instead of concatenating strings ('60' + '40' = '6040')", 
+    "Transaction metadata correctly records previous balance (value before adjustment) and new balance (value after adjustment)",
+    "UI properly updates to show the new balance value after adjustment",
+    "User experience is improved - users can see the result of their balance adjustment immediately without having to reopen the modal"
   ],
-  "pasos_verificacion": [
-    "Pruebas manuales del flujo completo de depósitos (solicitud de usuario → aprobación de administrador → estado final).",
-    "Pruebas manuales del flujo completo de retiros (solicitud de usuario → aprobación de administrador → completado de administrador → deducción de saldo).",
-    "Verificar los controles de acceso basados en roles.",
-    "Probar las condiciones de error y los casos límite.",
-    "Confirmar que el historial de transacciones se registra correctamente."
+  "validation_steps": [
+    "Test balance adjustment with various amounts to confirm numerical calculation works",
+    "Verify transaction metadata shows correct previous and new balance values",
+    "Confirm modal stays on balance tab after adjustment and shows updated value",
+    "Check that the database properly stores numeric values and not concatenated strings",
+    "Verify UI updates immediately after adjustment without needing to refresh"
+  ],
+  "execution_mode": "standard",
+  "critical_protocols_to_follow": [
+    "Read brain/multi_ai_coordination_strategy.json before implementation",
+    "Apply simulate_y_confirmar_protocol for all changes",
+    "Verify TypeScript compilation after changes",
+    "Validate UI behavior through manual testing",
+    "Update brain/backlog.json with changes made"
+  ],
+  "risk_level": "medium",
+  "complexity": "medium",
+  "estimated_time": "2-3 hours",
+  "required_validations": [
+    "TypeScript compilation passes",
+    "Balance operations work with different amounts",
+    "Modal behavior works as expected",
+    "Database values are properly stored as numbers",
+    "Transaction records have correct metadata"
   ]
 }

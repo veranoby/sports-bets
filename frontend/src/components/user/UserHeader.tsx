@@ -509,7 +509,6 @@ const UserHeader = memo(() => {
           <AvatarVisual />
           {!isMobile && (
             <div className="text-left min-w-[140px]">
-
               <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
                 {displayName}
               </p>
@@ -526,16 +525,18 @@ const UserHeader = memo(() => {
                 <div className="min-w-0">
                   <p className="text-lg font-semibold text-gray-900 leading-tight truncate">
                     {displayName}
-                 
+
                     <span className="px-2 py-0.5 rounded-full text-xs bg-blue/100 border border-white/60 text-gray-600 lg:hidden">
                       @{user.username}
-                    </span><RoleBadge className="mt-2 bg-blue-50 border-blue-100" /></p>               
+                    </span>
+                    <RoleBadge className="mt-2 bg-blue-50 border-blue-100" />
+                  </p>
                 </div>
               </div>
 
-                <div className="rounded-xl border border-gray-300 bg-gray-50/70 p-2">
-                  <SubscriptionStatus subscription={subscription} />
-                </div>
+              <div className="rounded-xl border border-gray-300 bg-gray-50/70 p-2">
+                <SubscriptionStatus subscription={subscription} />
+              </div>
 
               <button
                 onClick={() => {
@@ -546,7 +547,6 @@ const UserHeader = memo(() => {
               >
                 <User className="w-4 h-4" /> Ver perfil
               </button>
-
 
               <button
                 onClick={handleLogout}
@@ -695,41 +695,40 @@ const UserHeader = memo(() => {
                   src="/src/assets/logo.png"
                   alt="Logo Galleros.Net"
                   className="h-11 w-11 sm:h-12 sm:w-12 lg:h-14 lg:w-14 object-contain rounded-2xl bg-white/80 p-1 shadow"
-                /> 
-                  <span className="font-semibold lg:text-lg text-[#1b2a4a]">
-                    GALLEROS
-                  </span>
-                  <span className="font-semibold lg:text-lg text-red-600">
-                    .NET
-                  </span>           <div className="flex lg:hidden items-center gap-2 justify-end flex-wrap">
-                {renderActionCluster("mobile")}
-                {renderUserMenu("mobile")}
+                />
+                <span className="font-semibold lg:text-lg text-[#1b2a4a]">
+                  GALLEROS
+                </span>
+                <span className="font-semibold lg:text-lg text-red-600">
+                  .NET
+                </span>{" "}
+                <div className="flex lg:hidden items-center gap-2 justify-end flex-wrap">
+                  {renderActionCluster("mobile")}
+                  {renderUserMenu("mobile")}
+                </div>
               </div>
 
+              {infoChips.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-center">
+                  {(showMoreChips ? infoChips : primaryChips).map(renderChip)}
+                  {extraChips.length > 0 && (
+                    <button
+                      onClick={() => setShowMoreChips((prev) => !prev)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-600 border border-gray-200 bg-white/70"
+                    >
+                      {showMoreChips
+                        ? "Ver menos"
+                        : `+${extraChips.length} info`}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="hidden lg:flex items-center justify-end gap-3">
+                {renderActionCluster("desktop")}
+                {renderUserMenu("desktop")}
               </div>
-
-   
-
-            {infoChips.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-center">
-                {(showMoreChips ? infoChips : primaryChips).map(renderChip)}
-                {extraChips.length > 0 && (
-                  <button
-                    onClick={() => setShowMoreChips((prev) => !prev)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-600 border border-gray-200 bg-white/70"
-                  >
-                    {showMoreChips ? "Ver menos" : `+${extraChips.length} info`}
-                  </button>
-                )}
-              </div>
-            )}
-
-            <div className="hidden lg:flex items-center justify-end gap-3">
-              {renderActionCluster("desktop")}
-              {renderUserMenu("desktop")}
             </div>
-                        </div>
-
           </div>
         </div>
       </div>

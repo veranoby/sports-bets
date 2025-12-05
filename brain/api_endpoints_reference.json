@@ -232,7 +232,7 @@
             },
             "adjust_user_balance": {
               "method": "POST",
-              "path": "/admin/users/:userId/adjust-balance",
+              "path": "/users/:userId/adjust-balance",
               "auth_required": true,
               "roles": ["admin"],
               "body": {

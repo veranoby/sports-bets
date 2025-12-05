@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   User,
 } from "lucide-react";
-import { WalletOperation } from "../../types/walletOperation";
+import type { WalletOperation } from "../../types/walletOperation";
 
 interface WalletOperationCardProps {
   operation: WalletOperation;

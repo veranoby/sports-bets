@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useWalletOperations } from "../../../hooks/useApi";
-import LoadingSpinner from "../../../components/shared/LoadingSpinner";
-import ErrorMessage from "../../../components/shared/ErrorMessage";
-import WalletOperationCard from "../../../components/admin/WalletOperationCard";
-import ApproveDepositModal from "../../../components/admin/ApproveDepositModal";
-import RejectOperationModal from "../../../components/admin/RejectOperationModal";
-import ConfirmModal from "../../../components/shared/ConfirmModal";
-import { useToast } from "../../../hooks/useToast";
-import type { WalletOperation } from "../../../types";
+import { useWalletOperations } from "../../hooks/useApi";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorMessage from "../../components/shared/ErrorMessage";
+import WalletOperationCard from "../../components/admin/WalletOperationCard";
+import ApproveDepositModal from "../../components/admin/ApproveDepositModal";
+import RejectOperationModal from "../../components/admin/RejectOperationModal";
+import ConfirmDialog from "../../components/shared/ConfirmDialog";
+import { useToast } from "../../hooks/useToast";
+import type { WalletOperation } from "../../types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, RefreshCw, Filter } from "lucide-react";
@@ -216,14 +216,13 @@ const DepositRequests: React.FC = () => {
             }
             operation={selectedOperation}
           />
-          <ConfirmModal // Generic confirm for marking as completed
+          <ConfirmDialog // Generic confirm for marking as completed
             isOpen={showCompleteModal}
             onClose={() => setShowCompleteModal(false)}
             onConfirm={() => handleCompleteDeposit(selectedOperation.id)}
             title="Marcar Depósito como Completado"
             message={`¿Está seguro de que el depósito de $${selectedOperation.amount.toFixed(2)} del usuario ${selectedOperation.user?.username} ha sido confirmado y desea marcarlo como completado?`}
             confirmText="Sí, Completar"
-            isConfirming={loading} // Use general loading for simplicity
           />
         </>
       )}

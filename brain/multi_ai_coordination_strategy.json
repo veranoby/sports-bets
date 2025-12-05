@@ -515,6 +515,114 @@
     "enforcement": "TypeScript will catch these errors, but only AFTER wasting time. Read source BEFORE writing usage code to prevent entirely."
   },
 
+  "🔴_LEARNING_FROM_IMPLEMENTATION_ERRORS_PROTOCOL": {
+    "severity": "CRITICAL",
+    "principle": "Learn from implementation errors to prevent recurring patterns. Systematic analysis of mistakes improves future performance.",
+    "applicability": "All AIs after identifying implementation errors in their own work or work they're reviewing",
+
+    "common_error_patterns_identified": {
+      "incorrect_relative_paths": {
+        "description": "Using wrong relative path syntax (../../../ instead of ../../)",
+        "root_cause": "Assuming path depth without verifying directory structure",
+        "prevention": [
+          "Always verify directory structure with 'find' or 'ls' commands before implementing",
+          "Calculate path from target file to source file, not from project root",
+          "Test import paths in the actual directory context"
+        ]
+      },
+      "component_name_mismatches": {
+        "description": "Using incorrect component names (ConfirmModal instead of ConfirmDialog)",
+        "root_cause": "Assuming component exists with expected name without verifying actual file content",
+        "prevention": [
+          "Read component file to verify exact export name",
+          "Check actual file content before implementing import",
+          "Always use exact names from source files, not assumed variations"
+        ]
+      },
+      "nonexistent_properties_or_props": {
+        "description": "Passing props that don't exist on components (isConfirming on ConfirmDialog)",
+        "root_cause": "Assuming component interface without checking actual TypeScript definition",
+        "prevention": [
+          "Read component TypeScript interface/props definition",
+          "Verify available props before implementing",
+          "Check component source to understand exact API"
+        ]
+      },
+      "typescript_configuration_ignorance": {
+        "description": "Ignoring project-specific TypeScript configurations (verbatimModuleSyntax)",
+        "root_cause": "Not analyzing tsconfig.json for project-specific rules before implementation",
+        "prevention": [
+          "Always read tsconfig.json and related configuration files",
+          "Understand specific rules like verbatimModuleSyntax, strict mode, etc.",
+          "Apply correct import syntax based on configuration"
+        ]
+      },
+      "chained_error_misidentification": {
+        "description": "Misidentifying primary error when secondary errors mask the root cause",
+        "root_cause": "Focusing on the first error message instead of analyzing the full error chain",
+        "prevention": [
+          "Analyze complete error output to identify primary vs secondary errors",
+          "Trace error dependencies to find root cause",
+          "Understand that fixing primary error may resolve multiple secondary errors"
+        ]
+      }
+    },
+
+    "error_analysis_workflow": {
+      "step_1_stop_and_assess": {
+        "trigger": "When implementation error is identified",
+        "action": "PAUSE - Do NOT immediately start fixing",
+        "rationale": "Rapid fixing without analysis often perpetuates the same error patterns"
+      },
+      "step_2_root_cause_identification": {
+        "action": "Identify the fundamental cause of the error",
+        "method": "Ask: 'Why did this happen at the systemic level?'",
+        "focus": "Not just 'what went wrong' but 'what process failure allowed this?'"
+      },
+      "step_3_pattern_recognition": {
+        "action": "Check if this error matches known patterns",
+        "method": "Compare against common error patterns in this protocol",
+        "extension": "Add new pattern if this is a previously unknown error type"
+      },
+      "step_4_prevention_strategy_development": {
+        "action": "Create specific prevention strategy for this error type",
+        "requirements": [
+          "Specific steps to avoid in future",
+          "Tools or checks that could prevent this error",
+          "Review processes that could catch this error early"
+        ]
+      },
+      "step_5_update_coordination_strategy": {
+        "action": "Add new error pattern and prevention strategy to this document",
+        "rationale": "Learning becomes institutional knowledge for all AIs",
+        "format": "Follow same structure as existing error patterns"
+      },
+      "step_6_validation": {
+        "action": "Verify prevention strategy would have stopped the original error",
+        "method": "Apply new strategy to original scenario and confirm it would prevent the error"
+      }
+    },
+
+    "quality_improvement_metrics": {
+      "error_recurrence_tracking": "Track if same error pattern repeats after adding prevention strategy",
+      "prevention_protocol_adoption": "Verify AIs are using new error prevention strategies",
+      "learning_efficiency": "Measure reduction in similar error types after protocol implementation",
+      "knowledge_transfer": "Ensure new error patterns are shared across AI sessions"
+    },
+
+    "enforcement": {
+      "when_to_apply": "After any implementation error is identified (own work or reviewing others)",
+      "required_actions": [
+        "Document the specific error",
+        "Analyze the root cause",
+        "Identify the prevention strategy",
+        "Update this coordination strategy with new pattern",
+        "Verify prevention strategy would have stopped the error"
+      ],
+      "accountability": "All AIs are responsible for learning from errors and improving systemic processes"
+    }
+  },
+
   "role_responsibilities": {
     "director": {
       "primary": "Validation engine + architecture oversight + execution_mode declaration + task delegation to executors.",

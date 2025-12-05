@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
-import { WalletOperation } from "../../types/walletOperation";
+import type { WalletOperation } from "../../types/walletOperation";
 
 interface RejectOperationModalProps {
   operation: WalletOperation;
