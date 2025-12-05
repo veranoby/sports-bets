@@ -91,44 +91,47 @@ const AdminEventsPage: React.FC = () => {
   );
   const sseState = useMultiSSE<any>(sseChannels);
 
-  const fetchEvents = useCallback(async (status: string, date: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchEvents = useCallback(
+    async (status: string, date: string) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params: {
-        limit: number;
-        includeVenue: boolean;
-        includeOperator: boolean;
-        includeStats: boolean;
-        dateRange?: string;
-        status?: string;
-      } = {
-        limit: 500,
-        includeVenue: true,
-        includeOperator: true,
-        includeStats: true,
-      };
+        const params: {
+          limit: number;
+          includeVenue: boolean;
+          includeOperator: boolean;
+          includeStats: boolean;
+          dateRange?: string;
+          status?: string;
+        } = {
+          limit: 500,
+          includeVenue: true,
+          includeOperator: true,
+          includeStats: true,
+        };
 
-      if (date) {
-        params.dateRange = date;
-      }
-      if (status) {
-        params.status = status;
-      }
+        if (date) {
+          params.dateRange = date;
+        }
+        if (status) {
+          params.status = status;
+        }
 
-      const eventsRes = await eventsAPI.getAll(params);
-      let eventData = eventsRes.data?.events || [];
-      if (user?.role === "operator") {
-        eventData = eventData.filter((event) => event.operatorId === user.id);
+        const eventsRes = await eventsAPI.getAll(params);
+        let eventData = eventsRes.data?.events || [];
+        if (user?.role === "operator") {
+          eventData = eventData.filter((event) => event.operatorId === user.id);
+        }
+        setEvents(eventData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error loading events");
+      } finally {
+        setLoading(false);
       }
-      setEvents(eventData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading events");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    },
+    [user],
+  );
 
   useEffect(() => {
     fetchEvents(statusFilter, dateFilter);
@@ -309,7 +312,7 @@ const AdminEventsPage: React.FC = () => {
         await eventsAPI.delete(eventId);
 
         // Refresh list
-        await fetchEvents();
+        await fetchEvents(statusFilter, dateFilter);
 
         // Navigate back to events list if deleting the current event
         if (eventIdFromParams === eventId) {

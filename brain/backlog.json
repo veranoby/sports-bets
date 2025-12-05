@@ -7,6 +7,54 @@
   },
   "active_tasks": [
     {
+      "task_id": "ADMIN_EVENTS_FILTER_FIX_2025_12_05",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-05",
+      "completion_time": "19:00:00",
+      "complexity": "MEDIUM",
+      "category": "BUGFIX",
+      "priority": "P1_HIGH",
+      "completed_by": "Gemini",
+      "execution_mode": "standard",
+      "summary": "Fixed the 'today' filter in the admin events list and ensured sorting is handled by the backend. Refactored the frontend to delegate filtering to the API.",
+      "problem_description": "The 'today' filter was not working because the frontend was performing all filtering locally after fetching an unfiltered list of events from the backend. This was inefficient and incorrect, as the backend's filtering logic was never triggered.",
+      "changes_implemented": {
+        "backend": {
+          "file": "backend/src/routes/events.ts",
+          "details": "No changes were needed in this task as the backend already had the correct logic to handle 'dateRange=today'. The issue was purely in the frontend's implementation."
+        },
+        "frontend": {
+          "file": "frontend/src/pages/admin/Events.tsx",
+          "details": "Refactored the component to move filtering logic to the backend. The 'fetchEvents' function now accepts filter parameters ('status' and 'date') and passes them to the 'eventsAPI.getAll' call. The 'useEffect' hook was updated to re-trigger 'fetchEvents' when filter states change. The local filtering logic inside the 'useMemo' hook was removed, simplifying it to only handle sorting of the pre-filtered data received from the backend."
+        },
+        "api_config": {
+          "file": "frontend/src/config/api.ts",
+          "details": "Added the optional 'dateRange?: string' parameter to the 'eventsAPI.getAll' method signature to allow the frontend to pass the date filter to the backend."
+        }
+      },
+      "files_modified": [
+        "frontend/src/config/api.ts",
+        "frontend/src/pages/admin/Events.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["6d65f2fa3328f001f4bddc6a09d2f0500ba10d2c"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled the project without errors after refactoring the filtering logic."
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to the '/admin/events' page.",
+          "Click the 'Hoy' filter button.",
+          "Verify that the 'Historial de Eventos' list now correctly shows only events scheduled for the current date.",
+          "Change to other filters ('Esta Semana', 'Todos') and verify the list updates correctly by fetching data from the backend.",
+          "Confirm that the list remains sorted with the newest/upcoming events first."
+        ]
+      },
+      "business_impact": "Fixes a critical bug in the event management panel, allowing admins to correctly filter and view events for specific date ranges. Improves performance by offloading filtering work from the client to the server."
+    },
+    {
       "task_id": "ADMIN_EVENTS_LIST_DATETIME_SORT_2025_12_05",
       "status": "COMPLETED",
       "completion_date": "2025-12-05",

@@ -68,7 +68,14 @@ const Dashboard: React.FC = () => {
       try {
         const response = await eventsAPI.getAll({ category: "upcoming" });
         if (response.success && response.data) {
-          setUpcomingEvents((response.data as { events?: any[] }).events || []);
+          const eventsArray = (response.data as { events?: any[] }).events || [];
+          const today = new Date();
+          const filtered = eventsArray.filter((event) => {
+            if (!event?.scheduledDate) return true;
+            const eventDate = new Date(event.scheduledDate);
+            return !isSameDay(eventDate, today);
+          });
+          setUpcomingEvents(filtered);
         }
       } catch (error) {
         console.error("Error loading upcoming events:", error);
@@ -113,9 +120,22 @@ const Dashboard: React.FC = () => {
   }, [allEvents]);
 
   // 3. Formateo reutilizable
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  const isSameDay = (dateA: Date, dateB: Date) =>
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate();
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const formatWeekday = (date: Date) =>
+    date.toLocaleDateString("es-ES", { weekday: "short" }).toUpperCase();
+
+  const formatMonth = (date: Date) =>
+    date.toLocaleDateString("es-ES", { month: "short" }).toUpperCase();
+
+  const formatDayNumber = (date: Date) =>
+    date.toLocaleDateString("es-ES", { day: "2-digit" });
 
   // Estados de carga
   const { loading: betsLoading } = useBets();
@@ -237,26 +257,60 @@ const Dashboard: React.FC = () => {
               <div className="space-y-3">
                 {todayEvents.map((event) => {
                   const typedEvent = event as EventData;
+                  const eventDate = new Date(typedEvent.scheduledDate);
+                  const isLive = typedEvent.status === "in-progress";
                   return (
-                    <div
+                    <button
                       key={typedEvent.id}
                       onClick={() => navigate(`/live-event/${typedEvent.id}`)}
-                      className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
+                      className="w-full text-left group"
                     >
-                      <div>
-                        <h3 className="font-medium text-theme-primary">
-                          {typedEvent.name}
-                        </h3>
-                        <p className="text-sm text-theme-light">
-                          {typedEvent.venue?.name}
-                        </p>
+                      <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all group-hover:border-theme-primary/40 group-hover:bg-white/10">
+                        <div className="flex flex-col items-center min-w-[68px]">
+                          <span className="text-[0.65rem] uppercase tracking-[0.2em] text-theme-light">
+                            {formatWeekday(eventDate)}
+                          </span>
+                          <span className="text-lg font-semibold text-theme-primary">
+                            {formatTime(eventDate)}
+                          </span>
+                          <span className="w-px h-6 bg-white/10 mt-2 hidden sm:block"></span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <h3 className="font-semibold text-theme-primary truncate">
+                              {typedEvent.name}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
+                                isLive
+                                  ? "border-red-500/40 bg-red-500/10 text-red-300"
+                                  : "border-white/10 bg-white/5 text-theme-light"
+                              }`}
+                            >
+                              {isLive ? "En vivo" : "Programado"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-theme-light flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                              {typedEvent.venue?.name || "Gallera por confirmar"}
+                            </span>
+                            {typedEvent.totalFights && (
+                              <span className="text-xs text-theme-light/80">
+                                {typedEvent.totalFights} peleas
+                              </span>
+                            )}
+                          </p>
+                          {typedEvent.description && (
+                            <p className="text-xs text-theme-light/70 mt-2 line-clamp-1">
+                              {typedEvent.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-theme-primary text-sm font-semibold hidden lg:block">
+                          Ver evento →
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-theme-primary">
-                          {formatTime(new Date(typedEvent.scheduledDate))}
-                        </p>
-                      </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -288,39 +342,60 @@ const Dashboard: React.FC = () => {
               <div className="space-y-3">
                 {upcomingEvents.slice(0, 6).map((event) => {
                   const typedEvent = event as EventData;
+                  const eventDate = new Date(typedEvent.scheduledDate);
                   return (
-                    <div
+                    <button
                       key={typedEvent.id}
                       onClick={() => navigate(`/event/${typedEvent.id}`)}
-                      className="flex items-center justify-between p-3 bg-[#1a1f37]/30 rounded-lg cursor-pointer hover:bg-[#1a1f37]/50 transition-colors"
+                      className="w-full text-left group"
                     >
-                      <div>
-                        <h3 className="font-medium text-theme-primary">
-                          {typedEvent.name}
-                        </h3>
-                        <p className="text-sm text-theme-light">
-                          {typedEvent.venue?.name}
-                        </p>
+                      <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-gradient-to-r from-[#1a1f37]/40 via-[#1f2a4a]/30 to-[#1a1f37]/40 hover:border-theme-primary/40 hover:shadow-lg transition-all">
+                        <div className="text-center px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+                          <p className="text-[0.65rem] uppercase tracking-[0.2em] text-theme-light">
+                            {formatWeekday(eventDate)}
+                          </p>
+                          <p className="text-2xl font-bold text-theme-primary">
+                            {formatDayNumber(eventDate)}
+                          </p>
+                          <p className="text-xs text-theme-light">
+                            {formatMonth(eventDate)}
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <h4 className="font-semibold text-theme-primary truncate">
+                              {typedEvent.name}
+                            </h4>
+                            <span className="text-xs text-theme-light flex items-center gap-1">
+                              {new Date(
+                                typedEvent.scheduledDate,
+                              ).toLocaleTimeString("es-ES", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-theme-light mt-1">
+                            {typedEvent.venue?.name || "Gallera por confirmar"}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mt-2 text-xs text-theme-light/80">
+                            {typedEvent.totalFights && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                                {typedEvent.totalFights} peleas
+                              </span>
+                            )}
+                            {typedEvent.operator && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                                Operado por {typeof typedEvent.operator === "string" ? typedEvent.operator : typedEvent.operator?.username}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-theme-primary text-sm font-semibold hidden md:block">
+                          Ver detalles →
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-theme-primary">
-                          {new Date(
-                            typedEvent.scheduledDate,
-                          ).toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                          })}
-                        </p>
-                        <p className="text-xs text-theme-light">
-                          {new Date(
-                            typedEvent.scheduledDate,
-                          ).toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
