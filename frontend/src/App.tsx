@@ -56,8 +56,8 @@ const AdminVenues = lazy(() => import("./pages/admin/Venues"));
 const AdminGalleras = lazy(() => import("./pages/admin/Galleras"));
 const AdminRequests = lazy(() => import("./pages/admin/Requests"));
 const AdminMembershipRequests = lazy(
-      () => import("./pages/admin/MembershipRequests"),
-    );
+  () => import("./pages/admin/MembershipRequests"),
+);
 const DepositRequests = lazy(() => import("./pages/admin/DepositRequests")); // NEW IMPORT
 const OptimizedStreamingMonitor = lazy(
   () => import("./pages/admin/OptimizedStreamingMonitor"),
@@ -206,23 +206,23 @@ const AppContent: React.FC = () => {
             }
           />
 
-                        {/* Finanzas */}
-                        <Route
-                          path="/admin/finance"
-                          element={
-                            <Suspense fallback={<LoadingSpinner fullPage />}>
-                              <AdminFinance />
-                            </Suspense>
-                          }
-                        />
-                        <Route // NEW ROUTE for Deposit Requests
-                          path="/admin/finance/deposits"
-                          element={
-                            <Suspense fallback={<LoadingSpinner fullPage />}>
-                              <DepositRequests />
-                            </Suspense>
-                          }
-                        />
+          {/* Finanzas */}
+          <Route
+            path="/admin/finance"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <AdminFinance />
+              </Suspense>
+            }
+          />
+          <Route // NEW ROUTE for Deposit Requests
+            path="/admin/finance/deposits"
+            element={
+              <Suspense fallback={<LoadingSpinner fullPage />}>
+                <DepositRequests />
+              </Suspense>
+            }
+          />
           {/* Eventos */}
           <Route
             path="/admin/events"

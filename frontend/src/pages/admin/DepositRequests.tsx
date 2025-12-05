@@ -18,7 +18,8 @@ const DepositRequests: React.FC = () => {
   const [limit] = useState(10);
   const [filterStatus, setFilterStatus] = useState<string>("pending");
   const [filterType, setFilterType] = useState<string>("deposit");
-  const [selectedOperation, setSelectedOperation] = useState<WalletOperation | null>(null);
+  const [selectedOperation, setSelectedOperation] =
+    useState<WalletOperation | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false); // For deposits, this is a formality
@@ -61,7 +62,11 @@ const DepositRequests: React.FC = () => {
     }
   };
 
-  const handleReject = async (operationId: string, rejectionReason: string, adminNotes?: string) => {
+  const handleReject = async (
+    operationId: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ) => {
     try {
       await rejectOperation(operationId, rejectionReason, adminNotes);
       toast.success("Solicitud de depósito rechazada.");
@@ -73,7 +78,11 @@ const DepositRequests: React.FC = () => {
     }
   };
 
-  const handleCompleteDeposit = async (operationId: string, adminProofUrl?: string, adminNotes?: string) => {
+  const handleCompleteDeposit = async (
+    operationId: string,
+    adminProofUrl?: string,
+    adminNotes?: string,
+  ) => {
     try {
       await completeOperation(operationId, adminProofUrl, adminNotes);
       toast.success("Depósito marcado como completado.");
@@ -84,7 +93,6 @@ const DepositRequests: React.FC = () => {
       toast.error(err.message || "Error al marcar como completado.");
     }
   };
-
 
   if (loading && !isRefreshing) {
     return (
@@ -112,7 +120,9 @@ const DepositRequests: React.FC = () => {
             className="btn btn-outline-primary flex items-center"
             disabled={isRefreshing}
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             Actualizar
           </button>
           <div className="relative">
@@ -138,7 +148,8 @@ const DepositRequests: React.FC = () => {
       <div className="space-y-4">
         {operations?.operations.length === 0 ? (
           <p className="text-center text-gray-600 text-lg py-8">
-            No hay solicitudes de depósito {filterStatus === "pending" ? "pendientes" : ""}.
+            No hay solicitudes de depósito{" "}
+            {filterStatus === "pending" ? "pendientes" : ""}.
           </p>
         ) : (
           operations?.operations.map((operation) => (
@@ -153,7 +164,8 @@ const DepositRequests: React.FC = () => {
                 setSelectedOperation(operation);
                 setShowRejectModal(true);
               }}
-              onComplete={() => { // For deposits, this is to mark as completed. No financial change.
+              onComplete={() => {
+                // For deposits, this is to mark as completed. No financial change.
                 setSelectedOperation(operation);
                 setShowCompleteModal(true);
               }}

@@ -18,7 +18,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = "/login",
 }) => {
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-  const { isWalletEnabled, isBettingEnabled, isLoading: flagsLoading } = useFeatureFlags();
+  const {
+    isWalletEnabled,
+    isBettingEnabled,
+    isLoading: flagsLoading,
+  } = useFeatureFlags();
   const location = useLocation();
 
   // Show loading while verifying authentication OR feature flags
@@ -40,10 +44,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Feature Flag enforcement
   const path = location.pathname;
-  if (path.startsWith('/wallet') && !isWalletEnabled) {
+  if (path.startsWith("/wallet") && !isWalletEnabled) {
     return <Navigate to="/dashboard" replace />;
   }
-  if (path.startsWith('/bets') && !isBettingEnabled) {
+  if (path.startsWith("/bets") && !isBettingEnabled) {
     return <Navigate to="/dashboard" replace />;
   }
 

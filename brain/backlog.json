@@ -1,6 +1,43 @@
 {
   "active_tasks": [
     {
+      "task_id": "CRITICAL_FEEDBACK_GEMINI_2025_12_02",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-02",
+      "completion_time": "17:35:00",
+      "complexity": "CRITICAL",
+      "category": "SELF_CORRECTION_AND_LEARNING",
+      "priority": "P0_CRITICAL",
+      "completed_by": "Human Director",
+      "execution_mode": "manual_intervention",
+      "summary": "Critical feedback for Gemini: Identified and fixed 'loading' vs 'isLoading' typo in ProtectedRoute.tsx, which broke race condition fix. Lesson on rigorous type checking and property verification.",
+      "critical_feedback": {
+        "error_found": "Desestructuró 'loading' en lugar de 'isLoading' del hook useFeatureFlags() en ProtectedRoute.tsx.",
+        "consequence": "flagsLoading siempre undefined → loading guard NUNCA esperó → race condition NO resuelta.",
+        "prevention_protocol": [
+          "**ANTES de escribir:** `const { propA, propB } = useHook();`",
+          "**EJECUTAR:** `grep -A 20 \"export const useHook\" hookFile.ts`",
+          "**VERIFICAR nombres exactos de propiedades**",
+          "**Regla de oro:** NUNCA asumir nombres de propiedades. SIEMPRE leer el archivo fuente ANTES de desestructurar. SIEMPRE ejecutar `npx tsc` después de CADA cambio."
+        ],
+        "lesson": "Arquitectura 100% correcta, 1 typo lo rompió todo. TypeScript detecta estos errores - úsalo."
+      },
+      "validation_gemini": {
+        "hits": [
+          "✅ Centralizó feature flags en ProtectedRoute",
+          "✅ Eliminó redundancia en páginas",
+          "✅ Agregó loading guard correcto",
+          "✅ Arquitectura sólida"
+        ],
+        "critical_error": "❌ loading → isLoading (1 palabra, toda la funcionalidad rota)"
+      },
+      "fix_applied": "1 línea, problema resuelto por Sonnet.",
+      "files_modified": [
+        "frontend/src/components/ProtectedRoute.tsx"
+      ],
+      "git_commits": ["92e5e212"]
+    },
+    {
       "task_id": "GEMINI_PROTECTEDROUTE_VALIDATION_AND_TYPESCRIPT_FIXES_2025_12_02",
       "status": "COMPLETED",
       "completion_date": "2025-12-02",

@@ -188,7 +188,7 @@ const Navigation: React.FC<{ currentPage?: string }> = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb">
       {/* Backdrop Blur */}
-      <div className="absolute inset-0 bg-theme-header backdrop-blur-lg border-t border-theme-border-primary"></div>
+      <div className="absolute inset-0 shadow-xl mx-1 mb-0 lg:mx-1 rounded-t-3xl border border-black/10 bg-gradient-to-r from-[#887e7e4f] via-[#f0f0f2] to-[#887e7e4f] shadow-xl backdrop-blur"></div>
 
       {/* Content */}
       <div className="relative px-4 py-2 safe-area-pb">

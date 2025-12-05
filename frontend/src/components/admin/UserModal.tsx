@@ -8,7 +8,7 @@ import ImageGalleryUpload from "../shared/ImageGalleryUpload";
 import SubscriptionTabs from "./SubscriptionTabs";
 import type { User } from "../../types";
 import { adminAPI } from "../../services/api"; // Added for balance adjustment
-import ConfirmModal from "../shared/ConfirmModal"; // Added for balance adjustment confirmation
+import ConfirmDialog from "../shared/ConfirmDialog"; // Added for balance adjustment confirmation
 
 type UserRole = "operator" | "venue" | "gallera" | "user";
 type FormMode = "create" | "edit";
@@ -32,14 +32,19 @@ const UserModal: React.FC<UserModalProps> = ({
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<ActiveTab>("profile"); // Use new ActiveTab type
   const [showPassword, setShowPassword] = useState(false);
-        const [isLoading, setIsLoading] = useState(false);
-        const [error, setError] = useState<string | null>(null);
-  
-        // New states for balance adjustment
-        const [balanceAdjustmentType, setBalanceAdjustmentType] = useState<"credit" | "debit">("credit");
-        const [balanceAdjustmentAmount, setBalanceAdjustmentAmount] = useState<number>(0);
-        const [balanceAdjustmentReason, setBalanceAdjustmentReason] = useState<string>("");
-        const [showConfirmAdjustmentModal, setShowConfirmAdjustmentModal] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // New states for balance adjustment
+  const [balanceAdjustmentType, setBalanceAdjustmentType] = useState<
+    "credit" | "debit"
+  >("credit");
+  const [balanceAdjustmentAmount, setBalanceAdjustmentAmount] =
+    useState<number>(0);
+  const [balanceAdjustmentReason, setBalanceAdjustmentReason] =
+    useState<string>("");
+  const [showConfirmAdjustmentModal, setShowConfirmAdjustmentModal] =
+    useState<boolean>(false);
   const {
     formData,
     handleChange,
@@ -87,8 +92,16 @@ const UserModal: React.FC<UserModalProps> = ({
   }, []);
 
   const handleAdjustBalance = async () => {
-    if (!user?.id || !balanceAdjustmentAmount || balanceAdjustmentAmount <= 0 || !balanceAdjustmentReason || balanceAdjustmentReason.length < 10) {
-      toast.error("Por favor, rellena todos los campos de ajuste de saldo y asegúrate de que el monto sea positivo y la razón tenga al menos 10 caracteres.");
+    if (
+      !user?.id ||
+      !balanceAdjustmentAmount ||
+      balanceAdjustmentAmount <= 0 ||
+      !balanceAdjustmentReason ||
+      balanceAdjustmentReason.length < 10
+    ) {
+      toast.error(
+        "Por favor, rellena todos los campos de ajuste de saldo y asegúrate de que el monto sea positivo y la razón tenga al menos 10 caracteres.",
+      );
       return;
     }
 
@@ -611,7 +624,11 @@ const UserModal: React.FC<UserModalProps> = ({
                       name="adjustmentType"
                       value="credit"
                       checked={balanceAdjustmentType === "credit"}
-                      onChange={(e) => setBalanceAdjustmentType(e.target.value as "credit" | "debit")}
+                      onChange={(e) =>
+                        setBalanceAdjustmentType(
+                          e.target.value as "credit" | "debit",
+                        )
+                      }
                     />
                     <span className="ml-2">Añadir Saldo (Crédito)</span>
                   </label>
@@ -622,7 +639,11 @@ const UserModal: React.FC<UserModalProps> = ({
                       name="adjustmentType"
                       value="debit"
                       checked={balanceAdjustmentType === "debit"}
-                      onChange={(e) => setBalanceAdjustmentType(e.target.value as "credit" | "debit")}
+                      onChange={(e) =>
+                        setBalanceAdjustmentType(
+                          e.target.value as "credit" | "debit",
+                        )
+                      }
                     />
                     <span className="ml-2">Restar Saldo (Débito)</span>
                   </label>
@@ -638,7 +659,9 @@ const UserModal: React.FC<UserModalProps> = ({
                   id="adjustmentAmount"
                   name="adjustmentAmount"
                   value={balanceAdjustmentAmount}
-                  onChange={(e) => setBalanceAdjustmentAmount(parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    setBalanceAdjustmentAmount(parseFloat(e.target.value))
+                  }
                   min="0.01"
                   step="0.01"
                   required
@@ -669,20 +692,38 @@ const UserModal: React.FC<UserModalProps> = ({
                   type="button"
                   onClick={() => setShowConfirmAdjustmentModal(true)}
                   className="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                  disabled={isLoading || !balanceAdjustmentAmount || !balanceAdjustmentReason || balanceAdjustmentReason.length < 10}
+                  disabled={
+                    isLoading ||
+                    !balanceAdjustmentAmount ||
+                    !balanceAdjustmentReason ||
+                    balanceAdjustmentReason.length < 10
+                  }
                 >
                   Confirmar Ajuste
                 </button>
               </div>
 
               {/* Confirmation Modal */}
-              <ConfirmModal
+              <ConfirmDialog
                 isOpen={showConfirmAdjustmentModal}
                 onClose={() => setShowConfirmAdjustmentModal(false)}
                 onConfirm={handleAdjustBalance}
                 title="Confirmar Ajuste de Saldo"
                 message={`¿Está seguro que desea ${balanceAdjustmentType === "credit" ? "AÑADIR" : "RESTAR"} $${balanceAdjustmentAmount.toFixed(2)} al saldo de la billetera de ${user?.username}? Esta acción es irreversible y se registrará como: "${balanceAdjustmentReason}".`}
-                confirmText={balanceAdjustmentType === "credit" ? "Añadir" : "Restar"}
+                details={
+                  user?.wallet?.balance !== undefined
+                    ? `Saldo Actual: $${user.wallet.balance.toFixed(2)}\n` +
+                      `Ajuste: ${balanceAdjustmentType === "credit" ? "+" : "-"}$${balanceAdjustmentAmount.toFixed(2)}\n` +
+                      `Nuevo Saldo: $${(
+                        balanceAdjustmentType === "credit"
+                          ? user.wallet.balance + balanceAdjustmentAmount
+                          : user.wallet.balance - balanceAdjustmentAmount
+                      ).toFixed(2)}`
+                    : undefined
+                }
+                confirmText={
+                  balanceAdjustmentType === "credit" ? "Añadir" : "Restar"
+                }
                 isConfirming={isLoading}
               />
             </div>
