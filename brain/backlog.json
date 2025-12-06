@@ -7,6 +7,44 @@
   },
   "active_tasks": [
     {
+      "task_id": "ADMIN_EVENTS_DELETE_FIX_2025_12_05",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-05",
+      "completion_time": "19:30:00",
+      "complexity": "LOW",
+      "category": "BUGFIX",
+      "priority": "P2_MEDIUM",
+      "completed_by": "Gemini",
+      "execution_mode": "standard",
+      "summary": "Fixed a bug where the events list would not correctly refresh with the active filters after an event was deleted.",
+      "problem_description": "The 'handleDeleteEvent' function called 'fetchEvents()' without any parameters after a successful deletion. Because 'fetchEvents' now requires filter state to be passed to it for server-side filtering, this caused the list to refresh with an unfiltered, default view, confusing the user.",
+      "changes_implemented": {
+        "frontend": {
+          "file": "frontend/src/pages/admin/Events.tsx",
+          "details": "Modified the 'handleDeleteEvent' function to call 'fetchEvents(statusFilter, dateFilter)'. This ensures that after an event is deleted, the list is re-fetched from the backend with the currently selected filters, providing a consistent UI experience."
+        }
+      },
+      "files_modified": [
+        "frontend/src/pages/admin/Events.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["ab48335ff8fbafd2f78ec6a402d4f69af9bb6361"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled the project without errors after the fix."
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to the '/admin/events' page.",
+          "Apply a filter (e.g., 'Hoy' or a specific status).",
+          "Delete an event from the filtered list.",
+          "Verify that the list refreshes and still shows the correctly filtered data, minus the deleted event."
+        ]
+      },
+      "business_impact": "Improves UI consistency and reliability in the admin events panel, preventing user confusion when deleting items from a filtered list."
+    },
+    {
       "task_id": "ADMIN_EVENTS_FILTER_FIX_2025_12_05",
       "status": "COMPLETED",
       "completion_date": "2025-12-05",
@@ -842,6 +880,126 @@
           "backend/src/services/systemSettingsService.ts": "Line 247 added getAllSettingsFlat() method",
           "frontend/src/pages/admin/Articles.tsx": "Lines 714-732 added conditional approve buttons"
         }
+      }
+    },
+    {
+      "task_id": "ADMIN_EVENTS_PAGE_REDESIGN_AND_OPTIMIZATION_2025_12_05",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-05",
+      "completion_time": "22:30:00",
+      "complexity": "HIGH",
+      "category": "FEATURE_ENHANCEMENT_AND_BUGFIX",
+      "priority": "P1_HIGH",
+      "completed_by": "Qwen",
+      "execution_mode": "standard",
+      "summary": "Complete redesign and optimization of admin events page with bug fixes, new 3-row layout, and fight-bet connection.",
+      "problem_description": [
+        "1. 'Today's Events' list was derived client-side from main events array, making it incomplete when filters were applied",
+        "2. Status Badge was static with no interactive functionality to change event status",
+        "3. Delete button text said 'Eliminar este evento permanentemente' but backend only performed soft delete (status change to 'cancelled')",
+        "4. Frontend API inconsistency: eventsAPI.cancel() called non-existent POST /events/:id/cancel endpoint",
+        "5. Events.tsx was a 'God Component' managing both list and detail views, causing complexity and tight coupling",
+        "6. Detail view layout was inefficient with sidebar and tabs; needed better workflow and collocated controls",
+        "7. No connection between fight selection and bet display - bets didn't filter by selected fight"
+      ],
+      "root_cause_analysis": {
+        "client_side_filtering": "The todayEvents calculation happened client-side via useMemo based on the events state, which was affected by backend filtering, causing incomplete 'Today's Events' display",
+        "static_status_display": "StatusBadge was purely display-only component without interactive functionality for state transitions",
+        "ui_backend_mismatch": "UI text implied hard delete functionality but backend implemented soft delete (status change), creating user confusion",
+        "api_inconsistency": "Frontend called non-existent POST /events/:id/cancel endpoint instead of using existing PATCH /api/events/:id/status with action 'cancel'",
+        "god_component_architecture": "Single component managed complex state for both list and detail views, violating separation of concerns",
+        "inefficient_layout": "Sidebar + tabs layout didn't optimize workflow for event management tasks",
+        "missing_connection": "No state management connected fight selection to bet filtering display"
+      },
+      "changes_implemented": {
+        "frontend_api_fix": {
+          "file": "frontend/src/config/api.ts",
+          "change": "Replaced non-existent eventsAPI.cancel() with eventsAPI.updateStatus(id, action) using PATCH endpoint",
+          "details": "Updated API client to use correct PATCH /api/events/:id/status endpoint with action parameter"
+        },
+        "ui_text_corrections": {
+          "file": "frontend/src/pages/admin/Events.tsx",
+          "change": "Updated delete button text to 'Cancelar Evento' to match backend soft delete functionality",
+          "details": "Changed 'Eliminar' and 'Eliminar este evento permanentemente' to 'Cancelar' and 'Cancelar este evento' in all instances"
+        },
+        "modular_architecture": {
+          "files_created": [
+            "frontend/src/components/admin/events/EventList.tsx",
+            "frontend/src/components/admin/events/EventDetail.tsx",
+            "frontend/src/components/admin/StatusChanger.tsx"
+          ],
+          "files_modified": [
+            "frontend/src/pages/admin/EventsPage.tsx",
+            "frontend/src/pages/admin/Events.tsx"
+          ],
+          "details": "Decomposed monolithic Events.tsx into modular components: EventList, EventDetail, StatusChanger. Created EventsPage as main router."
+        },
+        "today_events_fix": {
+          "file": "frontend/src/components/admin/events/EventList.tsx",
+          "change": "Implemented separate API call for today's events using dateRange: 'today' parameter",
+          "details": "Created dedicated fetchTodayEvents() function using eventsAPI.getAll({ dateRange: 'today' }) to ensure independence from main list filters"
+        },
+        "interactive_status": {
+          "file": "frontend/src/components/admin/StatusChanger.tsx",
+          "change": "Created interactive dropdown component for status changes",
+          "details": "Implements valid state transitions based on current event status, with dynamic action options"
+        },
+        "new_layout_implementation": {
+          "file": "frontend/src/components/admin/events/EventDetail.tsx",
+          "change": "Implemented 3-row layout: header with controls, streaming section, fight/bets columns",
+          "details": "Row 1: Back button, event name, status, operator, actions. Row 2: Streaming controls with status, buttons, viewers, SSE, preview player. Row 3: Fight management (left) and active bets (right)"
+        },
+        "fight_bet_connection": {
+          "file": "frontend/src/components/admin/events/EventDetail.tsx",
+          "change": "Added selectedFightId state to connect fight selection with bet filtering",
+          "details": "Added state management where selecting a fight filters bets displayed in the right column"
+        }
+      },
+      "files_modified": [
+        "frontend/src/config/api.ts",
+        "frontend/src/pages/admin/Events.tsx",
+        "frontend/src/components/admin/events/EventList.tsx",
+        "frontend/src/components/admin/events/EventDetail.tsx",
+        "frontend/src/pages/admin/EventsPage.tsx",
+        "frontend/src/components/admin/StatusChanger.tsx"
+      ],
+      "files_created": [
+        "frontend/src/components/admin/events/EventList.tsx",
+        "frontend/src/components/admin/events/EventDetail.tsx",
+        "frontend/src/components/admin/StatusChanger.tsx"
+      ],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled the project after all refactoring and component additions"
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to the '/admin/events' page",
+          "Verify that 'Today's Events' section shows all today's events regardless of filters applied to main list",
+          "Test the interactive status dropdown - verify it shows appropriate actions based on current event status",
+          "Verify delete button text now shows 'Cancelar Evento' and performs soft delete as intended",
+          "Check the new 3-row layout in event detail view - header, streaming controls, fight/bets columns",
+          "Select a fight in the left column and verify bets in right column filter to show only bets for that fight",
+          "Verify the modular architecture works with proper separation of list/detail views",
+          "Test all new interactive elements: status dropdown, fight selection, new streaming controls"
+        ]
+      },
+      "business_impact": "Dramatically improves admin event management workflow with better UI/UX, fixes critical API inconsistencies, separates concerns through component decomposition, and provides clear connection between related data (fights and bets). Significantly enhances maintainability and user experience.",
+      "optimization_rationale": {
+        "api_consistency": "Fixed API inconsistency by using existing PATCH endpoint instead of creating non-existent POST endpoint",
+        "ui_accuracy": "Corrected UI text to match backend functionality, eliminating user confusion",
+        "architectural_improvement": "Separated list and detail views into distinct components improving maintainability",
+        "user_experience": "New 3-row layout and fight-bet connection dramatically improve admin workflow efficiency",
+        "state_management": "Proper separation of today's events from main list prevents filter interference"
+      },
+      "lessons_learned": {
+        "api_validation": "Always verify that frontend API calls match existing backend endpoints before implementation",
+        "ui_backend_alignment": "Ensure UI text accurately reflects backend functionality to avoid user confusion",
+        "component_separation": "Complex views should be separated into focused components with single responsibilities",
+        "state_independence": "Related but distinct data streams (like today's events) should have independent state management",
+        "interactive_elements": "Static display elements should be converted to interactive controls when they serve as inputs to system functionality"
       }
     }
   ]

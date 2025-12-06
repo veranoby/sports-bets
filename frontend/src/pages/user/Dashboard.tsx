@@ -68,7 +68,8 @@ const Dashboard: React.FC = () => {
       try {
         const response = await eventsAPI.getAll({ category: "upcoming" });
         if (response.success && response.data) {
-          const eventsArray = (response.data as { events?: any[] }).events || [];
+          const eventsArray =
+            (response.data as { events?: any[] }).events || [];
           const today = new Date();
           const filtered = eventsArray.filter((event) => {
             if (!event?.scheduledDate) return true;
@@ -159,7 +160,7 @@ const Dashboard: React.FC = () => {
         {/* ROLE-SPECIFIC SECTIONS */}
         {user?.role === "user" && isBettingEnabled && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-theme-primary">
+          {/*   <h2 className="text-2xl font-bold text-theme-primary">
               Mis Apuestas
             </h2>
             <div className="card-background p-6">
@@ -167,9 +168,8 @@ const Dashboard: React.FC = () => {
                 Aquí irán las secciones de Mis Apuestas y Historial de Apuestas
                 (BettingSection).
               </p>
-              {/* <BettingSection /> */}{" "}
-              {/* Placeholder for actual component */}
-            </div>
+              <BettingSection /> 
+            </div>*/}
           </div>
         )}
 
@@ -255,26 +255,32 @@ const Dashboard: React.FC = () => {
 
             {todayEvents.length > 0 ? (
               <div className="space-y-3">
-                {todayEvents.map((event) => {
-                  const typedEvent = event as EventData;
-                  const eventDate = new Date(typedEvent.scheduledDate);
-                  const isLive = typedEvent.status === "in-progress";
-                  return (
-                    <button
-                      key={typedEvent.id}
-                      onClick={() => navigate(`/live-event/${typedEvent.id}`)}
-                      className="w-full text-left group"
-                    >
-                      <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all group-hover:border-theme-primary/40 group-hover:bg-white/10">
-                        <div className="flex flex-col items-center min-w-[68px]">
-                          <span className="text-[0.65rem] uppercase tracking-[0.2em] text-theme-light">
-                            {formatWeekday(eventDate)}
-                          </span>
-                          <span className="text-lg font-semibold text-theme-primary">
-                            {formatTime(eventDate)}
-                          </span>
-                          <span className="w-px h-6 bg-white/10 mt-2 hidden sm:block"></span>
-                        </div>
+                {[...todayEvents]
+                  .sort((a, b) => {
+                    const dateA = new Date((a as EventData).scheduledDate).getTime();
+                    const dateB = new Date((b as EventData).scheduledDate).getTime();
+                    return dateA - dateB;
+                  })
+                  .map((event) => {
+                    const typedEvent = event as EventData;
+                    const eventDate = new Date(typedEvent.scheduledDate);
+                    const isLive = typedEvent.status === "in-progress";
+                    return (
+                      <button
+                        key={typedEvent.id}
+                        onClick={() => navigate(`/live-event/${typedEvent.id}`)}
+                        className="w-full text-left group"
+                      >
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all group-hover:border-theme-primary/40 group-hover:bg-white/10">
+                          <div className="flex flex-col items-center min-w-[68px]">
+                            <span className="text-[0.65rem] uppercase tracking-[0.2em] text-theme-light">
+                              {formatWeekday(eventDate)}
+                            </span>
+                            <span className="text-lg font-semibold text-theme-primary">
+                              {formatTime(eventDate)}
+                            </span>
+                            <span className="w-px h-6 bg-white/10 mt-2 hidden sm:block"></span>
+                          </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between gap-3">
                             <h3 className="font-semibold text-theme-primary truncate">
@@ -292,7 +298,8 @@ const Dashboard: React.FC = () => {
                           </div>
                           <p className="text-sm text-theme-light flex items-center gap-2 mt-1">
                             <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10">
-                              {typedEvent.venue?.name || "Gallera por confirmar"}
+                              {typedEvent.venue?.name ||
+                                "Gallera por confirmar"}
                             </span>
                             {typedEvent.totalFights && (
                               <span className="text-xs text-theme-light/80">
@@ -386,7 +393,10 @@ const Dashboard: React.FC = () => {
                             )}
                             {typedEvent.operator && (
                               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
-                                Operado por {typeof typedEvent.operator === "string" ? typedEvent.operator : typedEvent.operator?.username}
+                                Operado por{" "}
+                                {typeof typedEvent.operator === "string"
+                                  ? typedEvent.operator
+                                  : typedEvent.operator?.username}
                               </span>
                             )}
                           </div>

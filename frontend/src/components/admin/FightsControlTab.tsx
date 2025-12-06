@@ -13,6 +13,8 @@ interface FightsControlTabProps {
   eventDetailData: any;
   onFightsUpdate: (fights: Fight[]) => void;
   onEventUpdate: (event: any) => void;
+  selectedFightId?: string | null; // Currently selected fight
+  onFightSelect?: (fightId: string) => void; // Callback when a fight is selected
 }
 
 const FightsControlTab: React.FC<FightsControlTabProps> = ({
@@ -20,6 +22,8 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   eventDetailData,
   onFightsUpdate,
   onEventUpdate,
+  selectedFightId,
+  onFightSelect,
 }) => {
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
@@ -80,91 +84,6 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Control de Streaming
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-500">
-                Estado del Stream
-              </label>
-              <div className="flex items-center gap-2 mt-1">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${
-                    eventDetailData?.event?.streamStatus === "connected"
-                      ? "bg-red-100 text-red-800 animate-pulse"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  <div className="w-2 h-2 rounded-full mr-1 bg-current"></div>
-                  {eventDetailData?.event?.streamStatus === "connected"
-                    ? "Conectado"
-                    : "Desconectado"}
-                </span>
-              </div>
-            </div>
-
-            {eventDetailData?.event?.liveStream?.url && (
-              <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  URL del Stream
-                </label>
-                <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
-                  {eventDetailData.event.liveStream.url}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEventAction("start-stream")}
-                disabled={
-                  eventDetailData?.event?.streamStatus === "connected" ||
-                  operationInProgress?.includes("event-")
-                }
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <div className="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-white"></div>
-                </div>
-                Iniciar Stream
-              </button>
-              <button
-                onClick={() => handleEventAction("stop-stream")}
-                disabled={
-                  eventDetailData?.event?.streamStatus !== "connected" ||
-                  operationInProgress?.includes("event-")
-                }
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                <div className="w-4 h-4 bg-white"></div>
-                Detener Stream
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Estadísticas Técnicas
-          </h3>
-          <div className="space-y-3">
-            {eventDetailData?.event?.currentViewers !== undefined && (
-              <div>
-                <label className="block text-sm font-medium text-gray-500">
-                  Espectadores
-                </label>
-                <p className="text-sm text-gray-900">
-                  {eventDetailData.event.currentViewers}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-900">
           Gestión de Peleas ({eventDetailData?.fights?.length || 0})
@@ -196,12 +115,21 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
           />
         ) : (
           eventDetailData?.fights?.map((fight: Fight) => (
-            <FightStatusManager
+            <div
               key={fight.id}
-              fight={fight}
-              eventId={eventId}
-              onFightUpdate={handleFightUpdate}
-            />
+              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                selectedFightId === fight.id
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:shadow-md'
+              }`}
+              onClick={() => onFightSelect && onFightSelect(fight.id)}
+            >
+              <FightStatusManager
+                fight={fight}
+                eventId={eventId}
+                onFightUpdate={handleFightUpdate}
+              />
+            </div>
           ))
         )}
       </div>

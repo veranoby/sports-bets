@@ -9,11 +9,13 @@ import type { Bet } from "../../types";
 interface BetsActiveTabProps {
   eventId: string;
   eventDetailData: any;
+  fightId?: string | null; // Optional fight ID to filter bets
 }
 
 const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
   eventId,
   eventDetailData,
+  fightId,
 }) => {
   const [activeBets, setActiveBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +30,18 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
         setLoading(true);
         setError(null);
 
-        const response = await betsAPI.getAll({
+        const params: any = {
           eventId,
           status: ["active", "pending"].join(","), // Only active/pending bets
           limit: 100, // Limit to 100 bets for performance during live event
-        });
+        };
+
+        // Add fightId filter if provided
+        if (fightId) {
+          params.fightId = fightId;
+        }
+
+        const response = await betsAPI.getAll(params);
 
         if (response.success && response.data) {
           setActiveBets(response.data.bets || []);
@@ -50,7 +59,7 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
     };
 
     fetchActiveBets();
-  }, [eventId]);
+  }, [eventId, fightId]);
 
   // Calculate statistics
   const totalActiveAmount = activeBets.reduce(

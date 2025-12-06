@@ -806,6 +806,27 @@
       "note": "Historical analytics with detailed user connection data",
       "use_case": "Admin dashboard to see who watched event and for how long",
       "implementation": "backend/src/routes/events.ts:815"
+    },
+    "delete_event": {
+      "method": "DELETE",
+      "path": "/events/:id",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {
+        "success": true,
+        "message": "Event cancelled successfully",
+        "data": "Event object with status='cancelled'"
+      },
+      "behavior": "SOFT DELETE - Changes event.status to 'cancelled', does NOT remove from database",
+      "validation": "Cannot delete events with status='in-progress'",
+      "implementation": "backend/src/routes/events.ts:789-812",
+      "frontend_usage": {
+        "component": "frontend/src/pages/admin/EventsPage.tsx",
+        "button_label": "Cancelar Evento (NOT 'Eliminar permanentemente')",
+        "api_call": "eventsAPI.delete(eventId)"
+      },
+      "added_date": "2025-12-05 (documented during Events.tsx refactoring)",
+      "critical_note": "UI labels updated to reflect soft delete behavior - prevents user confusion"
     }
   },
 
@@ -1792,19 +1813,58 @@
       },
       "added_date": "2025-11-19 (UNIFIED_STREAMING_MONITORING_IMPLEMENTATION)"
     },
-    "pause_resume_stream_optimization_2025_11_19": {
-      "description": "Streaming pause feature optimization: API consolidation",
-      "changes": [
-        {
-          "type": "API Method Consolidation",
-          "detail": "Removed duplicate pauseStream/resumeStream from eventsAPI",
-          "reason": "eventsAPI methods routed to non-existent backend endpoints",
-          "consolidation": "Single source of truth in streamingAPI",
-          "frontend_impact": "NONE - all components already use streamingAPI methods",
-          "removed_from": "frontend/src/services/api.ts eventsAPI (was lines 257-262)",
-          "consolidated_to": "frontend/src/services/api.ts streamingAPI (lines 307-312)"
+    "pause_stream": {
+      "method": "POST",
+      "path": "/streaming/pause",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "body": {
+        "eventId": "string (UUID)"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "message": "string",
+          "bandwidth_saved": "number",
+          "eventStatus": "paused"
         }
-      ]
+      },
+      "behavior": "Pauses active stream during intermissions, updates event.status to 'paused'",
+      "validation": "Can only pause streams with event.status='in-progress'",
+      "sse_broadcast": "Sends STREAM_PAUSED event to all connected clients",
+      "implementation": "backend/src/routes/streaming.ts:634-703",
+      "frontend_usage": {
+        "api_client": "frontend/src/config/api.ts:429-430 streamingAPI.pauseStream(eventId)",
+        "component": "frontend/src/components/admin/events/EventDetail.tsx:327",
+        "button_label": "Pausar Stream"
+      },
+      "added_date": "2025-12-05 (documented with Events.tsx refactoring)"
+    },
+    "resume_stream": {
+      "method": "POST",
+      "path": "/streaming/resume",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "body": {
+        "eventId": "string (UUID)"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "message": "string",
+          "eventStatus": "in-progress"
+        }
+      },
+      "behavior": "Resumes paused stream after intermission, updates event.status to 'in-progress'",
+      "validation": "Can only resume streams with event.status='intermission'",
+      "sse_broadcast": "Sends STREAM_RESUMED event to all connected clients",
+      "implementation": "backend/src/routes/streaming.ts:705-760",
+      "frontend_usage": {
+        "api_client": "frontend/src/config/api.ts:432-433 streamingAPI.resumeStream(eventId)",
+        "component": "frontend/src/components/admin/events/EventDetail.tsx:356",
+        "button_label": "Reanudar Stream"
+      },
+      "added_date": "2025-12-05 (documented with Events.tsx refactoring)"
     }
   },
 

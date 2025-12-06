@@ -108,7 +108,7 @@ export const eventsAPI = {
 
   delete: (id: string) => apiClient.delete(`/events/${id}`),
 
-  cancel: (id: string) => apiClient.post(`/events/${id}/cancel`),
+  updateStatus: (id: string, action: string) => apiClient.patch(`/events/${id}/status`, { action }),
 };
 
 export const fightsAPI = {
@@ -425,6 +425,12 @@ export const streamingAPI = {
 
   stopStream: (data: { streamId?: string; eventId?: string }) =>
     apiClient.post("/streaming/stop", data),
+
+  pauseStream: (eventId: string) =>
+    apiClient.post("/streaming/pause", { eventId }),
+
+  resumeStream: (eventId: string) =>
+    apiClient.post("/streaming/resume", { eventId }),
 
   // System status and analytics
   getSystemStatus: () => apiClient.get("/streaming/status"),

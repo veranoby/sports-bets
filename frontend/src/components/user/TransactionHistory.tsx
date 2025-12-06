@@ -16,7 +16,9 @@ type TransactionType =
   | "withdrawal"
   | "bet-win"
   | "bet-loss"
-  | "bet-refund";
+  | "bet-refund"
+  | "admin_credit"
+  | "admin_debit";
 type TransactionStatus = "pending" | "completed" | "failed";
 
 interface Transaction {

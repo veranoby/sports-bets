@@ -158,7 +158,7 @@ class GallerosNetSSEService {
   private readonly CLEANUP_INTERVAL = 300000; // 5 minutes
 
   // Constants for connection limits (same as WebSocket)
-  private readonly MAX_CONNECTIONS_PER_CHANNEL = 500; // Max connections per channel
+  private readonly MAX_CONNECTIONS_PER_CHANNEL = 2000; // Max connections per channel (supports 2000 concurrent viewers)
 
   constructor() {
     this.heartbeatInterval = null;
