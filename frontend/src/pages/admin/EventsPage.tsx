@@ -63,11 +63,16 @@ const EventsPage: React.FC = () => {
     try {
       setOperationInProgress(`${eventId}-delete`);
       await eventsAPI.permanentDelete(eventId);
-      navigate("/admin/events");
+      // Si estamos en EventDetail, navegar a lista
+      if (eventId) {
+        navigate("/admin/events");
+      }
+      // Si estamos en EventList, no hacer nada - EventList actualiza su propio estado
     } catch (err) {
       setError(
         `Error al eliminar: ${err instanceof Error ? err.message : "Error desconocido"}`,
       );
+      throw err; // Re-throw para que EventList maneje el error
     } finally {
       setOperationInProgress(null);
     }

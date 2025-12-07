@@ -28,7 +28,7 @@ import type { Event } from "../../../types";
 
 interface EventListProps {
   onEventAction: (eventId: string, action: string) => void;
-  onPermanentDelete?: (eventId: string) => void;
+  onPermanentDelete?: (eventId: string) => Promise<void>;
 }
 
 const EventList: React.FC<EventListProps> = ({
@@ -428,13 +428,29 @@ const EventList: React.FC<EventListProps> = ({
                     {onPermanentDelete && (
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (
                               window.confirm(
                                 "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento de la base de datos? Esta acción NO se puede deshacer.",
                               )
                             ) {
-                              onPermanentDelete(event.id);
+                              try {
+                                await onPermanentDelete(event.id);
+                                // Optimización: actualizar estado local sin re-fetch
+                                setTodayEvents((prev) =>
+                                  prev.filter((e) => e.id !== event.id),
+                                );
+                                setEvents((prev) =>
+                                  prev.filter((e) => e.id !== event.id),
+                                );
+                              } catch (err) {
+                                console.error("Error deleting event:", err);
+                                setError(
+                                  err instanceof Error
+                                    ? err.message
+                                    : "Error al eliminar evento",
+                                );
+                              }
                             }
                           }}
                           className="p-2 bg-red-800 text-white rounded text-sm hover:bg-red-900 flex items-center gap-1"
@@ -529,13 +545,29 @@ const EventList: React.FC<EventListProps> = ({
                   {onPermanentDelete && (
                     <div className="relative group inline-block">
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (
                             window.confirm(
                               "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.",
                             )
                           ) {
-                            onPermanentDelete(event.id);
+                            try {
+                              await onPermanentDelete(event.id);
+                              // Optimización: actualizar estado local sin re-fetch
+                              setTodayEvents((prev) =>
+                                prev.filter((e) => e.id !== event.id),
+                              );
+                              setEvents((prev) =>
+                                prev.filter((e) => e.id !== event.id),
+                              );
+                            } catch (err) {
+                              console.error("Error deleting event:", err);
+                              setError(
+                                err instanceof Error
+                                  ? err.message
+                                  : "Error al eliminar evento",
+                              );
+                            }
                           }
                         }}
                         className="p-1 text-red-700 hover:text-red-900"
