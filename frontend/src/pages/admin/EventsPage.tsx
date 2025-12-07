@@ -25,35 +25,35 @@ const EventsPage: React.FC = () => {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const handleEventAction = async (eventId: string, action: string) => {
-    let response = null; // Initialize response outside try block
+  const handleEventAction = async (
+    eventId: string,
+    action: string,
+  ): Promise<void> => {
     try {
       setOperationInProgress(`${eventId}-${action}`);
       switch (action) {
         case "activate":
-          response = await eventsAPI.updateStatus(eventId, "activate");
+          await eventsAPI.updateStatus(eventId, "activate");
           break;
         case "start-stream":
-          response = await eventsAPI.startStream(eventId);
+          await eventsAPI.startStream(eventId);
           break;
         case "stop-stream":
-          response = await eventsAPI.stopStream(eventId);
+          await eventsAPI.stopStream(eventId);
           break;
         case "complete":
-          response = await eventsAPI.updateStatus(eventId, "complete");
+          await eventsAPI.updateStatus(eventId, "complete");
           break;
         case "cancel":
-          response = await eventsAPI.updateStatus(eventId, "cancel");
+          await eventsAPI.updateStatus(eventId, "cancel");
           break;
       }
-      if (response) {
-        // In a real implementation, you would update local state here
-        // For now, we'll just refresh the view by re-fetching
-      }
+      // EventList will handle state updates locally
     } catch (err) {
       setError(
         `Error en ${action}: ${err instanceof Error ? err.message : "Error desconocido"}`,
       );
+      throw err; // Re-throw so EventList can handle it
     } finally {
       setOperationInProgress(null);
     }

@@ -27,7 +27,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import type { Event } from "../../../types";
 
 interface EventListProps {
-  onEventAction: (eventId: string, action: string) => void;
+  onEventAction: (eventId: string, action: string) => Promise<void>;
   onPermanentDelete?: (eventId: string) => Promise<void>;
 }
 
@@ -44,6 +44,48 @@ const EventList: React.FC<EventListProps> = ({
   const [todayEventsLoading, setTodayEventsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Local wrapper to update state after status change
+  const handleStatusChange = async (eventId: string, action: string) => {
+    try {
+      await onEventAction(eventId, action);
+
+      // Determine new status based on action
+      type EventStatus =
+        | "scheduled"
+        | "in-progress"
+        | "completed"
+        | "cancelled"
+        | "paused"
+        | "intermission";
+      let newStatus: EventStatus;
+      switch (action) {
+        case "activate":
+          newStatus = "in-progress";
+          break;
+        case "complete":
+          newStatus = "completed";
+          break;
+        case "cancel":
+          newStatus = "cancelled";
+          break;
+        default:
+          return; // Unknown action, don't update
+      }
+
+      // Update local state without re-fetch
+      const updateEventStatus = (event: Event) =>
+        event.id === eventId
+          ? ({ ...event, status: newStatus } as Event)
+          : event;
+
+      setEvents((prev) => prev.map(updateEventStatus));
+      setTodayEvents((prev) => prev.map(updateEventStatus));
+    } catch (err) {
+      console.error("Error changing status:", err);
+      setError(err instanceof Error ? err.message : "Error al cambiar estado");
+    }
+  };
 
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get("status") || "",
@@ -304,7 +346,7 @@ const EventList: React.FC<EventListProps> = ({
                       </h3>
                       <StatusChanger
                         event={event}
-                        onStatusChange={onEventAction}
+                        onStatusChange={handleStatusChange}
                       />
                       <StreamStatusBadge
                         status={event.streamStatus || "offline"}
@@ -351,7 +393,9 @@ const EventList: React.FC<EventListProps> = ({
                     {event.status === "scheduled" && (
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => onEventAction(event.id, "activate")}
+                          onClick={() =>
+                            handleStatusChange(event.id, "activate")
+                          }
                           disabled={false} // Temporarily disable this check, will be handled by parent component if needed
                           className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
                         >
@@ -402,7 +446,9 @@ const EventList: React.FC<EventListProps> = ({
                       event.status === "live") && (
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => onEventAction(event.id, "complete")}
+                          onClick={() =>
+                            handleStatusChange(event.id, "complete")
+                          }
                           className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
                         >
                           <CheckCircle className="w-4 h-4" />

@@ -16,28 +16,50 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Define all available actions (always show all, user determines the state)
-  const getValidActions = () => {
-    return [
-      {
+  // Smart filtering: show only valid actions based on current status
+  const getValidActions = (currentStatus: string) => {
+    const allActions = {
+      activate: {
         action: "activate",
         label: "Iniciar Evento",
         description: "Cambiar estado a iniciado/en progreso",
       },
-      {
+      complete: {
         action: "complete",
         label: "Marcar como Terminado",
         description: "Finalizar el evento",
       },
-      {
+      cancel: {
         action: "cancel",
         label: "Cancelar Evento",
         description: "Marcar el evento como cancelado",
       },
-    ];
+    };
+
+    // Define valid transitions based on current status
+    switch (currentStatus) {
+      case "scheduled":
+        return [allActions.activate, allActions.cancel];
+
+      case "in-progress":
+        return [allActions.complete, allActions.cancel];
+
+      case "paused":
+      case "intermission":
+        return [allActions.activate, allActions.complete, allActions.cancel];
+
+      case "completed":
+      case "cancelled":
+        // Terminal states - no actions available
+        return [];
+
+      default:
+        // Unknown state - show all options
+        return [allActions.activate, allActions.complete, allActions.cancel];
+    }
   };
 
-  const validActions = getValidActions();
+  const validActions = getValidActions(event.status);
   const currentStatusConfig = {
     scheduled: {
       text: "Programado",
@@ -105,6 +127,18 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
     onStatusChange(event.id, action);
     setIsOpen(false);
   };
+
+  // Don't render dropdown if no actions available (terminal states)
+  if (validActions.length === 0) {
+    return (
+      <div
+        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${currentStatusDisplay.color}`}
+      >
+        {currentStatusDisplay.icon}
+        {currentStatusDisplay.text}
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
