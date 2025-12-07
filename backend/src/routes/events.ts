@@ -389,14 +389,18 @@ router.patch(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Validate transition logic
+    // Relaxed transition logic - allows more flexible state changes
     const currentStatus = event.status;
     let newStatus: string;
 
     switch (action) {
       case "activate":
-        if (currentStatus !== "scheduled") {
-          throw errors.badRequest("Only scheduled events can be activated");
+        // Prevent re-activating already active or completed events
+        if (currentStatus === "in-progress") {
+          throw errors.badRequest("Event is already active");
+        }
+        if (currentStatus === "completed") {
+          throw errors.badRequest("Cannot activate a completed event");
         }
 
         const eventData = event.toJSON() as any;
@@ -414,8 +418,9 @@ router.patch(
         break;
 
       case "complete":
-        if (currentStatus !== "in-progress") {
-          throw errors.badRequest("Only active events can be completed");
+        // Allow completing from any state except already completed
+        if (currentStatus === "completed") {
+          throw errors.badRequest("Event is already completed");
         }
         newStatus = "completed";
         event.endDate = new Date();
@@ -426,8 +431,12 @@ router.patch(
         break;
 
       case "cancel":
+        // Allow cancelling from any state except completed
         if (currentStatus === "completed") {
           throw errors.badRequest("Completed events cannot be cancelled");
+        }
+        if (currentStatus === "cancelled") {
+          throw errors.badRequest("Event is already cancelled");
         }
         newStatus = "cancelled";
         if (event.streamUrl) {
