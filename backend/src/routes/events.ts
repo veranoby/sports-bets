@@ -389,28 +389,14 @@ router.patch(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Relaxed transition logic - allows more flexible state changes
-    const currentStatus = event.status;
+    // No validation - admin can change to any state they want
     let newStatus: string;
 
     switch (action) {
       case "activate":
-        // Prevent re-activating already active or completed events
-        if (currentStatus === "in-progress") {
-          throw errors.badRequest("Event is already active");
-        }
-        if (currentStatus === "completed") {
-          throw errors.badRequest("Cannot activate a completed event");
-        }
-
-        const eventData = event.toJSON() as any;
-        if (!eventData.fights || eventData.fights.length === 0) {
-          throw errors.badRequest("Event must have at least one fight scheduled");
-        }
-
         newStatus = "in-progress";
 
-        // Generate stream key with improved format
+        // Generate stream key if needed
         if (!event.streamKey) {
           event.streamKey = event.generateStreamKey();
         }
@@ -418,12 +404,9 @@ router.patch(
         break;
 
       case "complete":
-        // Allow completing from any state except already completed
-        if (currentStatus === "completed") {
-          throw errors.badRequest("Event is already completed");
-        }
         newStatus = "completed";
         event.endDate = new Date();
+        // Clean up streaming data
         if (event.streamUrl) {
           event.streamUrl = null;
         }
@@ -431,14 +414,8 @@ router.patch(
         break;
 
       case "cancel":
-        // Allow cancelling from any state except completed
-        if (currentStatus === "completed") {
-          throw errors.badRequest("Completed events cannot be cancelled");
-        }
-        if (currentStatus === "cancelled") {
-          throw errors.badRequest("Event is already cancelled");
-        }
         newStatus = "cancelled";
+        // Clean up streaming data
         if (event.streamUrl) {
           event.streamUrl = null;
         }
