@@ -53,7 +53,7 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
         if (response.success && response.data) {
           // Filter for active and pending bets only
           const filteredBets = (response.data.bets || []).filter(
-            (bet: Bet) => bet.status === "active" || bet.status === "pending"
+            (bet: Bet) => bet.status === "active" || bet.status === "pending",
           );
           setActiveBets(filteredBets);
         } else {
@@ -61,8 +61,13 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
         }
       } catch (err) {
         // Si hay error de apuestas, mostrar mensaje informativo
-        if (err instanceof Error && err.message.includes('fight->event.title')) {
-          setError("No se pudieron cargar las apuestas activas debido a un error en el servidor. Esta funcionalidad puede estar temporalmente no disponible.");
+        if (
+          err instanceof Error &&
+          err.message.includes("fight->event.title")
+        ) {
+          setError(
+            "No se pudieron cargar las apuestas activas debido a un error en el servidor. Esta funcionalidad puede estar temporalmente no disponible.",
+          );
         } else {
           setError(
             err instanceof Error ? err.message : "Error loading active bets",
@@ -91,29 +96,35 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
 
   return (
     <div className="space-y-6">
-           {/* cabecera y estadisticas rapidas */}
+      {/* cabecera y estadisticas rapidas */}
 
-        <div className="flex items-center justify-between m-4">
-          <h4 className="text-lg font-medium text-gray-900">
-            Apuestas Activas ({totalActiveBets})
-          </h4>
-          <div className="text-sm text-gray-600">
-            Actualizado en tiempo real
-          </div>
-        </div>
+      <div className="flex items-center justify-between m-4">
+        <h4 className="text-lg font-medium text-gray-900">
+          Apuestas Activas ({totalActiveBets})
+        </h4>
+        <div className="text-sm text-gray-600">Actualizado en tiempo real</div>
+      </div>
 
-     {/* Quick Actions */}
+      {/* Quick Actions */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
           <button
-            onClick={() => onStartBettingSession && selectedFightId && onStartBettingSession(selectedFightId)}
+            onClick={() =>
+              onStartBettingSession &&
+              selectedFightId &&
+              onStartBettingSession(selectedFightId)
+            }
             disabled={operationInProgress !== null || !selectedFightId}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
           >
             INICIAR sesion de Apuestas!
           </button>
           <button
-            onClick={() => onCloseBettingSession && selectedFightId && onCloseBettingSession(selectedFightId)}
+            onClick={() =>
+              onCloseBettingSession &&
+              selectedFightId &&
+              onCloseBettingSession(selectedFightId)
+            }
             disabled={operationInProgress !== null || !selectedFightId}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50"
           >
@@ -131,8 +142,6 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
       </div>
 
       <div>
-
-
         {error ? (
           <Card className="p-6">
             <div className="text-center text-red-600">
@@ -215,8 +224,6 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
           </div>
         )}
       </div>
-
- 
     </div>
   );
 };

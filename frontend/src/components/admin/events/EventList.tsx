@@ -429,7 +429,11 @@ const EventList: React.FC<EventListProps> = ({
                       <div className="relative group inline-block">
                         <button
                           onClick={() => {
-                            if (window.confirm("⚠️ ¿ELIMINAR PERMANENTEMENTE este evento de la base de datos? Esta acción NO se puede deshacer.")) {
+                            if (
+                              window.confirm(
+                                "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento de la base de datos? Esta acción NO se puede deshacer.",
+                              )
+                            ) {
                               onPermanentDelete(event.id);
                             }
                           }}
@@ -526,7 +530,11 @@ const EventList: React.FC<EventListProps> = ({
                     <div className="relative group inline-block">
                       <button
                         onClick={() => {
-                          if (window.confirm("⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.")) {
+                          if (
+                            window.confirm(
+                              "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.",
+                            )
+                          ) {
                             onPermanentDelete(event.id);
                           }
                         }}

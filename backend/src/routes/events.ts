@@ -5,6 +5,7 @@ import { Event, User, Fight, Bet, EventConnection } from "../models";
 import { body, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
+import { transaction } from "../config/database";
 import notificationService from "../services/notificationService";
 import { UserRole } from "../../../shared/types";
 
@@ -840,8 +841,8 @@ router.delete(
         throw errors.notFound("Event not found");
       }
 
-      if (event.status === "in-progress" || event.status === "live") {
-        throw errors.badRequest("Cannot permanently delete an active/live event");
+      if (event.status === "in-progress") {
+        throw errors.badRequest("Cannot permanently delete an active event");
       }
 
       const eventData = event.toJSON() as any;

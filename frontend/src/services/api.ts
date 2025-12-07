@@ -114,7 +114,11 @@ export const fightsAPI = {
   createFight: async (data: Partial<Fight>) => {
     return apiCall("post", "/fights", data);
   },
-  updateFightStatus: async (fightId: string, status: string, result?: string) => {
+  updateFightStatus: async (
+    fightId: string,
+    status: string,
+    result?: string,
+  ) => {
     const data: { status: string; result?: string } = { status };
     if (result) {
       data.result = result;

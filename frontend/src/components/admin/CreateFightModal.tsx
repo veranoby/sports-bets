@@ -83,7 +83,8 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
         <h3 className="text-lg font-semibold mb-4">Registrar nueva pelea</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-sm text-gray-600 mb-4">
-            📌 El número de pelea se asignará automáticamente según el orden de creación
+            📌 El número de pelea se asignará automáticamente según el orden de
+            creación
           </p>
           <div>
             <label

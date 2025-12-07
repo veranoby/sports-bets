@@ -137,12 +137,18 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
-                    if (window.confirm(`⚠️ ¿Eliminar la pelea #${fight.number}? No se puede deshacer.`)) {
+                    if (
+                      window.confirm(
+                        `⚠️ ¿Eliminar la pelea #${fight.number}? No se puede deshacer.`,
+                      )
+                    ) {
                       try {
                         setOperationInProgress(`${fight.id}-delete`);
                         await fightsAPI.delete(fight.id);
                         // Update local state
-                        const updatedFights = (eventDetailData?.fights || []).filter((f: Fight) => f.id !== fight.id);
+                        const updatedFights = (
+                          eventDetailData?.fights || []
+                        ).filter((f: Fight) => f.id !== fight.id);
                         onFightsUpdate(updatedFights);
                       } catch (err) {
                         console.error("Error deleting fight:", err);
