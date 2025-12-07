@@ -9,42 +9,35 @@ interface StatusChangerProps {
   onStatusChange: (eventId: string, action: string) => void;
 }
 
-const StatusChanger: React.FC<StatusChangerProps> = ({ event, onStatusChange }) => {
+const StatusChanger: React.FC<StatusChangerProps> = ({
+  event,
+  onStatusChange,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Define valid status transitions based on current status
-  const getValidActions = (currentStatus: string) => {
-    switch (currentStatus) {
-      case "scheduled":
-        return [
-          { action: "activate", label: "Activar", description: "Cambiar a en progreso" },
-          { action: "cancel", label: "Cancelar", description: "Cancelar el evento" }
-        ];
-      case "in-progress":
-      case "live":
-        return [
-          { action: "complete", label: "Completar", description: "Marcar como completado" },
-          { action: "cancel", label: "Cancelar", description: "Cancelar el evento" }
-        ];
-      case "completed":
-        return [
-          { action: "activate", label: "Reabrir", description: "Reabrir el evento" }
-        ];
-      case "cancelled":
-        return [
-          { action: "activate", label: "Reabrir", description: "Reabrir el evento" }
-        ];
-      default:
-        return [
-          { action: "activate", label: "Activar", description: "Cambiar a en progreso" },
-          { action: "complete", label: "Completar", description: "Marcar como completado" },
-          { action: "cancel", label: "Cancelar", description: "Cancelar el evento" }
-        ];
-    }
+  // Define all available actions (always show all, user determines the state)
+  const getValidActions = () => {
+    return [
+      {
+        action: "activate",
+        label: "Iniciar Evento",
+        description: "Cambiar estado a iniciado/en progreso",
+      },
+      {
+        action: "complete",
+        label: "Marcar como Terminado",
+        description: "Finalizar el evento",
+      },
+      {
+        action: "cancel",
+        label: "Cancelar Evento",
+        description: "Marcar el evento como cancelado",
+      },
+    ];
   };
 
-  const validActions = getValidActions(event.status);
+  const validActions = getValidActions();
   const currentStatusConfig = {
     scheduled: {
       text: "Programado",
@@ -52,7 +45,7 @@ const StatusChanger: React.FC<StatusChangerProps> = ({ event, onStatusChange }) 
       icon: null,
     },
     active: {
-      text: "Activo",
+      text: "Iniciado",
       color: "bg-blue-100 text-blue-800",
       icon: null,
     },
@@ -62,7 +55,7 @@ const StatusChanger: React.FC<StatusChangerProps> = ({ event, onStatusChange }) 
       icon: null,
     },
     completed: {
-      text: "Completado",
+      text: "Terminado",
       color: "bg-green-100 text-green-800",
       icon: null,
     },
@@ -72,7 +65,7 @@ const StatusChanger: React.FC<StatusChangerProps> = ({ event, onStatusChange }) 
       icon: null,
     },
     "in-progress": {
-      text: "En Progreso",
+      text: "Iniciado",
       color: "bg-yellow-100 text-yellow-800",
       icon: null,
     },
@@ -88,11 +81,15 @@ const StatusChanger: React.FC<StatusChangerProps> = ({ event, onStatusChange }) 
     },
   };
 
-  const currentStatusDisplay = currentStatusConfig[event.status as keyof typeof currentStatusConfig] || 
+  const currentStatusDisplay =
+    currentStatusConfig[event.status as keyof typeof currentStatusConfig] ||
     currentStatusConfig.scheduled;
 
   const handleClickOutside = (event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
       setIsOpen(false);
     }
   };

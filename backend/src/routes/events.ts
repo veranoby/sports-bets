@@ -785,7 +785,7 @@ router.get(
   })
 );
 
-// DELETE /api/events/:id - Cancelar evento (solo admin)
+// DELETE /api/events/:id - Cancelar evento (solo admin) - soft delete
 router.delete(
   "/:id",
   authenticate,
@@ -807,6 +807,71 @@ router.delete(
       success: true,
       message: "Event cancelled successfully",
       data: event.toJSON(),
+    });
+  })
+);
+
+// DELETE /api/events/:id/permanent - Eliminar evento permanentemente (solo admin) - hard delete
+router.delete(
+  "/:id/permanent",
+  authenticate,
+  authorize("admin"),
+  asyncHandler(async (req, res) => {
+    await transaction(async (t) => {
+      const event = await Event.findByPk(req.params.id, {
+        include: [
+          {
+            model: Fight,
+            as: "fights",
+            include: [
+              {
+                model: Bet,
+                as: "bets",
+                required: false
+              }
+            ],
+            required: false
+          }
+        ],
+        transaction: t
+      });
+
+      if (!event) {
+        throw errors.notFound("Event not found");
+      }
+
+      if (event.status === "in-progress" || event.status === "live") {
+        throw errors.badRequest("Cannot permanently delete an active/live event");
+      }
+
+      const eventData = event.toJSON() as any;
+
+      // Check if event has active bets
+      const hasActiveBets = eventData.fights?.some((fight: any) =>
+        fight.bets?.some((bet: any) => bet.status === "active" || bet.status === "pending")
+      );
+
+      if (hasActiveBets) {
+        throw errors.badRequest("Cannot delete event with active bets");
+      }
+
+      // Delete associated bets first
+      if (eventData.fights && eventData.fights.length > 0) {
+        for (const fight of eventData.fights) {
+          await Bet.destroy({ where: { fightId: fight.id }, transaction: t });
+        }
+
+        // Delete associated fights
+        await Fight.destroy({ where: { eventId: event.id }, transaction: t });
+      }
+
+      // Finally delete the event
+      await event.destroy({ transaction: t });
+
+      res.json({
+        success: true,
+        message: "Event permanently deleted successfully"
+      });
     });
   })
 );

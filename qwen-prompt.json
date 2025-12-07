@@ -1,135 +1,106 @@
+
 {
-  "task_description": "Execute a validated, multi-phase optimization of the admin events page (/admin/events), focusing on bug fixes, UI enhancements, and a major architectural refactoring.",
-  "analysis_of_causes": [
-    {
-      "issue": "Incorrect 'Today's Events' List",
-      "root_cause": "The 'todayEvents' list is derived client-side from the main `events` state array. This array is filtered by the backend, meaning it doesn't always contain all of today's events, leading to an incomplete UI section.",
-      "validated": true
-    },
-    {
-      "issue": "Mismatched 'Delete' Button Functionality",
-      "root_cause": "The UI label implies permanent deletion, but the `DELETE /api/events/:id` endpoint only performs a soft delete (sets status to 'cancelled'). This is a UX and functional discrepancy.",
-      "validated": true
-    },
-    {
-      "issue": "API Inconsistency for 'Cancel' Action",
-      "root_cause": "The frontend client (`eventsAPI.cancel`) attempts to call a non-existent `POST /events/:id/cancel` endpoint. The correct, existing endpoint is `PATCH /api/events/:id/status` with an action payload of 'cancel'.",
-      "validated": true
-    },
-    {
-      "issue": "Monolithic 'God Component' Architecture",
-      "root_cause": "`Events.tsx` manages state and logic for both the event list and the detailed event view, creating high complexity, tight coupling, and difficult maintenance.",
-      "validated": true
-    },
-    {
-      "issue": "UI/UX Redesign Required for Event Detail View",
-      "root_cause": "The current layout with a sidebar and tabs is inefficient. A new design is required to improve workflow, collocating related controls and information.",
-      "validated": true
-    }
-  ],
-  "proposed_solutions": [
-    {
-      "phase": "Phase 1: Critical Bug Fixes and Foundational Work",
-      "solutions": [
-        {
-          "solution": "Fix API inconsistency for the event cancellation action.",
-          "priority": "CRITICAL",
-          "implementation_steps": [
-            "In `frontend/src/config/api.ts`, remove the incorrect `eventsAPI.cancel` method.",
-            "In `frontend/src/pages/admin/Events.tsx`, ensure the `handleEventAction` function's 'cancel' case correctly calls the `PATCH /api/events/:id/status` endpoint. This may already be in place, but must be verified.",
-            "Update the 'Cancelar Evento' button in the detail view header to call `handleEventAction(eventId, 'cancel')`."
-          ],
-          "files": ["frontend/src/config/api.ts", "frontend/src/pages/admin/Events.tsx"]
-        },
-        {
-          "solution": "Correct the 'Delete' button's text to match its soft-delete functionality.",
-          "priority": "HIGH",
-          "implementation_steps": [
-            "In `frontend/src/pages/admin/Events.tsx`, locate the two `Trash2` delete buttons.",
-            "Change the `title` and tooltip text from 'Eliminar Evento' and 'Eliminar este evento permanentemente' to 'Cancelar Evento'."
-          ],
-          "validation_steps": ["Confirm the button's hover text now accurately reflects the cancel action."],
-          "files": ["frontend/src/pages/admin/Events.tsx"]
-        },
-        {
-          "solution": "Isolate the data fetch for the 'Today's Events' section.",
-          "priority": "MEDIUM",
-          "implementation_steps": [
-            "In `Events.tsx`, create a new state: `const [todayEvents, setTodayEvents] = useState<Event[]>([]);`.",
-            "Create a new `useCallback` function `fetchTodayEvents` that calls `eventsAPI.getAll({ dateRange: 'today' })`.",
-            "Call this function in a `useEffect` hook that runs once on component mount.",
-            "Ensure the 'Eventos de Hoy' JSX section maps over this new `todayEvents` state."
-          ],
-          "validation_steps": ["Apply filters to the main event list and confirm the 'Today's Events' section does not change."],
-          "files": ["frontend/src/pages/admin/Events.tsx"]
-        }
-      ]
-    },
-    {
-      "phase": "Phase 2: UI/UX Redesign and Component Refactoring",
-      "solutions": [
-        {
-          "solution": "Implement an interactive status-change dropdown menu.",
-          "priority": "MEDIUM",
-           "pre-computation_steps": [
-            "Read `backend/src/routes/events.ts` to map the `switch (action)` block inside `PATCH /api/events/:id/status` to determine valid state transitions."
-            ],
-          "implementation_steps": [
-            "Create a new component `StatusChanger.tsx` that receives the `event` object.",
-            "The component will render the current status badge. When clicked, it will display a dropdown menu.",
-            "The menu options will be dynamically generated based on the allowed transitions for the event's current status (e.g., a 'scheduled' event shows 'Activate' and 'Cancel').",
-            "Selecting an option will trigger a handler prop (e.g., `onStatusChange`) that calls the appropriate `handleEventAction` in the parent component."
-          ],
-          "files": ["frontend/src/pages/admin/Events.tsx", "frontend/src/components/admin/StatusChanger.tsx (new file)"]
-        },
-        {
-          "solution": "Decompose `Events.tsx` into a modular, routed structure.",
-          "priority": "HIGH",
-          "implementation_steps": [
-            "Rename `Events.tsx` to `EventsPage.tsx` to act as the main container/router.",
-            "Create `components/admin/events/EventList.tsx` and migrate the event list rendering and logic into it.",
-            "Create `components/admin/events/EventDetail.tsx` to house the new detail view design.",
-            "In `EventsPage.tsx`, use `useParams` to conditionally render `EventList` or `EventDetail`."
-          ],
-          "files": ["frontend/src/pages/admin/Events.tsx", "frontend/src/components/admin/events/EventList.tsx (new)", "frontend/src/components/admin/events/EventDetail.tsx (new)"]
-        },
-        {
-          "solution": "Implement the new 3-row, 2-column detail view layout in `EventDetail.tsx`.",
-          "priority": "HIGH",
-          "implementation_steps": [
-            "**Row 1 (Header):** Arrange the back button, event title, the new `StatusChanger` component, operator name, and action buttons.",
-            "**Row 2 (Streaming):** Consolidate all streaming-related UI and logic (status, controls, viewer count). Lift the `useMultiSSE` hook logic to `EventDetail.tsx` to maintain a stable connection. Integrate an existing video player component for the preview.",
-            "**Row 3 (Fights & Bets):** Use a two-column grid. Migrate the fight management UI to the left column and the active bets UI to the right column."
-          ],
-          "files": ["frontend/src/components/admin/events/EventDetail.tsx"]
-        },
-        {
-          "solution": "Implement the interactive link between the fights list and the bets list.",
-          "priority": "HIGH",
-          "implementation_steps": [
-            "In `EventDetail.tsx`, manage a `selectedFightId` state, updated via `onClick` handlers on the fight list items.",
-            "Pass `selectedFightId` as a prop to the bets component.",
-            "The bets component will use a `useEffect` hook to re-fetch bets from `betsAPI.getAllAdmin({ fightId: selectedFightId })` whenever the prop changes."
-          ],
-          "files": ["frontend/src/components/admin/events/EventDetail.tsx", "frontend/src/components/admin/BetsActiveTab.tsx (or its successor)"]
-        }
-      ]
-    }
-  ],
-  "validation_and_reporting": {
-    "verification_steps": [
-      "Confirm API calls use correct endpoints as per documentation.",
-      "Verify UI text matches backend functionality (e.g., 'Cancel' vs 'Delete').",
-      "Test all new interactive UI elements (status dropdown, fight selection).",
-      "Ensure the refactored component architecture is clean and state management is correct.",
-      "Run `npx tsc --noEmit -p backend/tsconfig.json` for backend changes. For the frontend, run `npm run build` from the `frontend` directory to ensure type validation and a successful build. Run `eslint` to ensure code quality."
-    ],
-    "final_report": "Update `brain/backlog.json` with a detailed entry for each phase, including git commit hashes, verification evidence (`npx tsc --noEmit` results), and a summary of the architectural improvements."
+  "metadata": {
+    "task_name": "Corrección y Optimización de Lógica en Gestión de Eventos y Peleas (Verificado y Documentado)",
+    "complexity": "HIGH",
+    "execution_mode": "standard",
+    "assigned_role": "executor",
+    "git_branch": "feature/event-fight-management-fixes-verified"
   },
-  "critical_protocols_to_follow": [
-    "Adherence to `brain/multi_ai_coordination_strategy.json` is mandatory.",
-    "**SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL:** All API calls must be verified against `@brain/api_endpoints_reference.json` and all props/types against `@brain/typescript_interfaces_reference.json` before implementation.",
-    "**UI_VERIFICATION_PROTOCOL:** All UI component assumptions must be verified by reading the source TSX files before use.",
-    "All backend code changes must pass `npx tsc --noEmit -p backend/tsconfig.json`. For the frontend, rely on the integrated build script (`npm run build` within the `frontend` directory) for type validation, as requested."
-  ]
+  "critical_protocols": {
+    "description": "El ejecutor DEBE seguir estos protocolos del archivo 'brain/multi_ai_coordination_strategy.json'.",
+    "protocols_to_follow": [
+      "🔴_UI_VERIFICATION_PROTOCOL (Líneas 283-396)",
+      "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL (Líneas 401-515)",
+      "simulate_y_confirmar_protocol (Líneas 470-481)"
+    ]
+  },
+  "reference_files_read_first": [
+    "brain/api_endpoints_reference.json",
+    "frontend/src/pages/admin/EventsPage.tsx",
+    "frontend/src/components/admin/events/EventList.tsx",
+    "frontend/src/components/admin/events/EventDetail.tsx",
+    "frontend/src/components/admin/StatusChanger.tsx",
+    "frontend/src/components/admin/BetsActiveTab.tsx",
+    "frontend/src/services/api.ts"
+  ],
+  "step_by_step_implementation": [
+    {
+      "step_number": 1,
+      "action": "Refactorizar `StatusChanger.tsx` para usar el endpoint de acciones del evento.",
+      "file": "frontend/src/components/admin/StatusChanger.tsx",
+      "purpose": "Alinear el frontend con la API real del backend (`PATCH /events/:id/status`) que funciona con 'acciones' en lugar de estados directos.",
+      "simulate": [
+        "1. Modificar la función `getValidActions` para que devuelva las acciones permitidas por la API: 'activate', 'complete', 'cancel'.",
+        "2. Ajustar las etiquetas (`label`) para que sean más descriptivas para el usuario: 'Activar Evento', 'Marcar como Terminado', 'Cancelar Evento'.",
+        "3. Modificar `handleActionClick` para que llame a `onStatusChange(event.id, action.action)`.",
+        "4. En `EventsPage.tsx`, dentro de `handleEventAction`, asegurarse que la llamada a la API sea `eventsAPI.updateStatus(eventId, action)` o similar, que ejecute un `PATCH` con el `action` en el body."
+      ],
+      "confirm_before_creating": "Verificar en `frontend/src/services/api.ts` o `frontend/src/config/api.ts` que `eventsAPI` tenga una función para `PATCH /events/:id/status`. Si no existe, crearla.",
+      "validate_after_creation": "Probar el dropdown en la UI y verificar que la llamada de red correcta se esté realizando."
+    },
+    {
+      "step_number": 2,
+      "action": "Alinear la funcionalidad del botón de eliminar con el comportamiento real del backend (borrado suave).",
+      "file": "frontend/src/components/admin/events/EventList.tsx",
+      "purpose": "Evitar confusión al usuario. El botón de 'basura' debe reflejar que cancela, no que elimina permanentemente.",
+      "simulate": [
+        "1. Cambiar el icono `Trash2` por un icono más apropiado para 'cancelar', como `XCircle` de lucide-react.",
+        "2. Cambiar el `title` y el `tooltip` del botón a 'Cancelar Evento'.",
+        "3. En `EventsPage.tsx`, modificar el `window.confirm` en `handleDeleteEvent` para preguntar '¿Estás seguro de que quieres CANCELAR este evento?'. Renombrar `handleDeleteEvent` a `handleCancelEvent` por claridad y actualizar su llamada en `EventList`."
+      ],
+      "confirm_before_creating": "No se necesita confirmación. La documentación actualizada y la verificación del backend confirman el borrado suave.",
+      "validate_after_creation": "Verificar que el evento cambia su estado a 'Cancelado' en la UI después de la acción."
+    },
+    {
+      "step_number": 3,
+      "action": "Corregir la llamada a la API en `BetsActiveTab.tsx`.",
+      "file": "frontend/src/components/admin/BetsActiveTab.tsx",
+      "purpose": "Solucionar el error de JS `TypeError: betsAPI.getAll is not a function`.",
+      "simulate": [
+        "1. En la línea 44, cambiar la llamada `betsAPI.getAll(params)` por `betsAPI.getAllAdmin(params)`.",
+        "2. Asegurarse que la importación de `betsAPI` provenga de `frontend/src/services/api.ts`."
+      ],
+      "confirm_before_creating": "Verificación del código fuente de `frontend/src/services/api.ts` ya realizada, confirma que `getAllAdmin` es el nombre correcto.",
+      "validate_after_creation": "La pestaña 'Apuestas Activas' debe cargar los datos sin errores en la consola del navegador."
+    },
+    {
+      "step_number": 4,
+      "action": "Implementar la lógica de control de PELEAS usando los endpoints de API unificados.",
+      "file": "frontend/src/components/admin/events/EventDetail.tsx",
+      "purpose": "Dar funcionalidad a los botones de control de la pelea seleccionada.",
+      "simulate": [
+        "1. Crear un nuevo componente modal `frontend/src/components/admin/SetWinnerModal.tsx`. Props: `isOpen`, `onClose`, `fightId`, `onSubmit(fightId, winner)`.",
+        "2. En `EventDetail.tsx`, agregar un estado `isWinnerModalOpen` y un handler para abrir el modal.",
+        "3. Agregar `onClick` al botón 'REGISTRAR INICIO DE PELEA'. Este handler llamará a `fightsAPI.updateStatus(selectedFightId, 'live')` (o una función que haga `PATCH` a `/fights/:id/status` con `{status: 'live'}`).",
+        "4. Agregar `onClick` al botón 'REGISTRAR TERMINO DE PELEA...' que abrirá el modal `SetWinnerModal`.",
+        "5. Implementar el `onSubmit` del modal para que llame a `fightsAPI.updateStatus(fightId, 'completed', winner)` (o una función que haga `PATCH` a `/fights/:id/status` con `{status: 'completed', result: winner}`)."
+      ],
+      "confirm_before_creating": "La documentación actualizada y la verificación del backend confirman que `PATCH /fights/:id/status` es el endpoint correcto.",
+      "validate_after_creation": "Probar el ciclo de vida completo de una pelea en la UI."
+    },
+    {
+      "step_number": 5,
+      "action": "Implementar la lógica de APUESTAS usando la máquina de estados de la pelea.",
+      "file": "frontend/src/components/admin/BetsActiveTab.tsx",
+      "purpose": "Dar funcionalidad a los botones para abrir y cerrar el período de apuestas.",
+      "simulate": [
+        "1. Agregar `onClick` al botón 'INICIAR sesion de Apuestas'. Este handler llamará a `fightsAPI.updateStatus(fightId, 'betting')` (o la función que haga `PATCH` a `/fights/:id/status` con `{status: 'betting'}`).",
+        "2. Agregar `onClick` al botón 'CERRAR sesion de Apuestas'. Este handler llamará a `fightsAPI.updateStatus(fightId, 'live')` (o la función que haga `PATCH` a `/fights/:id/status` con `{status: 'live'}`).",
+        "3. Deshabilitar los botones apropiadamente según el estado actual de la pelea para prevenir transiciones inválidas."
+      ],
+      "confirm_before_creating": "La verificación del backend confirmó que el estado de las apuestas se controla a través del `status` de la pelea (`betting` -> `live`).",
+      "validate_after_creation": "Probar que los botones cambian el estado de la pelea a 'betting' y luego a 'live', y que la UI se actualiza."
+    }
+  ],
+  "success_criteria": [
+    "El dropdown de estado del evento funciona con las acciones 'activate', 'complete', 'cancel'.",
+    "El botón de la basura en la lista de eventos se ha reemplazado por un icono de 'Cancelar' y funciona como tal.",
+    "La pestaña de apuestas activas carga sin errores.",
+    "Los botones de control de pelea y sesión de apuestas llaman a los endpoints `PATCH /fights/:id/status` correctos y cambian el estado de la pelea."
+  ],
+  "error_handling": {
+    "typescript_errors": "Detener la implementación inmediatamente y reportar el error.",
+    "build_errors": "No se debe confirmar ningún cambio si `npm run build` falla."
+  }
 }

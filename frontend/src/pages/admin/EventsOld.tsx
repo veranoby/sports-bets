@@ -502,7 +502,9 @@ const AdminEventsPage: React.FC = () => {
                   </h1>
                   <StatusChanger
                     event={eventDetailData.event}
-                    onStatusChange={(eventId, action) => handleEventAction(eventId, action)}
+                    onStatusChange={(eventId, action) =>
+                      handleEventAction(eventId, action)
+                    }
                   />
                 </div>
 
@@ -848,7 +850,9 @@ const AdminEventsPage: React.FC = () => {
         {/* Sección 1: Eventos de Hoy */}
         {todayEventsLoading ? (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">📅 Eventos de Hoy</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              📅 Eventos de Hoy
+            </h2>
             <div className="p-6 bg-white rounded-lg shadow">
               <div className="flex items-center justify-center h-32">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
@@ -875,7 +879,9 @@ const AdminEventsPage: React.FC = () => {
                         </h3>
                         <StatusChanger
                           event={event}
-                          onStatusChange={(eventId, action) => handleEventAction(eventId, action)}
+                          onStatusChange={(eventId, action) =>
+                            handleEventAction(eventId, action)
+                          }
                         />
                         <StreamStatusBadge
                           status={event.streamStatus || "offline"}
@@ -1034,7 +1040,9 @@ const AdminEventsPage: React.FC = () => {
         ) : (
           // Empty state for today's events
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">📅 Eventos de Hoy (0)</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              📅 Eventos de Hoy (0)
+            </h2>
             <div className="p-6 bg-white rounded-lg shadow text-center text-gray-500">
               No hay eventos programados para hoy
             </div>

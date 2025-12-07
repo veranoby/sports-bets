@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Target } from "lucide-react";
+import { Plus, Target, Trash2 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
@@ -85,9 +85,9 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">
-          Gestión de Peleas ({eventDetailData?.fights?.length || 0})
-        </h3>
+        <h4 className="text-lg font-medium text-gray-900">
+          Peleas programadas ({eventDetailData?.fights?.length || 0})
+        </h4>
         <button
           onClick={() => setIsCreateFightModalOpen(true)}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
@@ -117,18 +117,47 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
           eventDetailData?.fights?.map((fight: Fight) => (
             <div
               key={fight.id}
-              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              className={`p-4 border rounded-lg transition-all ${
                 selectedFightId === fight.id
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 hover:shadow-md'
+                  ? "border-blue-500 bg-blue-50 shadow-md"
+                  : "border-gray-200 hover:shadow-md"
               }`}
-              onClick={() => onFightSelect && onFightSelect(fight.id)}
             >
-              <FightStatusManager
-                fight={fight}
-                eventId={eventId}
-                onFightUpdate={handleFightUpdate}
-              />
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex-1 cursor-pointer"
+                  onClick={() => onFightSelect && onFightSelect(fight.id)}
+                >
+                  <FightStatusManager
+                    fight={fight}
+                    eventId={eventId}
+                    onFightUpdate={handleFightUpdate}
+                  />
+                </div>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`⚠️ ¿Eliminar la pelea #${fight.number}? No se puede deshacer.`)) {
+                      try {
+                        setOperationInProgress(`${fight.id}-delete`);
+                        await fightsAPI.delete(fight.id);
+                        // Update local state
+                        const updatedFights = (eventDetailData?.fights || []).filter((f: Fight) => f.id !== fight.id);
+                        onFightsUpdate(updatedFights);
+                      } catch (err) {
+                        console.error("Error deleting fight:", err);
+                      } finally {
+                        setOperationInProgress(null);
+                      }
+                    }
+                  }}
+                  className="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                  title="Eliminar pelea"
+                  disabled={operationInProgress !== null}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))
         )}

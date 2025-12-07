@@ -109,13 +109,17 @@ export const fightsAPI = {
   },
   // Admin component methods
   getFightsByEvent: async (eventId: string) => {
-    return apiCall("get", `/events/${eventId}/fights`);
+    return apiCall("get", `/fights`, { eventId });
   },
   createFight: async (data: Partial<Fight>) => {
     return apiCall("post", "/fights", data);
   },
-  updateFightStatus: async (fightId: string, status: string) => {
-    return apiCall("put", `/fights/${fightId}/status`, { status });
+  updateFightStatus: async (fightId: string, status: string, result?: string) => {
+    const data: { status: string; result?: string } = { status };
+    if (result) {
+      data.result = result;
+    }
+    return apiCall("patch", `/fights/${fightId}/status`, data);
   },
   assignFightResult: async (
     fightId: string,

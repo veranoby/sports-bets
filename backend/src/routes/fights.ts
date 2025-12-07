@@ -72,16 +72,13 @@ router.get(
   })
 );
 
-// POST /api/fights - Crear nueva pelea (operador)
+// POST /api/fights - Crear nueva pelea (operador) - auto-incremental number
 router.post(
   "/",
   authenticate,
   authorize("operator", "admin"),
   [
     body("eventId").isUUID().withMessage("Valid event ID is required"),
-    body("number")
-      .isInt({ min: 1, max: 999 })
-      .withMessage("Fight number must be between 1 and 999"),
     body("redCorner")
       .isLength({ min: 2, max: 255 })
       .withMessage("Red corner name must be between 2 and 255 characters"),
@@ -114,7 +111,6 @@ router.post(
 
     const {
       eventId,
-      number,
       redCorner,
       blueCorner,
       weight,
@@ -136,17 +132,14 @@ router.post(
         throw errors.forbidden("You are not assigned to this event");
       }
 
-      // Verificar que no existe una pelea con el mismo número en el evento
-      const existingFight = await Fight.findOne({
-        where: { eventId, number },
+      // Auto-calcular el número de pelea (max + 1)
+      const maxFight = await Fight.findOne({
+        where: { eventId },
+        order: [["number", "DESC"]],
         transaction: t,
       });
 
-      if (existingFight) {
-        throw errors.conflict(
-          "A fight with this number already exists in the event"
-        );
-      }
+      const number = maxFight ? maxFight.number + 1 : 1;
 
       // Verificar que los criaderos son diferentes
       if (redCorner.toLowerCase() === blueCorner.toLowerCase()) {
@@ -1003,6 +996,77 @@ router.get(
         fightStatus: fight.status,
         availableBets: availableBets.map(bet => bet.toPublicJSON())
       }
+    });
+  })
+);
+
+// DELETE /api/fights/:id - Delete fight (admin/operator)
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "operator"),
+  asyncHandler(async (req, res) => {
+    await transaction(async (t) => {
+      const fight = await Fight.findByPk(req.params.id, {
+        include: [
+          {
+            model: Event,
+            as: "event",
+          },
+          {
+            model: Bet,
+            as: "bets",
+            required: false
+          }
+        ],
+        transaction: t
+      });
+
+      if (!fight) {
+        throw errors.notFound("Fight not found");
+      }
+
+      const fightData = fight.toJSON() as any;
+
+      // Verify permissions
+      if (
+        req.user!.role === "operator" &&
+        fightData.event.operatorId !== req.user!.id
+      ) {
+        throw errors.forbidden("You are not assigned to this event");
+      }
+
+      // Cannot delete if fight has active/pending bets
+      const hasActiveBets = fightData.bets?.some(
+        (bet: any) => bet.status === "active" || bet.status === "pending"
+      );
+
+      if (hasActiveBets) {
+        throw errors.badRequest("Cannot delete fight with active/pending bets");
+      }
+
+      // Cannot delete if fight is live
+      if (fight.status === "live") {
+        throw errors.badRequest("Cannot delete a live fight");
+      }
+
+      // Delete all associated bets first
+      await Bet.destroy({ where: { fightId: fight.id }, transaction: t });
+
+      // Update event totalFights count
+      const event = await Event.findByPk(fight.eventId, { transaction: t });
+      if (event) {
+        event.totalFights = Math.max(0, event.totalFights - 1);
+        await event.save({ transaction: t });
+      }
+
+      // Delete the fight
+      await fight.destroy({ transaction: t });
+
+      res.json({
+        success: true,
+        message: "Fight deleted successfully"
+      });
     });
   })
 );

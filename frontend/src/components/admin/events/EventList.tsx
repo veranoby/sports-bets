@@ -11,10 +11,10 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
-  XCircle,
   User,
   Building2,
   Video,
+  Target,
   Trash2,
 } from "lucide-react";
 import Card from "../../shared/Card";
@@ -28,10 +28,13 @@ import type { Event } from "../../../types";
 
 interface EventListProps {
   onEventAction: (eventId: string, action: string) => void;
-  onDeleteEvent: (eventId: string) => void;
+  onPermanentDelete?: (eventId: string) => void;
 }
 
-const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) => {
+const EventList: React.FC<EventListProps> = ({
+  onEventAction,
+  onPermanentDelete,
+}) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -272,7 +275,9 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
       {/* Sección 1: Eventos de Hoy */}
       {todayEventsLoading ? (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">📅 Eventos de Hoy</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            📅 Eventos de Hoy
+          </h2>
           <div className="p-6 bg-white rounded-lg shadow">
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
@@ -297,9 +302,9 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                       <h3 className="font-semibold text-gray-900">
                         {event.name}
                       </h3>
-                      <StatusChanger 
-                        event={event} 
-                        onStatusChange={onEventAction} 
+                      <StatusChanger
+                        event={event}
+                        onStatusChange={onEventAction}
                       />
                       <StreamStatusBadge
                         status={event.streamStatus || "offline"}
@@ -346,9 +351,7 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                     {event.status === "scheduled" && (
                       <div className="relative group inline-block">
                         <button
-                          onClick={() =>
-                            onEventAction(event.id, "activate")
-                          }
+                          onClick={() => onEventAction(event.id, "activate")}
                           disabled={false} // Temporarily disable this check, will be handled by parent component if needed
                           className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
                         >
@@ -399,9 +402,7 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                       event.status === "live") && (
                       <div className="relative group inline-block">
                         <button
-                          onClick={() =>
-                            onEventAction(event.id, "complete")
-                          }
+                          onClick={() => onEventAction(event.id, "complete")}
                           className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
                         >
                           <CheckCircle className="w-4 h-4" />
@@ -424,18 +425,24 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                         Abrir panel de gestión detallada del evento
                       </div>
                     </div>
-                    <div className="relative group inline-block">
-                      <button
-                        onClick={() => onDeleteEvent(event.id)}
-                        className="p-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-                        title="Cancelar Evento"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                        Cancelar este evento
+                    {onPermanentDelete && (
+                      <div className="relative group inline-block">
+                        <button
+                          onClick={() => {
+                            if (window.confirm("⚠️ ¿ELIMINAR PERMANENTEMENTE este evento de la base de datos? Esta acción NO se puede deshacer.")) {
+                              onPermanentDelete(event.id);
+                            }
+                          }}
+                          className="p-2 bg-red-800 text-white rounded text-sm hover:bg-red-900 flex items-center gap-1"
+                          title="Eliminar Permanentemente"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                          ⚠️ ELIMINAR PERMANENTEMENTE de la BD
+                        </div>
                       </div>
-                    </div>{" "}
+                    )}{" "}
                   </div>
                 </div>
               </div>
@@ -445,7 +452,9 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
       ) : (
         // Empty state for today's events
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">📅 Eventos de Hoy (0)</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            📅 Eventos de Hoy (0)
+          </h2>
           <div className="p-6 bg-white rounded-lg shadow text-center text-gray-500">
             No hay eventos programados para hoy
           </div>
@@ -501,10 +510,7 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                     {event.totalFights} peleas • $
                     {event.totalPrizePool.toLocaleString()}
                   </div>
-                  <StatusChanger 
-                    event={event} 
-                    onStatusChange={onEventAction} 
-                  />
+                  <StatusChanger event={event} onStatusChange={onEventAction} />
                   <div className="relative group inline-block">
                     <button
                       onClick={() => navigate(`/admin/events/${event.id}`)}
@@ -516,18 +522,24 @@ const EventList: React.FC<EventListProps> = ({ onEventAction, onDeleteEvent }) =
                       Ver detalles completos del evento
                     </div>
                   </div>
-                  <div className="relative group inline-block">
-                    <button
-                      onClick={() => onDeleteEvent(event.id)}
-                      className="p-1 text-red-500 hover:text-red-700"
-                      title="Cancelar Evento"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                      Cancelar este evento
+                  {onPermanentDelete && (
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={() => {
+                          if (window.confirm("⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.")) {
+                            onPermanentDelete(event.id);
+                          }
+                        }}
+                        className="p-1 text-red-700 hover:text-red-900"
+                        title="Eliminar Permanentemente"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                        ⚠️ ELIMINAR PERMANENTEMENTE
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))

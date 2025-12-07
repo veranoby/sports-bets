@@ -108,7 +108,10 @@ export const eventsAPI = {
 
   delete: (id: string) => apiClient.delete(`/events/${id}`),
 
-  updateStatus: (id: string, action: string) => apiClient.patch(`/events/${id}/status`, { action }),
+  permanentDelete: (id: string) => apiClient.delete(`/events/${id}/permanent`),
+
+  updateStatus: (id: string, action: string) =>
+    apiClient.patch(`/events/${id}/status`, { action }),
 };
 
 export const fightsAPI = {
@@ -119,7 +122,6 @@ export const fightsAPI = {
 
   create: (data: {
     eventId: string;
-    number: number;
     redCorner: string;
     blueCorner: string;
     weight: number;
@@ -146,6 +148,8 @@ export const fightsAPI = {
     id: string,
     data: { winner: "red" | "blue" | "draw"; notes?: string },
   ) => apiClient.post(`/fights/${id}/result`, data),
+
+  delete: (id: string) => apiClient.delete(`/fights/${id}`),
 };
 
 // ✅ BETS API COMPLETA CON MÉTODOS PAGO/DOY

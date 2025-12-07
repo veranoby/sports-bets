@@ -44,7 +44,7 @@ router.get(
               as: "event",
               where: eventId ? { id: eventId } : {},
               required: false, // LEFT OUTER JOIN - allows fights without events
-              attributes: ['id', 'title', 'status', 'scheduledDate'],
+              attributes: ['id', 'name', 'status', 'scheduledDate'],
             },
           ],
           attributes: ['id', 'number', 'status', 'redCorner', 'blueCorner', 'eventId'],

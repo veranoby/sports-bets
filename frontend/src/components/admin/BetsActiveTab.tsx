@@ -10,12 +10,20 @@ interface BetsActiveTabProps {
   eventId: string;
   eventDetailData: any;
   fightId?: string | null; // Optional fight ID to filter bets
+  selectedFightId?: string | null;
+  onStartBettingSession?: (fightId: string) => void;
+  onCloseBettingSession?: (fightId: string) => void;
+  operationInProgress?: string | null;
 }
 
 const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
   eventId,
   eventDetailData,
   fightId,
+  selectedFightId,
+  onStartBettingSession,
+  onCloseBettingSession,
+  operationInProgress,
 }) => {
   const [activeBets, setActiveBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +40,6 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
 
         const params: any = {
           eventId,
-          status: ["active", "pending"].join(","), // Only active/pending bets
           limit: 100, // Limit to 100 bets for performance during live event
         };
 
@@ -41,17 +48,26 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
           params.fightId = fightId;
         }
 
-        const response = await betsAPI.getAll(params);
+        const response = await betsAPI.getAllAdmin(params);
 
         if (response.success && response.data) {
-          setActiveBets(response.data.bets || []);
+          // Filter for active and pending bets only
+          const filteredBets = (response.data.bets || []).filter(
+            (bet: Bet) => bet.status === "active" || bet.status === "pending"
+          );
+          setActiveBets(filteredBets);
         } else {
           setError(response.error || "Error loading active bets");
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Error loading active bets",
-        );
+        // Si hay error de apuestas, mostrar mensaje informativo
+        if (err instanceof Error && err.message.includes('fight->event.title')) {
+          setError("No se pudieron cargar las apuestas activas debido a un error en el servidor. Esta funcionalidad puede estar temporalmente no disponible.");
+        } else {
+          setError(
+            err instanceof Error ? err.message : "Error loading active bets",
+          );
+        }
         console.error("Error fetching active bets:", err);
       } finally {
         setLoading(false);
@@ -75,36 +91,47 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card
-          variant="stat"
-          title="Usuarios Conectados"
-          value={eventDetailData?.event?.currentViewers || 0}
-          color="blue"
-        />
-        <Card
-          variant="stat"
-          title="Apuestas Activas"
-          value={totalActiveBets}
-          color="yellow"
-        />
-        <Card
-          variant="stat"
-          title="Volumen Total"
-          value={`$${totalActiveAmount.toLocaleString()}`}
-          color="green"
-        />
-      </div>
+           {/* cabecera y estadisticas rapidas */}
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">
-            Monitor de Apuestas Activas ({totalActiveBets})
-          </h3>
+        <div className="flex items-center justify-between m-4">
+          <h4 className="text-lg font-medium text-gray-900">
+            Apuestas Activas ({totalActiveBets})
+          </h4>
           <div className="text-sm text-gray-600">
             Actualizado en tiempo real
           </div>
         </div>
+
+     {/* Quick Actions */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <button
+            onClick={() => onStartBettingSession && selectedFightId && onStartBettingSession(selectedFightId)}
+            disabled={operationInProgress !== null || !selectedFightId}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+          >
+            INICIAR sesion de Apuestas!
+          </button>
+          <button
+            onClick={() => onCloseBettingSession && selectedFightId && onCloseBettingSession(selectedFightId)}
+            disabled={operationInProgress !== null || !selectedFightId}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50"
+          >
+            CERRAR sesion de Apuestas!
+          </button>
+
+          <button className="px-4 py-2 bg-gray-400 text-white rounded-xl flex items-center gap-1">
+            Apuestas Activas {totalActiveBets}
+          </button>
+
+          <button className="px-4 py-2 bg-gray-400 text-white rounded-xl flex items-center gap-1">
+            Volumen Total ${totalActiveAmount.toLocaleString()}
+          </button>
+        </div>
+      </div>
+
+      <div>
+
 
         {error ? (
           <Card className="p-6">
@@ -189,24 +216,7 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
         )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Activity className="w-5 h-5 text-blue-600" />
-          <h4 className="font-medium text-gray-900">Acciones Rápidas</h4>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-            Pausar Apuestas
-          </button>
-          <button className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm">
-            Pausar Stream
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
-            Abrir Nueva Pelea
-          </button>
-        </div>
-      </div>
+ 
     </div>
   );
 };

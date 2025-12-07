@@ -23,7 +23,6 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
   const [redCorner, setRedCorner] = useState("");
   const [blueCorner, setBlueCorner] = useState("");
   const [weight, setWeight] = useState("");
-  const [number, setNumber] = useState("");
   const [notes, setNotes] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -40,7 +39,6 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
       errors.blueCorner = "El rincón azul debe ser distinto al rojo.";
     }
     if (!weight) errors.weight = "El peso es obligatorio.";
-    if (!number) errors.number = "El número de pelea es obligatorio.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -59,7 +57,6 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
         redCorner,
         blueCorner,
         weight: parseFloat(weight),
-        number: parseInt(number),
         notes,
       };
       const response = await fightsAPI.create(fightData);
@@ -85,24 +82,9 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-4">Registrar nueva pelea</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="number"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Número de pelea
-            </label>
-            <input
-              type="number"
-              id="number"
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${formErrors.number ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            />
-            {formErrors.number && (
-              <p className="text-xs text-red-500 mt-1">{formErrors.number}</p>
-            )}
-          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            📌 El número de pelea se asignará automáticamente según el orden de creación
+          </p>
           <div>
             <label
               htmlFor="redCorner"

@@ -21,6 +21,7 @@ import {
   Clock,
   Calendar,
   Radio,
+  ArrowLeft,
   XCircle,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ import CreateFightModal from "../../../components/admin/CreateFightModal";
 import EditEventModal from "../../../components/admin/EditEventModal";
 import SSEErrorBoundary from "../../../components/admin/SSEErrorBoundary";
 import StatusChanger from "../../../components/admin/StatusChanger";
+import SetWinnerModal from "../../../components/admin/SetWinnerModal";
 import HLSPlayer from "../../../components/streaming/HLSPlayer";
 import { useSSEConnection } from "../../../hooks/useSSEConnection";
 import { useStreamControl } from "../../../hooks/useStreamControl";
@@ -42,6 +44,7 @@ import BetsActiveTab from "../../../components/admin/BetsActiveTab";
 
 // APIs
 import { eventsAPI, fightsAPI, streamingAPI } from "../../../config/api";
+import { apiClient } from "../../../services/api";
 
 // Types
 import type { Event, Fight } from "../../../types";
@@ -50,14 +53,14 @@ interface EventDetailProps {
   eventId: string;
   onClose: () => void;
   onEventAction: (eventId: string, action: string) => void;
-  onDeleteEvent: (eventId: string) => void;
+  onPermanentDelete?: (eventId: string) => void;
 }
 
 const EventDetail: React.FC<EventDetailProps> = ({
   eventId,
   onClose,
   onEventAction,
-  onDeleteEvent,
+  onPermanentDelete,
 }) => {
   const navigate = useNavigate();
   const [eventDetailData, setEventDetailData] = useState<{
@@ -74,9 +77,15 @@ const EventDetail: React.FC<EventDetailProps> = ({
   const [selectedFightId, setSelectedFightId] = useState<string | null>(null); // State for selected fight
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
+  const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false); // State for winner modal
 
   // SSE and Stream Control Hooks
-  const { handleStartStream, handleStopStream, handlePauseStream, handleResumeStream } = useStreamControl();
+  const {
+    handleStartStream,
+    handleStopStream,
+    handlePauseStream,
+    handleResumeStream,
+  } = useStreamControl();
 
   // Fetch event detail data
   const fetchEventDetail = useCallback(async () => {
@@ -84,7 +93,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       setDetailLoading(true);
       const [eventRes, fightsRes] = await Promise.all([
         eventsAPI.getById(eventId),
-        fightsAPI.getAll({ eventId }),
+        apiClient.get(`/events/${eventId}/fights`),
       ]);
       setEventDetailData({
         event: eventRes.data,
@@ -123,7 +132,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
   const handleEventActionLocal = async (action: string) => {
     if (!eventDetailData) return;
-    
+
     setOperationInProgress(`${eventDetailData.event.id}-${action}`);
     try {
       await onEventAction(eventDetailData.event.id, action);
@@ -134,6 +143,56 @@ const EventDetail: React.FC<EventDetailProps> = ({
     } finally {
       setOperationInProgress(null);
     }
+  };
+
+  // Function to handle fight status updates
+  const handleFightStatusUpdate = async (fightId: string, status: string, result?: string) => {
+    if (!fightId) {
+      console.error("No fight selected");
+      return;
+    }
+
+    try {
+      setOperationInProgress(`${fightId}-${status}`);
+
+      // Call the API to update the fight status
+      const response = await fightsAPI.updateFightStatus(fightId, status, result);
+
+      if (response.success) {
+        // Refresh event detail data to reflect changes
+        await fetchEventDetail();
+        console.log(`Fight status updated to ${status}`);
+      } else {
+        console.error("Failed to update fight status:", response.error);
+      }
+    } catch (error) {
+      console.error(`Error updating fight status to ${status}:`, error);
+    } finally {
+      setOperationInProgress(null);
+    }
+  };
+
+  // Handler for the "Register Start of Fight" button
+  const handleRegisterFightStart = async () => {
+    if (!selectedFightId) {
+      console.error("No fight selected");
+      return;
+    }
+    await handleFightStatusUpdate(selectedFightId, "live");
+  };
+
+  // Handler for the "Register End of Fight" button
+  const handleRegisterFightEnd = () => {
+    if (!selectedFightId) {
+      console.error("No fight selected");
+      return;
+    }
+    setIsWinnerModalOpen(true); // Open the modal to select winner
+  };
+
+  // Handler for submitting the winner
+  const handleSubmitWinner = async (fightId: string, winner: string) => {
+    await handleFightStatusUpdate(fightId, "completed", winner);
   };
 
   // Status badge component for stream status
@@ -192,10 +251,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
             description="No se pudieron cargar los datos del evento. Verifica la conexión e inténtalo nuevamente."
             icon={<XCircle className="w-12 h-12" />}
             action={
-              <button
-                onClick={fetchEventDetail}
-                className="btn-primary"
-              >
+              <button onClick={fetchEventDetail} className="btn-primary">
                 Reintentar
               </button>
             }
@@ -214,82 +270,109 @@ const EventDetail: React.FC<EventDetailProps> = ({
   return (
     <SSEErrorBoundary>
       <div className="min-h-screen bg-theme-card p-6 space-y-6">
-        {/* Row 1: Header with back button, event name, status, operator, edit, and delete buttons */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={onClose}
-                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <X className="w-5 h-5" />
-                Volver a Eventos
-              </button>
 
-              <h1 className="text-2xl font-bold text-gray-900">
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Header & actions */}
+          <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-3">
                 {eventDetailData.event.name}
+                <span className="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-xl text-xs font-semibold">
+                  {eventDetailData.event.operator?.username || "Sin operador"}
+                </span>
               </h1>
-
-              <StatusChanger
-                event={eventDetailData.event}
-                onStatusChange={(eventId, action) => onEventAction(eventId, action)}
-              />
-
-              <div className="text-gray-600">
-                {eventDetailData.event.operator?.username || "Sin operador"}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsEditEventModalOpen(true)}
-                className="px-4 py-2 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-600 flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
                 Editar
               </button>
-              <button
-                onClick={() => handleEventActionLocal("complete")}
-                className="px-4 py-2 bg-purple-400 text-white rounded text-sm hover:bg-purple-700 flex items-center gap-1"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Completar Evento
-              </button>
-              <button
-                onClick={() => onDeleteEvent(eventDetailData.event.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
-              >
-                <Trash2 className="w-4 h-4" />
-                Cancelar
-              </button>
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span>Estado:</span>
+                <StatusChanger
+                  event={eventDetailData.event}
+                  onStatusChange={(eventId, action) => onEventAction(eventId, action)}
+                />
+              </div>
+              {onPermanentDelete && (
+                <button
+                  onClick={() => {
+                    if (window.confirm("⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.")) {
+                      onPermanentDelete(eventDetailData.event.id);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-red-800 flex items-center gap-2"
+                  title="Eliminar permanentemente de la BD"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar BD
+                </button>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Row 2: Streaming Control Section */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Control de Streaming</h2>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-            {/* Streaming Status and Controls */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Estado del Stream:</span>
-                  <StreamStatusBadge
-                    status={eventDetailData.event.streamStatus || "offline"}
-                  />
+          {/* Stream preview */}
+          <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
+            <div className="w-full max-w-xl">
+              {eventDetailData.event.streamUrl ? (
+                <HLSPlayer
+                  streamUrl={eventDetailData.event.streamUrl}
+                  autoplay={false}
+                  controls={true}
+                  muted={true}
+                  className="w-full aspect-video rounded-lg overflow-hidden"
+                />
+              ) : (
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center text-white">
+                  <div className="text-center space-y-1">
+                    <Video className="w-10 h-10 mx-auto text-gray-400" />
+                    <p className="text-sm text-gray-300">Stream no disponible</p>
+                    <p className="text-xs text-gray-500">
+                      Inicie el stream para ver la vista previa
+                    </p>
+                  </div>
                 </div>
+              )}
+            </div>
+          </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Espectadores:</span>
-                  <span className="text-lg font-bold text-gray-900">
+          {/* Streaming controls */}
+          <div className="bg-white p-4 rounded-lg shadow space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-gray-700">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm font-semibold text-gray-900">Control de Streaming</h2>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+                  Estado:
+                  <StreamStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                </span>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+                  Espectadores:
+                  <span className="text-sm font-bold text-gray-900">
                     {eventDetailData.event.currentViewers || 0}
                   </span>
-                </div>
+                </span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-gray-50">
+                  <span
+                    className={`w-2 h-2 rounded-full ${isSSEConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                  ></span>
+                  <span className="font-semibold">
+                    SSE {isSSEConnected ? "Conectado" : "Desconectado"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsSSEConnected(true)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
+                >
+                  Reconectar
+                </button>
+              </div>
+            </div>
 
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
                 <button
                   onClick={async () => {
                     // Start stream
@@ -299,11 +382,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       if (response.data.success) {
                         // Update event status
                         if (eventDetailData) {
-                          setEventDetailData(prev => prev ? {
-                            ...prev,
-                            event: { ...prev.event, streamStatus: "connected" },
-                            fights: prev.fights || []
-                          } : null);
+                          setEventDetailData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  event: {
+                                    ...prev.event,
+                                    streamStatus: "connected",
+                                  },
+                                  fights: prev.fights || [],
+                                }
+                              : null,
+                          );
                         }
                       }
                     } catch (error) {
@@ -312,7 +402,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       setOperationInProgress(null);
                     }
                   }}
-                  disabled={operationInProgress !== null || eventDetailData.event.streamStatus === "connected"}
+                  disabled={
+                    operationInProgress !== null ||
+                    eventDetailData.event.streamStatus === "connected"
+                  }
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Play className="w-4 h-4" />
@@ -328,11 +421,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       if (response.data.success) {
                         setIsStreamPaused(true);
                         if (eventDetailData) {
-                          setEventDetailData(prev => prev ? {
-                            ...prev,
-                            event: { ...prev.event, streamStatus: "paused" },
-                            fights: prev.fights || []
-                          } : null);
+                          setEventDetailData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  event: {
+                                    ...prev.event,
+                                    streamStatus: "paused",
+                                  },
+                                  fights: prev.fights || [],
+                                }
+                              : null,
+                          );
                         }
                       }
                     } catch (error) {
@@ -341,7 +441,11 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       setOperationInProgress(null);
                     }
                   }}
-                  disabled={operationInProgress !== null || eventDetailData.event.streamStatus !== "connected" || isStreamPaused}
+                  disabled={
+                    operationInProgress !== null ||
+                    eventDetailData.event.streamStatus !== "connected" ||
+                    isStreamPaused
+                  }
                   className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Activity className="w-4 h-4" />
@@ -357,11 +461,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       if (response.data.success) {
                         setIsStreamPaused(false);
                         if (eventDetailData) {
-                          setEventDetailData(prev => prev ? {
-                            ...prev,
-                            event: { ...prev.event, streamStatus: "connected" },
-                            fights: prev.fights || []
-                          } : null);
+                          setEventDetailData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  event: {
+                                    ...prev.event,
+                                    streamStatus: "connected",
+                                  },
+                                  fights: prev.fights || [],
+                                }
+                              : null,
+                          );
                         }
                       }
                     } catch (error) {
@@ -370,7 +481,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       setOperationInProgress(null);
                     }
                   }}
-                  disabled={operationInProgress !== null || eventDetailData.event.streamStatus !== "paused"}
+                  disabled={
+                    operationInProgress !== null ||
+                    eventDetailData.event.streamStatus !== "paused"
+                  }
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -385,11 +499,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       const response = await eventsAPI.stopStream(eventId);
                       if (response.data.success) {
                         if (eventDetailData) {
-                          setEventDetailData(prev => prev ? {
-                            ...prev,
-                            event: { ...prev.event, streamStatus: "disconnected" },
-                            fights: prev.fights || []
-                          } : null);
+                          setEventDetailData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  event: {
+                                    ...prev.event,
+                                    streamStatus: "disconnected",
+                                  },
+                                  fights: prev.fights || [],
+                                }
+                              : null,
+                          );
                         }
                       }
                     } catch (error) {
@@ -398,56 +519,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       setOperationInProgress(null);
                     }
                   }}
-                  disabled={operationInProgress !== null || eventDetailData.event.streamStatus !== "connected"}
+                  disabled={
+                    operationInProgress !== null ||
+                    eventDetailData.event.streamStatus !== "connected"
+                  }
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Square className="w-4 h-4" />
                   Detener Stream
                 </button>
               </div>
-            </div>
-
-            {/* Small Player Preview - Right side */}
-            <div className="lg:col-span-5 flex justify-end">
-              <div className="w-full max-w-md">
-                {eventDetailData.event.streamUrl ? (
-                  <HLSPlayer
-                    streamUrl={eventDetailData.event.streamUrl}
-                    autoplay={false}
-                    controls={true}
-                    muted={true}
-                    className="w-full aspect-video rounded-lg overflow-hidden"
-                  />
-                ) : (
-                  <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center text-white">
-                    <div className="text-center">
-                      <Video className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                      <p className="text-gray-400">Stream no disponible</p>
-                      <p className="text-sm text-gray-500 mt-1">Inicie el stream para ver la vista previa</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* SSE Connection Status (optional additional info) */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${isSSEConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></div>
-                <span className="text-sm font-medium text-gray-700">Conexión SSE: {isSSEConnected ? "Conectado" : "Desconectado"}</span>
-              </div>
-              <button
-                onClick={() => {
-                  // Add actual SSE reconnect functionality
-                  setIsSSEConnected(true); // Simulate reconnection
-                }}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-              >
-                Reconectar SSE
-              </button>
-            </div>
           </div>
         </div>
 
@@ -455,7 +536,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Column 1: Fights Management */}
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestión de Peleas</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Gestión de Peleas
+            </h2>
 
             <FightsControlTab
               eventId={eventId}
@@ -491,12 +574,49 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
           {/* Column 2: Active Bets Monitor */}
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Monitor de Apuestas Activas</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Monitor de la Pelea actual seleccionada
+            </h2>
+
+        {/* SECCION DE MANEJO DE INICIO Y TERMINO DE LA  PELEA ACTUAL*/}
+
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <button
+            onClick={handleRegisterFightStart}
+            disabled={operationInProgress !== null || !selectedFightId}
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm disabled:opacity-50"
+          >
+            REGISTRAR INICIO DE PELEA!
+          </button>
+          <button
+            onClick={handleRegisterFightEnd}
+            disabled={operationInProgress !== null || !selectedFightId}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 text-sm disabled:opacity-50"
+          >
+            REGISTRAR TERMINO DE PELEA Y GALLO GANADOR!!
+          </button>
+        </div>
+      </div>
+
+
+
+        {/* SECCION DE MANEJO DE APUESTAS DE LA PELEA ACTUAL, SI ESTA HABILITADO LA VARIABLE bet */}
+
 
             <BetsActiveTab
               eventId={eventId}
               eventDetailData={eventDetailData}
               fightId={selectedFightId}
+              selectedFightId={selectedFightId}
+              onStartBettingSession={async (fightId: string) => {
+                await handleFightStatusUpdate(fightId, 'betting');
+              }}
+              onCloseBettingSession={async (fightId: string) => {
+                await handleFightStatusUpdate(fightId, 'live');
+              }}
+              operationInProgress={operationInProgress}
             />
           </div>
         </div>
@@ -516,6 +636,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
             eventId={eventId}
             onClose={() => setIsCreateFightModalOpen(false)}
             onFightCreated={handleFightCreated}
+          />
+        )}
+
+        {/* Modal de Seleccion de Ganador */}
+        {isWinnerModalOpen && selectedFightId && (
+          <SetWinnerModal
+            isOpen={isWinnerModalOpen}
+            onClose={() => setIsWinnerModalOpen(false)}
+            fightId={selectedFightId}
+            onSubmit={handleSubmitWinner}
           />
         )}
       </div>

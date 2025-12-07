@@ -1,9 +1,10 @@
+
 {
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
-    "version": "2.0",
-    "last_updated": "2025-12-05 - Added wallet relation documentation and frozenAmount validation",
+    "version": "2.2",
+    "last_updated": "2025-12-06 - Added DELETE endpoints for permanent deletion (events, fights). Updated POST /fights to auto-incremental number. Removed redundant cancel buttons from UI.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -15,6 +16,8 @@
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "changelog": {
+      "v2.2": "2025-12-06 - Added DELETE /events/:id/permanent (hard delete with cascade). Added DELETE /fights/:id (hard delete). POST /fights now auto-assigns number (removed manual input). UI refactor: removed redundant cancel buttons.",
+      "v2.1": "2025-12-06 - Documented unified PATCH /events/:id/status. Marked deprecated POST endpoints for fights.",
       "v2.0": "2025-12-05 - Added GET /users/:id wallet relation documentation with DECIMAL string serialization. Enhanced POST /users/:userId/adjust-balance with frozenAmount validation and parseFloat() pattern. Documents critical PostgreSQL DECIMAL behavior.",
       "v1.9": "2025-12-05 - Optimized structure with consistent formatting and logical grouping",
       "v1.8": "2025-11-24 - Added system_settings and wallet_operations endpoints. P2P betting PAGO/DOY endpoints. Enhanced monitoring SSE. Settings admin UI complete."
@@ -27,8 +30,8 @@
     "venues": ["/venues", "/venues/:id"],
     "galleras": ["/galleras", "/galleras/:id"],
     "articles": ["/articles", "/articles/featured", "/articles/:id", "/articles/:id/approve", "/articles/:id/reject"],
-    "events": ["/events", "/events/:id", "/events/:id/stats", "/events/:id/viewers", "/events/:id/analytics"],
-    "fights": ["/fights", "/fights/:id", "/fights/:id/status"],
+    "events": ["/events", "/events/:id", "/events/:id/status", "/events/:id/permanent", "/events/:id/stats", "/events/:id/viewers", "/events/:id/analytics"],
+    "fights": ["/fights", "/fights/:id", "/fights/:id/status", "/fights/:id"],
     "bets": ["/bets", "/bets/my-bets", "/bets/compatible", "/bets/:id", "/bets/:id/accept", "/bets/:id/cancel", "/bets/:id/edit", "/bets/:id/propose-pago", "/bets/:id/accept-pago", "/bets/:id/reject-pago", "/bets/:id/propose-doy", "/bets/:id/accept-doy", "/bets/:id/reject-doy", "/bets/pending-proposals"],
     "wallet": ["/wallet", "/wallet/balance", "/wallet/transactions", "/wallet/deposit", "/wallet/withdraw", "/wallet/financial-metrics", "/wallet/revenue-by-source", "/wallet/revenue-trends"],
     "wallet_operations": ["/wallet-operations", "/wallet-operations/deposit", "/wallet-operations/withdrawal", "/wallet-operations/:id/approve", "/wallet-operations/:id/reject", "/wallet-operations/:id/upload-proof", "/wallet-operations/stats"],
@@ -827,6 +830,35 @@
       },
       "added_date": "2025-12-05 (documented during Events.tsx refactoring)",
       "critical_note": "UI labels updated to reflect soft delete behavior - prevents user confusion"
+    },
+    "permanent_delete_event": {
+      "method": "DELETE",
+      "path": "/events/:id/permanent",
+      "auth_required": true,
+      "roles": ["admin"],
+      "response": {
+        "success": true,
+        "message": "Event permanently deleted successfully"
+      },
+      "behavior": "HARD DELETE - Removes event and ALL associated data from database (cascading delete)",
+      "cascade_delete_order": [
+        "1. All bets associated with event fights",
+        "2. All fights associated with event",
+        "3. Event itself"
+      ],
+      "validation": [
+        "Cannot delete events with status='in-progress' or 'live'",
+        "Cannot delete events with active/pending bets"
+      ],
+      "implementation": "backend/src/routes/events.ts:814-877",
+      "frontend_usage": {
+        "component": "frontend/src/pages/admin/EventsPage.tsx",
+        "button_label": "Eliminar BD (Trash2 icon, red)",
+        "api_call": "eventsAPI.permanentDelete(eventId)",
+        "confirmation": "Window confirm with ⚠️ warning"
+      },
+      "added_date": "2025-12-06",
+      "critical_warning": "IRREVERSIBLE operation - all data lost permanently"
     }
   },
 
@@ -851,15 +883,23 @@
       "path": "/fights",
       "body": {
         "eventId": "string (UUID)",
-        "number": "number",
         "redCorner": "string (max 255 chars)",
         "blueCorner": "string (max 255 chars)",
-        "weight": "number",
-        "notes": "string (optional, max 1000 chars)"
+        "weight": "number (1.0-10.0)",
+        "notes": "string (optional, max 1000 chars)",
+        "initialOdds": "object (optional, {red: number, blue: number})"
       },
-      "response": {"success": true, "data": "Fight object"},
+      "response": {"success": true, "data": "Fight object with auto-assigned number"},
       "auth_required": true,
-      "roles": ["admin", "operator"]
+      "roles": ["admin", "operator"],
+      "auto_incremental_number": "Fight number is automatically calculated as MAX(number) + 1 for the event",
+      "implementation": "backend/src/routes/fights.ts:75-191",
+      "frontend_usage": {
+        "component": "frontend/src/components/admin/CreateFightModal.tsx",
+        "removed_field": "number input field removed - auto-assigned by backend",
+        "user_message": "El número de pelea se asignará automáticamente según el orden de creación"
+      },
+      "updated_date": "2025-12-06 - Removed manual number input, now auto-incremental"
     },
     "update_fight": {
       "method": "PUT",
@@ -873,6 +913,36 @@
       "response": {"success": true, "data": "Fight object"},
       "auth_required": true,
       "roles": ["admin", "operator"]
+    },
+    "delete_fight": {
+      "method": "DELETE",
+      "path": "/fights/:id",
+      "auth_required": true,
+      "roles": ["admin", "operator"],
+      "response": {
+        "success": true,
+        "message": "Fight deleted successfully"
+      },
+      "behavior": "HARD DELETE - Removes fight and associated bets from database",
+      "cascade_delete_order": [
+        "1. All bets associated with fight",
+        "2. Fight itself",
+        "3. Updates event.totalFights counter (-1)"
+      ],
+      "validation": [
+        "Cannot delete fights with status='live'",
+        "Cannot delete fights with active/pending bets",
+        "Operator can only delete fights from their assigned events"
+      ],
+      "implementation": "backend/src/routes/fights.ts:1010-1079",
+      "frontend_usage": {
+        "component": "frontend/src/components/admin/FightsControlTab.tsx",
+        "button_icon": "Trash2 (red, top-right of fight card)",
+        "api_call": "fightsAPI.delete(fightId)",
+        "confirmation": "Window confirm with ⚠️ warning showing fight number"
+      },
+      "added_date": "2025-12-06",
+      "critical_warning": "IRREVERSIBLE operation - fight and all bets deleted permanently"
     },
     "record_fight_result": {
       "method": "POST",
@@ -1998,210 +2068,30 @@
       "method": "PUT",
       "path": "/api/bets/:id/edit",
       "auth_required": true,
-      "constraint": "ONLY if bet.status='pending' (not active)",
+      "roles": ["user"],
       "body": {
-        "amount": "number (optional)",
-        "side": "string (optional) - red|blue",
-        "betType": "string (optional) - flat|doy",
-        "terms": "object (optional) - {doyAmount: number}"
+        "amount": "number",
+        "side": "string ('red'|'blue')",
+        "terms": "object"
       },
-      "response": {"success": true, "data": "Updated bet object"},
-      "validation": "Rejects if bet.status !== 'pending'",
-      "frontend_usage": "frontend/src/components/betting/EditBetModal.tsx"
+      "validation": {
+        "status_check": "Bet must have status='pending'",
+        "ownership": "User must be owner of the bet"
+      },
+      "response": {"success": true, "data": "Bet object"},
+      "purpose": "Allow user to edit their own pending bets before they are matched"
     },
-    "propose_pago": {
-      "method": "POST",
-      "path": "/api/bets/:id/propose-pago",
-      "auth_required": true,
-      "body": {"pagoAmount": "number - counter-offer amount"},
-      "logic": "Creates new bet with betType='pago', parentBetId=:id, proposalStatus='pending'",
-      "notification": "WebSocket to original bettor: 'PAGO proposal received'",
-      "response": {"success": true, "data": "Created PAGO proposal bet"},
-      "frontend_usage": "frontend/src/components/betting/BetSuggestionsPanel.tsx"
-    },
-    "accept_pago": {
+    "cancel_bet": {
       "method": "PUT",
-      "path": "/api/bets/:id/accept-pago",
+      "path": "/api/bets/:id/cancel",
       "auth_required": true,
-      "logic": "Match both bets (original + PAGO proposal), lock frozen_amounts, status='active'",
-      "transaction_safety": "Transactional: UPDATE both bets + UPDATE wallets frozen_amount. Rollback on error.",
-      "notification": "WebSocket to both users: 'Bet matched'",
-      "response": {"success": true, "data": {"originalBet": "object", "pagoBet": "object"}},
-      "frontend_usage": "frontend/src/components/betting/AcceptPagoModal.tsx"
-    },
-    "reject_pago": {
-      "method": "PUT",
-      "path": "/api/bets/:id/reject-pago",
-      "auth_required": true,
-      "logic": "Update PAGO proposal: proposalStatus='rejected'",
-      "notification": "WebSocket to proposer: 'PAGO proposal rejected'",
-      "response": {"success": true, "message": "PAGO proposal rejected"}
-    },
-    "create_bet_auto_match": {
-      "enhancement_to": "POST /api/bets",
-      "new_logic": "After creating flat bet, check for exact match: same fightId, opposite side, exact amount, status=pending, betType=flat",
-      "auto_match_condition": "ONLY flat bets. DOY and PAGO require manual acceptance.",
-      "transaction": "If match found: UPDATE both bets (status='active', matchedWith), UPDATE wallets frozen_amount, notify both users",
-      "response": {"success": true, "data": "Created bet (or matched bets if auto-matched)"}
-    }
-  },
-
-  "frontend_api_client_patterns": {
-    "import_pattern": "import { venuesAPI, gallerasAPI, userAPI } from '../../services/api'",
-    "correct_usage": {
-      "venues": "const response = await venuesAPI.getAll();",
-      "galleras": "const response = await gallerasAPI.getAll();",
-      "users": "const response = await userAPI.getAll({ role: 'admin' });"
-    },
-    "data_access_patterns": {
-      "venues": "response.data.venues",
-      "galleras": "response.data.galleras",
-      "users": "response.data.users"
-    },
-    "sse_pattern": "🔴 SPECIAL: SSE connections pass token via query parameter: new EventSource(`/api/sse/streaming?token=${localStorage.getItem('token')}`)"
-  },
-
-  "testing_endpoints": {
-    "quick_validation": {
-      "venues": "curl -X GET http://localhost:3001/api/venues",
-      "galleras": "curl -X GET http://localhost:3001/api/galleras",
-      "articles_featured": "curl -X GET 'http://localhost:3001/api/articles/featured?limit=5&type=banner'",
-      "profile": "curl -X GET http://localhost:3001/api/users/profile -H 'Authorization: Bearer TOKEN'"
-    }
-  },
-
-  "production_status": {
-    "date": "2025-09-28",
-    "status": "✅ PRODUCTION READY - 100% API completeness verified",
-    "gemini_cli_completion": {
-      "userAPI.delete": "✅ COMPLETED",
-      "userAPI.update": "✅ COMPLETED",
-      "fightsAPI.delete": "✅ COMPLETED",
-      "typescript_errors": "✅ REDUCED FROM 68 → 0",
-      "component_cleanup": "✅ COMPLETED (non-destructive)"
-    },
-    "critical_systems_status": {
-      "authentication": "✅ Production JWT secrets configured",
-      "event_management": "✅ Complete CRUD workflows",
-      "betting_engine": "✅ PAGO/DOY + settlement logic",
-      "streaming_pipeline": "✅ RTMP → HLS + SSE monitoring",
-      "admin_dashboard": "✅ Full management capabilities",
-      "operator_interface": "✅ Event control workflows",
-      "database_optimization": "✅ Query performance <500ms"
-    },
-    "production_ready": true,
-    "24h_launch_status": "✅ GO FOR PRODUCTION"
-  },
-
-  "backend_optimization_recommendations": {
-    "smart_backend_features": {
-      "description": "Advanced backend optimizations to make the API more intelligent and efficient",
-      "recommendations": [
-        {
-          "id": "1",
-          "feature": "Smart Article Status Filtering",
-          "location": "backend/src/routes/articles.ts",
-          "issue": "Currently requires separate API calls to get articles with different statuses, leading to multiple requests when admin needs to see all articles",
-          "recommendation": "Implement a special 'all' status parameter that allows admin users to retrieve articles of all statuses in a single call",
-          "implementation": "Modify the status filtering logic to recognize 'all' or '*' parameter for admin users and set appropriate WHERE clause with Op.or instead of single status",
-          "benefits": "Reduces number of API calls from multiple to single call when admin needs to see all articles",
-          "code_example": "if (isPrivileged && requestedStatus === 'all') { whereClause[Op.or] = [{ status: 'draft' }, { status: 'pending' }, { status: 'published' }, { status: 'archived' }]; }"
-        },
-        {
-          "id": "2",
-          "feature": "Enhanced Request Caching Strategy",
-          "location": "backend/src/services/cache.ts or related caching utilities",
-          "issue": "Current caching strategy is basic with fixed TTL values",
-          "recommendation": "Implement adaptive caching that adjusts TTL based on access patterns and data volatility",
-          "implementation": "Create an AdaptiveCacheService that monitors access frequency and data change patterns to dynamically adjust cache expiration times",
-          "benefits": "Improves cache hit rates, reduces database load, and provides fresher data for volatile content",
-          "benefits_detailed": {
-            "hot_data": "Frequently accessed data gets longer TTL",
-            "cold_data": "Less accessed data gets shorter TTL reducing memory usage",
-            "volatile_data": "Data that changes often gets shorter TTL automatically",
-            "stable_data": "Static data gets longer TTL reducing database load"
-          }
-        },
-        {
-          "id": "3",
-          "feature": "Intelligent Rate Limiting",
-          "location": "backend/src/middleware/rateLimiting.ts or related middleware",
-          "issue": "Current rate limiting is fixed and doesn't adapt to usage patterns",
-          "recommendation": "Implement adaptive rate limiting that adjusts limits based on user behavior and system load",
-          "implementation": "Develop a system that tracks user request patterns and adjusts limits dynamically based on account type, historical usage, and current server load",
-          "benefits": "Prevents genuine users from hitting rate limits while still stopping abusive traffic",
-          "advanced_feature": "Machine learning model could predict and prevent DDoS attacks by recognizing attack patterns early"
-        },
-        {
-          "id": "4",
-          "feature": "Predictive Prefetching",
-          "location": "backend/src/middleware/prefetching.ts or as new service",
-          "issue": "Backend only serves data that is explicitly requested",
-          "recommendation": "Add predictive prefetching to serve likely-needed related data along with requested resources",
-          "implementation": "Analyze user navigation patterns to anticipate next requests and preload relevant data",
-          "benefits": "Drastically reduces perceived latency for end users by having data ready before they request it",
-          "example_scenario": "When user accesses article list, pre-fetch first few article details based on historical click patterns"
-        },
-        {
-          "id": "5",
-          "feature": "Self-Optimizing Database Queries",
-          "location": "backend/src/services/queryOptimizer.ts or query utilities",
-          "issue": "Current queries use static query plans that don't adapt to data distribution",
-          "recommendation": "Implement query plan analysis and optimization based on actual data distribution and access patterns",
-          "implementation": "Monitor query performance and automatically suggest or implement index optimizations",
-          "benefits": "Continuously improving database performance with minimal manual intervention",
-          "advanced_feature": "Could automatically create or drop indexes based on actual usage patterns"
-        }
-      ]
-    },
-    "smart_backend_architecture_patterns": {
-      "event_driven_updates": {
-        "description": "Implement event-driven architecture for real-time updates and reduced polling",
-        "benefits": [
-          "Reduced server load",
-          "Real-time updates without polling",
-          "Better user experience"
-        ],
-        "implementation": "Use Redis Pub/Sub or similar for internal service communication and real-time updates"
+      "roles": ["user"],
+      "validation": {
+        "status_check": "Bet must have status='pending'",
+        "ownership": "User must be owner of the bet"
       },
-      "adaptive_error_handling": {
-        "description": "Implement context-aware error handling that provides more relevant information based on request context",
-        "benefits": [
-          "Better debugging information",
-          "Context-appropriate error responses",
-          "Reduced troubleshooting time"
-        ],
-        "implementation": "Enhance error middleware with context detection and adaptive response generation"
-      },
-      "predictive_resource_allocation": {
-        "description": "Pre-allocate system resources based on predicted demand patterns",
-        "benefits": [
-          "Reduced latency during peak times",
-          "More efficient resource utilization",
-          "Better handling of traffic spikes"
-        ],
-        "implementation": "Analyze historical traffic patterns to predict peak times and pre-scale resources"
-      }
-    }
-  },
-
-  "machine_learning_integrations": {
-    "anomaly_detection": {
-      "description": "Implement ML-based anomaly detection for security and performance",
-      "use_cases": [
-        "Detecting unusual API access patterns that might indicate security threats",
-        "Identifying performance anomalies before they affect users",
-        "Recognizing fraudulent account behaviors"
-      ]
-    },
-    "personalization_engine": {
-      "description": "Create intelligent personalization based on user behavior and preferences",
-      "implementation": "Analyze user interactions to serve personalized content, layouts, and features",
-      "benefits": [
-        "Higher user engagement",
-        "Better conversion rates",
-        "Improved user experience"
-      ]
+      "response": {"success": true, "data": "Bet object with status='cancelled'"},
+      "purpose": "Allow user to cancel their own pending bets"
     }
   }
 }

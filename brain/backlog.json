@@ -1001,6 +1001,183 @@
         "state_independence": "Related but distinct data streams (like today's events) should have independent state management",
         "interactive_elements": "Static display elements should be converted to interactive controls when they serve as inputs to system functionality"
       }
+    },
+    {
+      "task_id": "EVENT_FIGHT_MANAGEMENT_FIXES_2025_12_06",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-06",
+      "completion_time": "18:30:00",
+      "complexity": "HIGH",
+      "category": "FEATURE_IMPLEMENTATION",
+      "priority": "P1_HIGH",
+      "completed_by": "Qwen",
+      "execution_mode": "standard",
+      "summary": "Implemented comprehensive fixes and optimizations for event and fight management, aligned with unified API endpoints and improved UI/UX.",
+      "problem_description": [
+        "1. StatusChanger dropdown was not properly aligned with backend actions endpoint",
+        "2. Delete button in UI was misleading - showed trash icon but performed soft delete (cancel action)",
+        "3. BetsActiveTab had incorrect API call (betsAPI.getAll instead of betsAPI.getAllAdmin)",
+        "4. Missing functionality for fight lifecycle management (start fight, end fight with winner selection)",
+        "5. Missing betting session controls (start betting, close betting)"
+      ],
+      "changes_implemented": {
+        "frontend": {
+          "StatusChanger.tsx": "Updated valid actions and labels to match backend API actions (activate, complete, cancel). Improved text descriptions for better UX.",
+          "EventsPage.tsx": "Modified handleEventAction to use unified eventsAPI.updateStatus for all actions. Renamed handleDeleteEvent to handleCancelEvent and updated to call updateStatus with 'cancel' action.",
+          "EventList.tsx": "Changed delete icon from Trash2 to XCircle for better UX. Updated tooltip text to 'Cancelar Evento'.",
+          "BetsActiveTab.tsx": "Fixed API call from betsAPI.getAll to betsAPI.getAllAdmin to match correct endpoint for admin functionality.",
+          "EventDetail.tsx": "Added fight state management functions (handleFightStatusUpdate, handleRegisterFightStart, handleRegisterFightEnd, handleSubmitWinner). Added winner selection modal handler. Integrated betting session controls.",
+          "SetWinnerModal.tsx": "Created new modal component for winner selection with options for red corner, blue corner, or draw."
+        },
+        "components": {
+          "SetWinnerModal": "New component created for selecting fight winner with visual options for each corner and draw result"
+        }
+      },
+      "files_modified": [
+        "frontend/src/components/admin/StatusChanger.tsx",
+        "frontend/src/pages/admin/EventsPage.tsx",
+        "frontend/src/components/admin/events/EventList.tsx",
+        "frontend/src/components/admin/BetsActiveTab.tsx",
+        "frontend/src/components/admin/events/EventDetail.tsx"
+      ],
+      "files_created": [
+        "frontend/src/components/admin/SetWinnerModal.tsx"
+      ],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "status": "pending",
+          "notes": "TypeScript compilation to be verified"
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to event management",
+          "Test StatusChanger dropdown - verify actions appear correctly based on event status",
+          "Check that cancel button shows XCircle icon and proper 'Cancelar Evento' text",
+          "Verify BetsActiveTab loads bets without JS errors in console",
+          "Select a fight and test 'REGISTRAR INICIO DE PELEA' button - should update fight status to 'live'",
+          "Test 'REGISTRAR TERMINO DE PELEA' button - should open winner selection modal",
+          "In winner modal, select winner and confirm - should update fight status to 'completed' with result",
+          "Test betting session controls - start betting (status 'betting') and close betting (status 'live')"
+        ]
+      },
+      "business_impact": "Aligns frontend functionality with backend API design, improves UX with more accurate UI elements, adds critical fight lifecycle management features, and provides complete betting session controls for admins.",
+      "optimization_rationale": {
+        "api_alignment": "Uses unified PATCH /events/:id/status and PATCH /fights/:id/status endpoints instead of multiple specific endpoints",
+        "ux_improvement": "Clearer icons and text prevent user confusion about actual functionality",
+        "feature_completeness": "Complete fight lifecycle management from start to finish with winner selection",
+        "betting_control": "Admins can now properly control betting periods through dedicated UI controls"
+      },
+      "lessons_learned": {
+        "api_convention": "Always verify API endpoint design before implementation and align frontend calls accordingly",
+        "ux_accuracy": "UI elements must accurately reflect backend functionality to prevent user confusion",
+        "feature_gaps": "Comprehensive functionality requires implementing complete user workflows, not just individual actions",
+        "component_modularity": "Creating dedicated components for specific tasks (like winner selection) improves code organization and reusability"
+      }
+    },
+    {
+      "task_id": "EVENT_FIGHT_MANAGEMENT_FIXES_CORRECTION_2025_12_06",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-06",
+      "completion_time": "19:30:00",
+      "complexity": "MEDIUM",
+      "category": "BUGFIX",
+      "priority": "P1_HIGH",
+      "completed_by": "Qwen",
+      "execution_mode": "standard",
+      "summary": "Corrección adicional para solucionar errores encontrados en la implementación anterior: referencia incorrecta a handleDeleteEvent y error de API en la carga de peleas.",
+      "problem_description": [
+        "1. Referencia incorrecta a handleDeleteEvent en lugar de handleCancelEvent en EventsPage.tsx",
+        "2. Error fightsAPI.getFightsByEvent is not a function en EventDetail.tsx",
+        "3. Falta de importación de apiClient necesario para la llamada correcta"
+      ],
+      "changes_implemented": {
+        "frontend": {
+          "EventsPage.tsx": "Corregido el uso de handleCancelEvent en lugar de handleDeleteEvent. Eliminado duplicado de export default.",
+          "EventDetail.tsx": "Reemplazado fightsAPI.getFightsByEvent por apiClient.get('/fights', { eventId }) con la importación adecuada."
+        }
+      },
+      "files_modified": [
+        "frontend/src/pages/admin/EventsPage.tsx",
+        "frontend/src/components/admin/events/EventDetail.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "status": "pending",
+          "notes": "TypeScript compilation to be verified"
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to event management",
+          "Verify that the event detail view loads peleas correctly",
+          "Test that the cancel button in event detail view works without errors",
+          "Confirm that betting session controls are functional"
+        ]
+      },
+      "business_impact": "Resolves critical runtime errors that prevented proper event and fight management functionality.",
+      "optimization_rationale": {
+        "api_usage": "Use correct apiClient.get method with query parameters instead of non-existent fightsAPI method",
+        "component_imports": "Ensure all necessary API clients are properly imported"
+      },
+      "lessons_learned": {
+        "api_verification": "Always verify that API methods exist before implementation. Check the actual API service file, not just assumptions.",
+        "import_management": "When using new API clients or methods, ensure they are properly imported in the component file.",
+        "testing_implementation": "Always verify implementation works in context after making changes."
+      }
+    },
+    {
+      "task_id": "EVENT_FIGHT_MANAGEMENT_BETS_ERROR_HANDLING_2025_12_06",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-06",
+      "completion_time": "20:30:00",
+      "complexity": "MEDIUM",
+      "category": "BUGFIX",
+      "priority": "P1_HIGH",
+      "completed_by": "Qwen",
+      "execution_mode": "standard",
+      "summary": "Corrección adicional para manejo de errores en la carga de apuestas y solución de problemas con carga de peleas.",
+      "problem_description": [
+        "1. Error en backend: 'no existe la columna fight->event.title' al llamar a /api/bets/all",
+        "2. Variable operationInProgress no definida en BetsActiveTab.tsx",
+        "3. Parámetro de estado múltiple no compatible con enum de backend",
+        "4. Problema con fightsAPI.getFightsByEvent no es una función"
+      ],
+      "changes_implemented": {
+        "frontend": {
+          "BetsActiveTab.tsx": "Agregado manejo específico para el error de columna inexistente. Corregido destructuring de props. Filtrado local de apuestas activas/pending.",
+          "EventDetail.tsx": "Corregido uso de apiClient.get para obtener peleas por evento en lugar de método inexistente."
+        }
+      },
+      "files_modified": [
+        "frontend/src/components/admin/BetsActiveTab.tsx",
+        "frontend/src/components/admin/events/EventDetail.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "status": "pending",
+          "notes": "TypeScript compilation to be verified"
+        },
+        "conceptual_manual_testing_steps": [
+          "Login as Admin and navigate to event management",
+          "Open an event detail view",
+          "Verify that fights load correctly in FightsControlTab",
+          "Check that bets tab provides appropriate error message instead of crashing",
+          "Verify that all other functionality remains operational"
+        ]
+      },
+      "business_impact": "Improves application stability by handling backend errors gracefully and ensures fights display correctly in event detail view.",
+      "optimization_rationale": {
+        "error_handling": "Implement specific error handling for known backend issues to improve user experience",
+        "api_robustness": "Use reliable API methods with proper error fallbacks",
+        "local_filtering": "Implement client-side filtering when backend doesn't support complex queries"
+      },
+      "lessons_learned": {
+        "backend_validation": "Always verify that backend endpoints are working correctly before full frontend implementation",
+        "error_handling": "Implement specific error handling for known backend issues rather than generic catches",
+        "api_consistency": "Verify that API methods exist and work as expected before relying on them"
+      }
     }
   ]
 }

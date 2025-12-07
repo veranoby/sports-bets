@@ -31,7 +31,7 @@ const EventsPage: React.FC = () => {
       setOperationInProgress(`${eventId}-${action}`);
       switch (action) {
         case "activate":
-          response = await eventsAPI.activate(eventId);
+          response = await eventsAPI.updateStatus(eventId, "activate");
           break;
         case "start-stream":
           response = await eventsAPI.startStream(eventId);
@@ -40,7 +40,7 @@ const EventsPage: React.FC = () => {
           response = await eventsAPI.stopStream(eventId);
           break;
         case "complete":
-          response = await eventsAPI.complete(eventId);
+          response = await eventsAPI.updateStatus(eventId, "complete");
           break;
         case "cancel":
           response = await eventsAPI.updateStatus(eventId, "cancel");
@@ -59,24 +59,17 @@ const EventsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
-    if (
-      window.confirm(
-        "¿Estás seguro de que quieres cancelar este evento? Esta acción cambiará el estado del evento a cancelado.",
-      )
-    ) {
-      try {
-        setOperationInProgress(`${eventId}-delete`);
-        await eventsAPI.delete(eventId);
-
-        // The EventDetail component will handle navigation when an event is deleted
-      } catch (err) {
-        setError(
-          `Error al cancelar: ${err instanceof Error ? err.message : "Error desconocido"}`,
-        );
-      } finally {
-        setOperationInProgress(null);
-      }
+  const handlePermanentDelete = async (eventId: string) => {
+    try {
+      setOperationInProgress(`${eventId}-delete`);
+      await eventsAPI.permanentDelete(eventId);
+      navigate("/admin/events");
+    } catch (err) {
+      setError(
+        `Error al eliminar: ${err instanceof Error ? err.message : "Error desconocido"}`,
+      );
+    } finally {
+      setOperationInProgress(null);
     }
   };
 
@@ -88,7 +81,7 @@ const EventsPage: React.FC = () => {
           eventId={eventId}
           onClose={() => navigate("/admin/events")}
           onEventAction={handleEventAction}
-          onDeleteEvent={handleDeleteEvent}
+          onPermanentDelete={handlePermanentDelete}
         />
       </SSEErrorBoundary>
     );
@@ -99,7 +92,7 @@ const EventsPage: React.FC = () => {
     <SSEErrorBoundary>
       <EventList
         onEventAction={handleEventAction}
-        onDeleteEvent={handleDeleteEvent}
+        onPermanentDelete={handlePermanentDelete}
       />
     </SSEErrorBoundary>
   );

@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
         {/* ROLE-SPECIFIC SECTIONS */}
         {user?.role === "user" && isBettingEnabled && (
           <div className="space-y-6">
-          {/*   <h2 className="text-2xl font-bold text-theme-primary">
+            {/*   <h2 className="text-2xl font-bold text-theme-primary">
               Mis Apuestas
             </h2>
             <div className="card-background p-6">
@@ -257,8 +257,12 @@ const Dashboard: React.FC = () => {
               <div className="space-y-3">
                 {[...todayEvents]
                   .sort((a, b) => {
-                    const dateA = new Date((a as EventData).scheduledDate).getTime();
-                    const dateB = new Date((b as EventData).scheduledDate).getTime();
+                    const dateA = new Date(
+                      (a as EventData).scheduledDate,
+                    ).getTime();
+                    const dateB = new Date(
+                      (b as EventData).scheduledDate,
+                    ).getTime();
                     return dateA - dateB;
                   })
                   .map((event) => {
@@ -281,45 +285,45 @@ const Dashboard: React.FC = () => {
                             </span>
                             <span className="w-px h-6 bg-white/10 mt-2 hidden sm:block"></span>
                           </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between gap-3">
-                            <h3 className="font-semibold text-theme-primary truncate">
-                              {typedEvent.name}
-                            </h3>
-                            <span
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
-                                isLive
-                                  ? "border-red-500/40 bg-red-500/10 text-red-300"
-                                  : "border-white/10 bg-white/5 text-theme-light"
-                              }`}
-                            >
-                              {isLive ? "En vivo" : "Programado"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-theme-light flex items-center gap-2 mt-1">
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10">
-                              {typedEvent.venue?.name ||
-                                "Gallera por confirmar"}
-                            </span>
-                            {typedEvent.totalFights && (
-                              <span className="text-xs text-theme-light/80">
-                                {typedEvent.totalFights} peleas
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between gap-3">
+                              <h3 className="font-semibold text-theme-primary truncate">
+                                {typedEvent.name}
+                              </h3>
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
+                                  isLive
+                                    ? "border-red-500/40 bg-red-500/10 text-red-300"
+                                    : "border-white/10 bg-white/5 text-theme-light"
+                                }`}
+                              >
+                                {isLive ? "En vivo" : "Programado"}
                               </span>
-                            )}
-                          </p>
-                          {typedEvent.description && (
-                            <p className="text-xs text-theme-light/70 mt-2 line-clamp-1">
-                              {typedEvent.description}
+                            </div>
+                            <p className="text-sm text-theme-light flex items-center gap-2 mt-1">
+                              <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                                {typedEvent.venue?.name ||
+                                  "Gallera por confirmar"}
+                              </span>
+                              {typedEvent.totalFights && (
+                                <span className="text-xs text-theme-light/80">
+                                  {typedEvent.totalFights} peleas
+                                </span>
+                              )}
                             </p>
-                          )}
+                            {typedEvent.description && (
+                              <p className="text-xs text-theme-light/70 mt-2 line-clamp-1">
+                                {typedEvent.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-theme-primary text-sm font-semibold hidden lg:block">
+                            Ver evento →
+                          </div>
                         </div>
-                        <div className="text-theme-primary text-sm font-semibold hidden lg:block">
-                          Ver evento →
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
               </div>
             ) : (
               <div className="text-center py-4 text-theme-light">
