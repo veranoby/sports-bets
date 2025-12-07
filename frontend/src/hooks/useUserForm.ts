@@ -102,6 +102,7 @@ export const useUserForm = (
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -164,6 +165,7 @@ export const useUserForm = (
 
   const handleSubmit = async () => {
     setError(null);
+    setFieldErrors({});
 
     try {
       if (mode === "create") {
@@ -189,10 +191,22 @@ export const useUserForm = (
         } else {
           const errorMessage =
             res.error || "Ocurrió un error al crear el usuario.";
+
+          // Extract field name from error message if possible
+          const errors: Record<string, string> = {};
+          if (errorMessage.toLowerCase().includes("password")) {
+            errors.password = errorMessage;
+          } else if (errorMessage.toLowerCase().includes("username")) {
+            errors.username = errorMessage;
+          } else if (errorMessage.toLowerCase().includes("email")) {
+            errors.email = errorMessage;
+          }
+
+          setFieldErrors(errors);
           setError(errorMessage);
           addToast({
             type: "error",
-            title: "Error al Crear",
+            title: "Error de Validación",
             message: errorMessage,
           });
           throw new Error(errorMessage);
@@ -250,5 +264,7 @@ export const useUserForm = (
     handleSubmit,
     error,
     setError,
+    fieldErrors,
+    setFieldErrors,
   };
 };

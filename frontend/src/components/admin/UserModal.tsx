@@ -51,6 +51,7 @@ const UserModal: React.FC<UserModalProps> = ({
     handleArrayChange,
     handleImagesChange,
     handleSubmit,
+    fieldErrors,
   } = useUserForm(mode, role, user);
 
   const { subscription, updateSubscription } = useUserSubscription(
@@ -306,7 +307,11 @@ const UserModal: React.FC<UserModalProps> = ({
                       onChange={handleChange}
                       required={mode === "create"}
                       minLength={8}
-                      className={inputStyle}
+                      className={`${inputStyle} ${
+                        fieldErrors.password
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          : ""
+                      }`}
                     />
                     <button
                       type="button"
@@ -320,6 +325,11 @@ const UserModal: React.FC<UserModalProps> = ({
                       )}
                     </button>
                   </div>
+                  {fieldErrors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
               )}
 
