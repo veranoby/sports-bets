@@ -363,8 +363,8 @@ router.patch(
   authorize("admin", "operator"),
   [
     body("action")
-      .isIn(["activate", "complete", "cancel"])
-      .withMessage("Action must be activate, complete, or cancel")
+      .isIn(["schedule", "activate", "complete", "cancel"])
+      .withMessage("Action must be schedule, activate, complete, or cancel")
   ],
   asyncHandler(async (req, res) => {
     const validationErrors = validationResult(req);

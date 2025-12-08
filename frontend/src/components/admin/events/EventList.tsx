@@ -48,11 +48,13 @@ const EventList: React.FC<EventListProps> = ({
   // Local wrapper to update state after status change
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
+      console.log('🔄 handleStatusChange called:', { eventId, action });
       const updatedEvent = await onEventAction(eventId, action);
+      console.log('📦 Received updatedEvent from backend:', updatedEvent);
 
       if (!updatedEvent) {
         // Fallback: re-fetch if no updated event returned
-        console.warn("No updated event returned, re-fetching...");
+        console.warn("⚠️ No updated event returned, re-fetching...");
         await fetchEvents(statusFilter, dateFilter);
         return;
       }
@@ -61,10 +63,15 @@ const EventList: React.FC<EventListProps> = ({
       const updateEvent = (event: Event) =>
         event.id === eventId ? ({ ...event, ...updatedEvent } as Event) : event;
 
-      setEvents((prev) => prev.map(updateEvent));
+      console.log('✅ Updating local state with updatedEvent');
+      setEvents((prev) => {
+        const updated = prev.map(updateEvent);
+        console.log('📊 Events after update:', updated.find(e => e.id === eventId));
+        return updated;
+      });
       setTodayEvents((prev) => prev.map(updateEvent));
     } catch (err) {
-      console.error("Error changing status:", err);
+      console.error("❌ Error changing status:", err);
       setError(err instanceof Error ? err.message : "Error al cambiar estado");
     }
   };
@@ -165,7 +172,7 @@ const EventList: React.FC<EventListProps> = ({
     events.forEach((event) => {
       const eventDateTime = new Date(event.scheduledDate);
       if (event.scheduledTime) {
-        const [hours, minutes] = event.scheduledTime.split(':');
+        const [hours, minutes] = event.scheduledTime.split(":");
         eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
       }
 
@@ -181,11 +188,11 @@ const EventList: React.FC<EventListProps> = ({
       const dateA = new Date(a.scheduledDate);
       const dateB = new Date(b.scheduledDate);
       if (a.scheduledTime) {
-        const [h, m] = a.scheduledTime.split(':');
+        const [h, m] = a.scheduledTime.split(":");
         dateA.setHours(parseInt(h), parseInt(m));
       }
       if (b.scheduledTime) {
-        const [h, m] = b.scheduledTime.split(':');
+        const [h, m] = b.scheduledTime.split(":");
         dateB.setHours(parseInt(h), parseInt(m));
       }
       return dateA.getTime() - dateB.getTime();
@@ -196,11 +203,11 @@ const EventList: React.FC<EventListProps> = ({
       const dateA = new Date(a.scheduledDate);
       const dateB = new Date(b.scheduledDate);
       if (a.scheduledTime) {
-        const [h, m] = a.scheduledTime.split(':');
+        const [h, m] = a.scheduledTime.split(":");
         dateA.setHours(parseInt(h), parseInt(m));
       }
       if (b.scheduledTime) {
-        const [h, m] = b.scheduledTime.split(':');
+        const [h, m] = b.scheduledTime.split(":");
         dateB.setHours(parseInt(h), parseInt(m));
       }
       return dateB.getTime() - dateA.getTime();
@@ -614,7 +621,7 @@ const EventList: React.FC<EventListProps> = ({
                       </div>
                       <StatusChanger
                         event={event}
-                        onStatusChange={onEventAction}
+                        onStatusChange={handleStatusChange}
                       />
                       <div className="relative group inline-block">
                         <button
@@ -713,7 +720,7 @@ const EventList: React.FC<EventListProps> = ({
                       </div>
                       <StatusChanger
                         event={event}
-                        onStatusChange={onEventAction}
+                        onStatusChange={handleStatusChange}
                       />
                       <div className="relative group inline-block">
                         <button

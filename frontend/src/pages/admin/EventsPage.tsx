@@ -52,6 +52,8 @@ const EventsPage: React.FC = () => {
           response = await eventsAPI.updateStatus(eventId, "cancel");
           break;
       }
+      console.log('🔧 EventsPage response from API:', response);
+      console.log('🔧 Extracting event:', response?.data?.event || response?.data);
       // Return updated event data for local state update
       return response?.data?.event || response?.data;
     } catch (err) {
