@@ -279,6 +279,9 @@ router.post(
       ],
     });
 
+    // Invalidate all events list cache
+    await cacheDel("events:list:*");
+
     res.status(201).json({
       success: true,
       message: "Event created successfully",
@@ -341,6 +344,9 @@ router.put(
     });
 
     await event.save();
+
+    // Invalidate cache
+    await cacheDel("events:list:*");
 
     res.json({
       success: true,
@@ -422,6 +428,13 @@ router.patch(
         event.streamKey = null;
         break;
 
+      case "schedule":
+        newStatus = "scheduled";
+        // Clear endDate when rescheduling
+        event.endDate = null;
+        // Keep existing streamKey/streamUrl if they exist (admin can regenerate if needed)
+        break;
+
       default:
         throw errors.badRequest("Invalid action");
     }
@@ -447,7 +460,9 @@ router.patch(
     // Create notification
     try {
       const notificationType = action === "activate" ? "event_activated" :
-                              action === "complete" ? "event_completed" : "event_cancelled";
+                              action === "complete" ? "event_completed" :
+                              action === "cancel" ? "event_cancelled" :
+                              action === "schedule" ? "event_scheduled" : "event_updated";
       const metadata = {
         eventName: event.name,
         ...(event.streamUrl && { streamUrl: event.streamUrl })
@@ -457,6 +472,9 @@ router.patch(
     } catch (notificationError) {
       console.error(`Error creating ${action} notification:`, notificationError);
     }
+
+    // Invalidate cache
+    await cacheDel("events:list:*");
 
     res.json({
       success: true,
@@ -790,6 +808,9 @@ router.delete(
     event.status = "cancelled";
     await event.save();
 
+    // Invalidate cache
+    await cacheDel("events:list:*");
+
     res.json({
       success: true,
       message: "Event cancelled successfully",
@@ -854,6 +875,9 @@ router.delete(
 
       // Finally delete the event
       await event.destroy({ transaction: t });
+
+      // Invalidate cache
+      await cacheDel("events:list:*");
 
       res.json({
         success: true,

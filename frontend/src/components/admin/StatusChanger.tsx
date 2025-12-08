@@ -20,6 +20,11 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
   const getValidActions = () => {
     return [
       {
+        action: "schedule",
+        label: "Marcar como Programado",
+        description: "Volver a estado programado",
+      },
+      {
         action: "activate",
         label: "Iniciar Evento",
         description: "Cambiar estado a iniciado/en progreso",

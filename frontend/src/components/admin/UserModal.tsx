@@ -271,8 +271,17 @@ const UserModal: React.FC<UserModalProps> = ({
                     onChange={handleChange}
                     required
                     disabled={mode === "edit"} // Username is read-only in edit mode
-                    className={`${inputStyle} ${mode === "edit" ? "bg-gray-100" : ""}`}
+                    className={`${inputStyle} ${mode === "edit" ? "bg-gray-100" : ""} ${
+                      fieldErrors.username && mode !== "edit"
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : ""
+                    }`}
                   />
+                  {fieldErrors.username && mode !== "edit" && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {fieldErrors.username}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -287,8 +296,17 @@ const UserModal: React.FC<UserModalProps> = ({
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className={inputStyle}
+                    className={`${inputStyle} ${
+                      fieldErrors.email
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : ""
+                    }`}
                   />
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 

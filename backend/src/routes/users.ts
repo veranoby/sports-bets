@@ -667,7 +667,11 @@ router.post(
     });
 
     if (existingUser) {
-      throw errors.conflict("User with this email or username already exists");
+      if (existingUser.email === email) {
+        throw errors.conflict("User with this email already exists");
+      } else {
+        throw errors.conflict("User with this username already exists");
+      }
     }
 
     await transaction(async (t) => {

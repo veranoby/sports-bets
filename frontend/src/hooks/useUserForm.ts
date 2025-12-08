@@ -192,14 +192,24 @@ export const useUserForm = (
           const errorMessage =
             res.error || "Ocurrió un error al crear el usuario.";
 
-          // Extract field name from error message if possible
+          // Extract field name from error message
           const errors: Record<string, string> = {};
-          if (errorMessage.toLowerCase().includes("password")) {
+          const lowerMessage = errorMessage.toLowerCase();
+
+          // Check for specific field errors (backend now sends specific messages)
+          if (lowerMessage.includes("password")) {
             errors.password = errorMessage;
-          } else if (errorMessage.toLowerCase().includes("username")) {
-            errors.username = errorMessage;
-          } else if (errorMessage.toLowerCase().includes("email")) {
+          }
+
+          if (
+            lowerMessage.includes("email") ||
+            lowerMessage.includes("correo")
+          ) {
             errors.email = errorMessage;
+          }
+
+          if (lowerMessage.includes("username")) {
+            errors.username = errorMessage;
           }
 
           setFieldErrors(errors);

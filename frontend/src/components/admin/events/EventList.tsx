@@ -27,7 +27,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import type { Event } from "../../../types";
 
 interface EventListProps {
-  onEventAction: (eventId: string, action: string) => Promise<void>;
+  onEventAction: (eventId: string, action: string) => Promise<any>;
   onPermanentDelete?: (eventId: string) => Promise<void>;
 }
 
@@ -48,39 +48,21 @@ const EventList: React.FC<EventListProps> = ({
   // Local wrapper to update state after status change
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
-      await onEventAction(eventId, action);
+      const updatedEvent = await onEventAction(eventId, action);
 
-      // Determine new status based on action
-      type EventStatus =
-        | "scheduled"
-        | "in-progress"
-        | "completed"
-        | "cancelled"
-        | "paused"
-        | "intermission";
-      let newStatus: EventStatus;
-      switch (action) {
-        case "activate":
-          newStatus = "in-progress";
-          break;
-        case "complete":
-          newStatus = "completed";
-          break;
-        case "cancel":
-          newStatus = "cancelled";
-          break;
-        default:
-          return; // Unknown action, don't update
+      if (!updatedEvent) {
+        // Fallback: re-fetch if no updated event returned
+        console.warn("No updated event returned, re-fetching...");
+        await fetchEvents(statusFilter, dateFilter);
+        return;
       }
 
-      // Update local state without re-fetch
-      const updateEventStatus = (event: Event) =>
-        event.id === eventId
-          ? ({ ...event, status: newStatus } as Event)
-          : event;
+      // Update local state with complete updated event from backend
+      const updateEvent = (event: Event) =>
+        event.id === eventId ? ({ ...event, ...updatedEvent } as Event) : event;
 
-      setEvents((prev) => prev.map(updateEventStatus));
-      setTodayEvents((prev) => prev.map(updateEventStatus));
+      setEvents((prev) => prev.map(updateEvent));
+      setTodayEvents((prev) => prev.map(updateEvent));
     } catch (err) {
       console.error("Error changing status:", err);
       setError(err instanceof Error ? err.message : "Error al cambiar estado");
@@ -174,13 +156,57 @@ const EventList: React.FC<EventListProps> = ({
     fetchTodayEvents();
   }, [user]);
 
-  const filteredEvents = useMemo(() => {
-    const sortedEvents = [...events].sort(
-      (a, b) =>
-        new Date(b.scheduledDate).getTime() -
-        new Date(a.scheduledDate).getTime(),
-    );
-    return sortedEvents;
+  // Split and sort events: upcoming (future) and past
+  const { upcomingEvents, pastEvents } = useMemo(() => {
+    const now = new Date();
+    const upcoming: typeof events = [];
+    const past: typeof events = [];
+
+    events.forEach((event) => {
+      const eventDateTime = new Date(event.scheduledDate);
+      if (event.scheduledTime) {
+        const [hours, minutes] = event.scheduledTime.split(':');
+        eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      }
+
+      if (eventDateTime >= now) {
+        upcoming.push(event);
+      } else {
+        past.push(event);
+      }
+    });
+
+    // Sort upcoming: soonest first (ascending)
+    upcoming.sort((a, b) => {
+      const dateA = new Date(a.scheduledDate);
+      const dateB = new Date(b.scheduledDate);
+      if (a.scheduledTime) {
+        const [h, m] = a.scheduledTime.split(':');
+        dateA.setHours(parseInt(h), parseInt(m));
+      }
+      if (b.scheduledTime) {
+        const [h, m] = b.scheduledTime.split(':');
+        dateB.setHours(parseInt(h), parseInt(m));
+      }
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    // Sort past: most recent first (descending)
+    past.sort((a, b) => {
+      const dateA = new Date(a.scheduledDate);
+      const dateB = new Date(b.scheduledDate);
+      if (a.scheduledTime) {
+        const [h, m] = a.scheduledTime.split(':');
+        dateA.setHours(parseInt(h), parseInt(m));
+      }
+      if (b.scheduledTime) {
+        const [h, m] = b.scheduledTime.split(':');
+        dateB.setHours(parseInt(h), parseInt(m));
+      }
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return { upcomingEvents: upcoming, pastEvents: past };
   }, [events]);
 
   const StreamStatusBadge = ({ status }: { status: string }) => {
@@ -527,111 +553,224 @@ const EventList: React.FC<EventListProps> = ({
         </div>
       )}
 
-      {/* Sección 2: Historial de Eventos */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Historial de Eventos ({filteredEvents.length})
-        </h2>
-
-        <div className="space-y-3">
-          {filteredEvents.length === 0 ? (
-            <EmptyState
-              title="No hay eventos disponibles"
-              description="No se encontraron eventos con los filtros aplicados. Prueba cambiar los filtros o crear un nuevo evento."
-              icon={<Calendar className="w-12 h-12" />}
-              action={
-                <button
-                  onClick={() => navigate("/admin/events/create")}
-                  className="btn-primary"
-                >
-                  Crear Primer Evento
-                </button>
-              }
-            />
-          ) : (
-            filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+      {/* Sección 2: Historial de Eventos - Two Column Layout */}
+      {upcomingEvents.length === 0 && pastEvents.length === 0 ? (
+        <Card className="p-6">
+          <EmptyState
+            title="No hay eventos disponibles"
+            description="No se encontraron eventos con los filtros aplicados. Prueba cambiar los filtros o crear un nuevo evento."
+            icon={<Calendar className="w-12 h-12" />}
+            action={
+              <button
+                onClick={() => navigate("/admin/events/create")}
+                className="btn-primary"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                  <div>
-                    <p className="font-medium text-gray-900">{event.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {event.venue?.name} •{" "}
-                      {new Date(event.scheduledDate).toLocaleString([], {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
+                Crear Primer Evento
+              </button>
+            }
+          />
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column: Upcoming Events */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              📅 Eventos Próximos ({upcomingEvents.length})
+            </h2>
+            <div className="space-y-3">
+              {upcomingEvents.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  No hay eventos próximos
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-600">
-                    {event.totalFights} peleas • $
-                    {event.totalPrizePool.toLocaleString()}
-                  </div>
-                  <StatusChanger event={event} onStatusChange={onEventAction} />
-                  <div className="relative group inline-block">
-                    <button
-                      onClick={() => navigate(`/admin/events/${event.id}`)}
-                      className="text-blue-600 hover:text-blue-800 text-sm"
-                    >
-                      Ver detalle
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                      Ver detalles completos del evento
-                    </div>
-                  </div>
-                  {onPermanentDelete && (
-                    <div className="relative group inline-block">
-                      <button
-                        onClick={async () => {
-                          if (
-                            window.confirm(
-                              "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.",
-                            )
-                          ) {
-                            try {
-                              await onPermanentDelete(event.id);
-                              // Optimización: actualizar estado local sin re-fetch
-                              setTodayEvents((prev) =>
-                                prev.filter((e) => e.id !== event.id),
-                              );
-                              setEvents((prev) =>
-                                prev.filter((e) => e.id !== event.id),
-                              );
-                            } catch (err) {
-                              console.error("Error deleting event:", err);
-                              setError(
-                                err instanceof Error
-                                  ? err.message
-                                  : "Error al eliminar evento",
-                              );
-                            }
-                          }
-                        }}
-                        className="p-1 text-red-700 hover:text-red-900"
-                        title="Eliminar Permanentemente"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                        ⚠️ ELIMINAR PERMANENTEMENTE
+              ) : (
+                upcomingEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {event.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {event.venue?.name} •{" "}
+                          {new Date(event.scheduledDate).toLocaleString([], {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
                       </div>
                     </div>
-                  )}
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-600">
+                        {event.totalFights} peleas • $
+                        {event.totalPrizePool.toLocaleString()}
+                      </div>
+                      <StatusChanger
+                        event={event}
+                        onStatusChange={onEventAction}
+                      />
+                      <div className="relative group inline-block">
+                        <button
+                          onClick={() => navigate(`/admin/events/${event.id}`)}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Ver detalle
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                          Ver detalles completos del evento
+                        </div>
+                      </div>
+                      {onPermanentDelete && (
+                        <div className="relative group inline-block">
+                          <button
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.",
+                                )
+                              ) {
+                                try {
+                                  await onPermanentDelete(event.id);
+                                  setTodayEvents((prev) =>
+                                    prev.filter((e) => e.id !== event.id),
+                                  );
+                                  setEvents((prev) =>
+                                    prev.filter((e) => e.id !== event.id),
+                                  );
+                                } catch (err) {
+                                  console.error("Error deleting event:", err);
+                                  setError(
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Error al eliminar evento",
+                                  );
+                                }
+                              }
+                            }}
+                            className="p-1 text-red-700 hover:text-red-900"
+                            title="Eliminar Permanentemente"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                            ⚠️ ELIMINAR PERMANENTEMENTE
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+
+          {/* Right Column: Past Events */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              🕒 Eventos Pasados ({pastEvents.length})
+            </h2>
+            <div className="space-y-3">
+              {pastEvents.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  No hay eventos pasados
                 </div>
-              </div>
-            ))
-          )}
+              ) : (
+                pastEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {event.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {event.venue?.name} •{" "}
+                          {new Date(event.scheduledDate).toLocaleString([], {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-600">
+                        {event.totalFights} peleas • $
+                        {event.totalPrizePool.toLocaleString()}
+                      </div>
+                      <StatusChanger
+                        event={event}
+                        onStatusChange={onEventAction}
+                      />
+                      <div className="relative group inline-block">
+                        <button
+                          onClick={() => navigate(`/admin/events/${event.id}`)}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Ver detalle
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                          Ver detalles completos del evento
+                        </div>
+                      </div>
+                      {onPermanentDelete && (
+                        <div className="relative group inline-block">
+                          <button
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento? NO se puede deshacer.",
+                                )
+                              ) {
+                                try {
+                                  await onPermanentDelete(event.id);
+                                  setTodayEvents((prev) =>
+                                    prev.filter((e) => e.id !== event.id),
+                                  );
+                                  setEvents((prev) =>
+                                    prev.filter((e) => e.id !== event.id),
+                                  );
+                                } catch (err) {
+                                  console.error("Error deleting event:", err);
+                                  setError(
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Error al eliminar evento",
+                                  );
+                                }
+                              }
+                            }}
+                            className="p-1 text-red-700 hover:text-red-900"
+                            title="Eliminar Permanentemente"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
+                            ⚠️ ELIMINAR PERMANENTEMENTE
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
         </div>
-      </Card>
+      )}
     </div>
   );
 };

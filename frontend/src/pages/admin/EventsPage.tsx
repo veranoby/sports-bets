@@ -28,27 +28,32 @@ const EventsPage: React.FC = () => {
   const handleEventAction = async (
     eventId: string,
     action: string,
-  ): Promise<void> => {
+  ): Promise<any> => {
     try {
       setOperationInProgress(`${eventId}-${action}`);
+      let response;
       switch (action) {
+        case "schedule":
+          response = await eventsAPI.updateStatus(eventId, "schedule");
+          break;
         case "activate":
-          await eventsAPI.updateStatus(eventId, "activate");
+          response = await eventsAPI.updateStatus(eventId, "activate");
           break;
         case "start-stream":
-          await eventsAPI.startStream(eventId);
+          response = await eventsAPI.startStream(eventId);
           break;
         case "stop-stream":
-          await eventsAPI.stopStream(eventId);
+          response = await eventsAPI.stopStream(eventId);
           break;
         case "complete":
-          await eventsAPI.updateStatus(eventId, "complete");
+          response = await eventsAPI.updateStatus(eventId, "complete");
           break;
         case "cancel":
-          await eventsAPI.updateStatus(eventId, "cancel");
+          response = await eventsAPI.updateStatus(eventId, "cancel");
           break;
       }
-      // EventList will handle state updates locally
+      // Return updated event data for local state update
+      return response?.data?.event || response?.data;
     } catch (err) {
       setError(
         `Error en ${action}: ${err instanceof Error ? err.message : "Error desconocido"}`,
