@@ -9,7 +9,6 @@ import {
   Search,
   Eye,
   CheckCircle,
-  XCircle,
   Edit,
   Plus,
   Calendar,
@@ -95,7 +94,9 @@ const AdminArticlesPage: React.FC = () => {
 
   // Modal eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);
+  const [deletingArticleId, setDeletingArticleId] = useState<string | null>(
+    null,
+  );
 
   // Estados para artículos pendientes
   const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
@@ -281,11 +282,7 @@ const AdminArticlesPage: React.FC = () => {
     // Use the stored deletingArticleId for the actual API call
     const articleIdToDelete = deletingArticleId;
 
-    if (
-      window.confirm(
-        "¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.",
-      )
-    ) {
+
       try {
         const result = await articlesAPI.delete(articleIdToDelete);
         if (result.success) {
@@ -298,8 +295,7 @@ const AdminArticlesPage: React.FC = () => {
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       }
-    }
-  };
+    };
 
   const handleBulkApprove = async () => {
     try {
@@ -1005,11 +1001,13 @@ const AdminArticlesPage: React.FC = () => {
 
               <div className="p-4">
                 <p className="text-sm text-gray-600 mb-4">
-                  ¿Estás seguro de que quieres eliminar este artículo? Esta acción es{" "}
+                  ¿Estás seguro de que quieres eliminar este artículo? Esta
+                  acción es{" "}
                   <span className="font-bold text-red-600">irreversible</span>.
                 </p>
                 <p className="text-xs text-gray-500">
-                  El artículo con ID: {deletingArticleId} será eliminado permanentemente.
+                  El artículo con ID: {deletingArticleId} será eliminado
+                  permanentemente.
                 </p>
               </div>
 

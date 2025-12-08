@@ -650,6 +650,7 @@ router.delete(
         return res.status(result.status || 404).json({ error: result.error });
       }
     } catch (error: any) {
+      console.error(`ERROR in DELETE /articles/:id route for articleId: ${id}. Details: ${error.message}`, error);
       if (error.isCustomError) {
         return res.status(error.statusCode).json({ error: error.message });
       }

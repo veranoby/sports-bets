@@ -1,11 +1,11 @@
 {
   "metadata": {
-    "task_name": "Fix and Optimize Admin Articles Management",
+    "task_name": "Optimize Article Deletion UX and Backend Error Reporting",
     "complexity": "MEDIUM",
     "execution_mode": "standard",
     "assigned_role": "executor",
     "model_preference": "qwen3-coder-plus-2025-09-23",
-    "git_branch": "feature/articles-fix"
+    "git_branch": "feature/article-delete-optimizations"
   },
   "critical_protocols": {
     "comment": "Executor AI must adhere to these protocols from brain/multi_ai_coordination_strategy.json",
@@ -19,97 +19,84 @@
   },
   "reference_files_to_read_first": [
     "/home/veranoby/sports-bets/frontend/src/pages/admin/Articles.tsx",
-    "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+    "/home/veranoby/sports-bets/backend/src/routes/articles.ts",
+    "/home/veranoby/sports-bets/backend/src/services/articleService.ts",
     "/home/veranoby/sports-bets/brain/multi_ai_coordination_strategy.json"
   ],
   "analysis_summary": {
-    "initial_request": "1) Translate action buttons in Articles.tsx to Spanish. 2) Simulate actions and identify problems, specifically the non-functional 'delete' button. 3) Verify against documentation.",
+    "initial_request": "Simulate article deletion process, report circumstances and potential optimizations given: 1) Double confirmation (modal then window.confirm). 2) Initial failure with frontend 'Error' message, then success on 'reintentar'.",
     "findings": [
       {
-        "area": "Frontend UI",
-        "description": "Action buttons (Preview, Edit, Delete, etc.) were in English. This has been addressed by translating them to Spanish (Visualizar, Editar, Eliminar, etc.).",
-        "status": "COMPLETED_BY_DIRECTOR_AI"
-      },
-      {
-        "area": "Backend API",
-        "description": "The 'Delete' button functionality is broken. The simulation and user-provided logs confirm a '404 Not Found' error for the request 'DELETE /api/articles/:id'.",
-        "root_cause": "The backend has not implemented the documented DELETE /articles/:id endpoint as specified in brain/api_endpoints_reference.json. This is an implementation gap, not a design flaw.",
-        "status": "NEEDS_IMPLEMENTATION"
-      },
-      {
         "area": "Frontend UX",
-        "description": "The delete confirmation uses a native 'window.confirm()' dialog, which is inconsistent with the custom modals used for other actions like 'Reject'.",
-        "recommendation": "Replace the native confirm dialog with a custom modal for a more consistent and professional user experience.",
-        "status": "RECOMMENDED_IMPROVEMENT"
+        "description": "The current delete process prompts for confirmation twice: first via the custom modal, then via a native browser `window.confirm` dialog. This is redundant and degrades user experience.",
+        "root_cause": "The `window.confirm` call was not removed from `confirmDeleteArticle` after implementing the custom modal.",
+        "status": "NEEDS_OPTIMIZATION"
+      },
+      {
+        "area": "Deletion Reliability / Error Reporting",
+        "description": "The first attempt to delete an article fails with a frontend error message ('Error al eliminar artículo') and a 'Reintentar' button. Clicking 'Reintentar' successfully deletes the article and updates the UI.",
+        "root_cause": "The exact root cause for the initial failure is unknown without further logging. Possible reasons include transient network issues, database contention, or subtle timing issues. The service's error reporting is generic.",
+        "status": "NEEDS_INVESTIGATION_AND_OPTIMIZATION"
       }
     ]
   },
   "step_by_step_implementation_plan": {
-    "phase_1_backend_api_fix": {
-      "objective": "Implement the documented DELETE /api/articles/:id endpoint to align the backend with the API specification.",
-      "step_1_locate_route_file": {
-        "action": "Find the correct file for article routes. Based on project structure, this is likely 'backend/src/routes/articles.ts'. Verify this path.",
-        "validate": "Confirm the file contains other article-related routes (e.g., GET, POST, PATCH)."
+    "phase_1_frontend_ux_optimization": {
+      "objective": "Eliminate redundant confirmation prompt in article deletion process.",
+      "step_1_remove_window_confirm": {
+        "action": "Remove the `window.confirm` call from the `confirmDeleteArticle` function.",
+        "file": "/home/veranoby/sports-bets/frontend/src/pages/admin/Articles.tsx",
+        "language": "typescript",
+        "snippet_before": "if (window.confirm(\"¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.\")) {",
+        "snippet_after": "// No window.confirm needed, custom modal handles it",
+        "purpose": "Streamline user experience by having only one confirmation step."
       },
-      "step_2_implement_delete_route": {
-        "action": "In the articles route file, add a new route handler for DELETE requests, as documented in 'brain/api_endpoints_reference.json'.",
-        "code_suggestion": {
-          "file": "backend/src/routes/articles.ts",
-          "language": "typescript",
-          "snippet": "router.delete('/articles/:id', authMiddleware, checkRole(['admin', 'gallera', 'venue']), articlesController.deleteArticle);"
-        },
-        "notes": "Ensure 'authMiddleware' and 'checkRole' are used to restrict this action as per the documentation. The controller function 'articlesController.deleteArticle' will likely need to be created."
-      },
-      "step_3_implement_controller_logic": {
-        "action": "In the corresponding controller file (likely 'backend/src/controllers/articlesController.ts'), create the 'deleteArticle' function.",
-        "code_suggestion": {
-          "file": "backend/src/controllers/articlesController.ts",
-          "language": "typescript",
-          "snippet": "async deleteArticle(req: Request, res: Response) {\n  const { id } = req.params;\n  try {\n    // Note: Add ownership check logic here as per documentation\n    const result = await articleService.delete(id, req.user);\n    if (result.success) {\n      return res.status(204).send();\n    } else {\n      return res.status(404).json({ error: result.error });\n    }\n  } catch (error) {\n    return res.status(500).json({ error: 'Internal server error' });\n  }\n}"
-        },
-        "notes": "This function should parse the ID from request params and call a service-layer function. Crucially, it must also enforce the ownership rule specified in the documentation ('Only admin or article owner can delete')."
-      },
-      "step_4_implement_service_logic": {
-        "action": "In the article service file (e.g., 'backend/src/services/articleService.ts'), implement the deletion logic. It must include an ownership check.",
-        "notes": "The logic should be: 1. Find the article by ID. 2. If not found, return error. 3. If user is not admin, check if 'article.author_id === user.id'. If not, return an authorization error. 4. If checks pass, delete the article using the ORM (e.g., 'Article.destroy({ where: { id } })')."
-      },
-      "validate": "After implementation, run 'npx tsc --noEmit' in the 'backend/' directory. Manually test the endpoint using a tool like 'curl' or Postman to confirm a '204 No Content' response on successful deletion, '404 Not Found' for an invalid ID, and '403 Forbidden' when a non-owner/non-admin tries to delete."
+      "validate": "Run 'npx tsc --noEmit' in the 'frontend/' directory. Visually confirm that clicking 'Eliminar' now only shows the custom modal, and upon 'Confirmar Eliminación', no second confirmation dialog appears."
     },
-    "phase_2_frontend_ux_improvement": {
-      "objective": "Enhance the delete confirmation experience to be consistent with the application's UI.",
-      "step_1_create_confirmation_modal_state": {
-        "action": "In 'frontend/src/pages/admin/Articles.tsx', add state to manage the delete confirmation modal.",
-        "code_suggestion": {
-          "file": "frontend/src/pages/admin/Articles.tsx",
-          "language": "typescript",
-          "snippet": "const [showDeleteModal, setShowDeleteModal] = useState(false);\nconst [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);"
-        }
+    "phase_2_backend_error_reporting_and_reliability": {
+      "objective": "Improve error reporting specificity and add logging for deletion failures.",
+      "step_1_refine_service_error_responses": {
+        "action": "Modify `articleService.delete` to return more specific HTTP status codes and error messages for different failure scenarios.",
+        "file": "/home/veranoby/sports-bets/backend/src/services/articleService.ts",
+        "language": "typescript",
+        "changes": [
+          {
+            "description": "Ensure `status` field is returned in error objects for clear frontend mapping.",
+            "snippet_example": "return { success: false, status: 403, error: \"You are not authorized to delete this article\" };"
+          }
+        ],
+        "purpose": "Allow frontend to display more informative error messages."
       },
-      "step_2_modify_delete_handler": {
-        "action": "Update the button's 'onClick' to open the modal instead of calling 'handleDeleteArticle' directly.",
-        "code_suggestion": {
-          "file": "frontend/src/pages/admin/Articles.tsx",
-          "snippet": "const openDeleteModal = (articleId: string) => {\n  setDeletingArticleId(articleId);\n  setShowDeleteModal(true);\n};\n\n// The button should now call openDeleteModal(article.id)"
-        },
-        "notes": "The existing 'handleDeleteArticle' logic should be moved to a new function, e.g., 'confirmDeleteArticle', which will be called by the modal's confirm button."
+      "step_2_add_detailed_logging_to_service": {
+        "action": "Introduce `console.error` calls in `articleService.delete` for various failure points (e.g., article not found, authorization failure, unexpected `article.destroy()` error).",
+        "file": "/home/veranoby/sports-bets/backend/src/services/articleService.ts",
+        "language": "typescript",
+        "snippet_example": "console.error(`Article deletion failed for ID ${articleId}: Article not found.`);"
       },
-      "step_3_implement_confirmation_modal_jsx": {
-        "action": "Add the JSX for the delete confirmation modal, using the existing 'showRejectModal' as a template for style consistency.",
-        "notes": "The modal should clearly state the irreversible nature of the action and have 'Confirmar Eliminación' and 'Cancelar' buttons."
+      "step_3_add_detailed_logging_to_route_handler": {
+        "action": "Add `console.error` in the `catch` block of the DELETE route handler in `articles.ts` to log full error details.",
+        "file": "/home/veranoby/sports-bets/backend/src/routes/articles.ts",
+        "language": "typescript",
+        "snippet_example": "console.error(`Error in DELETE /articles/:id route: ${error.message}`, error);",
+        "purpose": "Provide better visibility into why initial deletion attempts might be failing."
       },
-      "validate": "Run 'npx tsc --noEmit' in the 'frontend/' directory. Start the dev server and verify that clicking the 'Eliminar' button now opens a custom modal."
+      "validate": "Run 'npx tsc --noEmit' in the 'backend/' directory. After deployment, observe backend logs when attempting to delete, especially in failure scenarios. Verify frontend displays more specific error messages if configured to do so."
     }
   },
   "success_criteria": [
-    "Backend successfully handles 'DELETE /api/articles/:id' requests with proper authentication and ownership checks.",
-    "Frontend UI buttons in 'Articles.tsx' are fully translated to Spanish (This is already done).",
-    "Clicking the 'Eliminar' button on an article opens a custom confirmation modal.",
-    "Confirming deletion in the modal successfully removes the article and updates the list.",
-    "All code passes TypeScript checks ('npx tsc --noEmit') in both 'frontend' and 'backend' directories.",
-    "The implementation is consistent with the definitions in 'brain/api_endpoints_reference.json' and 'brain/typescript_interfaces_reference.json'."
+    "No double confirmation for article deletion on the frontend.",
+    "Backend error responses from `articleService.delete` include specific HTTP status codes.",
+    "Backend logs provide detailed information about article deletion failures.",
+    "All code passes TypeScript checks ('npx tsc --noEmit') in both 'frontend' and 'backend' directories."
   ],
+  "recommendations_for_future_work": {
+    "improve_frontend_retry_mechanism": {
+      "description": "Consider enhancing the generic `ErrorMessage` component or the deletion flow to store the failed action and re-execute it explicitly when the 'Reintentar' button is clicked. Currently, 'Reintentar' on an `ErrorMessage` that resulted from a deletion failure might just call `fetchData()`, which refreshes the list but doesn't re-attempt the deletion API call.",
+      "notes": "This would involve passing a retryable function as a prop to `ErrorMessage` instead of just relying on `fetchData`."
+    }
+  },
   "error_handling_plan": {
     "typescript_errors": "Do not proceed if 'npx tsc --noEmit' fails. Analyze the errors and fix them before continuing implementation.",
-    "api_errors": "If the backend fix does not work as expected, log all relevant variables (request params, user role, database query) to debug the flow from route to service."
+    "api_errors": "If a backend change does not work as expected, rely on the new logging to debug the flow."
   }
 }
