@@ -5,6 +5,7 @@ import { asyncHandler, errors } from "../middleware/errorHandler";
 import { sanitizeArticleContent } from "../middleware/sanitization";
 import { Article } from "../models/Article";
 import { User } from "../models/User";
+import articleService from "../services/articleService"; // Import articleService
 import { body, query, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import { getOrSet, invalidatePattern } from "../config/redis"; // ⚡ OPTIMIZATION: Redis caching
@@ -622,6 +623,38 @@ router.put(
       success: true,
       data: serializeArticle(article),
     });
+  })
+);
+
+// DELETE /articles/:id - Delete an article
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "gallera", "venue"),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    try {
+      // Note: Add ownership check logic here as per documentation
+      // The service layer will handle the actual deletion and ownership check
+      const result = await articleService.delete(id, req.user);
+      if (result.success) {
+        // Invalidate caches after successful deletion
+        await Promise.all([
+          invalidatePattern('articles_list_*'),
+          invalidatePattern('articles_featured_*'),
+          invalidatePattern(`article_detail_${id}_*`)
+        ]);
+        return res.status(204).send();
+      } else {
+        // More specific error handling can be done in the service layer
+        return res.status(result.status || 404).json({ error: result.error });
+      }
+    } catch (error: any) {
+      if (error.isCustomError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
+      return res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
   })
 );
 

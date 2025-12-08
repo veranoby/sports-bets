@@ -1,106 +1,115 @@
-
 {
   "metadata": {
-    "task_name": "Corrección y Optimización de Lógica en Gestión de Eventos y Peleas (Verificado y Documentado)",
-    "complexity": "HIGH",
+    "task_name": "Fix and Optimize Admin Articles Management",
+    "complexity": "MEDIUM",
     "execution_mode": "standard",
     "assigned_role": "executor",
-    "git_branch": "feature/event-fight-management-fixes-verified"
+    "model_preference": "qwen3-coder-plus-2025-09-23",
+    "git_branch": "feature/articles-fix"
   },
   "critical_protocols": {
-    "description": "El ejecutor DEBE seguir estos protocolos del archivo 'brain/multi_ai_coordination_strategy.json'.",
+    "comment": "Executor AI must adhere to these protocols from brain/multi_ai_coordination_strategy.json",
     "protocols_to_follow": [
-      "🔴_UI_VERIFICATION_PROTOCOL (Líneas 283-396)",
-      "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL (Líneas 401-515)",
-      "simulate_y_confirmar_protocol (Líneas 470-481)"
+      "🔴_AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 147-281)",
+      "🔴_UI_VERIFICATION_PROTOCOL (lines 283-396)",
+      "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL (lines 401-515)",
+      "simulate_y_confirmar_protocol (lines 467-476)",
+      "🔴_IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK_2025_11_27 (lines 953-1225)"
     ]
   },
-  "reference_files_read_first": [
-    "brain/api_endpoints_reference.json",
-    "frontend/src/pages/admin/EventsPage.tsx",
-    "frontend/src/components/admin/events/EventList.tsx",
-    "frontend/src/components/admin/events/EventDetail.tsx",
-    "frontend/src/components/admin/StatusChanger.tsx",
-    "frontend/src/components/admin/BetsActiveTab.tsx",
-    "frontend/src/services/api.ts"
+  "reference_files_to_read_first": [
+    "/home/veranoby/sports-bets/frontend/src/pages/admin/Articles.tsx",
+    "/home/veranoby/sports-bets/brain/api_endpoints_reference.json",
+    "/home/veranoby/sports-bets/brain/multi_ai_coordination_strategy.json"
   ],
-  "step_by_step_implementation": [
-    {
-      "step_number": 1,
-      "action": "Refactorizar `StatusChanger.tsx` para usar el endpoint de acciones del evento.",
-      "file": "frontend/src/components/admin/StatusChanger.tsx",
-      "purpose": "Alinear el frontend con la API real del backend (`PATCH /events/:id/status`) que funciona con 'acciones' en lugar de estados directos.",
-      "simulate": [
-        "1. Modificar la función `getValidActions` para que devuelva las acciones permitidas por la API: 'activate', 'complete', 'cancel'.",
-        "2. Ajustar las etiquetas (`label`) para que sean más descriptivas para el usuario: 'Activar Evento', 'Marcar como Terminado', 'Cancelar Evento'.",
-        "3. Modificar `handleActionClick` para que llame a `onStatusChange(event.id, action.action)`.",
-        "4. En `EventsPage.tsx`, dentro de `handleEventAction`, asegurarse que la llamada a la API sea `eventsAPI.updateStatus(eventId, action)` o similar, que ejecute un `PATCH` con el `action` en el body."
-      ],
-      "confirm_before_creating": "Verificar en `frontend/src/services/api.ts` o `frontend/src/config/api.ts` que `eventsAPI` tenga una función para `PATCH /events/:id/status`. Si no existe, crearla.",
-      "validate_after_creation": "Probar el dropdown en la UI y verificar que la llamada de red correcta se esté realizando."
+  "analysis_summary": {
+    "initial_request": "1) Translate action buttons in Articles.tsx to Spanish. 2) Simulate actions and identify problems, specifically the non-functional 'delete' button. 3) Verify against documentation.",
+    "findings": [
+      {
+        "area": "Frontend UI",
+        "description": "Action buttons (Preview, Edit, Delete, etc.) were in English. This has been addressed by translating them to Spanish (Visualizar, Editar, Eliminar, etc.).",
+        "status": "COMPLETED_BY_DIRECTOR_AI"
+      },
+      {
+        "area": "Backend API",
+        "description": "The 'Delete' button functionality is broken. The simulation and user-provided logs confirm a '404 Not Found' error for the request 'DELETE /api/articles/:id'.",
+        "root_cause": "The backend has not implemented the documented DELETE /articles/:id endpoint as specified in brain/api_endpoints_reference.json. This is an implementation gap, not a design flaw.",
+        "status": "NEEDS_IMPLEMENTATION"
+      },
+      {
+        "area": "Frontend UX",
+        "description": "The delete confirmation uses a native 'window.confirm()' dialog, which is inconsistent with the custom modals used for other actions like 'Reject'.",
+        "recommendation": "Replace the native confirm dialog with a custom modal for a more consistent and professional user experience.",
+        "status": "RECOMMENDED_IMPROVEMENT"
+      }
+    ]
+  },
+  "step_by_step_implementation_plan": {
+    "phase_1_backend_api_fix": {
+      "objective": "Implement the documented DELETE /api/articles/:id endpoint to align the backend with the API specification.",
+      "step_1_locate_route_file": {
+        "action": "Find the correct file for article routes. Based on project structure, this is likely 'backend/src/routes/articles.ts'. Verify this path.",
+        "validate": "Confirm the file contains other article-related routes (e.g., GET, POST, PATCH)."
+      },
+      "step_2_implement_delete_route": {
+        "action": "In the articles route file, add a new route handler for DELETE requests, as documented in 'brain/api_endpoints_reference.json'.",
+        "code_suggestion": {
+          "file": "backend/src/routes/articles.ts",
+          "language": "typescript",
+          "snippet": "router.delete('/articles/:id', authMiddleware, checkRole(['admin', 'gallera', 'venue']), articlesController.deleteArticle);"
+        },
+        "notes": "Ensure 'authMiddleware' and 'checkRole' are used to restrict this action as per the documentation. The controller function 'articlesController.deleteArticle' will likely need to be created."
+      },
+      "step_3_implement_controller_logic": {
+        "action": "In the corresponding controller file (likely 'backend/src/controllers/articlesController.ts'), create the 'deleteArticle' function.",
+        "code_suggestion": {
+          "file": "backend/src/controllers/articlesController.ts",
+          "language": "typescript",
+          "snippet": "async deleteArticle(req: Request, res: Response) {\n  const { id } = req.params;\n  try {\n    // Note: Add ownership check logic here as per documentation\n    const result = await articleService.delete(id, req.user);\n    if (result.success) {\n      return res.status(204).send();\n    } else {\n      return res.status(404).json({ error: result.error });\n    }\n  } catch (error) {\n    return res.status(500).json({ error: 'Internal server error' });\n  }\n}"
+        },
+        "notes": "This function should parse the ID from request params and call a service-layer function. Crucially, it must also enforce the ownership rule specified in the documentation ('Only admin or article owner can delete')."
+      },
+      "step_4_implement_service_logic": {
+        "action": "In the article service file (e.g., 'backend/src/services/articleService.ts'), implement the deletion logic. It must include an ownership check.",
+        "notes": "The logic should be: 1. Find the article by ID. 2. If not found, return error. 3. If user is not admin, check if 'article.author_id === user.id'. If not, return an authorization error. 4. If checks pass, delete the article using the ORM (e.g., 'Article.destroy({ where: { id } })')."
+      },
+      "validate": "After implementation, run 'npx tsc --noEmit' in the 'backend/' directory. Manually test the endpoint using a tool like 'curl' or Postman to confirm a '204 No Content' response on successful deletion, '404 Not Found' for an invalid ID, and '403 Forbidden' when a non-owner/non-admin tries to delete."
     },
-    {
-      "step_number": 2,
-      "action": "Alinear la funcionalidad del botón de eliminar con el comportamiento real del backend (borrado suave).",
-      "file": "frontend/src/components/admin/events/EventList.tsx",
-      "purpose": "Evitar confusión al usuario. El botón de 'basura' debe reflejar que cancela, no que elimina permanentemente.",
-      "simulate": [
-        "1. Cambiar el icono `Trash2` por un icono más apropiado para 'cancelar', como `XCircle` de lucide-react.",
-        "2. Cambiar el `title` y el `tooltip` del botón a 'Cancelar Evento'.",
-        "3. En `EventsPage.tsx`, modificar el `window.confirm` en `handleDeleteEvent` para preguntar '¿Estás seguro de que quieres CANCELAR este evento?'. Renombrar `handleDeleteEvent` a `handleCancelEvent` por claridad y actualizar su llamada en `EventList`."
-      ],
-      "confirm_before_creating": "No se necesita confirmación. La documentación actualizada y la verificación del backend confirman el borrado suave.",
-      "validate_after_creation": "Verificar que el evento cambia su estado a 'Cancelado' en la UI después de la acción."
-    },
-    {
-      "step_number": 3,
-      "action": "Corregir la llamada a la API en `BetsActiveTab.tsx`.",
-      "file": "frontend/src/components/admin/BetsActiveTab.tsx",
-      "purpose": "Solucionar el error de JS `TypeError: betsAPI.getAll is not a function`.",
-      "simulate": [
-        "1. En la línea 44, cambiar la llamada `betsAPI.getAll(params)` por `betsAPI.getAllAdmin(params)`.",
-        "2. Asegurarse que la importación de `betsAPI` provenga de `frontend/src/services/api.ts`."
-      ],
-      "confirm_before_creating": "Verificación del código fuente de `frontend/src/services/api.ts` ya realizada, confirma que `getAllAdmin` es el nombre correcto.",
-      "validate_after_creation": "La pestaña 'Apuestas Activas' debe cargar los datos sin errores en la consola del navegador."
-    },
-    {
-      "step_number": 4,
-      "action": "Implementar la lógica de control de PELEAS usando los endpoints de API unificados.",
-      "file": "frontend/src/components/admin/events/EventDetail.tsx",
-      "purpose": "Dar funcionalidad a los botones de control de la pelea seleccionada.",
-      "simulate": [
-        "1. Crear un nuevo componente modal `frontend/src/components/admin/SetWinnerModal.tsx`. Props: `isOpen`, `onClose`, `fightId`, `onSubmit(fightId, winner)`.",
-        "2. En `EventDetail.tsx`, agregar un estado `isWinnerModalOpen` y un handler para abrir el modal.",
-        "3. Agregar `onClick` al botón 'REGISTRAR INICIO DE PELEA'. Este handler llamará a `fightsAPI.updateStatus(selectedFightId, 'live')` (o una función que haga `PATCH` a `/fights/:id/status` con `{status: 'live'}`).",
-        "4. Agregar `onClick` al botón 'REGISTRAR TERMINO DE PELEA...' que abrirá el modal `SetWinnerModal`.",
-        "5. Implementar el `onSubmit` del modal para que llame a `fightsAPI.updateStatus(fightId, 'completed', winner)` (o una función que haga `PATCH` a `/fights/:id/status` con `{status: 'completed', result: winner}`)."
-      ],
-      "confirm_before_creating": "La documentación actualizada y la verificación del backend confirman que `PATCH /fights/:id/status` es el endpoint correcto.",
-      "validate_after_creation": "Probar el ciclo de vida completo de una pelea en la UI."
-    },
-    {
-      "step_number": 5,
-      "action": "Implementar la lógica de APUESTAS usando la máquina de estados de la pelea.",
-      "file": "frontend/src/components/admin/BetsActiveTab.tsx",
-      "purpose": "Dar funcionalidad a los botones para abrir y cerrar el período de apuestas.",
-      "simulate": [
-        "1. Agregar `onClick` al botón 'INICIAR sesion de Apuestas'. Este handler llamará a `fightsAPI.updateStatus(fightId, 'betting')` (o la función que haga `PATCH` a `/fights/:id/status` con `{status: 'betting'}`).",
-        "2. Agregar `onClick` al botón 'CERRAR sesion de Apuestas'. Este handler llamará a `fightsAPI.updateStatus(fightId, 'live')` (o la función que haga `PATCH` a `/fights/:id/status` con `{status: 'live'}`).",
-        "3. Deshabilitar los botones apropiadamente según el estado actual de la pelea para prevenir transiciones inválidas."
-      ],
-      "confirm_before_creating": "La verificación del backend confirmó que el estado de las apuestas se controla a través del `status` de la pelea (`betting` -> `live`).",
-      "validate_after_creation": "Probar que los botones cambian el estado de la pelea a 'betting' y luego a 'live', y que la UI se actualiza."
+    "phase_2_frontend_ux_improvement": {
+      "objective": "Enhance the delete confirmation experience to be consistent with the application's UI.",
+      "step_1_create_confirmation_modal_state": {
+        "action": "In 'frontend/src/pages/admin/Articles.tsx', add state to manage the delete confirmation modal.",
+        "code_suggestion": {
+          "file": "frontend/src/pages/admin/Articles.tsx",
+          "language": "typescript",
+          "snippet": "const [showDeleteModal, setShowDeleteModal] = useState(false);\nconst [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);"
+        }
+      },
+      "step_2_modify_delete_handler": {
+        "action": "Update the button's 'onClick' to open the modal instead of calling 'handleDeleteArticle' directly.",
+        "code_suggestion": {
+          "file": "frontend/src/pages/admin/Articles.tsx",
+          "snippet": "const openDeleteModal = (articleId: string) => {\n  setDeletingArticleId(articleId);\n  setShowDeleteModal(true);\n};\n\n// The button should now call openDeleteModal(article.id)"
+        },
+        "notes": "The existing 'handleDeleteArticle' logic should be moved to a new function, e.g., 'confirmDeleteArticle', which will be called by the modal's confirm button."
+      },
+      "step_3_implement_confirmation_modal_jsx": {
+        "action": "Add the JSX for the delete confirmation modal, using the existing 'showRejectModal' as a template for style consistency.",
+        "notes": "The modal should clearly state the irreversible nature of the action and have 'Confirmar Eliminación' and 'Cancelar' buttons."
+      },
+      "validate": "Run 'npx tsc --noEmit' in the 'frontend/' directory. Start the dev server and verify that clicking the 'Eliminar' button now opens a custom modal."
     }
-  ],
+  },
   "success_criteria": [
-    "El dropdown de estado del evento funciona con las acciones 'activate', 'complete', 'cancel'.",
-    "El botón de la basura en la lista de eventos se ha reemplazado por un icono de 'Cancelar' y funciona como tal.",
-    "La pestaña de apuestas activas carga sin errores.",
-    "Los botones de control de pelea y sesión de apuestas llaman a los endpoints `PATCH /fights/:id/status` correctos y cambian el estado de la pelea."
+    "Backend successfully handles 'DELETE /api/articles/:id' requests with proper authentication and ownership checks.",
+    "Frontend UI buttons in 'Articles.tsx' are fully translated to Spanish (This is already done).",
+    "Clicking the 'Eliminar' button on an article opens a custom confirmation modal.",
+    "Confirming deletion in the modal successfully removes the article and updates the list.",
+    "All code passes TypeScript checks ('npx tsc --noEmit') in both 'frontend' and 'backend' directories.",
+    "The implementation is consistent with the definitions in 'brain/api_endpoints_reference.json' and 'brain/typescript_interfaces_reference.json'."
   ],
-  "error_handling": {
-    "typescript_errors": "Detener la implementación inmediatamente y reportar el error.",
-    "build_errors": "No se debe confirmar ningún cambio si `npm run build` falla."
+  "error_handling_plan": {
+    "typescript_errors": "Do not proceed if 'npx tsc --noEmit' fails. Analyze the errors and fix them before continuing implementation.",
+    "api_errors": "If the backend fix does not work as expected, log all relevant variables (request params, user role, database query) to debug the flow from route to service."
   }
 }

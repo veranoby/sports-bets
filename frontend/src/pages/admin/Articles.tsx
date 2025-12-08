@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  XCircle,
 } from "lucide-react";
 
 // Componentes reutilizados
@@ -91,6 +92,10 @@ const AdminArticlesPage: React.FC = () => {
 
   // Modal preview
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
+
+  // Modal eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);
 
   // Estados para artículos pendientes
   const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
@@ -265,16 +270,28 @@ const AdminArticlesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteArticle = async (articleId: string) => {
+  const openDeleteModal = (articleId: string) => {
+    setDeletingArticleId(articleId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteArticle = async () => {
+    if (!deletingArticleId) return;
+
+    // Use the stored deletingArticleId for the actual API call
+    const articleIdToDelete = deletingArticleId;
+
     if (
       window.confirm(
         "¿Estás seguro de que quieres eliminar este artículo? Esta acción es irreversible.",
       )
     ) {
       try {
-        const result = await articlesAPI.delete(articleId);
+        const result = await articlesAPI.delete(articleIdToDelete);
         if (result.success) {
           fetchData(); // Refrescar lista
+          setShowDeleteModal(false); // Close modal on success
+          setDeletingArticleId(null); // Clear deleting ID
         } else {
           setError(result.error || "Error al eliminar artículo");
         }
@@ -473,31 +490,31 @@ const AdminArticlesPage: React.FC = () => {
                     onClick={() => openPreview(article)}
                     className="px-3 py-1 text-sm font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    Preview
+                    Visualizar
                   </button>
                   <button
                     onClick={() => openEditModal(article)}
                     className="px-3 py-1 text-sm font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    Edit
+                    Editar
                   </button>
                   <button
                     onClick={() => handleApproveArticle(article.id)}
                     className="px-3 py-1 text-sm font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                   >
-                    Approve
+                    Aprobar
                   </button>
                   <button
                     onClick={() => openRejectModal(article.id)}
                     className="px-3 py-1 text-sm font-medium rounded border border-red-600 text-red-700 bg-red-50 hover:bg-red-100"
                   >
-                    Reject
+                    Rechazar
                   </button>
                   <button
-                    onClick={() => handleDeleteArticle(article.id)}
+                    onClick={() => openDeleteModal(article.id)}
                     className="px-3 py-1 text-sm font-medium rounded border border-red-800 text-red-800 bg-red-50 hover:bg-red-100"
                   >
-                    Delete
+                    Eliminar
                   </button>
                 </div>
               </div>
@@ -541,7 +558,7 @@ const AdminArticlesPage: React.FC = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            Gestión General
+            Gestión General de Articulos
           </h2>
           <button
             onClick={openCreateModal}
@@ -703,20 +720,20 @@ const AdminArticlesPage: React.FC = () => {
                           onClick={() => openPreview(article)}
                           className="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                         >
-                          Preview
+                          Visualizar
                         </button>
                         <button
                           onClick={() => openEditModal(article)}
                           className="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                         >
-                          Edit
+                          Editar
                         </button>
                         {article.status === "pending" ? (
                           <button
                             onClick={() => handleApproveArticle(article.id)}
                             className="px-2 py-1 text-xs font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                           >
-                            Approve
+                            Aprobar
                           </button>
                         ) : article.status === "published" ? (
                           <button
@@ -725,7 +742,7 @@ const AdminArticlesPage: React.FC = () => {
                             }
                             className="px-2 py-1 text-xs font-medium rounded border border-red-600 text-red-700 bg-red-50 hover:bg-red-100"
                           >
-                            Archive
+                            Archivar
                           </button>
                         ) : article.status === "archived" ? (
                           <button
@@ -734,14 +751,14 @@ const AdminArticlesPage: React.FC = () => {
                             }
                             className="px-2 py-1 text-xs font-medium rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                           >
-                            Publish
+                            Publicar
                           </button>
                         ) : null}
                         <button
-                          onClick={() => handleDeleteArticle(article.id)}
+                          onClick={() => openDeleteModal(article.id)}
                           className="px-2 py-1 text-xs font-medium rounded border border-red-800 text-red-800 bg-red-50 hover:bg-red-100"
                         >
-                          Delete
+                          Eliminar
                         </button>
                       </div>
                     </div>
@@ -797,7 +814,7 @@ const AdminArticlesPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
-                Preview Artículo
+                Visualizar Artículo
               </h2>
               <button
                 onClick={closePreview}
@@ -955,6 +972,60 @@ const AdminArticlesPage: React.FC = () => {
                 >
                   <XCircle className="w-4 h-4" />
                   Rechazar Artículo
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal Eliminar Artículo (Custom Modal) */}
+      {showDeleteModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={() => setShowDeleteModal(false)}
+          ></div>
+
+          {/* Modal Panel */}
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Confirmar Eliminación
+                </h2>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  ¿Estás seguro de que quieres eliminar este artículo? Esta acción es{" "}
+                  <span className="font-bold text-red-600">irreversible</span>.
+                </p>
+                <p className="text-xs text-gray-500">
+                  El artículo con ID: {deletingArticleId} será eliminado permanentemente.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDeleteArticle}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Confirmar Eliminación
                 </button>
               </div>
             </div>
