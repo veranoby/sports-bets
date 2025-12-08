@@ -282,20 +282,19 @@ const AdminArticlesPage: React.FC = () => {
     // Use the stored deletingArticleId for the actual API call
     const articleIdToDelete = deletingArticleId;
 
-
-      try {
-        const result = await articlesAPI.delete(articleIdToDelete);
-        if (result.success) {
-          fetchData(); // Refrescar lista
-          setShowDeleteModal(false); // Close modal on success
-          setDeletingArticleId(null); // Clear deleting ID
-        } else {
-          setError(result.error || "Error al eliminar artículo");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error desconocido");
+    try {
+      const result = await articlesAPI.delete(articleIdToDelete);
+      if (result.success) {
+        fetchData(); // Refrescar lista
+        setShowDeleteModal(false); // Close modal on success
+        setDeletingArticleId(null); // Clear deleting ID
+      } else {
+        setError(result.error || "Error al eliminar artículo");
       }
-    };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    }
+  };
 
   const handleBulkApprove = async () => {
     try {
