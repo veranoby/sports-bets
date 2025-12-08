@@ -48,9 +48,9 @@ const EventList: React.FC<EventListProps> = ({
   // Local wrapper to update state after status change
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
-      console.log('🔄 handleStatusChange called:', { eventId, action });
+      console.log("🔄 handleStatusChange called:", { eventId, action });
       const updatedEvent = await onEventAction(eventId, action);
-      console.log('📦 Received updatedEvent from backend:', updatedEvent);
+      console.log("📦 Received updatedEvent from backend:", updatedEvent);
 
       if (!updatedEvent) {
         // Fallback: re-fetch if no updated event returned
@@ -63,10 +63,13 @@ const EventList: React.FC<EventListProps> = ({
       const updateEvent = (event: Event) =>
         event.id === eventId ? ({ ...event, ...updatedEvent } as Event) : event;
 
-      console.log('✅ Updating local state with updatedEvent');
+      console.log("✅ Updating local state with updatedEvent");
       setEvents((prev) => {
         const updated = prev.map(updateEvent);
-        console.log('📊 Events after update:', updated.find(e => e.id === eventId));
+        console.log(
+          "📊 Events after update:",
+          updated.find((e) => e.id === eventId),
+        );
         return updated;
       });
       setTodayEvents((prev) => prev.map(updateEvent));
