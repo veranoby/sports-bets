@@ -302,31 +302,28 @@ const EventList: React.FC<EventListProps> = ({
           <div className="flex gap-2">
             <button
               onClick={() => setDateFilter("today")}
-              className={`px-3 py-1 rounded text-sm ${
-                dateFilter === "today"
+              className={`px-3 py-1 rounded text-sm ${dateFilter === "today"
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-              }`}
+                }`}
             >
               Hoy
             </button>
             <button
               onClick={() => setDateFilter("week")}
-              className={`px-3 py-1 rounded text-sm ${
-                dateFilter === "week"
+              className={`px-3 py-1 rounded text-sm ${dateFilter === "week"
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-              }`}
+                }`}
             >
               Esta Semana
             </button>
             <button
               onClick={() => setDateFilter("")}
-              className={`px-3 py-1 rounded text-sm ${
-                !dateFilter
+              className={`px-3 py-1 rounded text-sm ${!dateFilter
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-              }`}
+                }`}
             >
               Todos
             </button>
@@ -398,7 +395,7 @@ const EventList: React.FC<EventListProps> = ({
                         <User className="w-4 h-4" />
                         <span>
                           {typeof event.operator === "object" &&
-                          event.operator?.username
+                            event.operator?.username
                             ? event.operator.username
                             : typeof event.operator === "string"
                               ? event.operator
@@ -426,23 +423,7 @@ const EventList: React.FC<EventListProps> = ({
 
                   <div className="flex items-center gap-2">
                     {/* Controles rápidos según estado */}
-                    {event.status === "scheduled" && (
-                      <div className="relative group inline-block">
-                        <button
-                          onClick={() =>
-                            handleStatusChange(event.id, "activate")
-                          }
-                          disabled={false} // Temporarily disable this check, will be handled by parent component if needed
-                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1"
-                        >
-                          <Play className="w-4 h-4" />
-                          Activar
-                        </button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                          Activar el evento para comenzar la programación
-                        </div>
-                      </div>
-                    )}
+
                     {event.status === "scheduled" && (
                       <>
                         {event.streamStatus !== "connected" ? (
@@ -478,23 +459,7 @@ const EventList: React.FC<EventListProps> = ({
                         )}
                       </>
                     )}
-                    {(event.status === "scheduled" ||
-                      event.status === "live") && (
-                      <div className="relative group inline-block">
-                        <button
-                          onClick={() =>
-                            handleStatusChange(event.id, "complete")
-                          }
-                          className="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Finalizar
-                        </button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                          Marcar el evento como completado
-                        </div>
-                      </div>
-                    )}
+
                     <div className="relative group inline-block">
                       <button
                         onClick={() => navigate(`/admin/events/${event.id}`)}
@@ -507,44 +472,7 @@ const EventList: React.FC<EventListProps> = ({
                         Abrir panel de gestión detallada del evento
                       </div>
                     </div>
-                    {onPermanentDelete && (
-                      <div className="relative group inline-block">
-                        <button
-                          onClick={async () => {
-                            if (
-                              window.confirm(
-                                "⚠️ ¿ELIMINAR PERMANENTEMENTE este evento de la base de datos? Esta acción NO se puede deshacer.",
-                              )
-                            ) {
-                              try {
-                                await onPermanentDelete(event.id);
-                                // Optimización: actualizar estado local sin re-fetch
-                                setTodayEvents((prev) =>
-                                  prev.filter((e) => e.id !== event.id),
-                                );
-                                setEvents((prev) =>
-                                  prev.filter((e) => e.id !== event.id),
-                                );
-                              } catch (err) {
-                                console.error("Error deleting event:", err);
-                                setError(
-                                  err instanceof Error
-                                    ? err.message
-                                    : "Error al eliminar evento",
-                                );
-                              }
-                            }
-                          }}
-                          className="p-2 bg-red-800 text-white rounded text-sm hover:bg-red-900 flex items-center gap-1"
-                          title="Eliminar Permanentemente"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-gray-800 text-white text-xs rounded p-2 z-10">
-                          ⚠️ ELIMINAR PERMANENTEMENTE de la BD
-                        </div>
-                      </div>
-                    )}{" "}
+
                   </div>
                 </div>
               </div>

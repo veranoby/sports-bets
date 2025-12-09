@@ -1,7 +1,12 @@
 // frontend/src/pages/user/Events.tsx - Updated with filters
 // =========================================================
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import {
   Calendar,
   Play,
@@ -48,9 +53,8 @@ const EventCard = React.memo(
 
     return (
       <div
-        className={`bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[#2a325c33] p-4 rounded-xl cursor-pointer hover:bg-[#2a325c17]/80 transition-all duration-200 transform hover:scale-[1.02] ${
-          variant === "archived" ? "opacity-80 hover:opacity-100" : ""
-        }`}
+        className={`bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[#2a325c33] p-4 rounded-xl cursor-pointer hover:bg-[#2a325c17]/80 transition-all duration-200 transform hover:scale-[1.02] ${variant === "archived" ? "opacity-80 hover:opacity-100" : ""
+          }`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -140,81 +144,129 @@ const EventCard = React.memo(
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // API Hooks - Updated to use new API parameters
-  const { events, loading, error, fetchEvents } = useEvents();
+  // API Hooks
+  const {
+    events: initialEvents,
+    loading: initialLoading,
+    fetchEvents,
+  } = useEvents();
 
-  // Estados locales
+  // Estados para las dos secciones
+  const [upcomingEvents, setUpcomingEvents] = useState<EventData[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventData[]>([]);
+
+  const [loadingUpcoming, setLoadingUpcoming] = useState(false);
+  const [loadingPast, setLoadingPast] = useState(false);
+
+  // Filtros
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<"all" | "upcoming" | "live" | "past">(
-    "all",
-  );
+  const [searchPast, setSearchPast] = useState("");
+  const [venueFilterUpcoming, setVenueFilterUpcoming] = useState("all");
+  const [venueFilterPast, setVenueFilterPast] = useState("all");
+
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
-  // Fetch events based on filter
-  const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
-  const [filteredLoading, setFilteredLoading] = useState(false);
-  const [filteredError, setFilteredError] = useState<string>("");
-
-  useEffect(() => {
-    const loadFilteredEvents = async () => {
-      setFilteredLoading(true);
-      try {
-        const params = {
-          category: filter !== "all" ? filter : undefined,
-          limit: 20,
-        };
-        const response = await eventsAPI.getAll(params);
-        if (response.success && response.data) {
-          setFilteredEvents((response.data as { events?: any[] }).events || []);
-        }
-      } catch (error) {
-        console.error("Error loading filtered events:", error);
-        setFilteredError(
-          error instanceof Error ? error.message : "Error loading events",
-        );
-      } finally {
-        setFilteredLoading(false);
-      }
-    };
-
-    loadFilteredEvents();
-  }, [filter]);
-
-  // ✅ Referencia estable para fetchEvents
-  const fetchEventsRef = useRef(fetchEvents);
-  useEffect(() => {
-    fetchEventsRef.current = fetchEvents;
-  }, [fetchEvents]);
-
-  // WebSocket para actualizaciones en tiempo real
+  // WebSocket
   const { isConnected } = useWebSocketContext();
 
   // Cargar eventos al montar
   useEffect(() => {
-    fetchEvents();
+    const loadEvents = async () => {
+      setLoadingUpcoming(true);
+      setLoadingPast(true);
+      try {
+        // Cargar próximos y en vivo (podemos asumir que default/all trae estos o pedir explícitamente)
+        // Para "próximos incluyendo hoy y en vivo", solemos pedir 'upcoming' y 'live' o 'active'
+        // Simplificación: Pedimos 'all' y filtramos en cliente si no son muchos,
+        // o hacemos llamadas paralelas si la API lo requiere.
+        // Basado en el código anterior, la API soporta 'category'.
+
+        const [upcomingRes, liveRes, pastRes] = await Promise.all([
+          eventsAPI.getAll({ category: "upcoming", limit: 50 }),
+          eventsAPI.getAll({ category: "live", limit: 20 }),
+          eventsAPI.getAll({ category: "past", limit: 20 }),
+        ]);
+
+        const upcomingList =
+          (upcomingRes.data as { events?: any[] }).events || [];
+        const liveList = (liveRes.data as { events?: any[] }).events || [];
+        const pastList = (pastRes.data as { events?: any[] }).events || [];
+
+        // Combinar live + upcoming para la primera sección, eliminando duplicados por ID
+        const combinedUpcoming = [...liveList, ...upcomingList];
+        const uniqueUpcoming = Array.from(
+          new Map(combinedUpcoming.map((item) => [item.id, item])).values(),
+        );
+
+        // Ordenar: En vivo primero, luego por fecha más cercana
+        uniqueUpcoming.sort((a, b) => {
+          if (a.status === "in-progress" && b.status !== "in-progress")
+            return -1;
+          if (a.status !== "in-progress" && b.status === "in-progress")
+            return 1;
+          return (
+            new Date(a.scheduledDate).getTime() -
+            new Date(b.scheduledDate).getTime()
+          );
+        });
+
+        setUpcomingEvents(uniqueUpcoming);
+        setPastEvents(pastList);
+      } catch (error) {
+        console.error("Error loading separated events:", error);
+      } finally {
+        setLoadingUpcoming(false);
+        setLoadingPast(false);
+      }
+    };
+
+    loadEvents();
   }, [fetchEvents]);
 
-  // Handlers
-  const handleSearchChange = (
-    value: string | React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const searchValue = typeof value === "string" ? value : value.target.value;
-    setSearchTerm(searchValue);
+  // Obtener lista única de venues para los filtros
+  const getUniqueVenues = (eventsList: EventData[]) => {
+    const venues = eventsList
+      .map((e) => e.venue?.profileInfo?.venueName)
+      .filter((v): v is string => !!v);
+    return Array.from(new Set(venues)).sort();
   };
+
+  const upcomingVenues = React.useMemo(
+    () => getUniqueVenues(upcomingEvents),
+    [upcomingEvents],
+  );
+  const pastVenues = React.useMemo(() => getUniqueVenues(pastEvents), [pastEvents]);
 
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);
   };
 
-  // Filter events based on search term
-  const filteredAndSearchedEvents = filteredEvents.filter((event) =>
-    event.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Lógica de filtrado
+  const filteredUpcoming = upcomingEvents.filter((event) => {
+    const matchesSearch =
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.venue?.profileInfo?.venueName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    const matchesVenue =
+      venueFilterUpcoming === "all" ||
+      event.venue?.profileInfo?.venueName === venueFilterUpcoming;
+    return matchesSearch && matchesVenue;
+  });
 
-  // Loading state for filtered events
-  const isLoading = loading || filteredLoading;
+  const filteredPast = pastEvents.filter((event) => {
+    const matchesSearch =
+      event.name.toLowerCase().includes(searchPast.toLowerCase()) ||
+      event.venue?.profileInfo?.venueName
+        ?.toLowerCase()
+        .includes(searchPast.toLowerCase());
+    const matchesVenue =
+      venueFilterPast === "all" ||
+      event.venue?.profileInfo?.venueName === venueFilterPast;
+    return matchesSearch && matchesVenue;
+  });
 
-  if (isLoading) {
+  if (loadingUpcoming && loadingPast) {
     return (
       <div className="page-background">
         <LoadingSpinner text="Cargando eventos..." className="mt-20" />
@@ -224,207 +276,137 @@ const EventsPage: React.FC = () => {
 
   return (
     <div className="page-background pb-24">
-      <div className="p-4 space-y-6">
-        {/* Title and Stat Chips */}
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+      <div className="p-4 space-y-8">
+        {/* Titulo General */}
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
             <Calendar className="w-6 h-6 text-blue-600" />
-            Todos los Eventos
+            Eventos
           </h1>
-
-          {/* Chips estadísticos compactos */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-full border border-green-500/30">
-              <Zap className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-green-600 font-bold">En Vivo</span>
-              <span className="text-sm text-green-600 font-bold">
-                {events?.filter((e) => e.status === "in-progress").length || 0}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 rounded-full border border-amber-500/30">
-              <Clock className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-amber-600 font-bold">Próximos</span>
-              <span className="text-sm font-bold text-amber-600">
-                {events?.filter(
-                  (e) =>
-                    e.status === "scheduled" &&
-                    new Date(e.scheduledDate) >= new Date(),
-                ).length || 0}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 rounded-full border border-blue-500/30">
-              <Users className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-blue-600 font-bold">Apuestas</span>
-              <span className="text-sm font-bold text-blue-600">
-                {events?.reduce((sum, e) => sum + (e.activeBets || 0), 0) || 0}
-              </span>
-            </div>
+          <div className="fixed bottom-20 right-4 z-30">
+            <StatusChip
+              variant="indicator"
+              status={isConnected ? "connected" : "disconnected"}
+              label="Tiempo Real"
+            />
           </div>
         </div>
 
-        {/* Header con búsqueda y filtros */}
-        <div className="card-background p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Barra de búsqueda - Reducido el ancho */}
-            <div className="flex-1 relative w-full md:w-2/5">
-              <SearchInput
-                placeholder="Buscar eventos..."
-                onSearch={handleSearchChange}
-                value={searchTerm}
-                showClearButton
-                debounceMs={300}
-                className="w-full"
-              />
-            </div>
+        {/* SECCION 1: PRÓXIMOS Y EN VIVO */}
+        <section className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#596c95]/20 pb-2">
+            <h2 className="text-xl font-bold text-theme-primary flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-500" />
+              Próximos y En Vivo
+            </h2>
 
-            {/* Filtros de estado - Mejorados los estilos */}
-            <div className="flex gap-2 w-full md:w-2/3 flex-wrap">
-              {[
-                { key: "all", label: "Todos" },
-                { key: "upcoming", label: "Próximos" },
-                { key: "live", label: "En Vivo" },
-                { key: "past", label: "Pasados" },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() =>
-                    setFilter(key as "all" | "upcoming" | "live" | "past")
-                  }
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                    filter === key
-                      ? "bg-gradient-to-r from-blue-300 to-blue-400 text-white shadow-md"
-                      : "text-theme-primary border border-[#596c95]/50 shadow-sm"
-                  }`}
-                >
-                  {key === "live" && <Zap className="w-4 h-4" />}
-                  {key === "upcoming" && <Clock className="w-4 h-4" />}
-                  {key === "past" && <Star className="w-4 h-4" />}
-                  {key === "all" && <Calendar className="w-4 h-4" />}
-                  <span>{label}</span>
-                </button>
+            {/* Controles para Próximos: Buscar y Venue */}
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              <div className="w-full md:w-64">
+                <SearchInput
+                  placeholder="Buscar evento o venue..."
+                  onSearch={setSearchTerm}
+                  value={searchTerm}
+                  showClearButton
+                  className="w-full"
+                />
+              </div>
+
+              <select
+                value={venueFilterUpcoming}
+                onChange={(e) => setVenueFilterUpcoming(e.target.value)}
+                className="bg-[#1a1f3d] text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
+              >
+                <option value="all">Todas las Sedes</option>
+                {upcomingVenues.map((venue) => (
+                  <option key={venue} value={venue}>
+                    {venue}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {loadingUpcoming ? (
+            <div className="py-8 text-center text-theme-light">
+              Cargando próximos eventos...
+            </div>
+          ) : filteredUpcoming.length === 0 ? (
+            <EmptyState
+              title="No hay próximos eventos"
+              description={
+                searchTerm || venueFilterUpcoming !== "all"
+                  ? "No se encontraron eventos con los filtros actuales"
+                  : "No hay eventos programados"
+              }
+              icon={<Calendar className="w-10 h-10" />}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredUpcoming.map((event) => (
+                <EventCard key={event.id} event={event} variant="upcoming" />
               ))}
             </div>
-          </div>
-        </div>
+          )}
+        </section>
 
-        {/* Lista de eventos */}
-        {filteredAndSearchedEvents.length === 0 ? (
-          <EmptyState
-            title="No hay eventos disponibles"
-            description={
-              searchTerm
-                ? "No se encontraron eventos que coincidan con tu búsqueda"
-                : filter !== "all"
-                  ? `No hay eventos ${filter === "live" ? "en vivo" : filter === "upcoming" ? "próximos" : "pasados"} en este momento`
-                  : "No hay eventos programados actualmente"
-            }
-            icon={<Calendar className="w-12 h-12" />}
-            action={
-              searchTerm ? (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="btn-ghost text-sm"
-                >
-                  Limpiar búsqueda
-                </button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="space-y-4">
-            {/* Eventos en vivo (prioridad) */}
-            {/* Evento en vivo (agregar al inicio del componente) */}
-            {filter === "all" &&
-              events?.some((e) => e.status === "in-progress") && (
-                <div
-                  onClick={() =>
-                    navigate(
-                      `/live-event/${events.find((e) => e.status === "in-progress")?.id}`,
-                    )
-                  }
-                  className="bg-gradient-to-r from-red-600/20 to-red-800/20 border border-red-500/50 rounded-xl p-4 cursor-pointer hover:from-red-600/30 hover:to-red-800/30 transition-all duration-300 transform hover:scale-[1.02] mx-4 mb-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                        <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
-                      </div>
+        {/* SECCION 2: EVENTOS PASADOS */}
+        <section className="space-y-4 pt-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#596c95]/20 pb-2">
+            <h2 className="text-xl font-bold text-theme-dark flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Eventos Pasados
+            </h2>
 
-                      <div>
-                        <h3 className="font-bold text-red-300 flex items-center gap-2">
-                          <Zap className="w-5 h-5" />
-                          ¡Evento en Vivo Ahora!
-                        </h3>
-                        <p className="text-sm text-theme-light">
-                          {events.find((e) => e.status === "in-progress")?.name}
-                        </p>
-                        <p className="text-xs text-theme-light">
-                          {
-                            (
-                              events.find(
-                                (e: any) => e.status === "in-progress",
-                              )?.venue as any
-                            )?.profileInfo?.venueName
-                          }
-                        </p>
-                      </div>
-                    </div>
+            {/* Controles para Pasados: Buscar y Venue */}
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              <div className="w-full md:w-64">
+                <SearchInput
+                  placeholder="Buscar historial..."
+                  onSearch={setSearchPast}
+                  value={searchPast}
+                  showClearButton
+                  className="w-full"
+                />
+              </div>
 
-                    <div className="text-right">
-                      {events.find((e) => e.status === "in-progress")
-                        ?.currentViewers && (
-                        <div className="flex items-center gap-1 text-green-600 text-sm mb-2">
-                          <Eye className="w-4 h-4" />
-                          <span>
-                            {
-                              events.find((e) => e.status === "in-progress")
-                                ?.currentViewers
-                            }{" "}
-                            viendo
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 text-red-300 font-medium">
-                        <Play className="w-5 h-5" />
-                        <span>Ver Evento</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            {/* Eventos filtrados */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSearchedEvents
-                .sort(
-                  (a, b) =>
-                    new Date(a.scheduledDate).getTime() -
-                    new Date(b.scheduledDate).getTime(),
-                )
-                .map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    variant={filter === "past" ? "archived" : "upcoming"}
-                  />
+              <select
+                value={venueFilterPast}
+                onChange={(e) => setVenueFilterPast(e.target.value)}
+                className="bg-[#1a1f3d] text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-full md:w-64 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
+              >
+                <option value="all">Todas las Sedes</option>
+                {pastVenues.map((venue) => (
+                  <option key={venue} value={venue}>
+                    {venue}
+                  </option>
                 ))}
+              </select>
             </div>
           </div>
-        )}
 
-        {/* Estado de conexión WebSocket */}
-        <div className="fixed bottom-20 right-4 z-30">
-          <StatusChip
-            variant="indicator"
-            status={isConnected ? "connected" : "disconnected"}
-            label="Tiempo Real"
-          />
-        </div>
+          {loadingPast ? (
+            <div className="py-8 text-center text-theme-light">
+              Cargando historial...
+            </div>
+          ) : filteredPast.length === 0 ? (
+            <EmptyState
+              title="Historial vacío"
+              description={
+                searchPast || venueFilterPast !== "all"
+                  ? "No se encontraron eventos pasados con los filtros actuales"
+                  : "No hay eventos pasados para mostrar"
+              }
+              icon={<Clock className="w-10 h-10" />}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPast.map((event) => (
+                <EventCard key={event.id} event={event} variant="archived" />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Modal de detalles del evento (si está seleccionado) */}

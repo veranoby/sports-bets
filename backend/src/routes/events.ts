@@ -442,6 +442,16 @@ router.patch(
     event.status = newStatus as any;
     await event.save();
 
+    // Reload event with all associations to ensure complete data
+    await event.reload({
+      include: [
+        { model: Fight, as: "fights" },
+        { model: User, as: "venue" },
+        { model: User, as: "operator", attributes: ["id", "username"] },
+        { model: User, as: "creator", attributes: ["id", "username"] }
+      ]
+    });
+
     // Broadcast via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
