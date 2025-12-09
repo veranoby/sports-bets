@@ -157,7 +157,6 @@ const Dashboard: React.FC = () => {
         {/* 📰 BANNER DE NOTICIAS */}
         <NewsBanner />
 
-
         {/* ⚡ EVENTOS EN VIVO BÁSICOS (Versión gratuita) */}
         {liveEvents.length > 0 && (
           <div className="grid grid-cols-1">
@@ -276,10 +275,11 @@ const Dashboard: React.FC = () => {
                                 {typedEvent.name}
                               </h3>
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${isLive
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
+                                  isLive
                                     ? "border-red-500/40 bg-red-500/10 text-red-300"
                                     : "border-white/10 bg-white/5 text-theme-light"
-                                  }`}
+                                }`}
                               >
                                 {isLive ? "En vivo" : "Programado"}
                               </span>
@@ -341,7 +341,7 @@ const Dashboard: React.FC = () => {
                   return (
                     <button
                       key={typedEvent.id}
-                      onClick={() => navigate(`/event/${typedEvent.id}`)}
+                      onClick={() => navigate(`/live-event/${typedEvent.id}`)}
                       className="w-full text-left group"
                     >
                       <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-gradient-to-r from-[#1a1f37]/40 via-[#1f2a4a]/30 to-[#1a1f37]/40 hover:border-theme-primary/40 hover:shadow-lg transition-all">

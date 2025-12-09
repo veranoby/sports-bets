@@ -511,11 +511,19 @@ export function useEvents() {
     [execute],
   );
 
+  // ✅ FIXED: Separate async operation for individual event fetch
+  const {
+    data: singleEvent,
+    loading: singleEventLoading,
+    error: singleEventError,
+    execute: executeSingleEvent
+  } = useAsyncOperation<EventData>();
+
   const fetchEventById = useCallback(
     (eventId: string) => {
-      return execute(() => apiClient.get(`/events/${eventId}`));
+      return executeSingleEvent(() => apiClient.get(`/events/${eventId}`));
     },
-    [execute],
+    [executeSingleEvent],
   );
 
   const createEvent = useCallback(
@@ -553,6 +561,9 @@ export function useEvents() {
     total: data?.total || 0,
     loading,
     error,
+    singleEvent,
+    singleEventLoading,
+    singleEventError,
     fetchEvents,
     fetchEventById,
     createEvent,

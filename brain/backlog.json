@@ -1178,6 +1178,112 @@
         "error_handling": "Implement specific error handling for known backend issues rather than generic catches",
         "api_consistency": "Verify that API methods exist and work as expected before relying on them"
       }
+    },
+    {
+      "task_id": "LIVE_EVENT_PAGE_REFACTOR_2025_12_09",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-09",
+      "complexity": "HIGH",
+      "category": "FEATURE_REFACTOR",
+      "priority": "P1_HIGH",
+      "completed_by": "Claude Sonnet 4.5",
+      "execution_mode": "standard",
+      "summary": "Refactored LiveEvent page with new structure: Row 1 (Event/Venue Info), Row 2 (Conditional Video Player), Row 3 (Betting Panel). Fixed navigation from dashboard sections to use /live-event/:id route.",
+      "problem_description": [
+        "Dashboard 'Eventos de hoy' and 'Próximos Eventos' sections were navigating to non-existent /event/:id route causing 404 errors",
+        "LiveEvent page needed refactoring to match requested structure with 3 rows: event info, video player, betting panel",
+        "Missing conditional logic for video player (should only show when event in-progress and user premium)",
+        "Betting panel needed proper refactoring with current fight header and dual-column layout"
+      ],
+      "root_cause_analysis": {
+        "broken_navigation": "Dashboard.tsx was using navigate('/event/:id') which doesn't exist in routing configuration",
+        "missing_structure": "LiveEvent page needed restructuring to accommodate requested 3 rows",
+        "conditional_display": "Video player should only show during 'in-progress' events for premium users",
+        "betting_panel": "Needed proper current fight header and split into my_bets/available_bets columns"
+      },
+      "changes_implemented": {
+        "frontend_dashboard": {
+          "file": "frontend/src/pages/user/Dashboard.tsx",
+          "line_modified": 344,
+          "change": "Changed onClick navigation from `/event/\${typedEvent.id}` to `/live-event/\${typedEvent.id}`"
+        },
+        "frontend_events": {
+          "file": "frontend/src/pages/user/Events.tsx",
+          "line_modified": 57,
+          "change": "Made entire EventCard clickable to navigate to `/live-event/\${event.id}` while preserving button-specific behavior with stopPropagation"
+        },
+        "frontend_live_event": {
+          "file": "frontend/src/pages/user/LiveEvent.tsx",
+          "changes": [
+            "Refactored entire component structure to have 3 rows as requested",
+            "Row 1: Added event and venue information with clickable venue link",
+            "Row 2: Added conditional video player that only shows when event status=in-progress and user has premium subscription",
+            "Row 3: Refactored betting panel with current fight header, my bets column, and available bets column",
+            "Added FightPreviewModal component with current/completed/scheduled fight views",
+            "Added CountdownTimer for events that haven't started yet",
+            "Added proper role-based betting restrictions for venue role",
+            "Fixed loading condition to resolve spinner stuck issue",
+            "Updated Bet interface to match actual API structure",
+            "Properly implemented SSE vs WebSocket patterns as per architecture"
+          ]
+        }
+      },
+      "files_modified": [
+        "frontend/src/pages/user/Dashboard.tsx",
+        "frontend/src/pages/user/LiveEvent.tsx",
+        "frontend/src/pages/user/Events.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled the frontend project with all changes."
+        },
+        "navigation_fix": {
+          "test": "Verified that both 'Eventos de hoy' and 'Próximos Eventos' sections now navigate to /live-event/:id route",
+          "result": "No more 404 errors when clicking on events in dashboard"
+        },
+        "layout_validation": {
+          "test": "Confirmed 3-row structure is implemented: event/venue info, video player (when appropriate), betting panel",
+          "result": "All required sections are present and properly structured"
+        },
+        "conditional_video": {
+          "test": "Verified that video player only shows when event status='in-progress' and user has premium subscription",
+          "result": "Video player correctly hidden for non-in-progress events and non-premium users"
+        },
+        "betting_panel": {
+          "test": "Confirmed betting panel has current fight header and split into my bets/available bets columns",
+          "result": "Betting functionality properly organized with role-based restrictions"
+        },
+        "spinner_fix": {
+          "test": "Verified that the loading spinner issue has been resolved",
+          "result": "Loading spinner now disappears appropriately after event data loads"
+        },
+        "events_page_clickable_cards": {
+          "test": "Verified that all event cards in Events.tsx are now clickable to navigate to the event detail page",
+          "result": "Clicking any part of an event card navigates to /live-event/:id, while buttons preserve their specific functionality"
+        }
+      ],
+      "business_impact": [
+        "Fixed critical 404 errors when navigating from dashboard to events",
+        "Improved user experience with proper 3-row event page structure",
+        "Added proper conditional content based on event status and user subscription",
+        "Enhanced betting functionality with better organization and role-based restrictions",
+        "Better UX with countdown timer for future events"
+      ],
+      "architecture_compliance": {
+        "sse_vs_websocket": "Properly implemented according to SDD: SSE for general updates, WebSocket minimal usage only for PAGO/DOY proposals",
+        "role_based_restrictions": "Implemented betting restrictions for venue role as per PRD",
+        "subscription_guard": "Used SubscriptionGuard appropriately for premium features like video streaming"
+      },
+      "lessons_learned": [
+        "Always verify the existence of navigation routes before implementing navigation",
+        "Properly handle loading states to prevent UI stuck in loading state",
+        "When refactoring components with real-time features, ensure SSE/WS architecture compliance",
+        "Consider role-based restrictions when implementing betting features"
+      ]
     }
   ]
 }

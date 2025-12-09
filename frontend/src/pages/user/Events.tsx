@@ -48,8 +48,10 @@ const EventCard = React.memo(
 
     return (
       <div
-        className={`bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[#2a325c33] p-4 rounded-xl cursor-pointer hover:bg-[#2a325c17]/80 transition-all duration-200 transform hover:scale-[1.02] ${variant === "archived" ? "opacity-80 hover:opacity-100" : ""
-          }`}
+        className={`bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[#2a325c33] p-4 rounded-xl cursor-pointer hover:bg-[#2a325c17]/80 transition-all duration-200 transform hover:scale-[1.02] ${
+          variant === "archived" ? "opacity-80 hover:opacity-100" : ""
+        }`}
+        onClick={() => navigate(`/live-event/${event.id}`)}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

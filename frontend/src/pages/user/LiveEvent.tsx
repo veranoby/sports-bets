@@ -1,7 +1,8 @@
-// frontend/src/pages/user/LiveEvent.tsx - VERSIÓN CORREGIDA V2
+// frontend/src/pages/user/LiveEvent.tsx - REFACTOR COMPLETE
 // ===============================================================
-// FIX CRÍTICO: Cambio useEvent → useEvents + fetchEventById
-// OPTIMIZADO: WebSocket singleton, CSS estático, Memory leak free
+// REFACTOR: Event and venue info row, conditional video player, betting panel refactor
+// REMOVED: Chat component, added countdown for pre-event
+// OPTIMIZED: WebSocket for betting, SSE pattern for general updates
 
 import { useState, useEffect, useCallback, memo } from "react";
 import {
@@ -14,6 +15,9 @@ import {
   Activity,
   Calendar,
   ChevronRight,
+  MapPin,
+  User,
+  Timer,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -21,6 +25,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEvents, useFights, useBets } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
+import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
@@ -42,12 +47,24 @@ interface Fight {
 
 interface Bet {
   id: string;
+  eventId: string;
+  userId: string;
   amount: number;
-  odds?: number; // Optional to match BetData from API
-  choice: string;
-  createdBy: string;
-  createdAt: string;
-  status: "active" | "matched" | "won" | "lost";
+  odds: number;
+  side: "red" | "blue";
+  status: "pending" | "won" | "lost" | "cancelled" | "active";
+  payout?: number;
+  placedAt: string;
+  settledAt?: string;
+  fighterNames?: {
+    red: string;
+    blue: string;
+  };
+  result?: string;
+  fightId: string;
+  createdAt?: string;
+  createdBy?: string;
+  choice?: string;
 }
 
 interface EventData {
@@ -75,9 +92,222 @@ interface EventData {
   completedFights: number;
 }
 
-// ✅ Componentes memoizados para prevenir re-renders
+// Modal for fight preview
+const FightPreviewModal = memo(
+  ({
+    fights,
+    currentFight,
+    completedFights,
+    scheduledFights,
+    onClose,
+  }: {
+    fights: Fight[];
+    currentFight?: Fight;
+    completedFights: Fight[];
+    scheduledFights: Fight[];
+    onClose: () => void;
+  }) => {
+    const navigate = useNavigate();
+
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Vista Previa de Peleas</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Current Fight */}
+            {currentFight && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-red-500" />
+                  Pelea Actual
+                </h3>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <div className="text-center">
+                      <p className="font-medium">{currentFight.redCorner}</p>
+                      <p className="text-sm text-gray-600">Esquina Roja</p>
+                    </div>
+
+                    <div className="text-center">
+                      <Scale className="w-5 h-5 text-gray-700 mx-auto mb-1" />
+                      <p className="text-sm">{currentFight.weight}kg</p>
+                      <p className="text-xs text-gray-500">Peso</p>
+                    </div>
+
+                    <div className="text-center">
+                      <p className="font-medium">{currentFight.blueCorner}</p>
+                      <p className="text-sm text-gray-600">Esquina Azul</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate(`/live-event/${currentFight.eventId}`)}
+                    className="w-full mt-3 btn-primary py-2"
+                  >
+                    Ver Detalles
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Completed Fights */}
+            {completedFights.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-lg mb-2">Peleas Completadas</h3>
+                <div className="space-y-2">
+                  {completedFights.map((fight) => (
+                    <div key={fight.id} className="bg-green-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span>{fight.number}. {fight.redCorner} vs {fight.blueCorner}</span>
+                        <span className="text-green-600 text-sm">Completada</span>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/live-event/${fight.eventId}`)}
+                        className="w-full mt-2 btn-primary py-1 text-sm"
+                      >
+                        Ver Resultado
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Scheduled Fights */}
+            {scheduledFights.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Peleas Programadas</h3>
+                <div className="space-y-2">
+                  {scheduledFights.map((fight) => (
+                    <div key={fight.id} className="bg-blue-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span>{fight.number}. {fight.redCorner} vs {fight.blueCorner}</span>
+                        <span className="text-blue-600 text-sm">Programada</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm">{fight.weight}kg</span>
+                        <button
+                          onClick={() => navigate(`/live-event/${fight.eventId}`)}
+                          className="btn-primary py-1 px-2 text-sm"
+                        >
+                          Ver
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  },
+);
+
+// Countdown component for pre-event
+const CountdownTimer = memo(({ scheduledDate }: { scheduledDate: string }) => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const eventTime = new Date(scheduledDate).getTime();
+      const now = new Date().getTime();
+      const difference = eventTime - now;
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [scheduledDate]);
+
+  const { days, hours, minutes, seconds } = timeLeft;
+
+  return (
+    <div className="p-6 bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/30">
+      <div className="text-center">
+        <div className="flex items-center justify-center mb-4">
+          <Timer className="w-6 h-6 text-blue-400 mr-2" />
+          <h3 className="text-xl font-bold text-theme-primary">Próximamente</h3>
+        </div>
+        <p className="text-theme-light mb-6">El evento comenzará en:</p>
+
+        <div className="flex justify-center gap-2">
+          <div className="text-center">
+            <div className="bg-[#1a1f37] text-theme-primary text-xl font-bold w-12 h-12 flex items-center justify-center rounded-lg">
+              {days}
+            </div>
+            <span className="text-xs text-theme-light mt-1 block">Días</span>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-[#1a1f37] text-theme-primary text-xl font-bold w-12 h-12 flex items-center justify-center rounded-lg">
+              {hours}
+            </div>
+            <span className="text-xs text-theme-light mt-1 block">Horas</span>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-[#1a1f37] text-theme-primary text-xl font-bold w-12 h-12 flex items-center justify-center rounded-lg">
+              {minutes}
+            </div>
+            <span className="text-xs text-theme-light mt-1 block">Min</span>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-[#1a1f37] text-theme-primary text-xl font-bold w-12 h-12 flex items-center justify-center rounded-lg">
+              {seconds}
+            </div>
+            <span className="text-xs text-theme-light mt-1 block">Seg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Component for streaming status indicators
+const StreamingStatus = memo(({ currentViewers }: { currentViewers?: number }) => (
+  <div className="flex items-center gap-3 text-sm text-theme-light">
+    <div className="flex items-center gap-1">
+      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      <span>En vivo</span>
+    </div>
+    <div className="flex items-center gap-1">
+      <Users className="w-4 h-4" />
+      <span>{currentViewers || 0} espectadores</span>
+    </div>
+  </div>
+));
+
 const VideoPlayer = memo(
-  ({ streamUrl, eventId }: { streamUrl?: string; eventId: string }) => (
+  ({ streamUrl, eventId, currentViewers }: { streamUrl?: string; eventId: string; currentViewers?: number }) => (
     <div className="aspect-video bg-black relative rounded-lg overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center text-white">
         {streamUrl ? (
@@ -92,90 +322,210 @@ const VideoPlayer = memo(
           </div>
         )}
       </div>
-    </div>
-  ),
-);
 
-const ChatComponent = memo(({ eventId }: { eventId?: string }) => (
-  <div className="bg-[#1a1f37]/50 rounded-lg p-4">
-    <h3 className="text-theme-primary font-semibold mb-3">Chat en Vivo</h3>
-    <div className="space-y-2 max-h-40 overflow-y-auto">
-      <div className="text-sm">
-        <span className="text-blue-600 font-medium">Usuario123:</span>
-        <span className="text-theme-light ml-2">¡Vamos El Campeón!</span>
-      </div>
-      <div className="text-sm">
-        <span className="text-green-600 font-medium">Apostador456:</span>
-        <span className="text-theme-light ml-2">Gran pelea 🔥</span>
-      </div>
-    </div>
-    <div className="mt-3 flex gap-2">
-      <input
-        type="text"
-        placeholder="Escribe un mensaje..."
-        className="flex-1 bg-[#2a325c] text-theme-light px-3 py-2 rounded text-sm"
-      />
-      <button className="btn-primary px-4 py-2 text-sm">Enviar</button>
-    </div>
-  </div>
-));
-
-const BettingPanel = memo(
-  ({
-    availableBets,
-    onAcceptBet,
-  }: {
-    availableBets: Bet[];
-    onAcceptBet: (betId: string) => void;
-  }) => (
-    <div className="space-y-3">
-      <h3 className="font-semibold text-theme-primary">Apuestas Disponibles</h3>
-      {availableBets.length === 0 ? (
-        <EmptyState
-          title="No hay apuestas disponibles"
-          description="Sé el primero en crear una apuesta"
-        />
-      ) : (
-        <div className="space-y-2">
-          {availableBets.map((bet) => (
-            <div
-              key={bet.id}
-              className="card-background p-3 rounded-lg border border-[#596c95]/20"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="font-medium text-theme-primary">{bet.choice}</p>
-                  <p className="text-sm text-theme-light">Cuota: {bet.odds}x</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-600">${bet.amount}</p>
-                  <p className="text-xs text-theme-light">{bet.createdBy}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => onAcceptBet(bet.id)}
-                className="w-full btn-primary py-2 text-sm"
-              >
-                Aceptar Apuesta
-              </button>
-            </div>
-          ))}
+      {currentViewers !== undefined && (
+        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+          <Users className="w-3 h-3 inline mr-1" />
+          {currentViewers}
         </div>
       )}
     </div>
   ),
 );
 
+// Enhanced betting panel with requested structure
+const BettingPanel = memo(
+  ({
+    availableBets,
+    myBets,
+    currentFight,
+    onAcceptBet,
+    onCreateBet,
+    isVenueRole,
+  }: {
+    availableBets: Bet[];
+    myBets: Bet[];
+    currentFight?: Fight;
+    onAcceptBet: (betId: string) => void;
+    onCreateBet: () => void;
+    isVenueRole: boolean;
+  }) => {
+    const [showFightModal, setShowFightModal] = useState(false);
+
+    // Separate completed vs scheduled fights for the modal
+    const allFights = currentFight ? [currentFight] : [];
+    const completedFights = allFights.filter(f => f.status === 'completed');
+    const scheduledFights = allFights.filter(f => f.status === 'scheduled');
+
+    return (
+      <div className="space-y-4">
+        {/* Current Fight Header */}
+        <div className="card-background p-4 rounded-lg border border-[#596c95]/30">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-semibold text-theme-primary flex items-center gap-2">
+              {currentFight ? (
+                <>
+                  <Scale className="w-4 h-4" />
+                  Pelea #{currentFight.number}: {currentFight.redCorner} vs {currentFight.blueCorner}
+                </>
+              ) : (
+                <>
+                  <Scale className="w-4 h-4" />
+                  No hay pelea activa
+                </>
+              )}
+            </h3>
+            <button
+              onClick={() => setShowFightModal(true)}
+              className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
+            >
+              Ver todas
+            </button>
+          </div>
+
+          {currentFight && (
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">{currentFight.redCorner}</p>
+                <p className="text-xs text-theme-light">Esquina Roja</p>
+              </div>
+
+              <div className="text-center">
+                <Scale className="w-5 h-5 text-theme-light mx-auto" />
+                <p className="text-xs text-theme-light">{currentFight.weight}kg</p>
+              </div>
+
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">{currentFight.blueCorner}</p>
+                <p className="text-xs text-theme-light">Esquina Azul</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Two Column Layout for Betting */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left Column: My Bets */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium text-theme-primary">Mis Apuestas</h4>
+              <button
+                onClick={onCreateBet}
+                disabled={isVenueRole}
+                className={`px-3 py-1 text-xs rounded ${
+                  isVenueRole
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                Crear Nueva
+              </button>
+            </div>
+
+            {myBets.length === 0 ? (
+              <EmptyState
+                title="Sin apuestas"
+                description="Aún no has realizado apuestas en este evento"
+                className="text-xs"
+              />
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {myBets.map(bet => (
+                  <div
+                    key={bet.id}
+                    className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{bet.choice}</span>
+                      <span className="text-green-500">${bet.amount}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Lado: {bet.side}</span>
+                      <span className={`px-1 rounded ${
+                        bet.status === 'active' ? 'text-blue-500' :
+                        bet.status === 'won' ? 'text-green-500' :
+                        'text-red-500'
+                      }`}>
+                        {bet.status === 'active' ? 'Activa' :
+                         bet.status === 'won' ? 'Ganada' : 'Perdida'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Available Bets */}
+          <div>
+            <h4 className="font-medium text-theme-primary mb-2">Apuestas Disponibles</h4>
+
+            {availableBets.length === 0 ? (
+              <EmptyState
+                title="No hay apuestas"
+                description="No hay apuestas disponibles en este momento"
+                className="text-xs"
+              />
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {availableBets.map(bet => (
+                  <div
+                    key={bet.id}
+                    className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{bet.choice}</span>
+                      <span className="text-green-500">${bet.amount}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Usuario: {bet.createdBy}</span>
+                      <span>Cuota: {bet.odds}x</span>
+                    </div>
+                    <button
+                      onClick={() => onAcceptBet(bet.id)}
+                      disabled={isVenueRole}
+                      className={`w-full mt-2 py-1 rounded text-xs ${
+                        isVenueRole
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-green-500 text-white hover:bg-green-600"
+                      }`}
+                    >
+                      Aceptar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fight Preview Modal */}
+        {showFightModal && currentFight && (
+          <FightPreviewModal
+            fights={[currentFight]}
+            currentFight={currentFight}
+            completedFights={completedFights}
+            scheduledFights={scheduledFights}
+            onClose={() => setShowFightModal(false)}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
 // ✅ COMPONENTE PRINCIPAL CORREGIDO
 const LiveEvent = () => {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // ✅ FIX: Usar useEvents + fetchEventById en lugar de useEvent
+  // ✅ FIXED: Use singleEvent state for individual event
   const {
     fetchEventById,
-    loading: eventLoading,
-    error: eventError,
+    singleEvent,
+    singleEventLoading,
+    singleEventError,
   } = useEvents();
 
   const { fights, fetchFights } = useFights();
@@ -190,10 +540,13 @@ const LiveEvent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Determinar si el usuario es venue
+  const isVenueRole = user?.role === 'venue';
+
   // WebSocket context
   const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
 
-  // ✅ Fetch inicial del evento específico
+  // ✅ FIXED: Fetch individual event with proper error handling
   const loadEventData = useCallback(async () => {
     if (!eventId) return;
 
@@ -203,11 +556,13 @@ const LiveEvent = () => {
 
       // Fetch evento específico por ID
       const response = await fetchEventById(eventId);
-      if (response) {
-        setCurrentEvent(response as unknown as EventData);
+      if (response?.success && response.data) {
+        setCurrentEvent(response.data as EventData);
+      } else if (!response?.success) {
+        throw new Error(response?.error || "Error al cargar evento");
       }
 
-      // Fetch relacionados
+      // Fetch related fights
       await Promise.all([fetchFights({ eventId })]);
     } catch (err: unknown) {
       const errorMessage =
@@ -216,7 +571,7 @@ const LiveEvent = () => {
     } finally {
       setLoading(false);
     }
-  }, [eventId, fetchEventById, fetchFights, fetchAvailableBets]);
+  }, [eventId, fetchEventById, fetchFights]);
 
   // ✅ WebSocket room management
   useEffect(() => {
@@ -292,8 +647,8 @@ const LiveEvent = () => {
     console.log("🎯 Crear nueva apuesta");
   }, []);
 
-  // ✅ Loading y error states
-  if (loading || eventLoading) {
+  // ✅ FIXED: Only show spinner while loading event data
+  if (loading) {
     return (
       <div className="min-h-screen page-background flex items-center justify-center">
         <LoadingSpinner text="Cargando evento en vivo..." />
@@ -301,11 +656,12 @@ const LiveEvent = () => {
     );
   }
 
-  if (error || eventError) {
+  // ✅ FIXED: Show error if data load failed
+  if (error || singleEventError) {
     return (
       <div className="min-h-screen page-background flex items-center justify-center p-4">
         <ErrorMessage
-          error={error || eventError || "Error desconocido"}
+          error={error || singleEventError || "Error desconocido"}
           onRetry={loadEventData}
         />
       </div>
@@ -327,7 +683,7 @@ const LiveEvent = () => {
   const availableBets = (bets?.filter((bet) => bet.status === "active") ||
     []) as Bet[];
   const myBets =
-    bets?.filter((bet) => bet.createdBy === "current-user-id") || [];
+    bets?.filter((bet) => bet.userId === user?.id) || [];
   const currentFight = fights?.find((fight) => fight.status === "live");
   const upcomingFights =
     fights?.filter((fight) => fight.status === "scheduled") || [];
@@ -385,302 +741,143 @@ const LiveEvent = () => {
           </span>
         </nav>
 
-        {/* ✅ Header con navegación */}
-        <header className="sticky top-0 z-10 card-background shadow-sm">
-          <div className="flex items-center justify-between p-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-[#2a325c]/50 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-theme-light" />
-            </button>
-
-            <div className="text-center flex-1">
-              <h1 className="text-lg font-bold text-theme-primary">
-                {currentEvent.name}
-              </h1>
-              {currentEvent.status === "in-progress" && (
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-red-400 text-xs font-medium">
-                    EN VIVO
-                  </span>
-                </div>
-              )}
+        {/* ✅ Row 1: Event and Venue Information */}
+        <div className="mx-4 mb-4 card-background p-4 rounded-lg border border-[#596c95]/30">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-theme-primary">{currentEvent.name}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <MapPin className="w-4 h-4 text-theme-light" />
+                <span className="text-sm text-theme-light">
+                  {currentEvent.venue?.profileInfo?.venueName || "Ubicación por confirmar"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="w-4 h-4 text-theme-light" />
+                <span className="text-sm text-theme-light">
+                  {new Date(currentEvent.scheduledDate).toLocaleString("es-ES", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
             </div>
-
-            <div className="w-9"> {/* Spacer para centrar título */}</div>
+            <button
+              onClick={() => {
+                if (currentEvent.venue?.id) {
+                  navigate(`/venues/${currentEvent.venue.id}`);
+                }
+              }}
+              className="px-4 py-2 bg-[#596c95] text-white rounded-lg text-sm hover:bg-[#596c95]/80 transition-colors flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              Ver Perfil
+            </button>
           </div>
-        </header>
-
-        {/* ✅ Video Player */}
-        <div className="p-4">
-          <VideoPlayer
-            streamUrl={currentEvent.streamUrl}
-            eventId={currentEvent.id}
-          />
         </div>
 
-        {/* ✅ Current Fight Info */}
-        {currentFight && (
-          <div className="mx-4 mb-4 card-background p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-theme-primary">Pelea Actual</h3>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-600 text-sm">En curso</span>
+        {/* ✅ Row 2: Conditional Video Player */}
+        {currentEvent.status === "in-progress" ? (
+          <SubscriptionGuard
+            feature="video streaming"
+            showUpgradePrompt={true}
+            fallback={
+              <div className="p-4">
+                <div className="aspect-video bg-black/20 rounded-lg flex items-center justify-center text-theme-light">
+                  <div className="text-center">
+                    <Crown className="w-12 h-12 mx-auto text-yellow-400 mb-2" />
+                    <p className="text-lg font-medium">Streaming Premium</p>
+                    <p className="text-sm">Actualiza a premium para ver el video</p>
+                  </div>
+                </div>
               </div>
+            }
+          >
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <StreamingStatus currentViewers={currentEvent.currentViewers} />
+              </div>
+              <VideoPlayer
+                streamUrl={currentEvent.streamUrl}
+                eventId={currentEvent.id}
+                currentViewers={currentEvent.currentViewers}
+              />
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-center">
-                <p className="font-medium text-theme-primary">
-                  {currentFight.redCorner}
-                </p>
-                <p className="text-sm text-theme-light">Esquina Roja</p>
-              </div>
-
-              <div className="text-center px-4">
-                <Scale className="w-6 h-6 text-theme-light mx-auto mb-1" />
-                <p className="text-sm text-theme-light">
-                  {currentFight.weight}kg
-                </p>
-              </div>
-
-              <div className="text-center">
-                <p className="font-medium text-theme-primary">
-                  {currentFight.blueCorner}
-                </p>
-                <p className="text-sm text-theme-light">Esquina Azul</p>
-              </div>
-            </div>
+          </SubscriptionGuard>
+        ) : (
+          // Countdown for pre-event
+          <div className="p-4">
+            <CountdownTimer scheduledDate={currentEvent.scheduledDate} />
           </div>
         )}
 
-        {/* ✅ Stats rápidas */}
-        <div className="mx-4 mb-4 grid grid-cols-3 gap-3">
-          <div className="card-background p-3 rounded-lg text-center">
-            <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-            <p className="text-sm text-theme-light">Peleas</p>
-            <p className="font-bold text-theme-primary">
-              {currentEvent.completedFights}/{currentEvent.totalFights}
-            </p>
-          </div>
-
-          <div className="card-background p-3 rounded-lg text-center">
-            <Users className="w-5 h-5 text-green-600 mx-auto mb-1" />
-            <p className="text-sm text-theme-light">Espectadores</p>
-            <p className="font-bold text-theme-primary">
-              {currentEvent.currentViewers || 0}
-            </p>
-          </div>
-
-          <div className="card-background p-3 rounded-lg text-center">
-            <Scale className="w-5 h-5 text-purple-400 mx-auto mb-1" />
-            <p className="text-sm text-theme-light">Apuestas</p>
-            <p className="font-bold text-theme-primary">
-              {availableBets.length}
-            </p>
-          </div>
-        </div>
-
-        {/* ✅ Tabs Navigation */}
-        <div className="mx-4 mb-4">
-          <div className="flex bg-[#1a1f37]/30 rounded-lg p-1">
-            {[
-              ...(isBettingEnabled
-                ? [
-                    {
-                      key: "available",
-                      label: "Disponibles",
-                      count: availableBets.length,
-                    },
-                    {
-                      key: "my_bets",
-                      label: "Mis Apuestas",
-                      count: myBets.length,
-                    },
-                  ]
-                : []),
-              { key: "info", label: "Info", count: null },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() =>
-                  setActiveTab(tab.key as "available" | "my_bets" | "info")
-                }
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? "bg-[#596c95] text-white"
-                    : "text-theme-light hover:text-theme-primary"
-                }`}
-              >
-                {tab.label}
-                {tab.count !== null && (
-                  <span className="ml-1 text-xs">({tab.count})</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ✅ Tab Content */}
-        <div className="mx-4">
-          {isBettingEnabled && activeTab === "available" && (
+        {/* ✅ Row 3: Betting Panel (Replaced previous tabs with new structure) */}
+        {isBettingEnabled && (
+          <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
             <BettingPanel
               availableBets={availableBets}
+              myBets={myBets}
+              currentFight={currentFight}
               onAcceptBet={handleAcceptBet}
+              onCreateBet={handleCreateBet}
+              isVenueRole={isVenueRole}
             />
-          )}
+          </div>
+        )}
 
-          {isBettingEnabled && activeTab === "my_bets" && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-theme-primary">Mis Apuestas</h3>
-              {myBets.length === 0 ? (
-                <EmptyState
-                  title="No tienes apuestas activas"
-                  description="Crea tu primera apuesta o acepta una existente"
-                />
-              ) : (
-                <div className="space-y-2">
-                  {myBets.map((bet) => (
-                    <div
-                      key={bet.id}
-                      className="card-background p-3 rounded-lg border border-[#596c95]/20"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-theme-primary">
-                            {bet.choice}
-                          </p>
-                          <p className="text-sm text-theme-light">
-                            Cuota: {bet.odds}x • ${bet.amount}
-                          </p>
-                        </div>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            bet.status === "active"
-                              ? "bg-blue-500/20 text-blue-600"
-                              : bet.status === "won"
-                                ? "bg-green-500/20 text-green-600"
-                                : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {bet.status === "active"
-                            ? "Activa"
-                            : bet.status === "won"
-                              ? "Ganada"
-                              : "Perdida"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+        {/* Info section - simplified */}
+        <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
+          <h3 className="font-semibold text-theme-primary mb-3">Información del Evento</h3>
+
+          {currentEvent.description && (
+            <div className="mb-4">
+              <p className="text-sm text-theme-light">{currentEvent.description}</p>
             </div>
           )}
 
-          {activeTab === "info" && (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-theme-primary">
-                Información del Evento
-              </h3>
-
-              <div className="card-background p-4 rounded-lg space-y-3">
-                <div>
-                  <p className="text-theme-light text-sm">Evento</p>
-                  <p className="text-theme-primary font-medium">
-                    {currentEvent.name}
-                  </p>
-                </div>
-
-                {currentEvent.venue && (
-                  <div>
-                    <p className="text-theme-light text-sm">Ubicación</p>
-                    <p className="text-theme-primary font-medium">
-                      {currentEvent.venue.profileInfo?.venueName}
-                    </p>
-                    <p className="text-theme-light text-sm">
-                      {currentEvent.venue.profileInfo?.venueLocation}
+          {/* Próximas peleas */}
+          {upcomingFights.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-theme-primary mb-2">Próximas Peleas</h4>
+              <div className="space-y-2">
+                {upcomingFights.slice(0, 3).map((fight) => (
+                  <div
+                    key={fight.id}
+                    className="card-background p-3 rounded-lg"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-theme-primary font-medium">
+                        Pelea #{fight.number}
+                      </span>
+                      <span className="text-theme-light text-sm">
+                        {fight.weight}kg
+                      </span>
+                    </div>
+                    <p className="text-sm text-theme-light mt-1">
+                      {fight.redCorner} vs {fight.blueCorner}
                     </p>
                   </div>
-                )}
-
-                <div>
-                  <p className="text-theme-light text-sm">Fecha y Hora</p>
-                  <p className="text-theme-primary font-medium">
-                    {new Date(currentEvent.scheduledDate).toLocaleString(
-                      "es-ES",
-                      {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      },
-                    )}
-                  </p>
-                </div>
-
-                {currentEvent.description && (
-                  <div>
-                    <p className="text-theme-light text-sm">Descripción</p>
-                    <p className="text-theme-primary">
-                      {currentEvent.description}
-                    </p>
-                  </div>
-                )}
+                ))}
               </div>
-
-              {/* Próximas peleas */}
-              {upcomingFights.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-theme-primary mb-2">
-                    Próximas Peleas
-                  </h4>
-                  <div className="space-y-2">
-                    {upcomingFights.slice(0, 3).map((fight) => (
-                      <div
-                        key={fight.id}
-                        className="card-background p-3 rounded-lg"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-theme-primary font-medium">
-                            Pelea #{fight.number}
-                          </span>
-                          <span className="text-theme-light text-sm">
-                            {fight.weight}kg
-                          </span>
-                        </div>
-                        <p className="text-sm text-theme-light mt-1">
-                          {fight.redCorner} vs {fight.blueCorner}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
-
-        {/* ✅ Chat Component (solo en eventos en vivo) */}
-        {currentEvent.status === "in-progress" && (
-          <div className="mx-4 mt-6">
-            <ChatComponent eventId={currentEvent.id} />
-          </div>
-        )}
       </div>
 
       {/* ✅ Floating Create Bet Button */}
-      <div className="fixed bottom-24 right-6">
-        <button
-          onClick={handleCreateBet}
-          className="bg-gradient-to-r from-[#596c95] to-[#cd6263] text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      </div>
+      {isBettingEnabled && !isVenueRole && (
+        <div className="fixed bottom-24 right-6">
+          <button
+            onClick={handleCreateBet}
+            className="bg-gradient-to-r from-[#596c95] to-[#cd6263] text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+        </div>
+      )}
     </SubscriptionGuard>
   );
 };
