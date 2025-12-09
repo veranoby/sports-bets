@@ -45,7 +45,7 @@ const UserHeader = memo(() => {
     fetchNotifications,
   } = useNotifications();
   const { bets, loading: betsLoading, fetchMyBets } = useBets();
-  const { subscription } = useSubscription();
+  const { subscription, isPremium } = useSubscription();
 
   const {
     isWalletEnabled,
@@ -129,7 +129,7 @@ const UserHeader = memo(() => {
       );
     }
 
-    if (!isWalletEnabled) return null;
+    if (!isWalletEnabled || role === "venue" || !isPremium) return null;
 
     const buttonClass = isMobile
       ? "flex items-center justify-center w-11 h-11 bg-white border border-[#bdd5ef75] rounded-xl shadow-sm"
@@ -226,7 +226,7 @@ const UserHeader = memo(() => {
       );
     }
 
-    if (!isBettingEnabled) return null;
+    if (!isBettingEnabled || role === "venue" || !isPremium) return null;
 
     const buttonClass = isMobile
       ? "relative flex items-center justify-center w-11 h-11 bg-white border border-[#bdd5ef75] rounded-xl shadow-sm"

@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useFeatureFlags } from "../hooks/useFeatureFlags";
+import { useSubscription } from "../hooks/useSubscription";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -23,10 +24,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     isBettingEnabled,
     isLoading: flagsLoading,
   } = useFeatureFlags();
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
   const location = useLocation();
 
-  // Show loading while verifying authentication OR feature flags
-  if (authLoading || flagsLoading) {
+  // Show loading while verifying authentication OR feature flags OR subscription
+  if (authLoading || flagsLoading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -42,13 +44,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // Feature Flag enforcement
+  // Feature Flag + Premium + Role enforcement
   const path = location.pathname;
-  if (path.startsWith("/wallet") && !isWalletEnabled) {
-    return <Navigate to="/dashboard" replace />;
+
+  // Wallet: requires feature enabled, premium subscription, and NOT venue
+  if (path.startsWith("/wallet")) {
+    if (!isWalletEnabled || !isPremium || user?.role === "venue") {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
-  if (path.startsWith("/bets") && !isBettingEnabled) {
-    return <Navigate to="/dashboard" replace />;
+
+  // Bets: requires feature enabled, premium subscription, and NOT venue
+  if (path.startsWith("/bets")) {
+    if (!isBettingEnabled || !isPremium || user?.role === "venue") {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   // Role verification (existing logic)

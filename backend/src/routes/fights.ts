@@ -86,6 +86,7 @@ router.post(
       .isLength({ min: 2, max: 255 })
       .withMessage("Blue corner name must be between 2 and 255 characters"),
     body("weight")
+      .optional()
       .isFloat({ min: 1.0, max: 10.0 })
       .withMessage("Weight must be between 1.0 and 10.0"),
     body("notes")

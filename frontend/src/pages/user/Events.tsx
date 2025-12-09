@@ -1,12 +1,7 @@
 // frontend/src/pages/user/Events.tsx - Updated with filters
 // =========================================================
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Calendar,
   Play,
@@ -235,7 +230,10 @@ const EventsPage: React.FC = () => {
     () => getUniqueVenues(upcomingEvents),
     [upcomingEvents],
   );
-  const pastVenues = React.useMemo(() => getUniqueVenues(pastEvents), [pastEvents]);
+  const pastVenues = React.useMemo(
+    () => getUniqueVenues(pastEvents),
+    [pastEvents],
+  );
 
   const handleJoinEvent = (eventId: string) => {
     navigate(`/live-event/${eventId}`);
@@ -315,7 +313,7 @@ const EventsPage: React.FC = () => {
               <select
                 value={venueFilterUpcoming}
                 onChange={(e) => setVenueFilterUpcoming(e.target.value)}
-                className="bg-[#1a1f3d] text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
+                className="bg-primary text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
               >
                 <option value="all">Todas las Sedes</option>
                 {upcomingVenues.map((venue) => (
@@ -373,7 +371,7 @@ const EventsPage: React.FC = () => {
               <select
                 value={venueFilterPast}
                 onChange={(e) => setVenueFilterPast(e.target.value)}
-                className="bg-[#1a1f3d] text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-full md:w-64 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
+                className="bg-primary text-theme-primary border border-[#596c95]/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-full md:w-64 [&>option]:bg-[#1a1f3d] [&>option]:text-white"
               >
                 <option value="all">Todas las Sedes</option>
                 {pastVenues.map((venue) => (

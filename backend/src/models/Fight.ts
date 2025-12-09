@@ -24,7 +24,7 @@ export class Fight extends Model<
   declare number: number;
   declare redCorner: string;
   declare blueCorner: string;
-  declare weight: number;
+  declare weight: number | null;
   declare notes: CreationOptional<string>;
   declare initialOdds: CreationOptional<{ red: number; blue: number }>;
   declare bettingStartTime: CreationOptional<Date>;
@@ -133,8 +133,9 @@ Fight.init(
     },
     weight: {
       type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
+      allowNull: true,
       validate: {
+        isFloat: true,
         min: 1.0,
         max: 10.0,
       },

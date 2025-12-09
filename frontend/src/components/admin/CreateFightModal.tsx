@@ -38,7 +38,6 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
     if (redCorner === blueCorner && redCorner !== "") {
       errors.blueCorner = "El rincón azul debe ser distinto al rojo.";
     }
-    if (!weight) errors.weight = "El peso es obligatorio.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -56,7 +55,7 @@ const CreateFightModal: React.FC<CreateFightModalProps> = ({
         eventId,
         redCorner,
         blueCorner,
-        weight: parseFloat(weight),
+        weight: weight ? parseFloat(weight) : undefined,
         notes,
       };
       const response = await fightsAPI.create(fightData);

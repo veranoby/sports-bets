@@ -194,7 +194,7 @@ const ArticlePage: React.FC = () => {
                 <div className="flex items-start gap-3 text-white/90">
                   <Sparkles className="w-5 h-5 mt-1 text-yellow-200" />
                   <p className="text-base md:text-lg italic">
-                    {article.summary}
+                    <span dangerouslySetInnerHTML={{ __html: article.summary }} />
                   </p>
                 </div>
               </div>

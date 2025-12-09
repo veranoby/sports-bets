@@ -302,28 +302,31 @@ const EventList: React.FC<EventListProps> = ({
           <div className="flex gap-2">
             <button
               onClick={() => setDateFilter("today")}
-              className={`px-3 py-1 rounded text-sm ${dateFilter === "today"
+              className={`px-3 py-1 rounded text-sm ${
+                dateFilter === "today"
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-                }`}
+              }`}
             >
               Hoy
             </button>
             <button
               onClick={() => setDateFilter("week")}
-              className={`px-3 py-1 rounded text-sm ${dateFilter === "week"
+              className={`px-3 py-1 rounded text-sm ${
+                dateFilter === "week"
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-                }`}
+              }`}
             >
               Esta Semana
             </button>
             <button
               onClick={() => setDateFilter("")}
-              className={`px-3 py-1 rounded text-sm ${!dateFilter
+              className={`px-3 py-1 rounded text-sm ${
+                !dateFilter
                   ? "bg-blue-400 text-white"
                   : "bg-gray-200 text-gray-700"
-                }`}
+              }`}
             >
               Todos
             </button>
@@ -395,7 +398,7 @@ const EventList: React.FC<EventListProps> = ({
                         <User className="w-4 h-4" />
                         <span>
                           {typeof event.operator === "object" &&
-                            event.operator?.username
+                          event.operator?.username
                             ? event.operator.username
                             : typeof event.operator === "string"
                               ? event.operator
@@ -472,7 +475,6 @@ const EventList: React.FC<EventListProps> = ({
                         Abrir panel de gestión detallada del evento
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>

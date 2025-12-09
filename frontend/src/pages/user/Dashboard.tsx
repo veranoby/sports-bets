@@ -157,21 +157,6 @@ const Dashboard: React.FC = () => {
         {/* 📰 BANNER DE NOTICIAS */}
         <NewsBanner />
 
-        {/* ROLE-SPECIFIC SECTIONS */}
-        {user?.role === "user" && isBettingEnabled && (
-          <div className="space-y-6">
-            {/*   <h2 className="text-2xl font-bold text-theme-primary">
-              Mis Apuestas
-            </h2>
-            <div className="card-background p-6">
-              <p>
-                Aquí irán las secciones de Mis Apuestas y Historial de Apuestas
-                (BettingSection).
-              </p>
-              <BettingSection /> 
-            </div>*/}
-          </div>
-        )}
 
         {/* ⚡ EVENTOS EN VIVO BÁSICOS (Versión gratuita) */}
         {liveEvents.length > 0 && (
@@ -291,11 +276,10 @@ const Dashboard: React.FC = () => {
                                 {typedEvent.name}
                               </h3>
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
-                                  isLive
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${isLive
                                     ? "border-red-500/40 bg-red-500/10 text-red-300"
                                     : "border-white/10 bg-white/5 text-theme-light"
-                                }`}
+                                  }`}
                               >
                                 {isLive ? "En vivo" : "Programado"}
                               </span>
