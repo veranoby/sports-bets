@@ -8,7 +8,7 @@ import {
   Settings,
   DollarSign,
   Activity,
-  AlertTriangle,
+  XCircle,
   Clock,
   CheckCircle,
   User,
