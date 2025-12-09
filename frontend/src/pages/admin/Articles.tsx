@@ -852,9 +852,11 @@ const AdminArticlesPage: React.FC = () => {
                 <StatusChip status={previewArticle.status} size="sm" />
               </div>
 
-              <p className="text-lg text-gray-700 mb-4 font-medium">
-                {previewArticle.summary}
-              </p>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: previewArticle.summary.replace(/\n/g, "<br>"),
+                }}
+              />
 
               <div className="prose prose-sm max-w-none">
                 <div

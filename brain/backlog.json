@@ -1284,6 +1284,79 @@
         "When refactoring components with real-time features, ensure SSE/WS architecture compliance",
         "Consider role-based restrictions when implementing betting features"
       ]
+    },
+    {
+      "task_id": "USER_HEADER_ARTICLES_CHIP_MOVEMENT_2025_12_09",
+      "status": "COMPLETED",
+      "completion_date": "2025-12-09",
+      "completion_time": "13:45:00",
+      "complexity": "MEDIUM",
+      "category": "FEATURE_ENHANCEMENT",
+      "priority": "P2_MEDIUM",
+      "completed_by": "Claude Sonnet 4.5",
+      "execution_mode": "standard",
+      "summary": "Moved the articles chip from header position to user dropdown menu, placing it in the same row as the role badge, to the right of it.",
+      "problem_description": [
+        "The articles chip (showing user's published articles count) was positioned in the header area",
+        "Requirements specified that it should be moved inside the user dropdown menu",
+        "It should appear on the same row as the role badge, positioned to the right of it"
+      ],
+      "root_cause_analysis": {
+        "design_alignment_issue": "Original positioning of articles chip didn't match the desired UI/UX design where user-specific information should be grouped in the user dropdown",
+        "information_architecture": "Articles count is user-specific information that belongs in the user profile area rather than the general header area"
+      },
+      "changes_implemented": {
+        "frontend_user_header": {
+          "file": "frontend/src/components/user/UserHeader.tsx",
+          "lines_modified": "715-725, 535-545",
+          "changes": [
+            "Removed articles chip from main header infoChips array display",
+            "Added conditional rendering of articles chip inside user dropdown menu",
+            "Positioned articles chip in the same row as role badge, to its right",
+            "Maintained proper role-based visibility (only for 'gallera' and 'venue' roles)",
+            "Applied consistent styling with other info chips in the dropdown"
+          ]
+        }
+      },
+      "files_modified": [
+        "frontend/src/components/user/UserHeader.tsx"
+      ],
+      "files_created": [],
+      "git_commits": ["pending"],
+      "verification_evidence": {
+        "typescript_compilation": {
+          "command": "npx tsc --noEmit",
+          "result": "0 errors",
+          "notes": "Successfully compiled the frontend project with all changes."
+        },
+        "ui_placement": {
+          "test": "Verified that the articles chip is now located inside the user dropdown menu",
+          "result": "Articles chip appears in user dropdown for 'gallera' and 'venue' roles"
+        },
+        "positioning": {
+          "test": "Verified that the chip is positioned in the same row as the role badge",
+          "result": "Articles chip appears directly to the right of the role badge in the dropdown"
+        },
+        "functionality": {
+          "test": "Verified that the chip displays the correct number of articles",
+          "result": "Chip correctly shows the count of published articles for the user"
+        }
+      },
+      "business_impact": [
+        "Improves information architecture by grouping user-specific information in the user dropdown",
+        "Creates cleaner main header by removing user-specific information from general area",
+        "Provides consistent UI experience with related information in the same location"
+      ],
+      "architecture_compliance": {
+        "component_modularity": "Maintains modularity by keeping changes within a single component",
+        "role_based_content": "Preserves role-based visibility as originally designed",
+        "styling_consistency": "Uses existing component styling for consistency"
+      },
+      "lessons_learned": [
+        "Importance of understanding information architecture principles when placing UI elements",
+        "Need to consider the relationship between different pieces of information when deciding placement",
+        "Benefits of grouping user-specific information together in a single location"
+      ]
     }
   ]
 }

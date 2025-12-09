@@ -118,9 +118,10 @@ function useAsyncOperation<T = unknown>() {
             const axiosError = err as {
               response?: { data?: { message?: string } };
             };
-            const errorMsg = axiosError.response?.data?.message ||
-                err.message ||
-                "An error occurred";
+            const errorMsg =
+              axiosError.response?.data?.message ||
+              err.message ||
+              "An error occurred";
             console.error("🔴 Setting error:", errorMsg);
             setError(errorMsg);
           } else {
