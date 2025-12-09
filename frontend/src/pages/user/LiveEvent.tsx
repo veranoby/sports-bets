@@ -114,7 +114,9 @@ const FightPreviewModal = memo(
         <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Vista Previa de Peleas</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Vista Previa de Peleas
+              </h2>
               <button
                 onClick={onClose}
                 className="text-gray-500 hover:text-gray-700"
@@ -150,7 +152,9 @@ const FightPreviewModal = memo(
                   </div>
 
                   <button
-                    onClick={() => navigate(`/live-event/${currentFight.eventId}`)}
+                    onClick={() =>
+                      navigate(`/live-event/${currentFight.eventId}`)
+                    }
                     className="w-full mt-3 btn-primary py-2"
                   >
                     Ver Detalles
@@ -162,13 +166,20 @@ const FightPreviewModal = memo(
             {/* Completed Fights */}
             {completedFights.length > 0 && (
               <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-2">Peleas Completadas</h3>
+                <h3 className="font-semibold text-lg mb-2">
+                  Peleas Completadas
+                </h3>
                 <div className="space-y-2">
                   {completedFights.map((fight) => (
                     <div key={fight.id} className="bg-green-50 p-3 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span>{fight.number}. {fight.redCorner} vs {fight.blueCorner}</span>
-                        <span className="text-green-600 text-sm">Completada</span>
+                        <span>
+                          {fight.number}. {fight.redCorner} vs{" "}
+                          {fight.blueCorner}
+                        </span>
+                        <span className="text-green-600 text-sm">
+                          Completada
+                        </span>
                       </div>
                       <button
                         onClick={() => navigate(`/live-event/${fight.eventId}`)}
@@ -185,18 +196,27 @@ const FightPreviewModal = memo(
             {/* Scheduled Fights */}
             {scheduledFights.length > 0 && (
               <div>
-                <h3 className="font-semibold text-lg mb-2">Peleas Programadas</h3>
+                <h3 className="font-semibold text-lg mb-2">
+                  Peleas Programadas
+                </h3>
                 <div className="space-y-2">
                   {scheduledFights.map((fight) => (
                     <div key={fight.id} className="bg-blue-50 p-3 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span>{fight.number}. {fight.redCorner} vs {fight.blueCorner}</span>
-                        <span className="text-blue-600 text-sm">Programada</span>
+                        <span>
+                          {fight.number}. {fight.redCorner} vs{" "}
+                          {fight.blueCorner}
+                        </span>
+                        <span className="text-blue-600 text-sm">
+                          Programada
+                        </span>
                       </div>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-sm">{fight.weight}kg</span>
                         <button
-                          onClick={() => navigate(`/live-event/${fight.eventId}`)}
+                          onClick={() =>
+                            navigate(`/live-event/${fight.eventId}`)
+                          }
                           className="btn-primary py-1 px-2 text-sm"
                         >
                           Ver
@@ -220,7 +240,7 @@ const CountdownTimer = memo(({ scheduledDate }: { scheduledDate: string }) => {
     days: 0,
     hours: 0,
     minutes: 0,
-    seconds: 0
+    seconds: 0,
   });
 
   useEffect(() => {
@@ -231,8 +251,12 @@ const CountdownTimer = memo(({ scheduledDate }: { scheduledDate: string }) => {
 
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+        );
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60),
+        );
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
         setTimeLeft({ days, hours, minutes, seconds });
@@ -293,21 +317,31 @@ const CountdownTimer = memo(({ scheduledDate }: { scheduledDate: string }) => {
 });
 
 // Component for streaming status indicators
-const StreamingStatus = memo(({ currentViewers }: { currentViewers?: number }) => (
-  <div className="flex items-center gap-3 text-sm text-theme-light">
-    <div className="flex items-center gap-1">
-      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-      <span>En vivo</span>
+const StreamingStatus = memo(
+  ({ currentViewers }: { currentViewers?: number }) => (
+    <div className="flex items-center gap-3 text-sm text-theme-light">
+      <div className="flex items-center gap-1">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        <span>En vivo</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Users className="w-4 h-4" />
+        <span>{currentViewers || 0} espectadores</span>
+      </div>
     </div>
-    <div className="flex items-center gap-1">
-      <Users className="w-4 h-4" />
-      <span>{currentViewers || 0} espectadores</span>
-    </div>
-  </div>
-));
+  ),
+);
 
 const VideoPlayer = memo(
-  ({ streamUrl, eventId, currentViewers }: { streamUrl?: string; eventId: string; currentViewers?: number }) => (
+  ({
+    streamUrl,
+    eventId,
+    currentViewers,
+  }: {
+    streamUrl?: string;
+    eventId: string;
+    currentViewers?: number;
+  }) => (
     <div className="aspect-video bg-black relative rounded-lg overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center text-white">
         {streamUrl ? (
@@ -354,8 +388,8 @@ const BettingPanel = memo(
 
     // Separate completed vs scheduled fights for the modal
     const allFights = currentFight ? [currentFight] : [];
-    const completedFights = allFights.filter(f => f.status === 'completed');
-    const scheduledFights = allFights.filter(f => f.status === 'scheduled');
+    const completedFights = allFights.filter((f) => f.status === "completed");
+    const scheduledFights = allFights.filter((f) => f.status === "scheduled");
 
     return (
       <div className="space-y-4">
@@ -366,7 +400,8 @@ const BettingPanel = memo(
               {currentFight ? (
                 <>
                   <Scale className="w-4 h-4" />
-                  Pelea #{currentFight.number}: {currentFight.redCorner} vs {currentFight.blueCorner}
+                  Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
+                  {currentFight.blueCorner}
                 </>
               ) : (
                 <>
@@ -386,17 +421,23 @@ const BettingPanel = memo(
           {currentFight && (
             <div className="flex items-center justify-between">
               <div className="text-center">
-                <p className="font-medium text-theme-primary">{currentFight.redCorner}</p>
+                <p className="font-medium text-theme-primary">
+                  {currentFight.redCorner}
+                </p>
                 <p className="text-xs text-theme-light">Esquina Roja</p>
               </div>
 
               <div className="text-center">
                 <Scale className="w-5 h-5 text-theme-light mx-auto" />
-                <p className="text-xs text-theme-light">{currentFight.weight}kg</p>
+                <p className="text-xs text-theme-light">
+                  {currentFight.weight}kg
+                </p>
               </div>
 
               <div className="text-center">
-                <p className="font-medium text-theme-primary">{currentFight.blueCorner}</p>
+                <p className="font-medium text-theme-primary">
+                  {currentFight.blueCorner}
+                </p>
                 <p className="text-xs text-theme-light">Esquina Azul</p>
               </div>
             </div>
@@ -430,7 +471,7 @@ const BettingPanel = memo(
               />
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {myBets.map(bet => (
+                {myBets.map((bet) => (
                   <div
                     key={bet.id}
                     className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
@@ -441,13 +482,20 @@ const BettingPanel = memo(
                     </div>
                     <div className="flex justify-between mt-1">
                       <span>Lado: {bet.side}</span>
-                      <span className={`px-1 rounded ${
-                        bet.status === 'active' ? 'text-blue-500' :
-                        bet.status === 'won' ? 'text-green-500' :
-                        'text-red-500'
-                      }`}>
-                        {bet.status === 'active' ? 'Activa' :
-                         bet.status === 'won' ? 'Ganada' : 'Perdida'}
+                      <span
+                        className={`px-1 rounded ${
+                          bet.status === "active"
+                            ? "text-blue-500"
+                            : bet.status === "won"
+                              ? "text-green-500"
+                              : "text-red-500"
+                        }`}
+                      >
+                        {bet.status === "active"
+                          ? "Activa"
+                          : bet.status === "won"
+                            ? "Ganada"
+                            : "Perdida"}
                       </span>
                     </div>
                   </div>
@@ -458,7 +506,9 @@ const BettingPanel = memo(
 
           {/* Right Column: Available Bets */}
           <div>
-            <h4 className="font-medium text-theme-primary mb-2">Apuestas Disponibles</h4>
+            <h4 className="font-medium text-theme-primary mb-2">
+              Apuestas Disponibles
+            </h4>
 
             {availableBets.length === 0 ? (
               <EmptyState
@@ -468,7 +518,7 @@ const BettingPanel = memo(
               />
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {availableBets.map(bet => (
+                {availableBets.map((bet) => (
                   <div
                     key={bet.id}
                     className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
@@ -521,12 +571,8 @@ const LiveEvent = () => {
   const { user } = useAuth();
 
   // ✅ FIXED: Use singleEvent state for individual event
-  const {
-    fetchEventById,
-    singleEvent,
-    singleEventLoading,
-    singleEventError,
-  } = useEvents();
+  const { fetchEventById, singleEvent, singleEventLoading, singleEventError } =
+    useEvents();
 
   const { fights, fetchFights } = useFights();
   const { bets, fetchAvailableBets, acceptBet } = useBets();
@@ -541,7 +587,7 @@ const LiveEvent = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Determinar si el usuario es venue
-  const isVenueRole = user?.role === 'venue';
+  const isVenueRole = user?.role === "venue";
 
   // WebSocket context
   const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
@@ -621,10 +667,11 @@ const LiveEvent = () => {
     ),
   );
 
-  // ✅ Load data on mount
+  // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {
     loadEventData();
-  }, [loadEventData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   // ✅ Handlers
   const handleAcceptBet = useCallback(
@@ -682,8 +729,7 @@ const LiveEvent = () => {
   // ✅ Data para las tabs
   const availableBets = (bets?.filter((bet) => bet.status === "active") ||
     []) as Bet[];
-  const myBets =
-    bets?.filter((bet) => bet.userId === user?.id) || [];
+  const myBets = bets?.filter((bet) => bet.userId === user?.id) || [];
   const currentFight = fights?.find((fight) => fight.status === "live");
   const upcomingFights =
     fights?.filter((fight) => fight.status === "scheduled") || [];
@@ -745,23 +791,29 @@ const LiveEvent = () => {
         <div className="mx-4 mb-4 card-background p-4 rounded-lg border border-[#596c95]/30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-theme-primary">{currentEvent.name}</h2>
+              <h2 className="text-xl font-bold text-theme-primary">
+                {currentEvent.name}
+              </h2>
               <div className="flex items-center gap-2 mt-1">
                 <MapPin className="w-4 h-4 text-theme-light" />
                 <span className="text-sm text-theme-light">
-                  {currentEvent.venue?.profileInfo?.venueName || "Ubicación por confirmar"}
+                  {currentEvent.venue?.profileInfo?.venueName ||
+                    "Ubicación por confirmar"}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Calendar className="w-4 h-4 text-theme-light" />
                 <span className="text-sm text-theme-light">
-                  {new Date(currentEvent.scheduledDate).toLocaleString("es-ES", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(currentEvent.scheduledDate).toLocaleString(
+                    "es-ES",
+                    {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
                 </span>
               </div>
             </div>
@@ -790,7 +842,9 @@ const LiveEvent = () => {
                   <div className="text-center">
                     <Crown className="w-12 h-12 mx-auto text-yellow-400 mb-2" />
                     <p className="text-lg font-medium">Streaming Premium</p>
-                    <p className="text-sm">Actualiza a premium para ver el video</p>
+                    <p className="text-sm">
+                      Actualiza a premium para ver el video
+                    </p>
                   </div>
                 </div>
               </div>
@@ -830,18 +884,24 @@ const LiveEvent = () => {
 
         {/* Info section - simplified */}
         <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
-          <h3 className="font-semibold text-theme-primary mb-3">Información del Evento</h3>
+          <h3 className="font-semibold text-theme-primary mb-3">
+            Información del Evento
+          </h3>
 
           {currentEvent.description && (
             <div className="mb-4">
-              <p className="text-sm text-theme-light">{currentEvent.description}</p>
+              <p className="text-sm text-theme-light">
+                {currentEvent.description}
+              </p>
             </div>
           )}
 
           {/* Próximas peleas */}
           {upcomingFights.length > 0 && (
             <div>
-              <h4 className="font-semibold text-theme-primary mb-2">Próximas Peleas</h4>
+              <h4 className="font-semibold text-theme-primary mb-2">
+                Próximas Peleas
+              </h4>
               <div className="space-y-2">
                 {upcomingFights.slice(0, 3).map((fight) => (
                   <div
