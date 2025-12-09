@@ -93,35 +93,48 @@ function useAsyncOperation<T = unknown>() {
 
   const execute = useCallback(
     async (asyncFunction: () => Promise<ApiResponse<T>>) => {
+      console.log("🚀 useAsyncOperation.execute: Starting");
       try {
+        console.log("⏳ Setting loading=true");
         setLoading(true);
         setError(null);
+        console.log("📞 Calling asyncFunction...");
         const result = await asyncFunction();
+        console.log("📦 asyncFunction result:", result);
 
         if (mountedRef.current) {
+          console.log("✅ Component mounted, setting data:", result.data);
           setData(result.data);
+        } else {
+          console.warn("⚠️ Component unmounted, skipping setData");
         }
+        console.log("🎯 Returning result");
         return result;
       } catch (err: unknown) {
+        console.error("❌ Error in execute:", err);
         if (mountedRef.current) {
           if (err instanceof Error) {
             // Try to extract error message from different possible sources
             const axiosError = err as {
               response?: { data?: { message?: string } };
             };
-            setError(
-              axiosError.response?.data?.message ||
+            const errorMsg = axiosError.response?.data?.message ||
                 err.message ||
-                "An error occurred",
-            );
+                "An error occurred";
+            console.error("🔴 Setting error:", errorMsg);
+            setError(errorMsg);
           } else {
+            console.error("🔴 Unknown error type");
             setError("An unknown error occurred");
           }
         }
         throw err;
       } finally {
         if (mountedRef.current) {
+          console.log("✅ Setting loading=false (finally block)");
           setLoading(false);
+        } else {
+          console.warn("⚠️ Component unmounted in finally");
         }
       }
     },
@@ -516,12 +529,16 @@ export function useEvents() {
     data: singleEvent,
     loading: singleEventLoading,
     error: singleEventError,
-    execute: executeSingleEvent
+    execute: executeSingleEvent,
   } = useAsyncOperation<EventData>();
 
   const fetchEventById = useCallback(
     (eventId: string) => {
-      return executeSingleEvent(() => apiClient.get(`/events/${eventId}`));
+      console.log("🔍 useApi.fetchEventById called for:", eventId);
+      return executeSingleEvent(() => {
+        console.log("📡 Making API call to /events/" + eventId);
+        return apiClient.get(`/events/${eventId}`);
+      });
     },
     [executeSingleEvent],
   );

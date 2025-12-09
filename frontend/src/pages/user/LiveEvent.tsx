@@ -592,29 +592,48 @@ const LiveEvent = () => {
   // WebSocket context
   const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
 
-  // ✅ FIXED: Fetch individual event with proper error handling
+  // ✅ FIXED: Fetch individual event with proper error handling + DEEP DEBUG
   const loadEventData = useCallback(async () => {
-    if (!eventId) return;
+    if (!eventId) {
+      console.log("🚫 loadEventData: No eventId provided");
+      return;
+    }
+
+    console.log("🔄 loadEventData: Starting fetch for eventId:", eventId);
 
     try {
       setLoading(true);
       setError(null);
 
       // Fetch evento específico por ID
+      console.log("📡 Calling fetchEventById...");
       const response = await fetchEventById(eventId);
+      console.log("📦 fetchEventById response:", response);
+      console.log("✅ response.success:", response?.success);
+      console.log("📄 response.data:", response?.data);
+
       if (response?.success && response.data) {
+        console.log("✅ Setting currentEvent with data:", response.data);
         setCurrentEvent(response.data as EventData);
       } else if (!response?.success) {
+        console.error("❌ API returned unsuccessful response:", response?.error);
         throw new Error(response?.error || "Error al cargar evento");
+      } else {
+        console.error("❌ No data in response despite success=true");
+        throw new Error("No se recibió información del evento");
       }
 
       // Fetch related fights
+      console.log("🥊 Fetching fights for eventId:", eventId);
       await Promise.all([fetchFights({ eventId })]);
+      console.log("✅ Fights fetched successfully");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error cargando evento";
+      console.error("❌ Error in loadEventData:", err);
       setError(errorMessage);
     } finally {
+      console.log("🏁 loadEventData: Setting loading to FALSE");
       setLoading(false);
     }
   }, [eventId, fetchEventById, fetchFights]);
@@ -669,6 +688,7 @@ const LiveEvent = () => {
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {
+    console.log("🎬 useEffect triggered for eventId:", eventId);
     loadEventData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
@@ -695,7 +715,10 @@ const LiveEvent = () => {
   }, []);
 
   // ✅ FIXED: Only show spinner while loading event data
+  console.log("🎭 RENDER: loading =", loading, "| currentEvent =", currentEvent ? "EXISTS" : "NULL");
+
   if (loading) {
+    console.log("⏳ Showing loading spinner");
     return (
       <div className="min-h-screen page-background flex items-center justify-center">
         <LoadingSpinner text="Cargando evento en vivo..." />

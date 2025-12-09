@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Activity,
   TrendingUp,
@@ -22,8 +22,6 @@ import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import StatusChip from "../../components/shared/StatusChip";
-import EmptyState from "../../components/shared/EmptyState";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
@@ -47,7 +45,7 @@ interface PagoProposedData {
   newBet: Bet;
 }
 
-const UserBets: React.FC = () => {
+export default function UserBets() {
   const { isBettingEnabled } = useFeatureFlags();
   const navigate = useNavigate();
 
@@ -65,7 +63,7 @@ const UserBets: React.FC = () => {
   // Use ref for bets to handle WebSocket updates
   const betsRef = useRef<Bet[]>([]);
   const setBetsRef = useRef<React.Dispatch<React.SetStateAction<Bet[]>>>(
-    () => { },
+    () => {},
   );
 
   useWallet();
@@ -90,7 +88,8 @@ const UserBets: React.FC = () => {
         // Fetch active events
         const response = await eventsAPI.getAll({ category: "live", limit: 1 });
         if (response.success && response.data) {
-          const events = (response.data as { events?: EventData[] }).events || [];
+          const events =
+            (response.data as { events?: EventData[] }).events || [];
           if (events.length > 0) {
             const event = events[0];
             setLiveEvent(event);
@@ -99,14 +98,16 @@ const UserBets: React.FC = () => {
             // Logic: Look for status='betting' or 'live', otherwise 'upcoming' with lowest number?
             // Simplified: Just look for active betting or live fight
             const activeFight = event.fights?.find(
-              (f) => f.status === "betting" || f.status === "live"
+              (f) => f.status === "betting" || f.status === "live",
             );
 
             if (activeFight) {
               setCurrentFight(activeFight);
             } else if (event.fights && event.fights.length > 0) {
               // Fallback to first upcoming fight if no active fight
-              const nextFight = event.fights.find(f => f.status === 'upcoming') || event.fights[0];
+              const nextFight =
+                event.fights.find((f) => f.status === "upcoming") ||
+                event.fights[0];
               setCurrentFight(nextFight);
             }
           }
@@ -146,7 +147,9 @@ const UserBets: React.FC = () => {
   const handleProposalAccepted = useCallback((data: ProposalAcceptedData) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.proposalId ? { ...bet, status: "accepted" as any } : bet,
+        bet.id === data.proposalId
+          ? { ...bet, status: "accepted" as any }
+          : bet,
       ),
     );
   }, []);
@@ -232,44 +235,68 @@ const UserBets: React.FC = () => {
   if (loading) return <LoadingSpinner text="Cargando panel de apuestas..." />;
 
   // Filter Active vs History
-  const activeBetsList = bets.filter(bet => bet.status === 'active' || bet.status === 'pending');
-  const historyBetsList = bets.filter(bet => bet.status === 'won' || bet.status === 'lost' || bet.status === 'cancelled');
+  const activeBetsList = bets.filter(
+    (bet) => bet.status === "active" || bet.status === "pending",
+  );
+  const historyBetsList = bets.filter(
+    (bet) =>
+      bet.status === "won" ||
+      bet.status === "lost" ||
+      bet.status === "cancelled",
+  );
 
   return (
     <div className="page-background pb-24">
       <div className="p-4 space-y-6">
-
         {/* HEADER: ESTADÍSTICAS COMPACTAS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="card-background p-3 flex items-center justify-between border-l-4 border-blue-500">
             <div>
-              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">Activas</p>
-              <p className="text-xl font-bold text-white">{betStats.activeBets}</p>
+              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">
+                Activas
+              </p>
+              <p className="text-xl font-bold text-white">
+                {betStats.activeBets}
+              </p>
             </div>
             <Activity className="w-5 h-5 text-blue-500" />
           </div>
           <div className="card-background p-3 flex items-center justify-between border-l-4 border-green-500">
             <div>
-              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">Ganadas</p>
+              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">
+                Ganadas
+              </p>
               <p className="text-xl font-bold text-white">{betStats.wonBets}</p>
             </div>
             <Award className="w-5 h-5 text-green-500" />
           </div>
           <div className="card-background p-3 flex items-center justify-between border-l-4 border-purple-500">
             <div>
-              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">% Victoria</p>
-              <p className="text-xl font-bold text-white">{betStats.winRate.toFixed(1)}%</p>
+              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">
+                % Victoria
+              </p>
+              <p className="text-xl font-bold text-white">
+                {betStats.winRate.toFixed(1)}%
+              </p>
             </div>
             <TrendingUp className="w-5 h-5 text-purple-500" />
           </div>
-          <div className={`card-background p-3 flex items-center justify-between border-l-4 ${betStats.netProfit >= 0 ? "border-emerald-500" : "border-red-500"}`}>
+          <div
+            className={`card-background p-3 flex items-center justify-between border-l-4 ${betStats.netProfit >= 0 ? "border-emerald-500" : "border-red-500"}`}
+          >
             <div>
-              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">Ganancia</p>
-              <p className={`text-xl font-bold ${betStats.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <p className="text-xs text-theme-light uppercase font-bold tracking-wider">
+                Ganancia
+              </p>
+              <p
+                className={`text-xl font-bold ${betStats.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+              >
                 ${betStats.netProfit.toFixed(2)}
               </p>
             </div>
-            <DollarSign className={`w-5 h-5 ${betStats.netProfit >= 0 ? "text-emerald-500" : "text-red-500"}`} />
+            <DollarSign
+              className={`w-5 h-5 ${betStats.netProfit >= 0 ? "text-emerald-500" : "text-red-500"}`}
+            />
           </div>
         </div>
 
@@ -278,7 +305,6 @@ const UserBets: React.FC = () => {
 
         {/* MAIN GRID: 2 COLUMNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           {/* COLUMNA IZQUIERDA: MIS APUESTAS ACTIVAS */}
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-theme-primary flex items-center gap-2">
@@ -291,14 +317,17 @@ const UserBets: React.FC = () => {
                 {activeBetsList.map((bet) => (
                   <BetCard
                     key={bet.id}
-                    bet={{
-                      ...bet,
-                      potentialWin: (bet as any).potentialWin || 0,
-                      userId: (bet as any).userId || "",
-                      updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-                      status: bet.status as any,
-                      result: bet.result as any,
-                    } as any}
+                    bet={
+                      {
+                        ...bet,
+                        potentialWin: (bet as any).potentialWin || 0,
+                        userId: (bet as any).userId || "",
+                        updatedAt:
+                          (bet as any).updatedAt || new Date().toISOString(),
+                        status: bet.status as any,
+                        result: bet.result as any,
+                      } as any
+                    }
                     onCancel={handleCancelBet}
                     onAccept={handleAcceptBet}
                   />
@@ -307,7 +336,9 @@ const UserBets: React.FC = () => {
             ) : (
               <div className="card-background p-8 flex flex-col items-center justify-center text-center border-dashed border-2 border-[#596c95]/30">
                 <Activity className="w-10 h-10 text-theme-light/50 mb-3" />
-                <p className="text-theme-light">No tienes apuestas activas en este momento.</p>
+                <p className="text-theme-light">
+                  No tienes apuestas activas en este momento.
+                </p>
               </div>
             )}
           </div>
@@ -330,11 +361,16 @@ const UserBets: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
-                        <h3 className="font-bold text-white text-sm">{liveEvent.name}</h3>
+                        <span className="bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full animate-pulse">
+                          EN VIVO
+                        </span>
+                        <h3 className="font-bold text-white text-sm">
+                          {liveEvent.name}
+                        </h3>
                       </div>
                       <p className="text-blue-200 text-xs flex items-center gap-1">
-                        Pelea #{currentFight.number} • {currentFight.redCorner} vs {currentFight.blueCorner}
+                        Pelea #{currentFight.number} • {currentFight.redCorner}{" "}
+                        vs {currentFight.blueCorner}
                       </p>
                     </div>
                     <button
@@ -358,12 +394,14 @@ const UserBets: React.FC = () => {
             ) : (
               <div className="card-background p-8 flex flex-col items-center justify-center text-center">
                 <AlertCircle className="w-10 h-10 text-theme-light/50 mb-3" />
-                <h3 className="text-theme-primary font-medium mb-1">Sin Eventos en Vivo</h3>
+                <h3 className="text-theme-primary font-medium mb-1">
+                  Sin Eventos en Vivo
+                </h3>
                 <p className="text-theme-light text-sm">
                   No hay peleas disponibles para apostar en este momento.
                 </p>
                 <button
-                  onClick={() => navigate('/events')}
+                  onClick={() => navigate("/events")}
                   className="mt-4 text-blue-400 text-sm hover:underline"
                 >
                   Ver próximos eventos
@@ -371,7 +409,6 @@ const UserBets: React.FC = () => {
               </div>
             )}
           </div>
-
         </div>
 
         {/* BOTTOM SECTION: HISTORIAL */}
@@ -386,14 +423,17 @@ const UserBets: React.FC = () => {
               {historyBetsList.slice(0, 6).map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={{
-                    ...bet,
-                    potentialWin: (bet as any).potentialWin || 0,
-                    userId: (bet as any).userId || "",
-                    updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-                    status: bet.status as any,
-                    result: bet.result as any,
-                  } as any}
+                  bet={
+                    {
+                      ...bet,
+                      potentialWin: (bet as any).potentialWin || 0,
+                      userId: (bet as any).userId || "",
+                      updatedAt:
+                        (bet as any).updatedAt || new Date().toISOString(),
+                      status: bet.status as any,
+                      result: bet.result as any,
+                    } as any
+                  }
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                   mode="history"
@@ -401,16 +441,19 @@ const UserBets: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-theme-light text-sm italic">No hay historial de apuestas finalizadas.</p>
+            <p className="text-theme-light text-sm italic">
+              No hay historial de apuestas finalizadas.
+            </p>
           )}
 
           {historyBetsList.length > 6 && (
             <div className="mt-4 text-center">
-              <button className="text-blue-400 text-sm hover:underline">Ver todo el historial</button>
+              <button className="text-blue-400 text-sm hover:underline">
+                Ver todo el historial
+              </button>
             </div>
           )}
         </div>
-
       </div>
 
       {/* FAB para crear apuesta (solo si hay pelea activa) */}
@@ -435,6 +478,4 @@ const UserBets: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default UserBets;
+}
