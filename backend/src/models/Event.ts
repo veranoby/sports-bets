@@ -142,7 +142,7 @@ Event.init(
       field: "scheduled_date",
       validate: {
         isDate: true,
-        isAfter: new Date().toISOString(), // Solo fechas futuras al crear
+        // isAfter validation removed - events can be activated even if scheduledDate is in the past
       },
     },
     endDate: {
