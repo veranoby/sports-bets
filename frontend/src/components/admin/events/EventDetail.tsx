@@ -676,8 +676,6 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       totalFights: fights.length,
                     },
                   });
-                  // Refrescar datos del servidor para sincronizar cambios
-                  setTimeout(() => fetchEventDetail(), 300);
                 }
               }}
               onEventUpdate={(event) => {
