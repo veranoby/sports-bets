@@ -12,6 +12,7 @@ import { performanceMonitoring } from "./middleware/performanceMonitoring";
 
 // Import SSE and WebSocket services
 import { websocketService } from "./services/websocketService";
+import { sseService } from "./services/sseService";
 import DatabaseHooks from "./services/databaseHooks";
 import SessionService from "./services/sessionService";
 

@@ -531,14 +531,17 @@ const UserHeader = memo(() => {
                     </span>
                     <RoleBadge className="mt-2 bg-blue-50 border-blue-100" />
                     {(role === "gallera" || role === "venue") && (
-                      <div className="inline-block ml-2">
+                      <span className="inline-block m-2">
                         {renderChip({
                           id: "articles",
-                          icon: <Newspaper className="w-3.5 h-3.5 text-green-600" />,
+                          icon: (
+                            <Newspaper className="w-3.5 h-3.5 text-green-600" />
+                          ),
                           label: `Artículos: ${publishedArticles}`,
-                          accent: "bg-green-50/80 border border-green-100 text-green-900",
+                          accent:
+                            "bg-green-50/80 border border-green-100 text-green-900",
                         })}
-                      </div>
+                      </span>
                     )}
                   </p>
                 </div>
@@ -718,20 +721,22 @@ const UserHeader = memo(() => {
                 </div>
               </div>
 
-              {infoChips.filter(chip => chip.id !== 'articles').length > 0 && (
+              {infoChips.filter((chip) => chip.id !== "articles").length >
+                0 && (
                 <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-center">
-                  {(showMoreChips ?
-                    infoChips.filter(chip => chip.id !== 'articles') :
-                    primaryChips.filter(chip => chip.id !== 'articles')
+                  {(showMoreChips
+                    ? infoChips.filter((chip) => chip.id !== "articles")
+                    : primaryChips.filter((chip) => chip.id !== "articles")
                   ).map(renderChip)}
-                  {extraChips.filter(chip => chip.id !== 'articles').length > 0 && (
+                  {extraChips.filter((chip) => chip.id !== "articles").length >
+                    0 && (
                     <button
                       onClick={() => setShowMoreChips((prev) => !prev)}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-600 border border-gray-200 bg-white/70"
                     >
                       {showMoreChips
                         ? "Ver menos"
-                        : `+${extraChips.filter(chip => chip.id !== 'articles').length} info`}
+                        : `+${extraChips.filter((chip) => chip.id !== "articles").length} info`}
                     </button>
                   )}
                 </div>

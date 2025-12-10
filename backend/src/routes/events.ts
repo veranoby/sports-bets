@@ -455,14 +455,20 @@ router.patch(
     // Broadcast via SSE
     const sseService = req.app.get("sseService");
     if (sseService) {
+      const { randomUUID } = await import('crypto');
       sseService.broadcastToEvent(event.id, {
+        id: randomUUID(),
         type: `EVENT_${action.toUpperCase()}D`,
         data: {
           eventId: event.id,
           status: newStatus,
           streamUrl: event.streamUrl,
-          streamKey: event.streamKey,
-          timestamp: new Date()
+          streamKey: event.streamKey
+        },
+        timestamp: new Date(),
+        priority: 'high',
+        metadata: {
+          eventId: event.id
         }
       });
     }
@@ -537,12 +543,18 @@ router.post(
 
     const sseService = req.app.get("sseService");
     if (sseService) {
+      const { randomUUID } = await import('crypto');
       sseService.broadcastToEvent(event.id, {
+        id: randomUUID(),
         type: "EVENT_ACTIVATED",
         data: {
           eventId: event.id,
-          streamUrl: event.streamUrl,
-          timestamp: new Date()
+          streamUrl: event.streamUrl
+        },
+        timestamp: new Date(),
+        priority: 'high',
+        metadata: {
+          eventId: event.id
         }
       });
     }
@@ -609,12 +621,19 @@ router.post(
 
     const sseService = req.app.get("sseService");
     if (sseService) {
+      const { randomUUID } = await import('crypto');
       sseService.broadcastToEvent(event.id, {
+        id: randomUUID(),
         type: "STREAM_STARTED",
         data: {
           eventId: event.id,
-          streamUrl: event.streamUrl,
-          timestamp: new Date()
+          streamUrl: event.streamUrl
+        },
+        timestamp: new Date(),
+        priority: 'high',
+        metadata: {
+          eventId: event.id,
+          streamId: event.streamKey
         }
       });
     }
@@ -668,11 +687,17 @@ router.post(
 
     const sseService = req.app.get("sseService");
     if (sseService) {
+      const { randomUUID } = await import('crypto');
       sseService.broadcastToEvent(event.id, {
+        id: randomUUID(),
         type: "STREAM_STOPPED",
         data: {
-          eventId: event.id,
-          timestamp: new Date()
+          eventId: event.id
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
         }
       });
     }
@@ -747,11 +772,17 @@ router.post(
 
     const sseService = req.app.get("sseService");
     if (sseService) {
+      const { randomUUID } = await import('crypto');
       sseService.broadcastToEvent(event.id, {
+        id: randomUUID(),
         type: "EVENT_COMPLETED",
         data: {
-          eventId: event.id,
-          timestamp: new Date()
+          eventId: event.id
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
         }
       });
     }

@@ -149,6 +149,9 @@ export const fightsAPI = {
     data: { winner: "red" | "blue" | "draw"; notes?: string },
   ) => apiClient.post(`/fights/${id}/result`, data),
 
+  updateStatus: (id: string, status: string, result?: string) =>
+    apiClient.patch(`/fights/${id}/status`, { status, result }),
+
   delete: (id: string) => apiClient.delete(`/fights/${id}`),
 };
 

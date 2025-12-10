@@ -1,6 +1,7 @@
 import React from "react";
 import useSSE from "../../hooks/useSSE";
 import { type BettingNotificationsResponse } from "../../types";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
 const BettingNotifications: React.FC = () => {
   // Siempre llamar useSSE para respetar las reglas de React Hooks
@@ -9,7 +10,7 @@ const BettingNotifications: React.FC = () => {
     "/api/sse/users/me/betting",
   );
 
-  const isBettingEnabled = process.env.REACT_APP_FEATURES_BETTING === "true";
+  const { isBettingEnabled } = useFeatureFlags();
 
   // No renderizar nada si las notificaciones están deshabilitadas o no hay datos
   if (!isBettingEnabled || !bettingNotifications) {

@@ -136,7 +136,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
     try {
       // Update fight status to betting
-      const response = await fightsAPI.updateFightStatus(fightId, "betting");
+      const response = await fightsAPI.updateStatus(fightId, "betting");
       if (response.success) {
         onStatusChange(
           "betting",
@@ -160,7 +160,7 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
 
     try {
       // Update fight status to live
-      const response = await fightsAPI.updateFightStatus(fightId, "live");
+      const response = await fightsAPI.updateStatus(fightId, "live");
       if (response.success) {
         onStatusChange(
           "live",

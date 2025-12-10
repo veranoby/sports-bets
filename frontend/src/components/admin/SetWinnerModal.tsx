@@ -34,18 +34,12 @@ const SetWinnerModal: React.FC<SetWinnerModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel}>
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+      <div className="bg-white p-0 max-w-md w-full">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Crown className="w-5 h-5 text-yellow-500" />
             Seleccionar Ganador
           </h3>
-          <button
-            onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
 
         <p className="text-gray-600 mb-6">

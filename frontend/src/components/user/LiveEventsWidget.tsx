@@ -1,198 +1,121 @@
 // frontend/src/components/user/LiveEventsWidget.tsx
 // ================================================================
-// NUEVO COMPONENTE - LiveEventsWidget Premium V2
-// CARACTERÍSTICAS: Análisis avanzado, múltiples vistas, filtros sofisticados
-// OPTIMIZADO: Sin UserThemeContext, CSS variables estáticas, WebSocket optimizado
+// LIVE EVENTS WIDGET - Connected to Real Data
+// ================================================================
 
 import React, { useState, useCallback, useMemo, memo } from "react";
 import {
   Zap,
   Play,
   Users,
-  TrendingUp,
-  Grid,
-  List,
-  Star,
-  Eye,
-  DollarSign,
   MapPin,
-  BarChart3,
   Activity,
-  Flame,
+  ArrowRight,
+  Wifi,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
-import StatusChip from "../shared/StatusChip";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import EmptyState from "../shared/EmptyState";
+import { Tag, Typography } from "antd";
 
-// Tipos específicos del widget
-interface EventStats {
-  totalViewers: number;
-  activeBets: number;
-  totalVolume: number;
-  averageOdds: number;
-  popularityTrend: "up" | "down" | "stable";
-}
-
-interface EventStatsUpdate {
-  eventId: string;
-  stats: EventStats;
-}
-
-interface LiveEventExtended {
+// Assuming EventData from useApi matches what we need, otherwise defining partial here for safety
+interface EventData {
   id: string;
   name: string;
-  venue?: { name: string; location?: string };
-  currentViewers?: number;
-  activeBets?: number;
-  totalVolume?: number;
   status: string;
   scheduledDate: string;
-  peakViewers?: number;
-  fightCount?: number;
-  currentFight?: string;
-  streamerName?: string;
-  stats?: EventStats;
+  venue?: { name?: string; location?: string } | Record<string, any>;
+  currentViewers?: number;
+  activeBets?: number;
 }
 
+const { Text } = Typography;
+
 // ✅ COMPONENTE MEMOIZADO - EventCard Premium
-const PremiumEventCard = memo(({ event }: { event: LiveEventExtended }) => {
+const PremiumEventCard = memo(({ event }: { event: EventData }) => {
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
     navigate(`/live-event/${event.id}`);
   }, [navigate, event.id]);
 
-  const viewerTrend = useMemo(() => {
-    if (!event.peakViewers || !event.currentViewers) return null;
-    const percentage = (event.currentViewers / event.peakViewers) * 100;
-    return {
-      percentage: Math.round(percentage),
-      trend: percentage > 80 ? "high" : percentage > 50 ? "medium" : "low",
-    };
-  }, [event.peakViewers, event.currentViewers]);
+  // Extract venue name safely
+  const venueName =
+    (event.venue as any)?.name ||
+    (event.venue as any)?.profileInfo?.venueName ||
+    "Gallera Desconocida";
 
   return (
     <div
       onClick={handleClick}
-      className="card-background p-4 cursor-pointer hover:bg-[#2a325c]/80 transition-all duration-300 transform hover:scale-[1.02] border border-red-500/20 hover:border-red-500/40"
+      className="group relative overflow-hidden bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 p-0 rounded-xl cursor-pointer border border-white hover:border-red-500/50 transition-all duration-300 shadow-lg shadow-white hover:shadow-red-500/10"
     >
-      {/* Header con estado y tendencia */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+      {/* Glow Effect on Hover */}
+      <div className="absolute inset-0 bg-red-200/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+      <div className="p-5">
+        {/* Title & Venue */}
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-800 mb-1 leading-tight group-hover:text-red-400 transition-colors flex items-center justify-between gap-2">
+            <span className="truncate">{event.name}</span>
+            <span className="flex items-center gap-1 text-xs font-mono text-green-100 whitespace-nowrap bg-green-400 px-2 py-0.5 rounded border border-green-400/20">
+              <Wifi className="w-3 h-3" />
+              ON AIR
+            </span>
+          </h3>
+          <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+            <MapPin className="w-3.5 h-3.5" />
+            <span className="truncate">{venueName}</span>
           </div>
-          <span className="text-red-400 text-xs font-bold">EN VIVO</span>
-          {event.stats?.popularityTrend && (
-            <div
-              className={`flex items-center text-xs ${
-                event.stats.popularityTrend === "up"
-                  ? "text-green-600"
-                  : event.stats.popularityTrend === "down"
-                    ? "text-red-400"
-                    : "text-yellow-400"
-              }`}
-            >
-              <TrendingUp className="w-3 h-3 mr-1" />
-              {event.stats.popularityTrend === "up"
-                ? "↗"
-                : event.stats.popularityTrend === "down"
-                  ? "↘"
-                  : "→"}
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-gradient-to-br from-gray-200  to-gray-300 rounded-lg p-2.5 ">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-4 h-4 text-blue-400" />
+              <span className="text-xs text-gray">Espectadores</span>
             </div>
-          )}
-        </div>
-        <Play className="w-4 h-4 text-red-400" />
-      </div>
-
-      {/* Título y venue */}
-      <h3 className="font-semibold text-theme-primary mb-1 truncate">
-        {event.name}
-      </h3>
-      <div className="flex items-center gap-1 text-sm text-theme-light mb-3">
-        <MapPin className="w-3 h-3" />
-        <span className="truncate">{event.venue?.name || "Venue TBD"}</span>
-      </div>
-
-      {/* Estadísticas premium */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        {/* Espectadores con tendencia */}
-        <div className="flex items-center gap-1">
-          <Users className="w-4 h-4 text-blue-600" />
-          <span className="text-sm text-theme-light">
-            {event.currentViewers || 0}
-          </span>
-          {viewerTrend && (
-            <span
-              className={`text-xs px-1 rounded ${
-                viewerTrend.trend === "high"
-                  ? "bg-green-500/20 text-green-600"
-                  : viewerTrend.trend === "medium"
-                    ? "bg-yellow-500/20 text-yellow-400"
-                    : "bg-red-500/20 text-red-400"
-              }`}
-            >
-              {viewerTrend.percentage}%
-            </span>
-          )}
-        </div>
-
-        {/* Apuestas activas */}
-        <div className="flex items-center gap-1">
-          <Activity className="w-4 h-4 text-green-600" />
-          <span className="text-sm text-theme-light">
-            {event.activeBets || 0} apuestas
-          </span>
-        </div>
-
-        {/* Volumen total */}
-        {event.totalVolume && (
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4 text-yellow-400" />
-            <span className="text-sm text-theme-light">
-              ${event.totalVolume.toLocaleString()}
+            <span className="text-lg font-bold text-white font-mono">
+              {event.currentViewers?.toLocaleString() || "0"}
             </span>
           </div>
-        )}
 
-        {/* Fight actual */}
-        {event.currentFight && (
-          <div className="flex items-center gap-1">
-            <Flame className="w-4 h-4 text-orange-400" />
-            <span className="text-xs text-theme-light truncate">
-              {event.currentFight}
+          <div className="bg-gradient-to-br from-gray-200  to-gray-300 rounded-lg p-2.5 ">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="w-4 h-4 text-green-400" />
+              <span className="text-xs text-gray">Apuestas</span>
+            </div>
+            <span className="text-lg font-bold text-white font-mono">
+              {event.activeBets?.toLocaleString() || "0"}
             </span>
           </div>
-        )}
-      </div>
-
-      {/* Streamer info */}
-      {event.streamerName && (
-        <div className="flex items-center gap-1 text-xs text-theme-light border-t border-gray-600/20 pt-2">
-          <Eye className="w-3 h-3" />
-          <span>Streaming: {event.streamerName}</span>
         </div>
-      )}
+
+        {/* CTA */}
+        <div className="flex items-center justify-between pt-3 border-t border-[#2a325c]/30">
+          <span className="text-xs text-gray-500">
+            {new Date(event.scheduledDate).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          <div className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
+            VER EVENTO <ArrowRight className="w-3.5 h-3.5" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 });
 
 // ✅ COMPONENTE PRINCIPAL - LiveEventsWidget
 const LiveEventsWidget: React.FC = () => {
-  const navigate = useNavigate();
   const { events, loading, error, fetchEvents } = useEvents();
 
-  // Estados locales
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState<"viewers" | "bets" | "volume">(
-    "viewers",
-  );
-
-  // ✅ WEBSOCKET LISTENERS optimizados
+  // ✅ WEBSOCKET LISTENERS
   useWebSocketListener(
     "event_started",
     useCallback(() => {
@@ -200,230 +123,78 @@ const LiveEventsWidget: React.FC = () => {
     }, [fetchEvents]),
   );
 
-  useWebSocketListener(
-    "event_stats_updated",
-    useCallback((data: EventStatsUpdate) => {
-      // Actualizar estadísticas en tiempo real
-      console.log("Event stats updated:", data);
-    }, []),
-  );
-
-  // ✅ DATOS COMPUTADOS - Solo eventos en vivo con enriquecimiento
-  const enrichedLiveEvents = useMemo(() => {
-    const liveEvents = events?.filter((e) => e.status === "in-progress") || [];
-
-    // Enriquecer con datos premium simulados
-    return liveEvents.map(
-      (event): LiveEventExtended => ({
-        ...event,
-        venue: {
-          name: (event.venue as { name: string })?.name || "Unknown Venue",
-          location:
-            (event.venue as { location: string })?.location ||
-            "Unknown Location",
-        },
-        peakViewers: event.currentViewers
-          ? event.currentViewers + Math.floor(Math.random() * 100)
-          : 150,
-        fightCount: Math.floor(Math.random() * 8) + 3,
-        currentFight: `Pelea ${Math.floor(Math.random() * 5) + 1}`,
-        streamerName: `Operador ${event.id.slice(-3)}`,
-        totalVolume: Math.floor(Math.random() * 10000) + 5000,
-        stats: {
-          totalViewers: event.currentViewers || 0,
-          activeBets: event.activeBets || 0,
-          totalVolume: Math.floor(Math.random() * 10000) + 5000,
-          averageOdds: 1.5 + Math.random() * 2,
-          popularityTrend: ["up", "down", "stable"][
-            Math.floor(Math.random() * 3)
-          ] as "up" | "down" | "stable",
-        },
-      }),
-    );
+  // Filters: Only In-Progress Events
+  const liveEvents = useMemo(() => {
+    return (events || []).filter((e) => e.status === "in-progress");
   }, [events]);
 
-  // ✅ EVENTOS ORDENADOS según filtro
-  const sortedEvents = useMemo(() => {
-    return [...enrichedLiveEvents].sort((a, b) => {
-      switch (sortBy) {
-        case "viewers":
-          return (b.currentViewers || 0) - (a.currentViewers || 0);
-        case "bets":
-          return (b.activeBets || 0) - (a.activeBets || 0);
-        case "volume":
-          return (b.totalVolume || 0) - (a.totalVolume || 0);
-        default:
-          return 0;
-      }
-    });
-  }, [enrichedLiveEvents, sortBy]);
-
-  // Estados de carga
-  if (loading) {
+  // Loading State
+  if (loading && !events?.length) {
     return (
-      <div className="card-background p-6">
-        <LoadingSpinner text="Cargando eventos premium..." />
+      <div className="card-background p-8 flex justify-center">
+        <LoadingSpinner text="Buscando eventos en vivo..." />
       </div>
     );
   }
 
+  // Error State
   if (error) {
     return (
-      <div className="card-background p-6">
-        <div className="text-center text-red-400">
-          Error cargando eventos: {error}
-        </div>
+      <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-xl text-center">
+        <p className="text-red-400 mb-2">No se pudieron cargar los eventos</p>
+        <button
+          onClick={() => fetchEvents()}
+          className="text-xs bg-red-500/20 hover:bg-red-500/40 text-red-300 px-3 py-1 rounded transition-colors"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
 
-  if (sortedEvents.length === 0) {
+  // Empty State
+  if (liveEvents.length === 0) {
     return (
-      <div className="card-background p-6">
-        <EmptyState
-          title="No hay eventos en vivo"
-          description="Los eventos premium aparecerán aquí cuando estén disponibles"
-          icon={<Zap className="w-12 h-12" />}
-        />
+      <div className="bg-[#1a1f37]/50 border border-dashed border-[#2a325c] p-8 rounded-xl flex flex-col items-center justify-center text-center">
+        <div className="w-12 h-12 bg-[#2a325c]/50 rounded-full flex items-center justify-center mb-3">
+          <Zap className="w-6 h-6 text-gray-500" />
+        </div>
+        <h3 className="text-gray-300 font-medium mb-1">
+          No hay eventos en vivo
+        </h3>
+        <p className="text-sm text-gray-500">
+          Los eventos aparecerán aquí cuando comiencen.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header Premium con controles */}
-      <div className="card-background p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Zap className="w-6 h-6 text-red-400" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Star className="w-2 h-2 text-black" />
-              </div>
-            </div>
-            <h2 className="text-lg font-bold text-theme-primary">
-              Eventos en Vivo Premium
-            </h2>
-            <StatusChip status="premium" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* View Mode Toggle */}
-            <div className="flex border border-gray-600 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-[#596c95] text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                <Grid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 transition-colors ${
-                  viewMode === "list"
-                    ? "bg-[#596c95] text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Sort Dropdown */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-[#1a1f37] border border-gray-600 text-white rounded px-3 py-2 text-sm"
-            >
-              <option value="viewers">Por Espectadores</option>
-              <option value="bets">Por Apuestas</option>
-              <option value="volume">Por Volumen</option>
-            </select>
-
-            {/* Ver todos */}
-            <button
-              onClick={() => navigate("/events")}
-              className="btn-ghost text-sm px-3 py-2"
-            >
-              Ver todos
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Summary */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-400">
-              {sortedEvents.length}
-            </div>
-            <div className="text-xs text-theme-light">Eventos Activos</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {sortedEvents.reduce(
-                (sum, e) => sum + (e.currentViewers || 0),
-                0,
-              )}
-            </div>
-            <div className="text-xs text-theme-light">Total Espectadores</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {sortedEvents.reduce((sum, e) => sum + (e.activeBets || 0), 0)}
-            </div>
-            <div className="text-xs text-theme-light">Apuestas Activas</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-400">
-              $
-              {sortedEvents
-                .reduce((sum, e) => sum + (e.totalVolume || 0), 0)
-                .toLocaleString()}
-            </div>
-            <div className="text-xs text-theme-light">Volumen Total</div>
-          </div>
+    <div className="space-y-4 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-bold text-gray flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+            Eventos en Vivo
+          </h2>
+          <span className="bg-[#2a325c] text-xs text-white px-2 py-0.5 rounded-full">
+            {liveEvents.length}
+          </span>
         </div>
       </div>
 
-      {/* Grid/List de Eventos */}
-      <div
-        className={
-          viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            : "space-y-3"
-        }
-      >
-        {sortedEvents.map((event) => (
-          <PremiumEventCard key={event.id} event={event} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {liveEvents.map((event) => (
+          <PremiumEventCard key={event.id} event={event as EventData} />
         ))}
-      </div>
-
-      {/* Live Stats Footer */}
-      <div className="card-background p-3">
-        <div className="flex items-center justify-between text-sm text-theme-light">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Actualización en tiempo real</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <BarChart3 className="w-4 h-4" />
-              <span>Estadísticas premium habilitadas</span>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500">
-            Última actualización: {new Date().toLocaleTimeString()}
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-// Configurar displayName para debugging
 LiveEventsWidget.displayName = "LiveEventsWidget";
 PremiumEventCard.displayName = "PremiumEventCard";
 

@@ -640,7 +640,13 @@ const ArticleManagement: React.FC = () => {
                   {/* Excerpt/Summary */}
                   {(previewArticle.summary || previewArticle.excerpt) && (
                     <div className="bg-gray-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
-                      <p className="text-lg text-gray-700 italic leading-relaxed" dangerouslySetInnerHTML={{ __html: previewArticle.summary || previewArticle.excerpt }} />
+                      <p
+                        className="text-lg text-gray-700 italic leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            previewArticle.summary || previewArticle.excerpt,
+                        }}
+                      />
                     </div>
                   )}
                 </header>
@@ -672,7 +678,7 @@ const ArticleManagement: React.FC = () => {
                       </p>
                       {previewArticle.updated_at &&
                         previewArticle.updated_at !==
-                        previewArticle.created_at && (
+                          previewArticle.created_at && (
                           <p className="mt-1">
                             Última actualización:{" "}
                             {new Date(
@@ -687,29 +693,29 @@ const ArticleManagement: React.FC = () => {
                     </div>
                     {(previewArticle.status === "draft" ||
                       previewArticle.status === "pending") && (
-                        <button
-                          onClick={() => {
-                            closeAllModals();
-                            openEditModal(previewArticle);
-                          }}
-                          className="btn-primary flex items-center gap-2"
+                      <button
+                        onClick={() => {
+                          closeAllModals();
+                          openEditModal(previewArticle);
+                        }}
+                        className="btn-primary flex items-center gap-2"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                          Editar Artículo
-                        </button>
-                      )}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        Editar Artículo
+                      </button>
+                    )}
                   </div>
                 </footer>
               </article>

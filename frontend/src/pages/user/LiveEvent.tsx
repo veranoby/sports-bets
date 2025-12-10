@@ -602,26 +602,20 @@ const LiveEvent = () => {
   // Updated WebSocket listeners - KEEP only for PAGO/DOY proposals (bidirectional state change)
   useWebSocketListener(
     "pago_proposal",
-    useCallback(
-      (data: any) => {
-        console.log("🤝 Propuesta PAGO recibida:", data);
-        // Handle PAGO proposal (bidirectional communication required)
-        // Add implementation for handling PAGO proposals
-      },
-      [],
-    ),
+    useCallback((data: any) => {
+      console.log("🤝 Propuesta PAGO recibida:", data);
+      // Handle PAGO proposal (bidirectional communication required)
+      // Add implementation for handling PAGO proposals
+    }, []),
   );
 
   useWebSocketListener(
     "doy_proposal",
-    useCallback(
-      (data: any) => {
-        console.log("🤝 Propuesta DOY recibida:", data);
-        // Handle DOY proposal (bidirectional communication required)
-        // Add implementation for handling DOY proposals
-      },
-      [],
-    ),
+    useCallback((data: any) => {
+      console.log("🤝 Propuesta DOY recibida:", data);
+      // Handle DOY proposal (bidirectional communication required)
+      // Add implementation for handling DOY proposals
+    }, []),
   );
 
   // SDD COMPLIANT: SSE for all read-only updates (fight updates, bet creation, event updates)

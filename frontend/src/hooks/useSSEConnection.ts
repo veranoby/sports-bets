@@ -57,7 +57,10 @@ const useSSEConnection = (): UseSSEConnectionReturn => {
 
     try {
       // Use the new SSE endpoint for streaming monitoring
-      const url = `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/sse/streaming?token=${encodeURIComponent(token)}`;
+      const apiBaseUrl =
+        import.meta.env.VITE_API_URL?.replace("/api", "") ||
+        "http://localhost:3001";
+      const url = `${apiBaseUrl}/api/sse/streaming?token=${encodeURIComponent(token)}`;
       console.log(`🔄 SSE: Connecting to ${url}`);
 
       const es = new EventSource(url);

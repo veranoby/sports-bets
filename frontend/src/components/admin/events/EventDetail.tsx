@@ -23,6 +23,7 @@ import {
   Radio,
   ArrowLeft,
   XCircle,
+  Award,
 } from "lucide-react";
 
 // Components
@@ -94,33 +95,42 @@ const EventDetail: React.FC<EventDetailProps> = ({
     // Create a function to handle event status updates
     const handleEventStatusUpdate = (data: any) => {
       if (data.eventId === eventId && eventDetailData) {
-        setEventDetailData(prev => {
+        setEventDetailData((prev) => {
           if (!prev) return null;
           return {
             ...prev,
             event: {
               ...prev.event,
-              ...data // Update with new data from SSE
-            }
+              ...data, // Update with new data from SSE
+            },
           };
         });
       }
     };
 
     // Listen for event status changes
-    const event = new EventSource(`${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/sse/admin/global?token=${localStorage.getItem('token')}`);
+    const apiBaseUrl =
+      import.meta.env.VITE_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
+    const event = new EventSource(
+      `${apiBaseUrl}/api/sse/admin/global?token=${localStorage.getItem("token")}`,
+    );
 
     event.onmessage = (e) => {
       try {
         const parsedData = JSON.parse(e.data);
-        if (parsedData.type === 'EVENT_ACTIVATED' || parsedData.type === 'EVENT_COMPLETED' ||
-            parsedData.type === 'EVENT_CANCELLED' || parsedData.type === 'EVENT_SCHEDULED') {
+        if (
+          parsedData.type === "EVENT_ACTIVATED" ||
+          parsedData.type === "EVENT_COMPLETED" ||
+          parsedData.type === "EVENT_CANCELLED" ||
+          parsedData.type === "EVENT_SCHEDULED"
+        ) {
           if (parsedData.data?.eventId === eventId) {
             handleEventStatusUpdate(parsedData.data);
           }
         }
       } catch (error) {
-        console.error('Error parsing SSE message:', error);
+        console.error("Error parsing SSE message:", error);
       }
     };
 
@@ -366,7 +376,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
           {/* Stream preview */}
           <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
             <div className="w-full max-w-xl">
-              {eventDetailData.event.streamUrl && eventDetailData.event.streamStatus === "connected" ? (
+              {eventDetailData.event.streamUrl &&
+              eventDetailData.event.streamStatus === "connected" ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
                   autoplay={false}
@@ -382,8 +393,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       {eventDetailData.event.streamStatus === "connected"
                         ? "Streaming offline"
                         : eventDetailData.event.streamStatus === "paused"
-                        ? "Stream pausado"
-                        : "Stream no disponible"}
+                          ? "Stream pausado"
+                          : "Stream no disponible"}
                     </p>
                     <p className="text-xs text-gray-500">
                       {eventDetailData.event.streamStatus === "connected"
@@ -472,8 +483,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   eventDetailData.event.streamStatus === "connected"
                     ? "Stream ya está activo"
                     : operationInProgress !== null
-                    ? "Operación en progreso"
-                    : "Iniciar transmisión"
+                      ? "Operación en progreso"
+                      : "Iniciar transmisión"
                 }
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -519,10 +530,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null
                     ? "Operación en progreso"
                     : eventDetailData.event.streamStatus !== "connected"
-                    ? "Stream no activo"
-                    : isStreamPaused
-                    ? "Stream ya está pausado"
-                    : "Pausar transmisión"
+                      ? "Stream no activo"
+                      : isStreamPaused
+                        ? "Stream ya está pausado"
+                        : "Pausar transmisión"
                 }
                 className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -567,8 +578,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null
                     ? "Operación en progreso"
                     : eventDetailData.event.streamStatus !== "paused"
-                    ? "Stream no está pausado"
-                    : "Reanudar transmisión"
+                      ? "Stream no está pausado"
+                      : "Reanudar transmisión"
                 }
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -612,8 +623,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null
                     ? "Operación en progreso"
                     : eventDetailData.event.streamStatus !== "connected"
-                    ? "Stream no activo"
-                    : "Detener transmisión"
+                      ? "Stream no activo"
+                      : "Detener transmisión"
                 }
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -623,12 +634,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
               {/* OBS Connection Status Indicator */}
               <div className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></div>
+                <div
+                  className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                ></div>
                 <span className="hidden md:inline">Estado OBS:</span>
                 <span>
-                  {eventDetailData.event.streamStatus === "connected" ? "Conectado" :
-                   eventDetailData.event.streamStatus === "paused" ? "Pausado" :
-                   "Desconectado"}
+                  {eventDetailData.event.streamStatus === "connected"
+                    ? "Conectado"
+                    : eventDetailData.event.streamStatus === "paused"
+                      ? "Pausado"
+                      : "Desconectado"}
                 </span>
               </div>
             </div>
@@ -661,6 +676,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       totalFights: fights.length,
                     },
                   });
+                  // Refrescar datos del servidor para sincronizar cambios
+                  setTimeout(() => fetchEventDetail(), 300);
                 }
               }}
               onEventUpdate={(event) => {
@@ -676,47 +693,80 @@ const EventDetail: React.FC<EventDetailProps> = ({
           </div>
 
           {/* Column 2: Active Bets Monitor */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Monitor de la Pelea actual seleccionada
-            </h2>
-
-            {/* SECCION DE MANEJO DE INICIO Y TERMINO DE LA  PELEA ACTUAL*/}
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                <button
-                  onClick={handleRegisterFightStart}
-                  disabled={operationInProgress !== null || !selectedFightId}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm disabled:opacity-50"
-                >
-                  REGISTRAR INICIO DE PELEA!
-                </button>
-                <button
-                  onClick={handleRegisterFightEnd}
-                  disabled={operationInProgress !== null || !selectedFightId}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 text-sm disabled:opacity-50"
-                >
-                  REGISTRAR TERMINO DE PELEA Y GALLO GANADOR!!
-                </button>
-              </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <div className="relative flex h-3 w-3">
+                  <span
+                    className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedFightId ? "bg-red-400" : "bg-gray-400"}`}
+                  ></span>
+                  <span
+                    className={`relative inline-flex rounded-full h-3 w-3 ${selectedFightId ? "bg-red-500" : "bg-gray-500"}`}
+                  ></span>
+                </div>
+                Monitor de Pelea Actual
+              </h2>
+              {selectedFightId && (
+                <span className="text-xs font-mono px-2 py-1 bg-white border border-gray-200 rounded text-gray-600">
+                  ID: {selectedFightId.slice(-6)}
+                </span>
+              )}
             </div>
 
-            {/* SECCION DE MANEJO DE APUESTAS DE LA PELEA ACTUAL, SI ESTA HABILITADO LA VARIABLE bet */}
+            <div className="p-5 flex-1 flex flex-col gap-6">
+              {/* SECCION DE MANEJO DE INICIO Y TERMINO DE LA  PELEA ACTUAL*/}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Controles de Pelea
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={handleRegisterFightStart}
+                    disabled={operationInProgress !== null || !selectedFightId}
+                    className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
+                  >
+                    <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
+                    <Play className="w-4 h-4 mr-2 fill-current" />
+                    INICIAR PELEA
+                  </button>
+                  <button
+                    onClick={handleRegisterFightEnd}
+                    disabled={operationInProgress !== null || !selectedFightId}
+                    className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-red-600 to-red-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-red-500 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
+                  >
+                    <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
+                    <Award className="w-4 h-4 mr-2" />
+                    FINALIZAR
+                  </button>
+                </div>
+              </div>
 
-            <BetsActiveTab
-              eventId={eventId}
-              eventDetailData={eventDetailData}
-              fightId={selectedFightId}
-              selectedFightId={selectedFightId}
-              onStartBettingSession={async (fightId: string) => {
-                await handleFightStatusUpdate(fightId, "betting");
-              }}
-              onCloseBettingSession={async (fightId: string) => {
-                await handleFightStatusUpdate(fightId, "live");
-              }}
-              operationInProgress={operationInProgress}
-            />
+              {/* SECCION DE MANEJO DE APUESTAS DE LA PELEA ACTUAL, SI ESTA HABILITADO LA VARIABLE bet */}
+              <div className="flex-1 flex flex-col pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Panel de Apuestas
+                  </h3>
+                </div>
+
+                <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200/60 p-1">
+                  <BetsActiveTab
+                    eventId={eventId}
+                    eventDetailData={eventDetailData}
+                    fightId={selectedFightId}
+                    selectedFightId={selectedFightId}
+                    onStartBettingSession={async (fightId: string) => {
+                      await handleFightStatusUpdate(fightId, "betting");
+                    }}
+                    onCloseBettingSession={async (fightId: string) => {
+                      await handleFightStatusUpdate(fightId, "live");
+                    }}
+                    operationInProgress={operationInProgress}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

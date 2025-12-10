@@ -623,6 +623,155 @@
     }
   },
 
+  "🔴_PRE_HANDOFF_VALIDATION_PROTOCOL": {
+    "severity": "CRITICAL",
+    "principle": "Systematic validation before task handoff prevents runtime errors and reduces error cascades. Every AI must validate their work comprehensively before declaring completion.",
+    "applicability": "ALL AIs (especially Executors) before completing tasks and handing off to Director",
+    "incident_trigger": "2025-12-10 - Qwen used process.env (Node.js) in frontend (Vite), causing runtime error discovered only in user testing. Similar cascade: SSEEvent fix → process.env discovery → each fix reveals new issue.",
+
+    "mandatory_validation_steps": {
+      "step_1_anti_pattern_detection": {
+        "description": "Run automated checks for common anti-patterns before handoff",
+        "commands": [
+          "grep -r \"process\\.env\" frontend/src/ --include=\"*.tsx\" --include=\"*.ts\" (MUST return 0 matches)",
+          "grep -r \"import.meta.env\" backend/src/ --include=\"*.ts\" (MUST return 0 matches - backend uses process.env)",
+          "grep -r \"console\\.log\" src/ --include=\"*.tsx\" --include=\"*.ts\" | wc -l (warn if >10, investigate if >50)",
+          "grep -r \"any\" src/ --include=\"*.tsx\" --include=\"*.ts\" | grep -v \"node_modules\" | wc -l (warn if new 'any' types added)"
+        ],
+        "frontend_specific": [
+          "Verify all env vars use VITE_ prefix: grep -r \"import.meta.env\\.\" frontend/src/ | grep -v \"VITE_\"",
+          "Check for Node.js-only patterns: grep -r \"require(\" frontend/src/ (MUST return 0)",
+          "Verify no __dirname or __filename usage in frontend"
+        ],
+        "backend_specific": [
+          "Verify no Vite-specific patterns: grep -r \"import.meta\" backend/src/ (MUST return 0)",
+          "Check for proper error handling: grep -r \"try {\" backend/src/ --include=\"*.ts\" (verify catch blocks exist)"
+        ]
+      },
+      "step_2_compilation_validation": {
+        "description": "Verify code compiles without errors BEFORE claiming completion",
+        "commands": [
+          "npx tsc --noEmit (frontend)",
+          "npm run build (if applicable)",
+          "Check for TS errors in modified files only if full build too expensive"
+        ],
+        "enforcement": "ZERO tolerance - if compilation fails, task is NOT complete"
+      },
+      "step_3_runtime_smoke_test": {
+        "description": "Basic runtime verification for modified components",
+        "checks": [
+          "If modified component has route, verify route exists in App.tsx/router",
+          "If modified API endpoint, verify endpoint exists in backend routes",
+          "If modified SSE/WebSocket, verify connection logic uses correct env vars",
+          "If modified hook, verify hook is exported and importable"
+        ],
+        "command_examples": [
+          "grep -r \"useYourHook\" src/ (verify hook is used if claiming it works)",
+          "grep -r \"/your-route\" src/ (verify route is defined in router)"
+        ]
+      },
+      "step_4_environment_compatibility": {
+        "description": "Verify frontend/backend environment variable usage is correct",
+        "frontend_rules": [
+          "MUST use import.meta.env.VITE_* (NOT process.env)",
+          "ALL env vars MUST start with VITE_ prefix to be exposed",
+          "Check .env file has VITE_ prefix for all frontend vars"
+        ],
+        "backend_rules": [
+          "MUST use process.env.* (NOT import.meta.env)",
+          "Verify .env file has vars without VITE_ prefix for backend-only vars"
+        ],
+        "validation_command": "grep -rn \"process\\.env\" frontend/src/ && echo 'ERROR: process.env found in frontend' || echo 'OK: No process.env in frontend'"
+      },
+      "step_5_dependency_validation": {
+        "description": "Verify imports and dependencies are correct",
+        "checks": [
+          "All imports resolve (no red squiggles in IDE)",
+          "No circular dependencies introduced",
+          "Relative paths are correct (../../ vs ../../../)",
+          "Component/function names match actual exports"
+        ],
+        "commands": [
+          "eslint src/ --ext .ts,.tsx (if configured)",
+          "Check for broken imports in modified files"
+        ]
+      },
+      "step_6_git_evidence_preparation": {
+        "description": "Prepare git evidence for backlog update",
+        "requirements": [
+          "Create checkpoint commits for multi-file changes",
+          "Commit message follows format: [FEATURE|FIX|REFACTOR] Description",
+          "Git diff shows ONLY intended changes (no accidental modifications)",
+          "Note commit hash for backlog.json update"
+        ],
+        "command": "git log --oneline -5 (verify recent commits make sense)"
+      }
+    },
+
+    "validation_checklist_template": {
+      "description": "Use this checklist before declaring task complete",
+      "checklist": [
+        "[ ] Ran anti-pattern detection commands (step 1)",
+        "[ ] TypeScript compilation passes (step 2)",
+        "[ ] Runtime smoke test completed (step 3)",
+        "[ ] Environment variables correct for frontend/backend (step 4)",
+        "[ ] All imports resolve correctly (step 5)",
+        "[ ] Git commits created with clear messages (step 6)",
+        "[ ] Backlog entry prepared with git commit hashes",
+        "[ ] No TODO or FIXME comments in production code",
+        "[ ] No commented-out code blocks left behind"
+      ]
+    },
+
+    "error_cascade_prevention": {
+      "principle": "One small error (like process.env) can cascade into multiple debugging sessions. Comprehensive validation breaks the cascade.",
+      "cost_analysis": {
+        "without_validation": "1 initial fix → reveals 2nd error → reveals 3rd error → user frustration",
+        "with_validation": "10 minutes validation upfront → catches all issues → clean handoff"
+      },
+      "roi": "10 minutes validation prevents 30-60 minutes of cascading debug sessions"
+    },
+
+    "reporting_requirement": {
+      "description": "Include validation evidence in completion message",
+      "format": "✅ Validation Complete:\n- Anti-patterns: 0 issues\n- TypeScript: 0 errors\n- Smoke test: Passed\n- Git commits: [hash1, hash2]\n- Ready for director review",
+      "enforcement": "Director should reject handoff if validation evidence missing"
+    },
+
+    "common_validation_failures": {
+      "process_env_in_frontend": {
+        "pattern": "Using process.env in React/Vite frontend code",
+        "detection": "grep -r \"process\\.env\" frontend/src/",
+        "fix": "Replace with import.meta.env.VITE_*",
+        "incident": "2025-12-10 EventDetail.tsx SSE connection"
+      },
+      "missing_env_prefix": {
+        "pattern": "Frontend env var without VITE_ prefix",
+        "detection": "grep -r \"import.meta.env\\.\" frontend/src/ | grep -v \"VITE_\"",
+        "fix": "Add VITE_ prefix in .env and code",
+        "impact": "Variable becomes undefined at runtime"
+      },
+      "backend_import_meta": {
+        "pattern": "Using import.meta.env in Node.js backend",
+        "detection": "grep -r \"import.meta\" backend/src/",
+        "fix": "Replace with process.env.*",
+        "impact": "Runtime error in Node.js"
+      },
+      "uncaught_typescript_errors": {
+        "pattern": "TypeScript errors not caught before handoff",
+        "detection": "npx tsc --noEmit",
+        "fix": "Resolve all TypeScript errors before declaring complete",
+        "impact": "Build fails, blocks deployment"
+      }
+    },
+
+    "enforcement": {
+      "executor_responsibility": "Run full validation checklist before claiming task complete",
+      "director_responsibility": "Reject incomplete handoffs lacking validation evidence",
+      "zero_tolerance": "No exceptions - validation is mandatory, not optional"
+    }
+  },
+
   "role_responsibilities": {
     "director": {
       "primary": "Validation engine + architecture oversight + execution_mode declaration + task delegation to executors.",

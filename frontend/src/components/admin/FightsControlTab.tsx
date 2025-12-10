@@ -28,7 +28,8 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
 }) => {
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditFightModalOpen, setIsEditFightModalOpen] = useState(false);
-  const [selectedFightForEdit, setSelectedFightForEdit] = useState<Fight | null>(null);
+  const [selectedFightForEdit, setSelectedFightForEdit] =
+    useState<Fight | null>(null);
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
     null,
   );

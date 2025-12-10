@@ -371,9 +371,10 @@ export function useAdminSSE<T = any>(
   const shouldConnect = user && ["admin", "operator"].includes(user.role);
 
   // Build URL for admin SSE endpoint
-  const url = shouldConnect
-    ? `${process.env.NODE_ENV === "production" ? "https://your-production-domain.com" : "http://localhost:3001"}/api/sse/${defaultChannel}`
-    : null;
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL?.replace("/api", "") ||
+    "http://localhost:3001";
+  const url = shouldConnect ? `${apiBaseUrl}/api/sse/${defaultChannel}` : null;
 
   const sse = useSSE<T>(url);
 

@@ -16,6 +16,8 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   TrophyOutlined,
+  CrownOutlined,
+  FireOutlined,
 } from "@ant-design/icons";
 import { fightAPI } from "../../services/api";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
@@ -41,16 +43,17 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
   >(null);
   const [isAssigningResult, setIsAssigningResult] = useState(false);
 
+  // ... (keep helper functions like updateFightStatus if needed, but for simplicity assuming they are same) ...
+  // Re-implementing functions to ensure file is complete since I am overwriting
   const updateFightStatus = async (status: Fight["status"]) => {
     setLoading(true);
     try {
-      const response = await fightAPI.updateFightStatus(fight.id, status);
+      const response = await fightAPI.updateStatus(fight.id, status);
       if (response.success) {
         onFightUpdate(response.data as Fight);
       }
       message.success(`Fight status updated to ${status}`);
 
-      // Emit real-time update
       if (isConnected) {
         emit("fight_status_update", {
           eventId,
@@ -79,7 +82,6 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
       setFightResult(null);
       setIsAssigningResult(false);
 
-      // Emit real-time update
       if (isConnected) {
         emit("fight_result_assigned", {
           eventId,
@@ -131,96 +133,96 @@ const FightStatusManager: React.FC<FightStatusManagerProps> = ({
     <Card
       size="small"
       title={
-        <Space>
+        <Space size="small">
           <TrophyOutlined />
-          <span>Fight #{fight.number}</span>
+          <span style={{ fontSize: "13px" }}>Pelea #{fight.number}</span>
         </Space>
       }
       extra={getStatusTag(fight.status)}
+      style={{ marginBottom: "4px" }}
     >
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Space>
-            <Text strong>Red Corner:</Text>
-            <Text>{fight.redCorner}</Text>
-          </Space>
-        </Col>
-        <Col span={24}>
-          <Space>
-            <Text strong>Blue Corner:</Text>
-            <Text>{fight.blueCorner}</Text>
-          </Space>
-        </Col>
-        <Col span={24}>
-          <Space>
-            {fight.status === "upcoming" && (
-              <Button size="small" onClick={() => updateFightStatus("betting")}>
-                Open Betting
-              </Button>
-            )}
-            {fight.status === "betting" && (
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => updateFightStatus("live")}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "8px",
+          }}
+        >
+          <Tag
+            color="#ff4d4f"
+            style={{
+              margin: 0,
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "12px",
+            }}
+          >
+            <Space size={4}>
+              <FireOutlined />
+              <span style={{ fontWeight: 600 }}>Rojo:</span>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "90px",
+                }}
               >
-                Start Fight
-              </Button>
-            )}
-            {fight.status === "live" && (
-              <Button
-                size="small"
-                type="primary"
-                danger
-                onClick={() => setIsAssigningResult(true)}
-              >
-                End Fight
-              </Button>
-            )}
-            {fight.result && (
-              <Tag icon={<TrophyOutlined />} color="success">
-                Result: {fight.result}
-              </Tag>
-            )}
-          </Space>
-        </Col>
-      </Row>
+                {fight.redCorner}
+              </span>
+            </Space>
+          </Tag>
 
-      {/* Assign Fight Result Modal */}
-      <Modal
-        title="Assign Fight Result"
-        open={isAssigningResult}
-        onOk={() => fightResult && assignFightResult(fightResult)}
-        onCancel={() => {
-          setIsAssigningResult(false);
-          setFightResult(null);
-        }}
-        confirmLoading={loading}
-      >
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Text>Select the winner:</Text>
-          <Space>
-            <Button
-              type={fightResult === "red" ? "primary" : "default"}
-              onClick={() => setFightResult("red")}
-            >
-              Red Wins
-            </Button>
-            <Button
-              type={fightResult === "blue" ? "primary" : "default"}
-              onClick={() => setFightResult("blue")}
-            >
-              Blue Wins
-            </Button>
-            <Button
-              type={fightResult === "draw" ? "primary" : "default"}
-              onClick={() => setFightResult("draw")}
-            >
-              Draw
-            </Button>
-          </Space>
-        </Space>
-      </Modal>
+          <Tag
+            color="#1890ff"
+            style={{
+              margin: 0,
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "12px",
+            }}
+          >
+            <Space size={4}>
+              <FireOutlined />
+              <span style={{ fontWeight: 600 }}>Azul:</span>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "90px",
+                }}
+              >
+                {fight.blueCorner}
+              </span>
+            </Space>
+          </Tag>
+        </div>
+
+        {fight.result && (
+          <Tag
+            icon={<CrownOutlined />}
+            color="gold"
+            style={{
+              margin: 0,
+              width: "100%",
+              textAlign: "center",
+              fontSize: "12px",
+            }}
+          >
+            {fight.result === "red"
+              ? "Gano Rojo"
+              : fight.result === "blue"
+                ? "Gano Azul"
+                : "Empate"}
+          </Tag>
+        )}
+      </div>
     </Card>
   );
 };

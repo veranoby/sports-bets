@@ -344,7 +344,7 @@ const Dashboard: React.FC = () => {
                       onClick={() => navigate(`/live-event/${typedEvent.id}`)}
                       className="w-full text-left group"
                     >
-                      <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-gradient-to-r from-[#1a1f37]/40 via-[#1f2a4a]/30 to-[#1a1f37]/40 hover:border-theme-primary/40 hover:shadow-lg transition-all">
+                      <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 hover:border-theme-primary/40 hover:shadow-lg transition-all">
                         <div className="text-center px-3 py-2 rounded-xl bg-white/5 border border-white/10">
                           <p className="text-[0.65rem] uppercase tracking-[0.2em] text-theme-light">
                             {formatWeekday(eventDate)}

@@ -22,7 +22,9 @@ const EditFightModal: React.FC<EditFightModalProps> = ({
 }) => {
   const [redCorner, setRedCorner] = useState(fight.redCorner);
   const [blueCorner, setBlueCorner] = useState(fight.blueCorner);
-  const [weight, setWeight] = useState(fight.weight ? fight.weight.toString() : "");
+  const [weight, setWeight] = useState(
+    fight.weight ? fight.weight.toString() : "",
+  );
   const [notes, setNotes] = useState(fight.notes || "");
 
   const [loading, setLoading] = useState(false);
@@ -86,7 +88,9 @@ const EditFightModal: React.FC<EditFightModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Editar pelea #{fight.number}</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Editar pelea #{fight.number}
+        </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
@@ -178,7 +182,11 @@ const EditFightModal: React.FC<EditFightModalProps> = ({
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? <LoadingSpinner text="Actualizando..." /> : "Actualizar pelea"}
+              {loading ? (
+                <LoadingSpinner text="Actualizando..." />
+              ) : (
+                "Actualizar pelea"
+              )}
             </button>
           </div>
         </form>

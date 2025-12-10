@@ -116,8 +116,11 @@ const OptimizedStreamingMonitor: React.FC = () => {
         try {
           // Using eventsAPI to get stream access - this follows the pattern used in the existing streaming page
           // The actual endpoint might be different, but following the pattern from the original Streaming.tsx
+          const apiBaseUrl =
+            import.meta.env.VITE_API_URL?.replace("/api", "") ||
+            "http://localhost:3001";
           const response: any = await fetch(
-            `${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/events/${selectedEvent}/stream-access`,
+            `${apiBaseUrl}/api/events/${selectedEvent}/stream-access`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
