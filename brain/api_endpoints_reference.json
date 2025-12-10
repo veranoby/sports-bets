@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
-    "version": "2.3.1",
-    "last_updated": "2025-12-10 - Fixed SSEEvent creation in events.ts to include all required fields (id, timestamp, priority). All broadcastToEvent calls now properly structured.",
+    "version": "2.4",
+    "last_updated": "2025-12-10 - Added PUT /fights/:id for editing fight details with status='upcoming' restriction. Frontend auto-refresh after updates.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -15,7 +15,8 @@
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "changelog": {
-      "v2.3.1": "2025-12-10 (later) - CRITICAL FIX: Fixed events.ts SSE broadcasts to include all required SSEEvent fields (id, timestamp, priority). Prevents 'Cannot read properties of undefined (reading getTime)' errors in SSE cleanup.",
+      "v2.4": "2025-12-10 - Added PUT /fights/:id endpoint for editing fight details (redCorner, blueCorner, weight, notes). Only allows editing when fight.status='upcoming' to protect betting integrity. Added EditFightModal.tsx component. Frontend auto-refreshes after fight updates via EventDetail.tsx setTimeout fetch. Added process.env cleanup and PRE_HANDOFF_VALIDATION_PROTOCOL to multi_ai_coordination_strategy.json. Implemented by Qwen 3 Coder+ and Claude Sonnet 4.5. Commit: 2e6519ae",
+      "v2.3.1": "2025-12-10 (earlier) - CRITICAL FIX: Fixed events.ts SSE broadcasts to include all required SSEEvent fields (id, timestamp, priority). Prevents 'Cannot read properties of undefined (reading getTime)' errors in SSE cleanup.",
       "v2.3": "2025-12-10 - Added broadcastToEvent method to SSE service specification. Updated API documentation to include missing methods.",
       "v2.2": "2025-12-06 - Added DELETE /events/:id/permanent (hard delete with cascade). Added DELETE /fights/:id (hard delete). POST /fights now auto-assigns number (removed manual input). UI refactor: removed redundant cancel buttons.",
       "v2.1": "2025-12-06 - Documented unified PATCH /events/:id/status. Marked deprecated POST endpoints for fights.",
