@@ -195,11 +195,11 @@ const FightPreviewModal = memo(
               </div>
             )}
 
-            {/* Scheduled Fights */}
+            {/* Scheduled/Upcoming Fights */}
             {scheduledFights.length > 0 && (
               <div>
                 <h3 className="font-semibold text-lg mb-2">
-                  Peleas Programadas
+                  Próximas Peleas
                 </h3>
                 <div className="space-y-2">
                   {scheduledFights.map((fight) => (
@@ -210,7 +210,7 @@ const FightPreviewModal = memo(
                           {fight.blueCorner}
                         </span>
                         <span className="text-blue-600 text-sm">
-                          Programada
+                          {fight.status === "betting" ? "Apuestas Abiertas" : "Programada"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center mt-2">
@@ -227,6 +227,14 @@ const FightPreviewModal = memo(
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!currentFight && completedFights.length === 0 && scheduledFights.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Scale className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No hay peleas programadas para este evento</p>
               </div>
             )}
           </div>
@@ -741,7 +749,7 @@ const LiveEvent = () => {
   // ✅ Fights separation for modal
   const allFights = fights || [];
   const completedFights = allFights.filter((f) => f.status === "completed");
-  const scheduledFights = allFights.filter((f) => f.status === "scheduled");
+  const scheduledFights = allFights.filter((f) => f.status === "scheduled" || f.status === "betting");
 
   return (
     <SubscriptionGuard
@@ -837,57 +845,58 @@ const LiveEvent = () => {
               <User className="w-4 h-4" />
               Ver información de la gallera
             </button>
-            {/* Current Fight Header */}
-            <div className="card-background p-4 rounded-lg border border-[#596c95]/30">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold text-theme-primary flex items-center gap-2">
-                  {currentFight ? (
-                    <>
-                      <Scale className="w-4 h-4" />
-                      Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
-                      {currentFight.blueCorner}
-                    </>
-                  ) : (
-                    <>
-                      <Scale className="w-4 h-4" />
-                      No hay pelea activa
-                    </>
-                  )}
-                </h3>
-                <button
-                  onClick={() => setShowFightModal(true)}
-                  className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
-                >
-                  Ver todas
-                </button>
+          </div>
+        </div>
+
+        {/* ✅ Row 1.5: Current Fight Header (Always Visible) */}
+        <div className="mx-4 mb-4 card-background p-4 rounded-lg border border-[#596c95]/30">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-semibold text-theme-primary flex items-center gap-2">
+              {currentFight ? (
+                <>
+                  <Scale className="w-4 h-4" />
+                  Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
+                  {currentFight.blueCorner}
+                </>
+              ) : (
+                <>
+                  <Scale className="w-4 h-4" />
+                  No hay pelea activa
+                </>
+              )}
+            </h3>
+            <button
+              onClick={() => setShowFightModal(true)}
+              className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
+            >
+              Ver todas
+            </button>
+          </div>
+
+          {currentFight && (
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">
+                  {currentFight.redCorner}
+                </p>
+                <p className="text-xs text-theme-light">Esquina Roja</p>
               </div>
 
-              {currentFight && (
-                <div className="flex items-center justify-between">
-                  <div className="text-center">
-                    <p className="font-medium text-theme-primary">
-                      {currentFight.redCorner}
-                    </p>
-                    <p className="text-xs text-theme-light">Esquina Roja</p>
-                  </div>
+              <div className="text-center">
+                <Scale className="w-5 h-5 text-theme-light mx-auto" />
+                <p className="text-xs text-theme-light">
+                  {currentFight.weight}kg
+                </p>
+              </div>
 
-                  <div className="text-center">
-                    <Scale className="w-5 h-5 text-theme-light mx-auto" />
-                    <p className="text-xs text-theme-light">
-                      {currentFight.weight}kg
-                    </p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="font-medium text-theme-primary">
-                      {currentFight.blueCorner}
-                    </p>
-                    <p className="text-xs text-theme-light">Esquina Azul</p>
-                  </div>
-                </div>
-              )}
+              <div className="text-center">
+                <p className="font-medium text-theme-primary">
+                  {currentFight.blueCorner}
+                </p>
+                <p className="text-xs text-theme-light">Esquina Azul</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ✅ Row 2: Conditional Video Player */}
