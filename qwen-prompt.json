@@ -1,130 +1,202 @@
 {
-  "metadata": {
-    "task_name": "Manual ESLint Warning Resolution",
-    "complexity": "HIGH",
-    "execution_mode": "standard",
-    "assigned_role": "executor",
-    "model_preference": "qwen3-coder-plus-2025-09-23",
-    "git_branch": "feature/fix-lint-warnings"
-  },
-  "critical_protocols": {
-    "comment": "Executor AI must adhere to these protocols from brain/multi_ai_coordination_strategy.json",
-    "protocols_to_follow": [
-      "🔴_AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL",
-      "🔴_UI_VERIFICATION_PROTOCOL",
-      "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL",
-      "simulate_y_confirmar_protocol",
-      "🔴_IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK_2025_11_27"
+  "DIRECTOR_ANALYSIS": {
+    "task_title": "Fix EventDetail.tsx - Event/Stream State Logic + UI Rendering + HLS Player Issues + Real-time Architecture Audit",
+    "coordinator": "Claude Sonnet 4.5 (Director)",
+    "executor_target": "Qwen 3 Coder+",
+    "execution_mode": "STANDARD",
+    "prepared_date": "2025-12-09",
+    "protocols_applied": [
+      "DIRECTOR_PLANNING_PROTOCOL (brain/multi_ai_coordination_strategy.json:83-105)",
+      "PROTOCOL_EXECUTION_DISCIPLINE (brain/multi_ai_coordination_strategy.json:1067-1149)"
     ]
   },
-  "reference_files_to_read_first": [
-    "/home/veranoby/sports-bets/frontend/.eslintrc.js",
-    "/home/veranoby/sports-bets/brain/typescript_interfaces_reference.json",
-    "/home/veranoby/sports-bets/brain/multi_ai_coordination_strategy.json"
-  ],
-  "analysis_summary": {
-    "initial_request": "Create a strategy to fix the 389 ESLint warnings. A first automated pass (`eslint --fix`) was run, but 389 warnings remain because they require manual intervention.",
-    "findings": "The remaining warnings fall into four main categories, which must be addressed in order of priority to ensure application stability and code quality.",
-    "prioritized_categories": [
-      {
-        "category": "react-hooks/exhaustive-deps",
-        "priority": 1,
-        "count": 8,
-        "risk": "CRITICAL - Can cause data corruption and UI bugs",
-        "complexity": "Medium",
-        "rationale": "Despite low count, these cause actual bugs. Fix first."
-      },
-      {
-        "category": "@typescript-eslint/no-unused-vars",
-        "priority": 2,
-        "count": 230,
-        "risk": "Low - Code clutter only",
-        "complexity": "Low",
-        "rationale": "Quick wins (59% of warnings). Build momentum."
-      },
-      {
-        "category": "@typescript-eslint/no-explicit-any",
-        "priority": 3,
-        "count": 148,
-        "risk": "Medium - Technical debt",
-        "complexity": "High",
-        "rationale": "Time-consuming. Requires reading API responses, defining types."
-      },
-      {
-        "category": "react-refresh/only-export-components",
-        "priority": 4,
-        "count": 3,
-        "risk": "Low - DX only",
-        "complexity": "Medium",
-        "rationale": "Minimal impact. Lowest priority."
-      }
-    ]
-  },
-  "step_by_step_implementation_plan": {
-    "comment": "This plan is designed to be executed in phases. Commit changes after each phase is successfully completed and validated.",
-    "phase_1_fix_exhaustive_deps": {
-      "objective": "Ensure all React hooks (`useEffect`, `useCallback`, etc.) have correct dependencies to prevent stale state and related bugs.",
-      "action": "Run `npm run lint` inside the `frontend` directory to get a list of all files with `exhaustive-deps` warnings. For each file, perform the following:",
-      "process": [
-        "0. SOURCE_VERIFICATION_PROTOCOL: Read complete component file BEFORE fixing",
-        "0a. Identify the dependency ESLint suggests (variable, function, prop?)",
-        "0b. Read the DEFINITION of that dependency (is it defined inside component?)",
-        "0c. If function: Is it defined inline? → needs useCallback wrapper",
-        "0d. If object/array: Is it created on each render? → needs useMemo wrapper",
-        "1. Identify the hook with the missing dependency as reported by ESLint.",
-        "2. Add the suggested variable or function to the dependency array.",
-        "3. **CRITICAL:** If adding the dependency causes a potential infinite loop (e.g., a function that is redefined on every render), you MUST wrap that function in a `useCallback` hook to memoize it. If it's an object or array, use `useMemo`.",
-        "4. Repeat for all `exhaustive-deps` warnings in the project."
-      ],
-      "validation": "After fixing all `exhaustive-deps` warnings, run `npm run lint` again. The count of these specific warnings should be zero. Then, run `npx tsc --noEmit` and `npm run dev` to ensure the application still functions correctly."
+
+  "PRE_QWEN_ANALYSIS": {
+    "eventdetail_status_changes": {
+      "finding": "NO RECENT CHANGES BY QWEN",
+      "evidence": "git log EventDetail.tsx shows last modification 9a101e70 (Gemini cleanup)",
+      "impact": "Fight status changes (FightsControlTab) work correctly. Event status changes (StatusChanger) have original issue: missing refetch post-action",
+      "recommendation": "Proceed with Task 3 in task list"
     },
-    "phase_2_eliminate_explicit_any": {
-      "objective": "Improve type safety and reduce technical debt by replacing the `any` type with specific, accurate interfaces or types.",
-      "action": "Run `npm run lint` to get a list of all files with `no-explicit-any` warnings. For each file, perform the following:",
-      "process": [
-        "1. Identify each variable, parameter, or return value typed as `any`.",
-        "2. **Investigate:** Determine the correct data structure. Check the API response that provides the data or how the object is used in the component.",
-        "3. **Consult:** Read `@brain/typescript_interfaces_reference.json` to see if a suitable type already exists.",
-        "3.5. VERIFY with Read tool: Check actual API response or usage context",
-        "3.6. If API response: Read backend endpoint file to see return type",
-        "3.7. If event handler: Read component to see what data it receives",
-        "4. **Define or Use:** If a type exists, import and use it. If not, define a new, specific `interface` or `type` in the appropriate file (e.g., a shared types file or locally in the component if it's not reused).",
-        "5. Replace `any` with the correct type."
+    "liveevent_websocket_architecture": {
+      "finding": "MISMATCH vs SDD SPECIFICATION",
+      "sdd_spec": "brain/sdd_system.json:20-36 - WebSocket ONLY for PAGO/DOY proposals (3-min timeout bidirectional). SSE for all other real-time updates",
+      "current_implementation": [
+        "Line 596-607: useWebSocketListener('fight_updated') - WRONG (should be SSE)",
+        "Line 609-620: useWebSocketListener('bet_created') - WRONG (should be SSE)",
+        "Line 622-633: useWebSocketListener('event_updated') - CORRECT (bidirectional state change)"
       ],
-      "validation": "Run `npx tsc --noEmit`. The build must pass. The number of `no-explicit-any` warnings should decrease."
+      "recommendation": "Add Tasks 6-7 to refactor WebSocket/SSE architecture per SDD"
     },
-    "phase_3_remove_unused_vars_manually": {
-      "objective": "Clean up the codebase by removing any remaining unused variables, imports, or functions that the `--fix` command could not handle.",
-      "action": "Run `npm run lint` to get a list of all files with `no-unused-vars` warnings. For each file, perform the following:",
-      "process": [
-        "1. Locate the highlighted unused variable, import, or function.",
-        "2. Safely delete the entire line. Be careful not to delete code that is actually used."
-      ],
-      "validation": "Run `npx tsc --noEmit` and `npm run dev` to ensure that the deletions did not break any functionality."
-    },
-    "phase_4_refactor_for_react_refresh": {
-      "objective": "Improve the developer experience by ensuring files with components only export components.",
-      "action": "Run `npm run lint` to get a list of files with `only-export-components` warnings. For each file, perform the following:",
-      "process": [
-        "1. Identify the non-component exports in the file (e.g., custom hooks, constants, helper functions).",
-        "2. Create or find an appropriate utility file (e.g., `frontend/src/hooks/useMyHook.ts`, `frontend/src/utils/helpers.ts`).",
-        "3. Move the non-component exports to the utility file.",
-        "4. Update all import statements in the project that were pointing to the old component file to now point to the new utility file."
-      ],
-      "validation": "Run `npm run build` to ensure all imports were updated correctly and the application builds successfully."
+    "liveeventswidget_status": {
+      "finding": "ARCHITECTURE CORRECT",
+      "evidence": "Line 113-118: WebSocket listener for 'event_started' → fetchEvents(). Proper single-listener pattern",
+      "recommendation": "Add Task 7 for optional memory leak verification"
     }
   },
-  "success_criteria": [
-    "✅ ESLint warnings reduced from 389 to <50 (target: 0)",
-    "✅ npx tsc --noEmit returns 0 errors after EACH phase",
-    "✅ npm run dev starts without errors after EACH phase",
-    "✅ npm run build succeeds after final phase",
-    "✅ git commits include [PHASE_1], [PHASE_2], etc. tags",
-    "✅ backlog.json updated with git_commits array and verification_evidence",
-    "✅ All changes verified with git diff before commit"
+
+  "SCOPE": {
+    "task_count": 7,
+    "estimated_complexity": "HIGH",
+    "affected_systems": ["Frontend state sync", "Event/Stream state machine", "Real-time architecture", "WebSocket/SSE coordination"],
+    "session_time_estimate": "50-75 minutes (may need 2 sessions)",
+    "checkpoint_protocol": "CRITICAL: 15-min checkpoints with git commits tagged [CHECKPOINT]"
+  },
+
+  "EXECUTOR_TASK_LIST": [
+    {
+      "task_id": 1,
+      "title": "Backend Architecture Investigation",
+      "description": "Audit backend streaming endpoints to understand event/stream lifecycle",
+      "files_to_read": [
+        "backend/routes/events.ts (search /stream/start, /stream/stop)",
+        "backend/routes/streaming.ts (search /pause, /resume)",
+        "backend/services/streamingService.ts (implementation details)",
+        "backend/types/Event.ts (Event.streamStatus field definition)"
+      ],
+      "evidence_required": [
+        "Endpoint mapping: /events/:id/stream/start → backend function → DB changes",
+        "State diagram: offline → connecting → connected → paused → disconnected",
+        "OBS integration flow: how stream key is generated/used"
+      ],
+      "success_criteria": "Clear endpoint documentation with state transitions"
+    },
+
+    {
+      "task_id": 2,
+      "title": "Define Event/Stream State Machine in PRD",
+      "description": "Document all valid combinations of event.status + event.streamStatus + UI messaging",
+      "files_to_modify": ["brain/prd_system.json"],
+      "changes_required": [
+        "Add new section: 'event_streaming_state_machine'",
+        "Document 12 combinations (3 event statuses × 4 stream statuses)",
+        "Example: status='active' + streamStatus='offline' → UI: 'Evento iniciado - Esperando inicio de transmisión'"
+      ],
+      "success_criteria": "All state combinations documented with UI messaging"
+    },
+
+    {
+      "task_id": 3,
+      "title": "Fix EventDetail.tsx State Sync - StatusChanger Post-Action Refetch",
+      "description": "After user changes event status via StatusChanger, frontend should immediately reflect change",
+      "files_to_modify": ["frontend/src/components/admin/events/EventDetail.tsx"],
+      "changes_required": [
+        "Line 133-146 handleEventActionLocal(): Add fetchEventDetail() call after onEventAction succeeds",
+        "Add SSE listener for 'event_status_changed' event to update eventDetailData.event in real-time",
+        "Test workflow: Change status selector → UI updates immediately (no refresh needed)"
+      ],
+      "evidence_required": [
+        "git diff lines 133-146",
+        "Before/after screenshot: status change visible immediately",
+        "grep output: SSE listener code"
+      ],
+      "success_criteria": "Status change reflects in UI without page refresh"
+    },
+
+    {
+      "task_id": 4,
+      "title": "Fix HLSPlayer Rendering Condition",
+      "description": "HLSPlayer crashes with 'manifestParsingError' when status=active but streamStatus=offline. Fix conditional rendering.",
+      "files_to_modify": ["frontend/src/components/admin/events/EventDetail.tsx"],
+      "changes_required": [
+        "Line 331: Replace 'if (eventDetailData.event.streamUrl)' with 'if (eventDetailData.event.streamUrl && eventDetailData.event.streamStatus === \"connected\")'",
+        "Add fallback UI when streamStatus !== 'connected': Icon + text 'Streaming offline'",
+        "Test: Set status=active, streamStatus=offline → verify no HLS.js error, placeholder shows instead"
+      ],
+      "evidence_required": [
+        "git diff lines 331-338",
+        "Console output: no HLS.js fatal error in browser dev tools"
+      ],
+      "success_criteria": "No HLS.js errors when stream is offline"
+    },
+
+    {
+      "task_id": 5,
+      "title": "Add Streaming Control Button Validation",
+      "description": "Pause/Resume/Stop buttons should validate streamStatus before executing",
+      "files_to_modify": ["frontend/src/components/admin/events/EventDetail.tsx"],
+      "changes_required": [
+        "Lines 462-467 (pause button): Add disabled state if streamStatus !== 'connected'",
+        "Lines 502-505 (resume button): Add disabled state if streamStatus !== 'paused'",
+        "Add tooltip: 'Stream not active' when buttons disabled",
+        "Add 'OBS Connection Status: Connected/Disconnected' indicator near controls"
+      ],
+      "evidence_required": [
+        "git diff showing button disabled logic",
+        "Screenshot: buttons disabled when appropriate"
+      ],
+      "success_criteria": "Buttons properly disabled based on stream state"
+    },
+
+    {
+      "task_id": 6,
+      "title": "Refactor LiveEvent.tsx Real-Time Architecture (WebSocket → SSE per SDD)",
+      "description": "LiveEvent.tsx uses WebSocket for fight_updated + bet_created. SDD specifies WebSocket ONLY for PAGO/DOY proposals. Refactor to SSE.",
+      "files_to_read": [
+        "brain/sdd_system.json:20-36 (real_time_architecture specification)",
+        "frontend/src/pages/user/LiveEvent.tsx:596-633 (current WebSocket listeners)"
+      ],
+      "files_to_modify": ["frontend/src/pages/user/LiveEvent.tsx"],
+      "changes_required": [
+        "Line 596-607: Either replace useWebSocketListener('fight_updated') with SSE listener, OR add code comment: 'TODO: Migrate to SSE per SDD (brain/sdd_system.json:30-31)'",
+        "Line 609-620: Same as above for bet_created (lower priority than fight_updated)",
+        "Line 622-633: KEEP useWebSocketListener('event_updated') - this is correct for state changes",
+        "Add header comment: 'Real-time architecture per SDD (brain/sdd_system.json:20-36): SSE for reads, WebSocket for bidirectional (PAGO/DOY only)'"
+      ],
+      "evidence_required": [
+        "git diff showing listener changes",
+        "Code comment explaining why each listener uses SSE vs WebSocket",
+        "Test: Fight updates and bet creation still work in real-time"
+      ],
+      "success_criteria": "Real-time updates follow SDD architecture (SSE-first)"
+    },
+
+    {
+      "task_id": 7,
+      "title": "Audit LiveEventsWidget.tsx Memory Leaks (Optional)",
+      "description": "Verify that WebSocket listener cleanup prevents memory leaks",
+      "files_to_read": [
+        "frontend/src/components/user/LiveEventsWidget.tsx:113-118",
+        "frontend/src/hooks/useWebSocket.ts (cleanup logic)"
+      ],
+      "success_criteria": [
+        "Confirm useWebSocketListener cleanup on component unmount",
+        "Verify no duplicate listeners on re-renders",
+        "Document findings"
+      ]
+    }
   ],
-  "error_handling_plan": {
-    "typescript_errors": "If `npx tsc --noEmit` fails at any point, stop and fix the type errors before proceeding. Do not commit code that does not compile.",
-    "runtime_errors": "If the application fails to run after a change, revert the change for that specific file (`git restore <file>`) and analyze the root cause before attempting another fix."
+
+  "CRITICAL_PROTOCOLS_FOR_EXECUTOR": {
+    "session_initialization": [
+      "Step 1: Declare model (Qwen 3 Coder+) + role (Executor) + mode (STANDARD)",
+      "Step 2: Echo back this task list for user confirmation",
+      "Step 3: Set 15-min checkpoint timer"
+    ],
+    "execution_discipline": [
+      "DO NOT assume backend behavior - read actual code",
+      "DO NOT skip TypeScript validation: npx tsc --noEmit after changes",
+      "MUST cite line numbers + file paths for all claims",
+      "MUST provide git diff output for code changes"
+    ],
+    "checkpoint_protocol": [
+      "Every 15 min: git add && git commit -m '[CHECKPOINT] Task X progress'",
+      "Upon session end: Write handoff note to brain/backlog.json with git commit hashes"
+    ],
+    "reporting_location": "brain/backlog.json with 'git_commits' field containing actual hashes"
+  },
+
+  "VALIDATION_GATES_MANDATORY": [
+    "Gate 1: TypeScript - npx tsc --noEmit (0 errors)",
+    "Gate 2: File verification - Read actual .tsx files, confirm changes visible",
+    "Gate 3: Git validation - git diff --name-only shows ONLY approved files",
+    "Gate 4: Evidence - Before/after test results documented"
+  ],
+
+  "KNOWN_RISKS": {
+    "risk_1": "Backend investigation may reveal API design gaps",
+    "mitigation_1": "Document findings - may require separate backend task",
+    "risk_2": "Session length may exceed 40 minutes",
+    "mitigation_2": "Split into 2 sessions if needed: Investigation, then Implementation"
   }
 }
