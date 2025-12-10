@@ -114,11 +114,7 @@ export const fightsAPI = {
   createFight: async (data: Partial<Fight>) => {
     return apiCall("post", "/fights", data);
   },
-  updateFightStatus: async (
-    fightId: string,
-    status: string,
-    result?: string,
-  ) => {
+  updateStatus: async (fightId: string, status: string, result?: string) => {
     const data: { status: string; result?: string } = { status };
     if (result) {
       data.result = result;
@@ -133,6 +129,9 @@ export const fightsAPI = {
   },
   delete: async (id: string) => {
     return apiCall("delete", `/fights/${id}`);
+  },
+  update: async (fightId: string, data: Partial<Fight>) => {
+    return apiCall("put", `/fights/${fightId}`, data);
   },
 };
 

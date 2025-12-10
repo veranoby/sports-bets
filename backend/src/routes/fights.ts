@@ -246,9 +246,9 @@ router.put(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Verificar si la pelea puede ser editada
-    if (fight.status === "completed") {
-      throw errors.badRequest("Completed fights cannot be edited");
+    // Verificar si la pelea puede ser editada - Solo permitir cuando está upcoming
+    if (fight.status !== "upcoming") {
+      throw errors.badRequest("Fights can only be edited when in upcoming status");
     }
 
     // Actualizar campos permitidos

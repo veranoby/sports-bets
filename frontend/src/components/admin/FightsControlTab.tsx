@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Plus, Target, Trash2 } from "lucide-react";
+import { Plus, Target, Trash2, Pencil } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import CreateFightModal from "../../components/admin/CreateFightModal";
+import EditFightModal from "../../components/admin/EditFightModal";
 import FightStatusManager from "../../components/admin/FightStatusManager";
 import { fightsAPI, eventsAPI } from "../../services/api";
 import type { Fight } from "../../types";
@@ -26,6 +27,8 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   onFightSelect,
 }) => {
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
+  const [isEditFightModalOpen, setIsEditFightModalOpen] = useState(false);
+  const [selectedFightForEdit, setSelectedFightForEdit] = useState<Fight | null>(null);
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
     null,
   );
@@ -129,40 +132,59 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                   onClick={() => onFightSelect && onFightSelect(fight.id)}
                 >
                   <FightStatusManager
+                    key={`${fight.id}-${fight.updatedAt}`}
                     fight={fight}
                     eventId={eventId}
                     onFightUpdate={handleFightUpdate}
                   />
                 </div>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (
-                      window.confirm(
-                        `⚠️ ¿Eliminar la pelea #${fight.number}? No se puede deshacer.`,
-                      )
-                    ) {
-                      try {
-                        setOperationInProgress(`${fight.id}-delete`);
-                        await fightsAPI.delete(fight.id);
-                        // Update local state
-                        const updatedFights = (
-                          eventDetailData?.fights || []
-                        ).filter((f: Fight) => f.id !== fight.id);
-                        onFightsUpdate(updatedFights);
-                      } catch (err) {
-                        console.error("Error deleting fight:", err);
-                      } finally {
-                        setOperationInProgress(null);
+                <div className="flex space-x-1">
+                  {/* Edit button - only show if fight status is "upcoming" */}
+                  {fight.status === "upcoming" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFightForEdit(fight);
+                        setIsEditFightModalOpen(true);
+                      }}
+                      className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      title="Editar pelea"
+                      disabled={operationInProgress !== null}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
+                  {/* Delete button */}
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (
+                        window.confirm(
+                          `⚠️ ¿Eliminar la pelea #${fight.number}? No se puede deshacer.`,
+                        )
+                      ) {
+                        try {
+                          setOperationInProgress(`${fight.id}-delete`);
+                          await fightsAPI.delete(fight.id);
+                          // Update local state
+                          const updatedFights = (
+                            eventDetailData?.fights || []
+                          ).filter((f: Fight) => f.id !== fight.id);
+                          onFightsUpdate(updatedFights);
+                        } catch (err) {
+                          console.error("Error deleting fight:", err);
+                        } finally {
+                          setOperationInProgress(null);
+                        }
                       }
-                    }
-                  }}
-                  className="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                  title="Eliminar pelea"
-                  disabled={operationInProgress !== null}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                    }}
+                    className="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                    title="Eliminar pelea"
+                    disabled={operationInProgress !== null}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -175,6 +197,15 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
           eventId={eventId}
           onClose={() => setIsCreateFightModalOpen(false)}
           onFightCreated={handleFightCreated}
+        />
+      )}
+
+      {/* Modal de Editar Pelea */}
+      {isEditFightModalOpen && selectedFightForEdit && (
+        <EditFightModal
+          fight={selectedFightForEdit}
+          onClose={() => setIsEditFightModalOpen(false)}
+          onFightUpdated={handleFightUpdate}
         />
       )}
     </div>
