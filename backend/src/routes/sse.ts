@@ -271,6 +271,41 @@ router.get('/admin/global',
 );
 
 /**
+ * PUBLIC SSE ENDPOINTS - Authenticated Users (No Role Restriction)
+ */
+
+// Public Event Updates - Any authenticated user can subscribe
+router.get('/public/events/:eventId',
+  sseAuthenticate,
+  (req, res) => {
+    const { eventId } = req.params;
+    const connectionId = sseService.addEventConnection(
+      res,
+      eventId,
+      req.user!.id,
+      req.user!.role,
+      {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      }
+    );
+
+    logger.info(`📺 Public event SSE connected: ${req.user!.username} to event ${eventId} (${connectionId})`);
+
+    // Handle connection cleanup on disconnect
+    req.on('close', () => {
+      sseService.removeConnection(connectionId);
+      logger.info(`📺 Public event SSE disconnected: ${req.user!.username} from event ${eventId} (${connectionId})`);
+    });
+
+    req.on('error', (error) => {
+      logger.error(`SSE connection error for ${connectionId}:`, error);
+      sseService.removeConnection(connectionId);
+    });
+  }
+);
+
+/**
  * SSE CONNECTION MANAGEMENT ENDPOINTS
  */
 

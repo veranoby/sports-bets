@@ -74,12 +74,20 @@
           "merge_strategy": "Preserve nested objects (venue, operator) while merging SSE data",
           "performance": "Zero re-fetch needed, SSE provides all required state"
         },
-        "pending_sse_migration": {
-          "description": "Public user endpoints need SSE implementation",
-          "missing_endpoint": "/api/sse/public/events/:eventId",
-          "current_workaround": "Public users (LiveEvent.tsx) use WebSocket for read operations temporarily",
-          "priority": "MEDIUM - Admin panels (99% of state updates) already use SSE",
-          "implementation_notes": "Create public SSE endpoint with user-level auth, similar to admin endpoints"
+        "completed_sse_migration": {
+          "description": "✅ Full SSE migration complete (2025-12-10)",
+          "implementation": "LiveEvent.tsx + /api/sse/public/events/:eventId",
+          "endpoints": {
+            "admin": "/api/sse/admin/global - Admin/operator role required",
+            "public": "/api/sse/public/events/:eventId - User-level auth only"
+          },
+          "migration_details": {
+            "admin_panels": "EventList.tsx, EventDetail.tsx - SSE for all event/fight updates",
+            "public_users": "LiveEvent.tsx - SSE for fight/bet/event updates, WebSocket ONLY for PAGO/DOY",
+            "websocket_usage": "Strictly limited to bidirectional PAGO/DOY proposals per SDD spec"
+          },
+          "performance_impact": "100% SDD compliance achieved - SSE for all read operations, WebSocket only for PAGO/DOY bidirectional timeout-based proposals",
+          "completion_date": "2025-12-10"
         },
         "rationale": "SSE has 5-10% lower CPU overhead vs WebSocket for server→client. Optimistic updates provide instant UI feedback. Dual broadcast ensures all admin components stay synchronized."
       },

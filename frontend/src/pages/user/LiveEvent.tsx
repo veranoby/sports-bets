@@ -599,6 +599,67 @@ const LiveEvent = () => {
     }
   }, [isConnected, eventId, joinRoom, leaveRoom]);
 
+  // ✅ SSE listener for event-specific updates (read-only operations)
+  useEffect(() => {
+    if (!eventId) return;
+
+    const apiBaseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3001";
+    const eventSource = new EventSource(
+      `${apiBaseUrl}/api/sse/public/events/${eventId}?token=${localStorage.getItem("token")}`,
+    );
+
+    eventSource.onmessage = (e) => {
+      try {
+        const parsedData = JSON.parse(e.data);
+        console.log("📡 SSE event received (LiveEvent):", parsedData);
+
+        // Handle fight updates
+        if (parsedData.type === "FIGHT_STATUS_UPDATE" || parsedData.type === "FIGHT_UPDATED") {
+          const fightData = parsedData.data;
+          if (fightData?.eventId === eventId) {
+            console.log("🥊 Refetching fights due to SSE update");
+            fetchFights({ eventId });
+          }
+        }
+
+        // Handle bet updates
+        if (parsedData.type === "NEW_BET" || parsedData.type === "BET_MATCHED") {
+          const betData = parsedData.data;
+          if (betData?.eventId === eventId) {
+            console.log("💰 Refetching bets due to SSE update");
+            fetchAvailableBets(eventId);
+          }
+        }
+
+        // Handle event updates
+        if (
+          parsedData.type === "EVENT_ACTIVATED" ||
+          parsedData.type === "EVENT_COMPLETED" ||
+          parsedData.type === "STREAM_STARTED" ||
+          parsedData.type === "STREAM_STOPPED"
+        ) {
+          const eventData = parsedData.data;
+          if (eventData?.id === eventId) {
+            console.log("📺 Updating event data from SSE");
+            setCurrentEvent((prev) => (prev ? { ...prev, ...eventData } : null));
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing SSE message:", error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE connection error:", error);
+      eventSource.close();
+    };
+
+    return () => {
+      console.log("🔌 Closing SSE connection for event", eventId);
+      eventSource.close();
+    };
+  }, [eventId, fetchFights, fetchAvailableBets]);
+
   // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
   // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
 
@@ -619,51 +680,6 @@ const LiveEvent = () => {
       // Handle DOY proposal (bidirectional communication required)
       // Add implementation for handling DOY proposals
     }, []),
-  );
-
-  // ⚠️ TODO: Migrate to SSE when public endpoint created
-  // Currently using WebSocket for public users (LiveEvent) until /api/sse/public/events/:eventId exists
-  // Admin panels (EventList, EventDetail) already use SSE for 99% of state updates
-  // This achieves partial SDD compliance - full migration pending public SSE endpoint
-
-  // WebSocket listeners for read operations (will migrate to SSE when public endpoint ready)
-  useWebSocketListener(
-    "fight_updated",
-    useCallback(
-      (data: Fight) => {
-        console.log("🥊 Fight actualizada:", data);
-        if (data.eventId === eventId) {
-          fetchFights({ eventId });
-        }
-      },
-      [eventId, fetchFights],
-    ),
-  );
-
-  useWebSocketListener(
-    "bet_created",
-    useCallback(
-      (data: Bet & { eventId: string }) => {
-        console.log("💰 Nueva apuesta:", data);
-        if (data.eventId === eventId) {
-          fetchAvailableBets(eventId);
-        }
-      },
-      [eventId, fetchAvailableBets],
-    ),
-  );
-
-  useWebSocketListener(
-    "event_updated",
-    useCallback(
-      (data: Partial<EventData>) => {
-        console.log("📺 Evento actualizado:", data);
-        if (data.id === eventId) {
-          setCurrentEvent((prev) => (prev ? { ...prev, ...data } : null));
-        }
-      },
-      [eventId],
-    ),
   );
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
