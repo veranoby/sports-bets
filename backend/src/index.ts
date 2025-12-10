@@ -206,6 +206,9 @@ class Server {
       // Initialize WebSocket service for PAGO/DOY proposals
       websocketService.initialize(this.httpServer);
 
+      // Attach SSE service to app instance for use in routes
+      this.app.set('sseService', sseService);
+
       // Initialize session cleanup cron job (runs every 6 hours)
       this.sessionCleanupInterval = setInterval(async () => {
         try {

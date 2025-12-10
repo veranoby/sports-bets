@@ -87,6 +87,48 @@ const EventDetail: React.FC<EventDetailProps> = ({
     handleResumeStream,
   } = useStreamControl();
 
+  // SSE listener for event status changes
+  useEffect(() => {
+    if (!eventId) return;
+
+    // Create a function to handle event status updates
+    const handleEventStatusUpdate = (data: any) => {
+      if (data.eventId === eventId && eventDetailData) {
+        setEventDetailData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              ...data // Update with new data from SSE
+            }
+          };
+        });
+      }
+    };
+
+    // Listen for event status changes
+    const event = new EventSource(`${process.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/sse/admin/global?token=${localStorage.getItem('token')}`);
+
+    event.onmessage = (e) => {
+      try {
+        const parsedData = JSON.parse(e.data);
+        if (parsedData.type === 'EVENT_ACTIVATED' || parsedData.type === 'EVENT_COMPLETED' ||
+            parsedData.type === 'EVENT_CANCELLED' || parsedData.type === 'EVENT_SCHEDULED') {
+          if (parsedData.data?.eventId === eventId) {
+            handleEventStatusUpdate(parsedData.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing SSE message:', error);
+      }
+    };
+
+    return () => {
+      event.close();
+    };
+  }, [eventId, eventDetailData]);
+
   // Fetch event detail data
   const fetchEventDetail = useCallback(async () => {
     try {
@@ -136,7 +178,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
     setOperationInProgress(`${eventDetailData.event.id}-${action}`);
     try {
       await onEventAction(eventDetailData.event.id, action);
-      // Refresh the data after action
+      // Refresh the data after action to reflect the status change immediately
       await fetchEventDetail();
     } catch (err) {
       console.error(`Error in ${action}:`, err);
@@ -160,11 +202,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       setOperationInProgress(`${fightId}-${status}`);
 
       // Call the API to update the fight status
-      const response = await fightsAPI.updateFightStatus(
-        fightId,
-        status,
-        result,
-      );
+      const response = await fightsAPI.updateStatus(fightId, status, result);
 
       if (response.success) {
         // Refresh event detail data to reflect changes
@@ -328,7 +366,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
           {/* Stream preview */}
           <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
             <div className="w-full max-w-xl">
-              {eventDetailData.event.streamUrl ? (
+              {eventDetailData.event.streamUrl && eventDetailData.event.streamStatus === "connected" ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
                   autoplay={false}
@@ -341,10 +379,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   <div className="text-center space-y-1">
                     <Video className="w-10 h-10 mx-auto text-gray-400" />
                     <p className="text-sm text-gray-300">
-                      Stream no disponible
+                      {eventDetailData.event.streamStatus === "connected"
+                        ? "Streaming offline"
+                        : eventDetailData.event.streamStatus === "paused"
+                        ? "Stream pausado"
+                        : "Stream no disponible"}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Inicie el stream para ver la vista previa
+                      {eventDetailData.event.streamStatus === "connected"
+                        ? "Conexión activa, pero stream no disponible"
+                        : "Inicie el stream para ver la vista previa"}
                     </p>
                   </div>
                 </div>
@@ -424,7 +468,14 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null ||
                   eventDetailData.event.streamStatus === "connected"
                 }
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:opacity-50"
+                title={
+                  eventDetailData.event.streamStatus === "connected"
+                    ? "Stream ya está activo"
+                    : operationInProgress !== null
+                    ? "Operación en progreso"
+                    : "Iniciar transmisión"
+                }
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="w-4 h-4" />
                 Iniciar Stream
@@ -464,7 +515,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   eventDetailData.event.streamStatus !== "connected" ||
                   isStreamPaused
                 }
-                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center gap-2 disabled:opacity-50"
+                title={
+                  operationInProgress !== null
+                    ? "Operación en progreso"
+                    : eventDetailData.event.streamStatus !== "connected"
+                    ? "Stream no activo"
+                    : isStreamPaused
+                    ? "Stream ya está pausado"
+                    : "Pausar transmisión"
+                }
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Activity className="w-4 h-4" />
                 Pausar Stream
@@ -503,7 +563,14 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null ||
                   eventDetailData.event.streamStatus !== "paused"
                 }
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                title={
+                  operationInProgress !== null
+                    ? "Operación en progreso"
+                    : eventDetailData.event.streamStatus !== "paused"
+                    ? "Stream no está pausado"
+                    : "Reanudar transmisión"
+                }
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RotateCcw className="w-4 h-4" />
                 Reanudar Stream
@@ -541,11 +608,29 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   operationInProgress !== null ||
                   eventDetailData.event.streamStatus !== "connected"
                 }
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50"
+                title={
+                  operationInProgress !== null
+                    ? "Operación en progreso"
+                    : eventDetailData.event.streamStatus !== "connected"
+                    ? "Stream no activo"
+                    : "Detener transmisión"
+                }
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Square className="w-4 h-4" />
                 Detener Stream
               </button>
+
+              {/* OBS Connection Status Indicator */}
+              <div className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></div>
+                <span className="hidden md:inline">Estado OBS:</span>
+                <span>
+                  {eventDetailData.event.streamStatus === "connected" ? "Conectado" :
+                   eventDetailData.event.streamStatus === "paused" ? "Pausado" :
+                   "Desconectado"}
+                </span>
+              </div>
             </div>
           </div>
         </div>

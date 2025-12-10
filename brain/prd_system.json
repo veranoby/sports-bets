@@ -62,7 +62,96 @@
         "Ingesta de video vía RTMP desde OBS Studio.",
         "Entrega de video a espectadores vía HLS.",
         "Control de acceso basado en estado de suscripción del usuario."
-      ]
+      ],
+      "event_streaming_state_machine": {
+        "description": "Definición de todas las combinaciones válidas de event.status y event.streamStatus, con mensajes de UI correspondientes",
+        "state_combinations": [
+          {
+            "event_status": "scheduled",
+            "stream_status": "offline",
+            "ui_message": "Evento programado - Esperando día del evento",
+            "user_access": "No streaming disponible",
+            "admin_controls": ["Editar evento", "Cancelar evento"]
+          },
+          {
+            "event_status": "scheduled",
+            "stream_status": "connecting",
+            "ui_message": "Evento programado - Conexión de streaming en progreso",
+            "user_access": "No streaming disponible",
+            "admin_controls": ["Cancelar conexión", "Verificar conexión"]
+          },
+          {
+            "event_status": "scheduled",
+            "stream_status": "connected",
+            "ui_message": "Evento programado - Transmisión activa",
+            "user_access": "Acceso denegado, evento no iniciado",
+            "admin_controls": ["Iniciar evento", "Detener transmisión"]
+          },
+          {
+            "event_status": "scheduled",
+            "stream_status": "paused",
+            "ui_message": "Evento programado - Transmisión pausada",
+            "user_access": "Acceso denegado, evento no iniciado",
+            "admin_controls": ["Reanudar transmisión", "Iniciar evento"]
+          },
+          {
+            "event_status": "in-progress",
+            "stream_status": "offline",
+            "ui_message": "Evento iniciado - Esperando inicio de transmisión",
+            "user_access": "No streaming disponible",
+            "admin_controls": ["Iniciar transmisión", "Completar evento"]
+          },
+          {
+            "event_status": "in-progress",
+            "stream_status": "connecting",
+            "ui_message": "Evento en vivo - Conexión de streaming en progreso",
+            "user_access": "Conectando al stream...",
+            "admin_controls": ["Cancelar conexión", "Verificar conexión", "Completar evento"]
+          },
+          {
+            "event_status": "in-progress",
+            "stream_status": "connected",
+            "ui_message": "Evento en vivo - Transmisión activa",
+            "user_access": "Streaming disponible",
+            "admin_controls": ["Pausar transmisión", "Detener transmisión", "Completar evento"]
+          },
+          {
+            "event_status": "in-progress",
+            "stream_status": "paused",
+            "ui_message": "Evento en vivo - Transmisión pausada",
+            "user_access": "Streaming pausado",
+            "admin_controls": ["Reanudar transmisión", "Detener transmisión", "Completar evento"]
+          },
+          {
+            "event_status": "completed",
+            "stream_status": "offline",
+            "ui_message": "Evento completado",
+            "user_access": "No streaming disponible",
+            "admin_controls": ["Reiniciar evento", "Ver resumen"]
+          },
+          {
+            "event_status": "completed",
+            "stream_status": "connected",
+            "ui_message": "Evento completado - Transmisión activa (advertencia)",
+            "user_access": "Streaming disponible",
+            "admin_controls": ["Detener transmisión", "Reiniciar evento"]
+          },
+          {
+            "event_status": "cancelled",
+            "stream_status": "offline",
+            "ui_message": "Evento cancelado",
+            "user_access": "No streaming disponible",
+            "admin_controls": ["Reprogramar evento", "Eliminar evento"]
+          },
+          {
+            "event_status": "cancelled",
+            "stream_status": "connected",
+            "ui_message": "Evento cancelado - Transmisión activa (advertencia)",
+            "user_access": "Streaming disponible",
+            "admin_controls": ["Detener transmisión", "Reprogramar evento"]
+          }
+        ]
+      }
     },
     "betting_system": {
       "priority": "P0",

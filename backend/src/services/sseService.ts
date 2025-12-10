@@ -856,6 +856,44 @@ class GallerosNetSSEService {
   /**
    * Shutdown service gracefully
    */
+  /**
+   * Broadcast event to a specific event channel
+   */
+  broadcastToEvent(eventId: string, event: SSEEvent): number {
+    const channel = `event-${eventId}`;
+    return this.broadcastToChannel(channel, event);
+  }
+
+  /**
+   * Add connection to a specific event channel
+   */
+  addEventConnection(
+    res: Response,
+    eventId: string,
+    userId?: string,
+    userRole?: string,
+    metadata?: any
+  ): string {
+    const channel = `event-${eventId}`;
+    return this.addConnection(res, channel, userId, userRole, metadata);
+  }
+
+  /**
+   * Broadcast event to system monitoring channels
+   */
+  broadcastToSystem(eventType: string, data: any): void {
+    const systemEvent: SSEEvent = {
+      id: randomUUID(),
+      type: SSEEventType[eventType as keyof typeof SSEEventType] || SSEEventType.NOTIFICATION,
+      data,
+      timestamp: new Date(),
+      priority: 'medium',
+      metadata: data.metadata || {}
+    };
+
+    this.sendToAdminChannel(AdminChannel.SYSTEM_MONITORING, systemEvent);
+  }
+
   shutdown(): void {
     logger.info('🔄 Shutting down SSE Service...');
 
