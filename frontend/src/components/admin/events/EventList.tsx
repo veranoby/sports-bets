@@ -53,21 +53,42 @@ const EventList: React.FC<EventListProps> = ({
       console.log("📦 Received updatedEvent from backend:", updatedEvent);
 
       if (!updatedEvent) {
-        // Fallback: re-fetch if no updated event returned
-        console.warn("⚠️ No updated event returned, re-fetching...");
-        await fetchEvents(statusFilter, dateFilter);
+        console.warn("⚠️ No updated event returned - SSE will handle update");
+        // ✅ OPTIMIZED: Trust SSE to update instead of re-fetching all events
         return;
       }
 
-      // Update local state with complete updated event from backend
-      const updateEvent = (event: Event) =>
-        event.id === eventId ? ({ ...event, ...updatedEvent } as Event) : event;
+      // ✅ Validate that updatedEvent has critical fields before merging
+      if (!updatedEvent.id || updatedEvent.id !== eventId) {
+        console.error("❌ Invalid updatedEvent: ID mismatch or missing");
+        // Show error but trust SSE to eventually sync state
+        setError("Error en respuesta del servidor - esperando sincronización");
+        return;
+      }
 
-      console.log("✅ Updating local state with updatedEvent");
+      // ✅ OPTIMISTIC UPDATE: Immediately update local state
+      // SSE will reconcile if there are any discrepancies
+      const updateEvent = (event: Event) => {
+        if (event.id !== eventId) return event;
+
+        // Merge strategy: preserve existing fields, only override with new data
+        const merged = {
+          ...event,
+          ...updatedEvent,
+          // Preserve nested objects if they're not in updatedEvent
+          venue: updatedEvent.venue || event.venue,
+          operator: updatedEvent.operator || event.operator,
+        } as Event;
+
+        console.log("🔀 Merged event (optimistic):", merged);
+        return merged;
+      };
+
+      console.log("✅ Optimistic update applied to local state");
       setEvents((prev) => {
         const updated = prev.map(updateEvent);
         console.log(
-          "📊 Events after update:",
+          "📊 Events after optimistic update:",
           updated.find((e) => e.id === eventId),
         );
         return updated;
@@ -76,6 +97,8 @@ const EventList: React.FC<EventListProps> = ({
     } catch (err) {
       console.error("❌ Error changing status:", err);
       setError(err instanceof Error ? err.message : "Error al cambiar estado");
+      // ✅ OPTIMIZED: Only show error, SSE should reconcile state
+      // Avoid expensive full re-fetch unless absolutely necessary
     }
   };
 
@@ -83,6 +106,63 @@ const EventList: React.FC<EventListProps> = ({
     searchParams.get("status") || "",
   );
   const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "");
+
+  // ✅ SSE listener for real-time event updates from backend
+  useEffect(() => {
+    const apiBaseUrl =
+      import.meta.env.VITE_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
+    const eventSource = new EventSource(
+      `${apiBaseUrl}/api/sse/admin/global?token=${localStorage.getItem("token")}`,
+    );
+
+    eventSource.onmessage = (e) => {
+      try {
+        const parsedData = JSON.parse(e.data);
+        console.log("📡 SSE event received:", parsedData);
+
+        if (
+          parsedData.type === "EVENT_ACTIVATED" ||
+          parsedData.type === "EVENT_COMPLETED" ||
+          parsedData.type === "EVENT_CANCELLED" ||
+          parsedData.type === "EVENT_SCHEDULED" ||
+          parsedData.type === "STREAM_STARTED" ||
+          parsedData.type === "STREAM_STOPPED"
+        ) {
+          const eventData = parsedData.data;
+          if (!eventData?.id) return;
+
+          // ✅ RECONCILIATION: Update both events and todayEvents with SSE data
+          const reconcileEvent = (event: Event) => {
+            if (event.id !== eventData.id) return event;
+
+            console.log("🔄 SSE reconciliation for event:", eventData.id);
+            return {
+              ...event,
+              ...eventData,
+              // Preserve nested objects
+              venue: eventData.venue || event.venue,
+              operator: eventData.operator || event.operator,
+            } as Event;
+          };
+
+          setEvents((prev) => prev.map(reconcileEvent));
+          setTodayEvents((prev) => prev.map(reconcileEvent));
+        }
+      } catch (error) {
+        console.error("Error parsing SSE message:", error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE connection error:", error);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []); // ✅ Empty deps - SSE connection should persist for component lifetime
 
   // Fetch all events with filters
   const fetchEvents = useCallback(

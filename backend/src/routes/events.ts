@@ -456,21 +456,31 @@ router.patch(
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
-      sseService.broadcastToEvent(event.id, {
+      const { AdminChannel } = await import('../services/sseService');
+      const eventPayload = {
         id: randomUUID(),
         type: `EVENT_${action.toUpperCase()}D`,
         data: {
           eventId: event.id,
+          id: event.id, // ✅ Include id for frontend reconciliation
           status: newStatus,
           streamUrl: event.streamUrl,
-          streamKey: event.streamKey
+          streamKey: event.streamKey,
+          name: event.name, // ✅ Include name for UI display
+          scheduledDate: event.scheduledDate,
+          venue: event.venue,
+          operator: event.operator,
         },
         timestamp: new Date(),
         priority: 'high',
         metadata: {
           eventId: event.id
         }
-      });
+      };
+
+      // ✅ OPTIMIZED: Broadcast to both event-specific AND global admin channel
+      sseService.broadcastToEvent(event.id, eventPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, eventPayload);
     }
 
     // Create notification
@@ -622,12 +632,18 @@ router.post(
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
-      sseService.broadcastToEvent(event.id, {
+      const { AdminChannel } = await import('../services/sseService');
+      const streamPayload = {
         id: randomUUID(),
         type: "STREAM_STARTED",
         data: {
           eventId: event.id,
-          streamUrl: event.streamUrl
+          id: event.id, // ✅ Include id for frontend reconciliation
+          streamUrl: event.streamUrl,
+          streamStatus: 'connected', // ✅ Include streamStatus for UI update
+          name: event.name,
+          venue: event.venue,
+          operator: event.operator,
         },
         timestamp: new Date(),
         priority: 'high',
@@ -635,7 +651,11 @@ router.post(
           eventId: event.id,
           streamId: event.streamKey
         }
-      });
+      };
+
+      // ✅ OPTIMIZED: Broadcast to both event-specific AND global admin channel
+      sseService.broadcastToEvent(event.id, streamPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, streamPayload);
     }
     
     try {
@@ -688,18 +708,29 @@ router.post(
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
-      sseService.broadcastToEvent(event.id, {
+      const { AdminChannel } = await import('../services/sseService');
+      const stopStreamPayload = {
         id: randomUUID(),
         type: "STREAM_STOPPED",
         data: {
-          eventId: event.id
+          eventId: event.id,
+          id: event.id, // ✅ Include id for frontend reconciliation
+          streamStatus: 'disconnected', // ✅ Include streamStatus for UI update
+          streamUrl: null,
+          name: event.name,
+          venue: event.venue,
+          operator: event.operator,
         },
         timestamp: new Date(),
         priority: 'medium',
         metadata: {
           eventId: event.id
         }
-      });
+      };
+
+      // ✅ OPTIMIZED: Broadcast to both event-specific AND global admin channel
+      sseService.broadcastToEvent(event.id, stopStreamPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, stopStreamPayload);
     }
     
     try {

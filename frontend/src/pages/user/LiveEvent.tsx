@@ -378,6 +378,8 @@ const BettingPanel = memo(
     onAcceptBet,
     onCreateBet,
     isVenueRole,
+    showFightModal,
+    setShowFightModal,
   }: {
     availableBets: Bet[];
     myBets: Bet[];
@@ -385,9 +387,9 @@ const BettingPanel = memo(
     onAcceptBet: (betId: string) => void;
     onCreateBet: () => void;
     isVenueRole: boolean;
+    showFightModal: boolean;
+    setShowFightModal: (show: boolean) => void;
   }) => {
-    const [showFightModal, setShowFightModal] = useState(false);
-
     // Separate completed vs scheduled fights for the modal
     const allFights = currentFight ? [currentFight] : [];
     const completedFights = allFights.filter((f) => f.status === "completed");
@@ -534,6 +536,7 @@ const LiveEvent = () => {
   const [currentEvent, setCurrentEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFightModal, setShowFightModal] = useState(false);
 
   // Determinar si el usuario es venue
   const isVenueRole = user?.role === "venue";
@@ -922,6 +925,8 @@ const LiveEvent = () => {
               onAcceptBet={handleAcceptBet}
               onCreateBet={handleCreateBet}
               isVenueRole={isVenueRole}
+              showFightModal={showFightModal}
+              setShowFightModal={setShowFightModal}
             />
           </div>
         )}

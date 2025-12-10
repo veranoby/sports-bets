@@ -92,22 +92,6 @@ const EventDetail: React.FC<EventDetailProps> = ({
   useEffect(() => {
     if (!eventId) return;
 
-    // Create a function to handle event status updates
-    const handleEventStatusUpdate = (data: any) => {
-      if (data.eventId === eventId && eventDetailData) {
-        setEventDetailData((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            event: {
-              ...prev.event,
-              ...data, // Update with new data from SSE
-            },
-          };
-        });
-      }
-    };
-
     // Listen for event status changes
     const apiBaseUrl =
       import.meta.env.VITE_API_URL?.replace("/api", "") ||
@@ -126,7 +110,17 @@ const EventDetail: React.FC<EventDetailProps> = ({
           parsedData.type === "EVENT_SCHEDULED"
         ) {
           if (parsedData.data?.eventId === eventId) {
-            handleEventStatusUpdate(parsedData.data);
+            // Update event data with SSE payload
+            setEventDetailData((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                event: {
+                  ...prev.event,
+                  ...parsedData.data, // Merge SSE updates into existing event
+                },
+              };
+            });
           }
         }
       } catch (error) {
@@ -134,10 +128,15 @@ const EventDetail: React.FC<EventDetailProps> = ({
       }
     };
 
+    event.onerror = (error) => {
+      console.error("SSE connection error:", error);
+      event.close();
+    };
+
     return () => {
       event.close();
     };
-  }, [eventId, eventDetailData]);
+  }, [eventId]); // ✅ FIXED: Removed eventDetailData from dependencies
 
   // Fetch event detail data
   const fetchEventDetail = useCallback(async () => {
