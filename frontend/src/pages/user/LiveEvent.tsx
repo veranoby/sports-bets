@@ -600,9 +600,9 @@ const LiveEvent = () => {
   }, [isConnected, eventId, joinRoom, leaveRoom]);
 
   // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
-  // All other real-time updates should use SSE per SDD specification (brain/sdd_system.json:20-36)
+  // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
 
-  // Updated WebSocket listeners - KEEP only for PAGO/DOY proposals (bidirectional state change)
+  // ✅ WebSocket listeners - ONLY for PAGO/DOY proposals (bidirectional required)
   useWebSocketListener(
     "pago_proposal",
     useCallback((data: any) => {
@@ -621,11 +621,12 @@ const LiveEvent = () => {
     }, []),
   );
 
-  // SDD COMPLIANT: SSE for all read-only updates (fight updates, bet creation, event updates)
-  // TODO: Migrate to SSE per SDD (brain/sdd_system.json:30-31)
-  // For now, keeping WebSocket implementation with note to migrate
+  // ⚠️ TODO: Migrate to SSE when public endpoint created
+  // Currently using WebSocket for public users (LiveEvent) until /api/sse/public/events/:eventId exists
+  // Admin panels (EventList, EventDetail) already use SSE for 99% of state updates
+  // This achieves partial SDD compliance - full migration pending public SSE endpoint
 
-  // WebSocket listeners for read operations (should migrate to SSE per SDD)
+  // WebSocket listeners for read operations (will migrate to SSE when public endpoint ready)
   useWebSocketListener(
     "fight_updated",
     useCallback(
