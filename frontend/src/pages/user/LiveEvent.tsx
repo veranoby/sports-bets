@@ -378,8 +378,6 @@ const BettingPanel = memo(
     onAcceptBet,
     onCreateBet,
     isVenueRole,
-    showFightModal,
-    setShowFightModal,
   }: {
     availableBets: Bet[];
     myBets: Bet[];
@@ -387,14 +385,7 @@ const BettingPanel = memo(
     onAcceptBet: (betId: string) => void;
     onCreateBet: () => void;
     isVenueRole: boolean;
-    showFightModal: boolean;
-    setShowFightModal: (show: boolean) => void;
   }) => {
-    // Separate completed vs scheduled fights for the modal
-    const allFights = currentFight ? [currentFight] : [];
-    const completedFights = allFights.filter((f) => f.status === "completed");
-    const scheduledFights = allFights.filter((f) => f.status === "scheduled");
-
     return (
       <div className="space-y-4">
         {/* Two Column Layout for Betting */}
@@ -503,17 +494,6 @@ const BettingPanel = memo(
             )}
           </div>
         </div>
-
-        {/* Fight Preview Modal */}
-        {showFightModal && currentFight && (
-          <FightPreviewModal
-            fights={[currentFight]}
-            currentFight={currentFight}
-            completedFights={completedFights}
-            scheduledFights={scheduledFights}
-            onClose={() => setShowFightModal(false)}
-          />
-        )}
       </div>
     );
   },
@@ -603,7 +583,9 @@ const LiveEvent = () => {
   useEffect(() => {
     if (!eventId) return;
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3001";
+    const apiBaseUrl =
+      import.meta.env.VITE_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
     const eventSource = new EventSource(
       `${apiBaseUrl}/api/sse/public/events/${eventId}?token=${localStorage.getItem("token")}`,
     );
@@ -614,7 +596,10 @@ const LiveEvent = () => {
         console.log("📡 SSE event received (LiveEvent):", parsedData);
 
         // Handle fight updates
-        if (parsedData.type === "FIGHT_STATUS_UPDATE" || parsedData.type === "FIGHT_UPDATED") {
+        if (
+          parsedData.type === "FIGHT_STATUS_UPDATE" ||
+          parsedData.type === "FIGHT_UPDATED"
+        ) {
           const fightData = parsedData.data;
           if (fightData?.eventId === eventId) {
             console.log("🥊 Refetching fights due to SSE update");
@@ -623,7 +608,10 @@ const LiveEvent = () => {
         }
 
         // Handle bet updates
-        if (parsedData.type === "NEW_BET" || parsedData.type === "BET_MATCHED") {
+        if (
+          parsedData.type === "NEW_BET" ||
+          parsedData.type === "BET_MATCHED"
+        ) {
           const betData = parsedData.data;
           if (betData?.eventId === eventId) {
             console.log("💰 Refetching bets due to SSE update");
@@ -641,7 +629,9 @@ const LiveEvent = () => {
           const eventData = parsedData.data;
           if (eventData?.id === eventId) {
             console.log("📺 Updating event data from SSE");
-            setCurrentEvent((prev) => (prev ? { ...prev, ...eventData } : null));
+            setCurrentEvent((prev) =>
+              prev ? { ...prev, ...eventData } : null,
+            );
           }
         }
       } catch (error) {
@@ -747,6 +737,11 @@ const LiveEvent = () => {
     []) as Bet[];
   const myBets = bets?.filter((bet) => bet.userId === user?.id) || [];
   const currentFight = fights?.find((fight) => fight.status === "live");
+
+  // ✅ Fights separation for modal
+  const allFights = fights || [];
+  const completedFights = allFights.filter((f) => f.status === "completed");
+  const scheduledFights = allFights.filter((f) => f.status === "scheduled");
 
   return (
     <SubscriptionGuard
@@ -942,10 +937,19 @@ const LiveEvent = () => {
               onAcceptBet={handleAcceptBet}
               onCreateBet={handleCreateBet}
               isVenueRole={isVenueRole}
-              showFightModal={showFightModal}
-              setShowFightModal={setShowFightModal}
             />
           </div>
+        )}
+
+        {/* ✅ Fight Preview Modal */}
+        {showFightModal && (
+          <FightPreviewModal
+            fights={allFights}
+            currentFight={currentFight}
+            completedFights={completedFights}
+            scheduledFights={scheduledFights}
+            onClose={() => setShowFightModal(false)}
+          />
         )}
       </div>
     </SubscriptionGuard>
