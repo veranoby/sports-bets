@@ -12,19 +12,19 @@ import type { Fight } from "../../types";
 interface FightsControlTabProps {
   eventId: string;
   eventDetailData: any;
-  onFightsUpdate: (fights: Fight[]) => void;
-  onEventUpdate: (event: any) => void;
-  selectedFightId?: string | null; // Currently selected fight
-  onFightSelect?: (fightId: string) => void; // Callback when a fight is selected
+  selectedFightId?: string | null;
+  onFightSelect?: (fightId: string) => void;
+  onFightCreated: (newFight: Fight) => void;
+  onFightUpdated: (updatedFight: Fight) => void;
 }
 
 const FightsControlTab: React.FC<FightsControlTabProps> = ({
   eventId,
   eventDetailData,
-  onFightsUpdate,
-  onEventUpdate,
   selectedFightId,
   onFightSelect,
+  onFightCreated,
+  onFightUpdated,
 }) => {
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditFightModalOpen, setIsEditFightModalOpen] = useState(false);
@@ -34,56 +34,18 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
     null,
   );
 
-  const handleFightCreated = (newFight: Fight) => {
-    if (eventDetailData) {
-      onFightsUpdate([...(eventDetailData.fights || []), newFight]);
-    }
+  // ✅ Simplified handlers - just call parent callbacks and manage modal state
+  const handleFightCreatedLocal = (newFight: Fight) => {
+    console.log("✅ FightsControlTab: Fight created, calling parent callback");
+    onFightCreated(newFight);
     setIsCreateFightModalOpen(false);
   };
 
-  const handleFightUpdate = (updatedFight: Fight) => {
-    if (eventDetailData) {
-      const updatedFights = (eventDetailData.fights || []).map((f: Fight) =>
-        f.id === updatedFight.id ? updatedFight : f,
-      );
-      onFightsUpdate(updatedFights);
-
-      // Update event stats
-      const updatedEvent = {
-        ...eventDetailData.event,
-        completedFights: updatedFights.filter(
-          (f: Fight) => f.status === "completed",
-        ).length,
-        totalFights: updatedFights.length,
-      };
-      onEventUpdate(updatedEvent);
-    }
-  };
-
-  const handleEventAction = async (action: string) => {
-    setOperationInProgress(`event-${action}`);
-    try {
-      let response;
-      switch (action) {
-        case "start-stream":
-          response = await eventsAPI.startStream(eventId);
-          break;
-        case "stop-stream":
-          response = await eventsAPI.stopStream(eventId);
-          break;
-        default:
-          break;
-      }
-
-      if (response && response.success) {
-        // Update event data if needed
-        onEventUpdate({ ...eventDetailData.event });
-      }
-    } catch (err) {
-      console.error(`Error in ${action}:`, err);
-    } finally {
-      setOperationInProgress(null);
-    }
+  const handleFightUpdateLocal = (updatedFight: Fight) => {
+    console.log("✅ FightsControlTab: Fight updated, calling parent callback:", updatedFight);
+    onFightUpdated(updatedFight);
+    setIsEditFightModalOpen(false);
+    setSelectedFightForEdit(null);
   };
 
   return (
@@ -136,7 +98,7 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                     key={`${fight.id}-${fight.updatedAt}`}
                     fight={fight}
                     eventId={eventId}
-                    onFightUpdate={handleFightUpdate}
+                    onFightUpdate={handleFightUpdateLocal}
                   />
                 </div>
                 <div className="flex space-x-1">
@@ -197,7 +159,7 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
         <CreateFightModal
           eventId={eventId}
           onClose={() => setIsCreateFightModalOpen(false)}
-          onFightCreated={handleFightCreated}
+          onFightCreated={handleFightCreatedLocal}
         />
       )}
 
@@ -206,7 +168,7 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
         <EditFightModal
           fight={selectedFightForEdit}
           onClose={() => setIsEditFightModalOpen(false)}
-          onFightUpdated={handleFightUpdate}
+          onFightUpdated={handleFightUpdateLocal}
         />
       )}
     </div>

@@ -50,7 +50,7 @@ const PremiumEventCard = memo(({ event }: { event: EventData }) => {
   return (
     <div
       onClick={handleClick}
-      className="group relative overflow-hidden bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 p-0 rounded-xl cursor-pointer border border-white hover:border-red-500/50 transition-all duration-300 shadow-lg shadow-white hover:shadow-red-500/10"
+      className="group relative overflow-hidden bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 p-0 rounded-xl cursor-pointer border border-gray-300 hover:border-red-500/50 transition-all duration-300 shadow-lg hover:shadow-red-500/10"
     >
       {/* Glow Effect on Hover */}
       <div className="absolute inset-0 bg-red-200/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />

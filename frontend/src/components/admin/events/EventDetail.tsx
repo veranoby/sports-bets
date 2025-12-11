@@ -88,6 +88,36 @@ const EventDetail: React.FC<EventDetailProps> = ({
     handleResumeStream,
   } = useStreamControl();
 
+  // ✅ Local wrapper to update state after status change (matching EventList pattern)
+  const handleStatusChange = async (eventId: string, action: string) => {
+    try {
+      console.log("🔄 EventDetail handleStatusChange called:", { eventId, action });
+      const updatedEvent = await onEventAction(eventId, action);
+      console.log("📦 EventDetail received updatedEvent:", updatedEvent);
+
+      if (!updatedEvent) {
+        console.warn("⚠️ No updated event returned - SSE will handle update");
+        return;
+      }
+
+      // ✅ OPTIMISTIC UPDATE: Immediately update local state
+      setEventDetailData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          event: {
+            ...prev.event,
+            ...updatedEvent,
+            venue: updatedEvent.venue || prev.event.venue,
+            operator: updatedEvent.operator || prev.event.operator,
+          },
+        };
+      });
+    } catch (err) {
+      console.error("❌ Error changing status in EventDetail:", err);
+    }
+  };
+
   // SSE listener for event status changes
   useEffect(() => {
     if (!eventId) return;
@@ -169,6 +199,28 @@ const EventDetail: React.FC<EventDetailProps> = ({
       });
     }
     setIsCreateFightModalOpen(false);
+  };
+
+  // ✅ Handler directo para fight update (matching handleEventUpdated pattern)
+  const handleFightUpdated = (updatedFight: Fight) => {
+    console.log("🔄 EventDetail handleFightUpdated called:", updatedFight);
+    if (eventDetailData) {
+      const updatedFights = eventDetailData.fights.map((f: Fight) =>
+        f.id === updatedFight.id ? updatedFight : f,
+      );
+      console.log("📦 EventDetail updated fights:", updatedFights);
+      setEventDetailData({
+        ...eventDetailData,
+        fights: updatedFights,
+        event: {
+          ...eventDetailData.event,
+          completedFights: updatedFights.filter(
+            (f: Fight) => f.status === "completed",
+          ).length,
+          totalFights: updatedFights.length,
+        },
+      });
+    }
   };
 
   const handleEventUpdated = (updatedEvent: Event) => {
@@ -346,9 +398,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 <span>Estado:</span>
                 <StatusChanger
                   event={eventDetailData.event}
-                  onStatusChange={(eventId, action) =>
-                    onEventAction(eventId, action)
-                  }
+                  onStatusChange={handleStatusChange}
                 />
               </div>
               {onPermanentDelete && (
@@ -662,30 +712,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
               eventDetailData={eventDetailData}
               selectedFightId={selectedFightId}
               onFightSelect={setSelectedFightId}
-              onFightsUpdate={(fights) => {
-                if (eventDetailData) {
-                  setEventDetailData({
-                    ...eventDetailData,
-                    fights,
-                    event: {
-                      ...eventDetailData.event,
-                      completedFights: fights.filter(
-                        (f: Fight) => f.status === "completed",
-                      ).length,
-                      totalFights: fights.length,
-                    },
-                  });
-                }
-              }}
-              onEventUpdate={(event) => {
-                if (eventDetailData) {
-                  setEventDetailData({
-                    ...eventDetailData,
-                    event,
-                    fights: eventDetailData.fights || [],
-                  });
-                }
-              }}
+              onFightCreated={handleFightCreated}
+              onFightUpdated={handleFightUpdated}
             />
           </div>
 

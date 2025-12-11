@@ -24,7 +24,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 
 // ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
-import { useEvents, useFights, useBets } from "../../hooks/useApi";
+import { useEvents, useBets } from "../../hooks/useApi";
 import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useAuth } from "../../contexts/AuthContext";
@@ -75,6 +75,7 @@ interface EventData {
   description?: string;
   status: "scheduled" | "in-progress" | "completed" | "cancelled";
   scheduledDate: string;
+  fights: Fight[]; // Ensure fights are part of the event data
   venue?: {
     id: string;
     name: string;
@@ -110,6 +111,12 @@ const FightPreviewModal = memo(
     onClose: () => void;
   }) => {
     const navigate = useNavigate();
+    console.log("📱 FightPreviewModal: Recibió props:", {
+      fightsCount: fights.length,
+      currentFight,
+      completedFightsCount: completedFights.length,
+      scheduledFightsCount: scheduledFights.length,
+    });
 
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -198,9 +205,7 @@ const FightPreviewModal = memo(
             {/* Scheduled/Upcoming Fights */}
             {scheduledFights.length > 0 && (
               <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  Próximas Peleas
-                </h3>
+                <h3 className="font-semibold text-lg mb-2">Próximas Peleas</h3>
                 <div className="space-y-2">
                   {scheduledFights.map((fight) => (
                     <div key={fight.id} className="bg-blue-50 p-3 rounded-lg">
@@ -210,7 +215,9 @@ const FightPreviewModal = memo(
                           {fight.blueCorner}
                         </span>
                         <span className="text-blue-600 text-sm">
-                          {fight.status === "betting" ? "Apuestas Abiertas" : "Programada"}
+                          {fight.status === "betting"
+                            ? "Apuestas Abiertas"
+                            : "Programada"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center mt-2">
@@ -231,12 +238,14 @@ const FightPreviewModal = memo(
             )}
 
             {/* Empty State */}
-            {!currentFight && completedFights.length === 0 && scheduledFights.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Scale className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No hay peleas programadas para este evento</p>
-              </div>
-            )}
+            {!currentFight &&
+              completedFights.length === 0 &&
+              scheduledFights.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Scale className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No hay peleas programadas para este evento</p>
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -516,7 +525,6 @@ const LiveEvent = () => {
   // ✅ FIXED: Use singleEvent state for individual event
   const { fetchEventById, singleEventLoading, singleEventError } = useEvents();
 
-  const { fights, fetchFights } = useFights();
   const { bets, fetchAvailableBets, acceptBet } = useBets();
   const { isBettingEnabled } = useFeatureFlags();
 
@@ -535,49 +543,33 @@ const LiveEvent = () => {
   // ✅ FIXED: Fetch individual event with proper error handling + DEEP DEBUG
   const loadEventData = useCallback(async () => {
     if (!eventId) {
-      console.log("🚫 loadEventData: No eventId provided");
       return;
     }
-
-    console.log("🔄 loadEventData: Starting fetch for eventId:", eventId);
 
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch evento específico por ID
-      console.log("📡 Calling fetchEventById...");
+      // Fetch evento específico por ID (ya incluye las peleas)
       const response = await fetchEventById(eventId);
-      console.log("📦 fetchEventById response:", response);
 
       if (response?.success && response.data) {
-        console.log("✅ Setting currentEvent with data:", response.data);
+        console.log("✅ LiveEvent loadEventData: response.data =", response.data);
+        console.log("🥊 LiveEvent: fights in response =", response.data.fights);
         setCurrentEvent(response.data as EventData);
       } else if (!response?.success) {
-        console.error(
-          "❌ API returned unsuccessful response:",
-          response?.error,
-        );
         throw new Error(response?.error || "Error al cargar evento");
       } else {
-        console.error("❌ No data in response despite success=true");
         throw new Error("No se recibió información del evento");
       }
-
-      // Fetch related fights
-      console.log("🥊 Fetching fights for eventId:", eventId);
-      await Promise.all([fetchFights({ eventId })]);
-      console.log("✅ Fights fetched successfully");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error cargando evento";
-      console.error("❌ Error in loadEventData:", err);
       setError(errorMessage);
     } finally {
-      console.log("🏁 loadEventData: Setting loading to FALSE");
       setLoading(false);
     }
-  }, [eventId, fetchEventById, fetchFights]);
+  }, [eventId, fetchEventById]);
 
   // ✅ WebSocket room management
   useEffect(() => {
@@ -601,17 +593,15 @@ const LiveEvent = () => {
     eventSource.onmessage = (e) => {
       try {
         const parsedData = JSON.parse(e.data);
-        console.log("📡 SSE event received (LiveEvent):", parsedData);
 
-        // Handle fight updates
+        // Handle fight updates - Recarga todo el evento para mantener la consistencia
         if (
           parsedData.type === "FIGHT_STATUS_UPDATE" ||
           parsedData.type === "FIGHT_UPDATED"
         ) {
           const fightData = parsedData.data;
           if (fightData?.eventId === eventId) {
-            console.log("🥊 Refetching fights due to SSE update");
-            fetchFights({ eventId });
+            loadEventData();
           }
         }
 
@@ -622,7 +612,6 @@ const LiveEvent = () => {
         ) {
           const betData = parsedData.data;
           if (betData?.eventId === eventId) {
-            console.log("💰 Refetching bets due to SSE update");
             fetchAvailableBets(eventId);
           }
         }
@@ -636,10 +625,16 @@ const LiveEvent = () => {
         ) {
           const eventData = parsedData.data;
           if (eventData?.id === eventId) {
-            console.log("📺 Updating event data from SSE");
-            setCurrentEvent((prev) =>
-              prev ? { ...prev, ...eventData } : null,
-            );
+            console.log("📡 SSE event update received:", eventData);
+            setCurrentEvent((prev) => {
+              if (!prev) return null;
+              // ✅ Preserve fights - SSE payload only includes status/stream info
+              return {
+                ...prev,
+                ...eventData,
+                fights: prev.fights, // ✅ Keep existing fights array
+              };
+            });
           }
         }
       } catch (error) {
@@ -653,10 +648,9 @@ const LiveEvent = () => {
     };
 
     return () => {
-      console.log("🔌 Closing SSE connection for event", eventId);
       eventSource.close();
     };
-  }, [eventId, fetchFights, fetchAvailableBets]);
+  }, [eventId, fetchAvailableBets, loadEventData]);
 
   // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
   // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
@@ -665,7 +659,6 @@ const LiveEvent = () => {
   useWebSocketListener(
     "pago_proposal",
     useCallback((data: any) => {
-      console.log("🤝 Propuesta PAGO recibida:", data);
       // Handle PAGO proposal (bidirectional communication required)
       // Add implementation for handling PAGO proposals
     }, []),
@@ -674,7 +667,6 @@ const LiveEvent = () => {
   useWebSocketListener(
     "doy_proposal",
     useCallback((data: any) => {
-      console.log("🤝 Propuesta DOY recibida:", data);
       // Handle DOY proposal (bidirectional communication required)
       // Add implementation for handling DOY proposals
     }, []),
@@ -682,7 +674,6 @@ const LiveEvent = () => {
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {
-    console.log("🎬 useEffect triggered for eventId:", eventId);
     loadEventData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
@@ -705,7 +696,6 @@ const LiveEvent = () => {
 
   const handleCreateBet = useCallback(() => {
     // TODO: Abrir modal de crear apuesta
-    console.log("🎯 Crear nueva apuesta");
   }, []);
 
   // ✅ FIXED: Only show spinner while loading event data
@@ -744,12 +734,20 @@ const LiveEvent = () => {
   const availableBets = (bets?.filter((bet) => bet.status === "active") ||
     []) as Bet[];
   const myBets = bets?.filter((bet) => bet.userId === user?.id) || [];
-  const currentFight = fights?.find((fight) => fight.status === "live");
+  
+  // CORRECTED: Fights are now derived from currentEvent
+  const allFights = currentEvent?.fights || [];
+  console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
+  console.log("🥊 LiveEvent render: allFights =", allFights);
+  const currentFight = allFights.find((fight) => fight.status === "live");
 
   // ✅ Fights separation for modal
-  const allFights = fights || [];
   const completedFights = allFights.filter((f) => f.status === "completed");
-  const scheduledFights = allFights.filter((f) => f.status === "scheduled" || f.status === "betting");
+  const scheduledFights = allFights.filter(
+    (f) => f.status === "scheduled" || f.status === "betting" || f.status === "upcoming",
+  );
+  console.log("📊 LiveEvent: completedFights =", completedFights.length);
+  console.log("📊 LiveEvent: scheduledFights =", scheduledFights.length);
 
   return (
     <SubscriptionGuard
@@ -781,7 +779,7 @@ const LiveEvent = () => {
               </div>
               <div className="flex items-center gap-1">
                 <Activity className="w-3 h-3" />
-                <span>{fights?.length || 0} peleas programadas</span>
+                <span>{(currentEvent?.fights || []).length} peleas programadas</span>
               </div>
             </div>
           </div>
@@ -866,7 +864,14 @@ const LiveEvent = () => {
               )}
             </h3>
             <button
-              onClick={() => setShowFightModal(true)}
+              onClick={() => {
+                console.log("🔘 Ver todas clicked. Opening modal with:", {
+                  allFightsCount: allFights.length,
+                  completedFightsCount: completedFights.length,
+                  scheduledFightsCount: scheduledFights.length,
+                });
+                setShowFightModal(true);
+              }}
               className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
             >
               Ver todas
@@ -952,13 +957,20 @@ const LiveEvent = () => {
 
         {/* ✅ Fight Preview Modal */}
         {showFightModal && (
-          <FightPreviewModal
-            fights={allFights}
-            currentFight={currentFight}
-            completedFights={completedFights}
-            scheduledFights={scheduledFights}
-            onClose={() => setShowFightModal(false)}
-          />
+          <>
+            {console.log("🎬 Rendering FightPreviewModal with:", {
+              allFightsCount: allFights.length,
+              completedFightsCount: completedFights.length,
+              scheduledFightsCount: scheduledFights.length,
+            })}
+            <FightPreviewModal
+              fights={allFights}
+              currentFight={currentFight}
+              completedFights={completedFights}
+              scheduledFights={scheduledFights}
+              onClose={() => setShowFightModal(false)}
+            />
+          </>
         )}
       </div>
     </SubscriptionGuard>

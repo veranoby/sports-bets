@@ -142,6 +142,31 @@ POST /api/sse/admin/test-broadcast
 
 ---
 
+## Public SSE Endpoints
+
+### Base URL: `/api/sse/public/`
+
+Public SSE endpoints for authenticated users (not admin/operator).
+
+### 1. Event-Specific Updates
+```
+GET /api/sse/public/events/:eventId
+```
+- **Authentication**: User-level (any authenticated role)
+- **Purpose**: Real-time updates for specific event (fights, status, stream info)
+- **Events**: `FIGHT_STATUS_UPDATE`, `FIGHT_UPDATED`, `EVENT_ACTIVATED`, `EVENT_COMPLETED`, `STREAM_STARTED`, `STREAM_STOPPED`, `NEW_BET`, `BET_MATCHED`
+- **Query Parameters**:
+  - `token`: JWT token for authentication (can be passed in query for SSE)
+- **Response Format**: Server-Sent Events stream with JSON-formatted event data
+- **Example Event**:
+  ```
+  event: FIGHT_STATUS_UPDATE
+  data: {"id":"uuid","type":"FIGHT_STATUS_UPDATE","data":{"fightId":"...","eventId":"...","status":"live"},"timestamp":"2025-12-11T00:37:20.815Z"}
+  ```
+- **Implementation**: Used by LiveEvent.tsx component for real-time fight/event updates
+
+---
+
 ## Event Types
 
 ### System Events

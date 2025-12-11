@@ -89,6 +89,57 @@
           "performance_impact": "100% SDD compliance achieved - SSE for all read operations, WebSocket only for PAGO/DOY bidirectional timeout-based proposals",
           "completion_date": "2025-12-10"
         },
+        "live_event_fight_loading_fix": {
+          "description": "✅ Fixed LiveEvent fight modal loading issue (2025-12-11)",
+          "root_cause": [
+            "LiveEvent was using useFights() hook without eventId parameter",
+            "Hook had race condition between auto-fetch (all fights) and manual fetch (event-specific)",
+            "SSE listener was overwriting fights array with partial payload data",
+            "Fight status filter was missing 'upcoming' status"
+          ],
+          "fixes_applied": [
+            "Removed useFights() hook from LiveEvent - data now sourced from currentEvent.fights only",
+            "Updated loadEventData to use fetchEventById(eventId) which includes fights in response",
+            "Fixed SSE listener to preserve fights array when updating currentEvent",
+            "Fixed fight status filter: now includes 'scheduled' | 'betting' | 'upcoming'",
+            "Reordered variable declarations: allFights first, then currentFight derived from it"
+          ],
+          "implementation_details": {
+            "file": "frontend/src/pages/user/LiveEvent.tsx",
+            "key_changes": [
+              "Line 519: Removed useFights hook",
+              "Line 548: Use fetchEventById response which includes fights array",
+              "Line 551-552: Log response.data.fights for verification",
+              "Line 620-629: SSE listener preserves prev.fights during merge",
+              "Line 747: Fight filter includes 'upcoming' status",
+              "Line 733-750: Reordered allFights before currentFight"
+            ]
+          },
+          "result": "Fight modal now displays all fights correctly with proper status categorization"
+        },
+        "event_detail_fight_editing_fix": {
+          "description": "✅ Fixed EventDetail fight editing not updating frontend (2025-12-11)",
+          "root_cause": "FightsControlTab was using stale eventDetailData prop for state updates instead of parent callback",
+          "fixes_applied": [
+            "Added handleFightUpdated in EventDetail for direct state updates (matching handleEventUpdated pattern)",
+            "Simplified FightsControlTab props: onFightCreated, onFightUpdated callbacks",
+            "Removed complex state mapping logic from FightsControlTab",
+            "Handlers now pass fight data directly to parent for state management"
+          ],
+          "implementation_details": {
+            "files": [
+              "frontend/src/components/admin/events/EventDetail.tsx",
+              "frontend/src/components/admin/FightsControlTab.tsx"
+            ],
+            "key_changes": [
+              "EventDetail.tsx:205-224 - New handleFightUpdated for optimistic updates",
+              "EventDetail.tsx:715-716 - Pass handlers to FightsControlTab",
+              "FightsControlTab.tsx:17-18 - Simplified callback-based props",
+              "FightsControlTab.tsx:44-49 - Minimal handlers that just manage modals + call callbacks"
+            ]
+          },
+          "result": "Fight editing updates frontend immediately via optimistic update pattern"
+        },
         "rationale": "SSE has 5-10% lower CPU overhead vs WebSocket for server→client. Optimistic updates provide instant UI feedback. Dual broadcast ensures all admin components stay synchronized."
       },
       "api_design": "RESTful con suplementos SSE"
