@@ -144,30 +144,24 @@ const FightPreviewModal = memo(
                 <div className="bg-red-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div className="text-center">
-                      <p className="font-medium">{currentFight.redCorner}</p>
-                      <p className="text-sm text-gray-600">Esquina Roja</p>
+                      <p className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500 ">{currentFight.redCorner}</p>
+                      <p className="text-xs text-gray-500">Esquina Roja</p>
                     </div>
 
-                    <div className="text-center">
-                      <Scale className="w-5 h-5 text-gray-700 mx-auto mb-1" />
-                      <p className="text-sm">{currentFight.weight}kg</p>
-                      <p className="text-xs text-gray-500">Peso</p>
-                    </div>
+                    {currentFight.weight && (
+                      <div className="text-center">
+                        <Scale className="w-4 h-4 text-gray-700 mx-auto mb-1" />
+                        <p className="text-xs">{currentFight.weight}kg</p>
+                        <p className="text-xs text-gray-500">Peso</p>
+                      </div>
+                    )}
 
                     <div className="text-center">
-                      <p className="font-medium">{currentFight.blueCorner}</p>
-                      <p className="text-sm text-gray-600">Esquina Azul</p>
+                      <p className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">{currentFight.blueCorner}</p>
+                      <p className="text-xs text-gray-500">Esquina Azul</p>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() =>
-                      navigate(`/live-event/${currentFight.eventId}`)
-                    }
-                    className="w-full mt-3 btn-primary py-2"
-                  >
-                    Ver Detalles
-                  </button>
                 </div>
               </div>
             )}
@@ -210,27 +204,20 @@ const FightPreviewModal = memo(
                   {scheduledFights.map((fight) => (
                     <div key={fight.id} className="bg-blue-50 p-3 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span>
-                          {fight.number}. {fight.redCorner} vs{" "}
-                          {fight.blueCorner}
-                        </span>
-                        <span className="text-blue-600 text-sm">
+                        <p>
+                          {fight.number}. <span className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500">{fight.redCorner}</span> vs{" "}
+                          <span className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">{fight.blueCorner}</span>
+                        </p>
+                        <p className="text-blue-600 text-sm">
                           {fight.status === "betting"
                             ? "Apuestas Abiertas"
                             : "Programada"}
-                        </span>
+                        </p>
                       </div>
-                      <div className="flex justify-between items-center mt-2">
+                      {fight.weight && (<div className="flex justify-between items-center mt-2">
                         <span className="text-sm">{fight.weight}kg</span>
-                        <button
-                          onClick={() =>
-                            navigate(`/live-event/${fight.eventId}`)
-                          }
-                          className="btn-primary py-1 px-2 text-sm"
-                        >
-                          Ver
-                        </button>
-                      </div>
+
+                      </div>)}
                     </div>
                   ))}
                 </div>
@@ -416,11 +403,10 @@ const BettingPanel = memo(
               <button
                 onClick={onCreateBet}
                 disabled={isVenueRole}
-                className={`px-3 py-1 text-xs rounded ${
-                  isVenueRole
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
+                className={`px-3 py-1 text-xs rounded ${isVenueRole
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
               >
                 Crear Nueva
               </button>
@@ -446,13 +432,12 @@ const BettingPanel = memo(
                     <div className="flex justify-between mt-1">
                       <span>Lado: {bet.side}</span>
                       <span
-                        className={`px-1 rounded ${
-                          bet.status === "active"
-                            ? "text-blue-500"
-                            : bet.status === "won"
-                              ? "text-green-500"
-                              : "text-red-500"
-                        }`}
+                        className={`px-1 rounded ${bet.status === "active"
+                          ? "text-blue-500"
+                          : bet.status === "won"
+                            ? "text-green-500"
+                            : "text-red-500"
+                          }`}
                       >
                         {bet.status === "active"
                           ? "Activa"
@@ -497,11 +482,10 @@ const BettingPanel = memo(
                     <button
                       onClick={() => onAcceptBet(bet.id)}
                       disabled={isVenueRole}
-                      className={`w-full mt-2 py-1 rounded text-xs ${
-                        isVenueRole
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-green-500 text-white hover:bg-green-600"
-                      }`}
+                      className={`w-full mt-2 py-1 rounded text-xs ${isVenueRole
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-green-500 text-white hover:bg-green-600"
+                        }`}
                     >
                       Aceptar
                     </button>
@@ -554,7 +538,10 @@ const LiveEvent = () => {
       const response = await fetchEventById(eventId);
 
       if (response?.success && response.data) {
-        console.log("✅ LiveEvent loadEventData: response.data =", response.data);
+        console.log(
+          "✅ LiveEvent loadEventData: response.data =",
+          response.data,
+        );
         console.log("🥊 LiveEvent: fights in response =", response.data.fights);
         setCurrentEvent(response.data as EventData);
       } else if (!response?.success) {
@@ -594,25 +581,40 @@ const LiveEvent = () => {
       try {
         const parsedData = JSON.parse(e.data);
 
-        // Handle fight updates - Recarga todo el evento para mantener la consistencia
+        // ✅ SSE RECONCILIATION PATTERN: Update state directly without refetch
+        // Handle fight updates - Use SSE data to reconcile fights array
         if (
           parsedData.type === "FIGHT_STATUS_UPDATE" ||
           parsedData.type === "FIGHT_UPDATED"
         ) {
           const fightData = parsedData.data;
-          if (fightData?.eventId === eventId) {
-            loadEventData();
+          if (fightData?.eventId === eventId && fightData?.id) {
+            console.log("🥊 SSE fight update received:", fightData);
+            setCurrentEvent((prev) => {
+              if (!prev) return null;
+              // Reconcile: Update specific fight in array
+              return {
+                ...prev,
+                fights: prev.fights.map((fight) =>
+                  fight.id === fightData.id
+                    ? { ...fight, ...fightData } // Merge SSE data
+                    : fight
+                ),
+              };
+            });
           }
         }
 
-        // Handle bet updates
+        // Handle bet updates - Trust useBets hook, SSE is notification only
         if (
           parsedData.type === "NEW_BET" ||
           parsedData.type === "BET_MATCHED"
         ) {
           const betData = parsedData.data;
           if (betData?.eventId === eventId) {
-            fetchAvailableBets(eventId);
+            console.log("💰 SSE bet update received:", betData);
+            // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
+            // No need for manual fetchAvailableBets call - prevents 429
           }
         }
 
@@ -650,7 +652,7 @@ const LiveEvent = () => {
     return () => {
       eventSource.close();
     };
-  }, [eventId, fetchAvailableBets, loadEventData]);
+  }, [eventId]); // ✅ FIXED: Only eventId in deps - prevents SSE connection recreation
 
   // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
   // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
@@ -734,7 +736,7 @@ const LiveEvent = () => {
   const availableBets = (bets?.filter((bet) => bet.status === "active") ||
     []) as Bet[];
   const myBets = bets?.filter((bet) => bet.userId === user?.id) || [];
-  
+
   // CORRECTED: Fights are now derived from currentEvent
   const allFights = currentEvent?.fights || [];
   console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
@@ -744,7 +746,10 @@ const LiveEvent = () => {
   // ✅ Fights separation for modal
   const completedFights = allFights.filter((f) => f.status === "completed");
   const scheduledFights = allFights.filter(
-    (f) => f.status === "scheduled" || f.status === "betting" || f.status === "upcoming",
+    (f) =>
+      f.status === "scheduled" ||
+      f.status === "betting" ||
+      f.status === "upcoming",
   );
   console.log("📊 LiveEvent: completedFights =", completedFights.length);
   console.log("📊 LiveEvent: scheduledFights =", scheduledFights.length);
@@ -779,7 +784,9 @@ const LiveEvent = () => {
               </div>
               <div className="flex items-center gap-1">
                 <Activity className="w-3 h-3" />
-                <span>{(currentEvent?.fights || []).length} peleas programadas</span>
+                <span>
+                  {(currentEvent?.fights || []).length} peleas programadas
+                </span>
               </div>
             </div>
           </div>
@@ -802,106 +809,109 @@ const LiveEvent = () => {
           </span>
         </nav>
 
-        {/* ✅ Row 1: Event and Venue Information */}
-        <div className="mx-4 mb-4 card-background p-4 rounded-lg border border-[#596c95]/30">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-theme-primary">
-                {currentEvent.name}
-              </h2>
-              <div className="flex items-center gap-2 mt-1">
-                <MapPin className="w-4 h-4 text-theme-light" />
-                <span className="text-sm text-theme-light">
-                  {currentEvent.venue?.profileInfo?.venueName ||
-                    "Ubicación por confirmar"}
-                </span>
+        {/* ✅ Row 1 & 1.5 Combined: Event Info & Current Fight */}
+        <div className="mx-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Column 1: Event and Venue Information */}
+          <div className="card-background p-4 rounded-lg border border-[#596c95]/30 h-full">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 h-full">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-theme-primary">
+                  {currentEvent.name}
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <MapPin className="w-4 h-4 text-theme-light" />
+                  <span className="text-sm text-theme-light">
+                    {currentEvent.venue?.profileInfo?.venueName ||
+                      "Ubicación por confirmar"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="w-4 h-4 text-theme-light" />
+                  <span className="text-sm text-theme-light">
+                    {new Date(currentEvent.scheduledDate).toLocaleString(
+                      "es-ES",
+                      {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <Calendar className="w-4 h-4 text-theme-light" />
-                <span className="text-sm text-theme-light">
-                  {new Date(currentEvent.scheduledDate).toLocaleString(
-                    "es-ES",
-                    {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    },
-                  )}
-                </span>
-              </div>
+              <button
+                onClick={() => {
+                  if (currentEvent.venue?.id) {
+                    navigate(`/venues/${currentEvent.venue.id}`);
+                  }
+                }}
+                className="px-4 py-2 bg-[#596c95] text-white rounded-lg text-sm hover:bg-[#596c95]/80 transition-colors flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Ver información de la gallera
+              </button>
             </div>
-            <button
-              onClick={() => {
-                if (currentEvent.venue?.id) {
-                  navigate(`/venues/${currentEvent.venue.id}`);
-                }
-              }}
-              className="px-4 py-2 bg-[#596c95] text-white rounded-lg text-sm hover:bg-[#596c95]/80 transition-colors flex items-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              Ver información de la gallera
-            </button>
-          </div>
-        </div>
-
-        {/* ✅ Row 1.5: Current Fight Header (Always Visible) */}
-        <div className="mx-4 mb-4 card-background p-4 rounded-lg border border-[#596c95]/30">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-semibold text-theme-primary flex items-center gap-2">
-              {currentFight ? (
-                <>
-                  <Scale className="w-4 h-4" />
-                  Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
-                  {currentFight.blueCorner}
-                </>
-              ) : (
-                <>
-                  <Scale className="w-4 h-4" />
-                  No hay pelea activa
-                </>
-              )}
-            </h3>
-            <button
-              onClick={() => {
-                console.log("🔘 Ver todas clicked. Opening modal with:", {
-                  allFightsCount: allFights.length,
-                  completedFightsCount: completedFights.length,
-                  scheduledFightsCount: scheduledFights.length,
-                });
-                setShowFightModal(true);
-              }}
-              className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
-            >
-              Ver todas
-            </button>
           </div>
 
-          {currentFight && (
-            <div className="flex items-center justify-between">
-              <div className="text-center">
-                <p className="font-medium text-theme-primary">
-                  {currentFight.redCorner}
-                </p>
-                <p className="text-xs text-theme-light">Esquina Roja</p>
-              </div>
-
-              <div className="text-center">
-                <Scale className="w-5 h-5 text-theme-light mx-auto" />
-                <p className="text-xs text-theme-light">
-                  {currentFight.weight}kg
-                </p>
-              </div>
-
-              <div className="text-center">
-                <p className="font-medium text-theme-primary">
-                  {currentFight.blueCorner}
-                </p>
-                <p className="text-xs text-theme-light">Esquina Azul</p>
-              </div>
+          {/* Column 2: Current Fight Header (Always Visible) */}
+          <div className="card-background p-4 rounded-lg border border-[#596c95]/30 h-full">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-theme-primary flex items-center gap-2">
+                {currentFight ? (
+                  <>
+                    <Scale className="w-4 h-4" />
+                    Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
+                    {currentFight.blueCorner}
+                  </>
+                ) : (
+                  <>
+                    <Scale className="w-4 h-4" />
+                    No hay pelea activa
+                  </>
+                )}
+              </h3>
+              <button
+                onClick={() => {
+                  console.log("🔘 Ver todas clicked. Opening modal with:", {
+                    allFightsCount: allFights.length,
+                    completedFightsCount: completedFights.length,
+                    scheduledFightsCount: scheduledFights.length,
+                  });
+                  setShowFightModal(true);
+                }}
+                className="text-xs bg-[#596c95]/20 text-theme-primary px-2 py-1 rounded hover:bg-[#596c95]/40"
+              >
+                Ver todas
+              </button>
             </div>
-          )}
+
+            {currentFight && (
+              <div className="flex items-center justify-between">
+                <div className="text-center">
+                  <p className="font-medium text-theme-primary">
+                    {currentFight.redCorner}
+                  </p>
+                  <p className="text-xs text-theme-light">Esquina Roja</p>
+                </div>
+
+                <div className="text-center">
+                  <Scale className="w-5 h-5 text-theme-light mx-auto" />
+                  <p className="text-xs text-theme-light">
+                    {currentFight.weight}kg
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="font-medium text-theme-primary">
+                    {currentFight.blueCorner}
+                  </p>
+                  <p className="text-xs text-theme-light">Esquina Azul</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ✅ Row 2: Conditional Video Player */}
