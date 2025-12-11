@@ -50,60 +50,65 @@ const PremiumEventCard = memo(({ event }: { event: EventData }) => {
   return (
     <div
       onClick={handleClick}
-      className="group relative overflow-hidden bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 p-0 rounded-xl cursor-pointer border border-gray-300 hover:border-red-500/50 transition-all duration-300 shadow-lg hover:shadow-red-500/10"
+      className="group relative overflow-hidden bg-[#1e293b]/80 backdrop-blur-sm p-0 rounded-2xl cursor-pointer border border-white/5 hover:border-white/10 hover:bg-[#1e293b] transition-all duration-300 shadow-xl shadow-black/20"
     >
-      {/* Glow Effect on Hover */}
-      <div className="absolute inset-0 bg-red-200/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="p-5 relative z-10">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-5">
+          <div className="flex-1 min-w-0 mr-3">
+            <h3 className="text-base font-medium text-gray-200 mb-1 group-hover:text-white transition-colors truncate leading-tight">
+              {event.name.toUpperCase()}
+            </h3>
+            <div className="flex items-center gap-1.5 text-gray-200 text-xs">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{venueName}</span>
+            </div>
+          </div>
 
-      <div className="p-5">
-        {/* Title & Venue */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-800 mb-1 leading-tight group-hover:text-red-400 transition-colors flex items-center justify-between gap-2">
-            <span className="truncate">{event.name}</span>
-            <span className="flex items-center gap-1 text-xs font-mono text-green-100 whitespace-nowrap bg-green-400 px-2 py-0.5 rounded border border-green-400/20">
-              <Wifi className="w-3 h-3" />
-              ON AIR
+          {/* Live Badge - Subtle & Modern */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/5 border border-red-200/10 group-hover:bg-red-500/10 transition-colors">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
             </span>
-          </h3>
-          <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="truncate">{venueName}</span>
+            <span className="text-[10px] font-medium text-red-200/80 tracking-wider">
+              LIVE
+            </span>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-gradient-to-br from-gray-200  to-gray-300 rounded-lg p-2.5 ">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-gray">Espectadores</span>
-            </div>
-            <span className="text-lg font-bold text-white font-mono">
+        {/* Stats Row - Minimalist & Clean */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-black/20 border border-white/5 group-hover:border-white/10 transition-colors">
+            <span className="text-[10px] text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <Users className="w-3 h-3 opacity-70" /> Espectadores
+            </span>
+            <span className="text-base font-semibold text-gray-300 font-mono">
               {event.currentViewers?.toLocaleString() || "0"}
             </span>
           </div>
-
-          <div className="bg-gradient-to-br from-gray-200  to-gray-300 rounded-lg p-2.5 ">
-            <div className="flex items-center gap-2 mb-1">
-              <Activity className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-gray">Apuestas</span>
-            </div>
-            <span className="text-lg font-bold text-white font-mono">
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-black/20 border border-white/5 group-hover:border-white/10 transition-colors">
+            <span className="text-[10px] text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <Activity className="w-3 h-3 opacity-70" /> Apuestas
+            </span>
+            <span className="text-base font-semibold text-gray-300 font-mono">
               {event.activeBets?.toLocaleString() || "0"}
             </span>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="flex items-center justify-between pt-3 border-t border-[#2a325c]/30">
-          <span className="text-xs text-gray-500">
-            {new Date(event.scheduledDate).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-          <div className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
-            VER EVENTO <ArrowRight className="w-3.5 h-3.5" />
+        {/* Footer / CTA - Subtle */}
+        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+          <div className="flex items-center gap-2 text-gray-200">
+            <div className="p-1 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+              <Play className="w-3 h-3 text-gray-400" />
+            </div>
+            <span className="text-[10px] text-gray-200 uppercase tracking-wider">
+              Ir al evento
+            </span>
+          </div>
+          <div className="flex items-center justify-center w-6 h-6 rounded-full border border-white/5 text-gray-200 group-hover:text-gray-300 group-hover:border-white/20 transition-all">
+            <ArrowRight className="w-3 h-3" />
           </div>
         </div>
       </div>
@@ -170,25 +175,27 @@ const LiveEventsWidget: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-gray flex items-center gap-2">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>
+    <div className="space-y-6 animate-in fade-in duration-500 w-full">
+      {/* Header Centrado y Mejorado */}
+      <div className="flex flex-col items-center justify-center space-y-3 mb-6">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-gray text-center">
             Eventos en Vivo
           </h2>
-          <span className="bg-[#2a325c] text-xs text-white px-2 py-0.5 rounded-full">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2a325c] text-xs font-bold text-white shadow-lg shadow-blue-900/20 ring-1 ring-white/10">
             {liveEvents.length}
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         {liveEvents.map((event) => (
-          <PremiumEventCard key={event.id} event={event as EventData} />
+          <div
+            key={event.id}
+            className="w-full max-w-sm animate-in zoom-in duration-300"
+          >
+            <PremiumEventCard event={event as EventData} />
+          </div>
         ))}
       </div>
     </div>

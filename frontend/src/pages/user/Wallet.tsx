@@ -3,7 +3,7 @@
 // ELIMINADO: getUserThemeClasses() import y usage
 // APLICADO: Clases CSS estáticas directas
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   DollarSign,
   Plus,
@@ -58,7 +58,7 @@ Chart.register(
   Filler,
 );
 
-const WalletPage: React.FC = () => {
+const Wallet: React.FC = () => {
   const { isWalletEnabled } = useFeatureFlags(); // Added feature flag check
 
   // ❌ ELIMINADO: const theme = getUserThemeClasses();
@@ -79,23 +79,80 @@ const WalletPage: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data para el gráfico (hasta que tengamos datos reales)
-  const mockChartData = [
-    { date: "01/20", balance: 450.0 },
-    { date: "01/21", balance: 520.0 },
-    { date: "01/22", balance: 480.0 },
-    { date: "01/23", balance: 600.0 },
-    { date: "01/24", balance: 580.0 },
-    { date: "01/25", balance: wallet?.balance || 500.0 },
-  ];
+  // ✅ CALCULATE REAL BALANCE HISTORY
+  const balanceHistory = useMemo(() => {
+    if (!wallet || !recentTransactions) return [];
 
-  // Configuración del gráfico
+    let currentBalance = wallet.balance || 0;
+    const history = [];
+
+    // 1. Add current state (Now)
+    history.push({
+      date: "Actual",
+      balance: currentBalance,
+      timestamp: new Date().getTime(),
+    });
+
+    // 2. Sort transactions by date descending (newest first) to backtrack
+    const sortedTransactions = [...recentTransactions].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    // 3. Backtrack through transactions to calculate past balances
+    // Only consider completed/processed changes that affected balance
+    sortedTransactions.forEach((tx) => {
+      // Logic: If we are going BACKWARDS in time:
+      // - Deposit (+): means before this, balance was LOWER (- amount)
+      // - Withdraw (-): means before this, balance was HIGHER (+ amount)
+      // - Bet (-): means before this, balance was HIGHER (+ amount)
+      // - Win (+): means before this, balance was LOWER (- amount)
+
+      // Using 'any' cast because transaction types might vary slightly between API responses
+      const type = tx.type;
+      const amount = tx.amount;
+
+      if (tx.status === "completed" || tx.status === "active") {
+        // Assuming active bets deducted balance
+        let change = 0;
+        if (type === "deposit" || type === "win" || type === "bet-win") {
+          change = amount; // It added to balance, so previous was less
+          currentBalance -= change;
+        } else if (
+          type === "withdrawal" ||
+          type === "bet" ||
+          type === "bet-loss"
+        ) {
+          change = amount; // It removed from balance, so previous was more
+          currentBalance += change;
+        }
+
+        const date = new Date(tx.createdAt);
+        history.push({
+          date: `${date.getDate()}/${date.getMonth() + 1}`,
+          balance: currentBalance,
+          timestamp: date.getTime(),
+        });
+      }
+    });
+
+    // 4. Reverse to get chronological order (Oldest -> Newest) and take last 10 points
+    return history.reverse().slice(-10);
+  }, [wallet, recentTransactions]);
+
+  // Configuración del gráfico con datos reales
   const chartData = {
-    labels: mockChartData.map((item) => item.date),
+    labels:
+      balanceHistory.length > 0
+        ? balanceHistory.map((item) => item.date)
+        : ["Inicio", "Actual"],
     datasets: [
       {
         label: "Balance",
-        data: mockChartData.map((item) => item.balance),
+        data:
+          balanceHistory.length > 0
+            ? balanceHistory.map((item) => item.balance)
+            : [0, wallet?.balance || 0],
         borderColor: "#596c95",
         backgroundColor: "rgba(89, 108, 149, 0.1)",
         tension: 0.4,
@@ -238,145 +295,162 @@ const WalletPage: React.FC = () => {
   return (
     <div className="bg-theme-main text-theme-primary pb-24">
       <div className="p-4 space-y-6">
-        {/* Balance Principal */}
-        <Card className="card-background p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#596c95] to-[#4a5b80] rounded-full flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-theme-light">Balance Total</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Columna Izquierda: Balance y Estadísticas */}
+          <div className="space-y-6">
+            {/* Balance Principal */}
+            <Card className="card-background p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <p className="text-3xl font-bold text-theme-primary">
-                    {showBalance
-                      ? `$${Number(wallet?.balance || 0).toFixed(2)}`
-                      : "••••••"}
-                  </p>
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#596c95] to-[#4a5b80] rounded-full flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-theme-light">Balance Total</p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-3xl font-bold text-theme-primary">
+                        {showBalance
+                          ? `$${Number(wallet?.balance || 0).toFixed(2)}`
+                          : "••••••"}
+                      </p>
 
-                  <button
-                    onClick={handleRefreshBalance}
-                    disabled={refreshing}
-                    className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-theme-light hover:text-white disabled:opacity-50"
-                    title="Actualizar balance"
-                  >
-                    <RefreshCw
-                      className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
-                    />
-                  </button>
+                      <button
+                        onClick={handleRefreshBalance}
+                        disabled={refreshing}
+                        className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-theme-light hover:text-white disabled:opacity-50"
+                        title="Actualizar balance"
+                      >
+                        <RefreshCw
+                          className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+                        />
+                      </button>
 
-                  <button
-                    onClick={() => setShowBalance(!showBalance)}
-                    className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-theme-light hover:text-white"
-                    title={showBalance ? "Ocultar balance" : "Mostrar balance"}
-                  >
-                    {showBalance ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
+                      <button
+                        onClick={() => setShowBalance(!showBalance)}
+                        className="p-2 rounded-lg hover:bg-[#1a1f37] transition-colors text-theme-light hover:text-white"
+                        title={
+                          showBalance ? "Ocultar balance" : "Mostrar balance"
+                        }
+                      >
+                        {showBalance ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Saldo Congelado */}
-          {wallet?.frozenAmount && wallet.frozenAmount > 0 && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm text-yellow-400">
-                  Fondos congelados: ${wallet.frozenAmount.toFixed(2)}
-                </span>
+              {/* Saldo Congelado */}
+              {wallet?.frozenAmount && wallet.frozenAmount > 0 && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm text-yellow-400">
+                      Fondos congelados: ${wallet.frozenAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Acciones Principales */}
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setShowDepositModal(true)}
+                  className="btn-primary flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Depositar
+                </button>
+
+                <button
+                  onClick={() => setShowWithdrawModal(true)}
+                  className="btn-secondary flex items-center justify-center gap-2"
+                >
+                  <Minus className="w-4 h-4" />
+                  Retirar
+                </button>
               </div>
+            </Card>
+
+            {/* Estadísticas Rápidas */}
+            <div className="grid grid-cols-4 gap-2">
+              <Card className="card-background p-2 text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 bg-green-500/20 text-green-600 rounded-full flex items-center justify-center mb-1">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <p className="text-sm font-bold text-theme-primary">
+                  $
+                  {recentTransactions
+                    ?.filter((t) => t.type === "deposit")
+                    .reduce((sum, t) => sum + t.amount, 0)
+                    .toFixed(0) || "0"}
+                </p>
+                <p className="text-[10px] text-theme-light leading-tight">
+                  Depósitos
+                </p>
+              </Card>
+
+              <Card className="card-background p-2 text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mb-1">
+                  <TrendingDown className="w-4 h-4" />
+                </div>
+                <p className="text-sm font-bold text-theme-primary">
+                  $
+                  {recentTransactions
+                    ?.filter((t) => t.type === "withdrawal")
+                    .reduce((sum, t) => sum + t.amount, 0)
+                    .toFixed(0) || "0"}
+                </p>
+                <p className="text-[10px] text-theme-light leading-tight">
+                  Retiros
+                </p>
+              </Card>
+
+              <Card className="card-background p-2 text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 bg-blue-500/20 text-blue-600 rounded-full flex items-center justify-center mb-1">
+                  <CheckCircle className="w-4 h-4" />
+                </div>
+                <p className="text-sm font-bold text-theme-primary">
+                  {recentTransactions?.filter((t) => t.status === "completed")
+                    .length || 0}
+                </p>
+                <p className="text-[10px] text-theme-light leading-tight">
+                  Completas
+                </p>
+              </Card>
+
+              <Card className="card-background p-2 text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mb-1">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <p className="text-sm font-bold text-theme-primary">
+                  {recentTransactions?.filter((t) => t.status === "pending")
+                    .length || 0}
+                </p>
+                <p className="text-[10px] text-theme-light leading-tight">
+                  Pendientes
+                </p>
+              </Card>
             </div>
-          )}
-
-          {/* Acciones Principales */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => setShowDepositModal(true)}
-              className="btn-primary flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Depositar
-            </button>
-
-            <button
-              onClick={() => setShowWithdrawModal(true)}
-              className="btn-secondary flex items-center justify-center gap-2"
-            >
-              <Minus className="w-4 h-4" />
-              Retirar
-            </button>
           </div>
-        </Card>
 
-        {/* Gráfico de Balance */}
-        <Card className="card-background p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-theme-primary">
-              Historial de Balance
-            </h2>
-            <TrendingUp className="w-5 h-5 text-green-600" />
+          {/* Columna Derecha: Gráfico de Balance */}
+          <div className="h-full">
+            <Card className="card-background p-6 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h2 className="text-lg font-semibold text-theme-primary">
+                  Historial de Balance
+                </h2>
+                <TrendingUp className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-grow min-h-[300px]">
+                <Line data={chartData} options={chartOptions} />
+              </div>
+            </Card>
           </div>
-          <div className="h-64">
-            <Line data={chartData} options={chartOptions} />
-          </div>
-        </Card>
-
-        {/* Estadísticas Rápidas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="card-background p-4 text-center">
-            <div className="w-10 h-10 bg-green-500/20 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <p className="text-lg font-bold text-theme-primary">
-              $
-              {recentTransactions
-                ?.filter((t) => t.type === "deposit")
-                .reduce((sum, t) => sum + t.amount, 0)
-                .toFixed(2) || "0.00"}
-            </p>
-            <p className="text-sm text-theme-light">Total Depósitos</p>
-          </Card>
-
-          <Card className="card-background p-4 text-center">
-            <div className="w-10 h-10 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-2">
-              <TrendingDown className="w-5 h-5" />
-            </div>
-            <p className="text-lg font-bold text-theme-primary">
-              $
-              {recentTransactions
-                ?.filter((t) => t.type === "withdrawal")
-                .reduce((sum, t) => sum + t.amount, 0)
-                .toFixed(2) || "0.00"}
-            </p>
-            <p className="text-sm text-theme-light">Total Retiros</p>
-          </Card>
-
-          <Card className="card-background p-4 text-center">
-            <div className="w-10 h-10 bg-blue-500/20 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-              <CheckCircle className="w-5 h-5" />
-            </div>
-            <p className="text-lg font-bold text-theme-primary">
-              {recentTransactions?.filter((t) => t.status === "completed")
-                .length || 0}
-            </p>
-            <p className="text-sm text-theme-light">Completadas</p>
-          </Card>
-
-          <Card className="card-background p-4 text-center">
-            <div className="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Clock className="w-5 h-5" />
-            </div>
-            <p className="text-lg font-bold text-theme-primary">
-              {recentTransactions?.filter((t) => t.status === "pending")
-                .length || 0}
-            </p>
-            <p className="text-sm text-theme-light">Pendientes</p>
-          </Card>
         </div>
 
         {/* Historial de Transacciones */}
@@ -432,4 +506,4 @@ const WalletPage: React.FC = () => {
   );
 };
 
-export default WalletPage;
+export default Wallet;

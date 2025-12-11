@@ -42,7 +42,10 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
   };
 
   const handleFightUpdateLocal = (updatedFight: Fight) => {
-    console.log("✅ FightsControlTab: Fight updated, calling parent callback:", updatedFight);
+    console.log(
+      "✅ FightsControlTab: Fight updated, calling parent callback:",
+      updatedFight,
+    );
     onFightUpdated(updatedFight);
     setIsEditFightModalOpen(false);
     setSelectedFightForEdit(null);

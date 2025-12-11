@@ -76,10 +76,10 @@ const AdminMonitoringPage: React.FC = () => {
       setAlerts(
         alertsRes.success
           ? ((alertsRes.data as AlertItem[]) || []).filter(
-            (alert: AlertItem) =>
-              alert.service.toLowerCase().includes("stream") ||
-              alert.service.toLowerCase().includes("rtmp"),
-          )
+              (alert: AlertItem) =>
+                alert.service.toLowerCase().includes("stream") ||
+                alert.service.toLowerCase().includes("rtmp"),
+            )
           : [],
       );
       setLiveStats({

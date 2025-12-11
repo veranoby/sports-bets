@@ -91,7 +91,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
   // ✅ Local wrapper to update state after status change (matching EventList pattern)
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
-      console.log("🔄 EventDetail handleStatusChange called:", { eventId, action });
+      console.log("🔄 EventDetail handleStatusChange called:", {
+        eventId,
+        action,
+      });
       const updatedEvent = await onEventAction(eventId, action);
       console.log("📦 EventDetail received updatedEvent:", updatedEvent);
 

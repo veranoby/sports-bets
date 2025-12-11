@@ -70,7 +70,10 @@ const EditFightModal: React.FC<EditFightModalProps> = ({
       const response = await fightsAPI.update(fight.id, fightData);
       console.log("✅ EditFightModal: Fight update response:", response);
       if (response.success && response.data) {
-        console.log("📤 EditFightModal: Calling onFightUpdated with:", response.data);
+        console.log(
+          "📤 EditFightModal: Calling onFightUpdated with:",
+          response.data,
+        );
         onFightUpdated(response.data as Fight);
         // ✅ Padre cierra el modal después de procesar update
       } else {

@@ -144,7 +144,9 @@ const FightPreviewModal = memo(
                 <div className="bg-red-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div className="text-center">
-                      <p className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500 ">{currentFight.redCorner}</p>
+                      <p className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500 ">
+                        {currentFight.redCorner}
+                      </p>
                       <p className="text-xs text-gray-500">Esquina Roja</p>
                     </div>
 
@@ -157,11 +159,12 @@ const FightPreviewModal = memo(
                     )}
 
                     <div className="text-center">
-                      <p className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">{currentFight.blueCorner}</p>
+                      <p className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">
+                        {currentFight.blueCorner}
+                      </p>
                       <p className="text-xs text-gray-500">Esquina Azul</p>
                     </div>
                   </div>
-
                 </div>
               </div>
             )}
@@ -205,8 +208,14 @@ const FightPreviewModal = memo(
                     <div key={fight.id} className="bg-blue-50 p-3 rounded-lg">
                       <div className="flex justify-between items-center">
                         <p>
-                          {fight.number}. <span className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500">{fight.redCorner}</span> vs{" "}
-                          <span className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">{fight.blueCorner}</span>
+                          {fight.number}.{" "}
+                          <span className="text-sm text-red-600 rounded-full px-2 py-1 border border-red-500">
+                            {fight.redCorner}
+                          </span>{" "}
+                          vs{" "}
+                          <span className="text-sm text-blue-600 rounded-full px-2 py-1 border border-blue-500">
+                            {fight.blueCorner}
+                          </span>
                         </p>
                         <p className="text-blue-600 text-sm">
                           {fight.status === "betting"
@@ -214,10 +223,11 @@ const FightPreviewModal = memo(
                             : "Programada"}
                         </p>
                       </div>
-                      {fight.weight && (<div className="flex justify-between items-center mt-2">
-                        <span className="text-sm">{fight.weight}kg</span>
-
-                      </div>)}
+                      {fight.weight && (
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-sm">{fight.weight}kg</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -403,10 +413,11 @@ const BettingPanel = memo(
               <button
                 onClick={onCreateBet}
                 disabled={isVenueRole}
-                className={`px-3 py-1 text-xs rounded ${isVenueRole
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
+                className={`px-3 py-1 text-xs rounded ${
+                  isVenueRole
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
               >
                 Crear Nueva
               </button>
@@ -432,12 +443,13 @@ const BettingPanel = memo(
                     <div className="flex justify-between mt-1">
                       <span>Lado: {bet.side}</span>
                       <span
-                        className={`px-1 rounded ${bet.status === "active"
-                          ? "text-blue-500"
-                          : bet.status === "won"
-                            ? "text-green-500"
-                            : "text-red-500"
-                          }`}
+                        className={`px-1 rounded ${
+                          bet.status === "active"
+                            ? "text-blue-500"
+                            : bet.status === "won"
+                              ? "text-green-500"
+                              : "text-red-500"
+                        }`}
                       >
                         {bet.status === "active"
                           ? "Activa"
@@ -482,10 +494,11 @@ const BettingPanel = memo(
                     <button
                       onClick={() => onAcceptBet(bet.id)}
                       disabled={isVenueRole}
-                      className={`w-full mt-2 py-1 rounded text-xs ${isVenueRole
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-green-500 text-white hover:bg-green-600"
-                        }`}
+                      className={`w-full mt-2 py-1 rounded text-xs ${
+                        isVenueRole
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-green-500 text-white hover:bg-green-600"
+                      }`}
                     >
                       Aceptar
                     </button>
@@ -598,7 +611,7 @@ const LiveEvent = () => {
                 fights: prev.fights.map((fight) =>
                   fight.id === fightData.id
                     ? { ...fight, ...fightData } // Merge SSE data
-                    : fight
+                    : fight,
                 ),
               };
             });

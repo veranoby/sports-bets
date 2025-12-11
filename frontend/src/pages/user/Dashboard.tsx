@@ -29,7 +29,7 @@ import Badge from "../../components/shared/Badge";
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 
-const Dashboard: React.FC = () => {
+const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isBettingEnabled } = useFeatureFlags();
@@ -162,7 +162,6 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1">
             {/* ROW SUPERIOR: Eventos en Vivo Básicos */}
             <div className="p-6 bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/30">
-
               {/* Columna PREMIUM: Widget Premium - Eventos en vivo premium (solo si hay eventos) */}
 
               <SubscriptionGuard
@@ -274,10 +273,11 @@ const Dashboard: React.FC = () => {
                                 {typedEvent.name}
                               </h3>
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${isLive
-                                  ? "border-red-500/40 bg-red-500/10 text-red-300"
-                                  : "border-white/10 bg-white/5 text-theme-light"
-                                  }`}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] uppercase tracking-wide border ${
+                                  isLive
+                                    ? "border-red-500/40 bg-red-500/10 text-red-300"
+                                    : "border-white/10 bg-white/5 text-theme-light"
+                                }`}
                               >
                                 {isLive ? "En vivo" : "Programado"}
                               </span>
@@ -417,4 +417,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;
