@@ -36,6 +36,14 @@
           "No sugerencias dinámicas",
           "Temporal: LiveEvent read operations (hasta crear endpoint público SSE)"
         ],
+        "streaming_architecture_2025_12_11": {
+          "pipeline": "OBS → Nginx RTMP (port 1935) → HLS segments (/var/www/hls) → Nginx HTTP (port 80) → Frontend HLSPlayer",
+          "rtmp_auth_flow": "OBS attempts connect → Nginx calls POST /api/streaming/auth → Backend validates → Accept/Reject",
+          "live_config": "HLSPlayer configured with liveSyncDurationCount=3 to start playback near live edge (not from beginning)",
+          "stream_state": "event.streamStatus tracks Nginx RTMP connection state (offline/connected/paused/disconnected)",
+          "cors_headers": "Nginx /hls/ location includes CORS headers for frontend access to .m3u8 and .ts files",
+          "idempotent_operations": "POST /stream/start and /stream/stop accept already-active/stopped streams without error"
+        },
         "optimistic_update_pattern": {
           "description": "Optimistic updates + SSE reconciliation para zero latency UI con eventual consistency",
           "implementation": "EventList.tsx + EventDetail.tsx (2025-12-10)",

@@ -466,6 +466,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 <h2 className="text-sm font-semibold text-gray-900">
                   Control de Streaming
                 </h2>
+                {/* ✅ Stream Status - Shows Nginx RTMP stream state (offline/connected/paused) */}
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
                   Estado:
                   <StreamStatusBadge
@@ -480,20 +481,19 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                {/* ✅ OBS Connection Status - Shows if OBS Studio is actively streaming to Nginx RTMP */}
                 <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-gray-50">
                   <span
-                    className={`w-2 h-2 rounded-full ${isSSEConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                    className={`w-2 h-2 rounded-full ${
+                      eventDetailData.event.streamStatus === "connected"
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500"
+                    }`}
                   ></span>
-                  <span className="font-semibold">
-                    SSE {isSSEConnected ? "Conectado" : "Desconectado"}
+                  <span className="font-semibold text-xs">
+                    OBS {eventDetailData.event.streamStatus === "connected" ? "Conectado" : "Desconectado"}
                   </span>
                 </div>
-                <button
-                  onClick={() => setIsSSEConnected(true)}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
-                >
-                  Reconectar
-                </button>
               </div>
             </div>
 

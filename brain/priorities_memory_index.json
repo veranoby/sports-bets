@@ -30,20 +30,97 @@
       "source_file": "brain/backlog.json (broken_pages_scan_implementation_2025_11_11)"
     },
     {
-      "priority": "P0_INFRASTRUCTURE_DECISION",
-      "task_description": "Implementar OPTION B.1: Nginx RTMP + PostgreSQL local + Bunny CDN (Phase 2 opcional)",
-      "rationale": "Decision crítica seleccionada (2025-11-20): Stack de streaming económico y escalable. Nginx RTMP (self-managed, $0) + PostgreSQL local ($0) + Bunny CDN on-demand. Ahorra $450 en primeros 6 meses vs Option B.2 (Neon managed).",
-      "business_impact": "$155-195/mo MVP, $263-411/mo con CDN scaling. Escalable a 1000+ concurrent. Documentado en prd_system.json (líneas 119-170) y sdd_system.json (líneas 75-112).",
-      "technical_impact": "Nginx RTMP genera HLS localmente. Video.js ya integrado. Zero logic changes, solo configuración .env. Phase 2 (CDN) requiere SOLO cambio de URL variable, sin refactor de código.",
-      "executor": "QWEN (qwen3-coder-plus-2025-09-23)",
-      "execution_plan": "qwen-prompt.json (3 tareas, 60 minutos máximo)",
-      "source_file": "brain/backlog.json (NGINX_RTMP_CONFIG_PHASE_1_IMPLEMENTATION)",
-      "success_criteria": [
-        "Backend .env.production: STREAM_SERVER_URL → nginx-server | CDN_URL → nginx-server",
-        "Frontend .env.production: VITE_STREAM_BASE_URL → nginx-server/hls (Phase 1) con template para Phase 2 CDN",
-        "Brain files: api_endpoints_reference.json + typescript_interfaces_reference.json actualizado con metadata OPTION B.1",
-        "Validation: npx tsc --noEmit (0 errors) + npm run build (success)"
+      "priority": "P1_PRODUCTION_MIGRATION",
+      "task_description": "Migración a Producción: Servidor Alemán + AWS con cambios streaming 2025-12-11",
+      "planned_date": "Post-MVP",
+      "rationale": "Live streaming implementation (2025-12-11) introdujo cambios críticos en Nginx config, env vars, HLS paths, y nuevos endpoints. Requiere plan detallado para migración segura a producción.",
+      "critical_changes_2025_12_11": [
+        "Nginx config: /hls/ location ahora incluye CORS headers (Access-Control-Allow-Origin: *, etc)",
+        "Env vars: FEATURES_STREAMING=true habilitado, STREAM_SERVER_URL debe ser HTTP (no RTMP)",
+        "Backend endpoints: POST /api/streaming/auth y /unpublish agregados para Nginx RTMP auth",
+        "Stream operations: /stream/start y /stream/stop ahora idempotentes",
+        "HLS path: /var/www/hls/ debe existir y ser accesible por Nginx con permisos correctos",
+        "Frontend: HLSPlayer configurado con live streaming config (liveSyncDurationCount=3)",
+        "streamUrl format: Ahora incluye .m3u8 extension (http://host/hls/key-name.m3u8)"
+      ],
+      "information_required": [
+        "1. Infraestructura actual: ¿Dónde corre Nginx? (Docker/systemd/base), PostgreSQL (RDS/local), Backend (EC2/ECS/Lambda), Frontend (S3+CloudFront/EC2)?",
+        "2. AWS account details: Regiones, VPCs, security groups",
+        "3. German server details: IP, access method, current services running"
+      ],
+      "migration_tasks": [
+        "1. Code deployment: Backend + Frontend build and deploy",
+        "2. Nginx config update: Copy CORS headers to production nginx.conf",
+        "3. Env vars update: Set FEATURES_STREAMING=true, update STREAM_SERVER_URL",
+        "4. HLS directory setup: Create /var/www/hls/ with correct permissions (Nginx readable)",
+        "5. Nginx reload: sudo nginx -s reload or systemctl restart nginx",
+        "6. Database migration: No schema changes needed (already applied locally)",
+        "7. Verification: Test RTMP auth flow, HLS playback, CORS headers",
+        "8. Rollback plan: Document restore procedures in case of failure"
+      ],
+      "documentation_needed": [
+        "Deployment Checklist (all steps in order)",
+        "Configuration Migration Guide (adapt to German/AWS infrastructure)",
+        "Rollback Plan (restore procedures)",
+        "Verification Steps (validation checklist)"
+      ],
+      "source_file": "brain/backlog.json (LIVE_STREAMING_IMPLEMENTATION_2025_12_11)",
+      "executor": "To be determined - requires infrastructure knowledge",
+      "status": "PLANNED",
+      "related_brain_files": [
+        "api_endpoints_reference.json (v2.5) - streaming endpoints documented",
+        "sdd_system.json - streaming_architecture_2025_12_11 section",
+        "backlog.json - LIVE_STREAMING_IMPLEMENTATION_2025_12_11 task entry"
       ]
+    },
+    {
+      "priority": "P0_INFRASTRUCTURE_DECISION_FINALIZED",
+      "status": "DECIDED_AND_DOCUMENTED",
+      "decision_date": "2025-11-20",
+      "task_description": "OPTION B.1 FINAL: Hetzner AX42 + Nginx RTMP + PostgreSQL local + CloudFront Flat-Rate Pro",
+      "rationale": "Decision crítica seleccionada (2025-11-20): Stack de streaming económico y escalable. Hetzner dedicated (self-managed, $50/mo) + Nginx RTMP ($0) + PostgreSQL local ($0) + CloudFront Flat-Rate Pro ($15/mo). Total MVP: $65/mes para 0-500 usuarios.",
+      "infrastructure_details": {
+        "phase_1_mvp": {
+          "server": "Hetzner AX42 (8-core, 64GB RAM, 1TB NVMe, Germany) - €46/mo (~$50)",
+          "operating_system": "Ubuntu Server 24.04 LTS (5 years support until 2029)",
+          "streaming": "Nginx + RTMP module (open source, compiled from source)",
+          "database": "PostgreSQL 18 local ($0, 30min/week maintenance)",
+          "cdn": "AWS CloudFront Flat-Rate Pro Plan - $15/mo (50TB + 10M requests, NO overage charges, DDoS doesn't count)",
+          "cdn_protection": "Zero surprise bills - AWS emails at 50%, 80%, 100% usage. Performance may degrade but costs stay flat.",
+          "total_monthly": "$65/mo ($50 server + $15 CDN)",
+          "budget_remaining": "$185/mo for monitoring, backups, contingencies",
+          "supports_concurrent": "500 users",
+          "performance": "Nginx CPU 150-200% (60% margin), PostgreSQL at max 20 connections (monitor closely), Disk 28-46% used"
+        },
+        "phase_2_scaling": {
+          "trigger": "CPU >70% sustained OR disk >80% full OR PostgreSQL pool exhausted",
+          "server_upgrade": "Hetzner AX102 (16-core, 128GB RAM, 3.84TB) - €150/mo (~$165)",
+          "cdn_upgrade": "CloudFront Business Plan - $200/mo (50TB, 125M requests)",
+          "total_monthly": "$365/mo ($165 server + $200 CDN)",
+          "supports_concurrent": "800-1000 users",
+          "benefits": "2× CPU headroom, eliminates connection pool bottleneck, 12+ months data growth without pressure",
+          "migration_effort": "3-5 hours (pg_dump → transfer → pg_restore → DNS switch)",
+          "downtime": "<30 minutes (planned maintenance)"
+        },
+        "phase_3_maturity": {
+          "infrastructure": "Hetzner AX102 + CloudFront CDN + PostgreSQL local PERMANENT",
+          "total_monthly": "$362/mo ($165 server + $197 CDN at 1000 concurrent users)",
+          "supports_concurrent": "1000+ users",
+          "annual_cost": "$4,344/year",
+          "budget_note": "Exceeds initial $250/mo budget, requires increase to $400/mo"
+        }
+      },
+      "business_impact": "$65/mo Phase 1, $365/mo Phase 2, $362/mo Phase 3. Saves $450 vs Option B.2 (Neon managed) if scaling gradually. Escalable a 1000+ concurrent.",
+      "technical_impact": "Nginx RTMP genera HLS localmente. Video.js ya integrado. Zero logic changes, solo .env updates. Tested and working (2025-12-11 streaming implementation complete).",
+      "code_changes_required": "Minimal: only .env URL updates for Phase 2/3, zero logic changes",
+      "documentation": {
+        "primary_source": "brain/prd_system.json (lines 235-355, tier_0_galleros_net_OPTION_FINAL_2025)",
+        "technical_architecture": "brain/sdd_system.json (streaming_architecture section with live config details)",
+        "api_endpoints": "brain/api_endpoints_reference.json (v2.5 with streaming endpoints)",
+        "implementation": "brain/backlog.json (LIVE_STREAMING_IMPLEMENTATION_2025_12_11, NGINX_RTMP_CONFIG_PHASE_1_IMPLEMENTATION)"
+      },
+      "status": "IMPLEMENTED_PHASE_1_TESTING",
+      "next_milestone": "Await MVP launch decision, then Phase 2 scaling triggers monitoring"
     },
     {
       "priority": "P1_PERFORMANCE_OPTIMIZATION_PLAN_READY",

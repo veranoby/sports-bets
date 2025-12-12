@@ -7,6 +7,7 @@ import { Op } from "sequelize";
 import { getCache, setCache, delCache as cacheDel, } from "../config/redis";
 import { transaction } from "../config/database";
 import notificationService from "../services/notificationService";
+import * as streamingService from "../services/streamingService";
 import { UserRole } from "../../../shared/types";
 
 function getEventAttributes(role: UserRole | undefined, type: "list" | "detail") {
@@ -181,17 +182,17 @@ router.get(
     const attributes = getEventAttributes(req.user?.role, "detail");
 
     const event = await Event.findByPk(req.params.id, {
-  include: [
-    { model: User, as: 'venue' },
-    { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },
-    { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },
-    { 
-      model: Fight, 
-      as: 'fights',
-      include: [{ model: Bet, as: 'bets', attributes: ['id', 'amount', 'status'] }]
-    }
-  ]
-});
+      include: [
+        { model: User, as: 'venue' },
+        { model: User, as: 'operator', attributes: ['id', 'username', 'email'] },
+        { model: User, as: 'creator', attributes: ['id', 'username', 'email'] },
+        {
+          model: Fight,
+          as: 'fights',
+          include: [{ model: Bet, as: 'bets', attributes: ['id', 'amount', 'status'] }]
+        }
+      ]
+    });
 
     if (!event) {
       throw errors.notFound("Event not found");
@@ -235,10 +236,10 @@ router.post(
     if (!validationErrors.isEmpty()) {
       throw errors.badRequest(
         "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
+        validationErrors
+          .array()
+          .map((err) => err.msg)
+          .join(", ")
       );
     }
 
@@ -320,10 +321,10 @@ router.put(
     if (!validationErrors.isEmpty()) {
       throw errors.badRequest(
         "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
+        validationErrors
+          .array()
+          .map((err) => err.msg)
+          .join(", ")
       );
     }
 
@@ -371,10 +372,10 @@ router.patch(
     if (!validationErrors.isEmpty()) {
       throw errors.badRequest(
         "Validation failed: " +
-          validationErrors
-            .array()
-            .map((err) => err.msg)
-            .join(", ")
+        validationErrors
+          .array()
+          .map((err) => err.msg)
+          .join(", ")
       );
     }
 
@@ -486,9 +487,9 @@ router.patch(
     // Create notification
     try {
       const notificationType = action === "activate" ? "event_activated" :
-                              action === "complete" ? "event_completed" :
-                              action === "cancel" ? "event_cancelled" :
-                              action === "schedule" ? "event_scheduled" : "event_updated";
+        action === "complete" ? "event_completed" :
+          action === "cancel" ? "event_cancelled" :
+            action === "schedule" ? "event_scheduled" : "event_updated";
       const metadata = {
         eventName: event.name,
         ...(event.streamUrl && { streamUrl: event.streamUrl })
@@ -568,14 +569,14 @@ router.post(
         }
       });
     }
-    
+
     try {
-        await notificationService.createEventNotification('event_activated', event.id, [], {
-            eventName: event.name,
-            streamUrl: event.streamUrl
-        });
+      await notificationService.createEventNotification('event_activated', event.id, [], {
+        eventName: event.name,
+        streamUrl: event.streamUrl
+      });
     } catch (notificationError) {
-        console.error('Error creating event activation notification:', notificationError);
+      console.error('Error creating event activation notification:', notificationError);
     }
 
     res.json({
@@ -605,19 +606,23 @@ router.post(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    if (event.status !== "in-progress") {
-      throw errors.badRequest("Event must be activated first");
-    }
+    // ✅ REMOVED: Stream can start in any event status (scheduled, in-progress, etc)
+    // This allows technical pre-testing and decouples stream from event lifecycle
 
-    if (event.streamUrl) {
-      throw errors.conflict("Stream is already active");
-    }
-
+    // ✅ GENERATE STREAM KEY FIRST before checking health
     if (!event.streamKey) {
       event.streamKey = event.generateStreamKey();
     }
 
-    event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}`;
+    const streamInfo = await streamingService.getStreamInfo(event.streamKey);
+
+    // ✅ CHANGED: If stream is already active (OBS is already connected),
+    // just update the database state instead of throwing error
+    // This allows admin to "register" an already-active OBS stream
+    const streamAlreadyActive = streamInfo.isActive;
+
+    event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8`;
+    event.streamStatus = 'connected'; // ✅ UPDATE stream status in DB
     await event.save();
 
     try {
@@ -657,26 +662,28 @@ router.post(
       sseService.broadcastToEvent(event.id, streamPayload);
       sseService.broadcastToChannel(AdminChannel.GLOBAL, streamPayload);
     }
-    
+
     try {
-        await notificationService.createStreamNotification('stream_started', event.id, [], {
-            streamUrl: event.streamUrl,
-            rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
-        });
+      await notificationService.createStreamNotification('stream_started', event.id, [], {
+        streamUrl: event.streamUrl,
+        rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"}/live/${event.streamKey}`
+      });
     } catch (notificationError) {
-        console.error('Error creating stream start notification:', notificationError);
+      console.error('Error creating stream start notification:', notificationError);
     }
 
     res.json({
       success: true,
-      message: "Stream started successfully",
+      message: streamAlreadyActive
+        ? "Stream registered successfully (OBS already connected)"
+        : "Stream started successfully",
       data: {
         event: event.toJSON(),
         streamKey: event.streamKey,
         streamUrl: event.streamUrl,
-        rtmpUrl: `rtmp://${
-          process.env.STREAM_SERVER_HOST || "localhost"
-        }/live/${event.streamKey}`,
+        streamAlreadyActive,
+        rtmpUrl: `rtmp://${process.env.STREAM_SERVER_HOST || "localhost"
+          }/live/${event.streamKey}`,
       },
     });
   })
@@ -698,11 +705,11 @@ router.post(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    if (!event.streamUrl) {
-      throw errors.badRequest("No active stream found");
-    }
+    // ✅ CHANGED: If stream is already stopped, just return success (idempotent operation)
+    const streamWasActive = event.streamUrl !== null && event.streamStatus !== 'offline';
 
     event.streamUrl = null;
+    event.streamStatus = 'offline'; // ✅ UPDATE stream status in DB
     await event.save();
 
     const sseService = req.app.get("sseService");
@@ -732,16 +739,18 @@ router.post(
       sseService.broadcastToEvent(event.id, stopStreamPayload);
       sseService.broadcastToChannel(AdminChannel.GLOBAL, stopStreamPayload);
     }
-    
+
     try {
-        await notificationService.createStreamNotification('stream_stopped', event.id, []);
+      await notificationService.createStreamNotification('stream_stopped', event.id, []);
     } catch (notificationError) {
-        console.error('Error creating stream stop notification:', notificationError);
+      console.error('Error creating stream stop notification:', notificationError);
     }
 
     res.json({
       success: true,
-      message: "Stream stopped successfully",
+      message: streamWasActive
+        ? "Stream stopped successfully"
+        : "Stream already stopped (idempotent operation)",
       data: event.toJSON(),
     });
   })
@@ -817,13 +826,13 @@ router.post(
         }
       });
     }
-    
+
     try {
-        await notificationService.createEventNotification('event_completed', event.id, [], {
-            eventName: event.name
-        });
+      await notificationService.createEventNotification('event_completed', event.id, [], {
+        eventName: event.name
+      });
     } catch (notificationError) {
-        console.error('Error creating event completion notification:', notificationError);
+      console.error('Error creating event completion notification:', notificationError);
     }
 
     res.json({
@@ -971,14 +980,14 @@ init();
 // Get live viewer count
 router.get('/:id/viewers', asyncHandler(async (req, res) => {
   const eventId = req.params.id;
-  
+
   const activeConnections = await EventConnection.count({
     where: {
       event_id: eventId,
       disconnected_at: null
     }
   });
-  
+
   res.json({
     success: true,
     data: {
@@ -991,7 +1000,7 @@ router.get('/:id/viewers', asyncHandler(async (req, res) => {
 // Get event analytics
 router.get('/:id/analytics', authorize('admin', 'operator'), asyncHandler(async (req, res) => {
   const eventId = req.params.id;
-  
+
   const analytics = await EventConnection.findAll({
     where: { event_id: eventId },
     include: [
@@ -1002,13 +1011,13 @@ router.get('/:id/analytics', authorize('admin', 'operator'), asyncHandler(async 
     ],
     order: [['connected_at', 'DESC']]
   });
-  
+
   const totalConnections = analytics.length;
   const uniqueViewers = new Set(analytics.map(a => a.user_id)).size;
   const avgDuration = analytics
     .filter(a => a.duration_seconds)
     .reduce((sum, a) => sum + a.duration_seconds, 0) / analytics.filter(a => a.duration_seconds).length;
-  
+
   res.json({
     success: true,
     data: {

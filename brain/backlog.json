@@ -7,6 +7,35 @@
   },
   "active_tasks": [
     {
+      "task_id": "LIVE_STREAMING_IMPLEMENTATION_2025_12_11",
+      "status": "IN_PROGRESS_TESTING",
+      "start_date": "2025-12-11",
+      "complexity": "HIGH",
+      "category": "FEATURE_IMPLEMENTATION",
+      "priority": "P0_CRITICAL",
+      "completed_by": "Claude Haiku 4.5",
+      "summary": "Complete live streaming OBS→Nginx→HLS pipeline. Fixed environment validation, added auth endpoints, enabled live playback with CORS, made stream operations idempotent.",
+      "changes_implemented": [
+        "Backend: Added /api/streaming/auth and /unpublish endpoints for Nginx RTMP authentication",
+        "Backend: Fixed envValidator.ts - STREAM_SERVER_URL requires HTTP (HLS player), not RTMP (OBS broadcast)",
+        "Backend: Made /stream/start idempotent - accepts already-active streams instead of failing",
+        "Backend: Made /stream/stop idempotent - accepts already-stopped streams",
+        "Backend: Added .m3u8 extension to streamUrl for HLS player compatibility",
+        "Frontend: Configured HLSPlayer with live streaming config (3-segment buffer, liveSyncDurationCount=3)",
+        "Infrastructure: Added CORS headers to Nginx /hls/ location for frontend CORS access",
+        "Config: Added FEATURES_STREAMING=true to .env to enable pause/resume endpoints"
+      ],
+      "current_status": "Awaiting user testing. All components fixed. Expected to verify: live playback, pause, resume, stop operations",
+      "files_modified": [
+        "backend/src/routes/streaming.ts",
+        "backend/src/routes/events.ts",
+        "backend/src/config/envValidator.ts",
+        "backend/.env",
+        "frontend/src/components/streaming/HLSPlayer.tsx",
+        "/etc/nginx/nginx.conf"
+      ]
+    },
+    {
       "task_id": "SSE_429_RATE_LIMIT_FIX_2025_12_11",
       "status": "COMPLETED",
       "completion_date": "2025-12-11",

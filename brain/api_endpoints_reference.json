@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
-    "version": "2.4",
-    "last_updated": "2025-12-10 - Added PUT /fights/:id for editing fight details with status='upcoming' restriction. Frontend auto-refresh after updates.",
+    "version": "2.5",
+    "last_updated": "2025-12-11 - Streaming live implementation: Added POST /api/streaming/auth, /unpublish for Nginx RTMP auth. Made /stream/start, /stream/stop idempotent. Added .m3u8 extension to streamUrl.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -42,7 +42,7 @@
     "admin": ["/admin/sessions/active-users", "/admin/sessions/:userId", "/admin/users/:userId/adjust-balance", "/membership-requests", "/membership-requests/:id/complete", "/membership-requests/:id/reject", "/membership-requests/my-requests", "/membership-requests/pending"],
     "notifications": ["/notifications", "/notifications/:id/read", "/notifications/:id", "/notifications/mark-all-read"],
     "uploads": ["/uploads/image", "/uploads/image/:filename"],
-    "streaming": ["/sse/streaming"]
+    "streaming": ["/sse/streaming", "/streaming/auth", "/streaming/unpublish", "/events/:id/stream/start", "/events/:id/stream/stop", "/events/:id/stream/status"]
   },
 
   "base_configuration": {

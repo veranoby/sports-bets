@@ -58,9 +58,9 @@ const envSchema = Joi.object<EnvConfig>({
   
   // Streaming configuration
   STREAM_SERVER_URL: Joi.string()
-    .uri({ scheme: ['rtmp', 'rtmps'] })
-    .default('rtmp://localhost:1935/live'),
-    
+    .uri({ scheme: ['http', 'https'] })
+    .default('http://127.0.0.1/hls'),
+
   STREAM_HEALTH_CHECK_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .default('http://localhost:8080'),

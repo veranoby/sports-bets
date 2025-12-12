@@ -55,7 +55,15 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
 
       try {
         if (Hls.isSupported()) {
-          hls = new Hls();
+          hls = new Hls({
+            // ✅ LIVE STREAMING CONFIG: Start playback near the end for live experience
+            liveSyncDurationCount: 3, // Start 3 segments from the live edge
+            liveBackBufferLength: 0, // Don't keep old segments in buffer
+            maxBufferLength: 10, // Maximum 10 seconds of buffer
+            maxMaxBufferLength: 30,
+            enableWorker: true,
+            lowLatencyMode: false,
+          });
           hls.loadSource(activeStreamUrl);
           hls.attachMedia(video);
 

@@ -21,7 +21,10 @@
   "enum_values": "{pending,active,completed,cancelled}"
 }, {
   "enum_name": "enum_events_status",
-  "enum_values": "{scheduled,in-progress,completed,cancelled}"
+  "enum_values": "{scheduled,in-progress,intermission,paused,completed,cancelled}"
+}, {
+  "enum_name": "enum_events_stream_status",
+  "enum_values": "{offline,connecting,connected,paused,disconnected}"
 }, {
   "enum_name": "enum_fights_result",
   "enum_values": "{red,blue,draw,cancelled}"

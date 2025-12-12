@@ -14,20 +14,24 @@ export const checkStreamHealth = async (
   try {
     if (!process.env.STREAM_HEALTH_CHECK_URL) {
       logger.warn("STREAM_HEALTH_CHECK_URL not configured");
-      return true; // Asumimos que está bien en desarrollo
+      return false; // En desarrollo sin health check, asume offline
     }
 
     const response = await axios.get(
       `${process.env.STREAM_HEALTH_CHECK_URL}/stat`,
       {
-        timeout: 5000,
+        timeout: 2000, // Reducido de 5000 a 2000ms
+        validateStatus: () => true, // No lanzar error en 404, etc
       }
     );
 
     // Verificar si el streamKey está en la respuesta
-    return response.data.includes(streamKey);
+    if (response.status === 200 && typeof response.data === 'string') {
+      return response.data.includes(streamKey);
+    }
+    return false;
   } catch (error) {
-    logger.error("Error checking stream health:", error);
+    logger.warn(`Stream health check failed (timeout/error ok for dev): ${streamKey}`);
     return false;
   }
 };

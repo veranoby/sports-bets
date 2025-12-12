@@ -496,15 +496,15 @@
   "ordinal_position": 16
 }, {
   "table_name": "events",
-  "column_name": "total_fights",
-  "data_type": "integer",
+  "column_name": "stream_status",
+  "data_type": "USER-DEFINED",
   "character_maximum_length": null,
   "is_nullable": "NO",
-  "column_default": "0",
+  "column_default": "'offline'::enum_events_stream_status",
   "ordinal_position": 17
 }, {
   "table_name": "events",
-  "column_name": "completed_fights",
+  "column_name": "total_fights",
   "data_type": "integer",
   "character_maximum_length": null,
   "is_nullable": "NO",
@@ -512,7 +512,7 @@
   "ordinal_position": 18
 }, {
   "table_name": "events",
-  "column_name": "total_bets",
+  "column_name": "completed_fights",
   "data_type": "integer",
   "character_maximum_length": null,
   "is_nullable": "NO",
@@ -520,12 +520,20 @@
   "ordinal_position": 19
 }, {
   "table_name": "events",
+  "column_name": "total_bets",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "is_nullable": "NO",
+  "column_default": "0",
+  "ordinal_position": 20
+}, {
+  "table_name": "events",
   "column_name": "total_prize_pool",
   "data_type": "numeric",
   "character_maximum_length": null,
   "is_nullable": "NO",
   "column_default": "0",
-  "ordinal_position": 20
+  "ordinal_position": 21
 }, {
   "table_name": "fights",
   "column_name": "id",
