@@ -159,7 +159,7 @@
     {
       "stakeholder": "Solo founder/developer (veranoby)",
       "concerns": [
-        "Entrega del MVP en el plazo de 15 días.",
+        "Entrega del MVP para el 1 de enero de 2026.",
         "Resolución del rendimiento de la base de datos (CRÍTICO).",
         "Activación de la generación de ingresos (suscripciones).",
         "Funcionalidad completa del sistema de apuestas."
@@ -168,10 +168,7 @@
     }
   ],
   "implementation_roadmap": {
-    "mvp_sprint_15_dias": [
-      { "week": 1, "focus": "Implementación del núcleo (SSE, Frontend, Ventanas de Apuestas, Dashboard Operador)", "status": "Mayormente completado, con gaps de integración." },
-      { "week": 2, "focus": "Optimización y Estabilización (Rendimiento BD, Pruebas, Pulido, Despliegue)", "status": "En progreso, rendimiento de BD resuelto, pero bloqueado por estabilidad de frontend." }
-    ]
+
   },
   "success_gates": [
     {
@@ -183,8 +180,8 @@
     {
       "phase": "Lanzamiento MVP",
       "gate": "Despliegue en producción.",
-      "criteria": "El sistema debe estar desplegado y funcional para el 21 de Septiembre.",
-      "status": "EN RIESGO"
+      "criteria": "El sistema debe estar desplegado y funcional para el 1 de enero de 2026.",
+      "status": "REPLANIFICADO"
     },
     {
       "phase": "Post-Lanzamiento (Mes 1)",

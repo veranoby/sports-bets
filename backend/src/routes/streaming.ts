@@ -728,10 +728,11 @@ router.post(
     // Update event status to paused
     await event.update({ status: "paused" });
 
-    // Broadcast via SSE
-    sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
-      type: "STREAM_PAUSED",
+    // Broadcast via SSE (normalized direct event type)
+    sseService.broadcastSystemEvent(SSEEventType.STREAM_PAUSED, {
       eventId,
+      id: eventId, // Include id for frontend reconciliation
+      streamStatus: 'paused',
       message: "Stream pausado - Próximamente se reanuda...",
       timestamp: new Date()
     });
@@ -799,10 +800,11 @@ router.post(
     // Update event status back to in-progress
     await event.update({ status: "in-progress" });
 
-    // Broadcast via SSE
-    sseService.broadcastSystemEvent(SSEEventType.STREAM_STATUS_UPDATE, {
-      type: "STREAM_RESUMED",
+    // Broadcast via SSE (normalized direct event type)
+    sseService.broadcastSystemEvent(SSEEventType.STREAM_RESUMED, {
       eventId,
+      id: eventId, // Include id for frontend reconciliation
+      streamStatus: 'connected',
       message: "Stream en vivo",
       timestamp: new Date()
     });

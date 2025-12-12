@@ -1,9 +1,9 @@
 {
   "metadata": {
     "purpose": "Optimized TypeScript interface reference for Galleros.Net platform",
-    "version": "3.8.1",
-    "last_updated": "2025-12-10",
-    "changelog": "v3.8.1 (2025-12-10 later): CRITICAL FIX - Fixed all SSEEvent creation in backend/src/routes/events.ts to include required fields (id, timestamp, priority, metadata). Prevents SSE cleanup errors. v3.8 (2025-12-10): Added SSE service interface extensions with broadcastToEvent method and event-specific connection management. v3.7 (2025-12-05): Added comprehensive Wallet model interface documentation with PostgreSQL DECIMAL string serialization pattern (parseFloat(String()) usage). Documents critical frozenAmount logic and admin debit validation. v3.6 (2025-12-05): CRITICAL FIX - Wallet.create() now called automatically when admin creates users (backend/src/routes/users.ts:680-684). Fixes \"User wallet not found\" errors on balance adjustments. Added response.success check to handleAdjustBalance (frontend/src/components/admin/UserModal.tsx:117) to prevent modal closing on API errors. v3.5: Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
+    "version": "3.9.0",
+    "last_updated": "2025-12-12",
+    "changelog": "v3.9.0 (2025-12-12): ADDITION - Added STREAM_PAUSED and STREAM_RESUMED to SSEEventType enum. Documented normalized direct event type architecture for streaming operations. Backend now uses consistent direct event types (STREAM_STARTED, STREAM_STOPPED, STREAM_PAUSED, STREAM_RESUMED) instead of wrapper format for improved maintainability. v3.8.1 (2025-12-10 later): CRITICAL FIX - Fixed all SSEEvent creation in backend/src/routes/events.ts to include required fields (id, timestamp, priority, metadata). Prevents SSE cleanup errors. v3.8 (2025-12-10): Added SSE service interface extensions with broadcastToEvent method and event-specific connection management. v3.7 (2025-12-05): Added comprehensive Wallet model interface documentation with PostgreSQL DECIMAL string serialization pattern (parseFloat(String()) usage). Documents critical frozenAmount logic and admin debit validation. v3.6 (2025-12-05): CRITICAL FIX - Wallet.create() now called automatically when admin creates users (backend/src/routes/users.ts:680-684). Fixes \"User wallet not found\" errors on balance adjustments. Added response.success check to handleAdjustBalance (frontend/src/components/admin/UserModal.tsx:117) to prevent modal closing on API errors. v3.5: Added admin_credit/admin_debit to Transaction type enum + PostgreSQL migration. Implemented admin balance adjustment feature in UserModal with ConfirmDialog integration.",
     "streaming_infrastructure": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "required_environment_variables": {
       "VITE_STREAM_BASE_URL": "HLS stream base URL (Phase 1: Nginx, Phase 2: CDN)",
@@ -12,7 +12,7 @@
     },
     "phase_2_bunny_cdn_readiness": "HLSPlayer component uses VITE_STREAM_BASE_URL environment variable (zero code changes needed for CDN switch)",
     "note": "Verified against backend database models and production deployment",
-    "optimization_date": "2025-12-10 - Added SSE service extension interfaces and updated for broadcastToEvent method"
+    "optimization_date": "2025-12-12 - Updated SSEEventType enum and documented normalized streaming events architecture"
   },
 
   "quick_reference": {
@@ -123,6 +123,8 @@
         "ADMIN_ACTION",
         "STREAM_STARTED",
         "STREAM_ENDED",
+        "STREAM_PAUSED",
+        "STREAM_RESUMED",
         "STREAM_ERROR",
         "VIEWER_COUNT_UPDATE",
         "CONNECTION_ESTABLISHED",

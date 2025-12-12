@@ -2,8 +2,8 @@
   "metadata": {
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
-    "version": "2.5",
-    "last_updated": "2025-12-11 - Streaming live implementation: Added POST /api/streaming/auth, /unpublish for Nginx RTMP auth. Made /stream/start, /stream/stop idempotent. Added .m3u8 extension to streamUrl.",
+    "version": "2.6",
+    "last_updated": "2025-12-12 - Streaming SSE normalization: Added normalized direct event types STREAM_PAUSED/STREAM_RESUMED. Backend now uses consistent direct event types for all streaming operations. Added /streaming/pause and /streaming/resume endpoints. Maintained backward compatibility with legacy STREAM_STATUS_UPDATE wrapper events.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -15,6 +15,8 @@
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "changelog": {
+      "v2.6": "2025-12-12 - Streaming SSE normalization: Added normalized direct event types STREAM_PAUSED/STREAM_RESUMED to SSEEventType enum. Backend now uses consistent direct event types for all streaming operations (start, stop, pause, resume). Added comprehensive documentation for all streaming SSE events. Maintained backward compatibility with legacy STREAM_STATUS_UPDATE wrapper events. Updated EventList to handle pause/resume events for real-time updates.",
+      "v2.5": "2025-12-11 - Streaming live implementation: Added POST /api/streaming/auth, /unpublish for Nginx RTMP auth. Made /stream/start, /stream/stop idempotent. Added .m3u8 extension to streamUrl.",
       "v2.4": "2025-12-10 - Added PUT /fights/:id endpoint for editing fight details (redCorner, blueCorner, weight, notes). Only allows editing when fight.status='upcoming' to protect betting integrity. Added EditFightModal.tsx component. Frontend auto-refreshes after fight updates via EventDetail.tsx setTimeout fetch. Added process.env cleanup and PRE_HANDOFF_VALIDATION_PROTOCOL to multi_ai_coordination_strategy.json. Implemented by Qwen 3 Coder+ and Claude Sonnet 4.5. Commit: 2e6519ae",
       "v2.3.1": "2025-12-10 (earlier) - CRITICAL FIX: Fixed events.ts SSE broadcasts to include all required SSEEvent fields (id, timestamp, priority). Prevents 'Cannot read properties of undefined (reading getTime)' errors in SSE cleanup.",
       "v2.3": "2025-12-10 - Added broadcastToEvent method to SSE service specification. Updated API documentation to include missing methods.",
@@ -42,7 +44,7 @@
     "admin": ["/admin/sessions/active-users", "/admin/sessions/:userId", "/admin/users/:userId/adjust-balance", "/membership-requests", "/membership-requests/:id/complete", "/membership-requests/:id/reject", "/membership-requests/my-requests", "/membership-requests/pending"],
     "notifications": ["/notifications", "/notifications/:id/read", "/notifications/:id", "/notifications/mark-all-read"],
     "uploads": ["/uploads/image", "/uploads/image/:filename"],
-    "streaming": ["/sse/streaming", "/streaming/auth", "/streaming/unpublish", "/events/:id/stream/start", "/events/:id/stream/stop", "/events/:id/stream/status"]
+    "streaming": ["/sse/streaming", "/streaming/auth", "/streaming/unpublish", "/events/:id/stream/start", "/events/:id/stream/stop", "/events/:id/stream/status", "/streaming/pause", "/streaming/resume"]
   },
 
   "base_configuration": {
@@ -95,6 +97,82 @@
       "return_type": "string - The connection ID",
       "example_usage": "sseService.addEventConnection(res, \"event123\", userId, \"user\", metadata)",
       "use_case": "Allowing clients to connect to real-time updates for a specific event"
+    }
+  },
+
+  "streaming_sse_events": {
+    "stream_started": {
+      "type": "STREAM_STARTED",
+      "data_structure": {
+        "eventId": "string - Unique identifier of the event",
+        "id": "string - Unique identifier (same as eventId)",
+        "streamUrl": "string - URL of the HLS stream",
+        "streamStatus": "string - Status of the stream ('connected')",
+        "name": "string - Name of the event",
+        "venue": "object - Venue information",
+        "operator": "object - Operator information"
+      },
+      "description": "Broadcast when a stream is started for an event",
+      "broadcast_channels": ["event-specific", "AdminChannel.GLOBAL"],
+      "frontend_usage": "Updates UI to show streaming as active and loads the video player",
+      "implementation": "backend/src/routes/events.ts:650-675"
+    },
+    "stream_stopped": {
+      "type": "STREAM_STOPPED",
+      "data_structure": {
+        "eventId": "string - Unique identifier of the event",
+        "id": "string - Unique identifier (same as eventId)",
+        "streamStatus": "string - Status of the stream ('disconnected')",
+        "streamUrl": "string - URL of the HLS stream (now null)",
+        "name": "string - Name of the event",
+        "venue": "object - Venue information",
+        "operator": "object - Operator information"
+      },
+      "description": "Broadcast when a stream is stopped for an event",
+      "broadcast_channels": ["event-specific", "AdminChannel.GLOBAL"],
+      "frontend_usage": "Updates UI to hide the video player and change stream status",
+      "implementation": "backend/src/routes/events.ts:720-745"
+    },
+    "stream_paused": {
+      "type": "STREAM_PAUSED",
+      "data_structure": {
+        "eventId": "string - Unique identifier of the event",
+        "id": "string - Unique identifier (same as eventId)",
+        "streamStatus": "string - Status of the stream ('paused')",
+        "message": "string - Status message",
+        "timestamp": "Date - When the event occurred"
+      },
+      "description": "Broadcast when a stream is paused for an event",
+      "broadcast_channels": ["event-specific", "AdminChannel.GLOBAL"],
+      "frontend_usage": "Updates UI to show stream as paused",
+      "implementation": "backend/src/routes/streaming.ts:730-738"
+    },
+    "stream_resumed": {
+      "type": "STREAM_RESUMED",
+      "data_structure": {
+        "eventId": "string - Unique identifier of the event",
+        "id": "string - Unique identifier (same as eventId)",
+        "streamStatus": "string - Status of the stream ('connected')",
+        "message": "string - Status message",
+        "timestamp": "Date - When the event occurred"
+      },
+      "description": "Broadcast when a stream is resumed for an event",
+      "broadcast_channels": ["event-specific", "AdminChannel.GLOBAL"],
+      "frontend_usage": "Updates UI to show stream as active again",
+      "implementation": "backend/src/routes/streaming.ts:802-810"
+    },
+    "stream_status_update": {
+      "type": "STREAM_STATUS_UPDATE",
+      "data_structure": {
+        "type": "string - Inner event type ('STREAM_PAUSED', 'STREAM_RESUMED', etc.)",
+        "eventId": "string - Unique identifier of the event",
+        "message": "string - Status message",
+        "timestamp": "Date - When the event occurred"
+      },
+      "description": "Legacy wrapper event type for streaming status updates (to be deprecated)",
+      "broadcast_channels": ["event-specific", "AdminChannel.GLOBAL"],
+      "frontend_usage": "Handles backward compatibility for older clients",
+      "implementation": "backend/src/routes/streaming.ts (deprecated format)"
     }
   },
 

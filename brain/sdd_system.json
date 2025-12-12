@@ -42,7 +42,8 @@
           "live_config": "HLSPlayer configured with liveSyncDurationCount=3 to start playback near live edge (not from beginning)",
           "stream_state": "event.streamStatus tracks Nginx RTMP connection state (offline/connected/paused/disconnected)",
           "cors_headers": "Nginx /hls/ location includes CORS headers for frontend access to .m3u8 and .ts files",
-          "idempotent_operations": "POST /stream/start and /stream/stop accept already-active/stopped streams without error"
+          "idempotent_operations": "POST /stream/start and /stream/stop accept already-active/stopped streams without error",
+          "sse_event_normalization": "Backend now uses direct event types (STREAM_STARTED, STREAM_STOPPED, STREAM_PAUSED, STREAM_RESUMED) instead of wrapper format (STREAM_STATUS_UPDATE with inner type) for consistency across all streaming operations. Maintains backward compatibility with legacy wrapper events during transition period."
         },
         "optimistic_update_pattern": {
           "description": "Optimistic updates + SSE reconciliation para zero latency UI con eventual consistency",
@@ -173,7 +174,7 @@
         "cost": "$24-50/month (compute) + $50-100/month (bandwidth CDN)"
       },
       "selected_solution_option_b1": {
-        "description": "OPTION B.1: Nginx RTMP (self-managed) + PostgreSQL local + optional Bunny CDN",
+        "description": "OPTION B.1: Nginx RTMP (self-managed) + PostgreSQL local + AWS CloudFront Flat-Rate Pro",
         "phase_1_mvp_0_to_500_concurrent": {
           "components": {
             "ingestion": "OBS Studio (broadcaster encodes to 480p)",
@@ -199,16 +200,16 @@
         },
         "phase_2_scaling_500_to_1000_concurrent": {
           "trigger": "When Nginx CPU >60% OR bandwidth >500 Mbps",
-          "change": "Add Bunny CDN Pull Zone (transparent cache layer)",
+          "change": "Update CloudFront distribution configuration (transparent cache layer)",
           "components": {
             "streaming_server": "Nginx RTMP (unchanged, still generates HLS locally)",
-            "hls_delivery": "Bunny CDN (caches manifest + segments, serves globally)",
+            "hls_delivery": "CloudFront (caches manifest + segments, serves globally)",
             "playback": "Video.js (now fetches from Bunny instead of Nginx)"
           },
-          "cost_addition": "+$108-216/month (Bunny CDN)",
-          "total_monthly": "$263-411/mo",
-          "code_changes": "VITE_STREAM_BASE_URL=https://gallerosnet-cdn.b-cdn.net/hls/ (5 min update)",
-          "nginx_config": "No change needed (Bunny Pull Zone pulls from Nginx)"
+          "cost_addition": "+$200/month (CloudFront Business)",
+          "total_monthly": "$365/mo",
+          "code_changes": "VITE_STREAM_BASE_URL=https://<your-cloudfront-domain>/hls/ (5 min update)",
+          "nginx_config": "No change needed (CloudFront Pull Origin pulls from Nginx)"
         }
       },
       "optimization_techniques": [
@@ -235,7 +236,7 @@
         "status_colors": "✅ WORKING - Yellow when paused, green when live"
       },
       "cost_savings": {
-        "480p_default": "$108/month CDN with 480p (vs $216 with 720p) = $1,296/year savings",
+        "480p_default": "$15/month CDN with 480p (CloudFront Pro flat-rate, up to 50TB) = Significant savings vs pay-as-you-go",
         "implementation": "Client-side adaptive bitrate selection handled by HLS.js",
         "bandwidth_projection": "480p = 2.7TB/week vs 5.4TB with 720p at 3Mbps"
       },
@@ -273,9 +274,9 @@
       "technical_details": {
         "hls_behavior_during_pause": "Ant Media Server generates 'pause' segments in HLS playlist, video player shows last frame. Clients do NOT disconnect from SSE.",
         "sse_during_pause": "Send reduced-frequency updates (10s instead of 2s). Broadcast STREAM_PAUSED/STREAM_RESUMED events. No need to adjust frequency in useSSEConnection hook.",
-        "cost_calculation_480p": "480p @ 1.5 Mbps: 337.5 GB/hour × 4h effective = 1.35 TB/session. 2 sessions/week × 4.3 weeks = 10.8 TB/month. Bunny @ $0.01/GB = $108/month CDN. Total = $206-236/month.",
-        "cost_calculation_720p": "720p @ 3 Mbps: 675 GB/hour × 4h effective = 2.7 TB/session. 2 sessions/week × 4.3 weeks = 21.6 TB/month. Bunny @ $0.01/GB = $216/month CDN. Total = $314-344/month.",
-        "480p_recommendation": "50% bandwidth savings vs 720p. Sufficient quality for cockfighting detail (camera focused on birds). Fallback to 720p available for users with >5 Mbps connection"
+        "cost_calculation_480p": "CloudFront Flat-Rate Pro: $15/month (fixed cost, covers bandwidth for 480p streaming up to 50TB)",
+        "cost_calculation_720p": "CloudFront Flat-Rate Pro: $15/month (fixed cost, covers bandwidth for 720p streaming up to 50TB)",
+        "480p_recommendation": "CloudFront Flat-Rate Pro covers up to 50TB, so 480p remains the recommended default for optimal quality within the fixed cost. Fallback to 720p available for users with >5 Mbps connection (still within 50TB quota)",
       },
       "qwen_execution_plan": {
         "plan_location": "/home/veranoby/sports-bets/qwen-prompt.json",
@@ -336,8 +337,8 @@
         "estimated_scale": "500-1000_concurrent_users"
       },
       "current_server_capacity": {
-        "specification": "Vultr/Hetzner Dedicated: 8-core CPU, 32GB RAM, 500GB SSD, 10Gbps network",
-        "monthly_cost": "$155-195",
+        "specification": "Hetzner Dedicated: 8-core CPU, 64GB RAM, 1TB NVMe, 10Gbps network",
+        "monthly_cost": "$50",
         "optimal_capacity": "< 500 concurrent users"
       },
 
@@ -352,7 +353,7 @@
         "postgresql_local": {
           "active_connections": "250-300 (pool max: 20 SATURATED)",
           "queries_per_second": "250-300",
-          "ram_buffers": "8-10GB (of 32GB)",
+          "ram_buffers": "8-10GB (of 64GB)",
           "cpu_usage": "200-300% (of 800%)",
           "disk_data": "20-30GB (of 500GB)",
           "status": "⚠️ TIGHT - Connection pool at maximum"
@@ -378,7 +379,7 @@
         "postgresql_local": {
           "active_connections": "400-500 (pool max: 20 CRITICAL BOTTLENECK)",
           "queries_per_second": "500-600",
-          "ram_buffers": "12-16GB (of 32GB)",
+          "ram_buffers": "12-16GB (of 128GB)",
           "cpu_usage": "400-500% (of 800%)",
           "disk_data": "50-80GB (of 500GB)",
           "status": "🔴 CRITICAL - 3 bottlenecks identified"
@@ -393,7 +394,7 @@
         },
         "critical_issues_identified": [
           "🔴 Connection pooling: Pool max=20 cannot handle 500+ queries/s simultaneous",
-          "🔴 Disk space: 50-80GB data + backups + cache fills 500GB SSD in 4-5 months",
+          "🔴 Disk space: 50-80GB data + backups + cache fills 1TB NVMe SSD in 4-5 months for Phase 1, and 3.84TB NVMe for Phase 2/3",
           "🔴 Single point of failure: No PostgreSQL replication, no failover"
         ]
       },
@@ -407,7 +408,7 @@
         },
         "trigger_2_disk_space": {
           "metric": "Disk free space",
-          "threshold": "< 20% free (< 100GB on 500GB disk)",
+          "threshold": "< 20% free (< 200GB on 1TB NVMe disk)",
           "action": "CRITICAL - Immediate action: (A) Compress logs, (B) Move HLS to S3, OR (C) Upgrade disk"
         },
         "trigger_3_connection_pool_exhaustion": {
@@ -420,9 +421,9 @@
       "recommended_upgrade_path": {
         "phase_1_mvp_0_to_500_users": {
           "duration": "Months 1-4",
-          "server_spec": "Current: 8-core, 32GB RAM, 500GB SSD",
-          "cost_monthly": "$155-195 (server) + $108-216 (Bunny CDN) = $263-411/mo",
-          "infrastructure": "Nginx RTMP local + PostgreSQL local + Bunny CDN",
+          "server_spec": "Current: 8-core, 64GB RAM, 1TB NVMe",
+          "cost_monthly": "$65/mo (server) + $15/mo (CloudFront) = $65/mo",
+          "infrastructure": "Nginx RTMP local + PostgreSQL local + CloudFront",
           "monitoring": "Weekly checklist (postgresql-local-maintenance-manual.md)",
           "status": "✅ READY"
         },
@@ -434,9 +435,9 @@
           "options": [
             {
               "option": "A - Server upgrade (RECOMMENDED)",
-              "server_spec": "16-core, 64GB RAM, 2TB SSD",
+              "server_spec": "16-core, 128GB RAM, 3.84TB NVMe",
               "vendor": "Vultr/Hetzner dedicated",
-              "cost_monthly": "$400-500/mo (server) + $108-216 (CDN) = $508-716/mo",
+              "cost_monthly": "$165/mo (server) + $200/mo (CloudFront Business) = $365/mo",
               "benefits": [
                 "16 cores = 2× CPU headroom for peaks",
                 "64GB RAM = PostgreSQL optimal performance",
@@ -465,7 +466,7 @@
             {
               "option": "C - Hybrid (REVISIT NEON.TECH)",
               "description": "Move PostgreSQL to Neon.tech, keep Nginx local",
-              "cost_monthly": "$155-195 (server) + $50-100 (Neon.tech) + $108-216 (CDN) = $313-511/mo",
+              "cost_monthly": "$155-195 (server) + $50-100 (Neon.tech) + $200 (CloudFront Business) = $405-495/mo",
               "benefits": [
                 "Eliminates 30 min/week maintenance",
                 "Gains 99.99% SLA + auto-failover",
@@ -479,8 +480,8 @@
 
         "phase_3_maturity_1000_plus_users": {
           "duration": "Month 12+",
-          "recommended_infrastructure": "Upgraded server (16-core, 64GB, 2TB) + Bunny CDN",
-          "cost_monthly": "$400-500 (server) + $108-216 (CDN) = $508-716/mo",
+          "recommended_infrastructure": "Upgraded server (16-core, 128GB, 3.84TB) + CloudFront CDN",
+          "cost_monthly": "$165 (server) + $197 (CloudFront) = $362/mo",
           "optional_advanced_scaling": [
             "PostgreSQL replication (standby on same server for HA)",
             "Multiple Nginx RTMP instances with load balancing",

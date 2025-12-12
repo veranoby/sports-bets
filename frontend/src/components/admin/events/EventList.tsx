@@ -149,6 +149,46 @@ const EventList: React.FC<EventListProps> = ({
           setEvents((prev) => prev.map(reconcileEvent));
           setTodayEvents((prev) => prev.map(reconcileEvent));
         }
+        // Handle streaming status update events (deprecated legacy format - to be removed after client update)
+        // NOTE: This handles the old format where backend sends STREAM_STATUS_UPDATE with inner type
+        // New format uses direct event types (STREAM_PAUSED, STREAM_RESUMED) - see above handlers
+        else if (parsedData.type === "STREAM_STATUS_UPDATE") {
+          // Check the inner type to determine stream status
+          const { id, eventId, streamStatus, status, type: innerType } = parsedData.data;
+          const targetId = eventId || id; // Support both eventId and id fields
+
+          if (!targetId) return;
+
+          // Determine the new stream status based on the inner type and status
+          let newStreamStatus = null;
+          if (innerType === "STREAM_PAUSED") {
+            newStreamStatus = "paused";
+          } else if (innerType === "STREAM_RESUMED") {
+            newStreamStatus = "connected";
+          } else if (status === "live") {
+            newStreamStatus = "connected";
+          } else if (status === "ended") {
+            newStreamStatus = "disconnected";
+          }
+
+          if (newStreamStatus) {
+            // Update both events and todayEvents with the new stream status
+            const reconcileEvent = (event: Event) => {
+              if (event.id !== targetId) return event;
+
+              // Debug log removed for production - use logger.debug() if needed
+              // console.log("🔄 SSE reconciliation for stream status update:", targetId, "to", newStreamStatus);
+              return {
+                ...event,
+                streamStatus: newStreamStatus,
+                ...parsedData.data // Merge any other data from SSE
+              } as Event;
+            };
+
+            setEvents((prev) => prev.map(reconcileEvent));
+            setTodayEvents((prev) => prev.map(reconcileEvent));
+          }
+        }
       } catch (error) {
         console.error("Error parsing SSE message:", error);
       }

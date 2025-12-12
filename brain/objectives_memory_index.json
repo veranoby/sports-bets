@@ -23,8 +23,8 @@
       "metric_name": "Fecha de Lanzamiento del MVP",
       "measurement": "Fecha de despliegue en producción.",
       "baseline": "N/A",
-      "target": "2025-09-21",
-      "status": "EN RIESGO"
+      "target": "2026-01-01",
+      "status": "REPLANIFICADO"
     },
     {
       "metric_id": "METRIC_SUBSCRIBERS_M1",
@@ -56,7 +56,7 @@
   ],
   "quarterly_milestones": [
     {
-      "quarter": "Q3 2025",
+      "quarter": "Q1 2026",
       "milestone": "Lanzamiento del MVP",
       "deliverables": [
         "Arquitectura SSE implementada.",

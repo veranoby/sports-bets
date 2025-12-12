@@ -369,29 +369,7 @@
         "monitoring": "DataDog or New Relic = $500-1,000/month",
         "suitable_for": "Revenue-generating production platform"
       },
-      "tier_0_480p_galloBets_$205_month_RECOMMENDED": {
-        "description": "Galleros.Net final recommended stack: 480p + pause optimization + Neon.tech",
-        "rationale": "480p reduces bandwidth 50% vs 720p. Pause between fights saves 35-40% more. Total = most cost-effective for 2×/week, 6h sessions with 500 concurrent users",
-        "compute": "Vultr 4-core 8GB RAM = $24/month",
-        "database": "Neon.tech PostgreSQL managed = $50/month (includes auto-scaling, built-in backups, connection pooling)",
-        "streaming_origin": "Ant Media Server on VPS = $24/month (open-source, handles pause/resume natively)",
-        "cdn_distribution": "Bunny CDN HLS @ 480p = $108/month (0.01/GB × 10.8 TB/month with pause)",
-        "monitoring": "Prometheus + Grafana self-hosted = $0-30/month",
-        "total_monthly": "$206-236/month ✅ RECOMMENDED FOR GALLOBETS",
-        "cost_breakdown": {
-          "monthly_bandwidth_480p": "10.8 TB (2.7 TB/week × 4.3 weeks)",
-          "cdn_cost_480p": "$108/month",
-          "compute": "$24/month",
-          "database": "$50/month",
-          "origin": "$24/month",
-          "monitoring": "$0-30/month",
-          "total": "$206-236/month"
-        },
-        "annual_cost": "$2,472-2,832/year",
-        "comparison_720p_with_pause": "720p would cost $339/month = $4,068/year (75% MORE expensive than 480p)",
-        "quality_notes": "480p = 854×480 pixels sufficient for cockfighting detail (camera focused on birds). Fallback to 720p available for users >5 Mbps.",
-        "savings_vs_24h_720p": "24/7 @ 720p = $2,100+/month. Scheduled 480p = $206-236/month. Savings = $21K-23K/year"
-      },
+      
       "tier_3_optimized_$500_800_month": {
         "compute": "Vultr 4-core = $24/month",
         "database": "Neon.tech = $50/month",
@@ -400,60 +378,8 @@
         "suitable_for": "Regional galleras with scheduled events (peak hours only, no 24h streaming)"
       }
     },
-    "cost_optimization_strategies": [
-      "✅ 480p streaming: Reduce bandwidth 50% vs 720p = $108/month CDN cost (vs $216 with 720p)",
-      "✅ PAUSE/RESUME between fights: Reduce effective streaming 6h→4h = 35-40% bandwidth savings",
-      "✅ Bunny CDN is 5× cheaper than CloudFront ($0.01/GB vs $0.085/month)",
-      "✅ Scheduled streaming (2×/week) vs 24/7 = 94% cost savings ($205/mo vs $2,100+)",
-      "✅ Off-peak cutoff: Stream only event hours, pause rest of day",
-      "✅ Adaptive bitrate streaming (ABR): Reduce per-user bandwidth 20-30% (HLS.js handles client-side)",
-      "✅ Origin-shield: Reduces origin bandwidth 30-50% (Bunny CDN native feature)",
-      "✅ Neon.tech managed PostgreSQL: Connection pooling + auto-scaling + 99.99% uptime SLA",
-      "✅ Connection pooling with PgBouncer: Reduce database overhead (Neon includes native pooling)"
-    ],
-    "real_world_cost_projection_galloBets": {
-      "scenario": "2 sessions/week, 6 hours each, 500 concurrent users, WITH pause optimization + 480p",
-      "bandwidth_calculations": {
-        "720p_at_3mbps": {
-          "per_hour": "500 viewers × 3 Mbps = 1.5 Gbps = 675 GB/hour",
-          "per_session_6h": "4.05 TB per session (without pause)",
-          "per_session_with_pause": "2.7 TB per session (4h effective with 2h pause between fights)"
-        },
-        "480p_at_1_5mbps": {
-          "per_hour": "500 viewers × 1.5 Mbps = 750 Mbps = 337.5 GB/hour (50% reduction vs 720p)",
-          "per_session_6h": "2.025 TB per session (without pause)",
-          "per_session_with_pause": "1.35 TB per session (4h effective with 2h pause between fights)"
-        }
-      },
-      "monthly_cost_720p_with_pause": {
-        "weekly_bandwidth": "5.4 TB (2.7 TB × 2 sessions)",
-        "monthly_bandwidth": "21.6 TB",
-        "cdn_cost_bunny": "$216/month ($0.01/GB × 21.6 TB)",
-        "compute_vultr": "$24/month",
-        "database_neon": "$50/month",
-        "origin_ant_media": "$24/month",
-        "monitoring": "$0-30/month",
-        "total_monthly": "$314-344/month",
-        "annual_cost": "$3,768-4,128/year"
-      },
-      "monthly_cost_480p_with_pause_RECOMMENDED": {
-        "weekly_bandwidth": "2.7 TB (1.35 TB × 2 sessions)",
-        "monthly_bandwidth": "10.8 TB",
-        "cdn_cost_bunny": "$108/month ($0.01/GB × 10.8 TB)",
-        "compute_vultr": "$24/month",
-        "database_neon": "$50/month",
-        "origin_ant_media": "$24/month",
-        "monitoring": "$0-30/month",
-        "total_monthly": "$206-236/month ✅ FINAL RECOMMENDATION",
-        "annual_cost": "$2,472-2,832/year"
-      },
-      "480p_vs_720p_savings": {
-        "monthly_savings": "$108-138/month (50% CDN reduction)",
-        "annual_savings": "$1,296-1,656/year",
-        "total_vs_24h_720p": "24/7 @ 720p costs $2,100+/month. Scheduled 480p = $206-236/month. Total savings = $21K-23K/year"
-      },
-      "comparison_24h_streaming": "24h would cost $2,100-5,300/month = $25K-64K/year (9-25× more expensive than 480p scheduled)"
-    },
+    
+    
     "critical_dependencies": [
       "Backend Performance Analysis (BACKEND_PERFORMANCE_ANALYSIS_PLAN) MUST complete before scaling to 500 users",
       "Memory leaks in SSE/WebSocket would cause exponential cost growth in production",

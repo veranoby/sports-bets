@@ -121,11 +121,11 @@ const EventDetail: React.FC<EventDetailProps> = ({
     }
   };
 
-  // SSE listener for event status changes
+  // SSE listener for event and stream status changes
   useEffect(() => {
     if (!eventId) return;
 
-    // Listen for event status changes
+    // Listen for event and stream status changes
     const apiBaseUrl =
       import.meta.env.VITE_API_URL?.replace("/api", "") ||
       "http://localhost:3001";
@@ -154,6 +154,75 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 },
               };
             });
+          }
+        }
+        // Handle streaming events - both direct and status update types (for backward compatibility)
+        else if (
+          parsedData.type === "STREAM_STARTED" ||
+          parsedData.type === "STREAM_STOPPED" ||
+          parsedData.type === "STREAM_PAUSED" ||
+          parsedData.type === "STREAM_RESUMED"
+        ) {
+          // Check for both eventId and id for consistency with other components
+          if (parsedData.data?.eventId === eventId || parsedData.data?.id === eventId) {
+            // Determine stream status based on the event type for direct events
+            let newStreamStatus = null;
+            if (parsedData.type === "STREAM_STARTED") {
+              newStreamStatus = "connected";
+            } else if (parsedData.type === "STREAM_STOPPED") {
+              newStreamStatus = "disconnected";
+            } else if (parsedData.type === "STREAM_PAUSED") {
+              newStreamStatus = "paused";
+            } else if (parsedData.type === "STREAM_RESUMED") {
+              newStreamStatus = "connected";
+            }
+
+            // Update event data with direct streaming status updates
+            setEventDetailData((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                event: {
+                  ...prev.event,
+                  streamStatus: newStreamStatus || parsedData.data.streamStatus || prev.event.streamStatus,
+                  streamUrl: parsedData.data.streamUrl || prev.event.streamUrl,
+                  ...parsedData.data // Merge any other SSE data into existing event
+                },
+              };
+            });
+          }
+        }
+        // Handle streaming status update events (for backward compatibility with old format)
+        else if (parsedData.type === "STREAM_STATUS_UPDATE") {
+          // Check for both eventId and id for consistency with other components
+          if (parsedData.data?.eventId === eventId || parsedData.data?.id === eventId) {
+            // Check the inner type to determine stream status
+            let newStreamStatus = null;
+            if (parsedData.data.type === "STREAM_PAUSED") {
+              newStreamStatus = "paused";
+            } else if (parsedData.data.type === "STREAM_RESUMED") {
+              newStreamStatus = "connected"; // Connected after resume
+            } else if (parsedData.data.status === "live") {
+              newStreamStatus = "connected";
+            } else if (parsedData.data.status === "ended") {
+              newStreamStatus = "disconnected";
+            }
+
+            // Update event data if we have a new stream status
+            if (newStreamStatus) {
+              setEventDetailData((prev) => {
+                if (!prev) return null;
+                return {
+                  ...prev,
+                  event: {
+                    ...prev.event,
+                    streamStatus: newStreamStatus,
+                    streamUrl: parsedData.data.streamUrl || prev.event.streamUrl,
+                    ...parsedData.data // Merge any other SSE data into existing event
+                  },
+                };
+              });
+            }
           }
         }
       } catch (error) {
@@ -491,7 +560,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }`}
                   ></span>
                   <span className="font-semibold text-xs">
-                    OBS {eventDetailData.event.streamStatus === "connected" ? "Conectado" : "Desconectado"}
+                    OBS{" "}
+                    {eventDetailData.event.streamStatus === "connected"
+                      ? "Conectado"
+                      : "Desconectado"}
                   </span>
                 </div>
               </div>
@@ -505,7 +577,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   try {
                     const response = await eventsAPI.startStream(eventId);
                     if (response.data.success) {
-                      // Update event status
+                      // Update event status optimistically
                       if (eventDetailData) {
                         setEventDetailData((prev) =>
                           prev
@@ -514,6 +586,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                                 event: {
                                   ...prev.event,
                                   streamStatus: "connected",
+                                  streamUrl: response.data.data?.streamUrl || prev.event.streamUrl,
                                 },
                                 fights: prev.fights || [],
                               }
@@ -523,6 +596,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }
                   } catch (error) {
                     console.error("Error starting stream:", error);
+                    // On error, refetch to ensure UI state matches server state
+                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -569,6 +644,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }
                   } catch (error) {
                     console.error("Error pausing stream:", error);
+                    // On error, refetch to ensure UI state matches server state
+                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -618,6 +695,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }
                   } catch (error) {
                     console.error("Error resuming stream:", error);
+                    // On error, refetch to ensure UI state matches server state
+                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -663,6 +742,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }
                   } catch (error) {
                     console.error("Error stopping stream:", error);
+                    // On error, refetch to ensure UI state matches server state
+                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
