@@ -33,6 +33,7 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
+import HLSPlayer from "../../components/streaming/HLSPlayer";
 
 // Tipos TypeScript
 interface Fight {
@@ -90,6 +91,7 @@ interface EventData {
     };
   };
   streamUrl?: string;
+  streamStatus?: string;
   currentViewers?: number;
   totalFights: number;
   completedFights: number;
@@ -348,35 +350,44 @@ const StreamingStatus = memo(
   ),
 );
 
-const VideoPlayer = memo(
+const StreamingContainer = memo(
   ({
     streamUrl,
+    streamStatus,
     eventId,
     currentViewers,
   }: {
     streamUrl?: string;
+    streamStatus?: string;
     eventId: string;
     currentViewers?: number;
   }) => (
-    <div className="aspect-video bg-black relative rounded-lg overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center text-white">
-        {streamUrl ? (
-          <video src={streamUrl} controls className="w-full h-full" autoPlay />
-        ) : (
+    <div className="relative">
+      {streamUrl && streamStatus === 'connected' ? (
+        <>
+          <HLSPlayer
+            streamUrl={streamUrl}
+            autoplay={true}
+            controls={true}
+            muted={false}
+            onError={(error) => console.error('HLS playback error:', error)}
+          />
+          {currentViewers !== undefined && (
+            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
+              <Users className="w-3 h-3 inline mr-1" />
+              {currentViewers}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="aspect-video bg-black/30 rounded-lg flex items-center justify-center text-white">
           <div className="text-center">
-            <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+            <div className="w-12 h-12 bg-yellow-500 rounded-full mx-auto mb-2 flex items-center justify-center">
               <div className="w-6 h-6 bg-white rounded-full animate-pulse"></div>
             </div>
-            <p className="text-lg font-medium">Transmisión en Vivo</p>
-            <p className="text-sm text-gray-300">Evento #{eventId}</p>
+            <p className="text-lg font-medium">Esperando Transmisión</p>
+            <p className="text-sm text-gray-300">El administrador iniciará el streaming pronto</p>
           </div>
-        )}
-      </div>
-
-      {currentViewers !== undefined && (
-        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-          <Users className="w-3 h-3 inline mr-1" />
-          {currentViewers}
         </div>
       )}
     </div>
@@ -636,7 +647,9 @@ const LiveEvent = () => {
           parsedData.type === "EVENT_ACTIVATED" ||
           parsedData.type === "EVENT_COMPLETED" ||
           parsedData.type === "STREAM_STARTED" ||
-          parsedData.type === "STREAM_STOPPED"
+          parsedData.type === "STREAM_STOPPED" ||
+          parsedData.type === "STREAM_PAUSED" ||
+          parsedData.type === "STREAM_RESUMED"
         ) {
           const eventData = parsedData.data;
           if (eventData?.id === eventId) {
@@ -950,8 +963,9 @@ const LiveEvent = () => {
               <div className="flex justify-between items-center mb-2">
                 <StreamingStatus currentViewers={currentEvent.currentViewers} />
               </div>
-              <VideoPlayer
+              <StreamingContainer
                 streamUrl={currentEvent.streamUrl}
+                streamStatus={currentEvent.streamStatus}
                 eventId={currentEvent.id}
                 currentViewers={currentEvent.currentViewers}
               />

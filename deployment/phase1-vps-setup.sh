@@ -113,8 +113,8 @@ rtmp {
             # HLS output for CDN
             hls on;
             hls_path /var/www/html/hls;
-            hls_fragment 3;
-            hls_playlist_length 60;
+            hls_fragment 1;
+            hls_playlist_length 12;
             hls_cleanup on;
             hls_sync 100ms;
             

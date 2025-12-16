@@ -616,22 +616,21 @@ router.post(
 
     const streamInfo = await streamingService.getStreamInfo(event.streamKey);
 
-    // ✅ CHANGED: If stream is already active (OBS is already connected),
-    // just update the database state instead of throwing error
-    // This allows admin to "register" an already-active OBS stream
+    // ✅ FIX: Use actual stream status from getStreamInfo, don't ignore it
     const streamAlreadyActive = streamInfo.isActive;
 
-    event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8`;
-    event.streamStatus = 'connected'; // ✅ UPDATE stream status in DB
+    // ✅ CRITICAL FIX: Only set 'connected' if stream actually exists
+    event.streamStatus = streamInfo.isActive ? 'connected' : 'offline';
+    event.streamUrl = streamInfo.isActive ? `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8` : null;
     await event.save();
 
-    try {
-      const streamHealthy = true;
-      if (!streamHealthy) {
-        throw new Error("Streaming server is not available");
+    // ✅ VALIDATION: Check if streaming server is available
+    if (!streamInfo.status || streamInfo.status === 'offline') {
+      // Log for debugging
+      console.log(`Stream check for ${event.streamKey}: status=${streamInfo.status}, isActive=${streamInfo.isActive}`);
+      if (!streamAlreadyActive) {
+        throw errors.conflict('Stream server is not ready. Ensure OBS is connected to RTMP server.');
       }
-    } catch (error) {
-      throw errors.conflict("Streaming server is not available");
     }
 
     const sseService = req.app.get("sseService");
@@ -722,7 +721,7 @@ router.post(
         data: {
           eventId: event.id,
           id: event.id, // ✅ Include id for frontend reconciliation
-          streamStatus: 'disconnected', // ✅ Include streamStatus for UI update
+          streamStatus: 'offline', // ✅ Include streamStatus for UI update
           streamUrl: null,
           name: event.name,
           venue: event.venue,
