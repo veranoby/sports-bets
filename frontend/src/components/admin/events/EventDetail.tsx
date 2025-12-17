@@ -475,15 +475,44 @@ const EventDetail: React.FC<EventDetailProps> = ({
   // RTMP Status Badge component
   const RtmpStatusBadge = ({ status }: { status: string }) => {
     const statusConfig = {
-      connected: { text: "OBS Conectado", color: "bg-green-100 text-green-800", icon: <Radio className="w-3 h-3 mr-1" />, pulse: true },
-      connecting: { text: "Conectando...", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: true },
-      offline: { text: "OBS Desconectado", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
-      paused: { text: "OBS Pausado", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: false },
-      disconnected: { text: "OBS Desconectado", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
+      connected: {
+        text: "OBS Conectado",
+        color: "bg-green-100 text-green-800",
+        icon: <Radio className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
+      connecting: {
+        text: "Conectando...",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <ActivityIcon className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
+      offline: {
+        text: "OBS Desconectado",
+        color: "bg-gray-200 text-gray-700",
+        icon: <XCircleIcon className="w-3 h-3 mr-1" />,
+        pulse: false,
+      },
+      paused: {
+        text: "OBS Pausado",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <ActivityIcon className="w-3 h-3 mr-1" />,
+        pulse: false,
+      },
+      disconnected: {
+        text: "OBS Desconectado",
+        color: "bg-gray-200 text-gray-700",
+        icon: <XCircleIcon className="w-3 h-3 mr-1" />,
+        pulse: false,
+      },
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`} title={`Estado de conexión OBS (RTMP): ${config.text}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
+        title={`Estado de conexión OBS (RTMP): ${config.text}`}
+      >
         {config.icon}
         {config.text}
       </span>
@@ -493,14 +522,38 @@ const EventDetail: React.FC<EventDetailProps> = ({
   // HLS Status Badge component
   const HlsStatusBadge = ({ status }: { status: string }) => {
     const statusConfig = {
-      ready: { text: "Stream Público", color: "bg-green-100 text-green-800", icon: <Video className="w-3 h-3 mr-1" />, pulse: true },
-      processing: { text: "Procesando...", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: true },
-      offline: { text: "No Disponible", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
-      error: { text: "Error HLS", color: "bg-red-100 text-red-800", icon: <AlertTriangle className="w-3 h-3 mr-1" />, pulse: false },
+      ready: {
+        text: "Stream Público",
+        color: "bg-green-100 text-green-800",
+        icon: <Video className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
+      processing: {
+        text: "Procesando...",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <ActivityIcon className="w-3 h-3 mr-1" />,
+        pulse: true,
+      },
+      offline: {
+        text: "No Disponible",
+        color: "bg-gray-200 text-gray-700",
+        icon: <XCircleIcon className="w-3 h-3 mr-1" />,
+        pulse: false,
+      },
+      error: {
+        text: "Error HLS",
+        color: "bg-red-100 text-red-800",
+        icon: <AlertTriangle className="w-3 h-3 mr-1" />,
+        pulse: false,
+      },
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`} title={`Estado de distribución HLS: ${config.text}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
+        title={`Estado de distribución HLS: ${config.text}`}
+      >
         {config.icon}
         {config.text}
       </span>
@@ -610,10 +663,19 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   <div className="text-center space-y-1">
                     <Video className="w-10 h-10 mx-auto text-gray-400" />
                     <p className="text-sm text-gray-300">
-                      {eventDetailData.event.hlsStatus === "processing" ? "Procesando stream..." : eventDetailData.event.hlsStatus === "error" ? "Error en transcoding HLS" : "Stream no disponible"}
+                      {eventDetailData.event.hlsStatus === "processing"
+                        ? "Procesando stream..."
+                        : eventDetailData.event.hlsStatus === "error"
+                          ? "Error en transcoding HLS"
+                          : "Stream no disponible"}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {eventDetailData.event.streamStatus === "connected" && eventDetailData.event.hlsStatus === "processing" ? "OBS conectado. Esperando segmentos HLS..." : eventDetailData.event.streamStatus === "offline" ? "OBS desconectado. Inicie streaming desde OBS Studio." : "Verifique configuración de streaming"}
+                      {eventDetailData.event.streamStatus === "connected" &&
+                      eventDetailData.event.hlsStatus === "processing"
+                        ? "OBS conectado. Esperando segmentos HLS..."
+                        : eventDetailData.event.streamStatus === "offline"
+                          ? "OBS desconectado. Inicie streaming desde OBS Studio."
+                          : "Verifique configuración de streaming"}
                     </p>
                   </div>
                 </div>
@@ -629,13 +691,20 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   Control de Streaming
                 </h2>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50">
-                  <RtmpStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                  <RtmpStatusBadge
+                    status={eventDetailData.event.streamStatus || "offline"}
+                  />
                 </span>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50">
-                  <HlsStatusBadge status={eventDetailData.event.hlsStatus || "offline"} />
+                  <HlsStatusBadge
+                    status={eventDetailData.event.hlsStatus || "offline"}
+                  />
                 </span>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                  Espectadores: <span className="text-sm font-bold text-gray-900">{eventDetailData.event.currentViewers || 0}</span>
+                  Espectadores:{" "}
+                  <span className="text-sm font-bold text-gray-900">
+                    {eventDetailData.event.currentViewers || 0}
+                  </span>
                 </span>
               </div>
               <div className="flex items-center gap-2">

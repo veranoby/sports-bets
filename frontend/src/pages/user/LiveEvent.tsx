@@ -610,9 +610,12 @@ const LiveEvent = () => {
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
     "http://localhost:3001";
-  const { lastEvent, status, error: sseError, subscribeToEvents } = useSSE(
-    eventId ? `${apiBaseUrl}/api/sse/public/events/${eventId}` : null
-  );
+  const {
+    lastEvent,
+    status,
+    error: sseError,
+    subscribeToEvents,
+  } = useSSE(eventId ? `${apiBaseUrl}/api/sse/public/events/${eventId}` : null);
 
   useEffect(() => {
     if (!eventId || status !== "connected") return;
