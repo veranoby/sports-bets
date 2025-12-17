@@ -642,7 +642,6 @@ router.post(
           streamKey: event.streamKey,
           streamStatus: 'offline',
           rtmpUrl: `rtmp://${req.get('host') || 'localhost'}:1935/live`,
-          streamKey: event.streamKey,
         }
       });
     }
