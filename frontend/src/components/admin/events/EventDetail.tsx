@@ -37,8 +37,7 @@ import SSEErrorBoundary from "../../../components/admin/SSEErrorBoundary";
 import StatusChanger from "../../../components/admin/StatusChanger";
 import SetWinnerModal from "../../../components/admin/SetWinnerModal";
 import HLSPlayer from "../../../components/streaming/HLSPlayer";
-import { useSSEConnection } from "../../../hooks/useSSEConnection";
-import { useStreamControl } from "../../../hooks/useStreamControl";
+import { useAdminSSE, SSEEventType, AdminChannel } from "../../../hooks/useSSE";
 import StreamingControlTab from "../../../components/admin/StreamingControlTab";
 import FightsControlTab from "../../../components/admin/FightsControlTab";
 import BetsActiveTab from "../../../components/admin/BetsActiveTab";
@@ -69,24 +68,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
     fights: Fight[];
   } | null>(null);
   const [detailLoading, setDetailLoading] = useState(true);
-  // Remove activeTab since we're using a new 3-row layout
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
     null,
   );
-  const [isSSEConnected, setIsSSEConnected] = useState<boolean>(true); // Default to true initially
-  const [isStreamPaused, setIsStreamPaused] = useState(false); // State for stream pause status
-  const [selectedFightId, setSelectedFightId] = useState<string | null>(null); // State for selected fight
+  const [selectedFightId, setSelectedFightId] = useState<string | null>(null);
   const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
-  const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false); // State for winner modal
-
-  // SSE and Stream Control Hooks
-  const {
-    handleStartStream,
-    handleStopStream,
-    handlePauseStream,
-    handleResumeStream,
-  } = useStreamControl();
+  const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   // ✅ Local wrapper to update state after status change (matching EventList pattern)
   const handleStatusChange = async (eventId: string, action: string) => {
@@ -121,124 +109,156 @@ const EventDetail: React.FC<EventDetailProps> = ({
     }
   };
 
-  // SSE listener for event and stream status changes
+  // ✅ SSE Connection using useAdminSSE hook (replaces manual EventSource - eliminates duplicate connection)
+  const adminSSE = useAdminSSE(AdminChannel.GLOBAL);
+
+  // Subscribe to event and stream status changes via SSE
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventId || adminSSE.status !== "connected") return;
 
-    // Listen for event and stream status changes
-    const apiBaseUrl =
-      import.meta.env.VITE_API_URL?.replace("/api", "") ||
-      "http://localhost:3001";
-    const event = new EventSource(
-      `${apiBaseUrl}/api/sse/admin/global?token=${localStorage.getItem("token")}`,
-    );
+    const unsubscribe = adminSSE.subscribeToEvents({
+      // Event status changes
+      EVENT_ACTIVATED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: { ...prev.event, ...event.data },
+            };
+          });
+        }
+      },
+      EVENT_COMPLETED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: { ...prev.event, ...event.data },
+            };
+          });
+        }
+      },
+      EVENT_CANCELLED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: { ...prev.event, ...event.data },
+            };
+          });
+        }
+      },
+      EVENT_SCHEDULED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: { ...prev.event, ...event.data },
+            };
+          });
+        }
+      },
+      // Stream status changes
+      STREAM_STARTED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: "connected",
+                streamUrl: event.data.streamUrl || prev.event.streamUrl,
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      STREAM_STOPPED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: "disconnected",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      STREAM_PAUSED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: "paused",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      STREAM_RESUMED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: "connected",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      STREAM_STATUS_UPDATE: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          let newStreamStatus = null;
+          if (event.data.type === "STREAM_PAUSED") {
+            newStreamStatus = "paused";
+          } else if (event.data.type === "STREAM_RESUMED") {
+            newStreamStatus = "connected";
+          } else if (event.data.status === "live") {
+            newStreamStatus = "connected";
+          } else if (event.data.status === "ended") {
+            newStreamStatus = "disconnected";
+          }
 
-    event.onmessage = (e) => {
-      try {
-        const parsedData = JSON.parse(e.data);
-        if (
-          parsedData.type === "EVENT_ACTIVATED" ||
-          parsedData.type === "EVENT_COMPLETED" ||
-          parsedData.type === "EVENT_CANCELLED" ||
-          parsedData.type === "EVENT_SCHEDULED"
-        ) {
-          if (parsedData.data?.eventId === eventId) {
-            // Update event data with SSE payload
+          if (newStreamStatus) {
             setEventDetailData((prev) => {
               if (!prev) return null;
               return {
                 ...prev,
                 event: {
                   ...prev.event,
-                  ...parsedData.data, // Merge SSE updates into existing event
+                  streamStatus: newStreamStatus,
+                  streamUrl: event.data.streamUrl || prev.event.streamUrl,
+                  ...event.data,
                 },
               };
             });
           }
         }
-        // Handle streaming events - both direct and status update types (for backward compatibility)
-        else if (
-          parsedData.type === "STREAM_STARTED" ||
-          parsedData.type === "STREAM_STOPPED" ||
-          parsedData.type === "STREAM_PAUSED" ||
-          parsedData.type === "STREAM_RESUMED"
-        ) {
-          // Check for both eventId and id for consistency with other components
-          if (parsedData.data?.eventId === eventId || parsedData.data?.id === eventId) {
-            // Determine stream status based on the event type for direct events
-            let newStreamStatus = null;
-            if (parsedData.type === "STREAM_STARTED") {
-              newStreamStatus = "connected";
-            } else if (parsedData.type === "STREAM_STOPPED") {
-              newStreamStatus = "disconnected";
-            } else if (parsedData.type === "STREAM_PAUSED") {
-              newStreamStatus = "paused";
-            } else if (parsedData.type === "STREAM_RESUMED") {
-              newStreamStatus = "connected";
-            }
-
-            // Update event data with direct streaming status updates
-            setEventDetailData((prev) => {
-              if (!prev) return null;
-              return {
-                ...prev,
-                event: {
-                  ...prev.event,
-                  streamStatus: newStreamStatus || parsedData.data.streamStatus || prev.event.streamStatus,
-                  streamUrl: parsedData.data.streamUrl || prev.event.streamUrl,
-                  ...parsedData.data // Merge any other SSE data into existing event
-                },
-              };
-            });
-          }
-        }
-        // Handle streaming status update events (for backward compatibility with old format)
-        else if (parsedData.type === "STREAM_STATUS_UPDATE") {
-          // Check for both eventId and id for consistency with other components
-          if (parsedData.data?.eventId === eventId || parsedData.data?.id === eventId) {
-            // Check the inner type to determine stream status
-            let newStreamStatus = null;
-            if (parsedData.data.type === "STREAM_PAUSED") {
-              newStreamStatus = "paused";
-            } else if (parsedData.data.type === "STREAM_RESUMED") {
-              newStreamStatus = "connected"; // Connected after resume
-            } else if (parsedData.data.status === "live") {
-              newStreamStatus = "connected";
-            } else if (parsedData.data.status === "ended") {
-              newStreamStatus = "disconnected";
-            }
-
-            // Update event data if we have a new stream status
-            if (newStreamStatus) {
-              setEventDetailData((prev) => {
-                if (!prev) return null;
-                return {
-                  ...prev,
-                  event: {
-                    ...prev.event,
-                    streamStatus: newStreamStatus,
-                    streamUrl: parsedData.data.streamUrl || prev.event.streamUrl,
-                    ...parsedData.data // Merge any other SSE data into existing event
-                  },
-                };
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing SSE message:", error);
-      }
-    };
-
-    event.onerror = (error) => {
-      console.error("SSE connection error:", error);
-      event.close();
-    };
+      },
+    });
 
     return () => {
-      event.close();
+      unsubscribe();
     };
-  }, [eventId]); // ✅ FIXED: Removed eventDetailData from dependencies
+  }, [eventId, adminSSE.status, adminSSE.subscribeToEvents]);
 
   // Fetch event detail data
   const fetchEventDetail = useCallback(async () => {
@@ -501,10 +521,19 @@ const EventDetail: React.FC<EventDetailProps> = ({
               eventDetailData.event.streamStatus === "connected" ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
-                  autoplay={false}
+                  autoplay={true}
                   controls={true}
-                  muted={true}
+                  muted={false}
                   className="w-full aspect-video rounded-lg overflow-hidden"
+                  // ✅ Low-latency HLS configuration - forces live edge playback
+                  hlsConfig={{
+                    startPosition: -1, // Force start at live edge (not buffered content)
+                    liveSyncDurationCount: 2, // Stay within 2 segments of live edge (minimum latency)
+                    maxBufferLength: 4, // Reduce buffer to 4 seconds (prevent old content)
+                    maxMaxBufferLength: 8, // Cap max buffer at 8 seconds
+                    enableWorker: true, // Use web worker for better performance
+                    lowLatencyMode: true, // Enable low-latency mode
+                  }}
                 />
               ) : (
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center text-white">
@@ -550,7 +579,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                {/* ✅ OBS Connection Status - Shows if OBS Studio is actively streaming to Nginx RTMP */}
+                {/* Signal Status Badge */}
                 <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-gray-50">
                   <span
                     className={`w-2 h-2 rounded-full ${
@@ -560,44 +589,58 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }`}
                   ></span>
                   <span className="font-semibold text-xs">
-                    OBS{" "}
-                    {eventDetailData.event.streamStatus === "connected"
-                      ? "Conectado"
-                      : "Desconectado"}
+                    Señal: {eventDetailData.event.streamStatus === "connected" ? "Recibiendo" : "Esperando"}
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* OBS Configuration Info - CRITICAL FOR USER */}
+            {eventDetailData.event.streamKey && (
+              <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+                <div className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                   <Settings className="w-4 h-4" /> DATOS DE CONEXIÓN OBS
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="block text-blue-600 font-semibold mb-1">1. Servidor (URL)</span>
+                    <div className="flex items-center gap-1">
+                      <code className="flex-1 block bg-white p-2 rounded border border-blue-200 font-mono select-all">
+                        rtmp://{window.location.hostname}:1935/live
+                      </code>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-blue-600 font-semibold mb-1">2. Clave de Transmisión (Key)</span>
+                    <div className="flex gap-2">
+                      <code className="flex-1 block bg-white p-2 rounded border border-blue-200 font-mono select-all overflow-hidden text-ellipsis font-bold">
+                        {eventDetailData.event.streamKey}
+                      </code>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText(eventDetailData.event.streamKey || '')}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold shadow-sm transition-colors"
+                        title="Copiar Clave"
+                      >
+                        COPIAR
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-blue-500 italic">
+                   * En OBS: Ajustes &gt; Emisión &gt; Servicio: Personalizado &gt; Pegar estos datos.
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
               <button
                 onClick={async () => {
-                  // Start stream
                   setOperationInProgress(`${eventId}-start-stream`);
                   try {
-                    const response = await eventsAPI.startStream(eventId);
-                    if (response.data.success) {
-                      // Update event status optimistically
-                      if (eventDetailData) {
-                        setEventDetailData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                event: {
-                                  ...prev.event,
-                                  streamStatus: "connected",
-                                  streamUrl: response.data.data?.streamUrl || prev.event.streamUrl,
-                                },
-                                fights: prev.fights || [],
-                              }
-                            : null,
-                        );
-                      }
-                    }
+                    await eventsAPI.startStream(eventId);
+                    // ✅ SSE will update state automatically - no optimistic update needed
                   } catch (error) {
                     console.error("Error starting stream:", error);
-                    // On error, refetch to ensure UI state matches server state
-                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -621,48 +664,26 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
               <button
                 onClick={async () => {
-                  // Pause stream
                   setOperationInProgress(`${eventId}-pause-stream`);
                   try {
-                    const response = await streamingAPI.pauseStream(eventId);
-                    if (response.data.success) {
-                      setIsStreamPaused(true);
-                      if (eventDetailData) {
-                        setEventDetailData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                event: {
-                                  ...prev.event,
-                                  streamStatus: "paused",
-                                },
-                                fights: prev.fights || [],
-                              }
-                            : null,
-                        );
-                      }
-                    }
+                    await streamingAPI.pauseStream(eventId);
+                    // ✅ SSE will update state automatically - no optimistic update needed
                   } catch (error) {
                     console.error("Error pausing stream:", error);
-                    // On error, refetch to ensure UI state matches server state
-                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
                 }}
                 disabled={
                   operationInProgress !== null ||
-                  eventDetailData.event.streamStatus !== "connected" ||
-                  isStreamPaused
+                  eventDetailData.event.streamStatus !== "connected"
                 }
                 title={
                   operationInProgress !== null
                     ? "Operación en progreso"
                     : eventDetailData.event.streamStatus !== "connected"
                       ? "Stream no activo"
-                      : isStreamPaused
-                        ? "Stream ya está pausado"
-                        : "Pausar transmisión"
+                      : "Pausar transmisión"
                 }
                 className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -672,31 +693,12 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
               <button
                 onClick={async () => {
-                  // Resume stream
                   setOperationInProgress(`${eventId}-resume-stream`);
                   try {
-                    const response = await streamingAPI.resumeStream(eventId);
-                    if (response.data.success) {
-                      setIsStreamPaused(false);
-                      if (eventDetailData) {
-                        setEventDetailData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                event: {
-                                  ...prev.event,
-                                  streamStatus: "connected",
-                                },
-                                fights: prev.fights || [],
-                              }
-                            : null,
-                        );
-                      }
-                    }
+                    await streamingAPI.resumeStream(eventId);
+                    // ✅ SSE will update state automatically - no optimistic update needed
                   } catch (error) {
                     console.error("Error resuming stream:", error);
-                    // On error, refetch to ensure UI state matches server state
-                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -720,30 +722,12 @@ const EventDetail: React.FC<EventDetailProps> = ({
 
               <button
                 onClick={async () => {
-                  // Stop stream
                   setOperationInProgress(`${eventId}-stop-stream`);
                   try {
-                    const response = await eventsAPI.stopStream(eventId);
-                    if (response.data.success) {
-                      if (eventDetailData) {
-                        setEventDetailData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                event: {
-                                  ...prev.event,
-                                  streamStatus: "disconnected",
-                                },
-                                fights: prev.fights || [],
-                              }
-                            : null,
-                        );
-                      }
-                    }
+                    await eventsAPI.stopStream(eventId);
+                    // ✅ SSE will update state automatically - no optimistic update needed
                   } catch (error) {
                     console.error("Error stopping stream:", error);
-                    // On error, refetch to ensure UI state matches server state
-                    await fetchEventDetail();
                   } finally {
                     setOperationInProgress(null);
                   }
@@ -765,18 +749,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 Detener Stream
               </button>
 
-              {/* OBS Connection Status Indicator */}
-              <div className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2">
+              {/* OBS Connection Status Indicator - Updated for Clarity */}
+              <div className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2" title="Indica si la plataforma está recibiendo y procesando señal para la audiencia">
                 <div
                   className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
                 ></div>
-                <span className="hidden md:inline">Estado OBS:</span>
+                <span className="hidden md:inline">Señal En Vivo:</span>
                 <span>
                   {eventDetailData.event.streamStatus === "connected"
-                    ? "Conectado"
+                    ? "Transmitiendo"
                     : eventDetailData.event.streamStatus === "paused"
                       ? "Pausado"
-                      : "Desconectado"}
+                      : "Sin señal pública"}
                 </span>
               </div>
             </div>

@@ -616,23 +616,38 @@ router.post(
 
     const streamInfo = await streamingService.getStreamInfo(event.streamKey);
 
-    // ✅ FIX: Use actual stream status from getStreamInfo, don't ignore it
+    // ✅ FIX: Use actual stream status from getStreamInfo
     const streamAlreadyActive = streamInfo.isActive;
 
-    // ✅ CRITICAL FIX: Only set 'connected' if stream actually exists
-    event.streamStatus = streamInfo.isActive ? 'connected' : 'offline';
-    event.streamUrl = streamInfo.isActive ? `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8` : null;
-    await event.save();
+    // ✅ CRITICAL: Only set 'connected' if stream ACTUALLY exists
+    if (streamAlreadyActive) {
+      event.streamStatus = 'connected';
+      event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8`;
+      await event.save();
+    } else {
+      // ⚠️ Stream not ready yet - set to waiting state
+      event.streamStatus = 'offline';
+      event.streamUrl = null;
+      await event.save();
 
-    // ✅ VALIDATION: Check if streaming server is available
-    if (!streamInfo.status || streamInfo.status === 'offline') {
-      // Log for debugging
-      console.log(`Stream check for ${event.streamKey}: status=${streamInfo.status}, isActive=${streamInfo.isActive}`);
-      if (!streamAlreadyActive) {
-        throw errors.conflict('Stream server is not ready. Ensure OBS is connected to RTMP server.');
-      }
+      // Return 202 Accepted - operation initiated, waiting for OBS connection
+      return res.status(202).json({
+        success: true,
+        pending: true,
+        message: 'Stream event prepared. Waiting for OBS connection to RTMP server.',
+        estimatedReadyIn: 5000, // Suggest checking again in 5 seconds
+        data: {
+          id: event.id,
+          name: event.name,
+          streamKey: event.streamKey,
+          streamStatus: 'offline',
+          rtmpUrl: `rtmp://${req.get('host') || 'localhost'}:1935/live`,
+          streamKey: event.streamKey,
+        }
+      });
     }
 
+    // ✅ Broadcast STREAM_STARTED only if stream is actually active
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
@@ -642,9 +657,9 @@ router.post(
         type: "STREAM_STARTED",
         data: {
           eventId: event.id,
-          id: event.id, // ✅ Include id for frontend reconciliation
-          streamUrl: event.streamUrl,
-          streamStatus: 'connected', // ✅ Include streamStatus for UI update
+          id: event.id,
+          streamUrl: event.streamUrl, // Will be the actual URL since we're past the early return
+          streamStatus: event.streamStatus, // Use actual status from event
           name: event.name,
           venue: event.venue,
           operator: event.operator,
@@ -657,7 +672,6 @@ router.post(
         }
       };
 
-      // ✅ OPTIMIZED: Broadcast to both event-specific AND global admin channel
       sseService.broadcastToEvent(event.id, streamPayload);
       sseService.broadcastToChannel(AdminChannel.GLOBAL, streamPayload);
     }
