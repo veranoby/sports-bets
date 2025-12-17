@@ -621,12 +621,30 @@ router.post(
 
     // ✅ CRITICAL: Only set 'connected' if stream ACTUALLY exists
     if (streamAlreadyActive) {
-      event.streamStatus = 'connected';
+      // ✅ Phase 2: Separate RTMP (streamStatus) from HLS (hlsStatus)
+      event.streamStatus = 'connected';  // RTMP ingest active
+      event.hlsStatus = 'processing';    // HLS transcoding started (not ready yet)
       event.streamUrl = `${process.env.STREAM_SERVER_URL}/${event.streamKey}.m3u8`;
       await event.save();
+
+      // ⏳ Wait 2-3 seconds for HLS segments to be generated
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // ✅ Verify HLS playlist exists before marking ready
+      try {
+        const response = await fetch(event.streamUrl, { method: 'HEAD' });
+        if (response.ok) {
+          event.hlsStatus = 'ready'; // HLS distribution ready
+          await event.save();
+        }
+      } catch (err) {
+        // HLS not accessible yet - keep as 'processing'
+        console.warn(`HLS playlist not ready yet for ${event.streamKey}, keeping hlsStatus='processing'`);
+      }
     } else {
       // ⚠️ Stream not ready yet - set to waiting state
       event.streamStatus = 'offline';
+      event.hlsStatus = 'offline';
       event.streamUrl = null;
       await event.save();
 
@@ -651,14 +669,17 @@ router.post(
     if (sseService) {
       const { randomUUID } = await import('crypto');
       const { AdminChannel } = await import('../services/sseService');
+
+      // ✅ Legacy event for backward compatibility
       const streamPayload = {
         id: randomUUID(),
         type: "STREAM_STARTED",
         data: {
           eventId: event.id,
           id: event.id,
-          streamUrl: event.streamUrl, // Will be the actual URL since we're past the early return
-          streamStatus: event.streamStatus, // Use actual status from event
+          streamUrl: event.streamUrl,
+          streamStatus: event.streamStatus,
+          hlsStatus: event.hlsStatus, // ✅ Phase 2: Add HLS status
           name: event.name,
           venue: event.venue,
           operator: event.operator,
@@ -673,6 +694,46 @@ router.post(
 
       sseService.broadcastToEvent(event.id, streamPayload);
       sseService.broadcastToChannel(AdminChannel.GLOBAL, streamPayload);
+
+      // ✅ Phase 2: Broadcast granular RTMP_CONNECTED event
+      const rtmpPayload = {
+        id: randomUUID(),
+        type: "RTMP_CONNECTED",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          streamStatus: event.streamStatus,
+          streamKey: event.streamKey,
+        },
+        timestamp: new Date(),
+        priority: 'high',
+        metadata: {
+          eventId: event.id,
+          streamId: event.streamKey
+        }
+      };
+      sseService.broadcastToEvent(event.id, rtmpPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, rtmpPayload);
+
+      // ✅ Phase 2: Broadcast HLS_READY or HLS_PROCESSING based on status
+      const hlsPayload = {
+        id: randomUUID(),
+        type: event.hlsStatus === 'ready' ? "HLS_READY" : "HLS_PROCESSING",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          hlsStatus: event.hlsStatus,
+          streamUrl: event.hlsStatus === 'ready' ? event.streamUrl : null,
+        },
+        timestamp: new Date(),
+        priority: event.hlsStatus === 'ready' ? 'high' : 'medium',
+        metadata: {
+          eventId: event.id,
+          streamId: event.streamKey
+        }
+      };
+      sseService.broadcastToEvent(event.id, hlsPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, hlsPayload);
     }
 
     try {
@@ -722,12 +783,15 @@ router.post(
 
     event.streamUrl = null;
     event.streamStatus = 'offline'; // ✅ UPDATE stream status in DB
+    event.hlsStatus = 'offline';    // ✅ Phase 2: Also set HLS status offline
     await event.save();
 
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
       const { AdminChannel } = await import('../services/sseService');
+
+      // ✅ Legacy event for backward compatibility
       const stopStreamPayload = {
         id: randomUUID(),
         type: "STREAM_STOPPED",
@@ -735,6 +799,7 @@ router.post(
           eventId: event.id,
           id: event.id, // ✅ Include id for frontend reconciliation
           streamStatus: 'offline', // ✅ Include streamStatus for UI update
+          hlsStatus: 'offline',    // ✅ Phase 2: Include HLS status
           streamUrl: null,
           name: event.name,
           venue: event.venue,
@@ -750,6 +815,42 @@ router.post(
       // ✅ OPTIMIZED: Broadcast to both event-specific AND global admin channel
       sseService.broadcastToEvent(event.id, stopStreamPayload);
       sseService.broadcastToChannel(AdminChannel.GLOBAL, stopStreamPayload);
+
+      // ✅ Phase 2: Broadcast granular RTMP_DISCONNECTED event
+      const rtmpDisconnectPayload = {
+        id: randomUUID(),
+        type: "RTMP_DISCONNECTED",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          streamStatus: 'offline',
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
+        }
+      };
+      sseService.broadcastToEvent(event.id, rtmpDisconnectPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, rtmpDisconnectPayload);
+
+      // ✅ Phase 2: Broadcast HLS_UNAVAILABLE event
+      const hlsUnavailablePayload = {
+        id: randomUUID(),
+        type: "HLS_UNAVAILABLE",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          hlsStatus: 'offline',
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
+        }
+      };
+      sseService.broadcastToEvent(event.id, hlsUnavailablePayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, hlsUnavailablePayload);
     }
 
     try {

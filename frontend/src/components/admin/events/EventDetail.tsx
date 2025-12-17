@@ -253,6 +253,84 @@ const EventDetail: React.FC<EventDetailProps> = ({
           }
         }
       },
+      // ✅ Phase 2: RTMP Ingest Events (OBS connection)
+      RTMP_CONNECTED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: event.data.streamStatus || "connected",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      RTMP_DISCONNECTED: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                streamStatus: event.data.streamStatus || "offline",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      // ✅ Phase 2: HLS Distribution Events (public stream availability)
+      HLS_READY: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                hlsStatus: "ready",
+                streamUrl: event.data.streamUrl || prev.event.streamUrl,
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      HLS_UNAVAILABLE: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                hlsStatus: "offline",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
+      HLS_PROCESSING: (event) => {
+        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+          setEventDetailData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              event: {
+                ...prev.event,
+                hlsStatus: "processing",
+                ...event.data,
+              },
+            };
+          });
+        }
+      },
     });
 
     return () => {
@@ -394,43 +472,35 @@ const EventDetail: React.FC<EventDetailProps> = ({
     await handleFightStatusUpdate(fightId, "completed", winner);
   };
 
-  // Status badge component for stream status
-  const StreamStatusBadge = ({ status }: { status: string }) => {
+  // RTMP Status Badge component
+  const RtmpStatusBadge = ({ status }: { status: string }) => {
     const statusConfig = {
-      connected: {
-        text: "Conectado",
-        color: "bg-red-100 text-red-800",
-        icon: <Video className="w-3 h-3 mr-1" />,
-        pulse: true,
-      },
-      disconnected: {
-        text: "Desconectado",
-        color: "bg-gray-100 text-gray-800",
-        icon: <Square className="w-3 h-3 mr-1" />,
-        pulse: false,
-      },
-      offline: {
-        text: "Offline",
-        color: "bg-gray-200 text-gray-700",
-        icon: <XCircle className="w-3 h-3 mr-1" />,
-        pulse: false,
-      },
-      paused: {
-        text: "Pausado",
-        color: "bg-yellow-100 text-yellow-800",
-        icon: <Activity className="w-3 h-3 mr-1" />,
-        pulse: true,
-      },
+      connected: { text: "OBS Conectado", color: "bg-green-100 text-green-800", icon: <Radio className="w-3 h-3 mr-1" />, pulse: true },
+      connecting: { text: "Conectando...", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: true },
+      offline: { text: "OBS Desconectado", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
+      paused: { text: "OBS Pausado", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: false },
+      disconnected: { text: "OBS Desconectado", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
     };
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
-
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
     return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`}
-        title={`Estado del streaming: ${config.text}`}
-      >
+      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`} title={`Estado de conexión OBS (RTMP): ${config.text}`}>
+        {config.icon}
+        {config.text}
+      </span>
+    );
+  };
+
+  // HLS Status Badge component
+  const HlsStatusBadge = ({ status }: { status: string }) => {
+    const statusConfig = {
+      ready: { text: "Stream Público", color: "bg-green-100 text-green-800", icon: <Video className="w-3 h-3 mr-1" />, pulse: true },
+      processing: { text: "Procesando...", color: "bg-yellow-100 text-yellow-800", icon: <ActivityIcon className="w-3 h-3 mr-1" />, pulse: true },
+      offline: { text: "No Disponible", color: "bg-gray-200 text-gray-700", icon: <XCircleIcon className="w-3 h-3 mr-1" />, pulse: false },
+      error: { text: "Error HLS", color: "bg-red-100 text-red-800", icon: <AlertTriangle className="w-3 h-3 mr-1" />, pulse: false },
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? "animate-pulse" : ""}`} title={`Estado de distribución HLS: ${config.text}`}>
         {config.icon}
         {config.text}
       </span>
@@ -518,7 +588,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
           <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
             <div className="w-full max-w-xl">
               {eventDetailData.event.streamUrl &&
-              eventDetailData.event.streamStatus === "connected" ? (
+              eventDetailData.event.hlsStatus === "ready" ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
                   autoplay={true}
@@ -540,16 +610,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   <div className="text-center space-y-1">
                     <Video className="w-10 h-10 mx-auto text-gray-400" />
                     <p className="text-sm text-gray-300">
-                      {eventDetailData.event.streamStatus === "connected"
-                        ? "Streaming offline"
-                        : eventDetailData.event.streamStatus === "paused"
-                          ? "Stream pausado"
-                          : "Stream no disponible"}
+                      {eventDetailData.event.hlsStatus === "processing" ? "Procesando stream..." : eventDetailData.event.hlsStatus === "error" ? "Error en transcoding HLS" : "Stream no disponible"}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {eventDetailData.event.streamStatus === "connected"
-                        ? "Conexión activa, pero stream no disponible"
-                        : "Inicie el stream para ver la vista previa"}
+                      {eventDetailData.event.streamStatus === "connected" && eventDetailData.event.hlsStatus === "processing" ? "OBS conectado. Esperando segmentos HLS..." : eventDetailData.event.streamStatus === "offline" ? "OBS desconectado. Inicie streaming desde OBS Studio." : "Verifique configuración de streaming"}
                     </p>
                   </div>
                 </div>
@@ -564,18 +628,14 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 <h2 className="text-sm font-semibold text-gray-900">
                   Control de Streaming
                 </h2>
-                {/* ✅ Stream Status - Shows Nginx RTMP stream state (offline/connected/paused) */}
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                  Estado:
-                  <StreamStatusBadge
-                    status={eventDetailData.event.streamStatus || "offline"}
-                  />
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50">
+                  <RtmpStatusBadge status={eventDetailData.event.streamStatus || "offline"} />
+                </span>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50">
+                  <HlsStatusBadge status={eventDetailData.event.hlsStatus || "offline"} />
                 </span>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                  Espectadores:
-                  <span className="text-sm font-bold text-gray-900">
-                    {eventDetailData.event.currentViewers || 0}
-                  </span>
+                  Espectadores: <span className="text-sm font-bold text-gray-900">{eventDetailData.event.currentViewers || 0}</span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -589,7 +649,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     }`}
                   ></span>
                   <span className="font-semibold text-xs">
-                    Señal: {eventDetailData.event.streamStatus === "connected" ? "Recibiendo" : "Esperando"}
+                    Señal:{" "}
+                    {eventDetailData.event.streamStatus === "connected"
+                      ? "Recibiendo"
+                      : "Esperando"}
                   </span>
                 </div>
               </div>
@@ -599,11 +662,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
             {eventDetailData.event.streamKey && (
               <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
                 <div className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-                   <Settings className="w-4 h-4" /> DATOS DE CONEXIÓN OBS
+                  <Settings className="w-4 h-4" /> DATOS DE CONEXIÓN OBS
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="block text-blue-600 font-semibold mb-1">1. Servidor (URL)</span>
+                    <span className="block text-blue-600 font-semibold mb-1">
+                      1. Servidor (URL)
+                    </span>
                     <div className="flex items-center gap-1">
                       <code className="flex-1 block bg-white p-2 rounded border border-blue-200 font-mono select-all">
                         rtmp://{window.location.hostname}:1935/live
@@ -611,13 +676,19 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     </div>
                   </div>
                   <div>
-                    <span className="block text-blue-600 font-semibold mb-1">2. Clave de Transmisión (Key)</span>
+                    <span className="block text-blue-600 font-semibold mb-1">
+                      2. Clave de Transmisión (Key)
+                    </span>
                     <div className="flex gap-2">
                       <code className="flex-1 block bg-white p-2 rounded border border-blue-200 font-mono select-all overflow-hidden text-ellipsis font-bold">
                         {eventDetailData.event.streamKey}
                       </code>
-                      <button 
-                        onClick={() => navigator.clipboard.writeText(eventDetailData.event.streamKey || '')}
+                      <button
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            eventDetailData.event.streamKey || "",
+                          )
+                        }
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold shadow-sm transition-colors"
                         title="Copiar Clave"
                       >
@@ -627,7 +698,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   </div>
                 </div>
                 <div className="mt-2 text-blue-500 italic">
-                   * En OBS: Ajustes &gt; Emisión &gt; Servicio: Personalizado &gt; Pegar estos datos.
+                  * En OBS: Ajustes &gt; Emisión &gt; Servicio: Personalizado
+                  &gt; Pegar estos datos.
                 </div>
               </div>
             )}
@@ -750,7 +822,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
               </button>
 
               {/* OBS Connection Status Indicator - Updated for Clarity */}
-              <div className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2" title="Indica si la plataforma está recibiendo y procesando señal para la audiencia">
+              <div
+                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-2"
+                title="Indica si la plataforma está recibiendo y procesando señal para la audiencia"
+              >
                 <div
                   className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
                 ></div>

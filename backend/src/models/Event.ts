@@ -32,6 +32,7 @@ export class Event extends Model<
   declare streamKey: CreationOptional<string>;
   declare streamUrl: CreationOptional<string>;
   declare streamStatus: CreationOptional<"offline" | "connecting" | "connected" | "paused" | "disconnected">;
+  declare hlsStatus: CreationOptional<"offline" | "processing" | "ready" | "error">;
   declare createdBy: ForeignKey<User["id"]>;
   declare totalFights: number;
   declare completedFights: number;
@@ -194,6 +195,12 @@ Event.init(
       allowNull: false,
       defaultValue: "offline",
       field: "stream_status",
+    },
+    hlsStatus: {
+      type: DataTypes.ENUM("offline", "processing", "ready", "error"),
+      allowNull: false,
+      defaultValue: "offline",
+      field: "hls_status",
     },
     createdBy: {
       type: DataTypes.UUID,

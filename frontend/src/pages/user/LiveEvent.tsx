@@ -20,6 +20,11 @@ import {
   MapPin,
   User,
   Timer,
+  Radio,
+  Video,
+  Activity as ActivityIcon,
+  XCircle as XCircleIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -34,6 +39,7 @@ import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import HLSPlayer from "../../components/streaming/HLSPlayer";
+import useSSE, { SSEEventType } from "../../hooks/useSSE";
 
 // Tipos TypeScript
 interface Fight {
@@ -363,14 +369,22 @@ const StreamingContainer = memo(
     currentViewers?: number;
   }) => (
     <div className="relative">
-      {streamUrl && streamStatus === 'connected' ? (
+      {streamUrl && streamStatus === "connected" ? (
         <>
           <HLSPlayer
             streamUrl={streamUrl}
             autoplay={true}
             controls={true}
             muted={false}
-            onError={(error) => console.error('HLS playback error:', error)}
+            onError={(error) => console.error("HLS playback error:", error)}
+            hlsConfig={{
+              startPosition: -1,
+              liveSyncDurationCount: 2,
+              maxBufferLength: 4,
+              maxMaxBufferLength: 8,
+              enableWorker: true,
+              lowLatencyMode: true,
+            }}
           />
           {currentViewers !== undefined && (
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
@@ -386,7 +400,9 @@ const StreamingContainer = memo(
               <div className="w-6 h-6 bg-white rounded-full animate-pulse"></div>
             </div>
             <p className="text-lg font-medium">Esperando Transmisión</p>
-            <p className="text-sm text-gray-300">El administrador iniciará el streaming pronto</p>
+            <p className="text-sm text-gray-300">
+              El administrador iniciará el streaming pronto
+            </p>
           </div>
         </div>
       )}
@@ -590,95 +606,224 @@ const LiveEvent = () => {
     }
   }, [isConnected, eventId, joinRoom, leaveRoom]);
 
-  // ✅ SSE listener for event-specific updates (read-only operations)
+  // ✅ SSE listener for event-specific updates (read-only operations) using useSSE hook
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL?.replace("/api", "") ||
+    "http://localhost:3001";
+  const { lastEvent, status, error: sseError, subscribeToEvents } = useSSE(
+    eventId ? `${apiBaseUrl}/api/sse/public/events/${eventId}` : null
+  );
+
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventId || status !== "connected") return;
 
-    const apiBaseUrl =
-      import.meta.env.VITE_API_URL?.replace("/api", "") ||
-      "http://localhost:3001";
-    const eventSource = new EventSource(
-      `${apiBaseUrl}/api/sse/public/events/${eventId}?token=${localStorage.getItem("token")}`,
-    );
-
-    eventSource.onmessage = (e) => {
-      try {
-        const parsedData = JSON.parse(e.data);
-
-        // ✅ SSE RECONCILIATION PATTERN: Update state directly without refetch
-        // Handle fight updates - Use SSE data to reconcile fights array
-        if (
-          parsedData.type === "FIGHT_STATUS_UPDATE" ||
-          parsedData.type === "FIGHT_UPDATED"
-        ) {
-          const fightData = parsedData.data;
-          if (fightData?.eventId === eventId && fightData?.id) {
-            console.log("🥊 SSE fight update received:", fightData);
-            setCurrentEvent((prev) => {
-              if (!prev) return null;
-              // Reconcile: Update specific fight in array
-              return {
-                ...prev,
-                fights: prev.fights.map((fight) =>
-                  fight.id === fightData.id
-                    ? { ...fight, ...fightData } // Merge SSE data
-                    : fight,
-                ),
-              };
-            });
-          }
+    const unsubscribe = subscribeToEvents({
+      // Handle fight updates - Use SSE data to reconcile fights array
+      FIGHT_STATUS_UPDATE: (data) => {
+        const fightData = data.data;
+        if (fightData?.eventId === eventId && fightData?.id) {
+          console.log("🥊 SSE fight update received:", fightData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // Reconcile: Update specific fight in array
+            return {
+              ...prev,
+              fights: prev.fights.map((fight) =>
+                fight.id === fightData.id
+                  ? { ...fight, ...fightData } // Merge SSE data
+                  : fight,
+              ),
+            };
+          });
         }
-
-        // Handle bet updates - Trust useBets hook, SSE is notification only
-        if (
-          parsedData.type === "NEW_BET" ||
-          parsedData.type === "BET_MATCHED"
-        ) {
-          const betData = parsedData.data;
-          if (betData?.eventId === eventId) {
-            console.log("💰 SSE bet update received:", betData);
-            // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
-            // No need for manual fetchAvailableBets call - prevents 429
-          }
+      },
+      FIGHT_UPDATED: (data) => {
+        const fightData = data.data;
+        if (fightData?.eventId === eventId && fightData?.id) {
+          console.log("🥊 SSE fight update received:", fightData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // Reconcile: Update specific fight in array
+            return {
+              ...prev,
+              fights: prev.fights.map((fight) =>
+                fight.id === fightData.id
+                  ? { ...fight, ...fightData } // Merge SSE data
+                  : fight,
+              ),
+            };
+          });
         }
-
-        // Handle event updates
-        if (
-          parsedData.type === "EVENT_ACTIVATED" ||
-          parsedData.type === "EVENT_COMPLETED" ||
-          parsedData.type === "STREAM_STARTED" ||
-          parsedData.type === "STREAM_STOPPED" ||
-          parsedData.type === "STREAM_PAUSED" ||
-          parsedData.type === "STREAM_RESUMED"
-        ) {
-          const eventData = parsedData.data;
-          if (eventData?.id === eventId) {
-            console.log("📡 SSE event update received:", eventData);
-            setCurrentEvent((prev) => {
-              if (!prev) return null;
-              // ✅ Preserve fights - SSE payload only includes status/stream info
-              return {
-                ...prev,
-                ...eventData,
-                fights: prev.fights, // ✅ Keep existing fights array
-              };
-            });
-          }
+      },
+      // Handle bet updates - Trust useBets hook, SSE is notification only
+      NEW_BET: (data) => {
+        const betData = data.data;
+        if (betData?.eventId === eventId) {
+          console.log("💰 SSE bet update received:", betData);
+          // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
+          // No need for manual fetchAvailableBets call - prevents 429
         }
-      } catch (error) {
-        console.error("Error parsing SSE message:", error);
-      }
-    };
-
-    eventSource.onerror = (error) => {
-      console.error("SSE connection error:", error);
-      eventSource.close();
-    };
+      },
+      BET_MATCHED: (data) => {
+        const betData = data.data;
+        if (betData?.eventId === eventId) {
+          console.log("💰 SSE bet update received:", betData);
+          // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
+          // No need for manual fetchAvailableBets call - prevents 429
+        }
+      },
+      // Handle event updates
+      EVENT_ACTIVATED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      EVENT_COMPLETED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      STREAM_STARTED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              streamStatus: "connected",
+              streamUrl: eventData.streamUrl || prev?.streamUrl,
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      STREAM_STOPPED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              streamStatus: "disconnected",
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      STREAM_PAUSED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              streamStatus: "paused",
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      STREAM_RESUMED: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE event update received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Preserve fights - SSE payload only includes status/stream info
+            return {
+              ...prev,
+              ...eventData,
+              streamStatus: "connected",
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      // HLS distribution events
+      HLS_READY: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE HLS ready event received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Update hlsStatus and streamUrl
+            return {
+              ...prev,
+              ...eventData,
+              hlsStatus: "ready",
+              streamUrl: eventData.streamUrl || prev?.streamUrl,
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      HLS_UNAVAILABLE: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE HLS unavailable event received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Update hlsStatus
+            return {
+              ...prev,
+              ...eventData,
+              hlsStatus: "offline",
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+      HLS_PROCESSING: (data) => {
+        const eventData = data.data;
+        if (eventData?.id === eventId) {
+          console.log("📡 SSE HLS processing event received:", eventData);
+          setCurrentEvent((prev) => {
+            if (!prev) return null;
+            // ✅ Update hlsStatus
+            return {
+              ...prev,
+              ...eventData,
+              hlsStatus: "processing",
+              fights: prev.fights, // ✅ Keep existing fights array
+            };
+          });
+        }
+      },
+    });
 
     return () => {
-      eventSource.close();
+      unsubscribe();
     };
-  }, [eventId]); // ✅ FIXED: Only eventId in deps - prevents SSE connection recreation
+  }, [eventId, status, subscribeToEvents]);
 
   // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
   // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)

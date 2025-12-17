@@ -13,6 +13,8 @@ import {
   Eye,
   X,
   Search,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -21,7 +23,7 @@ import StatusChip from "../../components/shared/StatusChip";
 import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import UserModal from "../../components/admin/UserModal";
-import { userAPI } from "../../services/api";
+import { userAPI, adminAPI } from "../../services/api";
 import type { User as UserType } from "../../types";
 
 const AdminAdministratorsPage: React.FC = () => {
@@ -46,6 +48,68 @@ const AdminAdministratorsPage: React.FC = () => {
   }>({ mode: null });
   const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [checkingDisconnect, setCheckingDisconnect] = useState<string | null>(
+    null,
+  );
+
+  // Function to fetch online status for all users
+  const fetchOnlineStatus = useCallback(async () => {
+    try {
+      const response = await adminAPI.getActiveUsers();
+      if (response.success && response.data) {
+        const activeIds = (response.data as any)?.activeUserIds || [];
+        setOnlineUserIds(new Set(activeIds));
+      }
+    } catch (error) {
+      console.error("Error fetching online status:", error);
+    }
+  }, []);
+
+  // Check if a user is online based on their session activity
+  const isUserOnline = useCallback(
+    (userId: string): boolean => {
+      return onlineUserIds.has(userId);
+    },
+    [onlineUserIds],
+  );
+
+  // Function to force disconnect a user
+  const handleDisconnectUser = async (userId: string, username: string) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres desconectar al usuario "${username}"?`,
+      )
+    ) {
+      return;
+    }
+
+    setCheckingDisconnect(userId);
+
+    try {
+      const response = await adminAPI.forceLogoutUser(userId);
+
+      if (response.success) {
+        // Update online status by removing user from online set
+        setOnlineUserIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(userId);
+          return newSet;
+        });
+
+        alert(`Usuario ${username} ha sido desconectado exitosamente`);
+      } else {
+        alert(
+          `Error al desconectar al usuario: ${response.message || "Error desconocido"}`,
+        );
+      }
+    } catch (error) {
+      console.error("Error disconnecting user:", error);
+      alert("Error al intentar desconectar al usuario");
+    } finally {
+      setCheckingDisconnect(null);
+    }
+  };
 
   // Fetch current user to prevent self-editing
   useEffect(() => {
@@ -100,6 +164,17 @@ const AdminAdministratorsPage: React.FC = () => {
   useEffect(() => {
     fetchAdministrators();
   }, [fetchAdministrators]);
+
+  // Add useEffect to periodically update online status
+  useEffect(() => {
+    // Initial fetch
+    fetchOnlineStatus();
+
+    // Update every 15 seconds
+    const interval = setInterval(fetchOnlineStatus, 15000);
+
+    return () => clearInterval(interval);
+  }, [fetchOnlineStatus]);
 
   // Combine and filter users
   const allUsers = [...administrators, ...operators];
@@ -424,6 +499,9 @@ const AdminAdministratorsPage: React.FC = () => {
                     Estado
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sesión
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Suscripción
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -476,6 +554,21 @@ const AdminAdministratorsPage: React.FC = () => {
                         {user.isActive ? "Activo" : "Inactivo"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {isUserOnline(user.id) ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <Wifi className="w-3 h-3 mr-1 text-green-500" />
+                              En línea
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <WifiOff className="w-3 h-3 mr-1 text-red-500" />
+                              Fuera de línea
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <SubscriptionBadge subscription={user.subscription} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -484,7 +577,29 @@ const AdminAdministratorsPage: React.FC = () => {
                           : "Nunca"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() =>
+                              handleDisconnectUser(user.id, user.username)
+                            }
+                            disabled={checkingDisconnect === user.id}
+                            className={`flex items-center gap-1 ${
+                              isUserOnline(user.id)
+                                ? "text-red-600 hover:text-red-800"
+                                : "text-gray-400 cursor-not-allowed"
+                            } ${checkingDisconnect === user.id ? "opacity-50" : ""}`}
+                          >
+                            {checkingDisconnect === user.id ? (
+                              <span className="w-4 h-4 flex items-center justify-center">
+                                <span className="animate-spin rounded-full h-3 w-3 border border-gray-300 border-t-transparent"></span>
+                              </span>
+                            ) : (
+                              <>
+                                <WifiOff className="w-4 h-4" />
+                                <span>Desconectar</span>
+                              </>
+                            )}
+                          </button>
                           <button
                             onClick={() => handleEditUser(user)}
                             className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"

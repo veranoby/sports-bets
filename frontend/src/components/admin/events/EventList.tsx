@@ -16,6 +16,11 @@ import {
   Video,
   Target,
   Trash2,
+  Radio,
+  Wifi,
+  Activity as ActivityIcon,
+  XCircle as XCircleIcon,
+  AlertTriangle,
 } from "lucide-react";
 import Card from "../../shared/Card";
 import LoadingSpinner from "../../shared/LoadingSpinner";
@@ -24,6 +29,7 @@ import EmptyState from "../../shared/EmptyState";
 import StatusChanger from "../StatusChanger";
 import { eventsAPI } from "../../../config/api";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useAdminSSE, AdminChannel, SSEEventType } from "../../../hooks/useSSE";
 import type { Event } from "../../../types";
 
 interface EventListProps {
@@ -107,102 +113,273 @@ const EventList: React.FC<EventListProps> = ({
   );
   const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "");
 
-  // ✅ SSE listener for real-time event updates from backend
+  // ✅ SSE listener for real-time event updates from backend using useAdminSSE hook
+  const adminSSE = useAdminSSE(AdminChannel.GLOBAL);
+
   useEffect(() => {
-    const apiBaseUrl =
-      import.meta.env.VITE_API_URL?.replace("/api", "") ||
-      "http://localhost:3001";
-    const eventSource = new EventSource(
-      `${apiBaseUrl}/api/sse/admin/global?token=${localStorage.getItem("token")}`,
-    );
+    if (adminSSE.status !== "connected") return;
 
-    eventSource.onmessage = (e) => {
-      try {
-        const parsedData = JSON.parse(e.data);
-        console.log("📡 SSE event received:", parsedData);
+    const unsubscribe = adminSSE.subscribeToEvents({
+      // Event status changes
+      EVENT_ACTIVATED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
 
-        if (
-          parsedData.type === "EVENT_ACTIVATED" ||
-          parsedData.type === "EVENT_COMPLETED" ||
-          parsedData.type === "EVENT_CANCELLED" ||
-          parsedData.type === "EVENT_SCHEDULED" ||
-          parsedData.type === "STREAM_STARTED" ||
-          parsedData.type === "STREAM_STOPPED"
-        ) {
-          const eventData = parsedData.data;
-          if (!eventData?.id) return;
+        // ✅ RECONCILIATION: Update both events and todayEvents with SSE data
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
 
-          // ✅ RECONCILIATION: Update both events and todayEvents with SSE data
+          console.log("🔄 SSE reconciliation for event:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            // Preserve nested objects
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      EVENT_COMPLETED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
+
+          console.log("🔄 SSE reconciliation for event:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      EVENT_CANCELLED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
+
+          console.log("🔄 SSE reconciliation for event:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      EVENT_SCHEDULED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
+
+          console.log("🔄 SSE reconciliation for event:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      STREAM_STARTED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
+
+          console.log("🔄 SSE reconciliation for stream start:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            streamStatus: "connected",
+            streamUrl: eventData.streamUrl || event.streamUrl,
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      STREAM_STOPPED: (data) => {
+        const eventData = data.data;
+        if (!eventData?.id) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== eventData.id) return event;
+
+          console.log("🔄 SSE reconciliation for stream stop:", eventData.id);
+          return {
+            ...event,
+            ...eventData,
+            streamStatus: "disconnected",
+            venue: eventData.venue || event.venue,
+            operator: eventData.operator || event.operator,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      // Handle streaming status update events (deprecated legacy format - to be removed after client update)
+      // NOTE: This handles the old format where backend sends STREAM_STATUS_UPDATE with inner type
+      // New format uses direct event types (STREAM_PAUSED, STREAM_RESUMED) - see above handlers
+      STREAM_STATUS_UPDATE: (data) => {
+        // Check the inner type to determine stream status
+        const {
+          id,
+          eventId,
+          streamStatus,
+          status,
+          type: innerType,
+        } = data.data;
+        const targetId = eventId || id; // Support both eventId and id fields
+
+        if (!targetId) return;
+
+        // Determine the new stream status based on the inner type and status
+        let newStreamStatus = null;
+        if (innerType === "STREAM_PAUSED") {
+          newStreamStatus = "paused";
+        } else if (innerType === "STREAM_RESUMED") {
+          newStreamStatus = "connected";
+        } else if (status === "live") {
+          newStreamStatus = "connected";
+        } else if (status === "ended") {
+          newStreamStatus = "disconnected";
+        }
+
+        if (newStreamStatus) {
+          // Update both events and todayEvents with the new stream status
           const reconcileEvent = (event: Event) => {
-            if (event.id !== eventData.id) return event;
+            if (event.id !== targetId) return event;
 
-            console.log("🔄 SSE reconciliation for event:", eventData.id);
+            // Debug log removed for production - use logger.debug() if needed
+            // console.log("🔄 SSE reconciliation for stream status update:", targetId, "to", newStreamStatus)
             return {
               ...event,
-              ...eventData,
-              // Preserve nested objects
-              venue: eventData.venue || event.venue,
-              operator: eventData.operator || event.operator,
+              streamStatus: newStreamStatus,
+              ...data.data, // Merge any other data from SSE
             } as Event;
           };
 
           setEvents((prev) => prev.map(reconcileEvent));
           setTodayEvents((prev) => prev.map(reconcileEvent));
         }
-        // Handle streaming status update events (deprecated legacy format - to be removed after client update)
-        // NOTE: This handles the old format where backend sends STREAM_STATUS_UPDATE with inner type
-        // New format uses direct event types (STREAM_PAUSED, STREAM_RESUMED) - see above handlers
-        else if (parsedData.type === "STREAM_STATUS_UPDATE") {
-          // Check the inner type to determine stream status
-          const { id, eventId, streamStatus, status, type: innerType } = parsedData.data;
-          const targetId = eventId || id; // Support both eventId and id fields
+      },
+      // RTMP connection events
+      RTMP_CONNECTED: (data) => {
+        const targetId = data.data?.eventId || data.data?.id;
+        if (!targetId) return;
 
-          if (!targetId) return;
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== targetId) return event;
 
-          // Determine the new stream status based on the inner type and status
-          let newStreamStatus = null;
-          if (innerType === "STREAM_PAUSED") {
-            newStreamStatus = "paused";
-          } else if (innerType === "STREAM_RESUMED") {
-            newStreamStatus = "connected";
-          } else if (status === "live") {
-            newStreamStatus = "connected";
-          } else if (status === "ended") {
-            newStreamStatus = "disconnected";
-          }
+          return {
+            ...event,
+            streamStatus: "connected",
+            ...data.data,
+          } as Event;
+        };
 
-          if (newStreamStatus) {
-            // Update both events and todayEvents with the new stream status
-            const reconcileEvent = (event: Event) => {
-              if (event.id !== targetId) return event;
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      RTMP_DISCONNECTED: (data) => {
+        const targetId = data.data?.eventId || data.data?.id;
+        if (!targetId) return;
 
-              // Debug log removed for production - use logger.debug() if needed
-              // console.log("🔄 SSE reconciliation for stream status update:", targetId, "to", newStreamStatus);
-              return {
-                ...event,
-                streamStatus: newStreamStatus,
-                ...parsedData.data // Merge any other data from SSE
-              } as Event;
-            };
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== targetId) return event;
 
-            setEvents((prev) => prev.map(reconcileEvent));
-            setTodayEvents((prev) => prev.map(reconcileEvent));
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing SSE message:", error);
-      }
-    };
+          return {
+            ...event,
+            streamStatus: "disconnected",
+            ...data.data,
+          } as Event;
+        };
 
-    eventSource.onerror = (error) => {
-      console.error("SSE connection error:", error);
-      eventSource.close();
-    };
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      // HLS distribution events
+      HLS_READY: (data) => {
+        const targetId = data.data?.eventId || data.data?.id;
+        if (!targetId) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== targetId) return event;
+
+          return {
+            ...event,
+            hlsStatus: "ready",
+            streamUrl: data.data?.streamUrl || event.streamUrl,
+            ...data.data,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      HLS_UNAVAILABLE: (data) => {
+        const targetId = data.data?.eventId || data.data?.id;
+        if (!targetId) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== targetId) return event;
+
+          return {
+            ...event,
+            hlsStatus: "offline",
+            ...data.data,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+      HLS_PROCESSING: (data) => {
+        const targetId = data.data?.eventId || data.data?.id;
+        if (!targetId) return;
+
+        const reconcileEvent = (event: Event) => {
+          if (event.id !== targetId) return event;
+
+          return {
+            ...event,
+            hlsStatus: "processing",
+            ...data.data,
+          } as Event;
+        };
+
+        setEvents((prev) => prev.map(reconcileEvent));
+        setTodayEvents((prev) => prev.map(reconcileEvent));
+      },
+    });
 
     return () => {
-      eventSource.close();
+      unsubscribe();
     };
-  }, []); // ✅ Empty deps - SSE connection should persist for component lifetime
+  }, [adminSSE.status, adminSSE.subscribeToEvents]);
 
   // Fetch all events with filters
   const fetchEvents = useCallback(

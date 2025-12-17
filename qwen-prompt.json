@@ -1,0 +1,318 @@
+{
+  "role": "executor",
+  "model": "qwen3-coder-plus-2025-09-23",
+  "execution_mode": "standard",
+  "task_id": "PHASE2_FRONTEND_SSE_FIXES_2025_12_16",
+  "session_time_limit": "30 minutes",
+
+  "🔴_CRITICAL_CONSTRAINTS": {
+    "zero_tolerance": "NO ERRORS ALLOWED - Read this entire prompt before starting",
+    "verification_mandatory": "Read source files BEFORE using/destructuring properties",
+    "scope_strict": "ONLY modify files in FILES_TO_MODIFY list below",
+    "no_typescript_errors": "npx tsc --noEmit MUST pass before completion",
+    "no_git_operations": "DO NOT commit, DO NOT run git commands - Sonnet will handle"
+  },
+
+  "CONTEXT": {
+    "problem_statement": "EventDetail streaming has 3 critical issues: (A) SSE endpoint mismatch causing 404s, (B) LiveEvent.tsx missing HLS low-latency config causing 10s lag, (C) Phase 2 requires dual RTMP/HLS status badges",
+    "previous_work": "Sonnet fixed AdminChannel.GLOBAL enum (admin/global). Sonnet implemented backend Phase 2 (hlsStatus field, dual SSE events). YOU implement frontend fixes + Phase 2 UI.",
+    "hybrid_division": "Sonnet = Backend (Event.ts, events.ts, sseService.ts, migration SQL). YOU = Frontend (SSE fixes, HLS config, dual badges UI)",
+    "when_to_start": "AFTER Sonnet completes backend work and hands off to you"
+  },
+
+  "FILES_TO_MODIFY": [
+    "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventList.tsx",
+    "/home/veranoby/sports-bets/frontend/src/pages/user/LiveEvent.tsx",
+    "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+    "/home/veranoby/sports-bets/frontend/src/hooks/useSSE.ts"
+  ],
+
+  "FILES_TO_READ_FIRST": [
+    "/home/veranoby/sports-bets/frontend/src/hooks/useSSE.ts",
+    "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+    "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventList.tsx",
+    "/home/veranoby/sports-bets/frontend/src/pages/user/LiveEvent.tsx"
+  ],
+
+  "FORBIDDEN_ACTIONS": [
+    "DO NOT modify backend files (Event.ts, events.ts, sseService.ts)",
+    "DO NOT create new files - only edit existing files in FILES_TO_MODIFY",
+    "DO NOT run git commit or git commands",
+    "DO NOT run npm install (no new dependencies)",
+    "DO NOT modify files outside FILES_TO_MODIFY list",
+    "DO NOT assume property names - read source definitions first"
+  ],
+
+  "TASKS": [
+    {
+      "task_number": 1,
+      "title": "Fix EventList.tsx SSE - Replace EventSource with useAdminSSE hook",
+      "priority": "CRITICAL",
+      "file": "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventList.tsx",
+      "current_problem": "Line 116: Manual EventSource instantiation bypasses hook, duplicates connection logic, no automatic reconnection",
+      "solution": {
+        "step_1_read_hook": "Read /home/veranoby/sports-bets/frontend/src/hooks/useSSE.ts lines 361-405 to understand useAdminSSE hook API",
+        "step_2_verify_imports": "Verify useAdminSSE is exported from useSSE.ts (line 361: 'export function useAdminSSE')",
+        "step_3_find_manual_eventsource": "Find manual EventSource creation around line 116 in EventList.tsx",
+        "step_4_replace_with_hook": "Replace manual EventSource with: const adminSSE = useAdminSSE(AdminChannel.GLOBAL);",
+        "step_5_add_import": "Add to imports at top of file: import { useAdminSSE, AdminChannel, SSEEventType } from '../../hooks/useSSE';",
+        "step_6_update_handlers": "Update event handlers to use adminSSE.subscribe() instead of eventSource.addEventListener()",
+        "step_7_cleanup": "Remove manual eventSource.close() cleanup - hook handles it automatically"
+      },
+      "exact_code_pattern": {
+        "remove": "const eventSource = new EventSource(`${apiBaseUrl}/api/sse/admin/global?token=${localStorage.getItem(\"token\")}`);",
+        "replace_with": "const adminSSE = useAdminSSE(AdminChannel.GLOBAL);"
+      },
+      "verification": "Verify: (1) No TypeScript errors, (2) EventList component imports useAdminSSE, (3) No manual EventSource creation remains"
+    },
+
+    {
+      "task_number": 2,
+      "title": "Fix LiveEvent.tsx SSE - Replace EventSource with useSSE hook",
+      "priority": "CRITICAL",
+      "file": "/home/veranoby/sports-bets/frontend/src/pages/user/LiveEvent.tsx",
+      "current_problem": "Line 603: Manual EventSource for public events, no reconnection logic, duplicates hook functionality",
+      "solution": {
+        "step_1_read_context": "Read LiveEvent.tsx lines 596-683 to understand current SSE implementation",
+        "step_2_note_url_pattern": "Current URL: ${apiBaseUrl}/api/sse/public/events/${eventId}?token=...",
+        "step_3_replace_with_hook": "Replace with: const { lastEvent, status } = useSSE<any>(eventId ? `${apiBaseUrl}/api/sse/public/events/${eventId}` : null);",
+        "step_4_import": "Add to imports: import useSSE, { SSEEventType } from '../../hooks/useSSE';",
+        "step_5_use_subscribe": "Use useEffect with adminSSE.subscribe() for event handlers instead of eventSource.onmessage",
+        "step_6_cleanup": "Remove manual eventSource.close() in cleanup - hook handles it"
+      },
+      "exact_code_pattern": {
+        "remove_lines": "602-682 (entire manual EventSource block)",
+        "replace_with_hook_pattern": "Use useSSE hook with subscribe() method for FIGHT_STATUS_UPDATE, STREAM_STARTED, etc."
+      },
+      "verification": "Verify: (1) useSSE imported, (2) No manual EventSource, (3) SSE updates still work for fight/stream events"
+    },
+
+    {
+      "task_number": 3,
+      "title": "Add hlsConfig to LiveEvent.tsx HLSPlayer - CRITICAL LAG FIX",
+      "priority": "CRITICAL",
+      "file": "/home/veranoby/sports-bets/frontend/src/pages/user/LiveEvent.tsx",
+      "current_problem": "Line 368-374: HLSPlayer missing hlsConfig prop → 10+ second lag, buffering old content instead of live edge",
+      "solution": {
+        "step_1_locate_player": "Find HLSPlayer component around line 368-374",
+        "step_2_add_hlsconfig_prop": "Add hlsConfig prop with EXACT configuration below",
+        "exact_config": {
+          "startPosition": -1,
+          "liveSyncDurationCount": 2,
+          "maxBufferLength": 4,
+          "maxMaxBufferLength": 8,
+          "enableWorker": true,
+          "lowLatencyMode": true
+        },
+        "step_3_verify_syntax": "Ensure hlsConfig={{ ... }} (double braces for object prop)"
+      },
+      "exact_code": "hlsConfig={{\n  startPosition: -1,\n  liveSyncDurationCount: 2,\n  maxBufferLength: 4,\n  maxMaxBufferLength: 8,\n  enableWorker: true,\n  lowLatencyMode: true,\n}}",
+      "verification": "Verify: (1) hlsConfig prop added to HLSPlayer, (2) No TypeScript errors, (3) Prop matches EventDetail.tsx:530-536"
+    },
+
+    {
+      "task_number": 4,
+      "title": "Phase 2: Create dual badge components (RtmpStatusBadge + HlsStatusBadge)",
+      "priority": "HIGH",
+      "file": "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+      "current_problem": "Single StreamStatusBadge conflates RTMP ingest and HLS distribution status",
+      "solution": {
+        "step_1_locate_current_badge": "Find StreamStatusBadge component around lines 397-438",
+        "step_2_create_rtmp_badge": "Create RtmpStatusBadge component with states: connected (green, pulse), connecting (yellow), offline (gray), paused (yellow), disconnected (gray)",
+        "step_3_create_hls_badge": "Create HlsStatusBadge component with states: ready (green, pulse), processing (yellow, pulse), offline (gray), error (red)",
+        "step_4_imports": "Add icon imports: Radio, Video, Activity, XCircle, AlertTriangle from lucide-react",
+        "step_5_tooltips": "Add title attribute to each badge for semantic clarity"
+      },
+      "exact_code_rtmp_badge": "const RtmpStatusBadge = ({ status }: { status: string }) => {\n  const statusConfig = {\n    connected: { text: \"OBS Conectado\", color: \"bg-green-100 text-green-800\", icon: <Radio className=\"w-3 h-3 mr-1\" />, pulse: true },\n    connecting: { text: \"Conectando...\", color: \"bg-yellow-100 text-yellow-800\", icon: <Activity className=\"w-3 h-3 mr-1\" />, pulse: true },\n    offline: { text: \"OBS Desconectado\", color: \"bg-gray-200 text-gray-700\", icon: <XCircle className=\"w-3 h-3 mr-1\" />, pulse: false },\n    paused: { text: \"OBS Pausado\", color: \"bg-yellow-100 text-yellow-800\", icon: <Activity className=\"w-3 h-3 mr-1\" />, pulse: false },\n    disconnected: { text: \"OBS Desconectado\", color: \"bg-gray-200 text-gray-700\", icon: <XCircle className=\"w-3 h-3 mr-1\" />, pulse: false },\n  };\n  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;\n  return (\n    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? \"animate-pulse\" : \"\"}`} title={`Estado de conexión OBS (RTMP): ${config.text}`}>\n      {config.icon}\n      {config.text}\n    </span>\n  );\n};",
+      "exact_code_hls_badge": "const HlsStatusBadge = ({ status }: { status: string }) => {\n  const statusConfig = {\n    ready: { text: \"Stream Público\", color: \"bg-green-100 text-green-800\", icon: <Video className=\"w-3 h-3 mr-1\" />, pulse: true },\n    processing: { text: \"Procesando...\", color: \"bg-yellow-100 text-yellow-800\", icon: <Activity className=\"w-3 h-3 mr-1\" />, pulse: true },\n    offline: { text: \"No Disponible\", color: \"bg-gray-200 text-gray-700\", icon: <XCircle className=\"w-3 h-3 mr-1\" />, pulse: false },\n    error: { text: \"Error HLS\", color: \"bg-red-100 text-red-800\", icon: <AlertTriangle className=\"w-3 h-3 mr-1\" />, pulse: false },\n  };\n  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;\n  return (\n    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color} ${config.pulse ? \"animate-pulse\" : \"\"}`} title={`Estado de distribución HLS: ${config.text}`}>\n      {config.icon}\n      {config.text}\n    </span>\n  );\n};",
+      "verification": "Verify: (1) Both components created, (2) Icon imports added, (3) TypeScript accepts component props"
+    },
+
+    {
+      "task_number": 5,
+      "title": "Phase 2: Update EventDetail UI to show both badges",
+      "priority": "HIGH",
+      "file": "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+      "current_problem": "UI section around line 560-580 shows single StreamStatusBadge",
+      "solution": {
+        "step_1_locate_section": "Find 'Control de Streaming' section around line 560-580",
+        "step_2_replace_single_badge": "Replace single StreamStatusBadge with two badge calls",
+        "step_3_rtmp_badge_call": "<RtmpStatusBadge status={eventDetailData.event.streamStatus || \"offline\"} />",
+        "step_4_hls_badge_call": "<HlsStatusBadge status={eventDetailData.event.hlsStatus || \"offline\"} />",
+        "step_5_layout": "Wrap badges in separate <span> containers with border styling"
+      },
+      "exact_code_ui_section": "<div className=\"flex flex-wrap items-center gap-2\">\n  <h2 className=\"text-sm font-semibold text-gray-900\">Control de Streaming</h2>\n  <span className=\"inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50\">\n    <RtmpStatusBadge status={eventDetailData.event.streamStatus || \"offline\"} />\n  </span>\n  <span className=\"inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50\">\n    <HlsStatusBadge status={eventDetailData.event.hlsStatus || \"offline\"} />\n  </span>\n  <span className=\"inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700\">\n    Espectadores: <span className=\"text-sm font-bold text-gray-900\">{eventDetailData.event.currentViewers || 0}</span>\n  </span>\n</div>",
+      "verification": "Verify: (1) Both badges visible in UI, (2) No layout breaks, (3) TypeScript accepts hlsStatus property"
+    },
+
+    {
+      "task_number": 6,
+      "title": "Phase 2: Update HLSPlayer conditional rendering - Check hlsStatus instead of streamStatus",
+      "priority": "HIGH",
+      "file": "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+      "current_problem": "Line 520: HLSPlayer conditional checks streamStatus='connected', should check hlsStatus='ready'",
+      "solution": {
+        "step_1_locate_player_conditional": "Find HLSPlayer conditional around line 518-558",
+        "step_2_change_condition": "Change from: eventDetailData.event.streamUrl && eventDetailData.event.streamStatus === 'connected'",
+        "step_3_to_new_condition": "Change to: eventDetailData.event.streamUrl && eventDetailData.event.hlsStatus === 'ready'",
+        "step_4_update_fallback_messages": "Update fallback <div> to show different messages for hlsStatus: processing, error, offline",
+        "step_5_add_processing_state": "If hlsStatus='processing', show 'Procesando stream...' with OBS connection hint"
+      },
+      "exact_code_conditional": "{eventDetailData.event.streamUrl && eventDetailData.event.hlsStatus === \"ready\" ? (\n  <HLSPlayer\n    streamUrl={eventDetailData.event.streamUrl}\n    autoplay={true}\n    controls={true}\n    muted={false}\n    className=\"w-full aspect-video rounded-lg overflow-hidden\"\n    hlsConfig={{\n      startPosition: -1,\n      liveSyncDurationCount: 2,\n      maxBufferLength: 4,\n      maxMaxBufferLength: 8,\n      enableWorker: true,\n      lowLatencyMode: true,\n    }}\n  />\n) : (\n  <div className=\"w-full aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center text-white\">\n    <div className=\"text-center space-y-1\">\n      <Video className=\"w-10 h-10 mx-auto text-gray-400\" />\n      <p className=\"text-sm text-gray-300\">\n        {eventDetailData.event.hlsStatus === \"processing\" ? \"Procesando stream...\" : eventDetailData.event.hlsStatus === \"error\" ? \"Error en transcoding HLS\" : \"Stream no disponible\"}\n      </p>\n      <p className=\"text-xs text-gray-500\">\n        {eventDetailData.event.streamStatus === \"connected\" && eventDetailData.event.hlsStatus === \"processing\" ? \"OBS conectado. Esperando segmentos HLS...\" : eventDetailData.event.streamStatus === \"offline\" ? \"OBS desconectado. Inicie streaming desde OBS Studio.\" : \"Verifique configuración de streaming\"}\n      </p>\n    </div>\n  </div>\n)}",
+      "verification": "Verify: (1) Player renders only when hlsStatus='ready', (2) Processing state shows correctly, (3) Error state shows correctly"
+    },
+
+    {
+      "task_number": 7,
+      "title": "Phase 2: Add SSE handlers for new RTMP/HLS events",
+      "priority": "HIGH",
+      "file": "/home/veranoby/sports-bets/frontend/src/components/admin/events/EventDetail.tsx",
+      "current_problem": "SSE handler around line 146-220 only listens for STREAM_STARTED/STOPPED, needs RTMP_CONNECTED/DISCONNECTED, HLS_READY/UNAVAILABLE/PROCESSING",
+      "solution": {
+        "step_1_read_sse_section": "Read existing SSE useEffect around lines 146-220",
+        "step_2_add_rtmp_handlers": "Add handlers for SSEEventType.RTMP_CONNECTED and SSEEventType.RTMP_DISCONNECTED",
+        "step_3_add_hls_handlers": "Add handlers for SSEEventType.HLS_READY, SSEEventType.HLS_UNAVAILABLE, SSEEventType.HLS_PROCESSING",
+        "step_4_update_state": "Update setEventDetailData to modify streamStatus for RTMP events, hlsStatus for HLS events",
+        "step_5_verify_event_types": "Verify SSEEventType enum includes new types (Sonnet added them to useSSE.ts)"
+      },
+      "exact_code_sse_handlers": "// RTMP connection events\nif (data.type === SSEEventType.RTMP_CONNECTED || data.type === SSEEventType.RTMP_DISCONNECTED) {\n  if (data.eventId === eventId || data.id === eventId) {\n    setEventDetailData((prev) => {\n      if (!prev) return null;\n      return {\n        ...prev,\n        event: {\n          ...prev.event,\n          streamStatus: data.streamStatus || (data.type === 'RTMP_CONNECTED' ? 'connected' : 'offline'),\n        },\n      };\n    });\n  }\n}\n\n// HLS distribution events\nif (data.type === SSEEventType.HLS_READY || data.type === SSEEventType.HLS_UNAVAILABLE || data.type === SSEEventType.HLS_PROCESSING) {\n  if (data.eventId === eventId || data.id === eventId) {\n    setEventDetailData((prev) => {\n      if (!prev) return null;\n      return {\n        ...prev,\n        event: {\n          ...prev.event,\n          hlsStatus: data.hlsStatus || (data.type === 'HLS_READY' ? 'ready' : data.type === 'HLS_PROCESSING' ? 'processing' : 'offline'),\n          streamUrl: data.streamUrl || prev.event.streamUrl,\n        },\n      };\n    });\n  }\n}",
+      "verification": "Verify: (1) All 5 new event types handled, (2) State updates correctly, (3) No TypeScript errors on SSEEventType usage"
+    },
+
+    {
+      "task_number": 8,
+      "title": "CRITICAL: Verify SSEEventType enum includes new types",
+      "priority": "CRITICAL",
+      "file": "/home/veranoby/sports-bets/frontend/src/hooks/useSSE.ts",
+      "solution": {
+        "step_1_read_enum": "Read SSEEventType enum in useSSE.ts (lines 5-54)",
+        "step_2_verify_types_exist": "Verify these types exist: RTMP_CONNECTED, RTMP_DISCONNECTED, HLS_READY, HLS_UNAVAILABLE, HLS_PROCESSING",
+        "step_3_if_missing": "If Sonnet didn't add them yet (unlikely), ADD them to enum: RTMP_CONNECTED = 'RTMP_CONNECTED', etc.",
+        "step_4_export_verification": "Ensure SSEEventType is exported (line 5: 'export enum SSEEventType')"
+      },
+      "verification": "Verify: (1) All 5 new event types present in enum, (2) Enum exported, (3) EventDetail.tsx can import them"
+    }
+  ],
+
+  "INTERFACE_UPDATES_REQUIRED": {
+    "Event_interface": {
+      "file": "Wherever Event type is defined (likely in EventDetail.tsx or shared types)",
+      "add_field": "hlsStatus?: 'offline' | 'processing' | 'ready' | 'error'",
+      "note": "Add alongside existing streamStatus field, NOT replace it"
+    }
+  },
+
+  "SOURCE_VERIFICATION_PROTOCOL": {
+    "rule": "BEFORE using/destructuring any property from external source (hook, component, API), READ the source definition to verify EXACT property names",
+    "example_correct": "Read useSSE.ts → See 'isLoading' not 'loading' → Use const { isLoading } = useSSE()",
+    "example_wrong": "Assume 'loading' exists → const { loading } = useSSE() → undefined at runtime",
+    "enforcement": "Read source file, note exact names, then use them. NO assumptions."
+  },
+
+  "SIMULATE_Y_CONFIRMAR_PROTOCOL": {
+    "step_1_simulate": "Before editing, describe EXACTLY what will change: file, lines, imports, dependencies",
+    "step_2_confirm": "Verify against actual codebase: Does file exist? Are imports available? Will this break anything?",
+    "step_3_document": "[SIMULATED] → [CONFIRMED] → [MODIFIED] pattern in work notes",
+    "failure_action": "If simulation reveals problem → REPORT it, do NOT attempt fix outside scope"
+  },
+
+  "SUCCESS_CRITERIA": {
+    "functional": [
+      "EventList.tsx uses useAdminSSE hook (no manual EventSource)",
+      "LiveEvent.tsx uses useSSE hook (no manual EventSource)",
+      "LiveEvent.tsx HLSPlayer has hlsConfig with 6 properties",
+      "EventDetail.tsx shows 2 distinct badges (RTMP + HLS)",
+      "HLSPlayer renders only when hlsStatus='ready'",
+      "SSE handlers update both streamStatus and hlsStatus independently"
+    ],
+    "technical": [
+      "npx tsc --noEmit returns 0 errors (MANDATORY - run before reporting completion)",
+      "No console errors about missing imports",
+      "All icon imports (Radio, Video, Activity, XCircle, AlertTriangle) present",
+      "SSEEventType enum includes all 5 new types"
+    ],
+    "scope": [
+      "ONLY 4 files modified (EventList.tsx, LiveEvent.tsx, EventDetail.tsx, useSSE.ts if enum missing)",
+      "NO backend files touched",
+      "NO new files created",
+      "NO git operations performed"
+    ]
+  },
+
+  "COMPLETION_REPORT_FORMAT": {
+    "title": "Phase 2 Frontend Implementation - Qwen Executor Report",
+    "sections": [
+      "✅ Tasks Completed: List 8 tasks with [DONE] status",
+      "📁 Files Modified: List exact files changed with line ranges",
+      "🔧 TypeScript Validation: Paste 'npx tsc --noEmit' output showing 0 errors",
+      "⚠️ Issues Encountered: Any problems, workarounds, or deviations from plan",
+      "📋 Handoff Notes: What Sonnet should verify after your work"
+    ],
+    "evidence_required": [
+      "TypeScript compilation output (actual bash result, not simulated)",
+      "List of modified files with git diff --name-only output",
+      "Specific line ranges edited in each file"
+    ]
+  },
+
+  "CRITICAL_REMINDERS": {
+    "reminder_1": "Read useSSE.ts FIRST to verify hook API before using",
+    "reminder_2": "Check SSEEventType enum for new types - add if missing",
+    "reminder_3": "HLSPlayer hlsConfig MUST have all 6 properties (startPosition, liveSyncDurationCount, maxBufferLength, maxMaxBufferLength, enableWorker, lowLatencyMode)",
+    "reminder_4": "EventDetail.tsx must check hlsStatus='ready' for player, NOT streamStatus",
+    "reminder_5": "Run npx tsc --noEmit BEFORE reporting completion - NO EXCEPTIONS",
+    "reminder_6": "NO git operations - Sonnet handles commits"
+  },
+
+  "ERROR_PREVENTION_CHECKLIST": {
+    "before_editing_each_file": [
+      "□ Read file completely to understand current structure",
+      "□ Read imported hooks/components to verify property names",
+      "□ Identify exact line ranges to modify",
+      "□ Verify imports are available",
+      "□ Check TypeScript types are compatible"
+    ],
+    "after_editing_each_file": [
+      "□ Re-read edited section to verify changes are correct",
+      "□ Check no syntax errors (missing braces, commas, etc.)",
+      "□ Verify imports are added if new dependencies used",
+      "□ Run npx tsc --noEmit to catch TypeScript errors early"
+    ],
+    "before_reporting_completion": [
+      "□ All 8 tasks marked [DONE]",
+      "□ npx tsc --noEmit shows 0 errors",
+      "□ git diff --name-only shows ONLY 4 files (EventList, LiveEvent, EventDetail, maybe useSSE)",
+      "□ No backend files modified",
+      "□ No new files created",
+      "□ Completion report includes actual command outputs (not simulated)"
+    ]
+  },
+
+  "HANDOFF_FROM_SONNET": {
+    "what_sonnet_completed": [
+      "Database migration SQL (user executed in pgAdmin)",
+      "Event.ts model - added hlsStatus field",
+      "events.ts - updated stream start/stop logic for dual status",
+      "sseService.ts - added SSEEventType.RTMP_CONNECTED, RTMP_DISCONNECTED, HLS_READY, HLS_UNAVAILABLE, HLS_PROCESSING"
+    ],
+    "what_you_verify_before_starting": [
+      "Read useSSE.ts enum to confirm new SSEEventType values exist",
+      "If missing, add them yourself to useSSE.ts SSEEventType enum (lines 5-54)",
+      "Verify backend is running and SSE endpoints work"
+    ]
+  },
+
+  "ESTIMATE": {
+    "total_time": "20-30 minutes",
+    "task_breakdown": {
+      "task_1_EventList_SSE": "5 min",
+      "task_2_LiveEvent_SSE": "5 min",
+      "task_3_LiveEvent_hlsConfig": "2 min (trivial)",
+      "task_4_dual_badges": "5 min",
+      "task_5_UI_update": "3 min",
+      "task_6_player_conditional": "3 min",
+      "task_7_SSE_handlers": "5 min",
+      "task_8_enum_verification": "2 min"
+    }
+  }
+}
