@@ -113,7 +113,7 @@ export enum AdminChannel {
   FINANCIAL_MONITORING = 'admin-finance',
   STREAMING_MONITORING = 'admin-streaming',
   NOTIFICATIONS = 'admin-notifications',
-  GLOBAL = 'admin-global'
+  GLOBAL = 'admin/global' // ✅ Fixed: must match route /admin/global
 }
 
 class GallerosNetSSEService {

@@ -62,7 +62,7 @@ export enum AdminChannel {
   FINANCIAL_MONITORING = "admin-finance",
   STREAMING_MONITORING = "admin-streaming",
   NOTIFICATIONS = "admin-notifications",
-  GLOBAL = "admin-global",
+  GLOBAL = "admin/global", // ✅ Fixed: must match backend route /admin/global
 }
 
 // As per technical_requirements.event_format
