@@ -375,15 +375,18 @@ const StreamingContainer = memo(
             streamUrl={streamUrl}
             autoplay={true}
             controls={true}
-            muted={false}
+            muted={true}
             onError={(error) => console.error("HLS playback error:", error)}
             hlsConfig={{
               startPosition: -1,
               liveSyncDurationCount: 2,
+              liveMaxLatencyDurationCount: 3,
               maxBufferLength: 4,
               maxMaxBufferLength: 8,
               enableWorker: true,
               lowLatencyMode: true,
+              backBufferLength: 0,
+              liveDurationInfinity: true,
             }}
           />
           {currentViewers !== undefined && (
@@ -419,6 +422,7 @@ const BettingPanel = memo(
     onAcceptBet,
     onCreateBet,
     isVenueRole,
+    isBettingOpen = true,
   }: {
     availableBets: Bet[];
     myBets: Bet[];
@@ -426,6 +430,7 @@ const BettingPanel = memo(
     onAcceptBet: (betId: string) => void;
     onCreateBet: () => void;
     isVenueRole: boolean;
+    isBettingOpen?: boolean;
   }) => {
     return (
       <div className="space-y-4">
@@ -439,9 +444,9 @@ const BettingPanel = memo(
               </h4>
               <button
                 onClick={onCreateBet}
-                disabled={isVenueRole}
+                disabled={isVenueRole || !isBettingOpen}
                 className={`px-3 py-1 text-xs rounded ${
-                  isVenueRole
+                  isVenueRole || !isBettingOpen
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-blue-500 text-white hover:bg-blue-600"
                 }`}
@@ -520,9 +525,9 @@ const BettingPanel = memo(
                     </div>
                     <button
                       onClick={() => onAcceptBet(bet.id)}
-                      disabled={isVenueRole}
+                      disabled={isVenueRole || !isBettingOpen}
                       className={`w-full mt-2 py-1 rounded text-xs ${
-                        isVenueRole
+                        isVenueRole || !isBettingOpen
                           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-green-500 text-white hover:bg-green-600"
                       }`}
@@ -915,7 +920,7 @@ const LiveEvent = () => {
   const allFights = currentEvent?.fights || [];
   console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
   console.log("🥊 LiveEvent render: allFights =", allFights);
-  const currentFight = allFights.find((fight) => fight.status === "live");
+  const currentFight = allFights.find((f) => f.status === "live") || allFights.find((f) => f.status === "betting");
 
   // ✅ Fights separation for modal
   const completedFights = allFights.filter((f) => f.status === "completed");
@@ -1129,6 +1134,23 @@ const LiveEvent = () => {
         {/* ✅ Row 3: Betting Panel (Replaced previous tabs with new structure) */}
         {isBettingEnabled && (
           <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
+            {/* Status Banner based on fight status */}
+            {currentFight && (
+              <div className={`mb-4 p-3 rounded-lg text-center font-semibold ${
+                currentFight.status === "betting"
+                  ? "bg-green-500/20 text-green-500 border border-green-500/30"
+                  : currentFight.status === "live"
+                  ? "bg-red-500/20 text-red-500 border border-red-500/30"
+                  : currentFight.status === "completed"
+                  ? "bg-gray-500/20 text-gray-500 border border-gray-500/30"
+                  : "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+              }`}>
+                {currentFight.status === "betting" && "APUESTAS ABIERTAS"}
+                {currentFight.status === "live" && "APUESTAS CERRADAS - PELEA EN CURSO"}
+                {currentFight.status === "completed" && "PELEA FINALIZADA"}
+                {(currentFight.status === "upcoming" || currentFight.status === "scheduled") && "PRÓXIMA PELEA"}
+              </div>
+            )}
             <BettingPanel
               availableBets={availableBets}
               myBets={myBets}
@@ -1136,6 +1158,7 @@ const LiveEvent = () => {
               onAcceptBet={handleAcceptBet}
               onCreateBet={handleCreateBet}
               isVenueRole={isVenueRole}
+              isBettingOpen={currentFight?.status === "betting"}
             />
           </div>
         )}

@@ -54,57 +54,36 @@ const EventList: React.FC<EventListProps> = ({
   // Local wrapper to update state after status change
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
-      console.log("🔄 handleStatusChange called:", { eventId, action });
       const updatedEvent = await onEventAction(eventId, action);
-      console.log("📦 Received updatedEvent from backend:", updatedEvent);
 
       if (!updatedEvent) {
-        console.warn("⚠️ No updated event returned - SSE will handle update");
-        // ✅ OPTIMIZED: Trust SSE to update instead of re-fetching all events
+        // ✅ Trust SSE to update instead of re-fetching
         return;
       }
 
-      // ✅ Validate that updatedEvent has critical fields before merging
+      // ✅ Validate that updatedEvent has critical fields
       if (!updatedEvent.id || updatedEvent.id !== eventId) {
-        console.error("❌ Invalid updatedEvent: ID mismatch or missing");
-        // Show error but trust SSE to eventually sync state
-        setError("Error en respuesta del servidor - esperando sincronización");
+        setError("Error en respuesta del servidor");
         return;
       }
 
       // ✅ OPTIMISTIC UPDATE: Immediately update local state
-      // SSE will reconcile if there are any discrepancies
       const updateEvent = (event: Event) => {
         if (event.id !== eventId) return event;
 
-        // Merge strategy: preserve existing fields, only override with new data
-        const merged = {
+        return {
           ...event,
           ...updatedEvent,
-          // Preserve nested objects if they're not in updatedEvent
           venue: updatedEvent.venue || event.venue,
           operator: updatedEvent.operator || event.operator,
         } as Event;
-
-        console.log("🔀 Merged event (optimistic):", merged);
-        return merged;
       };
 
-      console.log("✅ Optimistic update applied to local state");
-      setEvents((prev) => {
-        const updated = prev.map(updateEvent);
-        console.log(
-          "📊 Events after optimistic update:",
-          updated.find((e) => e.id === eventId),
-        );
-        return updated;
-      });
+      setEvents((prev) => prev.map(updateEvent));
       setTodayEvents((prev) => prev.map(updateEvent));
     } catch (err) {
       console.error("❌ Error changing status:", err);
       setError(err instanceof Error ? err.message : "Error al cambiar estado");
-      // ✅ OPTIMIZED: Only show error, SSE should reconcile state
-      // Avoid expensive full re-fetch unless absolutely necessary
     }
   };
 
@@ -113,27 +92,29 @@ const EventList: React.FC<EventListProps> = ({
   );
   const [dateFilter, setDateFilter] = useState(searchParams.get("date") || "");
 
-  // ✅ SSE listener for real-time event updates from backend using useAdminSSE hook
+  // ✅ SSE listener for real-time event updates
   const adminSSE = useAdminSSE(AdminChannel.GLOBAL);
 
   useEffect(() => {
-    if (adminSSE.status !== "connected") return;
+    if (adminSSE.status !== "connected") {
+      console.log(`📡 EventList: SSE status = ${adminSSE.status}`);
+      return;
+    }
+
+    console.log("📡 EventList: SSE connected - subscribing to events");
 
     const unsubscribe = adminSSE.subscribeToEvents({
       // Event status changes
       EVENT_ACTIVATED: (data) => {
+        console.log("📥 EventList: EVENT_ACTIVATED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
-        // ✅ RECONCILIATION: Update both events and todayEvents with SSE data
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for event:", eventData.id);
           return {
             ...event,
             ...eventData,
-            // Preserve nested objects
             venue: eventData.venue || event.venue,
             operator: eventData.operator || event.operator,
           } as Event;
@@ -143,13 +124,12 @@ const EventList: React.FC<EventListProps> = ({
         setTodayEvents((prev) => prev.map(reconcileEvent));
       },
       EVENT_COMPLETED: (data) => {
+        console.log("📥 EventList: EVENT_COMPLETED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for event:", eventData.id);
           return {
             ...event,
             ...eventData,
@@ -162,13 +142,12 @@ const EventList: React.FC<EventListProps> = ({
         setTodayEvents((prev) => prev.map(reconcileEvent));
       },
       EVENT_CANCELLED: (data) => {
+        console.log("📥 EventList: EVENT_CANCELLED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for event:", eventData.id);
           return {
             ...event,
             ...eventData,
@@ -181,13 +160,12 @@ const EventList: React.FC<EventListProps> = ({
         setTodayEvents((prev) => prev.map(reconcileEvent));
       },
       EVENT_SCHEDULED: (data) => {
+        console.log("📥 EventList: EVENT_SCHEDULED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for event:", eventData.id);
           return {
             ...event,
             ...eventData,
@@ -200,13 +178,12 @@ const EventList: React.FC<EventListProps> = ({
         setTodayEvents((prev) => prev.map(reconcileEvent));
       },
       STREAM_STARTED: (data) => {
+        console.log("📥 EventList: STREAM_STARTED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for stream start:", eventData.id);
           return {
             ...event,
             ...eventData,
@@ -221,13 +198,12 @@ const EventList: React.FC<EventListProps> = ({
         setTodayEvents((prev) => prev.map(reconcileEvent));
       },
       STREAM_STOPPED: (data) => {
+        console.log("📥 EventList: STREAM_STOPPED received");
         const eventData = data.data;
         if (!eventData?.id) return;
 
         const reconcileEvent = (event: Event) => {
           if (event.id !== eventData.id) return event;
-
-          console.log("🔄 SSE reconciliation for stream stop:", eventData.id);
           return {
             ...event,
             ...eventData,

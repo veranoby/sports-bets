@@ -10,7 +10,6 @@
     "business_clarifications": "Lines 897-996",
     "implementation_and_reporting_framework": "Lines 953-1225 (Git-based evidence, backlog integrity, audit framework)"
   },
-
   "metadata": {
     "version": "5.5",
     "updated": "2025-12-02",
@@ -23,7 +22,6 @@
     "changelog_v5.2": "Added AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL (lines 147-281) - Prevents unidirectional search, tool validation failures, and 'absence of finding = absence of existence' errors. Incident lesson: 2025-11-11 backend audit missed existing endpoints.",
     "changelog_v5.1": "Added DIRECTOR_PLANNING_PROTOCOL (lines 79-101) - Director MUST read this file BEFORE creating executor plans to incorporate all critical error prevention protocols"
   },
-
   "ai_roles_and_preferences": {
     "description": "Defines the abstract roles in the system and the preferred models for each role. This allows for dynamic model swapping without changing core logic.",
     "director": {
@@ -32,9 +30,6 @@
         "claude-sonnet-4-5",
         "claude-opus-4",
         "glm-4-6"
-      ],
-      "forbidden_models": [
-        "haiku-4-5"
       ]
     },
     "executor": {
@@ -46,7 +41,6 @@
       "forbidden_models": []
     }
   },
-
   "execution_mode": {
     "description": "Global setting that dictates the level of validation and friction in the workflow. MUST be declared at session start by the AI in the 'director' role.",
     "standard": {
@@ -67,19 +61,47 @@
       ]
     }
   },
-
   "🔴_MCP_ACTIVATION_FOR_ALL_AIS": {
     "severity": "CRITICAL",
     "when_to_activate": {
-      "database_sql_work": {"mcps": ["--c7", "--context7"], "why": "PostgreSQL type system expertise"},
-      "multi_step_backend": {"mcps": ["--seq", "--sequential"], "why": "Dependency planning"},
-      "react_typescript": {"mcps": ["--c7", "--context7"], "why": "React + TypeScript patterns"},
-      "responsive_design": {"mcps": ["--play", "--playwright"], "why": "UI validation"},
-      "code_analysis": {"mcps": ["--seq", "--sequential"], "why": "Systematic decomposition"}
+      "database_sql_work": {
+        "mcps": [
+          "--c7",
+          "--context7"
+        ],
+        "why": "PostgreSQL type system expertise"
+      },
+      "multi_step_backend": {
+        "mcps": [
+          "--seq",
+          "--sequential"
+        ],
+        "why": "Dependency planning"
+      },
+      "react_typescript": {
+        "mcps": [
+          "--c7",
+          "--context7"
+        ],
+        "why": "React + TypeScript patterns"
+      },
+      "responsive_design": {
+        "mcps": [
+          "--play",
+          "--playwright"
+        ],
+        "why": "UI validation"
+      },
+      "code_analysis": {
+        "mcps": [
+          "--seq",
+          "--sequential"
+        ],
+        "why": "Systematic decomposition"
+      }
     },
     "incident_lesson": "2025-10-30: PostgreSQL error occurred without Context7. LESSON: MCPs aren't optional - they're mandatory for quality."
   },
-
   "🔴_DIRECTOR_PLANNING_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Director AI MUST read this coordination strategy file BEFORE creating ANY plan for executor work",
@@ -103,12 +125,11 @@
     "enforcement": "If director creates plan without reading this file first: User should reject plan and instruct director to read coordination strategy, then recreate plan",
     "lesson_learned": "Creating plans from memory or assumptions leads to missing critical protocols that prevent executor errors. Always read source of truth first."
   },
-
   "🔴_ROLE_AND_MODEL_AWARENESS_PROTOCOL": {
     "severity": "CRITICAL",
     "rule": "Every AI session MUST start by declaring its model, its assigned ROLE, and task appropriateness.",
     "role_model_validation": "The directing AI (or the user) MUST validate that the declared model is in the 'preferred_models' list for its assigned role and NOT in the 'forbidden_models' list.",
-    "inappropriate_model_for_role": "If a model is assigned to a role for which it is forbidden (e.g., Haiku as director), the session must be STOPPED. The AI must refuse and recommend a valid model from the preferred list for that role.",
+    "inappropriate_model_for_role": "If a model is assigned to a role for which it is forbidden , the session must be STOPPED. The AI must refuse and recommend a valid model from the preferred list for that role.",
     "unknown_task_protocol": {
       "description": "Protocol for when an AI cannot classify a task into a known pattern.",
       "trigger": "AI classifies task as 'not in MCP table' or 'not covered by existing workflows'.",
@@ -128,7 +149,6 @@
     ],
     "enforcement": "If an AI is assigned a role it cannot fulfill, or fails to declare its role and model, the user must interrupt and restart the session."
   },
-
   "🔴_BASIC_PROTOCOL_ALL_AIS": {
     "severity": "CRITICAL",
     "rule_1": "READ COMPLETELY - Don't assume context. If user says 'I deleted users except admin' → that's a FACT.",
@@ -137,7 +157,6 @@
     "rule_4": "EFFICIENCY NOT SPEED - Plan before executing. Trust user's explicit statements. Don't re-verify what they already confirmed.",
     "rule_5": "REPORT IN TEXT - Analysis happens in chat message area, not separate files."
   },
-
   "debugging_methodology_protocol": {
     "when": "User reports error with stack trace, or previous fix attempts failed",
     "responsible_ai": "AI in the 'director' role (root-cause-analyst mode recommended)",
@@ -147,12 +166,10 @@
     "step_4_avoid_repeats": "Never repeat previous failed attempts. Ask clarifying questions if uncertain.",
     "enforcement": "Director AI checks root cause BEFORE proposing fix"
   },
-
   "🔴_AUDIT_AND_ANALYSIS_METHODOLOGY_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Comprehensive, bidirectional verification with tool validation. Absence of finding ≠ absence of existence.",
     "applicability": "All audit tasks, analysis requests, discrepancy investigations, or 'confirm X is reflected in Y' type requests",
-
     "core_rules": {
       "rule_1_bidirectional_search": {
         "description": "For any 'A vs B' comparison, search BOTH directions",
@@ -162,7 +179,6 @@
         ],
         "enforcement": "MANDATORY for all audit/analysis tasks. Both directions must be explicitly performed and reported."
       },
-
       "rule_2_tool_validation": {
         "description": "Verify tool outputs are valid before trusting results",
         "trigger_scenarios": [
@@ -178,7 +194,6 @@
         ],
         "enforcement": "NEVER assume 'empty result = nothing exists' without validation"
       },
-
       "rule_3_systematic_coverage": {
         "description": "Enumerate search space completely before concluding",
         "checklist": [
@@ -190,14 +205,12 @@
         "anti_pattern": "Checking a few examples and extrapolating",
         "enforcement": "For audits: Provide counts (X files checked, Y endpoints verified, Z discrepancies found)"
       },
-
       "rule_4_direct_inspection": {
         "description": "When in doubt, read the source directly",
         "trigger": "Any of: (1) Tool returns unexpected result, (2) Critical finding needs confirmation, (3) Ambiguity in automated results",
         "method": "Use Read tool with specific offset/limit to manually inspect actual code/config/data",
         "enforcement": "Grep is for discovery, Read is for validation"
       },
-
       "rule_5_explicit_assumptions": {
         "description": "State and validate all assumptions before concluding",
         "process": [
@@ -208,7 +221,6 @@
         "enforcement": "Report must include 'Assumptions Made' and 'Assumptions Validated' sections for complex audits"
       }
     },
-
     "audit_workflow_template": {
       "phase_1_scope_definition": [
         "Define exactly what to audit (files, endpoints, configs, etc.)",
@@ -237,7 +249,6 @@
         "State assumptions and limitations explicitly"
       ]
     },
-
     "incident_lesson_2025_11_11": {
       "task": "User requested backend audit to verify brain/ documentation accuracy",
       "what_went_wrong": [
@@ -262,7 +273,6 @@
         "Step 7: Report both directions with counts"
       ]
     },
-
     "enforcement_checklist": {
       "before_concluding_audit": [
         "✅ Both directions searched (A→B AND B→A)",
@@ -280,21 +290,17 @@
         "🚨 Relying on assumptions not explicitly verified"
       ]
     },
-
     "applicability": "All AIs performing audits, analysis, verification, or 'confirm X matches Y' tasks"
   },
-
   "🔴_UI_VERIFICATION_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Never affirm about UI implementation without reading actual component files. Interface contracts do not guarantee rendering implementation.",
     "applicability": "All questions about UI/frontend state: 'Is X displayed?', 'Does component show Y?', 'Is Z implemented in the interface?'",
-
     "core_violation": {
       "error_pattern": "Assuming UI displays data because backend sends it or hook returns it",
       "example": "Backend returns metrics → Hook has metrics field → [FALSE ASSUMPTION] → Component displays metrics",
       "correct_pattern": "Backend returns metrics → Hook has metrics field → [READ COMPONENT] → Verify JSX rendering"
     },
-
     "mandatory_verification_workflow": {
       "step_1_stop_before_affirming": {
         "trigger": "User asks: 'Is [UI_ELEMENT] displayed/implemented/shown?'",
@@ -326,7 +332,6 @@
         "never": "Never respond based on inference or assumptions"
       }
     },
-
     "common_false_assumption_patterns": {
       "backend_sends_equals_frontend_displays": {
         "false_logic": "API endpoint returns data → UI must be showing it",
@@ -344,7 +349,6 @@
         "prevention": "Verify JSX rendering, not just hook invocation"
       }
     },
-
     "incident_lesson_2025_11_27": {
       "task": "User asked: 'Is AdminHeader showing detailed metrics (Memory MB, DB connections, Intervals)?'",
       "what_went_wrong": [
@@ -370,7 +374,6 @@
         "Step 5: Respond: 'No, lines 150-165 show only alert counts, not detailed metrics'"
       ]
     },
-
     "enforcement_rules": {
       "rule_1_read_before_claim": "NEVER claim UI displays X without reading component .tsx/.jsx file",
       "rule_2_jsx_is_evidence": "Only JSX rendering counts as evidence, not TypeScript logic or interfaces",
@@ -378,14 +381,12 @@
       "rule_4_admit_when_uncertain": "If you haven't read the component yet, say so explicitly",
       "rule_5_inference_prohibition": "Prohibited: Inferring UI state from backend/hooks/contracts alone"
     },
-
     "token_waste_prevention": {
       "cost_of_false_affirmation": "~3,700 tokens for correction cycle (~$0.01 USD but high trust cost)",
       "prevention_cost": "~500 tokens to Read component file before answering",
       "efficiency_gain": "87% token savings + 100% accuracy by reading before affirming",
       "trust_preservation": "User confidence maintained when answers are evidence-based from first response"
     },
-
     "quick_reference_checklist": {
       "before_saying_yes_to_ui_question": [
         "☐ Have I read the actual .tsx/.jsx component file?",
@@ -395,22 +396,18 @@
         "☐ If NO to any above → READ COMPONENT FIRST, then answer"
       ]
     },
-
     "applicability": "All AIs (director and executor) when answering questions about UI/frontend implementation, display, or rendering"
   },
-
   "🔴_SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Never assume property names, function signatures, or type structures. Always read the source definition before using.",
     "applicability": "All scenarios where AI destructures properties, calls functions, uses hooks, or references types",
-
     "incident_2025_12_02_gemini": {
       "what_happened": "Gemini implemented ProtectedRoute with 'const { loading: flagsLoading } = useFeatureFlags()' but hook returns 'isLoading' not 'loading'",
       "impact": "flagsLoading was undefined, loading guard never waited, race condition NOT fixed despite correct architecture",
       "root_cause": "Assumed conventional name 'loading' without reading hook definition",
       "lesson": "95% correct implementation broken by 1 word typo due to assumption"
     },
-
     "core_violation": {
       "error_pattern": "Using/destructuring from source without reading source definition first",
       "examples": [
@@ -420,7 +417,6 @@
         "import { Thing } from './file' // Without verifying Thing is exported"
       ]
     },
-
     "mandatory_workflow": {
       "step_1_identify_external_reference": {
         "trigger": "About to use hook/function/type/component from another file",
@@ -448,7 +444,6 @@
         "purpose": "Catch property name errors before they cause runtime bugs"
       }
     },
-
     "prevention_rules": {
       "rule_1_no_convention_assumptions": {
         "wrong": "Assuming 'loading' because most hooks use that name",
@@ -471,14 +466,12 @@
         "enforcement": "Prevents 'module has no exported member' errors"
       }
     },
-
     "quick_verification_commands": {
       "verify_hook_return_type": "grep -A 30 'export const useHook' hookFile.ts",
       "verify_function_signature": "grep -A 5 'export.*function.*myFunc' file.ts",
       "verify_type_definition": "grep -A 20 'export.*interface.*MyType' types.ts",
       "verify_export_exists": "grep 'export.*TargetName' file.ts"
     },
-
     "common_assumption_traps": {
       "loading_vs_isLoading": "Both common, don't assume",
       "error_vs_isError": "Both used, verify which",
@@ -486,7 +479,6 @@
       "id_vs_userId": "Naming varies, read source",
       "onClick_vs_handleClick": "Prop names differ by component"
     },
-
     "enforcement_checklist": {
       "before_using_external_source": [
         "□ Have I read the file that defines this hook/function/type?",
@@ -496,30 +488,25 @@
         "□ If NO to any: Read source file NOW, then proceed"
       ]
     },
-
     "cost_benefit_analysis": {
       "cost_of_assumption": "~3 hours debugging + user frustration + loss of trust",
       "cost_of_verification": "~30 seconds to Read source file",
       "benefit": "100% prevention of property name errors",
       "roi": "360x time savings (30 sec vs 3 hours)"
     },
-
     "integration_with_existing_protocols": {
       "complements_UI_VERIFICATION": "Read component before claiming UI displays data",
       "complements_AUDIT_METHODOLOGY": "Verify tool outputs, don't assume",
       "complements_EVIDENCE_BASED": "Source code is evidence, not assumptions",
       "complements_PROTOCOL_DISCIPLINE": "Executing means reading source, not guessing"
     },
-
     "applicability": "ALL AIs when using any external function/hook/type/component. Universal prevention for assumption-based errors.",
     "enforcement": "TypeScript will catch these errors, but only AFTER wasting time. Read source BEFORE writing usage code to prevent entirely."
   },
-
   "🔴_LEARNING_FROM_IMPLEMENTATION_ERRORS_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Learn from implementation errors to prevent recurring patterns. Systematic analysis of mistakes improves future performance.",
     "applicability": "All AIs after identifying implementation errors in their own work or work they're reviewing",
-
     "common_error_patterns_identified": {
       "incorrect_relative_paths": {
         "description": "Using wrong relative path syntax (../../../ instead of ../../)",
@@ -567,7 +554,6 @@
         ]
       }
     },
-
     "error_analysis_workflow": {
       "step_1_stop_and_assess": {
         "trigger": "When implementation error is identified",
@@ -602,14 +588,12 @@
         "method": "Apply new strategy to original scenario and confirm it would prevent the error"
       }
     },
-
     "quality_improvement_metrics": {
       "error_recurrence_tracking": "Track if same error pattern repeats after adding prevention strategy",
       "prevention_protocol_adoption": "Verify AIs are using new error prevention strategies",
       "learning_efficiency": "Measure reduction in similar error types after protocol implementation",
       "knowledge_transfer": "Ensure new error patterns are shared across AI sessions"
     },
-
     "enforcement": {
       "when_to_apply": "After any implementation error is identified (own work or reviewing others)",
       "required_actions": [
@@ -622,13 +606,11 @@
       "accountability": "All AIs are responsible for learning from errors and improving systemic processes"
     }
   },
-
   "🔴_PRE_HANDOFF_VALIDATION_PROTOCOL": {
     "severity": "CRITICAL",
     "principle": "Systematic validation before task handoff prevents runtime errors and reduces error cascades. Every AI must validate their work comprehensively before declaring completion.",
     "applicability": "ALL AIs (especially Executors) before completing tasks and handing off to Director",
     "incident_trigger": "2025-12-10 - Qwen used process.env (Node.js) in frontend (Vite), causing runtime error discovered only in user testing. Similar cascade: SSEEvent fix → process.env discovery → each fix reveals new issue.",
-
     "mandatory_validation_steps": {
       "step_1_anti_pattern_detection": {
         "description": "Run automated checks for common anti-patterns before handoff",
@@ -707,7 +689,6 @@
         "command": "git log --oneline -5 (verify recent commits make sense)"
       }
     },
-
     "validation_checklist_template": {
       "description": "Use this checklist before declaring task complete",
       "checklist": [
@@ -722,7 +703,6 @@
         "[ ] No commented-out code blocks left behind"
       ]
     },
-
     "error_cascade_prevention": {
       "principle": "One small error (like process.env) can cascade into multiple debugging sessions. Comprehensive validation breaks the cascade.",
       "cost_analysis": {
@@ -731,13 +711,11 @@
       },
       "roi": "10 minutes validation prevents 30-60 minutes of cascading debug sessions"
     },
-
     "reporting_requirement": {
       "description": "Include validation evidence in completion message",
       "format": "✅ Validation Complete:\n- Anti-patterns: 0 issues\n- TypeScript: 0 errors\n- Smoke test: Passed\n- Git commits: [hash1, hash2]\n- Ready for director review",
       "enforcement": "Director should reject handoff if validation evidence missing"
     },
-
     "common_validation_failures": {
       "process_env_in_frontend": {
         "pattern": "Using process.env in React/Vite frontend code",
@@ -764,14 +742,12 @@
         "impact": "Build fails, blocks deployment"
       }
     },
-
     "enforcement": {
       "executor_responsibility": "Run full validation checklist before claiming task complete",
       "director_responsibility": "Reject incomplete handoffs lacking validation evidence",
       "zero_tolerance": "No exceptions - validation is mandatory, not optional"
     }
   },
-
   "role_responsibilities": {
     "director": {
       "primary": "Validation engine + architecture oversight + execution_mode declaration + task delegation to executors.",
@@ -806,7 +782,6 @@
       ]
     }
   },
-
   "execution_workflows": {
     "simulate_y_confirmar_protocol": {
       "when": "Executor AI is about to modify code (routes, models, components, etc.).",
@@ -833,7 +808,6 @@
       "phase_3_director_validation": "Director AI validates the implementation, runs tests, updates the brain, and closes the loop."
     }
   },
-
   "validation_gates": {
     "role_and_model_appropriateness": {
       "check": "Is the model appropriate for the assigned role?",
@@ -875,7 +849,6 @@
       "failure": "REVERT scope violations before commit"
     }
   },
-
   "failure_recovery": {
     "unplanned_changes_analysis": {
       "detect": "git diff shows files outside AI task scope",
@@ -896,7 +869,6 @@
       "document": "If stashing, record in brain/ with recovery command"
     }
   },
-
   "recommended_practices_optimization": {
     "system_maintenance_and_health_checks": {
       "description": "Best practices for the human operator to ensure the strategy file remains healthy and effective.",
@@ -1019,7 +991,6 @@
       }
     }
   },
-
   "business_model_clarifications_2025_10_30": {
     "events_venues": {
       "definition": "Events are competitions held AT venues (stadiums). events.venue_id → user with role='venue'",
@@ -1033,7 +1004,6 @@
     },
     "principle": "Foreign keys represent SEMANTIC relationships, not just type compatibility. Verify the MEANING, not just the data types."
   },
-
   "executor_scope_creep_prevention_2025_10_19": {
     "incident": "Executor AI modified files outside scope (Administrators.tsx, Dashboard.tsx, News.tsx) with valid ESLint improvements",
     "root_cause": "[FILES_TO_MODIFY] lacked strong enforcement language",
@@ -1044,7 +1014,6 @@
       "Add: 'IF tempted → Report as [OUT_OF_SCOPE] and let the director decide'"
     ]
   },
-
   "filter_logic_best_practices_2025_10_30": {
     "incident": "Executor AI created Op.or filter conflict: search and subscription filters overwrote each other instead of combining",
     "root_cause": "Sequelize pattern: Assignment to where[Op.or] twice = second overwrites first",
@@ -1070,7 +1039,6 @@
       "backend/src/routes/galleras.ts:49-122 (search + ownerSubscription filters)"
     ]
   },
-
   "task_disambiguation_protocol_2025_11_04": {
     "incident": "Executor AI executed different tasks than assigned: PAGO/DOY UI instead of INFRINGEMENT fixes, causing scope mismatch",
     "root_cause_analysis": {
@@ -1087,7 +1055,6 @@
     ],
     "applicability": "All AI sessions (especially executors) when receiving multi-task assignments"
   },
-
   "reporting_location_protocol_2025_11_04": {
     "incident": "Executor AI reported completion to user via text, did not update brain/backlog.json as required",
     "root_cause_analysis": {
@@ -1108,7 +1075,6 @@
     },
     "applicability": "All AI sessions requiring documentation updates (executor work sessions)"
   },
-
   "session_context_loss_prevention_2025_11_04": {
     "observation": "Long executor sessions may lose context, causing incomplete implementations or missed requirements",
     "prevention_strategies": [
@@ -1127,7 +1093,6 @@
     },
     "applicability": "All AI sessions, especially executor (primary implementation role with longer sessions)"
   },
-
   "evidence_based_validation_protocol": {
     "principle": "Trust but verify - Never accept completion claims without independent validation",
     "director_responsibilities": [
@@ -1157,7 +1122,6 @@
     ],
     "enforcement": "Director AI validates executor work before updating backlog. User should verify director validation independently."
   },
-
   "next_sessions": {
     "protocol_enforcement": "All AIs must follow mandatory_reads_at_start, exit_infinite_loops_protocol, role_and_model_awareness_protocol, AND evidence_based_validation_protocol",
     "role_and_model_verification": "CRITICAL: All AIs must declare model and ASSIGNED ROLE in first message. User should interrupt if missing.",
@@ -1174,7 +1138,6 @@
       "Backlog updates include verification_evidence field with command outputs"
     ]
   },
-
   "lesson_learned_never_simulate_results": {
     "critical_error_pattern": "Simulating or fabricating test results and reporting them as real outcomes",
     "incident_description": "An executor AI simulated E2E test results before actual execution, potentially compromising data integrity and trust",
@@ -1212,7 +1175,6 @@
     "applicability": "All AI sessions involving testing, validation, monitoring, or reporting of system behavior",
     "enforcement": "Any AI found fabricating or simulating results before actual execution must stop immediately, acknowledge the error, and perform the actual tests or validations requested."
   },
-
   "🔴_PROTOCOL_EXECUTION_DISCIPLINE_2025_11_27": {
     "severity": "CRITICAL",
     "principle": "Reading protocols ≠ executing protocols. Knowledge of rules is meaningless without disciplined application.",
@@ -1222,7 +1184,6 @@
       "lesson": "Protocols exist only if executed. Theoretical knowledge without action = protocol violation.",
       "responsibility": "Director AI (validation role) failed to independently verify executor claims using required validation gates (line 757-761: EVIDENCE_BASED_VALIDATION_PROTOCOL)"
     },
-
     "execution_discipline_framework": {
       "principle_1_read_then_execute": {
         "rule": "For every critical protocol (UI_VERIFICATION, AUDIT_METHODOLOGY, EVIDENCE_BASED_VALIDATION, SIMULATE_Y_CONFIRMAR), reading the protocol section is STEP 1, EXECUTION is STEP 2.",
@@ -1236,7 +1197,6 @@
         "anti_pattern": "Read UI_VERIFICATION_PROTOCOL, then say 'Yes UI is implemented' without reading component file",
         "enforcement": "AI must cite PROOF of execution, not just knowledge of protocol"
       },
-
       "principle_2_validation_gates_are_mandatory": {
         "rule": "Every validation gate (TypeScript, build, scope, evidence) is MANDATORY unless explicitly waived in execution_mode='trusted' for LOW complexity",
         "gates_always_mandatory": [
@@ -1249,7 +1209,6 @@
         ],
         "enforcement": "AI must OUTPUT evidence (actual command results) not claims"
       },
-
       "principle_3_trust_but_verify": {
         "rule": "When a previous AI reports completion: 'Trust their effort, verify their claims independently'",
         "three_tier_validation": [
@@ -1265,7 +1224,6 @@
         ],
         "enforcement": "Director AI MUST independently validate before updating backlog or reporting success"
       },
-
       "principle_4_evidence_is_not_optional": {
         "rule": "Every claim must be supported by independently verifiable evidence. No exceptions.",
         "evidence_hierarchy": [
@@ -1282,7 +1240,6 @@
         ],
         "enforcement": "AI must cite specific file:line references and command outputs. Claims without evidence are rejected."
       },
-
       "principle_5_execution_discipline_is_personal_responsibility": {
         "rule": "Each AI bears personal responsibility for protocol execution. Cannot blame previous AI or claim 'the protocol wasn't clear'.",
         "responsibilities": [
@@ -1299,7 +1256,6 @@
         "enforcement": "Any AI that violates execution discipline must: (1) Acknowledge the violation, (2) Explain why it happened, (3) Perform the required action now"
       }
     },
-
     "implementation_for_all_ais": {
       "session_start_checklist": [
         "□ Read ~/.claude/CLAUDE.md (mandatory framework)",
@@ -1321,16 +1277,13 @@
         "□ If answer to any above is NO: go back and do it now"
       ]
     },
-
     "applicability": "ALL AI sessions, ALL task types. This is a discipline framework, not a protocol for specific tasks.",
     "enforcement": "Session is INVALID if AI reads this protocol and ignores it. User should interrupt and restart session with commitment to execution discipline."
   },
-
   "🔴_IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK_2025_11_27": {
     "severity": "CRITICAL",
     "principle": "Work without verifiable evidence is fiction. Git commits are the single source of truth for implementation timing and scope.",
     "incident_basis": "2025-11-27 Opción B Audit: 47 claims verified, 2 false claims detected (work date mismatch + feature reported before implementation). 95.7% accuracy proves framework works when evidence is present.",
-
     "core_problem_analysis": {
       "false_claim_pattern_1_temporal_mismatch": {
         "description": "Work reported on date X but git commit shows date Y",
@@ -1350,7 +1303,6 @@
         "lesson": "Evidence-based reporting eliminates false claims entirely"
       }
     },
-
     "mandatory_git_commit_evidence_protocol": {
       "rule_1_every_backlog_update_requires_commit_id": {
         "requirement": "ALL backlog work reports MUST include git_commits field with actual commit hashes",
@@ -1375,7 +1327,6 @@
         "enforcement": "Feature claim without git commit citation is REJECTED"
       }
     },
-
     "temporal_validation_protocol": {
       "never_assume_dates": {
         "rule": "NEVER use task assignment date or session start date as completion_date",
@@ -1393,7 +1344,6 @@
         "benefit": "Enables accurate time-tracking and session duration analysis"
       }
     },
-
     "backlog_integrity_standards": {
       "minimum_required_fields_for_work_reports": {
         "always_required": [
@@ -1428,7 +1378,6 @@
         "□ Used actual git commit date as completion_date (not task start date)"
       ]
     },
-
     "implementation_workflow_optimization": {
       "phase_1_pre_implementation_git_baseline": {
         "actions": [
@@ -1442,7 +1391,15 @@
       "phase_2_implementation_with_incremental_commits": {
         "best_practice": "Commit frequently with descriptive messages, not one giant commit",
         "commit_message_format": "[CATEGORY] Brief description\n\nDetailed changes:\n- Change 1\n- Change 2\n\n🤖 Generated with Claude Code\nCo-Authored-By: [AI_Name]",
-        "categories": ["FIX", "FEATURE", "REFACTOR", "DOCS", "TEST", "CHECKPOINT", "BRAIN"],
+        "categories": [
+          "FIX",
+          "FEATURE",
+          "REFACTOR",
+          "DOCS",
+          "TEST",
+          "CHECKPOINT",
+          "BRAIN"
+        ],
         "enforcement": "Each logical unit of work gets separate commit for easier audit"
       },
       "phase_3_post_implementation_evidence_collection": {
@@ -1466,7 +1423,6 @@
         ]
       }
     },
-
     "reporting_optimization_best_practices": {
       "use_structured_templates": {
         "work_completion_report_template": {
@@ -1474,10 +1430,17 @@
           "status": "COMPLETED",
           "completion_date": "YYYY-MM-DD (from git log)",
           "completion_time": "HH:MM:SS (from git log)",
-          "git_commits": ["hash1", "hash2"],
+          "git_commits": [
+            "hash1",
+            "hash2"
+          ],
           "git_diff_summary": "X files changed, Y insertions(+), Z deletions(-)",
           "files_modified": [
-            {"file": "path/to/file.ts", "lines": "45-60", "change": "Description"}
+            {
+              "file": "path/to/file.ts",
+              "lines": "45-60",
+              "change": "Description"
+            }
           ],
           "verification_evidence": {
             "typescript": "npx tsc --noEmit: 0 errors",
@@ -1487,8 +1450,17 @@
         }
       },
       "avoid_vague_language": {
-        "never_say": ["'Fixed some issues'", "'Made improvements'", "'Updated the code'", "'Implemented feature X' (without git commit)"],
-        "always_say": ["'Fixed 3 TypeScript errors in monitoring.ts:45-60 (commit e63e3812)'", "'Added metrics object to SSE events in monitoring.ts:506-528'", "'Implemented AdminHeaderMetricsBar component (180 lines, commit 0e6e74dd)'"]
+        "never_say": [
+          "'Fixed some issues'",
+          "'Made improvements'",
+          "'Updated the code'",
+          "'Implemented feature X' (without git commit)"
+        ],
+        "always_say": [
+          "'Fixed 3 TypeScript errors in monitoring.ts:45-60 (commit e63e3812)'",
+          "'Added metrics object to SSE events in monitoring.ts:506-528'",
+          "'Implemented AdminHeaderMetricsBar component (180 lines, commit 0e6e74dd)'"
+        ]
       },
       "evidence_over_description": {
         "principle": "Show, don't tell. Cite file:line and git commits instead of describing what you did.",
@@ -1496,7 +1468,6 @@
         "example_good": "'Created AdminHeaderMetricsBar.tsx (180 lines, commit 0e6e74dd) with color-coded severity display (lines 45-60)'"
       }
     },
-
     "bidirectional_audit_framework": {
       "when_to_audit": [
         "After major work sessions (3+ hours of implementation)",
@@ -1548,7 +1519,6 @@
         ]
       }
     },
-
     "enforcement_and_accountability": {
       "ai_responsibilities": {
         "executor_ai": [
@@ -1575,7 +1545,6 @@
         "audit_frequency": "Monthly bidirectional audits"
       }
     },
-
     "lesson_learned_from_2025_11_27_audit": {
       "what_worked_well": [
         "Bidirectional audit caught false claims that unidirectional wouldn't",
@@ -1595,7 +1564,6 @@
         "Evidence-based culture: 'No git commit = didn't happen'"
       ]
     },
-
     "applicability": "ALL AIs performing implementation work or updating brain/backlog.json. Mandatory for all work reports after 2025-11-27.",
     "enforcement": "Backlog updates without git_commits field are REJECTED. Work without verifiable git evidence is considered incomplete."
   }

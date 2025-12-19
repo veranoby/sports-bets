@@ -124,11 +124,10 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
     }
 
     try {
-      // Use the new SSE endpoint for admin monitoring alerts
       const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/sse/admin/monitoring`;
-      console.log(`🔄 SSE: Connecting to admin monitoring alerts at ${url}`);
+      console.log(`🔌 SSE: Monitoring - Attempting connection`);
+      console.log(`   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`);
 
-      // For SSE with authentication, we'll pass the token in the URL
       const sseUrl = `${url}?token=${encodeURIComponent(token)}`;
       const es = new EventSource(sseUrl);
 
@@ -137,9 +136,9 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
       es.onopen = () => {
         if (!mountedRef.current) return;
 
-        console.log(`✅ SSE: Admin monitoring alerts connection established`);
+        console.log(`✅ SSE: Monitoring connected`);
         setError(null);
-        retryCountRef.current = 0; // Reset on successful connection
+        retryCountRef.current = 0;
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
@@ -149,7 +148,6 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
         if (!mountedRef.current) return;
 
         try {
-          // Parse the SSE event data
           const data: MonitoringAlertData = JSON.parse(event.data);
           if (
             data &&
@@ -160,17 +158,12 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
             setMetrics(data.metrics || null);
-            console.log("📊 SSE: Received admin monitoring alerts data:", data);
           } else {
-            console.error("❌ SSE: Invalid monitoring data format:", data);
+            console.error("❌ SSE: Invalid monitoring data format");
           }
         } catch (parseError: any) {
-          console.error(
-            "❌ SSE: Failed to parse admin monitoring alerts data:",
-            event.data,
-            parseError,
-          );
-          setError(`Failed to parse SSE data: ${parseError.message}`);
+          console.error(`❌ SSE: Monitoring parse error`, parseError);
+          setError(`Parse error: ${parseError.message}`);
         }
       };
 
@@ -188,43 +181,27 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
             setWarningAlerts(data.warnings);
             setAlertCount(data.total || data.critical + data.warnings);
             setMetrics(data.metrics || null);
-            console.log("📊 SSE: Received monitoring-update event:", data);
           } else {
-            console.error(
-              "❌ SSE: Invalid monitoring-update data format:",
-              data,
-            );
+            console.error("❌ SSE: Invalid monitoring-update format");
           }
         } catch (parseError: any) {
-          console.error(
-            "❌ SSE: Failed to parse monitoring-update event:",
-            event.data,
-            parseError,
-          );
-          setError(
-            `Failed to parse SSE monitoring-update: ${parseError.message}`,
-          );
+          console.error(`❌ SSE: Monitoring-update parse error`, parseError);
+          setError(`Parse error: ${parseError.message}`);
         }
       });
 
       es.onerror = () => {
         if (!mountedRef.current) return;
 
-        console.warn(
-          "⚠️ SSE: Admin monitoring alerts connection error. Attempting to reconnect.",
-        );
+        console.warn("⚠️ SSE: Monitoring connection error");
         eventSourceRef.current?.close();
 
-        // Exponential backoff for reconnection
         const delay = Math.min(
           MAX_RECONNECT_DELAY,
           1000 * Math.pow(2, retryCountRef.current),
         );
         retryCountRef.current++;
 
-        console.log(
-          `🔄 SSE: Reconnecting admin monitoring in ${delay}ms (attempt ${retryCountRef.current})`,
-        );
         reconnectTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {
             connect();
@@ -232,10 +209,7 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
         }, delay);
       };
     } catch (e: any) {
-      console.error(
-        "❌ SSE: Could not create admin monitoring alerts EventSource:",
-        e,
-      );
+      console.error(`❌ SSE: Monitoring - EventSource error:`, e);
       setError(e.message || "Error creating SSE connection");
       if (mountedRef.current) {
         setLoading(false);
@@ -244,7 +218,6 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
   }, [user, token]);
 
   const refreshAlerts = useCallback(() => {
-    console.log("🔄 Manual refresh of monitoring alerts requested");
     setLoading(true);
     setError(null);
 

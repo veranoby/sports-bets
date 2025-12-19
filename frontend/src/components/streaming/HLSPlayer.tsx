@@ -8,6 +8,8 @@ interface HLSPlayerProps {
   autoplay?: boolean;
   muted?: boolean;
   onError?: (error: Error) => void;
+  hlsConfig?: Partial<Hls.Config>;
+  className?: string;
 }
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({
@@ -17,6 +19,8 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
   autoplay = false,
   muted = false,
   onError,
+  hlsConfig,
+  className,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,14 +59,19 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
 
       try {
         if (Hls.isSupported()) {
-          hls = new Hls({
-            // ✅ LIVE STREAMING CONFIG: Start playback near the end for live experience
-            liveSyncDurationCount: 3, // Start 3 segments from the live edge
-            liveBackBufferLength: 0, // Don't keep old segments in buffer
-            maxBufferLength: 10, // Maximum 10 seconds of buffer
+          // ✅ Merge custom hlsConfig with defaults (custom config takes precedence)
+          const defaultConfig = {
+            liveSyncDurationCount: 3,
+            liveBackBufferLength: 0,
+            maxBufferLength: 10,
             maxMaxBufferLength: 30,
             enableWorker: true,
             lowLatencyMode: false,
+          };
+
+          hls = new Hls({
+            ...defaultConfig,
+            ...hlsConfig, // Custom config overrides defaults
           });
           hls.loadSource(activeStreamUrl);
           hls.attachMedia(video);
@@ -77,13 +86,55 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
           });
 
           hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-              const errorMessage = `HLS.js fatal error: ${data.type} - ${data.details}`;
+            console.log(`🔧 HLS Error: ${data.type} - ${data.details}`, data);
+
+            // ✅ Handle fragment 404 errors (old segments cleaned up)
+            if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR) {
+              console.warn(`⚠️ Fragment 404 - jumping to live edge`);
+
+              // Non-fatal: jump to live edge and retry
+              if (hls && video) {
+                const currentLevel = hls.currentLevel;
+                hls.startLoad();
+
+                // Force seek to live edge after brief delay
+                setTimeout(() => {
+                  if (video.duration && !isNaN(video.duration) && isFinite(video.duration)) {
+                    video.currentTime = video.duration - 1;
+                  }
+                }, 100);
+              }
+              return; // Don't treat as fatal
+            }
+
+            // ✅ Handle manifest 404 (stream offline)
+            if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
+              const errorMessage = `Stream offline or unavailable`;
               console.error(errorMessage);
-              setError(
-                "Error loading stream. It may be offline or unavailable.",
-              );
-              if (onError) onError(new Error(`${data.type} - ${data.details}`));
+              setError("Stream is offline. Please try again later.");
+              if (onError) onError(new Error(errorMessage));
+              return;
+            }
+
+            // ✅ Only fatal network errors should stop playback
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.error("Fatal network error, attempting recovery...");
+                  hls?.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.error("Fatal media error, attempting recovery...");
+                  hls?.recoverMediaError();
+                  break;
+                default: {
+                  const errorMessage = `Unrecoverable error: ${data.type} - ${data.details}`;
+                  console.error(errorMessage);
+                  setError("Stream playback failed.");
+                  if (onError) onError(new Error(errorMessage));
+                  break;
+                }
+              }
             }
           });
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -120,10 +171,10 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
         hls.destroy();
       }
     };
-  }, [constructedStreamUrl, streamUrl, autoplay, onError]);
+  }, [constructedStreamUrl, streamUrl, autoplay, onError, hlsConfig]);
 
   return (
-    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+    <div className={className || "relative w-full aspect-video bg-black rounded-lg overflow-hidden"}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center text-white">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div>

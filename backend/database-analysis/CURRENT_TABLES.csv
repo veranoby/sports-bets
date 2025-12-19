@@ -1,0 +1,222 @@
+"table_name","column_name","data_type","character_maximum_length","is_nullable","column_default","ordinal_position"
+"SequelizeMeta","name","character varying",255,"NO",NULL,1
+"active_sessions","id","uuid",NULL,"NO","gen_random_uuid()",1
+"active_sessions","user_id","uuid",NULL,"NO",NULL,2
+"active_sessions","session_token","character varying",255,"NO",NULL,3
+"active_sessions","ip_address","character varying",45,"YES",NULL,4
+"active_sessions","user_agent","text",NULL,"YES",NULL,5
+"active_sessions","last_activity","timestamp with time zone",NULL,"YES","CURRENT_TIMESTAMP",6
+"active_sessions","expires_at","timestamp with time zone",NULL,"NO",NULL,7
+"active_sessions","created_at","timestamp with time zone",NULL,"YES","CURRENT_TIMESTAMP",8
+"active_sessions","updated_at","timestamp with time zone",NULL,"YES","CURRENT_TIMESTAMP",9
+"active_sessions","is_active","boolean",NULL,"NO","true",10
+"active_sessions","device_fingerprint","character varying",255,"YES",NULL,11
+"articles","id","uuid",NULL,"NO","gen_random_uuid()",1
+"articles","title","character varying",255,"NO",NULL,2
+"articles","slug","character varying",300,"NO",NULL,3
+"articles","content","text",NULL,"NO",NULL,4
+"articles","excerpt","text",NULL,"YES",NULL,5
+"articles","author_id","uuid",NULL,"NO",NULL,6
+"articles","category","USER-DEFINED",NULL,"NO","'news'::enum_articles_category",7
+"articles","status","USER-DEFINED",NULL,"NO","'draft'::enum_articles_status",8
+"articles","featured_image","character varying",500,"YES",NULL,9
+"articles","tags","json",NULL,"YES",NULL,10
+"articles","view_count","integer",NULL,"NO","0",11
+"articles","published_at","timestamp with time zone",NULL,"YES",NULL,12
+"articles","created_at","timestamp with time zone",NULL,"NO",NULL,13
+"articles","updated_at","timestamp with time zone",NULL,"NO",NULL,14
+"articles","admin_rejection_message","text",NULL,"YES",NULL,15
+"bets","id","uuid",NULL,"NO","gen_random_uuid()",1
+"bets","user_id","uuid",NULL,"NO",NULL,2
+"bets","fight_id","uuid",NULL,"NO",NULL,3
+"bets","side","USER-DEFINED",NULL,"NO",NULL,4
+"bets","amount","numeric",NULL,"NO",NULL,5
+"bets","bet_type","USER-DEFINED",NULL,"NO","'flat'::enum_bets_bet_type",6
+"bets","status","USER-DEFINED",NULL,"NO","'pending'::enum_bets_status",7
+"bets","result","USER-DEFINED",NULL,"YES",NULL,8
+"bets","proposal_status","USER-DEFINED",NULL,"NO","'none'::enum_bets_proposal_status",9
+"bets","matched_with","uuid",NULL,"YES",NULL,10
+"bets","parent_bet_id","uuid",NULL,"YES",NULL,11
+"bets","created_at","timestamp with time zone",NULL,"NO",NULL,12
+"bets","updated_at","timestamp with time zone",NULL,"NO",NULL,13
+"bets","potential_win","numeric",NULL,"NO",NULL,14
+"bets","terms","jsonb",NULL,"YES","'{""ratio"": 2, ""isOffer"": true}'::jsonb",15
+"event_connections","id","integer",NULL,"NO","nextval('event_connections_id_seq'::regclass)",1
+"event_connections","event_id","uuid",NULL,"YES",NULL,2
+"event_connections","user_id","uuid",NULL,"YES",NULL,3
+"event_connections","connected_at","timestamp without time zone",NULL,"YES","CURRENT_TIMESTAMP",4
+"event_connections","disconnected_at","timestamp without time zone",NULL,"YES",NULL,5
+"event_connections","duration_seconds","integer",NULL,"YES",NULL,6
+"event_connections","created_at","timestamp without time zone",NULL,"YES","CURRENT_TIMESTAMP",7
+"event_connections","updated_at","timestamp without time zone",NULL,"YES","CURRENT_TIMESTAMP",8
+"events","id","uuid",NULL,"NO","gen_random_uuid()",1
+"events","name","character varying",255,"NO",NULL,2
+"events","venue_id","uuid",NULL,"NO",NULL,3
+"events","operator_id","uuid",NULL,"YES",NULL,4
+"events","created_by","uuid",NULL,"NO",NULL,5
+"events","scheduled_date","timestamp with time zone",NULL,"NO",NULL,6
+"events","status","USER-DEFINED",NULL,"NO","'scheduled'::enum_events_status",7
+"events","stream_key","character varying",255,"YES",NULL,8
+"events","created_at","timestamp with time zone",NULL,"NO",NULL,9
+"events","updated_at","timestamp with time zone",NULL,"NO",NULL,10
+"events","end_date","timestamp with time zone",NULL,"YES",NULL,11
+"events","stream_url","character varying",500,"YES",NULL,12
+"events","total_fights","integer",NULL,"NO","0",13
+"events","completed_fights","integer",NULL,"NO","0",14
+"events","total_bets","integer",NULL,"NO","0",15
+"events","total_prize_pool","numeric",NULL,"NO","0",16
+"events","stream_status","USER-DEFINED",NULL,"NO","'offline'::enum_events_stream_status",17
+"events","hls_status","USER-DEFINED",NULL,"NO","'offline'::enum_events_hls_status",18
+"fights","id","uuid",NULL,"NO","gen_random_uuid()",1
+"fights","event_id","uuid",NULL,"NO",NULL,2
+"fights","status","USER-DEFINED",NULL,"NO","'upcoming'::enum_fights_status",3
+"fights","result","USER-DEFINED",NULL,"YES",NULL,4
+"fights","start_time","timestamp with time zone",NULL,"YES",NULL,5
+"fights","end_time","timestamp with time zone",NULL,"YES",NULL,6
+"fights","created_at","timestamp with time zone",NULL,"NO",NULL,7
+"fights","updated_at","timestamp with time zone",NULL,"NO",NULL,8
+"fights","number","integer",NULL,"NO",NULL,9
+"fights","red_corner","character varying",255,"NO",NULL,10
+"fights","blue_corner","character varying",255,"NO",NULL,11
+"fights","weight","numeric",NULL,"YES",NULL,12
+"fights","notes","text",NULL,"YES",NULL,13
+"fights","initial_odds","jsonb",NULL,"YES","'{""red"": 1, ""blue"": 1}'::jsonb",14
+"fights","betting_start_time","timestamp with time zone",NULL,"YES",NULL,15
+"fights","betting_end_time","timestamp with time zone",NULL,"YES",NULL,16
+"fights","total_bets","integer",NULL,"NO","0",17
+"fights","total_amount","numeric",NULL,"NO","0",18
+"membership_change_requests","id","uuid",NULL,"NO","gen_random_uuid()",1
+"membership_change_requests","user_id","uuid",NULL,"NO",NULL,2
+"membership_change_requests","current_membership_type","character varying",50,"YES",NULL,3
+"membership_change_requests","requested_membership_type","character varying",50,"NO",NULL,4
+"membership_change_requests","status","USER-DEFINED",NULL,"NO","'pending'::enum_membership_change_requests_status",5
+"membership_change_requests","request_notes","text",NULL,"YES",NULL,6
+"membership_change_requests","requested_at","timestamp with time zone",NULL,"NO",NULL,7
+"membership_change_requests","processed_at","timestamp with time zone",NULL,"YES",NULL,8
+"membership_change_requests","processed_by","uuid",NULL,"YES",NULL,9
+"membership_change_requests","rejection_reason","text",NULL,"YES",NULL,10
+"membership_change_requests","admin_notes","text",NULL,"YES",NULL,11
+"membership_change_requests","created_at","timestamp with time zone",NULL,"NO",NULL,12
+"membership_change_requests","updated_at","timestamp with time zone",NULL,"NO",NULL,13
+"membership_change_requests","payment_proof_url","character varying",500,"YES",NULL,14
+"notifications","id","uuid",NULL,"NO","gen_random_uuid()",1
+"notifications","user_id","uuid",NULL,"NO",NULL,2
+"notifications","type","USER-DEFINED",NULL,"NO",NULL,3
+"notifications","title","character varying",255,"NO",NULL,4
+"notifications","message","text",NULL,"NO",NULL,5
+"notifications","data","json",NULL,"YES",NULL,6
+"notifications","is_read","boolean",NULL,"NO","false",7
+"notifications","read_at","timestamp with time zone",NULL,"YES",NULL,8
+"notifications","expires_at","timestamp with time zone",NULL,"YES",NULL,9
+"notifications","created_at","timestamp with time zone",NULL,"NO",NULL,10
+"notifications","updated_at","timestamp with time zone",NULL,"NO",NULL,11
+"notifications","status","character varying",10,"YES","'unread'::character varying",12
+"payment_transactions","id","uuid",NULL,"NO","gen_random_uuid()",1
+"payment_transactions","subscription_id","uuid",NULL,"YES",NULL,2
+"payment_transactions","user_id","uuid",NULL,"NO",NULL,3
+"payment_transactions","kushki_transaction_id","character varying",255,"YES",NULL,4
+"payment_transactions","kushki_ticket_number","character varying",255,"YES",NULL,5
+"payment_transactions","transaction_type","USER-DEFINED",NULL,"NO",NULL,6
+"payment_transactions","payment_method","USER-DEFINED",NULL,"NO",NULL,7
+"payment_transactions","amount","integer",NULL,"NO",NULL,8
+"payment_transactions","currency","character varying",3,"NO","'USD'::character varying",9
+"payment_transactions","status","USER-DEFINED",NULL,"NO","'pending'::enum_payment_transactions_status",10
+"payment_transactions","gateway_status","character varying",50,"YES",NULL,11
+"payment_transactions","gateway_response","json",NULL,"YES",NULL,12
+"payment_transactions","failure_reason","text",NULL,"YES",NULL,13
+"payment_transactions","idempotency_key","character varying",255,"YES",NULL,14
+"payment_transactions","processed_at","timestamp with time zone",NULL,"YES",NULL,15
+"payment_transactions","retry_count","integer",NULL,"NO","0",16
+"payment_transactions","max_retries","integer",NULL,"NO","3",17
+"payment_transactions","metadata","json",NULL,"YES",NULL,18
+"payment_transactions","created_at","timestamp with time zone",NULL,"NO",NULL,19
+"payment_transactions","updated_at","timestamp with time zone",NULL,"NO",NULL,20
+"schema_migrations","version","character varying",50,"NO",NULL,1
+"schema_migrations","description","character varying",255,"NO",NULL,2
+"schema_migrations","executed_at","timestamp with time zone",NULL,"NO",NULL,3
+"schema_migrations","checksum","character varying",32,"NO",NULL,4
+"schema_migrations","created_at","timestamp with time zone",NULL,"NO",NULL,5
+"schema_migrations","updated_at","timestamp with time zone",NULL,"NO",NULL,6
+"subscriptions","id","uuid",NULL,"NO","gen_random_uuid()",1
+"subscriptions","user_id","uuid",NULL,"NO",NULL,2
+"subscriptions","type","USER-DEFINED",NULL,"NO",NULL,3
+"subscriptions","status","USER-DEFINED",NULL,"NO","'pending'::enum_subscriptions_status",4
+"subscriptions","kushki_subscription_id","character varying",255,"YES",NULL,5
+"subscriptions","payment_method","USER-DEFINED",NULL,"NO","'card'::enum_subscriptions_payment_method",6
+"subscriptions","auto_renew","boolean",NULL,"NO","false",7
+"subscriptions","amount","integer",NULL,"NO",NULL,8
+"subscriptions","currency","character varying",3,"NO","'USD'::character varying",9
+"subscriptions","expires_at","timestamp with time zone",NULL,"NO",NULL,10
+"subscriptions","next_billing_date","timestamp with time zone",NULL,"YES",NULL,11
+"subscriptions","cancelled_at","timestamp with time zone",NULL,"YES",NULL,12
+"subscriptions","cancel_reason","text",NULL,"YES",NULL,13
+"subscriptions","retry_count","integer",NULL,"NO","0",14
+"subscriptions","max_retries","integer",NULL,"NO","3",15
+"subscriptions","features","json",NULL,"NO",NULL,16
+"subscriptions","metadata","json",NULL,"YES",NULL,17
+"subscriptions","created_at","timestamp with time zone",NULL,"NO",NULL,18
+"subscriptions","updated_at","timestamp with time zone",NULL,"NO",NULL,19
+"subscriptions","manual_expires_at","timestamp without time zone",NULL,"YES",NULL,20
+"subscriptions","payment_proof_url","character varying",500,"YES",NULL,21
+"subscriptions","assigned_by_admin_id","uuid",NULL,"YES",NULL,22
+"subscriptions","assigned_username","character varying",255,"YES",NULL,23
+"system_settings","id","uuid",NULL,"NO","gen_random_uuid()",1
+"system_settings","key","character varying",100,"NO",NULL,2
+"system_settings","value","jsonb",NULL,"NO",NULL,3
+"system_settings","type","character varying",20,"NO",NULL,4
+"system_settings","category","character varying",50,"NO",NULL,5
+"system_settings","description","text",NULL,"YES",NULL,6
+"system_settings","is_public","boolean",NULL,"YES","false",7
+"system_settings","updated_by","uuid",NULL,"YES",NULL,8
+"system_settings","created_at","timestamp with time zone",NULL,"YES","now()",9
+"system_settings","updated_at","timestamp with time zone",NULL,"YES","now()",10
+"transactions","id","uuid",NULL,"NO","gen_random_uuid()",1
+"transactions","wallet_id","uuid",NULL,"NO",NULL,2
+"transactions","type","USER-DEFINED",NULL,"NO",NULL,3
+"transactions","amount","numeric",NULL,"NO",NULL,4
+"transactions","status","USER-DEFINED",NULL,"NO","'pending'::enum_transactions_status",5
+"transactions","description","character varying",500,"NO",NULL,6
+"transactions","metadata","jsonb",NULL,"YES",NULL,7
+"transactions","created_at","timestamp with time zone",NULL,"NO",NULL,8
+"transactions","updated_at","timestamp with time zone",NULL,"NO",NULL,9
+"transactions","reference","character varying",255,"YES",NULL,10
+"users","id","uuid",NULL,"NO","gen_random_uuid()",1
+"users","username","character varying",50,"NO",NULL,2
+"users","email","character varying",255,"NO",NULL,3
+"users","password_hash","character varying",255,"NO",NULL,4
+"users","role","USER-DEFINED",NULL,"NO","'user'::enum_users_role",5
+"users","is_active","boolean",NULL,"NO","true",6
+"users","profile_info","jsonb",NULL,"YES","'{""businessEntities"": {}, ""verificationLevel"": ""none""}'::jsonb",7
+"users","last_login","timestamp with time zone",NULL,"YES",NULL,8
+"users","created_at","timestamp with time zone",NULL,"NO",NULL,9
+"users","updated_at","timestamp with time zone",NULL,"NO",NULL,10
+"users","email_verified","boolean",NULL,"YES","false",11
+"users","verification_token","character varying",255,"YES",NULL,12
+"users","verification_expires","timestamp without time zone",NULL,"YES",NULL,13
+"users","approved","boolean",NULL,"YES","false",14
+"wallet_operations","id","uuid",NULL,"NO","gen_random_uuid()",1
+"wallet_operations","user_id","uuid",NULL,"NO",NULL,2
+"wallet_operations","wallet_id","uuid",NULL,"NO",NULL,3
+"wallet_operations","operation_type","character varying",20,"NO",NULL,4
+"wallet_operations","amount","numeric",NULL,"NO",NULL,5
+"wallet_operations","currency","character varying",3,"NO","'USD'::character varying",6
+"wallet_operations","status","character varying",20,"NO","'pending'::character varying",7
+"wallet_operations","payment_proof_url","character varying",500,"YES",NULL,8
+"wallet_operations","payment_method","character varying",50,"YES",NULL,9
+"wallet_operations","bank_reference","character varying",255,"YES",NULL,10
+"wallet_operations","user_notes","text",NULL,"YES",NULL,11
+"wallet_operations","processed_by","uuid",NULL,"YES",NULL,12
+"wallet_operations","processed_at","timestamp with time zone",NULL,"YES",NULL,13
+"wallet_operations","admin_notes","text",NULL,"YES",NULL,14
+"wallet_operations","rejection_reason","text",NULL,"YES",NULL,15
+"wallet_operations","admin_proof_url","character varying",500,"YES",NULL,16
+"wallet_operations","requested_at","timestamp with time zone",NULL,"NO","CURRENT_TIMESTAMP",17
+"wallet_operations","completed_at","timestamp with time zone",NULL,"YES",NULL,18
+"wallet_operations","created_at","timestamp with time zone",NULL,"NO","CURRENT_TIMESTAMP",19
+"wallet_operations","updated_at","timestamp with time zone",NULL,"NO","CURRENT_TIMESTAMP",20
+"wallets","id","uuid",NULL,"NO","gen_random_uuid()",1
+"wallets","user_id","uuid",NULL,"NO",NULL,2
+"wallets","balance","numeric",NULL,"NO","0",3
+"wallets","frozen_amount","numeric",NULL,"NO","0",4
+"wallets","created_at","timestamp with time zone",NULL,"NO",NULL,5
+"wallets","updated_at","timestamp with time zone",NULL,"NO",NULL,6

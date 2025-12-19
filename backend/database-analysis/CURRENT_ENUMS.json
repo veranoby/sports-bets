@@ -23,6 +23,9 @@
   "enum_name": "enum_events_status",
   "enum_values": "{scheduled,in-progress,intermission,paused,completed,cancelled}"
 }, {
+  "enum_name": "enum_events_hls_status",
+  "enum_values": "{offline,processing,ready,error}"
+}, {
   "enum_name": "enum_events_stream_status",
   "enum_values": "{offline,connecting,connected,paused,disconnected}"
 }, {

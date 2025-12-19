@@ -154,7 +154,8 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
     try {
       // Build SSE URL with auth token matching backend expectations
       const fullUrl = `${url}?token=${encodeURIComponent(token)}`;
-      console.log(`🔄 SSE: Connecting to ${fullUrl}`);
+      console.log(`🔌 SSE: Attempting connection to ${url}`);
+      console.log(`   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`);
 
       const es = new EventSource(fullUrl);
       eventSourceRef.current = es;
@@ -162,9 +163,9 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
       es.onopen = () => {
         if (!mountedRef.current) return;
 
-        console.log(`✅ SSE: Connection established to ${url}`);
+        console.log(`✅ SSE: Connected - ${url}`);
         setStatus("connected");
-        retryCountRef.current = 0; // Reset on successful connection
+        retryCountRef.current = 0;
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
@@ -195,18 +196,8 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
             });
           }
 
-          // Log high priority events
-          if (
-            parsedData.priority === "high" ||
-            parsedData.priority === "critical"
-          ) {
-            console.log(
-              `🔔 SSE: ${parsedData.priority.toUpperCase()} event received:`,
-              parsedData.type,
-            );
-          }
         } catch (e) {
-          console.error("❌ SSE: Failed to parse event data:", event.data);
+          console.error(`❌ SSE: Parse error for data:`, event.data);
         }
       };
 
@@ -231,14 +222,11 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
               try {
                 handler(parsedData);
               } catch (error) {
-                console.error(
-                  `❌ SSE: Error in event handler for ${eventType}:`,
-                  error,
-                );
+                console.error(`❌ SSE: Handler error for ${eventType}:`, error);
               }
             });
           } catch (error) {
-            console.error(`❌ SSE: Error parsing ${eventType} event:`, error);
+            console.error(`❌ SSE: Parse error for ${eventType}:`, error);
           }
         });
       });
@@ -246,22 +234,17 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
       es.onerror = () => {
         if (!mountedRef.current) return;
 
-        console.warn(
-          `⚠️ SSE: Connection error for ${url}. Attempting to reconnect.`,
-        );
+        console.warn(`⚠️ SSE: Connection error - ${url}`);
         es.close();
         setStatus("error");
 
-        // Exponential backoff as required
+        // Exponential backoff
         const delay = Math.min(
           MAX_RECONNECT_DELAY,
           1000 * Math.pow(2, retryCountRef.current),
         );
         retryCountRef.current++;
 
-        console.log(
-          `🔄 SSE: Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`,
-        );
         reconnectTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {
             connect();

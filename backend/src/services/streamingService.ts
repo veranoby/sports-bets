@@ -1,6 +1,8 @@
 import { streamingConfig, getStreamUrls } from "../config/streaming";
 import axios from "axios";
 import { logger } from "../config/logger";
+import * as fs from "fs";
+import * as path from "path";
 
 // Generar clave única de stream
 export const generateStreamKey = (eventId: string): string => {
@@ -12,26 +14,49 @@ export const checkStreamHealth = async (
   streamKey: string
 ): Promise<boolean> => {
   try {
+    // ✅ PRIMARY CHECK: Verify HLS files exist and are recent
+    // This is more reliable than nginx stats which can be unreliable
+    const hlsPath = process.env.HLS_PATH || '/var/www/hls';
+    const m3u8File = path.join(hlsPath, `${streamKey}.m3u8`);
+
+    if (fs.existsSync(m3u8File)) {
+      const stats = fs.statSync(m3u8File);
+      const fileAge = Date.now() - stats.mtimeMs;
+
+      // If playlist was modified in last 10 seconds, stream is active
+      if (fileAge < 10000) {
+        logger.debug(`Stream ${streamKey} detected as active (HLS file age: ${fileAge}ms)`);
+        return true;
+      } else {
+        logger.debug(`Stream ${streamKey} HLS file exists but is stale (age: ${fileAge}ms)`);
+      }
+    }
+
+    // ✅ FALLBACK: Check nginx-rtmp stats (if primary check fails)
     if (!process.env.STREAM_HEALTH_CHECK_URL) {
-      logger.warn("STREAM_HEALTH_CHECK_URL not configured");
-      return false; // En desarrollo sin health check, asume offline
+      logger.warn("STREAM_HEALTH_CHECK_URL not configured, HLS file check only");
+      return false;
     }
 
     const response = await axios.get(
       `${process.env.STREAM_HEALTH_CHECK_URL}/stat`,
       {
-        timeout: 2000, // Reducido de 5000 a 2000ms
-        validateStatus: () => true, // No lanzar error en 404, etc
+        timeout: 2000,
+        validateStatus: () => true,
       }
     );
 
     // Verificar si el streamKey está en la respuesta
     if (response.status === 200 && typeof response.data === 'string') {
-      return response.data.includes(streamKey);
+      const isActive = response.data.includes(streamKey);
+      if (isActive) {
+        logger.debug(`Stream ${streamKey} detected via nginx stats`);
+      }
+      return isActive;
     }
     return false;
   } catch (error) {
-    logger.warn(`Stream health check failed (timeout/error ok for dev): ${streamKey}`);
+    logger.warn(`Stream health check failed for ${streamKey}:`, error);
     return false;
   }
 };

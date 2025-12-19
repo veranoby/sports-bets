@@ -327,10 +327,10 @@ export const streamingAPI = {
     return apiCall("post", "/streaming/analytics/event", data);
   },
   pauseStream: async (eventId: string) => {
-    return apiCall("post", `/streaming/pause`, { eventId });
+    return apiCall("post", `/events/${eventId}/stream/pause`);
   },
   resumeStream: async (eventId: string) => {
-    return apiCall("post", `/streaming/resume`, { eventId });
+    return apiCall("post", `/events/${eventId}/stream/resume`);
   },
 };
 

@@ -9,7 +9,6 @@ import {
   DollarSign,
   Video,
   Square,
-  Activity,
   CheckCircle,
   Play,
   RotateCcw,
@@ -24,6 +23,7 @@ import {
   ArrowLeft,
   XCircle,
   Award,
+  ActivityIcon, XCircleIcon, Activity,
 } from "lucide-react";
 
 // Components
@@ -76,6 +76,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
+  // Get selected fight object to access its status
+  const selectedFight = eventDetailData?.fights.find(f => f.id === selectedFightId) || null;
+
   // ✅ Local wrapper to update state after status change (matching EventList pattern)
   const handleStatusChange = async (eventId: string, action: string) => {
     try {
@@ -119,52 +122,59 @@ const EventDetail: React.FC<EventDetailProps> = ({
     const unsubscribe = adminSSE.subscribeToEvents({
       // Event status changes
       EVENT_ACTIVATED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, ...event.data },
+              event: { ...prev.event, status: (event as any).status },
             };
           });
         }
       },
       EVENT_COMPLETED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, ...event.data },
+              event: { ...prev.event, status: (event as any).status },
             };
           });
         }
       },
       EVENT_CANCELLED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, ...event.data },
+              event: { ...prev.event, status: (event as any).status },
             };
           });
         }
       },
       EVENT_SCHEDULED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, ...event.data },
+              event: { ...prev.event, status: (event as any).status },
             };
           });
         }
       },
       // Stream status changes
       STREAM_STARTED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        console.log(`🎬 [SSE] STREAM_STARTED received:`, event);
+        console.log(`🎬 [SSE] Current eventId: ${eventId}`);
+        console.log(`🎬 [SSE] Event.eventId: ${(event as any).eventId}`);
+        console.log(`🎬 [SSE] Event metadata.eventId: ${event.metadata?.eventId}`);
+
+        // ✅ FIX: Event properties are at root level, not in .data
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+          console.log(`✅ [SSE] STREAM_STARTED - Updating UI`);
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -172,15 +182,17 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 streamStatus: "connected",
-                streamUrl: event.data.streamUrl || prev.event.streamUrl,
-                ...event.data,
+                streamUrl: (event as any).streamUrl || prev.event.streamUrl,
+                hlsStatus: (event as any).hlsStatus || prev.event.hlsStatus,
               },
             };
           });
+        } else {
+          console.log(`⚠️ [SSE] STREAM_STARTED - Event filtered out (ID mismatch)`);
         }
       },
       STREAM_STOPPED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -188,14 +200,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 streamStatus: "disconnected",
-                ...event.data,
               },
             };
           });
         }
       },
       STREAM_PAUSED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -203,14 +214,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 streamStatus: "paused",
-                ...event.data,
               },
             };
           });
         }
       },
       STREAM_RESUMED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -218,22 +228,21 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 streamStatus: "connected",
-                ...event.data,
               },
             };
           });
         }
       },
       STREAM_STATUS_UPDATE: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           let newStreamStatus = null;
-          if (event.data.type === "STREAM_PAUSED") {
+          if (((event as any)).type === "STREAM_PAUSED") {
             newStreamStatus = "paused";
-          } else if (event.data.type === "STREAM_RESUMED") {
+          } else if (((event as any)).type === "STREAM_RESUMED") {
             newStreamStatus = "connected";
-          } else if (event.data.status === "live") {
+          } else if (((event as any)).status === "live") {
             newStreamStatus = "connected";
-          } else if (event.data.status === "ended") {
+          } else if (((event as any)).status === "ended") {
             newStreamStatus = "disconnected";
           }
 
@@ -245,8 +254,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 event: {
                   ...prev.event,
                   streamStatus: newStreamStatus,
-                  streamUrl: event.data.streamUrl || prev.event.streamUrl,
-                  ...event.data,
+                  streamUrl: (event as any).streamUrl || prev.event.streamUrl,
                 },
               };
             });
@@ -255,30 +263,31 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       // ✅ Phase 2: RTMP Ingest Events (OBS connection)
       RTMP_CONNECTED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        console.log(`📡 [SSE] RTMP_CONNECTED received:`, event);
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+          console.log(`✅ [SSE] RTMP_CONNECTED - Updating UI`);
+
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
               event: {
                 ...prev.event,
-                streamStatus: event.data.streamStatus || "connected",
-                ...event.data,
+                streamStatus: (event as any).streamStatus || "connected",
               },
             };
           });
         }
       },
       RTMP_DISCONNECTED: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
               event: {
                 ...prev.event,
-                streamStatus: event.data.streamStatus || "offline",
-                ...event.data,
+                streamStatus: (event as any).streamStatus || "offline",
               },
             };
           });
@@ -286,7 +295,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       // ✅ Phase 2: HLS Distribution Events (public stream availability)
       HLS_READY: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        console.log(`🎥 [SSE] HLS_READY received:`, event);
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+          console.log(`✅ [SSE] HLS_READY - Updating UI`);
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -294,15 +305,14 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 hlsStatus: "ready",
-                streamUrl: event.data.streamUrl || prev.event.streamUrl,
-                ...event.data,
+                streamUrl: (event as any).streamUrl || prev.event.streamUrl,
               },
             };
           });
         }
       },
       HLS_UNAVAILABLE: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -310,14 +320,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 hlsStatus: "offline",
-                ...event.data,
               },
             };
           });
         }
       },
       HLS_PROCESSING: (event) => {
-        if (event.data?.eventId === eventId || event.data?.id === eventId) {
+        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -325,7 +334,6 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 hlsStatus: "processing",
-                ...event.data,
               },
             };
           });
@@ -449,7 +457,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
     }
   };
 
-  // Handler for the "Register Start of Fight" button
+  // Handler for opening betting (upcoming -> betting)
+  const handleOpenBetting = async () => {
+    if (!selectedFightId) {
+      console.error("No fight selected");
+      return;
+    }
+    await handleFightStatusUpdate(selectedFightId, "betting");
+  };
+
+  // Handler for the "Register Start of Fight" button (betting -> live)
   const handleRegisterFightStart = async () => {
     if (!selectedFightId) {
       console.error("No fight selected");
@@ -641,21 +658,25 @@ const EventDetail: React.FC<EventDetailProps> = ({
           <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
             <div className="w-full max-w-xl">
               {eventDetailData.event.streamUrl &&
-              eventDetailData.event.hlsStatus === "ready" ? (
+                (eventDetailData.event.hlsStatus === "ready" ||
+                 eventDetailData.event.streamStatus === "connected") ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
                   autoplay={true}
                   controls={true}
-                  muted={false}
+                  muted={true}
                   className="w-full aspect-video rounded-lg overflow-hidden"
-                  // ✅ Low-latency HLS configuration - forces live edge playback
+                  // ✅ ULTRA Low-latency HLS config (target: 3-5s total latency)
                   hlsConfig={{
-                    startPosition: -1, // Force start at live edge (not buffered content)
-                    liveSyncDurationCount: 2, // Stay within 2 segments of live edge (minimum latency)
-                    maxBufferLength: 4, // Reduce buffer to 4 seconds (prevent old content)
-                    maxMaxBufferLength: 8, // Cap max buffer at 8 seconds
-                    enableWorker: true, // Use web worker for better performance
-                    lowLatencyMode: true, // Enable low-latency mode
+                    startPosition: -1, // Force live edge on load
+                    liveSyncDurationCount: 2, // 2 segments from edge (2s with 1s fragments)
+                    liveMaxLatencyDurationCount: 3, // Max 3s behind live
+                    maxBufferLength: 4, // Minimal buffer (4s)
+                    maxMaxBufferLength: 8, // Max 8s buffer
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 0, // No old segments kept
+                    liveDurationInfinity: true, // Treat as infinite live stream
                   }}
                 />
               ) : (
@@ -671,7 +692,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     </p>
                     <p className="text-xs text-gray-500">
                       {eventDetailData.event.streamStatus === "connected" &&
-                      eventDetailData.event.hlsStatus === "processing"
+                        eventDetailData.event.hlsStatus === "processing"
                         ? "OBS conectado. Esperando segmentos HLS..."
                         : eventDetailData.event.streamStatus === "offline"
                           ? "OBS desconectado. Inicie streaming desde OBS Studio."
@@ -711,11 +732,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 {/* Signal Status Badge */}
                 <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-gray-50">
                   <span
-                    className={`w-2 h-2 rounded-full ${
-                      eventDetailData.event.streamStatus === "connected"
-                        ? "bg-green-500 animate-pulse"
-                        : "bg-red-500"
-                    }`}
+                    className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected"
+                      ? "bg-green-500 animate-pulse"
+                      : "bg-red-500"
+                      }`}
                   ></span>
                   <span className="font-semibold text-xs">
                     Señal:{" "}
@@ -957,24 +977,40 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   Controles de Pelea
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={handleRegisterFightStart}
-                    disabled={operationInProgress !== null || !selectedFightId}
-                    className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
-                  >
-                    <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
-                    <Play className="w-4 h-4 mr-2 fill-current" />
-                    INICIAR PELEA
-                  </button>
-                  <button
-                    onClick={handleRegisterFightEnd}
-                    disabled={operationInProgress !== null || !selectedFightId}
-                    className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-red-600 to-red-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-red-500 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
-                  >
-                    <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
-                    <Award className="w-4 h-4 mr-2" />
-                    FINALIZAR
-                  </button>
+                  {/* Conditional rendering based on fight status to enforce sequential workflow */}
+                  {selectedFight?.status === "upcoming" && (
+                    <button
+                      onClick={handleOpenBetting}
+                      disabled={operationInProgress !== null || !selectedFightId}
+                      className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
+                    >
+                      <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
+                      <Play className="w-4 h-4 mr-2 fill-current" />
+                      ABRIR APUESTAS
+                    </button>
+                  )}
+                  {selectedFight?.status === "betting" && (
+                    <button
+                      onClick={handleRegisterFightStart}
+                      disabled={operationInProgress !== null || !selectedFightId}
+                      className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
+                    >
+                      <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
+                      <Play className="w-4 h-4 mr-2 fill-current" />
+                      INICIAR PELEA
+                    </button>
+                  )}
+                  {selectedFight?.status === "live" && (
+                    <button
+                      onClick={handleRegisterFightEnd}
+                      disabled={operationInProgress !== null || !selectedFightId}
+                      className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-red-600 to-red-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-red-500 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
+                    >
+                      <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
+                      <Award className="w-4 h-4 mr-2" />
+                      FINALIZAR
+                    </button>
+                  )}
                 </div>
               </div>
 

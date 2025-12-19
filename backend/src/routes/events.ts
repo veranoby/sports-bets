@@ -615,12 +615,16 @@ router.post(
     }
 
     const streamInfo = await streamingService.getStreamInfo(event.streamKey);
+    console.log(`🔍 [STREAM START] Event: ${event.id}, StreamKey: ${event.streamKey}`);
+    console.log(`🔍 [STREAM START] StreamInfo:`, streamInfo);
 
     // ✅ FIX: Use actual stream status from getStreamInfo
     const streamAlreadyActive = streamInfo.isActive;
+    console.log(`🔍 [STREAM START] Stream active: ${streamAlreadyActive}`);
 
     // ✅ CRITICAL: Only set 'connected' if stream ACTUALLY exists
     if (streamAlreadyActive) {
+      console.log(`✅ [STREAM START] Stream detected as ACTIVE - setting streamStatus=connected`);
       // ✅ Phase 2: Separate RTMP (streamStatus) from HLS (hlsStatus)
       event.streamStatus = 'connected';  // RTMP ingest active
       event.hlsStatus = 'processing';    // HLS transcoding started (not ready yet)
@@ -642,6 +646,7 @@ router.post(
         console.warn(`HLS playlist not ready yet for ${event.streamKey}, keeping hlsStatus='processing'`);
       }
     } else {
+      console.log(`⚠️ [STREAM START] Stream NOT detected - returning 202 pending`);
       // ⚠️ Stream not ready yet - set to waiting state
       event.streamStatus = 'offline';
       event.hlsStatus = 'offline';
@@ -665,6 +670,7 @@ router.post(
     }
 
     // ✅ Broadcast STREAM_STARTED only if stream is actually active
+    console.log(`📡 [STREAM START] Broadcasting SSE events...`);
     const sseService = req.app.get("sseService");
     if (sseService) {
       const { randomUUID } = await import('crypto');
@@ -864,6 +870,128 @@ router.post(
       message: streamWasActive
         ? "Stream stopped successfully"
         : "Stream already stopped (idempotent operation)",
+      data: event.toJSON(),
+    });
+  })
+);
+
+// POST /api/events/:id/stream/pause - Pausar transmisión
+router.post(
+  "/:id/stream/pause",
+  authenticate,
+  authorize("operator", "admin"),
+  asyncHandler(async (req, res) => {
+    const event = await Event.findByPk(req.params.id);
+
+    if (!event) {
+      throw errors.notFound("Event not found");
+    }
+
+    if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
+      throw errors.forbidden("You are not assigned to this event");
+    }
+
+    if (event.streamStatus !== 'connected') {
+      return res.status(400).json({
+        success: false,
+        message: "Stream is not active"
+      });
+    }
+
+    // Update stream status to paused
+    event.streamStatus = 'paused';
+    await event.save();
+
+    // Broadcast SSE event
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      const { randomUUID } = await import('crypto');
+      const { AdminChannel } = await import('../services/sseService');
+
+      const pausedPayload = {
+        id: randomUUID(),
+        type: "STREAM_PAUSED",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          streamStatus: 'paused',
+          message: "Stream pausado"
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
+        }
+      };
+
+      sseService.broadcastToEvent(event.id, pausedPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, pausedPayload);
+    }
+
+    res.json({
+      success: true,
+      message: "Stream paused successfully",
+      data: event.toJSON(),
+    });
+  })
+);
+
+// POST /api/events/:id/stream/resume - Reanudar transmisión
+router.post(
+  "/:id/stream/resume",
+  authenticate,
+  authorize("operator", "admin"),
+  asyncHandler(async (req, res) => {
+    const event = await Event.findByPk(req.params.id);
+
+    if (!event) {
+      throw errors.notFound("Event not found");
+    }
+
+    if (req.user!.role === "operator" && event.operatorId !== req.user!.id) {
+      throw errors.forbidden("You are not assigned to this event");
+    }
+
+    if (event.streamStatus !== 'paused') {
+      return res.status(400).json({
+        success: false,
+        message: "Stream is not paused"
+      });
+    }
+
+    // Resume stream status
+    event.streamStatus = 'connected';
+    await event.save();
+
+    // Broadcast SSE event
+    const sseService = req.app.get("sseService");
+    if (sseService) {
+      const { randomUUID } = await import('crypto');
+      const { AdminChannel } = await import('../services/sseService');
+
+      const resumedPayload = {
+        id: randomUUID(),
+        type: "STREAM_RESUMED",
+        data: {
+          eventId: event.id,
+          id: event.id,
+          streamStatus: 'connected',
+          message: "Stream reanudado"
+        },
+        timestamp: new Date(),
+        priority: 'medium',
+        metadata: {
+          eventId: event.id
+        }
+      };
+
+      sseService.broadcastToEvent(event.id, resumedPayload);
+      sseService.broadcastToChannel(AdminChannel.GLOBAL, resumedPayload);
+    }
+
+    res.json({
+      success: true,
+      message: "Stream resumed successfully",
       data: event.toJSON(),
     });
   })

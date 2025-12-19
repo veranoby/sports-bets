@@ -45,6 +45,56 @@
           "idempotent_operations": "POST /stream/start and /stream/stop accept already-active/stopped streams without error",
           "sse_event_normalization": "Backend now uses direct event types (STREAM_STARTED, STREAM_STOPPED, STREAM_PAUSED, STREAM_RESUMED) instead of wrapper format (STREAM_STATUS_UPDATE with inner type) for consistency across all streaming operations. Maintains backward compatibility with legacy wrapper events during transition period."
         },
+        "streaming_phase2_fixes_2025_12_17": {
+          "critical_bug_sse_filtering": {
+            "issue": "EventDetail.tsx SSE handlers checked event.data?.eventId but useSSE.ts parses with root-level properties",
+            "root_cause": "useSSE.ts spreads parsed data at root (lines 218-223): {...JSON.parse(event.data), ...}. Handlers expected nested structure.",
+            "impact": "ALL SSE events filtered out → UI never updated → buttons unresponsive",
+            "fix": "Changed all 13 handlers from event.data?.eventId to (event as any).eventId (EventDetail.tsx:166-320)",
+            "verification": "Backend broadcasts STREAM_STARTED with eventId at root level, frontend handlers now properly match and execute"
+          },
+          "fragment_404_recovery": {
+            "issue": "HLSPlayer fatal crash when nginx hls_cleanup removed old segments. Player requested test-stream-68.ts but only 2/3.ts existed.",
+            "root_cause": "HLS.js threw fatal error on FRAG_LOAD_ERROR without recovery mechanism",
+            "impact": "Blue screen UI crash after ~10s of playback",
+            "fix": "Implemented HLSPlayer error handler (lines 88-138) to treat FRAG_LOAD_ERROR as non-fatal. Auto-jumps to live edge and continues.",
+            "recovery_strategy": [
+              "FRAG_LOAD_ERROR (404 on segments) → Non-fatal, call startLoad() and seek to duration-1",
+              "MANIFEST_LOAD_ERROR (stream offline) → Fatal, show 'Stream offline' message",
+              "Network/Media errors → Auto-recovery via startLoad()/recoverMediaError()"
+            ]
+          },
+          "ultra_low_latency_config_2025_12_17": {
+            "target_latency": "4-5 seconds (reduced from 9s)",
+            "components": {
+              "nginx_upstream": "hls_fragment 1s, hls_playlist_length 6s (set by user during Phase 1)",
+              "hlsplayer_config": {
+                "liveSyncDurationCount": 2,
+                "liveMaxLatencyDurationCount": 3,
+                "maxBufferLength": 4,
+                "maxMaxBufferLength": 8,
+                "liveDurationInfinity": true,
+                "backBufferLength": 0
+              }
+            },
+            "latency_breakdown": [
+              "OBS encoder delay: ~1-2s",
+              "Nginx segment write: ~1s (1 fragment)",
+              "HLS.js buffer: ~2s (2 segments from edge)",
+              "Total: 4-5s"
+            ],
+            "webrtc_alternative": "Would achieve <1s latency but incompatible with CloudFront flat-rate pricing. HLS is optimal for current infrastructure."
+          },
+          "implementation_files": {
+            "frontend_components": [
+              "EventDetail.tsx (SSE handlers + HLS config)",
+              "LiveEvent.tsx (HLS config)",
+              "HLSPlayer.tsx (error recovery)"
+            ],
+            "diagnostic_tools": "/tmp/validate_sse_flow.sh"
+          },
+          "status": "IN_PROGRESS_TESTING (2025-12-17)"
+        },
         "optimistic_update_pattern": {
           "description": "Optimistic updates + SSE reconciliation para zero latency UI con eventual consistency",
           "implementation": "EventList.tsx + EventDetail.tsx (2025-12-10)",
