@@ -20,7 +20,6 @@
 
 import React, {
   createContext,
-  useContext,
   type ReactNode,
   useEffect,
   useState,
@@ -51,7 +50,9 @@ interface WebSocketContextType {
   cleanupOrphanedListeners: () => number;
 }
 
-export const WebSocketContext = createContext<WebSocketContextType | null>(null);
+export const WebSocketContext = createContext<WebSocketContextType | null>(
+  null,
+);
 
 // 🏭 CONFIGURACIÓN
 const MAX_LISTENERS_PER_EVENT = 10;
