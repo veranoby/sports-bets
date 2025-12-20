@@ -393,7 +393,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [eventId, adminSSE.status, adminSSE.subscribeToEvents]);
+  }, [eventId, adminSSE]);
 
   // Fetch event detail data
   const fetchEventDetail = useCallback(async () => {

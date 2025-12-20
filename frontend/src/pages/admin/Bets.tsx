@@ -54,7 +54,7 @@ const AdminBetsPage: React.FC = () => {
   }, [currentUser, navigate]);
 
   // Load bets with filters and pagination
-  const loadBets = async () => {
+  const loadBets = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -90,7 +90,7 @@ const AdminBetsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.page, pagination.limit]);
 
   // Handle filter changes
   const handleFilterChange = (field: keyof BetFilter, value: string) => {
@@ -103,7 +103,7 @@ const AdminBetsPage: React.FC = () => {
 
   useEffect(() => {
     loadBets();
-  }, [filters, pagination.page]);
+  }, [filters, pagination.page, loadBets]);
 
   // Pagination handlers
   const goToPage = (page: number) => {

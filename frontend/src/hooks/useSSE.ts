@@ -389,14 +389,17 @@ export function useAdminSSE<T = any>(
     [eventFilters],
   );
 
-  return {
-    ...sse,
-    subscribeToEvents: (
-      eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>,
-    ) => sse.subscribeToEvents(filteredEventHandlers(eventHandlers)),
-    isAdminConnection: shouldConnect,
-    channel: defaultChannel,
-  };
+  return useMemo(
+    () => ({
+      ...sse,
+      subscribeToEvents: (
+        eventHandlers: Partial<Record<SSEEventType, SSEEventHandler<T>>>,
+      ) => sse.subscribeToEvents(filteredEventHandlers(eventHandlers)),
+      isAdminConnection: shouldConnect,
+      channel: defaultChannel,
+    }),
+    [sse, filteredEventHandlers, shouldConnect, defaultChannel],
+  );
 }
 
 /**
@@ -456,7 +459,7 @@ export function useFightSSE(fightId?: string) {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [sse.status, sse.subscribe, fightId]);
+  }, [sse, fightId]);
 
   return {
     ...sse,

@@ -355,7 +355,7 @@ const EventList: React.FC<EventListProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [adminSSE.status, adminSSE.subscribeToEvents]);
+  }, [adminSSE]);
 
   // Fetch all events with filters
   const fetchEvents = useCallback(
