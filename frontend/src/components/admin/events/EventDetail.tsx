@@ -23,7 +23,9 @@ import {
   ArrowLeft,
   XCircle,
   Award,
-  ActivityIcon, XCircleIcon, Activity,
+  ActivityIcon,
+  XCircleIcon,
+  Activity,
 } from "lucide-react";
 
 // Components
@@ -77,7 +79,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   // Get selected fight object to access its status
-  const selectedFight = eventDetailData?.fights.find(f => f.id === selectedFightId) || null;
+  const selectedFight =
+    eventDetailData?.fights.find((f) => f.id === selectedFightId) || null;
 
   // ✅ Local wrapper to update state after status change (matching EventList pattern)
   const handleStatusChange = async (eventId: string, action: string) => {
@@ -122,7 +125,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
     const unsubscribe = adminSSE.subscribeToEvents({
       // Event status changes
       EVENT_ACTIVATED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -133,7 +139,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       EVENT_COMPLETED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -144,7 +153,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       EVENT_CANCELLED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -155,7 +167,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       EVENT_SCHEDULED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -170,10 +185,15 @@ const EventDetail: React.FC<EventDetailProps> = ({
         console.log(`🎬 [SSE] STREAM_STARTED received:`, event);
         console.log(`🎬 [SSE] Current eventId: ${eventId}`);
         console.log(`🎬 [SSE] Event.eventId: ${(event as any).eventId}`);
-        console.log(`🎬 [SSE] Event metadata.eventId: ${event.metadata?.eventId}`);
+        console.log(
+          `🎬 [SSE] Event metadata.eventId: ${event.metadata?.eventId}`,
+        );
 
         // ✅ FIX: Event properties are at root level, not in .data
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           console.log(`✅ [SSE] STREAM_STARTED - Updating UI`);
           setEventDetailData((prev) => {
             if (!prev) return null;
@@ -188,11 +208,16 @@ const EventDetail: React.FC<EventDetailProps> = ({
             };
           });
         } else {
-          console.log(`⚠️ [SSE] STREAM_STARTED - Event filtered out (ID mismatch)`);
+          console.log(
+            `⚠️ [SSE] STREAM_STARTED - Event filtered out (ID mismatch)`,
+          );
         }
       },
       STREAM_STOPPED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -206,7 +231,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       STREAM_PAUSED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -220,7 +248,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       STREAM_RESUMED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -234,15 +265,18 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       STREAM_STATUS_UPDATE: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           let newStreamStatus = null;
-          if (((event as any)).type === "STREAM_PAUSED") {
+          if ((event as any).type === "STREAM_PAUSED") {
             newStreamStatus = "paused";
-          } else if (((event as any)).type === "STREAM_RESUMED") {
+          } else if ((event as any).type === "STREAM_RESUMED") {
             newStreamStatus = "connected";
-          } else if (((event as any)).status === "live") {
+          } else if ((event as any).status === "live") {
             newStreamStatus = "connected";
-          } else if (((event as any)).status === "ended") {
+          } else if ((event as any).status === "ended") {
             newStreamStatus = "disconnected";
           }
 
@@ -264,7 +298,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
       // ✅ Phase 2: RTMP Ingest Events (OBS connection)
       RTMP_CONNECTED: (event) => {
         console.log(`📡 [SSE] RTMP_CONNECTED received:`, event);
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           console.log(`✅ [SSE] RTMP_CONNECTED - Updating UI`);
 
           setEventDetailData((prev) => {
@@ -280,7 +317,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       RTMP_DISCONNECTED: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -296,7 +336,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
       // ✅ Phase 2: HLS Distribution Events (public stream availability)
       HLS_READY: (event) => {
         console.log(`🎥 [SSE] HLS_READY received:`, event);
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           console.log(`✅ [SSE] HLS_READY - Updating UI`);
           setEventDetailData((prev) => {
             if (!prev) return null;
@@ -312,7 +355,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       HLS_UNAVAILABLE: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -326,7 +372,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
         }
       },
       HLS_PROCESSING: (event) => {
-        if ((event as any).eventId === eventId || event.metadata?.eventId === eventId) {
+        if (
+          (event as any).eventId === eventId ||
+          event.metadata?.eventId === eventId
+        ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
@@ -658,8 +707,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
           <div className="bg-white rounded-lg shadow p-3 lg:row-span-2 flex items-center justify-center">
             <div className="w-full max-w-xl">
               {eventDetailData.event.streamUrl &&
-                (eventDetailData.event.hlsStatus === "ready" ||
-                 eventDetailData.event.streamStatus === "connected") ? (
+              (eventDetailData.event.hlsStatus === "ready" ||
+                eventDetailData.event.streamStatus === "connected") ? (
                 <HLSPlayer
                   streamUrl={eventDetailData.event.streamUrl}
                   autoplay={true}
@@ -692,7 +741,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                     </p>
                     <p className="text-xs text-gray-500">
                       {eventDetailData.event.streamStatus === "connected" &&
-                        eventDetailData.event.hlsStatus === "processing"
+                      eventDetailData.event.hlsStatus === "processing"
                         ? "OBS conectado. Esperando segmentos HLS..."
                         : eventDetailData.event.streamStatus === "offline"
                           ? "OBS desconectado. Inicie streaming desde OBS Studio."
@@ -732,10 +781,11 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 {/* Signal Status Badge */}
                 <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-gray-50">
                   <span
-                    className={`w-2 h-2 rounded-full ${eventDetailData.event.streamStatus === "connected"
-                      ? "bg-green-500 animate-pulse"
-                      : "bg-red-500"
-                      }`}
+                    className={`w-2 h-2 rounded-full ${
+                      eventDetailData.event.streamStatus === "connected"
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500"
+                    }`}
                   ></span>
                   <span className="font-semibold text-xs">
                     Señal:{" "}
@@ -981,7 +1031,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   {selectedFight?.status === "upcoming" && (
                     <button
                       onClick={handleOpenBetting}
-                      disabled={operationInProgress !== null || !selectedFightId}
+                      disabled={
+                        operationInProgress !== null || !selectedFightId
+                      }
                       className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
                     >
                       <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
@@ -992,7 +1044,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   {selectedFight?.status === "betting" && (
                     <button
                       onClick={handleRegisterFightStart}
-                      disabled={operationInProgress !== null || !selectedFightId}
+                      disabled={
+                        operationInProgress !== null || !selectedFightId
+                      }
                       className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
                     >
                       <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
@@ -1003,7 +1057,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   {selectedFight?.status === "live" && (
                     <button
                       onClick={handleRegisterFightEnd}
-                      disabled={operationInProgress !== null || !selectedFightId}
+                      disabled={
+                        operationInProgress !== null || !selectedFightId
+                      }
                       className="relative group overflow-hidden px-4 py-3 bg-gradient-to-br from-red-600 to-red-700 text-white rounded-xl shadow-sm hover:shadow-md hover:from-red-500 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center text-sm font-bold"
                     >
                       <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />

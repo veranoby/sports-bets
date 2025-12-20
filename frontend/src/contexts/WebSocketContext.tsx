@@ -483,7 +483,8 @@ export const useWebSocketEmit = () => {
 };
 
 // 🎧 HOOK FOR A SINGLE LISTENER
-
+/* eslint-disable react-refresh/only-export-components */
+// Note: Exporting hooks from context file is required pattern. HMR still works for components.
 export const useWebSocketListener = <T = unknown,>(
   event: string,
   handler: (data: T) => void,
@@ -521,7 +522,6 @@ export const useWebSocketListener = <T = unknown,>(
 };
 
 // 🏠 HOOK FOR ROOM MANAGEMENT
-// eslint-disable-next-line react-refresh/only-export-components
 export const useWebSocketRoom = (roomId: string) => {
   const { joinRoom, leaveRoom, isConnected } = useWebSocketContext();
 

@@ -155,7 +155,9 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
       // Build SSE URL with auth token matching backend expectations
       const fullUrl = `${url}?token=${encodeURIComponent(token)}`;
       console.log(`🔌 SSE: Attempting connection to ${url}`);
-      console.log(`   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`);
+      console.log(
+        `   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`,
+      );
 
       const es = new EventSource(fullUrl);
       eventSourceRef.current = es;
@@ -195,7 +197,6 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
               }
             });
           }
-
         } catch (e) {
           console.error(`❌ SSE: Parse error for data:`, event.data);
         }
