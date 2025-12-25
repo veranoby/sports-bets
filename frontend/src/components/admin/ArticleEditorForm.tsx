@@ -6,7 +6,6 @@ import { userAPI, uploadsAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Article } from "../../types/article";
 import type { Venue, Gallera } from "../../types";
-import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import StatusChip from "../shared/StatusChip";
 

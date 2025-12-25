@@ -1,6 +1,6 @@
 import React from "react";
 import useSSE from "../../hooks/useSSE";
-import type { SSEEvent, ConnectionStatus } from "../../hooks/useMultiSSE"; // Re-using types
+import type { ConnectionStatus } from "../../hooks/useMultiSSE"; // Re-using types
 
 // Assuming these types for the data payload from the 'admin_system' channel
 interface SystemStatusData {

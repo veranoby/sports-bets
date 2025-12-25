@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import useSSE from "./useSSE";
-import type { SSEEvent } from "./useSSE";
 
 interface StreamStatusData {
   eventId: string;

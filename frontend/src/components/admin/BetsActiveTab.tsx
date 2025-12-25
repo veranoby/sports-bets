@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DollarSign, BarChart3, Activity } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";

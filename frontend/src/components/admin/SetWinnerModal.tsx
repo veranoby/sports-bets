@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Modal from "../shared/Modal";
-import { X, Target, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 
 interface SetWinnerModalProps {
   isOpen: boolean;

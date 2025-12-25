@@ -7,9 +7,6 @@ import { useSearchParams } from "react-router-dom";
 import {
   FileText,
   Search,
-  Eye,
-  CheckCircle,
-  Edit,
   Plus,
   Calendar,
   User,

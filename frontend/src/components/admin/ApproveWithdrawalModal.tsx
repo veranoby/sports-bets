@@ -1,7 +1,7 @@
 // frontend/src/components/admin/ApproveWithdrawalModal.tsx
 
 import React, { useState } from "react";
-import { Check, X, Upload } from "lucide-react";
+import { Check, X } from "lucide-react";
 import type { WalletOperation } from "../../types/walletOperation";
 
 interface ApproveWithdrawalModalProps {

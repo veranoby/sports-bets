@@ -14,7 +14,6 @@ import { useSSEConnection } from "../../hooks/useSSEConnection";
 import { streamingAPI, eventsAPI, apiClient } from "../../services/api";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorMessage from "../../components/shared/ErrorMessage";
 import { useStreamControl } from "../../hooks/useStreamControl";
 
 interface StreamingControlTabProps {

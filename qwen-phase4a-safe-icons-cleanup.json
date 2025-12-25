@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "task_name": "PHASE_4A_SAFE_ICON_IMPORTS_CLEANUP",
+    "task_id": "TASK_2025_12_19_QWEN_UNUSED_ICONS",
+    "phase": "4A",
+    "complexity": "LOW_RISK_HIGH_VOLUME",
+    "execution_mode": "batch_with_validation",
+    "assigned_role": "executor",
+    "recommended_model": "qwen-coder-2.5-32b",
+    "estimated_time": "30 minutes",
+    "target_reduction": "50-60 warnings",
+    "baseline_warnings": "471 (updated post-Gemini Phase 3)"
+  },
+
+  "critical_constraints": {
+    "ABSOLUTE_RULES": [
+      "ONLY remove imports that are provably unused in the file",
+      "NEVER remove imports used in JSX (between < >)",
+      "NEVER remove imports used in variables/functions",
+      "VALIDATE each file with 'npm run lint <file>' BEFORE moving to next",
+      "STOP if any file increases warnings or errors",
+      "ONLY touch import statements - NEVER modify component logic"
+    ],
+    "FILES_TO_SKIP": [
+      "Any file with 'test' in path",
+      "Any file with TODO/FIXME comments near imports",
+      "Any file you're uncertain about"
+    ],
+    "ROLLBACK_TRIGGER": [
+      "TypeScript errors appear",
+      "Warnings increase in ANY file",
+      "Uncertainty about import usage"
+    ]
+  },
+
+  "scope_definition": {
+    "target_imports": {
+      "icon_libraries": [
+        "lucide-react (User, X, Eye, Video, Trophy, etc)",
+        "react-icons/* (any icon imports)"
+      ],
+      "ui_components": [
+        "LoadingSpinner (if not rendered in JSX)",
+        "ErrorMessage (if not rendered in JSX)",
+        "Card, Modal, Button (if not used)"
+      ]
+    },
+    "detection_pattern": {
+      "import_line": "import { IconName } from 'lucide-react'",
+      "usage_check_1": "Search for '<IconName' in file (JSX usage)",
+      "usage_check_2": "Search for 'IconName' outside import (variable usage)",
+      "safe_to_remove": "If BOTH checks return 0 results"
+    }
+  },
+
+  "verification_protocol": {
+    "before_starting": [
+      "STEP 1: Read @QWEN_CRITICAL_ADDITIONS.md - MANDATORY UPDATES",
+      "STEP 2: Run baseline: npm run lint 2>&1 | grep 'no-unused-vars' | wc -l",
+      "STEP 3: Record baseline number (should be ~270 of 471 total)",
+      "STEP 4: Create backup: git stash push -m 'before-phase4a-baseline471'"
+    ],
+    "for_each_file": {
+      "step_1_identify": "grep 'no-unused-vars' from lint output to get file path",
+      "step_2_read": "Read ENTIRE file to understand context",
+      "step_3_verify_unused": {
+        "method_1_jsx": "grep '<ImportName' file.tsx",
+        "method_2_variable": "grep 'ImportName' file.tsx | grep -v 'import'",
+        "method_3_visual": "Read file and visually confirm not used",
+        "safe_if": "All 3 methods confirm unused"
+      },
+      "step_4_remove": "Delete ONLY the unused import from import statement",
+      "step_5_validate": "npx eslint <file> --format=compact | grep 'no-unused-vars' | wc -l",
+      "step_6_compare": "Number should DECREASE or stay same, NEVER increase"
+    },
+    "after_each_batch_of_10": [
+      "git diff --stat (review changes)",
+      "npm run lint 2>&1 | tail -3 (check total warnings)",
+      "npx tsc --noEmit | head -5 (check no type errors)",
+      "If OK: continue. If NOT: git checkout . && STOP"
+    ]
+  },
+
+  "examples": {
+    "SAFE_TO_REMOVE": {
+      "example_1": {
+        "file": "src/components/Modal.tsx",
+        "import_line": "import { X, User, Settings } from 'lucide-react'",
+        "file_content_snippet": "return <div><X /> {/* Only X is used */}</div>",
+        "action": "Remove User, Settings from import",
+        "result": "import { X } from 'lucide-react'"
+      },
+      "example_2": {
+        "file": "src/pages/Dashboard.tsx",
+        "import_line": "import LoadingSpinner from '../components/LoadingSpinner'",
+        "file_content_snippet": "return <div>Dashboard</div> {/* LoadingSpinner never rendered */}",
+        "action": "Remove entire import line",
+        "result": "// import line deleted"
+      }
+    },
+    "DO_NOT_REMOVE": {
+      "example_1": {
+        "file": "src/components/Header.tsx",
+        "import_line": "import { User } from 'lucide-react'",
+        "file_content_snippet": "const icon = <User className='h-4' />",
+        "reason": "User IS used in JSX",
+        "action": "SKIP - Do not remove"
+      },
+      "example_2": {
+        "file": "src/utils/icons.ts",
+        "import_line": "import { Eye } from 'lucide-react'",
+        "file_content_snippet": "export const icons = { eye: Eye }",
+        "reason": "Eye IS used as variable value",
+        "action": "SKIP - Do not remove"
+      },
+      "example_3": {
+        "file": "src/components/Feature.tsx",
+        "import_line": "import { Trophy } from 'lucide-react'",
+        "file_content_snippet": "// TODO: Add trophy icon when implementing rewards",
+        "reason": "Planned feature (has TODO comment)",
+        "action": "SKIP - Do not remove"
+      }
+    }
+  },
+
+  "step_by_step_execution": {
+    "phase_1_icons_from_lucide": {
+      "priority": 1,
+      "target_pattern": "import.*{.*}.*from 'lucide-react'",
+      "common_unused_icons": [
+        "User (8 cases)", "X (5)", "Eye (5)", "CheckCircle (5)",
+        "Filter (6)", "Video (3)", "Wifi (3)", "DollarSign (3)",
+        "Trophy", "Play", "Pause", "XCircle", "AlertTriangle",
+        "Settings", "Search", "Calendar", "Clock"
+      ],
+      "verified_counts": "Based on current lint output - 40-50 total icon removals expected",
+      "files_to_check": [
+        "src/components/admin/**/*.tsx",
+        "src/components/user/**/*.tsx",
+        "src/pages/**/*.tsx"
+      ],
+      "batch_size": 5,
+      "validation_after_each": "npm run lint <file>",
+      "UPDATED_NOTE": "Batch size reduced from 10 to 5 for extra caution"
+    },
+    "phase_2_ui_components": {
+      "priority": 2,
+      "target_imports": [
+        "LoadingSpinner",
+        "ErrorMessage",
+        "Card",
+        "Modal",
+        "StatusChip"
+      ],
+      "high_risk_files": [
+        "EditVenueModal.tsx (has 7 unused imports - verify carefully)",
+        "ArticleEditorForm.tsx (has LoadingSpinner import)"
+      ],
+      "extra_caution": "Read entire file to ensure component not used conditionally",
+      "validation_after_each": "npm run lint <file> && npx tsc --noEmit"
+    },
+    "phase_3_react_imports": {
+      "priority": 3,
+      "pattern": "import React, { useState, useEffect } from 'react'",
+      "check_if_unused": {
+        "React": "File uses JSX but not 'React.' prefix (safe to remove in modern React)",
+        "useState": "No 'useState(' call in file",
+        "useEffect": "No 'useEffect(' call in file"
+      },
+      "caution": "Only remove if 100% certain - hooks are critical",
+      "CRITICAL_WARNING": "useEffect(3), useCallback(3) appear unused - VERIFY CAREFULLY before removing. May be in commented code or conditional logic."
+    }
+  },
+
+  "automated_detection_script": {
+    "description": "Use this to find files with unused icon imports",
+    "commands": [
+      "# Step 1: Get all files with no-unused-vars warnings",
+      "npm run lint 2>&1 | grep 'no-unused-vars' | grep -E 'User|Eye|Video|Trophy|Play|CheckCircle' > /tmp/icon_warnings.txt",
+      "",
+      "# Step 2: For each file, check if icon is actually used",
+      "# Example for 'User' icon:",
+      "grep -l \"import.*User.*from 'lucide-react'\" src/**/*.tsx | while read file; do",
+      "  if ! grep -q '<User' \"$file\"; then",
+      "    echo \"SAFE TO REMOVE: $file - User icon\"",
+      "  fi",
+      "done"
+    ],
+    "manual_review_required": "Yes - do not blindly trust script output"
+  },
+
+  "safety_checklist_per_file": {
+    "before_edit": [
+      "✓ Read ENTIRE file content",
+      "✓ Search for <ImportName in JSX",
+      "✓ Search for ImportName in variables/props",
+      "✓ Check for TODO/FIXME comments",
+      "✓ Verify not used in conditional rendering"
+    ],
+    "after_edit": [
+      "✓ npm run lint <file> shows reduction or same warnings",
+      "✓ No new TypeScript errors",
+      "✓ Import line syntax still valid",
+      "✓ File still compiles"
+    ],
+    "abort_if": [
+      "❌ Unsure if import is used",
+      "❌ File has complex logic you don't understand",
+      "❌ Warnings increase after removal",
+      "❌ TypeScript shows new errors"
+    ]
+  },
+
+  "reporting_format": {
+    "progress_update_every_10_files": {
+      "files_processed": "count",
+      "imports_removed": "count",
+      "warnings_reduced": "before - after",
+      "errors_encountered": "list or 'none'"
+    },
+    "final_report": {
+      "total_files_modified": "count",
+      "total_imports_removed": "count",
+      "warnings_before": "270",
+      "warnings_after": "target: 170-190",
+      "warnings_reduction": "target: 80-100",
+      "validation_passed": "yes/no",
+      "commit_ready": "yes/no"
+    }
+  },
+
+  "commit_preparation": {
+    "when_to_commit": "After all validations pass AND warnings reduced by ≥50",
+    "message_template": "[CLEANUP] Remove unused icon and component imports\n\n## Summary\nPhase 4A: Automated cleanup of provably unused imports to reduce lint warnings.\n\n## Changes Made\n- Removed {count} unused icon imports from lucide-react\n- Removed {count} unused UI component imports\n- Removed {count} unused React hook imports\n\n## Files Modified\n{list of files}\n\n## Validation Results\n- ✅ Warnings reduced: {before} → {after} (-{reduction})\n- ✅ TypeScript: 0 errors\n- ✅ ESLint: 0 new errors\n- ✅ All files compile successfully\n\n## Method\n- Verified each import unused via:\n  1. JSX search (<ImportName pattern)\n  2. Variable search (ImportName outside imports)\n  3. Visual code review\n- Validated each file individually after removal\n\n🤖 Generated with Claude Code\nCo-Authored-By: Qwen Coder 2.5 <noreply@qwen.com>",
+    "staged_files": "All modified .tsx and .ts files"
+  },
+
+  "rollback_plan": {
+    "if_warnings_increase": "git checkout . && report which file caused issue",
+    "if_typescript_errors": "git checkout <problematic-file> && skip that file",
+    "if_uncertain": "STOP and report - do not guess",
+    "nuclear_option": "git stash pop (restore backup from before_starting)"
+  },
+
+  "success_criteria": {
+    "minimum_requirements": [
+      "Total warnings reduced by at least 30 (471 → 441 or better)",
+      "Zero new TypeScript errors",
+      "Zero new ESLint errors",
+      "All modified files compile",
+      "No component functionality broken"
+    ],
+    "optimal_outcome": [
+      "Total warnings reduced by 50-60 (471 → 411-421)",
+      "40-60 files cleaned up",
+      "Clean git diff showing only import removals",
+      "All validations green"
+    ],
+    "REALISTIC_TARGET": "471 → 421 (-50 warnings, -11%)"
+  },
+
+  "final_instructions_for_qwen": {
+    "READ_FIRST": [
+      "This task is LOW RISK but requires CAREFUL verification",
+      "You are ONLY removing imports, not changing logic",
+      "When in doubt, SKIP the file - do not guess"
+    ],
+    "EXECUTION_ORDER": [
+      "1. Create backup (git stash)",
+      "2. Record baseline warnings count",
+      "3. Process Phase 1 (icons) - 10 files at a time",
+      "4. Validate after each batch",
+      "5. Process Phase 2 (UI components) - careful review",
+      "6. Final validation",
+      "7. Prepare commit if success criteria met"
+    ],
+    "ABORT_CONDITIONS": [
+      "If any file shows increased warnings → rollback that file",
+      "If TypeScript shows new errors → rollback",
+      "If you're uncertain about ANY import → skip it",
+      "If total warnings increase → full rollback"
+    ],
+    "QUALITY_OVER_SPEED": "Better to safely remove 50 imports than risk breaking code by removing 100"
+  }
+}

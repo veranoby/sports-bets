@@ -9,10 +9,8 @@ import {
   MapPin,
   Users,
   Zap,
-  Star,
   ChevronRight,
   Lock,
-  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

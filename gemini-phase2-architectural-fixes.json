@@ -1,0 +1,201 @@
+{
+  "metadata": {
+    "task_name": "ARCHITECTURAL_FIXES_SSE_STABILITY_REACT19",
+    "task_id": "TASK_2025_12_19_GEMINI_SSE_ARCH",
+    "phase": 2,
+    "complexity": "VERY_HIGH",
+    "execution_mode": "standard",
+    "assigned_role": "executor",
+    "recommended_model": "gemini-2.0-flash-thinking-exp",
+    "prerequisite_commit": "9436e400",
+    "estimated_time": "45 minutes"
+  },
+
+  "critical_constraints": {
+    "no_eslint_disable": "ABSOLUTE. Zero tolerance for eslint-disable directives.",
+    "preserve_claude_work": [
+      "DO NOT modify SSE event handlers in EventDetail.tsx (lines 256-398)",
+      "DO NOT change useMultiSSE ref capture logic (lines 157-180)",
+      "DO NOT alter EventSource connection establishment (useSSE.ts lines 140-260)"
+    ],
+    "react_19_compatibility": "All solutions must be forward-compatible with React 19 strict mode",
+    "no_infinite_loops": "Test every dependency addition with 'does this object change on every render?'",
+    "validation_gates": "Run 'npm run lint' after EACH file modification, not at the end"
+  },
+
+  "architectural_problems_identified": {
+    "problem_1_unstable_sse_objects": {
+      "severity": "HIGH",
+      "affected_files": [
+        "frontend/src/hooks/useSSE.ts (useAdminSSE function)",
+        "frontend/src/components/admin/events/EventDetail.tsx:396",
+        "frontend/src/components/admin/events/EventList.tsx:358"
+      ],
+      "root_cause": "useAdminSSE returns a new object on every render because it doesn't memoize the return value",
+      "current_behavior": "EventDetail/EventList useEffect recreates subscriptions on every render due to unstable adminSSE reference",
+      "impact": "Potential memory leaks, duplicate SSE subscriptions, unnecessary re-renders",
+      "solution_strategy": "Stabilize useAdminSSE return value with useMemo"
+    },
+
+    "problem_2_sse_dependency_in_usefightsse": {
+      "severity": "MEDIUM",
+      "affected_files": [
+        "frontend/src/hooks/useSSE.ts:459 (useFightSSE hook)"
+      ],
+      "root_cause": "useFightSSE useEffect uses sse.subscribe and sse.status but linter wants full 'sse' object",
+      "current_behavior": "Warning suppressed, but dependency is technically incomplete",
+      "impact": "If sse object changes unexpectedly, subscriptions won't update",
+      "solution_strategy": "Verify sse.subscribe is stable (useCallback), then either add full sse OR document why partial deps are safe"
+    },
+
+    "problem_3_ref_cleanup_react19_warnings": {
+      "severity": "LOW",
+      "affected_files": [
+        "frontend/src/hooks/useMultiSSE.ts:157-159"
+      ],
+      "root_cause": "React 19 warns about accessing ref.current in cleanup because refs can be mutated between render and cleanup",
+      "current_behavior": "Claude captured refs in variables (lines 157-159) but linter still warns",
+      "impact": "Informational only - current code works, but may break in React 19",
+      "solution_strategy": "OPTIONAL: Implement cleanup tracking map OR accept warnings (not breaking)"
+    },
+
+    "problem_4_pagination_dependency": {
+      "severity": "LOW",
+      "affected_files": [
+        "frontend/src/pages/admin/Bets.tsx:93"
+      ],
+      "root_cause": "useCallback missing pagination.limit in deps",
+      "current_behavior": "loadBets function may use stale pagination.limit value",
+      "impact": "Potential pagination bugs when limit changes",
+      "solution_strategy": "Add pagination.limit to deps OR destructure { limit } before useCallback"
+    }
+  },
+
+  "step_by_step_implementation": {
+    "step_1_stabilize_useadminsse": {
+      "priority": "CRITICAL",
+      "file": "frontend/src/hooks/useSSE.ts",
+      "target_lines": "356-400 (useAdminSSE function)",
+      "action": "Wrap return statement in useMemo to prevent object recreation",
+      "implementation": {
+        "before": "return { ...sse, subscribeToEvents: (handlers) => ..., isAdminConnection, channel }",
+        "after": "return useMemo(() => ({ ...sse, subscribeToEvents: (handlers) => sse.subscribeToEvents(filteredEventHandlers(handlers)), isAdminConnection: shouldConnect, channel: defaultChannel }), [sse, filteredEventHandlers, shouldConnect, defaultChannel])"
+      },
+      "validation": "Verify sse object itself is stable (should be from useSSE which uses useState/useCallback)",
+      "test_command": "npx eslint src/hooks/useSSE.ts --format=compact"
+    },
+
+    "step_2_verify_subscribe_stability": {
+      "priority": "CRITICAL",
+      "file": "frontend/src/hooks/useSSE.ts",
+      "target_lines": "280-300 (subscribe function definition)",
+      "action": "Confirm subscribe is wrapped in useCallback (it should be at line 280)",
+      "validation": "If subscribe is useCallback with empty deps [], it's stable. If not, wrap it.",
+      "blocking": "Step 3 depends on this"
+    },
+
+    "step_3_fix_usefightsse_deps": {
+      "priority": "HIGH",
+      "file": "frontend/src/hooks/useSSE.ts",
+      "target_line": "459",
+      "action": "After confirming subscribe is stable, evaluate if full 'sse' is needed",
+      "decision_tree": {
+        "if_sse_stable": "Add 'sse' to deps array",
+        "if_sse_unstable": "ABORT - go back to step_1 and ensure sse from useAdminSSE is memoized",
+        "alternative": "If only sse.subscribe and sse.status are used, document why partial deps are safe with comment (no eslint-disable)"
+      },
+      "test_command": "npx eslint src/hooks/useSSE.ts:459 --format=compact"
+    },
+
+    "step_4_add_adminsse_to_eventdetail": {
+      "priority": "HIGH",
+      "file": "frontend/src/components/admin/events/EventDetail.tsx",
+      "target_line": "396",
+      "prerequisite": "Step 1 completed successfully",
+      "action": "Add 'adminSSE' to useEffect dependency array",
+      "current_deps": "[eventId, adminSSE.status, adminSSE.subscribeToEvents]",
+      "new_deps": "[eventId, adminSSE]",
+      "rationale": "Since adminSSE is now stable (memoized in useAdminSSE), adding it won't cause infinite loops",
+      "validation": "Verify no re-render loop by checking React DevTools or adding console.log",
+      "test_command": "npx eslint src/components/admin/events/EventDetail.tsx:396 --format=compact"
+    },
+
+    "step_5_add_adminsse_to_eventlist": {
+      "priority": "HIGH",
+      "file": "frontend/src/components/admin/events/EventList.tsx",
+      "target_line": "358",
+      "prerequisite": "Step 1 completed successfully",
+      "action": "Add 'adminSSE' to useEffect dependency array",
+      "current_deps": "[adminSSE.status, adminSSE.subscribeToEvents]",
+      "new_deps": "[adminSSE]",
+      "rationale": "Same as step 4 - stable adminSSE allows safe dependency inclusion",
+      "test_command": "npx eslint src/components/admin/events/EventList.tsx:358 --format=compact"
+    },
+
+    "step_6_fix_bets_pagination": {
+      "priority": "MEDIUM",
+      "file": "frontend/src/pages/admin/Bets.tsx",
+      "target_line": "93",
+      "action": "Add pagination.limit to useCallback deps OR destructure before useCallback",
+      "option_a": "Add to deps: useCallback(..., [filters, pagination.page, pagination.limit])",
+      "option_b": "Destructure: const { limit } = pagination; useCallback(..., [filters, pagination.page, limit])",
+      "recommendation": "Option A (simpler)",
+      "test_command": "npx eslint src/pages/admin/Bets.tsx:93 --format=compact"
+    },
+
+    "step_7_optional_usemultisse_refs": {
+      "priority": "OPTIONAL",
+      "file": "frontend/src/hooks/useMultiSSE.ts",
+      "target_lines": "157-159",
+      "action": "ONLY if you have high confidence: Implement cleanup tracking pattern",
+      "alternative_1": "Create Map<string, EventSource> that tracks what needs cleanup",
+      "alternative_2": "Use useLayoutEffect for synchronous cleanup",
+      "alternative_3": "Accept warnings as informational (current code works in React 18)",
+      "recommendation": "SKIP THIS STEP unless you have tested solution in React 19 environment",
+      "risk": "HIGH - breaking SSE cleanup could cause memory leaks"
+    }
+  },
+
+  "validation_protocol": {
+    "after_each_step": [
+      "Run: npx eslint <modified-file> --format=compact",
+      "Check: No new errors introduced",
+      "Verify: Specific warning for that step is resolved"
+    ],
+    "final_validation": [
+      "npm run lint 2>&1 | grep 'react-hooks/exhaustive-deps' | wc -l  # Should output 0 or ≤3 (if step 7 skipped)",
+      "npx tsc --noEmit  # Must pass with 0 errors",
+      "npm run lint 2>&1 | tail -5  # Total warnings should be < 470"
+    ],
+    "regression_tests": [
+      "Verify SSE connections still establish (check browser console)",
+      "Confirm no infinite re-render loops (check React DevTools Profiler)",
+      "Test that adminSSE events still trigger updates in EventDetail/EventList"
+    ]
+  },
+
+  "commit_preparation": {
+    "message_template": "[ARCH] Stabilize SSE hooks - Fix React hooks dependencies\n\n## Summary\nResolved 7 react-hooks/exhaustive-deps warnings through architectural improvements to SSE hook stability and memoization patterns.\n\n## Changes Made\n1. **useSSE.ts**: Memoized useAdminSSE return value to prevent object recreation\n2. **useSSE.ts**: Fixed useFightSSE dependency array\n3. **EventDetail.tsx**: Added stable adminSSE to useEffect deps\n4. **EventList.tsx**: Added stable adminSSE to useEffect deps\n5. **Bets.tsx**: Added pagination.limit to loadBets useCallback deps\n\n## Validation Results\n- ✅ ESLint: 0 react-hooks/exhaustive-deps errors\n- ✅ TypeScript: tsc --noEmit passes\n- ✅ Total warnings: <470\n- ✅ No SSE connection regressions\n\n## Technical Approach\n- Used useMemo to stabilize hook return values\n- Verified useCallback stability before adding to deps\n- Avoided eslint-disable directives entirely\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Gemini 2.0 Flash Thinking <noreply@google.com>",
+    "staged_files": [
+      "src/hooks/useSSE.ts",
+      "src/components/admin/events/EventDetail.tsx",
+      "src/components/admin/events/EventList.tsx",
+      "src/pages/admin/Bets.tsx"
+    ]
+  },
+
+  "rollback_plan": {
+    "if_infinite_loop": "git checkout HEAD~1 && analyze which memoization caused loop",
+    "if_sse_breaks": "git checkout HEAD~1 src/hooks/useSSE.ts && review step 1 implementation",
+    "if_lint_worse": "git diff HEAD~1 and identify which change introduced new warnings"
+  },
+
+  "success_criteria": [
+    "Zero 'react-hooks/exhaustive-deps' warnings in modified files",
+    "Total lint warnings reduced to < 470",
+    "No infinite re-render loops in EventDetail or EventList",
+    "SSE connections establish and maintain successfully",
+    "TypeScript compilation passes without errors",
+    "All changes use architectural solutions (useMemo/useCallback), not suppressions"
+  ]
+}

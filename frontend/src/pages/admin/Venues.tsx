@@ -9,9 +9,6 @@ import {
   Plus,
   Search,
   Edit,
-  User,
-  Mail,
-  MapPin,
   Trash2,
   Wifi,
   WifiOff,
@@ -21,7 +18,6 @@ import {
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
-import StatusChip from "../../components/shared/StatusChip";
 import UserModal from "../../components/admin/UserModal";
 
 // APIs

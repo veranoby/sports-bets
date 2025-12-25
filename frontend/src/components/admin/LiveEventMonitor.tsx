@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import useMultiSSE from "../../hooks/useMultiSSE";
-import type { SSEEvent, MultiSSEState } from "../../hooks/useMultiSSE";
 
 // Define types for the data payloads from different channels
 interface FightStatusData {

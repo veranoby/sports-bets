@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { Plus, Target, Trash2, Pencil } from "lucide-react";
-import Card from "../../components/shared/Card";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditFightModal from "../../components/admin/EditFightModal";

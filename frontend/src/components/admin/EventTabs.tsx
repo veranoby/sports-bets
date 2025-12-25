@@ -1,6 +1,4 @@
 import React from "react";
-import { Video, Target, DollarSign } from "lucide-react";
-
 interface Tab {
   id: string;
   label: string;

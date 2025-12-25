@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Calendar,
-  Play,
   Square,
   Plus,
   Settings,
@@ -10,17 +9,11 @@ import {
   Activity,
   XCircle,
   Clock,
-  CheckCircle,
   User,
   Building2,
   Video,
   Target,
   Trash2,
-  Radio,
-  Wifi,
-  Activity as ActivityIcon,
-  XCircle as XCircleIcon,
-  AlertTriangle,
 } from "lucide-react";
 import Card from "../../shared/Card";
 import LoadingSpinner from "../../shared/LoadingSpinner";

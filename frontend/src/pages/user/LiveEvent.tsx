@@ -10,7 +10,6 @@
 
 import { useState, useEffect, useCallback, memo } from "react";
 import {
-  Plus,
   Scale,
   Users,
   Crown,
@@ -20,11 +19,6 @@ import {
   MapPin,
   User,
   Timer,
-  Radio,
-  Video,
-  Activity as ActivityIcon,
-  XCircle as XCircleIcon,
-  AlertTriangle,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 

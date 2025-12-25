@@ -5,8 +5,6 @@ import { Plus, Search, Edit, Trash2, Wifi, WifiOff } from "lucide-react";
 import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
-import StatusChip from "../../components/shared/StatusChip";
-import SubscriptionBadge from "../../components/shared/SubscriptionBadge";
 import UserModal from "../../components/admin/UserModal";
 import { usersAPI, userAPI, adminAPI } from "../../services/api";
 import type { User } from "../../types";

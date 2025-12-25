@@ -5,10 +5,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   Star,
   Crown,
-  Calendar,
-  Eye,
-  User,
-  Filter,
   ArrowUpDown,
   Zap,
 } from "lucide-react";

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useBets } from "../../hooks/useApi";
 import { useFightSSE, SSEEventType } from "../../hooks/useSSE"; // Use fight-specific SSE hook
 import { useWebSocketContext } from "../../contexts/WebSocketContext"; // Keep WebSocket minimal for PAGO/DOY proposals only
-import { Plus, Zap, DollarSign, Users, Trophy, TrendingUp } from "lucide-react";
+import { Plus, Zap, DollarSign, Users } from "lucide-react";
 import CreateBetModal from "./CreateBetModal";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added import
 

@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "task_name": "WEBSOCKET_DX_FAST_REFRESH_FIX",
+    "priority": "LOW",
+    "complexity": "MEDIUM",
+    "estimated_time": "20 minutes",
+    "blocking": false
+  },
+
+  "problem": {
+    "description": "WebSocketContext.tsx exports hooks + component, breaking Vite Fast Refresh",
+    "current_suppressions": 4,
+    "files_affected": ["src/contexts/WebSocketContext.tsx"],
+    "impact": "DX only - Fast Refresh doesn't work for this file"
+  },
+
+  "solution": {
+    "action": "Split hooks into separate file",
+    "new_files": ["src/hooks/useWebSocket.ts"],
+    "exports_to_move": [
+      "useWebSocketContext",
+      "useWebSocketEmit",
+      "useWebSocketListener",
+      "useWebSocketRoom"
+    ],
+    "keep_in_original": ["WebSocketProvider", "WebSocketContext"]
+  },
+
+  "implementation_steps": [
+    "1. Create src/hooks/useWebSocket.ts",
+    "2. Move 4 hooks to new file",
+    "3. Import WebSocketContext in useWebSocket.ts",
+    "4. Update all imports across project (50+ files)",
+    "5. Remove eslint-disable directives",
+    "6. Test Fast Refresh works"
+  ],
+
+  "risk_mitigation": {
+    "high_risk": "Breaking imports in 50+ files",
+    "mitigation": "Use global find-replace with VSCode",
+    "rollback": "git revert if any import fails",
+    "testing_required": "Full app smoke test after change"
+  },
+
+  "when_to_execute": "After Phase 2 is stable, during low-activity period",
+  "model_recommended": "claude-sonnet (better at refactoring imports)"
+}

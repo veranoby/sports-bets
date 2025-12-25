@@ -11,7 +11,6 @@ import {
   MapPin,
   Activity,
   ArrowRight,
-  Wifi,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
