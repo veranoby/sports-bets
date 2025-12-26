@@ -98,8 +98,6 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                   <FightStatusManager
                     key={`${fight.id}-${fight.updatedAt}`}
                     fight={fight}
-                    eventId={eventId}
-                    onFightUpdate={handleFightUpdateLocal}
                   />
                 </div>
                 <div className="flex space-x-1">

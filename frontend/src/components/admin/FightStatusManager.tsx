@@ -1,15 +1,5 @@
-import React, { useState } from "react";
-import {
-  Button,
-  Card,
-  Space,
-  Tag,
-  Typography,
-  message,
-  Modal,
-  Row,
-  Col,
-} from "antd";
+import React from "react";
+import { Card, Space, Tag } from "antd";
 import {
   PlayCircleOutlined,
   CheckCircleOutlined,
@@ -19,84 +9,13 @@ import {
   CrownOutlined,
   FireOutlined,
 } from "@ant-design/icons";
-import { fightAPI } from "../../services/api";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import type { Fight } from "../../types";
-
-const { Text } = Typography;
 
 interface FightStatusManagerProps {
   fight: Fight;
-  eventId: string;
-  onFightUpdate: (updatedFight: Fight) => void;
 }
 
-const FightStatusManager: React.FC<FightStatusManagerProps> = ({
-  fight,
-  eventId,
-  onFightUpdate,
-}) => {
-  const { isConnected, emit } = useWebSocketContext();
-  const [loading, setLoading] = useState(false);
-  const [fightResult, setFightResult] = useState<
-    "red" | "blue" | "draw" | null
-  >(null);
-  const [isAssigningResult, setIsAssigningResult] = useState(false);
-
-  // ... (keep helper functions like updateFightStatus if needed, but for simplicity assuming they are same) ...
-  // Re-implementing functions to ensure file is complete since I am overwriting
-  const updateFightStatus = async (status: Fight["status"]) => {
-    setLoading(true);
-    try {
-      const response = await fightAPI.updateStatus(fight.id, status);
-      if (response.success) {
-        onFightUpdate(response.data as Fight);
-      }
-      message.success(`Fight status updated to ${status}`);
-
-      if (isConnected) {
-        emit("fight_status_update", {
-          eventId,
-          fightId: fight.id,
-          status,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (error) {
-      console.error("Failed to update fight status:", error);
-      message.error("Failed to update fight status");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const assignFightResult = async (result: "red" | "blue" | "draw") => {
-    setLoading(true);
-    try {
-      const resultObj = { winner: result, method: "decision" };
-      const response = await fightAPI.assignFightResult(fight.id, resultObj);
-      if (response.success) {
-        onFightUpdate(response.data as Fight);
-      }
-      message.success("Fight result assigned");
-      setFightResult(null);
-      setIsAssigningResult(false);
-
-      if (isConnected) {
-        emit("fight_result_assigned", {
-          eventId,
-          fightId: fight.id,
-          result,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (error) {
-      console.error("Failed to assign fight result:", error);
-      message.error("Failed to assign fight result");
-    } finally {
-      setLoading(false);
-    }
-  };
+const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight }) => {
 
   const getStatusTag = (status: string) => {
     switch (status) {
