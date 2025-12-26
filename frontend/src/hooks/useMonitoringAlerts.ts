@@ -126,7 +126,9 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
     try {
       const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3001"}/api/monitoring/sse/admin/monitoring`;
       console.log(`🔌 SSE: Monitoring - Attempting connection`);
-      console.log(`   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`);
+      console.log(
+        `   Token: ${token.substring(0, 10)}...${token.substring(token.length - 10)}`,
+      );
 
       const sseUrl = `${url}?token=${encodeURIComponent(token)}`;
       const es = new EventSource(sseUrl);

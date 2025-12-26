@@ -99,7 +99,11 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
 
                 // Force seek to live edge after brief delay
                 setTimeout(() => {
-                  if (video.duration && !isNaN(video.duration) && isFinite(video.duration)) {
+                  if (
+                    video.duration &&
+                    !isNaN(video.duration) &&
+                    isFinite(video.duration)
+                  ) {
                     video.currentTime = video.duration - 1;
                   }
                 }, 100);
@@ -174,7 +178,12 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
   }, [constructedStreamUrl, streamUrl, autoplay, onError, hlsConfig]);
 
   return (
-    <div className={className || "relative w-full aspect-video bg-black rounded-lg overflow-hidden"}>
+    <div
+      className={
+        className ||
+        "relative w-full aspect-video bg-black rounded-lg overflow-hidden"
+      }
+    >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center text-white">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div>

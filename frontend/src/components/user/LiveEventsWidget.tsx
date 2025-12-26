@@ -4,14 +4,7 @@
 // ================================================================
 
 import React, { useState, useCallback, useMemo, memo } from "react";
-import {
-  Zap,
-  Play,
-  Users,
-  MapPin,
-  Activity,
-  ArrowRight,
-} from "lucide-react";
+import { Zap, Play, Users, MapPin, Activity, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";

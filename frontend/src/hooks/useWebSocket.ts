@@ -31,7 +31,7 @@ export const useWebSocketEmit = () => {
 };
 
 // 🎧 HOOK FOR A SINGLE LISTENER
-export const useWebSocketListener = <T = unknown,>(
+export const useWebSocketListener = <T = unknown>(
   event: string,
   handler: (data: T) => void,
   dependencies: unknown[] = [],

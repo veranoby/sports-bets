@@ -1,10 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import {
-  Calendar,
-  Webcam,
-  Zap,
-  Lock,
-} from "lucide-react";
+import { Calendar, Webcam, Zap, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets } from "../../hooks/useApi";

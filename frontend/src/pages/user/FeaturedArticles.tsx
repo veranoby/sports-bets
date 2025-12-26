@@ -2,12 +2,7 @@
 // Página de artículos destacados con enfoque en contenido premium
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Star,
-  Crown,
-  ArrowUpDown,
-  Zap,
-} from "lucide-react";
+import { Star, Crown, ArrowUpDown, Zap } from "lucide-react";
 import { articlesAPI } from "../../services/api";
 import ArticleCard from "../../components/articles/ArticleCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";

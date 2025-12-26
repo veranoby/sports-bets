@@ -4,15 +4,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Users,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
+import { Users, Plus, Search, Edit, Trash2, Wifi, WifiOff } from "lucide-react";
 
 // Componentes
 import Card from "../../components/shared/Card";

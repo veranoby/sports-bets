@@ -914,7 +914,9 @@ const LiveEvent = () => {
   const allFights = currentEvent?.fights || [];
   console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
   console.log("🥊 LiveEvent render: allFights =", allFights);
-  const currentFight = allFights.find((f) => f.status === "live") || allFights.find((f) => f.status === "betting");
+  const currentFight =
+    allFights.find((f) => f.status === "live") ||
+    allFights.find((f) => f.status === "betting");
 
   // ✅ Fights separation for modal
   const completedFights = allFights.filter((f) => f.status === "completed");
@@ -1130,19 +1132,24 @@ const LiveEvent = () => {
           <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
             {/* Status Banner based on fight status */}
             {currentFight && (
-              <div className={`mb-4 p-3 rounded-lg text-center font-semibold ${
-                currentFight.status === "betting"
-                  ? "bg-green-500/20 text-green-500 border border-green-500/30"
-                  : currentFight.status === "live"
-                  ? "bg-red-500/20 text-red-500 border border-red-500/30"
-                  : currentFight.status === "completed"
-                  ? "bg-gray-500/20 text-gray-500 border border-gray-500/30"
-                  : "bg-blue-500/20 text-blue-500 border border-blue-500/30"
-              }`}>
+              <div
+                className={`mb-4 p-3 rounded-lg text-center font-semibold ${
+                  currentFight.status === "betting"
+                    ? "bg-green-500/20 text-green-500 border border-green-500/30"
+                    : currentFight.status === "live"
+                      ? "bg-red-500/20 text-red-500 border border-red-500/30"
+                      : currentFight.status === "completed"
+                        ? "bg-gray-500/20 text-gray-500 border border-gray-500/30"
+                        : "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+                }`}
+              >
                 {currentFight.status === "betting" && "APUESTAS ABIERTAS"}
-                {currentFight.status === "live" && "APUESTAS CERRADAS - PELEA EN CURSO"}
+                {currentFight.status === "live" &&
+                  "APUESTAS CERRADAS - PELEA EN CURSO"}
                 {currentFight.status === "completed" && "PELEA FINALIZADA"}
-                {(currentFight.status === "upcoming" || currentFight.status === "scheduled") && "PRÓXIMA PELEA"}
+                {(currentFight.status === "upcoming" ||
+                  currentFight.status === "scheduled") &&
+                  "PRÓXIMA PELEA"}
               </div>
             )}
             <BettingPanel
