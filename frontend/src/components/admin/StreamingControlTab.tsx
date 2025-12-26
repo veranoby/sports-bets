@@ -29,11 +29,7 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
 
   // Use the SSE connection hook for metrics and status updates
-  const {
-    data,
-    isConnected,
-    reconnect,
-  } = useSSEConnection({
+  const { data, isConnected, reconnect } = useSSEConnection({
     endpoint: `/api/sse/streaming?token=${localStorage.getItem("token")}`,
   });
 

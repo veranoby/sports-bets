@@ -2,11 +2,7 @@
 // Página de artículos premium con enfoque en contenido exclusivo
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Crown,
-  Zap,
-  BookOpen,
-} from "lucide-react";
+import { Crown, Zap, BookOpen } from "lucide-react";
 import { articlesAPI } from "../../services/api";
 import PremiumArticleCard from "../../components/articles/PremiumArticleCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
