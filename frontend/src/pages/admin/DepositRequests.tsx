@@ -8,8 +8,6 @@ import RejectOperationModal from "../../components/admin/RejectOperationModal";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import { useToast } from "../../hooks/useToast";
 import type { WalletOperation } from "../../types";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, RefreshCw, Filter } from "lucide-react";
 
 const DepositRequests: React.FC = () => {
@@ -17,7 +15,7 @@ const DepositRequests: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [filterStatus, setFilterStatus] = useState<string>("pending");
-  const [filterType, setFilterType] = useState<string>("deposit");
+  const [filterType] = useState<string>("deposit");
   const [selectedOperation, setSelectedOperation] =
     useState<WalletOperation | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);

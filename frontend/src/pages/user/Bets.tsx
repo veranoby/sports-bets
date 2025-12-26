@@ -23,7 +23,6 @@ import CreateBetModal from "../../components/user/CreateBetModal";
 import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
-import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 
 import type { Bet, EventData, Fight } from "../../types";
 
@@ -46,7 +45,6 @@ interface PagoProposedData {
 }
 
 export default function UserBets() {
-  const { isBettingEnabled } = useFeatureFlags();
   const navigate = useNavigate();
 
   // Estados principales

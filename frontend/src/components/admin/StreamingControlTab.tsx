@@ -11,21 +11,18 @@ import {
 } from "lucide-react";
 import HLSPlayer from "../../components/streaming/HLSPlayer";
 import { useSSEConnection } from "../../hooks/useSSEConnection";
-import { streamingAPI, eventsAPI, apiClient } from "../../services/api";
+import { eventsAPI } from "../../services/api";
 import Card from "../../components/shared/Card";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useStreamControl } from "../../hooks/useStreamControl";
 
 interface StreamingControlTabProps {
   eventId: string;
   eventDetailData: any;
-  onStreamStatusChange: (status: any) => void;
 }
 
 const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
   eventId,
   eventDetailData,
-  onStreamStatusChange,
 }) => {
   const [isStreamPlaying, setIsStreamPlaying] = useState(false);
   const [isStreamPaused, setIsStreamPaused] = useState(false);
@@ -35,7 +32,6 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
   const {
     data,
     isConnected,
-    error: sseError,
     reconnect,
   } = useSSEConnection({
     endpoint: `/api/sse/streaming?token=${localStorage.getItem("token")}`,
@@ -46,7 +42,6 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
     handleStopStream: onStopStream,
     handlePauseStream: onPauseStream,
     handleResumeStream: onResumeStream,
-    isLoading,
     error,
   } = useStreamControl();
 
@@ -70,10 +65,6 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
 
     getStreamAccess();
   }, [eventId]);
-
-  // State for stream key and RTMP URL
-  const [streamKey, setStreamKey] = useState<string>("");
-  const [rtmpUrl, setRtmpUrl] = useState<string>("");
 
   const handleStartStream = async () => {
     await onStartStream(eventId);
@@ -398,102 +389,6 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
           </Card>
         </div>
       </div>
-
-      {/* OBS Configuration Section - appears only when stream is started */}
-      {streamKey && rtmpUrl && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-amber-600"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <h3 className="text-md font-semibold text-gray-800">
-              Configuración OBS Studio
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Server (RTMP URL)
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  readOnly
-                  value={rtmpUrl}
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2 text-sm bg-gray-100 text-gray-800"
-                />
-                <button
-                  onClick={() => navigator.clipboard.writeText(rtmpUrl)}
-                  className="px-3 py-2 bg-amber-600 text-white rounded-r-md hover:bg-amber-700 text-sm flex items-center gap-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Copiar
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stream Key
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  readOnly
-                  value={streamKey}
-                  className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2 text-sm bg-gray-100 text-gray-800"
-                />
-                <button
-                  onClick={() => navigator.clipboard.writeText(streamKey)}
-                  className="px-3 py-2 bg-amber-600 text-white rounded-r-md hover:bg-amber-700 text-sm flex items-center gap-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Copiar
-                </button>
-              </div>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-gray-600">
-            <strong>Instrucciones:</strong> En OBS Studio → Configuración →
-            Transmisión → Servicio: Personalizado... → Copia los valores
-            anteriores en Servidor y Clave de Transmisión.
-          </p>
-        </div>
-      )}
 
       {/* Error Display */}
       {error && (

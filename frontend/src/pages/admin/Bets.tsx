@@ -8,8 +8,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import {
-  Search,
-  Filter,
   Calendar,
   DollarSign,
   User as UserIcon,
@@ -18,7 +16,7 @@ import {
 } from "lucide-react";
 
 // Import Bet interface type
-import type { Bet, User as UserType, Event, Fight } from "../../types";
+import type { Bet } from "../../types";
 import { exportToCSV } from "../../utils/exportCSV";
 
 interface BetFilter {

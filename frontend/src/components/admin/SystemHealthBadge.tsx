@@ -72,7 +72,7 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
         setActionMessage(`✗ ${data.message}`);
         setTimeout(() => setActionMessage(null), 5000);
       }
-    } catch (err) {
+    } catch {
       setActionMessage("✗ Action failed");
       setTimeout(() => setActionMessage(null), 5000);
     } finally {
@@ -86,8 +86,6 @@ const SystemHealthBadge: React.FC<SystemHealthBadgeProps> = ({
     md: "text-sm px-2.5 py-1.5 rounded-full",
     lg: "text-base px-3 py-2 rounded-full",
   };
-
-  const currentSizeClass = sizeClasses[size];
 
   // Determine color based on alert count
   const getSeverityColor = () => {

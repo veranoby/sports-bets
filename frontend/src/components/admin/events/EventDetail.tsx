@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  X,
   Edit,
   Trash2,
   Settings,
@@ -9,15 +7,12 @@ import {
   DollarSign,
   Video,
   Square,
-  CheckCircle,
   XCircle,
   Activity,
 } from "lucide-react";
 
 // Components
-import Card from "../../../components/shared/Card";
 import LoadingSpinner from "../../../components/shared/LoadingSpinner";
-import ErrorMessage from "../../../components/shared/ErrorMessage";
 import EmptyState from "../../../components/shared/EmptyState";
 import CreateFightModal from "../../../components/admin/CreateFightModal";
 import EditEventModal from "../../../components/admin/EditEventModal";
@@ -50,7 +45,6 @@ const EventDetail: React.FC<EventDetailProps> = ({
   onEventAction,
   onPermanentDelete,
 }) => {
-  const navigate = useNavigate();
   const [eventDetailData, setEventDetailData] = useState<{
     event: Event;
     fights: Fight[];

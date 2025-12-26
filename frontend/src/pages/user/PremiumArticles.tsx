@@ -3,15 +3,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Star,
   Crown,
-  Calendar,
-  Eye,
-  User,
-  Filter,
-  ArrowUpDown,
   Zap,
-  Lock,
   BookOpen,
 } from "lucide-react";
 import { articlesAPI } from "../../services/api";

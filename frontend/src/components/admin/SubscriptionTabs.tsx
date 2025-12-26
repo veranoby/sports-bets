@@ -29,11 +29,8 @@ interface SubscriptionTabsProps {
 }
 
 const SubscriptionTabs: React.FC<SubscriptionTabsProps> = ({
-  userId,
   subscription,
-  mode = "edit", // Default to 'edit' for backward compatibility
   onSave,
-  onCancel,
 }) => {
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<string>("free");

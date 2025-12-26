@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import type { NavigateOptions } from "react-router-dom";
 import {
   Calendar,
   Play,
@@ -13,20 +12,17 @@ import {
   Settings,
   DollarSign,
   Activity,
-  AlertTriangle,
   Clock,
   CheckCircle,
   XCircle,
   Edit,
   Radio,
   Target,
-  BarChart3,
   X,
   User,
   Building2,
   Video,
   Trash2,
-  HelpCircle,
 } from "lucide-react";
 
 // Components
@@ -34,10 +30,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
-import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditEventModal from "../../components/admin/EditEventModal";
-import EventWorkflowControls from "../../components/admin/EventWorkflowControls";
-import FightStatusManager from "../../components/admin/FightStatusManager";
 import SSEErrorBoundary from "../../components/admin/SSEErrorBoundary";
 import EventTabs from "../../components/admin/EventTabs";
 import StreamingControlTab from "../../components/admin/StreamingControlTab";
@@ -46,7 +39,7 @@ import BetsActiveTab from "../../components/admin/BetsActiveTab";
 import StatusChanger from "../../components/admin/StatusChanger";
 
 // APIs
-import { eventsAPI, fightsAPI, betsAPI, streamingAPI } from "../../config/api";
+import { eventsAPI, fightsAPI, streamingAPI } from "../../config/api";
 
 // Hooks
 import { useAuth } from "../../contexts/AuthContext";
@@ -75,7 +68,6 @@ const AdminEventsPage: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("streaming");
   const [isStreamPaused, setIsStreamPaused] = useState(false); // State for stream pause status
-  const [isCreateFightModalOpen, setIsCreateFightModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
 
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
@@ -309,16 +301,6 @@ const AdminEventsPage: React.FC = () => {
     }
   };
 
-  const handleFightCreated = (newFight: Fight) => {
-    if (eventDetailData) {
-      setEventDetailData({
-        ...eventDetailData,
-        fights: [...eventDetailData.fights, newFight],
-      });
-    }
-    setIsCreateFightModalOpen(false);
-  };
-
   const handleEventUpdated = (updatedEvent: Event) => {
     setEvents(events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)));
     if (eventDetailData && eventDetailData.event.id === updatedEvent.id) {
@@ -356,10 +338,6 @@ const AdminEventsPage: React.FC = () => {
         setOperationInProgress(null);
       }
     }
-  };
-
-  const closeEventDetail = () => {
-    navigate("/admin/events");
   };
 
   const StatusBadge = ({ status }: { status: string }) => {
