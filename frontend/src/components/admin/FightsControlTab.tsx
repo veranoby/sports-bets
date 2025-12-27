@@ -4,7 +4,7 @@ import EmptyState from "../../components/shared/EmptyState";
 import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditFightModal from "../../components/admin/EditFightModal";
 import FightStatusManager from "../../components/admin/FightStatusManager";
-import { fightsAPI, eventsAPI } from "../../services/api";
+import { fightsAPI } from "../../services/api";
 import type { Fight } from "../../types";
 
 interface FightsControlTabProps {

@@ -20,14 +20,12 @@ import SSEErrorBoundary from "../../../components/admin/SSEErrorBoundary";
 import StatusChanger from "../../../components/admin/StatusChanger";
 import SetWinnerModal from "../../../components/admin/SetWinnerModal";
 import HLSPlayer from "../../../components/streaming/HLSPlayer";
-import { useAdminSSE, SSEEventType, AdminChannel } from "../../../hooks/useSSE";
-import StreamingControlTab from "../../../components/admin/StreamingControlTab";
+import { useAdminSSE, AdminChannel } from "../../../hooks/useSSE";
 import FightsControlTab from "../../../components/admin/FightsControlTab";
 import BetsActiveTab from "../../../components/admin/BetsActiveTab";
 
 // APIs
 import { eventsAPI, fightsAPI, streamingAPI } from "../../../config/api";
-import { apiClient } from "../../../services/api";
 
 // Types
 import type { Event, Fight } from "../../../types";

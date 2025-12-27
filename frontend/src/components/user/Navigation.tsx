@@ -9,19 +9,15 @@ import {
   User,
   Newspaper,
   Building2,
-  Wallet, // Added for wallet
-  Trophy, // Added for bets
   Users, // Added for admin users
   Settings, // Added for admin system
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext"; // Added
-import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatureFlags import
 import type { UserRole } from "../../../../shared/types"; // Fixed path to project-level shared/types; type-only import
 
 const Navigation: React.FC<{ currentPage?: string }> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isWalletEnabled, isBettingEnabled } = useFeatureFlags(); // Added feature flag checks
 
   const getActivePage = () => {
     if (location.pathname.startsWith("/events")) return "events";

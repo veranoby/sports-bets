@@ -1,29 +1,17 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { XCircle, CheckCircle, Video, Square } from "lucide-react";
 
 // Components
 import EventList from "../../components/admin/events/EventList";
 import EventDetail from "../../components/admin/events/EventDetail";
 import SSEErrorBoundary from "../../components/admin/SSEErrorBoundary";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import ErrorMessage from "../../components/shared/ErrorMessage";
 
 // APIs
 import { eventsAPI } from "../../config/api";
 
-// Hooks
-import { useAuth } from "../../contexts/AuthContext";
-
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const { id: eventId } = useParams<{ id: string }>();
-  const { user } = useAuth();
-
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(
-    null,
-  );
-  const [error, setError] = useState<string | null>(null);
 
   const handleEventAction = async (
     eventId: string,

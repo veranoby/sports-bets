@@ -3,14 +3,12 @@
 // LIVE EVENTS WIDGET - Connected to Real Data
 // ================================================================
 
-import React, { useState, useCallback, useMemo, memo } from "react";
+import React, { useCallback, useMemo, memo } from "react";
 import { Zap, Play, Users, MapPin, Activity, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import LoadingSpinner from "../shared/LoadingSpinner";
-import EmptyState from "../shared/EmptyState";
-import { Tag, Typography } from "antd";
 
 // Assuming EventData from useApi matches what we need, otherwise defining partial here for safety
 interface EventData {
@@ -22,8 +20,6 @@ interface EventData {
   currentViewers?: number;
   activeBets?: number;
 }
-
-const { Text } = Typography;
 
 // ✅ COMPONENTE MEMOIZADO - EventCard Premium
 const PremiumEventCard = memo(({ event }: { event: EventData }) => {
