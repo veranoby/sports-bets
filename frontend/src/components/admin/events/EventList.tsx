@@ -26,7 +26,7 @@ import { useAdminSSE, AdminChannel, SSEEventType } from "../../../hooks/useSSE";
 import type { Event } from "../../../types";
 
 interface EventListProps {
-  onEventAction: (eventId: string, action: string) => Promise<any>;
+  onEventAction: (eventId: string, action: string) => Promise<Event | void>;
   onPermanentDelete?: (eventId: string) => Promise<void>;
 }
 

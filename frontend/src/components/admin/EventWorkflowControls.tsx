@@ -102,7 +102,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         throw new Error(response.error || "Error al pausar el stream");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al pausar el stream";
+      const message =
+        err instanceof Error ? err.message : "Error al pausar el stream";
       setError(message);
     } finally {
       setLoading(false);
@@ -123,7 +124,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         throw new Error(response.error || "Error al reanudar el stream");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al reanudar el stream";
+      const message =
+        err instanceof Error ? err.message : "Error al reanudar el stream";
       setError(message);
     } finally {
       setLoading(false);
@@ -148,7 +150,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         throw new Error(response.error || "Error al abrir apuestas");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al abrir apuestas";
+      const message =
+        err instanceof Error ? err.message : "Error al abrir apuestas";
       setError(message);
     } finally {
       setLoading(false);
@@ -173,7 +176,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         throw new Error(response.error || "Error al iniciar combate");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al iniciar combate";
+      const message =
+        err instanceof Error ? err.message : "Error al iniciar combate";
       setError(message);
     } finally {
       setLoading(false);
@@ -194,7 +198,8 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
         throw new Error(response.error || "Error al completar evento");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al completar evento";
+      const message =
+        err instanceof Error ? err.message : "Error al completar evento";
       setError(message);
     } finally {
       setLoading(false);

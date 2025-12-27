@@ -9,5 +9,9 @@
 - ✅ UserModal.tsx: Fixed subscriptionData and catch block.
 - ✅ WalletOperationFilters.tsx: Fixed onChange type.
 
-Total: ~17 warnings fixed.
+## Batch 2 (Completed)
+- ✅ EventDetail.tsx: Fixed 22+ explicit 'any' in SSE callbacks by introducing ExtendedSSEEvent type.
+- ✅ EventList.tsx: Fixed onEventAction prop type.
+
+Total: ~40 warnings fixed.
 Status: TSC Passing.

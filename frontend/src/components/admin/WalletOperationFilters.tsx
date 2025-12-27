@@ -18,7 +18,9 @@ interface WalletOperationFiltersProps {
     dateTo: string;
     type: "deposit" | "withdrawal";
   };
-  onChange: (newFilters: Partial<WalletOperationFiltersProps["filters"]>) => void;
+  onChange: (
+    newFilters: Partial<WalletOperationFiltersProps["filters"]>,
+  ) => void;
   onTabChange: (tab: "deposits" | "withdrawals" | "history") => void;
   activeTab: "deposits" | "withdrawals" | "history";
 }

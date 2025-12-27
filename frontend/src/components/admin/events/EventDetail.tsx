@@ -21,6 +21,7 @@ import StatusChanger from "../../../components/admin/StatusChanger";
 import SetWinnerModal from "../../../components/admin/SetWinnerModal";
 import HLSPlayer from "../../../components/streaming/HLSPlayer";
 import { useAdminSSE, AdminChannel } from "../../../hooks/useSSE";
+import type { SSEEvent } from "../../../hooks/useSSE";
 import FightsControlTab from "../../../components/admin/FightsControlTab";
 import BetsActiveTab from "../../../components/admin/BetsActiveTab";
 
@@ -29,6 +30,14 @@ import { eventsAPI, fightsAPI, streamingAPI } from "../../../config/api";
 
 // Types
 import type { Event, Fight } from "../../../types";
+
+interface ExtendedSSEEvent extends SSEEvent<any> {
+  eventId?: string;
+  streamUrl?: string;
+  hlsStatus?: string;
+  streamStatus?: string;
+  status?: string;
+}
 
 interface EventDetailProps {
   eventId: string;
@@ -104,56 +113,56 @@ const EventDetail: React.FC<EventDetailProps> = ({
       // Event status changes
       EVENT_ACTIVATED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, status: (event as any).status },
+              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
             };
           });
         }
       },
       EVENT_COMPLETED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, status: (event as any).status },
+              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
             };
           });
         }
       },
       EVENT_CANCELLED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, status: (event as any).status },
+              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
             };
           });
         }
       },
       EVENT_SCHEDULED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
-              event: { ...prev.event, status: (event as any).status },
+              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
             };
           });
         }
@@ -162,14 +171,14 @@ const EventDetail: React.FC<EventDetailProps> = ({
       STREAM_STARTED: (event) => {
         console.log(`🎬 [SSE] STREAM_STARTED received:`, event);
         console.log(`🎬 [SSE] Current eventId: ${eventId}`);
-        console.log(`🎬 [SSE] Event.eventId: ${(event as any).eventId}`);
+        console.log(`🎬 [SSE] Event.eventId: ${(event as ExtendedSSEEvent).eventId}`);
         console.log(
           `🎬 [SSE] Event metadata.eventId: ${event.metadata?.eventId}`,
         );
 
         // ✅ FIX: Event properties are at root level, not in .data
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           console.log(`✅ [SSE] STREAM_STARTED - Updating UI`);
@@ -180,8 +189,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 streamStatus: "connected",
-                streamUrl: (event as any).streamUrl || prev.event.streamUrl,
-                hlsStatus: (event as any).hlsStatus || prev.event.hlsStatus,
+                streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
+                hlsStatus: (event as ExtendedSSEEvent).hlsStatus || prev.event.hlsStatus,
               },
             };
           });
@@ -193,7 +202,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       STREAM_STOPPED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
@@ -210,7 +219,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       STREAM_PAUSED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
@@ -227,7 +236,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       STREAM_RESUMED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
@@ -244,17 +253,17 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       STREAM_STATUS_UPDATE: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           let newStreamStatus = null;
-          if ((event as any).type === "STREAM_PAUSED") {
+          if ((event as ExtendedSSEEvent).type === "STREAM_PAUSED") {
             newStreamStatus = "paused";
-          } else if ((event as any).type === "STREAM_RESUMED") {
+          } else if ((event as ExtendedSSEEvent).type === "STREAM_RESUMED") {
             newStreamStatus = "connected";
-          } else if ((event as any).status === "live") {
+          } else if ((event as ExtendedSSEEvent).status === "live") {
             newStreamStatus = "connected";
-          } else if ((event as any).status === "ended") {
+          } else if ((event as ExtendedSSEEvent).status === "ended") {
             newStreamStatus = "disconnected";
           }
 
@@ -266,7 +275,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 event: {
                   ...prev.event,
                   streamStatus: newStreamStatus,
-                  streamUrl: (event as any).streamUrl || prev.event.streamUrl,
+                  streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
                 },
               };
             });
@@ -277,7 +286,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       RTMP_CONNECTED: (event) => {
         console.log(`📡 [SSE] RTMP_CONNECTED received:`, event);
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           console.log(`✅ [SSE] RTMP_CONNECTED - Updating UI`);
@@ -288,7 +297,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
               ...prev,
               event: {
                 ...prev.event,
-                streamStatus: (event as any).streamStatus || "connected",
+                streamStatus: (event as ExtendedSSEEvent).streamStatus || "connected",
               },
             };
           });
@@ -296,7 +305,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       RTMP_DISCONNECTED: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
@@ -305,7 +314,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
               ...prev,
               event: {
                 ...prev.event,
-                streamStatus: (event as any).streamStatus || "offline",
+                streamStatus: (event as ExtendedSSEEvent).streamStatus || "offline",
               },
             };
           });
@@ -315,7 +324,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       HLS_READY: (event) => {
         console.log(`🎥 [SSE] HLS_READY received:`, event);
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           console.log(`✅ [SSE] HLS_READY - Updating UI`);
@@ -326,7 +335,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
               event: {
                 ...prev.event,
                 hlsStatus: "ready",
-                streamUrl: (event as any).streamUrl || prev.event.streamUrl,
+                streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
               },
             };
           });
@@ -334,7 +343,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       HLS_UNAVAILABLE: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
@@ -351,7 +360,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
       },
       HLS_PROCESSING: (event) => {
         if (
-          (event as any).eventId === eventId ||
+          (event as ExtendedSSEEvent).eventId === eventId ||
           event.metadata?.eventId === eventId
         ) {
           setEventDetailData((prev) => {
