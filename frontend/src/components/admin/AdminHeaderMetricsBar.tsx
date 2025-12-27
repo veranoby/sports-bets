@@ -57,7 +57,7 @@ const AdminHeaderMetricsBar: React.FC<AdminHeaderMetricsBarProps> = ({
         setActionMessage(`✗ ${data.message}`);
         setTimeout(() => setActionMessage(null), 5000);
       }
-    } catch (err) {
+    } catch {
       setActionMessage("✗ Action failed");
       setTimeout(() => setActionMessage(null), 5000);
     } finally {

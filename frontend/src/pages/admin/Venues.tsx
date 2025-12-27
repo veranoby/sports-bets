@@ -227,7 +227,7 @@ const AdminVenuesPage: React.FC = () => {
     try {
       await userAPI.updateStatus(userId, newStatus);
       fetchData();
-    } catch (err) {
+    } catch {
       setError(`Error al ${actionMessage} la gallera`);
     }
   };
@@ -289,7 +289,7 @@ const AdminVenuesPage: React.FC = () => {
     try {
       await userAPI.delete(userId);
       fetchData();
-    } catch (err) {
+    } catch {
       setError("Error al eliminar la gallera");
     }
   };

@@ -193,7 +193,7 @@ const UserModal: React.FC<UserModalProps> = ({
         onSuccess(createdOrUpdatedUser);
         onClose();
       }
-    } catch (err) {
+    } catch {
       // Error is already handled in the hook
     } finally {
       setIsLoading(false);

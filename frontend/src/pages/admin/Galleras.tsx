@@ -231,7 +231,7 @@ const AdminGallerasPage: React.FC = () => {
     try {
       await userAPI.updateStatus(userId, newStatus);
       fetchData();
-    } catch (err) {
+    } catch {
       setError(`Error al ${actionMessage} el criadero`);
     }
   };
@@ -293,7 +293,7 @@ const AdminGallerasPage: React.FC = () => {
     try {
       await userAPI.delete(userId);
       fetchData();
-    } catch (err) {
+    } catch {
       setError("Error al eliminar el criadero");
     }
   };
