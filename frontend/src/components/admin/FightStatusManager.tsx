@@ -16,7 +16,6 @@ interface FightStatusManagerProps {
 }
 
 const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight }) => {
-
   const getStatusTag = (status: string) => {
     switch (status) {
       case "upcoming":

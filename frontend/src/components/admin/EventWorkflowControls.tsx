@@ -13,7 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import type { Fight, User } from "../../types";
+import type { Fight, User, EventData } from "../../types";
 import { eventsAPI, fightsAPI } from "../../services/api";
 
 interface EventWorkflowControlsProps {
@@ -27,7 +27,7 @@ interface EventWorkflowControlsProps {
     | "cancelled"
     | "intermission";
   onStatusChange: (newStatus: string, message?: string) => void;
-  currentEvent: any; // The event object
+  currentEvent: EventData; // The event object
   fights: Fight[];
 }
 
@@ -101,8 +101,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       } else {
         throw new Error(response.error || "Error al pausar el stream");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al pausar el stream");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al pausar el stream";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -121,8 +122,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       } else {
         throw new Error(response.error || "Error al reanudar el stream");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al reanudar el stream");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al reanudar el stream";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -145,8 +147,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       } else {
         throw new Error(response.error || "Error al abrir apuestas");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al abrir apuestas");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al abrir apuestas";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -169,8 +172,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       } else {
         throw new Error(response.error || "Error al iniciar combate");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar combate");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al iniciar combate";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -189,8 +193,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
       } else {
         throw new Error(response.error || "Error al completar evento");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al completar evento");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al completar evento";
+      setError(message);
     } finally {
       setLoading(false);
     }

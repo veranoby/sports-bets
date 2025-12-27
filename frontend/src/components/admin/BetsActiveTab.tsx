@@ -4,11 +4,11 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import { betsAPI } from "../../services/api";
-import type { Bet } from "../../types";
+import type { Bet, EventData } from "../../types";
 
 interface BetsActiveTabProps {
   eventId: string;
-  eventDetailData: any;
+  eventDetailData: EventData;
   fightId?: string | null; // Optional fight ID to filter bets
   selectedFightId?: string | null;
   onStartBettingSession?: (fightId: string) => void;
@@ -38,7 +38,7 @@ const BetsActiveTab: React.FC<BetsActiveTabProps> = ({
         setLoading(true);
         setError(null);
 
-        const params: any = {
+        const params: { eventId: string; limit: number; fightId?: string } = {
           eventId,
           limit: 100, // Limit to 100 bets for performance during live event
         };

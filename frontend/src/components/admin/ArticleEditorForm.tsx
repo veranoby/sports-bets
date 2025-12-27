@@ -5,7 +5,7 @@ import { articlesAPI, venuesAPI, gallerasAPI } from "../../config/api";
 import { userAPI, uploadsAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Article } from "../../types/article";
-import type { Venue, Gallera } from "../../types";
+import type { Venue, Gallera, User } from "../../types";
 import ErrorMessage from "../shared/ErrorMessage";
 import StatusChip from "../shared/StatusChip";
 
@@ -33,7 +33,7 @@ const ArticleEditorForm: React.FC<ArticleEditorFormProps> = ({
   const [formData, setFormData] = useState<Partial<Article>>(emptyArticle);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [galleras, setGalleras] = useState<Gallera[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]); // For admin to select article author
+  const [allUsers, setAllUsers] = useState<User[]>([]); // For admin to select article author
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);

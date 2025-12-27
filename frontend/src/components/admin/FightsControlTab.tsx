@@ -5,11 +5,11 @@ import CreateFightModal from "../../components/admin/CreateFightModal";
 import EditFightModal from "../../components/admin/EditFightModal";
 import FightStatusManager from "../../components/admin/FightStatusManager";
 import { fightsAPI } from "../../services/api";
-import type { Fight } from "../../types";
+import type { Fight, EventData } from "../../types";
 
 interface FightsControlTabProps {
   eventId: string;
-  eventDetailData: any;
+  eventDetailData: EventData;
   selectedFightId?: string | null;
   onFightSelect?: (fightId: string) => void;
   onFightCreated: (newFight: Fight) => void;

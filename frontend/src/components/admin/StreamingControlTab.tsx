@@ -14,10 +14,11 @@ import { useSSEConnection } from "../../hooks/useSSEConnection";
 import { eventsAPI } from "../../services/api";
 import Card from "../../components/shared/Card";
 import { useStreamControl } from "../../hooks/useStreamControl";
+import type { EventData } from "../../types";
 
 interface StreamingControlTabProps {
   eventId: string;
-  eventDetailData: any;
+  eventDetailData: { event: EventData };
 }
 
 const StreamingControlTab: React.FC<StreamingControlTabProps> = ({

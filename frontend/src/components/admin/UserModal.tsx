@@ -82,7 +82,7 @@ const UserModal: React.FC<UserModalProps> = ({
   } | null>(null);
 
   // Memoize onSave to prevent infinite re-renders in SubscriptionTabs
-  const handleSubscriptionSave = useCallback((subscriptionData: any) => {
+  const handleSubscriptionSave = useCallback((subscriptionData: { membership_type?: string; type?: string; assigned_username?: string }) => {
     // Always save to pending subscription state
     // This will be applied when the user clicks the main "Crear/Actualizar" button
     setPendingSubscription({
@@ -134,9 +134,10 @@ const UserModal: React.FC<UserModalProps> = ({
         setError(errorMsg);
         toast.error(errorMsg);
       }
-    } catch (err: any) {
-      setError(err.message || "Error al ajustar el saldo.");
-      toast.error(err.message || "Error al ajustar el saldo.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al ajustar el saldo.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
       setShowConfirmAdjustmentModal(false);
