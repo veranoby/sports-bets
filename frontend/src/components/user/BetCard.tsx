@@ -78,17 +78,18 @@ const BetCard: React.FC<BetCardProps> = ({
       {/* Action buttons */}
       {(onCancel || onViewEvent) && (
         <div className="mt-3 flex gap-2 justify-end">
-          {onCancel && bet.status === "pending" && ( // Only allow cancel if pending
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onCancel(bet.id);
-              }}
-              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-            >
-              Cancelar
-            </button>
-          )}
+          {onCancel &&
+            bet.status === "pending" && ( // Only allow cancel if pending
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel(bet.id);
+                }}
+                className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+              >
+                Cancelar
+              </button>
+            )}
           {bet.eventId && (
             <button
               onClick={(e) => {

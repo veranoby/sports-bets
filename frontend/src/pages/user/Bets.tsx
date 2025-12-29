@@ -172,39 +172,43 @@ export default function UserBets() {
   // Filter Active vs History (MUST be before conditional return)
   const myActiveBets = useMemo(
     () =>
-      bets.filter(
-        (bet) =>
-          bet.status === "active" ||
-          bet.status === "pending" ||
-          bet.status === "matched", // Matched bets are still active for user
-      ).map(bet => {
-        const event = allEvents.find(e => e.id === bet.eventId);
-        const fight = event?.fights?.find(f => f.id === bet.fightId);
-        return {
-          ...bet,
-          eventName: event?.name,
-          fightNumber: fight?.number
-        };
-      }),
+      bets
+        .filter(
+          (bet) =>
+            bet.status === "active" ||
+            bet.status === "pending" ||
+            bet.status === "matched", // Matched bets are still active for user
+        )
+        .map((bet) => {
+          const event = allEvents.find((e) => e.id === bet.eventId);
+          const fight = event?.fights?.find((f) => f.id === bet.fightId);
+          return {
+            ...bet,
+            eventName: event?.name,
+            fightNumber: fight?.number,
+          };
+        }),
     [bets, allEvents],
   );
 
   const historyBetsList = useMemo(
     () =>
-      bets.filter(
-        (bet) =>
-          bet.status === "won" ||
-          bet.status === "lost" ||
-          bet.status === "cancelled",
-      ).map(bet => {
-        const event = allEvents.find(e => e.id === bet.eventId);
-        const fight = event?.fights?.find(f => f.id === bet.fightId);
-        return {
-          ...bet,
-          eventName: event?.name,
-          fightNumber: fight?.number
-        };
-      }),
+      bets
+        .filter(
+          (bet) =>
+            bet.status === "won" ||
+            bet.status === "lost" ||
+            bet.status === "cancelled",
+        )
+        .map((bet) => {
+          const event = allEvents.find((e) => e.id === bet.eventId);
+          const fight = event?.fights?.find((f) => f.id === bet.fightId);
+          return {
+            ...bet,
+            eventName: event?.name,
+            fightNumber: fight?.number,
+          };
+        }),
     [bets, allEvents],
   );
 
