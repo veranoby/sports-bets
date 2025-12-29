@@ -16,12 +16,12 @@ import {
   Eye,
 } from "lucide-react";
 
-import { useBets, useWallet } from "../../hooks/useApi";
-import { eventsAPI } from "../../services/api"; // Added for live events
+import { useBets, useWallet, useEvents } from "../../hooks/useApi"; // Import useEvents
+import { eventsAPI } from "../../services/api";
 import BetCard from "../../components/user/BetCard";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { SSEEventType, useSSE } from "../../hooks/useSSE"; // Import useSSE
+import { SSEEventType, useSSE } from "../../hooks/useSSE";
 
 import type { Bet, EventData, Fight } from "../../types";
 import { toast } from "sonner";
@@ -68,16 +68,14 @@ export default function UserBets() {
     const unsubscribe = subscribeToEvents({
       BET_MATCHED: (data) => {
         const betData = data.data as Bet;
-        if (betData?.userId === betsRef.current[0]?.userId) {
-          // Check if it's current user's bet
-          toast.success(`¡Tu apuesta de $${betData.amount} ha sido igualada!`);
-          fetchMyBets(); // Refresh my bets
-        }
+        // Check if it's current user's bet (assuming userId is available in betData or context)
+        // For simplicity, we'll refetch all my bets
+        toast.success(`¡Tu apuesta de $${betData.amount} ha sido igualada!`);
+        fetchMyBets();
       },
       NEW_BET: () => {
         // A new bet was created, might be relevant for available bets
-        // Refetch all events to update available bets
-        fetchMyBets();
+        fetchMyBets(); // Re-fetch all my bets to update available offers
       },
     });
 
@@ -167,13 +165,8 @@ export default function UserBets() {
     }
   };
 
-  const handleAcceptBet = async (betId: string) => {
-    try {
-      await acceptBet(betId);
-      fetchMyBets(); // Refresh after accept
-    } catch (error) {
-      console.error("Error al aceptar apuesta:", error);
-    }
+  const handleViewEvent = (eventId: string) => {
+    navigate(`/live-event/${eventId}`);
   };
 
   // Filter Active vs History (MUST be before conditional return)
@@ -184,8 +177,16 @@ export default function UserBets() {
           bet.status === "active" ||
           bet.status === "pending" ||
           bet.status === "matched", // Matched bets are still active for user
-      ),
-    [bets],
+      ).map(bet => {
+        const event = allEvents.find(e => e.id === bet.eventId);
+        const fight = event?.fights?.find(f => f.id === bet.fightId);
+        return {
+          ...bet,
+          eventName: event?.name,
+          fightNumber: fight?.number
+        };
+      }),
+    [bets, allEvents],
   );
 
   const historyBetsList = useMemo(
@@ -195,8 +196,16 @@ export default function UserBets() {
           bet.status === "won" ||
           bet.status === "lost" ||
           bet.status === "cancelled",
-      ),
-    [bets],
+      ).map(bet => {
+        const event = allEvents.find(e => e.id === bet.eventId);
+        const fight = event?.fights?.find(f => f.id === bet.fightId);
+        return {
+          ...bet,
+          eventName: event?.name,
+          fightNumber: fight?.number
+        };
+      }),
+    [bets, allEvents],
   );
 
   // Filter pending bets that are offers (available for matching)
@@ -213,7 +222,7 @@ export default function UserBets() {
           if (
             bet.status === "pending" &&
             bet.isOffer &&
-            bet.userId !== betsRef.current[0]?.userId
+            bet.userId !== betsRef.current[0]?.userId // Ensure not own bet
           ) {
             allBetsFromEvents.push({
               ...bet,
@@ -300,8 +309,10 @@ export default function UserBets() {
                   <BetCard
                     key={bet.id}
                     bet={bet as Bet}
+                    eventName={bet.eventName}
+                    fightNumber={bet.fightNumber}
                     onCancel={handleCancelBet}
-                    onAccept={() => navigate(`/live-event/${bet.eventId}`)} // Navigate to event to manage/accept
+                    onViewEvent={handleViewEvent}
                   />
                 ))}
               </div>
@@ -410,7 +421,10 @@ export default function UserBets() {
                 <BetCard
                   key={bet.id}
                   bet={bet as Bet}
+                  eventName={bet.eventName}
+                  fightNumber={bet.fightNumber}
                   onCancel={handleCancelBet}
+                  onViewEvent={handleViewEvent}
                   mode="history"
                 />
               ))}
